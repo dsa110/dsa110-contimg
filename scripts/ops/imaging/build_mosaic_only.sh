@@ -38,9 +38,9 @@ try:
         metrics_dict=metrics_dict,
         output_path=output_path
     )
-    print(f"\n✓ Mosaic built successfully at: {output_path}")
+    print(f"\n:check: Mosaic built successfully at: {output_path}")
 except Exception as e:
-    print(f"\n✗ Mosaic build failed: {e}")
+    print(f"\n:cross: Mosaic build failed: {e}")
     import traceback
     traceback.print_exc()
     sys.exit(1)

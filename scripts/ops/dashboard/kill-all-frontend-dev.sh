@@ -29,10 +29,10 @@ if [ -n "$npm_pids" ]; then
             echo "  Killing PID $pid..."
             kill "$pid" 2>/dev/null || true
         done
-        echo -e "${GREEN}✓ npm processes killed${NC}"
+        echo -e "${GREEN}:check: npm processes killed${NC}"
     fi
 else
-    echo -e "${GREEN}✓ No npm run dev processes found${NC}"
+    echo -e "${GREEN}:check: No npm run dev processes found${NC}"
 fi
 
 echo ""
@@ -54,10 +54,10 @@ if [ -n "$vite_pids" ]; then
             echo "  Killing PID $pid..."
             kill "$pid" 2>/dev/null || true
         done
-        echo -e "${GREEN}✓ Vite processes killed${NC}"
+        echo -e "${GREEN}:check: Vite processes killed${NC}"
     fi
 else
-    echo -e "${GREEN}✓ No Vite processes found${NC}"
+    echo -e "${GREEN}:check: No Vite processes found${NC}"
 fi
 
 echo ""
@@ -67,9 +67,9 @@ sleep 2
 echo "Verifying cleanup..."
 remaining=$(pgrep -f "npm run dev|vite" 2>/dev/null | wc -l | tr -d ' ')
 if [ "$remaining" -eq 0 ]; then
-    echo -e "${GREEN}✓ All frontend dev processes stopped${NC}"
+    echo -e "${GREEN}:check: All frontend dev processes stopped${NC}"
 else
-    echo -e "${YELLOW}⚠ $remaining process(es) still running${NC}"
+    echo -e "${YELLOW}:warning: $remaining process(es) still running${NC}"
     echo "Run 'ps aux | grep -E \"npm|vite\"' to see remaining processes"
 fi
 

@@ -63,7 +63,7 @@ def test_rephase_concat_approach():
     if os.path.exists(test_ms_copy):
         shutil.rmtree(test_ms_copy)
     shutil.copytree(ms_path, test_ms_copy)
-    print(f"   ✓ Copied to {test_ms_copy}")
+    print(f"   :check: Copied to {test_ms_copy}")
     
     # Step 3: Rephase (using existing function)
     print("\n3. Rephasing all fields to common phase center...")
@@ -82,11 +82,11 @@ def test_rephase_concat_approach():
             logger,
         )
         if success:
-            print("   ✓ Rephasing completed")
+            print("   :check: Rephasing completed")
         else:
-            print("   ⚠ Rephasing may have failed or was skipped")
+            print("   :warning: Rephasing may have failed or was skipped")
     except Exception as e:
-        print(f"   ✗ Rephasing failed: {e}")
+        print(f"   :cross: Rephasing failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -111,14 +111,14 @@ def test_rephase_concat_approach():
         spectral_type='flat',
         component_type='point',
     )
-    print(f"   ✓ Created SkyModel")
+    print(f"   :check: Created SkyModel")
     
     # Step 6: Convert to DP3 format
     print("\n6. Converting to DP3 format...")
     with tempfile.NamedTemporaryFile(mode='w', suffix='.skymodel', delete=False) as f:
         dp3_path = f.name
     convert_skymodel_to_dp3(sky, out_path=dp3_path)
-    print(f"   ✓ Converted to DP3 format")
+    print(f"   :check: Converted to DP3 format")
     
     # Step 7: Test DP3 on rephased MS (still multi-field, but same phase centers)
     print("\n7. Testing DP3 on rephased MS...")
@@ -129,10 +129,10 @@ def test_rephase_concat_approach():
             dp3_path,
             field="0",  # Try first field
         )
-        print("   ✓ DP3 predict succeeded!")
+        print("   :check: DP3 predict succeeded!")
         return True
     except Exception as e:
-        print(f"   ✗ DP3 predict failed: {e}")
+        print(f"   :cross: DP3 predict failed: {e}")
         print("\n   Next step would be to concatenate fields into single field")
         print("   Then test DP3 on the concatenated MS")
         return False

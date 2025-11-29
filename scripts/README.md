@@ -6,7 +6,7 @@ Consolidated scripts directory for the DSA-110 continuum imaging pipeline.
 
 - `ops/` - Operational scripts (calibration, imaging, deployment, diagnostics)
 - `backend/` - Backend utility scripts
-- `frontend/` → `../frontend/scripts/` - Frontend build/test scripts (symlink)
+- `frontend/` :arrow_right: `../frontend/scripts/` - Frontend build/test scripts (symlink)
 - `archive/` - Legacy/experimental scripts
 
 ## Validation Tools

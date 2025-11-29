@@ -7,20 +7,20 @@
 
 ## Features
 
-- ✅ **Comprehensive error pattern detection** - Recognizes 50+ common error
+- :check: **Comprehensive error pattern detection** - Recognizes 50+ common error
   words/phrases
-- ✅ **Context-aware detection** - Distinguishes real errors from comments, test
+- :check: **Context-aware detection** - Distinguishes real errors from comments, test
   names, and documentation
-- ✅ **Exit code checking** - Fails on non-zero exit codes (with exceptions for
+- :check: **Exit code checking** - Fails on non-zero exit codes (with exceptions for
   commands like `grep`)
-- ✅ **Structured test parsing** - Supports pytest `--junitxml` for reliable
+- :check: **Structured test parsing** - Supports pytest `--junitxml` for reliable
   test result parsing
-- ✅ **Test result parsing** - Specifically checks pytest/test output for
+- :check: **Test result parsing** - Specifically checks pytest/test output for
   failures
-- ✅ **Full output preservation** - Unbuffered output with simultaneous logging
-- ✅ **False positive filtering** - Excludes common non-error patterns
+- :check: **Full output preservation** - Unbuffered output with simultaneous logging
+- :check: **False positive filtering** - Excludes common non-error patterns
   (comments, function names, etc.)
-- ✅ **Trap-based error handling** - Better error context with line numbers
+- :check: **Trap-based error handling** - Better error context with line numbers
 
 ## Usage
 
@@ -134,10 +134,10 @@ Use in CI/CD pipelines to ensure no errors slip through:
 
 This script follows the output suppression rules:
 
-- ✅ Uses unbuffered output (`stdbuf -oL -eL`)
-- ✅ Preserves full output (no filtering)
-- ✅ Simultaneous logging with `tee`
-- ✅ Captures both stdout and stderr (`2>&1`)
+- :check: Uses unbuffered output (`stdbuf -oL -eL`)
+- :check: Preserves full output (no filtering)
+- :check: Simultaneous logging with `tee`
+- :check: Captures both stdout and stderr (`2>&1`)
 
 ## Advanced Features
 
@@ -174,13 +174,13 @@ positives.
 
 ## Edge Cases Handled
 
-- ✅ Commands that exit non-zero but are expected (`grep`, `diff`)
-- ✅ Error words in comments (`# Error: comment`)
-- ✅ Error words in function/test names (`def test_error()`)
-- ✅ Multi-line error messages
-- ✅ Empty test results
-- ✅ JUnit XML parsing
-- ✅ Numeric comparison edge cases
+- :check: Commands that exit non-zero but are expected (`grep`, `diff`)
+- :check: Error words in comments (`# Error: comment`)
+- :check: Error words in function/test names (`def test_error()`)
+- :check: Multi-line error messages
+- :check: Empty test results
+- :check: JUnit XML parsing
+- :check: Numeric comparison edge cases
 
 ## Related
 

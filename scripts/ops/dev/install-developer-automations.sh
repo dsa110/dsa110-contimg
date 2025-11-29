@@ -16,34 +16,34 @@ echo ""
 echo "1. Setting up developer environment..."
 if [ -f "$SCRIPT_DIR/setup-developer-env.sh" ]; then
     "$SCRIPT_DIR/setup-developer-env.sh"
-    echo "   ✓ Developer environment configured"
+    echo "   :check: Developer environment configured"
 else
-    echo "   ✗ setup-developer-env.sh not found"
+    echo "   :cross: setup-developer-env.sh not found"
 fi
 echo ""
 
 # 2. Verify pre-commit hooks are installed
 echo "2. Verifying pre-commit hooks..."
 if [ -f ".git/hooks/pre-commit" ]; then
-    echo "   ✓ Pre-commit hook exists"
+    echo "   :check: Pre-commit hook exists"
     
     # Check if all validation scripts are referenced
     HOOKS_OK=1
     for script in validate-pytest-usage.sh pre-commit-doc-location.sh pre-commit-python-env.sh pre-commit-output-suppression.sh; do
         if ! grep -q "$script" ".git/hooks/pre-commit" 2>/dev/null; then
-            echo "   ⚠ $script not found in pre-commit hook"
+            echo "   :warning: $script not found in pre-commit hook"
             HOOKS_OK=0
         fi
     done
     
     if [ $HOOKS_OK -eq 1 ]; then
-        echo "   ✓ All validation scripts integrated"
+        echo "   :check: All validation scripts integrated"
     else
-        echo "   ⚠ Some validation scripts missing from pre-commit hook"
+        echo "   :warning: Some validation scripts missing from pre-commit hook"
         echo "   Run: git add .git/hooks/pre-commit && git commit -m 'Update pre-commit hooks'"
     fi
 else
-    echo "   ✗ Pre-commit hook not found"
+    echo "   :cross: Pre-commit hook not found"
     echo "   Run: make test-org-install (or manually create .git/hooks/pre-commit)"
 fi
 echo ""
@@ -52,7 +52,7 @@ echo ""
 echo "3. Setting up Python wrapper..."
 CASA6_PYTHON="/opt/miniforge/envs/casa6/bin/python"
 if [ -x "$CASA6_PYTHON" ]; then
-    echo "   ✓ casa6 Python found at $CASA6_PYTHON"
+    echo "   :check: casa6 Python found at $CASA6_PYTHON"
     
     # Optionally create local bin directory with wrappers
     LOCAL_BIN="$PROJECT_ROOT/.local/bin"
@@ -67,18 +67,18 @@ if [ -x "$CASA6_PYTHON" ]; then
         # Use -f to force update even if symlink already exists
         cd "$LOCAL_BIN"
         ln -sf "$WRAPPER_RELPATH" python
-        echo "   ✓ Created python wrapper in $LOCAL_BIN/python"
+        echo "   :check: Created python wrapper in $LOCAL_BIN/python"
         ln -sf "$WRAPPER_RELPATH" python3
-        echo "   ✓ Created python3 wrapper in $LOCAL_BIN/python3"
+        echo "   :check: Created python3 wrapper in $LOCAL_BIN/python3"
         cd "$PROJECT_ROOT"
         
         echo "   To use wrappers, add to PATH:"
         echo "     export PATH=\"$LOCAL_BIN:\$PATH\""
     else
-        echo "   ✗ python-wrapper.sh not found at $WRAPPER_PATH"
+        echo "   :cross: python-wrapper.sh not found at $WRAPPER_PATH"
     fi
 else
-    echo "   ✗ casa6 Python not found at $CASA6_PYTHON"
+    echo "   :cross: casa6 Python not found at $CASA6_PYTHON"
     echo "   Please install casa6 environment first"
 fi
 echo ""
@@ -86,9 +86,9 @@ echo ""
 # 4. Verify test runner uses safe wrapper
 echo "4. Verifying test runner configuration..."
 if grep -q "pytest-safe.sh" "$SCRIPT_DIR/run-tests.sh" 2>/dev/null; then
-    echo "   ✓ Test runner uses pytest-safe.sh"
+    echo "   :check: Test runner uses pytest-safe.sh"
 else
-    echo "   ⚠ Test runner may not use safe wrapper"
+    echo "   :warning: Test runner may not use safe wrapper"
 fi
 echo ""
 
@@ -98,10 +98,10 @@ echo "Installation Summary"
 echo "=========================================="
 echo ""
 echo "Automations installed:"
-echo "  ✓ Developer environment setup (shell aliases)"
-echo "  ✓ Pre-commit hooks (pytest, docs, Python env, output suppression)"
-echo "  ✓ Python wrapper (redirects python/python3 to casa6)"
-echo "  ✓ Pytest safe wrapper (prevents 2>&1 errors)"
+echo "  :check: Developer environment setup (shell aliases)"
+echo "  :check: Pre-commit hooks (pytest, docs, Python env, output suppression)"
+echo "  :check: Python wrapper (redirects python/python3 to casa6)"
+echo "  :check: Pytest safe wrapper (prevents 2>&1 errors)"
 echo ""
 echo "Next steps:"
 echo "  1. Source your shell RC file:"

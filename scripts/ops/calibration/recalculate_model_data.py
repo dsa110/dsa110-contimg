@@ -39,13 +39,13 @@ def recalculate_model_data(ms_path, cal_ra_deg, cal_dec_deg, flux_jy):
                     if data_shape and data_dtype:
                         zeros = np.zeros((tb.nrows(),) + data_shape, dtype=data_dtype)
                         tb.putcol("MODEL_DATA", zeros)
-                        print(f"  ✓ Cleared MODEL_DATA ({tb.nrows()} rows)")
+                        print(f"  :check: Cleared MODEL_DATA ({tb.nrows()} rows)")
                     else:
                         print(f"  WARNING: Could not determine DATA shape")
                 else:
                     print(f"  WARNING: DATA column not found")
             else:
-                print(f"  ℹ MODEL_DATA column not present or empty")
+                print(f"  :info: MODEL_DATA column not present or empty")
     except Exception as e:
         print(f"  ERROR: Failed to clear MODEL_DATA: {e}")
         return False
@@ -55,7 +55,7 @@ def recalculate_model_data(ms_path, cal_ra_deg, cal_dec_deg, flux_jy):
     print(f"  Calibrator: RA={cal_ra_deg:.6f}°, Dec={cal_dec_deg:.6f}°, Flux={flux_jy:.2f} Jy")
     try:
         _calculate_manual_model_data(ms_path, cal_ra_deg, cal_dec_deg, flux_jy, field=None)
-        print(f"  ✓ MODEL_DATA recalculated successfully")
+        print(f"  :check: MODEL_DATA recalculated successfully")
     except Exception as e:
         print(f"  ERROR: Failed to recalculate MODEL_DATA: {e}")
         import traceback
@@ -88,10 +88,10 @@ def recalculate_model_data(ms_path, cal_ra_deg, cal_dec_deg, flux_jy):
             print(f"  Expected: < 10°")
             
             if model_phase_scatter < 10:
-                print(f"  ✓ MODEL_DATA phase scatter is acceptable")
+                print(f"  :check: MODEL_DATA phase scatter is acceptable")
                 return True
             else:
-                print(f"  ✗ MODEL_DATA phase scatter is still high")
+                print(f"  :cross: MODEL_DATA phase scatter is still high")
                 print(f"    This may indicate DATA column phasing issues")
                 return False
     except Exception as e:

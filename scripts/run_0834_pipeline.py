@@ -66,9 +66,9 @@ def convert_groups(groups):
         
         result = run_cmd(cmd)
         if result.returncode != 0:
-            log(f"    ⚠ Conversion failed: {result.stderr[-200:]}")
+            log(f"    :warning: Conversion failed: {result.stderr[-200:]}")
         else:
-            log(f"    ✓ Converted: {ts}")
+            log(f"    :check: Converted: {ts}")
 
 
 def calibrate_all():
@@ -97,9 +97,9 @@ def calibrate_all():
         
         result = run_cmd(cmd)
         if result.returncode != 0:
-            log(f"    ⚠ Calibration failed: {result.stderr[-200:]}")
+            log(f"    :warning: Calibration failed: {result.stderr[-200:]}")
         else:
-            log(f"    ✓ Calibrated: {ms_path.name}")
+            log(f"    :check: Calibrated: {ms_path.name}")
 
 
 def image_all():
@@ -131,9 +131,9 @@ def image_all():
         
         result = run_cmd(cmd)
         if result.returncode != 0:
-            log(f"    ⚠ Imaging failed: {result.stderr[-200:]}")
+            log(f"    :warning: Imaging failed: {result.stderr[-200:]}")
         else:
-            log(f"    ✓ Imaged: {ms_path.stem}")
+            log(f"    :check: Imaged: {ms_path.stem}")
 
 
 def photometry_all():
@@ -186,7 +186,7 @@ def photometry_all():
             log(f"    Peak: {result.peak_jyb*1000:.2f} ± {result.peak_err_jyb*1000:.2f} mJy")
             
         except Exception as e:
-            log(f"    ⚠ Photometry failed: {e}")
+            log(f"    :warning: Photometry failed: {e}")
     
     return measurements
 
@@ -251,7 +251,7 @@ def plot_lightcurve(measurements):
     plt.savefig(plot_path, dpi=150, bbox_inches='tight')
     plt.close()
     
-    log(f"  ✓ Saved: {plot_path}")
+    log(f"  :check: Saved: {plot_path}")
     log(f"  Mean flux: {mean_flux*1000:.2f} mJy")
     log(f"  Std dev:   {std_flux*1000:.2f} mJy")
     log(f"  N points:  {len(fluxes)}")
@@ -260,7 +260,7 @@ def plot_lightcurve(measurements):
     meas_path = IMG_DIR / '0834_measurements.json'
     with open(meas_path, 'w', encoding='utf-8') as f:
         json.dump(measurements, f, indent=2)
-    log(f"  ✓ Saved measurements: {meas_path}")
+    log(f"  :check: Saved measurements: {meas_path}")
 
 
 def main():

@@ -32,7 +32,7 @@ echo "  Checking status..."
 systemctl status dsa110-disk-monitor.service --no-pager || true
 
 echo ""
-echo "✓ Disk monitoring service installed successfully!"
+echo ":check: Disk monitoring service installed successfully!"
 echo ""
 echo "Useful commands:"
 echo "  sudo systemctl status dsa110-disk-monitor    # Check status"

@@ -9,7 +9,7 @@ source /opt/miniforge/etc/profile.d/conda.sh
 conda activate casa6
 
 # Start uvicorn
-echo "🚀 Starting backend API on port 8000..."
+echo ":rocket: Starting backend API on port 8000..."
 echo "   Warnings suppressed via PYTHONWARNINGS"
 echo ""
 exec uvicorn dsa110_contimg.api:app --host 0.0.0.0 --port 8000 "$@"

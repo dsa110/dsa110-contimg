@@ -99,13 +99,13 @@ def main():
     # Create test executions
     print("\n1. Creating test pipeline executions...")
     running_id = create_test_execution(repo, "workflow", "running")
-    print(f"   ✓ Created running execution: {running_id}")
+    print(f"   :check: Created running execution: {running_id}")
 
     completed_id = create_test_execution(repo, "workflow", "completed")
-    print(f"   ✓ Created completed execution: {completed_id}")
+    print(f"   :check: Created completed execution: {completed_id}")
 
     failed_id = create_test_execution(repo, "calibration", "failed")
-    print(f"   ✓ Created failed execution: {failed_id}")
+    print(f"   :check: Created failed execution: {failed_id}")
 
     # List existing jobs
     print("\n2. Listing existing jobs...")

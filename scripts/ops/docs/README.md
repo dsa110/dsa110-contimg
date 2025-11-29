@@ -88,7 +88,7 @@ python scripts/create_test_ms.py \
   --max-baselines 15 \
   --max-times 24
 
-# Result: ~6.6x smaller (2.1 GB → 316 MB), still suitable for K-calibration testing
+# Result: ~6.6x smaller (2.1 GB :arrow_right: 316 MB), still suitable for K-calibration testing
 ```
 
 **Note:** The output filename suffix `_test.ms` indicates this is a subset MS

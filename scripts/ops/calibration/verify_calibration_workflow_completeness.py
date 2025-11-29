@@ -60,11 +60,11 @@ def verify_code_paths():
     
     print("\nCode Path Coverage:")
     for path, covered in paths.items():
-        status = "✓" if covered else "✗"
+        status = ":check:" if covered else ":cross:"
         print(f"  {status} {path}")
     
     all_covered = all(paths.values())
-    print(f"\nResult: {'✓ ALL PATHS COVERED' if all_covered else '✗ MISSING PATHS'}")
+    print(f"\nResult: {':check: ALL PATHS COVERED' if all_covered else ':cross: MISSING PATHS'}")
     
     return all_covered
 
@@ -104,16 +104,16 @@ def verify_uvw_verification_function():
         
         print("\nFunction Checks:")
         for check, passed in checks.items():
-            status = "✓" if passed else "✗"
+            status = ":check:" if passed else ":cross:"
             print(f"  {status} {check}")
         
         all_passed = all(checks.values())
-        print(f"\nResult: {'✓ ALL CHECKS PASS' if all_passed else '✗ SOME CHECKS FAIL'}")
+        print(f"\nResult: {':check: ALL CHECKS PASS' if all_passed else ':cross: SOME CHECKS FAIL'}")
         
         return all_passed
         
     except ImportError as e:
-        print(f"✗ Import error: {e}")
+        print(f":cross: Import error: {e}")
         return False
 
 
@@ -129,11 +129,11 @@ def test_bandpass_solution_quality(ms_path: str, cal_table_path: str = None):
     print("=" * 70)
     
     if not ms_path or not os.path.exists(ms_path):
-        print("✗ MS file not found - cannot test solution quality")
+        print(":cross: MS file not found - cannot test solution quality")
         return False
     
     if not cal_table_path or not os.path.exists(cal_table_path):
-        print("⚠ Calibration table not provided - cannot measure solution quality")
+        print(":warning: Calibration table not provided - cannot measure solution quality")
         print("  Run calibration first to generate table")
         return None
     
@@ -161,10 +161,10 @@ def test_bandpass_solution_quality(ms_path: str, cal_table_path: str = None):
                 
                 # Good bandpass should have < 50% flagging rate
                 if flagging_rate < 0.5:
-                    print(f"  ✓ Flagging rate acceptable (< 50%)")
+                    print(f"  :check: Flagging rate acceptable (< 50%)")
                     quality_good = True
                 else:
-                    print(f"  ✗ Flagging rate too high (>= 50%)")
+                    print(f"  :cross: Flagging rate too high (>= 50%)")
                     quality_good = False
                 
                 # Check solution amplitude
@@ -175,17 +175,17 @@ def test_bandpass_solution_quality(ms_path: str, cal_table_path: str = None):
                     
                     # Amplitude should be close to 1.0 (normalized)
                     if 0.5 < median_amp < 2.0:
-                        print(f"  ✓ Solution amplitudes reasonable")
+                        print(f"  :check: Solution amplitudes reasonable")
                     else:
-                        print(f"  ✗ Solution amplitudes unusual")
+                        print(f"  :cross: Solution amplitudes unusual")
                 
                 return quality_good
             else:
-                print("✗ CPARAM column not found in calibration table")
+                print(":cross: CPARAM column not found in calibration table")
                 return False
                 
     except Exception as e:
-        print(f"✗ Error reading calibration table: {e}")
+        print(f":cross: Error reading calibration table: {e}")
         return False
 
 
@@ -196,7 +196,7 @@ def verify_model_data_quality(ms_path: str):
     print("=" * 70)
     
     if not ms_path or not os.path.exists(ms_path):
-        print("✗ MS file not found")
+        print(":cross: MS file not found")
         return False
     
     try:
@@ -204,7 +204,7 @@ def verify_model_data_quality(ms_path: str):
         
         with table(ms_path, readonly=True) as main_tb:
             if "MODEL_DATA" not in main_tb.colnames():
-                print("✗ MODEL_DATA column not present")
+                print(":cross: MODEL_DATA column not present")
                 return False
             
             # Sample MODEL_DATA
@@ -214,7 +214,7 @@ def verify_model_data_quality(ms_path: str):
             
             unflagged_mask = ~flags.any(axis=(1, 2))
             if unflagged_mask.sum() == 0:
-                print("✗ All MODEL_DATA is flagged")
+                print(":cross: All MODEL_DATA is flagged")
                 return False
             
             model_unflagged = model_data[unflagged_mask]
@@ -240,16 +240,16 @@ def verify_model_data_quality(ms_path: str):
             
             print(f"\nQuality Checks:")
             for check, passed in checks.items():
-                status = "✓" if passed else "✗"
+                status = ":check:" if passed else ":cross:"
                 print(f"  {status} {check}")
             
             all_passed = all(checks.values())
-            print(f"\nResult: {'✓ MODEL_DATA QUALITY GOOD' if all_passed else '✗ MODEL_DATA QUALITY POOR'}")
+            print(f"\nResult: {':check: MODEL_DATA QUALITY GOOD' if all_passed else ':cross: MODEL_DATA QUALITY POOR'}")
             
             return all_passed
             
     except Exception as e:
-        print(f"✗ Error reading MODEL_DATA: {e}")
+        print(f":cross: Error reading MODEL_DATA: {e}")
         return False
 
 
@@ -275,7 +275,7 @@ def verify_workflow_steps():
     cli_path = Path(__file__).parent.parent / "src" / "dsa110_contimg" / "calibration" / "cli.py"
     
     if not cli_path.exists():
-        print("✗ CLI file not found")
+        print(":cross: CLI file not found")
         return False
     
     with open(cli_path, 'r') as f:
@@ -296,11 +296,11 @@ def verify_workflow_steps():
     
     print("\nWorkflow Steps:")
     for step, present in checks.items():
-        status = "✓" if present else "✗"
+        status = ":check:" if present else ":cross:"
         print(f"  {status} {step}")
     
     all_present = all(checks.values())
-    print(f"\nResult: {'✓ ALL STEPS PRESENT' if all_present else '✗ MISSING STEPS'}")
+    print(f"\nResult: {':check: ALL STEPS PRESENT' if all_present else ':cross: MISSING STEPS'}")
     
     return all_present
 
@@ -350,7 +350,7 @@ def main():
             results["bandpass_quality"] = test_bandpass_solution_quality(args.ms, args.cal_table)
         else:
             results["bandpass_quality"] = None
-            print("\n⚠ Bandpass quality test skipped (no calibration table provided)")
+            print("\n:warning: Bandpass quality test skipped (no calibration table provided)")
     else:
         results["model_data_quality"] = None
         results["bandpass_quality"] = None
@@ -364,21 +364,21 @@ def main():
         if result is None:
             status = "SKIPPED"
         elif result:
-            status = "✓ PASS"
+            status = ":check: PASS"
         else:
-            status = "✗ FAIL"
+            status = ":cross: FAIL"
         print(f"  {test}: {status}")
     
     # Overall result
     completed_tests = [r for r in results.values() if r is not None]
     if completed_tests and all(completed_tests):
-        print("\n✓ OVERALL: Implementation is COMPLETE")
+        print("\n:check: OVERALL: Implementation is COMPLETE")
         return 0
     elif completed_tests and any(completed_tests):
-        print("\n⚠ OVERALL: Implementation is PARTIALLY COMPLETE")
+        print("\n:warning: OVERALL: Implementation is PARTIALLY COMPLETE")
         return 1
     else:
-        print("\n✗ OVERALL: Implementation is INCOMPLETE")
+        print("\n:cross: OVERALL: Implementation is INCOMPLETE")
         return 1
 
 

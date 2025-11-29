@@ -88,14 +88,14 @@ def register_calibrators(calibrators_db=None, dry_run=False):
             existing = get_bandpass_calibrators(dec_deg=dec_deg, calibrators_db=calibrators_db)
             if existing and any(cal["calibrator_name"] == name for cal in existing):
                 print(
-                    f"⏭️  SKIP: {name:12s} (RA={ra_deg:8.4f}, Dec={dec_deg:7.4f}) - Already registered"
+                    f"⏭:variation_selector-16:  SKIP: {name:12s} (RA={ra_deg:8.4f}, Dec={dec_deg:7.4f}) - Already registered"
                 )
                 skipped_count += 1
                 continue
 
         if dry_run:
             print(
-                f"📝 WOULD REGISTER: {name:12s} (RA={ra_deg:8.4f}, Dec={dec_deg:7.4f}, "
+                f":memo: WOULD REGISTER: {name:12s} (RA={ra_deg:8.4f}, Dec={dec_deg:7.4f}, "
                 f"Flux={flux_jy:5.1f} Jy, Dec range=[{dec_range_min:5.1f}, {dec_range_max:5.1f}])"
             )
         else:
@@ -114,21 +114,21 @@ def register_calibrators(calibrators_db=None, dry_run=False):
                     calibrators_db=calibrators_db,
                 )
                 print(
-                    f"✅ REGISTERED: {name:12s} (RA={ra_deg:8.4f}, Dec={dec_deg:7.4f}, "
+                    f":check: REGISTERED: {name:12s} (RA={ra_deg:8.4f}, Dec={dec_deg:7.4f}, "
                     f"Flux={flux_jy:5.1f} Jy)"
                 )
                 registered_count += 1
             except Exception as e:
-                print(f"❌ ERROR: {name:12s} - {e}")
+                print(f":cross: ERROR: {name:12s} - {e}")
 
     print("-" * 70)
     if dry_run:
         print(f"\nDry-run complete. Would register {len(unique_calibrators)} calibrators.")
     else:
         print(f"\nRegistration complete:")
-        print(f"  ✅ Registered: {registered_count}")
-        print(f"  ⏭️  Skipped: {skipped_count}")
-        print(f"  📊 Total: {len(unique_calibrators)}")
+        print(f"  :check: Registered: {registered_count}")
+        print(f"  ⏭:variation_selector-16:  Skipped: {skipped_count}")
+        print(f"  :chart: Total: {len(unique_calibrators)}")
 
         # Verify registration
         total_in_db = len(get_bandpass_calibrators(calibrators_db=calibrators_db))

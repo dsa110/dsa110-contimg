@@ -47,9 +47,9 @@ def test_streaming_mosaic_e2e():
         tile_path = Path(tile)
         if tile_path.exists():
             size_mb = tile_path.stat().st_size / (1024 * 1024)
-            print(f"   ✓ {tile_path.name} ({size_mb:.1f} MB)")
+            print(f"   :check: {tile_path.name} ({size_mb:.1f} MB)")
         else:
-            print(f"   ✗ {tile_path.name} NOT FOUND")
+            print(f"   :cross: {tile_path.name} NOT FOUND")
             return False
 
     # Create metrics_dict (as streaming mode would)
@@ -57,7 +57,7 @@ def test_streaming_mosaic_e2e():
     metrics_dict = {}
     for tile in tiles:
         metrics_dict[tile] = TileQualityMetrics(tile_path=tile)
-        print(f"   ✓ Metrics created for {Path(tile).name}")
+        print(f"   :check: Metrics created for {Path(tile).name}")
 
     # Output location
     output_dir = Path('/stage/dsa110-contimg/tmp/streaming_mosaic_e2e_test')
@@ -74,9 +74,9 @@ def test_streaming_mosaic_e2e():
             metrics_dict=metrics_dict,
             output_path=str(output_path)
         )
-        print(f"\n   ✓ Mosaic built successfully!")
+        print(f"\n   :check: Mosaic built successfully!")
     except Exception as e:
-        print(f"\n   ✗ Mosaic build failed: {e}")
+        print(f"\n   :cross: Mosaic build failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -88,22 +88,22 @@ def test_streaming_mosaic_e2e():
         fits_path = Path(str(output_path) + '.fits')
         if fits_path.exists():
             size_mb = fits_path.stat().st_size / (1024 * 1024)
-            print(f"   ✓ FITS: {fits_path.name} ({size_mb:.1f} MB)")
+            print(f"   :check: FITS: {fits_path.name} ({size_mb:.1f} MB)")
             
             # Check for PNG visualization (should be auto-generated)
             png_path = Path(str(fits_path) + '.png')
             if png_path.exists():
                 size_kb = png_path.stat().st_size / 1024
-                print(f"   ✓ PNG: {png_path.name} ({size_kb:.1f} KB)")
+                print(f"   :check: PNG: {png_path.name} ({size_kb:.1f} KB)")
             else:
-                print(f"   ⚠ PNG not found (should be auto-generated)")
+                print(f"   :warning: PNG not found (should be auto-generated)")
         else:
-            print(f"   ⚠ FITS not found (CASA image only)")
+            print(f"   :warning: FITS not found (CASA image only)")
         
-        print(f"   ✓ CASA image: {output_path.name}")
+        print(f"   :check: CASA image: {output_path.name}")
         return True
     else:
-        print(f"   ✗ Output not found: {output_path}")
+        print(f"   :cross: Output not found: {output_path}")
         return False
 
 
@@ -131,9 +131,9 @@ def test_pb_correction_verification():
     all_passed = True
     for pattern, description in checks:
         if pattern in content:
-            print(f"   ✓ {description}")
+            print(f"   :check: {description}")
         else:
-            print(f"   ✗ {description} - PATTERN NOT FOUND: {pattern}")
+            print(f"   :cross: {description} - PATTERN NOT FOUND: {pattern}")
             all_passed = False
 
     # Check streaming mode integration
@@ -143,9 +143,9 @@ def test_pb_correction_verification():
         stream_content = f.read()
 
     if '_build_weighted_mosaic' in stream_content:
-        print(f"   ✓ Streaming mode uses _build_weighted_mosaic wrapper")
+        print(f"   :check: Streaming mode uses _build_weighted_mosaic wrapper")
     else:
-        print(f"   ✗ Streaming mode does NOT use wrapper!")
+        print(f"   :cross: Streaming mode does NOT use wrapper!")
         all_passed = False
 
     return all_passed
@@ -167,12 +167,12 @@ if __name__ == "__main__":
     print("TEST SUMMARY")
     print("=" * 70)
     print(
-        f"\nPB Correction Verification: {'✓ PASSED' if pb_ok else '✗ FAILED'}")
-    print(f"End-to-End Mosaic Build: {'✓ PASSED' if e2e_ok else '✗ FAILED'}")
+        f"\nPB Correction Verification: {':check: PASSED' if pb_ok else ':cross: FAILED'}")
+    print(f"End-to-End Mosaic Build: {':check: PASSED' if e2e_ok else ':cross: FAILED'}")
 
     if pb_ok and e2e_ok:
-        print("\n✓ All tests passed!")
+        print("\n:check: All tests passed!")
         sys.exit(0)
     else:
-        print("\n✗ Some tests failed!")
+        print("\n:cross: Some tests failed!")
         sys.exit(1)

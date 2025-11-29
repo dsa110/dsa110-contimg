@@ -82,7 +82,7 @@ def test_regrid():
         regridded_dir = regridded_coordsys.get_coordinate('direction')
         regridded_ref = regridded_dir.get_referencevalue()
 
-        print(f"\n✓ Regridding successful!")
+        print(f"\n:check: Regridding successful!")
         print(f"  Output shape: {regridded_shape}")
         print(
             f"  Output RA: {regridded_ref[0]:.6f} rad ({regridded_ref[0]*180/3.14159:.6f} deg)")
@@ -98,14 +98,14 @@ def test_regrid():
         # Cleanup
         shutil.rmtree(output_dir)
 
-        print(f"\n✓ TEST PASSED: Method works!")
-        print(f"  - FITS → CASA conversion: ✓")
-        print(f"  - Regridding to template: ✓")
-        print(f"  - Coordinate transformation: ✓")
+        print(f"\n:check: TEST PASSED: Method works!")
+        print(f"  - FITS :arrow_right: CASA conversion: :check:")
+        print(f"  - Regridding to template: :check:")
+        print(f"  - Coordinate transformation: :check:")
         return True
 
     except Exception as e:
-        print(f"\n✗ TEST FAILED: {e}")
+        print(f"\n:cross: TEST FAILED: {e}")
         import traceback
         traceback.print_exc()
         if os.path.exists(output_dir):

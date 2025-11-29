@@ -96,7 +96,7 @@ def analyze_bandpass_table(bp_table_path: str, spw: int = None):
             print("-" * 80)
             
             for stat in channel_stats:
-                marker = " ⚠" if stat['n_flagged'] > 0 else " ✓"
+                marker = " :warning:" if stat['n_flagged'] > 0 else " :check:"
                 print(f"chan={stat['chan']:<7} {stat['n_flagged']:>4}/{stat['n_total']:<7} "
                       f"{stat['n_unflagged']:>4}/{stat['n_total']:<7} {stat['n_total']:>4}     "
                       f"{stat['pct_flagged']:>5.1f}%      {stat['baselines_with_flags']:>3}/{nrows_spw:<7}{marker}")

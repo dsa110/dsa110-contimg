@@ -16,16 +16,16 @@ echo "1. Setting up git hooks..."
 if [ -d ".husky" ]; then
   chmod +x .husky/pre-commit 2>/dev/null || true
   chmod +x .husky/post-commit 2>/dev/null || true
-  echo "   ✓ Git hooks are executable"
+  echo "   :check: Git hooks are executable"
 else
-  echo "   ⚠ Warning: .husky directory not found"
+  echo "   :warning: Warning: .husky directory not found"
 fi
 
 # 2. Initialize Husky if needed
 if command -v npx >/dev/null 2>&1; then
   echo ""
   echo "2. Initializing Husky..."
-  npx husky install 2>/dev/null || echo "   ⚠ Warning: Husky initialization failed (may need npm install)"
+  npx husky install 2>/dev/null || echo "   :warning: Warning: Husky initialization failed (may need npm install)"
 fi
 
 # 3. Install frontend dependencies
@@ -35,15 +35,15 @@ if [ -d "frontend" ] && [ -f "frontend/package.json" ]; then
   cd frontend
   if [ -f "package-lock.json" ] || [ -f "yarn.lock" ]; then
     npm install
-    echo "   ✓ Frontend dependencies installed"
+    echo "   :check: Frontend dependencies installed"
   else
-    echo "   ⚠ Warning: No lock file found, dependencies may not be pinned"
+    echo "   :warning: Warning: No lock file found, dependencies may not be pinned"
     npm install
   fi
   cd ..
 else
   echo ""
-  echo "   ⚠ Warning: frontend directory or package.json not found"
+  echo "   :warning: Warning: frontend directory or package.json not found"
 fi
 
 # 4. Verify Prettier is installed
@@ -53,11 +53,11 @@ if [ -d "frontend" ]; then
   cd frontend
   if npx prettier --version >/dev/null 2>&1; then
     PRETTIER_VERSION=$(npx prettier --version)
-    echo "   ✓ Prettier $PRETTIER_VERSION is installed"
+    echo "   :check: Prettier $PRETTIER_VERSION is installed"
   else
-    echo "   ⚠ Warning: Prettier not found, installing..."
+    echo "   :warning: Warning: Prettier not found, installing..."
     npm install --save-dev prettier
-    echo "   ✓ Prettier installed"
+    echo "   :check: Prettier installed"
   fi
   cd ..
 fi
@@ -66,11 +66,11 @@ fi
 echo ""
 echo "5. Verifying hook permissions..."
 if [ -x ".husky/pre-commit" ]; then
-  echo "   ✓ Pre-commit hook is executable"
+  echo "   :check: Pre-commit hook is executable"
 else
-  echo "   ⚠ Warning: Pre-commit hook is not executable, fixing..."
+  echo "   :warning: Warning: Pre-commit hook is not executable, fixing..."
   chmod +x .husky/pre-commit
-  echo "   ✓ Fixed"
+  echo "   :check: Fixed"
 fi
 
 # 6. Run auto-fix script for any remaining issues
@@ -86,7 +86,7 @@ echo "7. Verifying environment..."
 if [ -f "${REPO_ROOT}/scripts/check-environment.sh" ]; then
   bash "${REPO_ROOT}/scripts/check-environment.sh" || {
     echo ""
-    echo "⚠️  Some issues remain. Review the output above."
+    echo ":warning:  Some issues remain. Review the output above."
   }
 fi
 
@@ -98,7 +98,7 @@ if [ -f "${REPO_ROOT}/scripts/check-code-quality.sh" ]; then
 fi
 
 echo ""
-echo "✓ Development environment setup complete!"
+echo ":check: Development environment setup complete!"
 echo ""
 echo "Next steps:"
 echo "  - Make a test commit to verify the pre-commit hook works"

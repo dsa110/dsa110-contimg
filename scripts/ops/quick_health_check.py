@@ -104,12 +104,12 @@ def main():
     # 1. Database check
     print("1. Database Status:")
     ok, msg = check_database()
-    status = "✅" if ok else "❌"
+    status = ":check:" if ok else ":cross:"
     print(f"   {status} {msg}")
     print()
 
     if not ok:
-        print("❌ Database check failed. Stopping.")
+        print(":cross: Database check failed. Stopping.")
         return 1
 
     # 2. Query check
@@ -118,15 +118,15 @@ def main():
     all_ok = True
     for dec_deg, valid_count, total_count in results:
         if valid_count == -1:
-            print(f"   ❌ Dec {dec_deg:6.1f}°: Error - {total_count}")
+            print(f"   :cross: Dec {dec_deg:6.1f}°: Error - {total_count}")
             all_ok = False
         elif valid_count == 0:
-            print(f"   ⚠️  Dec {dec_deg:6.1f}°: No calibrators found")
+            print(f"   :warning:  Dec {dec_deg:6.1f}°: No calibrators found")
         elif valid_count < total_count:
-            print(f"   ⚠️  Dec {dec_deg:6.1f}°: {valid_count}/{total_count} valid (filtering issue)")
+            print(f"   :warning:  Dec {dec_deg:6.1f}°: {valid_count}/{total_count} valid (filtering issue)")
             all_ok = False
         else:
-            print(f"   ✅ Dec {dec_deg:6.1f}°: {valid_count} calibrator(s)")
+            print(f"   :check: Dec {dec_deg:6.1f}°: {valid_count} calibrator(s)")
 
     print()
 
@@ -134,20 +134,20 @@ def main():
     print("3. Recent Log Errors:")
     errors = check_recent_logs()
     if errors:
-        print(f"   ⚠️  Found {len(errors)} recent error(s):")
+        print(f"   :warning:  Found {len(errors)} recent error(s):")
         for log_file, line_num, error_msg in errors[:5]:
             print(f"      {log_file}:{line_num} - {error_msg}")
     else:
-        print("   ✅ No recent errors found")
+        print("   :check: No recent errors found")
 
     print()
     print("=" * 70)
 
     if ok and all_ok and not errors:
-        print("✅ System Health: GOOD")
+        print(":check: System Health: GOOD")
         return 0
     else:
-        print("⚠️  System Health: ISSUES DETECTED")
+        print(":warning:  System Health: ISSUES DETECTED")
         return 1
 
 

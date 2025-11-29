@@ -39,11 +39,11 @@ def update_todo_date():
     # Only write if something changed
     if new_content != content:
         TODO_FILE.write_text(new_content, encoding="utf-8")
-        print(f"✓ Updated TODO.md date to {today}")
+        print(f":check: Updated TODO.md date to {today}")
         return 0
     else:
         # Date might already be correct, or pattern didn't match
-        print(f"ℹ No date update needed (already {today} or pattern not found)")
+        print(f":info: No date update needed (already {today} or pattern not found)")
         return 0
 
 

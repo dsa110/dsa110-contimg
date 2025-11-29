@@ -104,14 +104,14 @@ if [ "$vite_count" -gt 1 ]; then
                 fi
                 
                 sleep 2
-                echo -e "${GREEN}✓ Duplicate Vite instances and parent npm processes killed${NC}"
+                echo -e "${GREEN}:check: Duplicate Vite instances and parent npm processes killed${NC}"
             fi
         else
             echo "Skipped"
         fi
     fi
 else
-    echo -e "${GREEN}✓ No duplicate Vite instances${NC}"
+    echo -e "${GREEN}:check: No duplicate Vite instances${NC}"
 fi
 
 echo ""
@@ -143,15 +143,15 @@ if [ -n "$api_pids" ]; then
                 kill "$pid" 2>/dev/null || true
             done
             sleep 1
-            echo -e "${GREEN}✓ Duplicate API instances killed${NC}"
+            echo -e "${GREEN}:check: Duplicate API instances killed${NC}"
         else
             echo "Skipped"
         fi
     else
-        echo -e "${GREEN}✓ No duplicate API instances${NC}"
+        echo -e "${GREEN}:check: No duplicate API instances${NC}"
     fi
 else
-    echo -e "${GREEN}✓ No API instances running${NC}"
+    echo -e "${GREEN}:check: No API instances running${NC}"
 fi
 
 echo ""

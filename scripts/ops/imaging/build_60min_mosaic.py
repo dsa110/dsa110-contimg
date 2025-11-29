@@ -138,7 +138,7 @@ def convert_group_to_ms(incoming_dir: Path, output_dir: Path, group_time: str,
     
     # Verify MS was created
     if ms_output.exists():
-        print(f"  ✓ MS created: {ms_output}")
+        print(f"  :check: MS created: {ms_output}")
         return ms_output
     else:
         print(f"  ERROR: MS file not found after conversion")
@@ -187,7 +187,7 @@ def identify_calibrator_ms(ms_dir: Path, calibrator_name: str, transit_time: Tim
             continue
     
     if best_match:
-        print(f"  ✓ Found calibrator MS: {best_match}")
+        print(f"  :check: Found calibrator MS: {best_match}")
         return best_match
     else:
         print(f"  ERROR: No MS found near transit time")
@@ -211,7 +211,7 @@ def flag_calibrator_ms(ms_path: Path) -> bool:
         if result.returncode != 0:
             print(f"  ERROR: Flagging ({mode}) failed:\n{result.stderr}")
             return False
-        print(f"  ✓ {mode} flagging complete")
+        print(f"  :check: {mode} flagging complete")
     
     # Check flagging summary
     cmd = [
@@ -253,7 +253,7 @@ def solve_bandpass(ms_path: Path, field: str = "0", refant: str = "103") -> Opti
     
     # Verify table was created
     if cal_table.exists():
-        print(f"  ✓ Bandpass table created: {cal_table}")
+        print(f"  :check: Bandpass table created: {cal_table}")
         return cal_table
     else:
         print(f"  ERROR: Bandpass table not found")
@@ -288,7 +288,7 @@ def solve_gains(ms_path: Path, bp_table: Path, field: str = "0", refant: str = "
     
     # Verify table was created
     if cal_table.exists():
-        print(f"  ✓ Gain table created: {cal_table}")
+        print(f"  :check: Gain table created: {cal_table}")
         return cal_table
     else:
         print(f"  ERROR: Gain table not found")
@@ -316,7 +316,7 @@ def apply_calibration(target_ms: Path, bp_table: Path, gp_table: Path, field: st
     try:
         with table(str(target_ms), readonly=True) as tb:
             if 'CORRECTED_DATA' in tb.colnames():
-                print(f"  ✓ Calibration applied (CORRECTED_DATA present)")
+                print(f"  :check: Calibration applied (CORRECTED_DATA present)")
                 return True
             else:
                 print(f"  ERROR: CORRECTED_DATA column not found")
@@ -358,7 +358,7 @@ def image_ms(ms_path: Path, output_dir: Path, imsize: int = 2048,
         return None
     
     if image_path.exists():
-        print(f"  ✓ Image created: {image_path}")
+        print(f"  :check: Image created: {image_path}")
         return image_path
     else:
         print(f"  ERROR: Image file not found")
@@ -380,7 +380,7 @@ def register_image_in_db(image_path: Path, ms_path: Path, products_db: Path,
     conn.commit()
     conn.close()
     
-    print(f"  ✓ Image registered in products DB")
+    print(f"  :check: Image registered in products DB")
 
 
 def main():
@@ -547,7 +547,7 @@ def main():
         return build_result
     
     print(f"\n{'=' * 70}")
-    print(f"✓ SUCCESS! Mosaic created: {mosaic_output}")
+    print(f":check: SUCCESS! Mosaic created: {mosaic_output}")
     print(f"{'=' * 70}")
     
     return 0

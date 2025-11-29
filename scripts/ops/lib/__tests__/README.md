@@ -82,31 +82,31 @@ bash scripts/lib/__tests__/integration.test.sh
 
 ### Pre-Flight Checks
 
-- ✅ Node.js version validation
-- ✅ Required files verification
-- ✅ Dependencies check
-- ✅ Permissions validation
-- ✅ Memory check
-- ✅ Process conflict detection
+- :check: Node.js version validation
+- :check: Required files verification
+- :check: Dependencies check
+- :check: Permissions validation
+- :check: Memory check
+- :check: Process conflict detection
 
 ### Execution Monitoring
 
-- ✅ Exit code detection
-- ✅ Error pattern matching
-- ✅ False positive exclusion
-- ✅ Critical warning detection
+- :check: Exit code detection
+- :check: Error pattern matching
+- :check: False positive exclusion
+- :check: Critical warning detection
 
 ### Post-Execution Validation
 
-- ✅ Build output validation
-- ✅ Test result parsing
-- ✅ File integrity checks
+- :check: Build output validation
+- :check: Test result parsing
+- :check: File integrity checks
 
 ### Integration
 
-- ✅ Complete workflow testing
-- ✅ Error propagation
-- ✅ Wrapper script functionality
+- :check: Complete workflow testing
+- :check: Error propagation
+- :check: Wrapper script functionality
 
 ---
 
@@ -194,7 +194,7 @@ source scripts/lib/error-detection.sh
 
 ## Status
 
-✅ **Test Suite Complete**
+:check: **Test Suite Complete**
 
 - 20 unit tests
 - 4 integration tests

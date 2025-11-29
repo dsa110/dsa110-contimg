@@ -10,47 +10,47 @@ echo "╚═══════════════════════�
 echo ""
 
 # Step 1: Check prerequisites
-echo "📋 Step 1: Checking prerequisites..."
+echo ":clipboard: Step 1: Checking prerequisites..."
 echo ""
 
 if ! command -v psql &> /dev/null; then
-    echo "❌ PostgreSQL client (psql) not found"
+    echo ":cross: PostgreSQL client (psql) not found"
     echo "   Install with: sudo apt install postgresql-client"
     exit 1
 fi
 
 if ! command -v python &> /dev/null; then
-    echo "❌ Python not found"
+    echo ":cross: Python not found"
     exit 1
 fi
 
-echo "✅ Prerequisites OK"
+echo ":check: Prerequisites OK"
 echo ""
 
 # Step 2: Database setup
-echo "📋 Step 2: Setting up Absurd database..."
+echo ":clipboard: Step 2: Setting up Absurd database..."
 echo ""
 
 if [ -f "scripts/absurd/setup_absurd_db.sh" ]; then
     bash scripts/absurd/setup_absurd_db.sh
 else
-    echo "⚠️  Database setup script not found (this is OK if database already exists)"
+    echo ":warning:  Database setup script not found (this is OK if database already exists)"
 fi
 echo ""
 
 # Step 3: Create queue
-echo "📋 Step 3: Creating Absurd queue..."
+echo ":clipboard: Step 3: Creating Absurd queue..."
 echo ""
 
 if [ -f "scripts/absurd/create_absurd_queues.sh" ]; then
     bash scripts/absurd/create_absurd_queues.sh
 else
-    echo "⚠️  Queue creation script not found (this is OK if queue already exists)"
+    echo ":warning:  Queue creation script not found (this is OK if queue already exists)"
 fi
 echo ""
 
 # Step 4: Set environment variables
-echo "📋 Step 4: Setting environment variables..."
+echo ":clipboard: Step 4: Setting environment variables..."
 echo ""
 
 export ABSURD_ENABLED=true
@@ -65,36 +65,36 @@ echo "   ABSURD_WORKER_CONCURRENCY=$ABSURD_WORKER_CONCURRENCY"
 echo ""
 
 # Step 5: Test connection
-echo "📋 Step 5: Testing database connection..."
+echo ":clipboard: Step 5: Testing database connection..."
 echo ""
 
 if [ -f "scripts/absurd/test_absurd_connection.py" ]; then
     python scripts/absurd/test_absurd_connection.py
     if [ $? -eq 0 ]; then
-        echo "✅ Database connection OK"
+        echo ":check: Database connection OK"
     else
-        echo "❌ Database connection failed"
+        echo ":cross: Database connection failed"
         exit 1
     fi
 else
-    echo "⚠️  Test script not found, skipping connection test"
+    echo ":warning:  Test script not found, skipping connection test"
 fi
 echo ""
 
 # Step 6: Instructions
 echo "╔════════════════════════════════════════════════════════════════════════╗"
-echo "║                    ✅ Setup Complete!                                  ║"
+echo "║                    :check: Setup Complete!                                  ║"
 echo "╚════════════════════════════════════════════════════════════════════════╝"
 echo ""
 echo "Next steps:"
 echo ""
-echo "1️⃣  Start the API server (Terminal 1):"
+echo "1:variation_selector-16:⃣  Start the API server (Terminal 1):"
 echo "   uvicorn src.dsa110_contimg.api.routes:app --host 0.0.0.0 --port 8000"
 echo ""
-echo "2️⃣  Start the Absurd worker (Terminal 2):"
+echo "2:variation_selector-16:⃣  Start the Absurd worker (Terminal 2):"
 echo "   python scripts/absurd/start_worker.py"
 echo ""
-echo "3️⃣  Submit a test task:"
+echo "3:variation_selector-16:⃣  Submit a test task:"
 echo "   python scripts/absurd/submit_test_task.py"
 echo ""
 echo "For more information:"

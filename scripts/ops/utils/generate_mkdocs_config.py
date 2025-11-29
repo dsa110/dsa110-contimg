@@ -183,7 +183,7 @@ def main():
     # Update markdown files with actual values (since MkDocs doesn't process Jinja2 in markdown)
     update_markdown_files(repo_root, metadata)
 
-    print(f"✓ Updated {mkdocs_path} with metadata from {pyproject_path}")
+    print(f":check: Updated {mkdocs_path} with metadata from {pyproject_path}")
     print(f"  Site name: {metadata['description'] or metadata['name'].replace('-', ' ').title()}")
     print(f"  Version: {metadata['version']}")
 

@@ -240,7 +240,7 @@ def solve_calibration_on_ms(
         update_progress(stage=f"calibration_solve_failed_{ms_path.name}", error=error_msg)
         raise RuntimeError(error_msg)
     
-    logger.info(f"✓ Calibration solved successfully on {ms_path.name}")
+    logger.info(f":check: Calibration solved successfully on {ms_path.name}")
 
 
 def apply_calibration_to_ms(
@@ -478,7 +478,7 @@ def main():
         update_progress(stage="no_ms_files")
         return 1
     
-    logger.info(f"\n✓ Found {len(ms_files)} MS files")
+    logger.info(f"\n:check: Found {len(ms_files)} MS files")
     update_progress(
         stage="ms_discovered",
         total_ms=len(ms_files),
@@ -494,9 +494,9 @@ def main():
     try:
         peak_ms = find_peak_transit_ms(ms_files, transit_time)
         solve_calibration_on_ms(peak_ms, config, transit_time)
-        logger.info(f"✓ Calibration solved on {peak_ms.name}")
+        logger.info(f":check: Calibration solved on {peak_ms.name}")
     except Exception as e:
-        logger.error(f"✗ Calibration solve failed: {e}", exc_info=True)
+        logger.error(f":cross: Calibration solve failed: {e}", exc_info=True)
         _progress_state["errors"].append({"stage": "calibration_solve", "error": str(e)})
         update_progress(stage="calibration_solve_failed", error=str(e))
         return 1
@@ -525,9 +525,9 @@ def main():
         try:
             apply_calibration_to_ms(ms_path, config)
             calibrated_ms.append(ms_path)
-            logger.info(f"✓ Calibration applied to {ms_path.name}")
+            logger.info(f":check: Calibration applied to {ms_path.name}")
         except Exception as e:
-            logger.error(f"✗ Failed to apply calibration to {ms_path.name}: {e}", exc_info=True)
+            logger.error(f":cross: Failed to apply calibration to {ms_path.name}: {e}", exc_info=True)
             _progress_state["errors"].append({
                 "stage": "calibration_apply",
                 "ms": str(ms_path),
@@ -539,7 +539,7 @@ def main():
         logger.error("No MS files calibrated!")
         return 1
     
-    logger.info(f"\n✓ Calibrated {len(calibrated_ms)} MS files")
+    logger.info(f"\n:check: Calibrated {len(calibrated_ms)} MS files")
     
     # Step 7: Image all calibrated MS files
     logger.info("\n" + "="*80)
@@ -566,10 +566,10 @@ def main():
         try:
             image_path = image_ms(ms_path, config)
             image_paths.append(image_path)
-            logger.info(f"✓ Successfully imaged: {image_path}")
+            logger.info(f":check: Successfully imaged: {image_path}")
             update_progress(completed_ms=len(image_paths))
         except Exception as e:
-            logger.error(f"✗ Failed to image {ms_path.name}: {e}", exc_info=True)
+            logger.error(f":cross: Failed to image {ms_path.name}: {e}", exc_info=True)
             _progress_state["failed_ms"] = _progress_state.get("failed_ms", 0) + 1
             _progress_state["errors"].append({
                 "stage": "imaging",
@@ -583,7 +583,7 @@ def main():
         logger.error("No images produced!")
         return 1
     
-    logger.info(f"\n✓ Produced {len(image_paths)} images")
+    logger.info(f"\n:check: Produced {len(image_paths)} images")
     
     # Step 8: Create mosaic
     logger.info("\n" + "="*80)

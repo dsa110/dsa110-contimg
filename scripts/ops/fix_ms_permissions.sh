@@ -33,5 +33,5 @@ sudo chmod -R u+rw,g+r,o+r "$MS_PATH"
 echo "  - Making directories executable..."
 sudo find "$MS_PATH" -type d -exec chmod u+x {} \;
 
-echo "✓ Permissions fixed successfully"
+echo ":check: Permissions fixed successfully"
 ls -lah "$MS_PATH" | head -5

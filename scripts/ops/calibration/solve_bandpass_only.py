@@ -48,7 +48,7 @@ def main():
     print('1. Verifying MODEL_DATA...')
     with table(ms_path, readonly=True) as tb:
         if 'MODEL_DATA' not in tb.colnames():
-            print('✗ MODEL_DATA column not found!')
+            print(':cross: MODEL_DATA column not found!')
             sys.exit(1)
         
         n_sample = min(1000, tb.nrows())
@@ -57,7 +57,7 @@ def main():
         unflagged = ~flags.any(axis=(1, 2))
         
         if unflagged.sum() == 0:
-            print('✗ All MODEL_DATA is flagged!')
+            print(':cross: All MODEL_DATA is flagged!')
             sys.exit(1)
         
         model_unflagged = model_sample[unflagged]
@@ -68,9 +68,9 @@ def main():
         print(f'   Amplitude: median={np.median(amps):.3f} Jy, std={np.std(amps):.3f} Jy')
         print(f'   Phase scatter: std={np.std(phases_deg):.2f}°')
         if np.std(phases_deg) < 10.0:
-            print(f'   ✓ MODEL_DATA phase structure is correct (<10° scatter)')
+            print(f'   :check: MODEL_DATA phase structure is correct (<10° scatter)')
         else:
-            print(f'   ⚠ WARNING: MODEL_DATA phase scatter is high ({np.std(phases_deg):.2f}°)')
+            print(f'   :warning: WARNING: MODEL_DATA phase scatter is high ({np.std(phases_deg):.2f}°)')
     
     # Run bandpass solve WITHOUT pre-bandpass phase correction
     print('\n2. Solving bandpass (no pre-bandpass phase)...')
@@ -86,7 +86,7 @@ def main():
             uvrange=args.uvrange,
             prebandpass_phase_table=None,  # No pre-bandpass phase correction
         )
-        print(f'✓ Bandpass solve completed')
+        print(f':check: Bandpass solve completed')
         print(f'   Output table: {bp_tables[0] if bp_tables else "None"}')
         
         # Check bandpass quality
@@ -99,16 +99,16 @@ def main():
                 print(f'   Flagged fraction: {metrics.fraction_flagged*100:.1f}%')
                 print(f'   Median SNR: {metrics.median_snr:.2f}')
                 if metrics.fraction_flagged < 0.5:
-                    print('   ✓ Bandpass solutions look good (<50% flagged)')
+                    print('   :check: Bandpass solutions look good (<50% flagged)')
                 elif metrics.fraction_flagged < 0.7:
-                    print('   ⚠ Moderate flagging rate (50-70%)')
+                    print('   :warning: Moderate flagging rate (50-70%)')
                 else:
-                    print('   ✗ High flagging rate (>70%)')
+                    print('   :cross: High flagging rate (>70%)')
             except Exception as e:
                 print(f'   Could not compute quality metrics: {e}')
                 
     except Exception as e:
-        print(f'✗ Bandpass solve failed: {e}')
+        print(f':cross: Bandpass solve failed: {e}')
         import traceback
         traceback.print_exc()
         sys.exit(1)

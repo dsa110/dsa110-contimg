@@ -40,7 +40,7 @@ check_and_cleanup_vite() {
     vite_count=$(echo "$vite_ports" | wc -l | tr -d ' ')
     
     if [ "$vite_count" -gt 1 ]; then
-        echo -e "${YELLOW}⚠️  Found $vite_count Vite instances${NC}"
+        echo -e "${YELLOW}:warning:  Found $vite_count Vite instances${NC}"
         
         # Keep port 3210 (new default), fallback to 5173 for migration
         primary_port=3210
@@ -79,9 +79,9 @@ check_and_cleanup_vite() {
                     kill "$npm_pid" 2>/dev/null || true
                 done
                 sleep 2
-                echo -e "${GREEN}✓ Duplicates cleaned up${NC}"
+                echo -e "${GREEN}:check: Duplicates cleaned up${NC}"
             else
-                echo -e "${RED}✗ Duplicates found but auto-cleanup disabled${NC}"
+                echo -e "${RED}:cross: Duplicates found but auto-cleanup disabled${NC}"
                 echo "  Run: AUTO_CLEANUP_DUPLICATES=1 $0 frontend"
                 return 1
             fi
@@ -89,22 +89,22 @@ check_and_cleanup_vite() {
     elif [ "$vite_count" -eq 1 ]; then
         port=$(echo "$vite_ports" | head -1)
         if [ "$port" != "5173" ]; then
-            echo -e "${YELLOW}⚠️  Vite running on non-standard port $port${NC}"
+            echo -e "${YELLOW}:warning:  Vite running on non-standard port $port${NC}"
             if [ "$auto_cleanup" = "1" ]; then
                 vite_pid=$(lsof -ti :$port 2>/dev/null | head -1)
                 npm_pid=$(ps -o ppid= -p "$vite_pid" 2>/dev/null | tr -d ' ')
                 if [ -n "$npm_pid" ]; then
                     kill "$npm_pid" 2>/dev/null || true
                     sleep 1
-                    echo -e "${GREEN}✓ Cleaned up${NC}"
+                    echo -e "${GREEN}:check: Cleaned up${NC}"
                 fi
             fi
         else
-            echo -e "${GREEN}✓ Vite already running on port 5173${NC}"
+            echo -e "${GREEN}:check: Vite already running on port 5173${NC}"
             return 2  # Service already running (not an error)
         fi
     else
-        echo -e "${GREEN}✓ No Vite instances running${NC}"
+        echo -e "${GREEN}:check: No Vite instances running${NC}"
     fi
     
     return 0
@@ -119,7 +119,7 @@ check_and_cleanup_api() {
         api_count=$(echo "$api_pids" | wc -w | tr -d ' ')
         
         if [ "$api_count" -gt 1 ]; then
-            echo -e "${YELLOW}⚠️  Found $api_count API instances${NC}"
+            echo -e "${YELLOW}:warning:  Found $api_count API instances${NC}"
             
             if [ "$auto_cleanup" = "1" ]; then
                 echo -e "${YELLOW}Auto-cleaning duplicates...${NC}"
@@ -129,18 +129,18 @@ check_and_cleanup_api() {
                     kill "$pid" 2>/dev/null || true
                 done
                 sleep 1
-                echo -e "${GREEN}✓ Duplicates cleaned up${NC}"
+                echo -e "${GREEN}:check: Duplicates cleaned up${NC}"
             else
-                echo -e "${RED}✗ Duplicates found but auto-cleanup disabled${NC}"
+                echo -e "${RED}:cross: Duplicates found but auto-cleanup disabled${NC}"
                 return 1
             fi
         elif [ "$api_count" -eq 1 ]; then
             api_port=$(lsof -ti -a -p "${api_pids%% *}" -i :8000-8010 2>/dev/null | head -1 || echo "unknown")
-            echo -e "${GREEN}✓ API already running on port $api_port${NC}"
+            echo -e "${GREEN}:check: API already running on port $api_port${NC}"
             return 2  # Service already running (not an error)
         fi
     else
-        echo -e "${GREEN}✓ No API instances running${NC}"
+        echo -e "${GREEN}:check: No API instances running${NC}"
     fi
     
     return 0

@@ -91,7 +91,7 @@ Examples:
         
         print(f"\nValidation Checks:")
         for check_name, check_result in results['checks'].items():
-            status = "✓ PASS" if check_result['valid'] else "✗ FAIL"
+            status = ":check: PASS" if check_result['valid'] else ":cross: FAIL"
             print(f"  {check_name:20s} {status}")
             if check_result.get('error'):
                 print(f"    Error: {check_result['error']}")
@@ -107,19 +107,19 @@ Examples:
         if results['warnings']:
             print(f"\nWarnings:")
             for warning in results['warnings']:
-                print(f"  ⚠ {warning}")
+                print(f"  :warning: {warning}")
         
         if results['errors']:
             print(f"\nErrors:")
             for error in results['errors']:
-                print(f"  ✗ {error}")
+                print(f"  :cross: {error}")
         
         print(f"\n{'=' * 80}")
         if results['all_valid']:
-            print("OVERALL: ✓ ALL CHECKS PASSED")
+            print("OVERALL: :check: ALL CHECKS PASSED")
             return 0
         else:
-            print("OVERALL: ✗ VALIDATION FAILED")
+            print("OVERALL: :cross: VALIDATION FAILED")
             return 1
 
 

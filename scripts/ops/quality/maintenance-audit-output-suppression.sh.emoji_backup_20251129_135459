@@ -1,0 +1,83 @@
+#!/bin/bash
+# Maintenance script for output suppression audit
+# Run this periodically to ensure whitelist is up to date
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$PROJECT_ROOT"
+
+AUDIT_DATE=$(date +%Y%m%d)
+AUDIT_FILE="$PROJECT_ROOT/docs/dev-notes/audits/output-suppression-audit-${AUDIT_DATE}.txt"
+WHITELIST_FILE="$PROJECT_ROOT/.output-suppression-whitelist"
+
+# Create audits directory if it doesn't exist
+mkdir -p "$(dirname "$AUDIT_FILE")"
+
+echo "Running output suppression audit..."
+echo "Date: $(date)"
+echo ""
+
+# Run audit and save to file
+./scripts/audit-output-suppression.sh > "$AUDIT_FILE" 2>&1
+
+echo "Audit saved to: $AUDIT_FILE"
+echo ""
+
+# Analyze results
+TOTAL_SUPPRESSIONS=$(grep -E "\[.*\]" "$AUDIT_FILE" | grep -v "PATTERNS=" | wc -l)
+WHITELISTED_COUNT=$(grep -v "^#" "$WHITELIST_FILE" | grep -v "^$" | wc -l)
+
+echo "=== Audit Summary ==="
+echo "Total suppressions found: $TOTAL_SUPPRESSIONS"
+echo "Whitelist entries: $WHITELISTED_COUNT"
+echo ""
+
+# Check for non-whitelisted suppressions
+echo "=== Checking for non-whitelisted suppressions ==="
+NON_WHITELISTED=0
+
+while IFS=: read -r file line_num line_content; do
+    # Skip comments and empty lines
+    if [[ "$file" =~ ^# ]] || [[ -z "$file" ]]; then
+        continue
+    fi
+    
+    # Skip if it's a comment in the code
+    if [[ "$line_content" =~ ^[[:space:]]*# ]]; then
+        continue
+    fi
+    
+    # Check if whitelisted
+    if ! grep -qE "^${file}:${line_num}:" "$WHITELIST_FILE" 2>/dev/null; then
+        # Check if file exists and line contains suppression
+        if [ -f "$file" ]; then
+            if grep -n "2>/dev/null\|>/dev/null\|&>/dev/null" "$file" 2>/dev/null | grep -q "^${line_num}:"; then
+                echo "⚠️  Non-whitelisted: $file:$line_num"
+                NON_WHITELISTED=$((NON_WHITELISTED + 1))
+            fi
+        fi
+    fi
+done < <(grep -E "\[.*\]" "$AUDIT_FILE" | grep -v "PATTERNS=" | head -50)
+
+if [ $NON_WHITELISTED -eq 0 ]; then
+    echo "✅ All suppressions are whitelisted or in comments"
+else
+    echo ""
+    echo "⚠️  Found $NON_WHITELISTED non-whitelisted suppressions"
+    echo "   Review and add to whitelist if legitimate"
+fi
+
+echo ""
+echo "=== Whitelist Statistics ==="
+echo "By category:"
+grep -v "^#" "$WHITELIST_FILE" | grep -v "^$" | cut -d: -f3 | sort | uniq -c | sort -rn
+
+echo ""
+echo "=== Next Steps ==="
+echo "1. Review audit file: $AUDIT_FILE"
+echo "2. Check for non-whitelisted suppressions above"
+echo "3. Update whitelist if needed"
+echo "4. Remove obsolete whitelist entries"
+

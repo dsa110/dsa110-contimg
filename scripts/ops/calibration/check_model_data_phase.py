@@ -54,9 +54,9 @@ def check_model_data_phase(ms_path, cal_ra_deg, cal_dec_deg):
         print(f"  Expected (for point source at phase center): < 10°")
         
         if model_phase_scatter > 10:
-            print(f"  ✗ MODEL_DATA phase scatter is HIGH (expected < 10°)")
+            print(f"  :cross: MODEL_DATA phase scatter is HIGH (expected < 10°)")
         else:
-            print(f"  ✓ MODEL_DATA phase scatter is acceptable")
+            print(f"  :check: MODEL_DATA phase scatter is acceptable")
         
         # Check DATA vs MODEL_DATA alignment
         data_phases = np.angle(data_unflagged[:, :, 0])
@@ -69,9 +69,9 @@ def check_model_data_phase(ms_path, cal_ra_deg, cal_dec_deg):
         print(f"  Expected (for aligned data): < 20°")
         
         if phase_diff_scatter > 20:
-            print(f"  ✗ DATA and MODEL_DATA are MISALIGNED")
+            print(f"  :cross: DATA and MODEL_DATA are MISALIGNED")
         else:
-            print(f"  ✓ DATA and MODEL_DATA are aligned")
+            print(f"  :check: DATA and MODEL_DATA are aligned")
         
         # Check amplitude ratio
         model_amp = np.abs(model_unflagged[:, :, 0])
@@ -86,11 +86,11 @@ def check_model_data_phase(ms_path, cal_ra_deg, cal_dec_deg):
             print(f"  Expected (for aligned data): ~0.5-1.0 (depends on primary beam)")
             
             if amp_ratio < 0.1:
-                print(f"  ✗ DATA amplitude is very weak compared to MODEL (decorrelation?)")
+                print(f"  :cross: DATA amplitude is very weak compared to MODEL (decorrelation?)")
             elif amp_ratio > 2.0:
-                print(f"  ✗ DATA amplitude is very strong compared to MODEL (unexpected)")
+                print(f"  :cross: DATA amplitude is very strong compared to MODEL (unexpected)")
             else:
-                print(f"  ✓ Amplitude ratio is reasonable")
+                print(f"  :check: Amplitude ratio is reasonable")
         
         # Check by field
         print(f"\nPhase Scatter by Field:")

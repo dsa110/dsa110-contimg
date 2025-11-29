@@ -5,12 +5,12 @@
 
 ## Issues Found and Fixed
 
-### ✅ Issue 1: Synthetic Data Generator Arguments
+### :check: Issue 1: Synthetic Data Generator Arguments
 
 **Problem:** Script used `--timestamp` and `--output-dir` **Fixed:** Changed to
 `--start-time` and `--output` (correct argument names)
 
-### ✅ Issue 2: Flagging Command
+### :check: Issue 2: Flagging Command
 
 **Problem:** Script called non-existent `calibration.cli flag` subcommand
 **Fixed:** Changed to call flagging functions directly via Python:
@@ -21,7 +21,7 @@ reset_flags(ms_path)
 flag_zeros(ms_path)
 ```
 
-### ✅ Issue 3: Apply Calibration Command
+### :check: Issue 3: Apply Calibration Command
 
 **Problem:** CLI requires `--field` and `--tables` but script didn't provide
 them **Fixed:** Use `apply_to_target()` function directly (like
@@ -31,7 +31,7 @@ streaming_converter does):
 - Builds Python list from bash array
 - Calls `apply_to_target()` with explicit caltables
 
-### ✅ Issue 4: Imaging CLI Arguments
+### :check: Issue 4: Imaging CLI Arguments
 
 **Problem:** Script used positional arguments but CLI requires `--ms` and
 `--imagename` **Fixed:** Changed to named arguments:
@@ -43,14 +43,14 @@ python -m dsa110_contimg.imaging.cli \
     ...
 ```
 
-### ✅ Issue 5: CRITICAL - Subband Count Mismatch
+### :check: Issue 5: CRITICAL - Subband Count Mismatch
 
 **Problem:** Script generates 4 subbands but orchestrator expects 16 by default
 **Fixed:** Use `convert_subband_groups_to_ms()` function directly to bypass
 hardcoded expectations **Impact:** This was a show-stopper - conversion would
 always fail
 
-### ✅ Issue 6: Pre-flight Checks Added
+### :check: Issue 6: Pre-flight Checks Added
 
 **Added:** Comprehensive pre-flight checks:
 
@@ -61,7 +61,7 @@ always fail
 - Synthetic data dependencies
 - Template file existence
 
-### ✅ Issue 7: MS Verification
+### :check: Issue 7: MS Verification
 
 **Added:** MS verification after conversion:
 
@@ -69,43 +69,43 @@ always fail
 - Verify MS is readable via casacore
 - Check for expected row count
 
-### ✅ Issue 8: Field Existence Check
+### :check: Issue 8: Field Existence Check
 
 **Added:** Check if MS has fields before attempting calibration
 
-### ✅ Issue 9: CORRECTED_DATA Column Detection
+### :check: Issue 9: CORRECTED_DATA Column Detection
 
 **Added:** Auto-detect whether to use CORRECTED_DATA or DATA for imaging
 
-### ✅ Issue 10: Image Creation Verification
+### :check: Issue 10: Image Creation Verification
 
 **Added:** Verify image was actually created after imaging
 
-### ✅ Issue 11: CORRECTED_DATA Population Check
+### :check: Issue 11: CORRECTED_DATA Population Check
 
 **Added:** Verify CORRECTED_DATA was properly populated after applycal
 
-### ✅ Issue 12: Robust Error Handling
+### :check: Issue 12: Robust Error Handling
 
 **Added:** Try-catch blocks around all Python inline scripts with proper error
 messages
 
-### ✅ Issue 13: Existing MS Path Validation
+### :check: Issue 13: Existing MS Path Validation
 
 **Added:** When using `--use-existing-ms`, verify the path exists
 
-### ✅ Issue 14: UVH5 File Count Verification
+### :check: Issue 14: UVH5 File Count Verification
 
 **Added:** Verify UVH5 files were actually generated before attempting
 conversion
 
-### ✅ Issue 15: Template File Pre-check
+### :check: Issue 15: Template File Pre-check
 
 **Added:** Check template exists before attempting synthetic generation
 
 ## Verified Command Syntax
 
-### ✅ Stage 1: Synthetic Data Generation
+### :check: Stage 1: Synthetic Data Generation
 
 ```bash
 python -m dsa110_contimg.simulation.make_synthetic_uvh5 \
@@ -118,7 +118,7 @@ python -m dsa110_contimg.simulation.make_synthetic_uvh5 \
 
 **Verified:** All arguments match `parse_args()` in `make_synthetic_uvh5.py`
 
-### ✅ Stage 2: Conversion
+### :check: Stage 2: Conversion
 
 ```bash
 python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
@@ -134,11 +134,11 @@ python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator \
 
 **Verified:**
 
-- Positional args: `input_dir`, `output_dir`, `start_time`, `end_time` ✓
-- Optional args: `--log-level`, `--writer`, `--scratch-dir`, `--max-workers` ✓
-- Time format: `YYYY-MM-DDTHH:MM:SS` (astropy.Time accepts both T and space) ✓
+- Positional args: `input_dir`, `output_dir`, `start_time`, `end_time` :check:
+- Optional args: `--log-level`, `--writer`, `--scratch-dir`, `--max-workers` :check:
+- Time format: `YYYY-MM-DDTHH:MM:SS` (astropy.Time accepts both T and space) :check:
 
-### ✅ Stage 3: RFI Flagging
+### :check: Stage 3: RFI Flagging
 
 ```python
 from dsa110_contimg.calibration.flagging import reset_flags, flag_zeros
@@ -148,7 +148,7 @@ flag_zeros(ms_path)
 
 **Verified:** Functions exist in `calibration/flagging.py`
 
-### ✅ Stage 4: Calibration
+### :check: Stage 4: Calibration
 
 ```bash
 python -m dsa110_contimg.calibration.cli calibrate \
@@ -163,7 +163,7 @@ python -m dsa110_contimg.calibration.cli calibrate \
 
 **Verified:** All arguments match `calibrate` subparser in `calibration/cli.py`
 
-### ✅ Stage 5: Apply Calibration
+### :check: Stage 5: Apply Calibration
 
 ```python
 from dsa110_contimg.calibration.applycal import apply_to_target
@@ -172,12 +172,12 @@ apply_to_target(ms_path, field="", gaintables=caltables, calwt=True, verify=True
 
 **Verified:**
 
-- Function exists in `calibration/applycal.py` ✓
+- Function exists in `calibration/applycal.py` :check:
 - Signature matches:
-  `apply_to_target(ms_target, field, gaintables, calwt, verify)` ✓
-- Caltable detection: Finds `.kcal`, `.bpcal`, `.gcal` adjacent to MS ✓
+  `apply_to_target(ms_target, field, gaintables, calwt, verify)` :check:
+- Caltable detection: Finds `.kcal`, `.bpcal`, `.gcal` adjacent to MS :check:
 
-### ✅ Stage 6: Imaging
+### :check: Stage 6: Imaging
 
 ```bash
 python -m dsa110_contimg.imaging.cli \
@@ -190,11 +190,11 @@ python -m dsa110_contimg.imaging.cli \
 
 **Verified:**
 
-- Required args: `--ms`, `--imagename` ✓
-- Optional args: `--quick`, `--skip-fits`, `--uvrange` ✓
-- Matches `main()` parser in `imaging/cli.py` ✓
+- Required args: `--ms`, `--imagename` :check:
+- Optional args: `--quick`, `--skip-fits`, `--uvrange` :check:
+- Matches `main()` parser in `imaging/cli.py` :check:
 
-### ✅ Stage 7: QA Checks
+### :check: Stage 7: QA Checks
 
 ```python
 from dsa110_contimg.qa.pipeline_quality import check_ms_after_conversion
@@ -220,14 +220,14 @@ from dsa110_contimg.qa.image_quality import check_image_quality
 
 1. **Calibration may fail** for synthetic data without bright source\*\*
    - Solution: Accept warning and continue
-   - Already handled in script ✓
+   - Already handled in script :check:
 
 2. **Synthetic data template** may not exist
    - Solution: Check if `DEFAULT_TEMPLATE` exists
    - Current: Uses default template (should exist)
 
 3. **Time format** - script uses `T` separator, orchestrator accepts both
-   - Verified: `astropy.time.Time()` accepts both formats ✓
+   - Verified: `astropy.time.Time()` accepts both formats :check:
 
 ## Final Verification Checklist
 

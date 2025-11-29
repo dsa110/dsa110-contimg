@@ -128,16 +128,16 @@ def main():
     all_tested = [r for r in results.values() if r is not None]
     if not all_tested:
         print("  API server not running - all tests skipped")
-        print("  Data access functions tested separately ✓")
+        print("  Data access functions tested separately :check:")
         return 0
     
     for endpoint, result in results.items():
         if result is None:
             status = "SKIPPED (server not running)"
         elif result:
-            status = "✓ PASS"
+            status = ":check: PASS"
         else:
-            status = "✗ FAIL"
+            status = ":cross: FAIL"
         print(f"  {endpoint:20s} {status}")
     
     return 0

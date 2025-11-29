@@ -24,9 +24,9 @@ log "Step 1: Disk Space Cleanup"
 log "----------------------------------------"
 if [ -f "$SCRIPT_DIR/cleanup_disk_space.sh" ]; then
     "$SCRIPT_DIR/cleanup_disk_space.sh" 2>&1 | tee -a "$LOG_FILE"
-    log "✓ Disk cleanup complete"
+    log ":check: Disk cleanup complete"
 else
-    log "✗ cleanup_disk_space.sh not found"
+    log ":cross: cleanup_disk_space.sh not found"
 fi
 log ""
 
@@ -35,9 +35,9 @@ log "Step 2: Schedule Automated Cleanup"
 log "----------------------------------------"
 if ! crontab -l 2>/dev/null | grep -q cleanup_disk_space; then
     (crontab -l 2>/dev/null; echo "0 2 * * * $SCRIPT_DIR/cleanup_disk_space.sh") | crontab -
-    log "✓ Cleanup cron job added"
+    log ":check: Cleanup cron job added"
 else
-    log "✓ Cleanup cron job already exists"
+    log ":check: Cleanup cron job already exists"
 fi
 log ""
 
@@ -49,9 +49,9 @@ if [ -f "$SCRIPT_DIR/backfill_metadata.py" ]; then
         source "$SCRIPT_DIR/developer-setup.sh"
     fi
     python "$SCRIPT_DIR/backfill_metadata.py" 2>&1 | tee -a "$LOG_FILE"
-    log "✓ Metadata backfill complete"
+    log ":check: Metadata backfill complete"
 else
-    log "✗ backfill_metadata.py not found"
+    log ":cross: backfill_metadata.py not found"
 fi
 log ""
 
@@ -61,15 +61,15 @@ log "----------------------------------------"
 if [ -f "$SCRIPT_DIR/health_check.sh" ]; then
     if ! crontab -l 2>/dev/null | grep -q health_check; then
         (crontab -l 2>/dev/null; echo "*/30 * * * * $SCRIPT_DIR/health_check.sh") | crontab -
-        log "✓ Health check cron job added"
+        log ":check: Health check cron job added"
     else
-        log "✓ Health check cron job already exists"
+        log ":check: Health check cron job already exists"
     fi
     
     # Run health check once
     "$SCRIPT_DIR/health_check.sh" 2>&1 | tee -a "$LOG_FILE"
 else
-    log "✗ health_check.sh not found"
+    log ":cross: health_check.sh not found"
 fi
 log ""
 
@@ -81,16 +81,16 @@ log "----------------------------------------"
 DATA_USAGE=$(df -h /data | tail -1 | awk '{print $5}' | sed 's/%//')
 log "Disk /data usage: ${DATA_USAGE}%"
 if [ "$DATA_USAGE" -lt 85 ]; then
-    log "✓ Disk space OK"
+    log ":check: Disk space OK"
 else
-    log "⚠ Disk space still high"
+    log ":warning: Disk space still high"
 fi
 
 # Check Absurd
 if curl -sf http://localhost:8000/api/absurd/health > /dev/null 2>&1; then
-    log "✓ Absurd service responding"
+    log ":check: Absurd service responding"
 else
-    log "⚠ Absurd service not responding (may need manual configuration)"
+    log ":warning: Absurd service not responding (may need manual configuration)"
 fi
 
 # Check database
@@ -100,21 +100,21 @@ if [ -f "$PROJECT_ROOT/state/db/products.sqlite3" ]; then
     WITH_NAME=$(echo $RESULT | cut -d'|' -f2)
     log "Database: $WITH_NAME/$TOTAL images have metadata"
     if [ "$TOTAL" -eq 0 ] || [ "$WITH_NAME" -eq "$TOTAL" ]; then
-        log "✓ Database metadata OK"
+        log ":check: Database metadata OK"
     else
-        log "⚠ Some images missing metadata"
+        log ":warning: Some images missing metadata"
     fi
 else
-    log "⚠ Database not found"
+    log ":warning: Database not found"
 fi
 
 # Check system load
 LOAD=$(cat /proc/loadavg | awk '{print $1}')
 log "System load: $LOAD"
 if (( $(echo "$LOAD < 6.0" | bc -l) )); then
-    log "✓ System load OK"
+    log ":check: System load OK"
 else
-    log "⚠ System load elevated"
+    log ":warning: System load elevated"
 fi
 
 log ""

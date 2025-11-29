@@ -43,21 +43,21 @@ test_endpoint() {
             done
             
             if [ -z "$missing_fields" ]; then
-                echo -e "${GREEN}✓${NC} Pass"
+                echo -e "${GREEN}:check:${NC} Pass"
                 ((PASSED++))
                 return 0
             else
-                echo -e "${YELLOW}⚠${NC} Missing fields:${missing_fields}"
+                echo -e "${YELLOW}:warning:${NC} Missing fields:${missing_fields}"
                 ((FAILED++))
                 return 1
             fi
         else
-            echo -e "${GREEN}✓${NC} Pass"
+            echo -e "${GREEN}:check:${NC} Pass"
             ((PASSED++))
             return 0
         fi
     else
-        echo -e "${RED}✗${NC} Failed (Status: $status_code)"
+        echo -e "${RED}:cross:${NC} Failed (Status: $status_code)"
         ((FAILED++))
         return 1
     fi
@@ -77,10 +77,10 @@ if [ "$ITEMS_TYPE" = "array" ]; then
     if [ -n "$FIRST_ITEM_ID" ] && [ "$FIRST_ITEM_ID" != "null" ] && [ "$FIRST_ITEM_ID" != "" ]; then
         test_endpoint "DLQ Item Detail" "/operations/dlq/items/${FIRST_ITEM_ID}" "id component operation status"
     else
-        echo -e "${YELLOW}⚠${NC} No DLQ items available for detail test"
+        echo -e "${YELLOW}:warning:${NC} No DLQ items available for detail test"
     fi
 else
-    echo -e "${YELLOW}⚠${NC} DLQ items endpoint returned non-array response"
+    echo -e "${YELLOW}:warning:${NC} DLQ items endpoint returned non-array response"
 fi
 
 # Test Circuit Breakers endpoint (used by CircuitBreakerStatus component)
@@ -103,10 +103,10 @@ if [ -n "$FIRST_ITEM_ID" ] && [ "$FIRST_ITEM_ID" != "null" ] && [ "$FIRST_ITEM_I
         "${API_BASE}/operations/dlq/items/${FIRST_ITEM_ID}/retry")
     retry_status=$(echo "$retry_response" | grep -oE 'HTTP_STATUS:([0-9]+)' | grep -oE '[0-9]+' || echo "000")
     if [ "$retry_status" = "200" ]; then
-        echo -e "${GREEN}✓${NC} Pass"
+        echo -e "${GREEN}:check:${NC} Pass"
         ((PASSED++))
     else
-        echo -e "${RED}✗${NC} Failed (Status: $retry_status)"
+        echo -e "${RED}:cross:${NC} Failed (Status: $retry_status)"
         ((FAILED++))
     fi
 fi
@@ -117,10 +117,10 @@ reset_response=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST \
     "${API_BASE}/operations/circuit-breakers/ese_detection/reset")
 reset_status=$(echo "$reset_response" | grep -oE 'HTTP_STATUS:([0-9]+)' | grep -oE '[0-9]+' || echo "000")
 if [ "$reset_status" = "200" ]; then
-    echo -e "${GREEN}✓${NC} Pass"
+    echo -e "${GREEN}:check:${NC} Pass"
     ((PASSED++))
 else
-    echo -e "${RED}✗${NC} Failed (Status: $reset_status)"
+    echo -e "${RED}:cross:${NC} Failed (Status: $reset_status)"
     ((FAILED++))
 fi
 
@@ -136,11 +136,11 @@ if [ $FAILED -eq 0 ]; then
     echo -e "${GREEN}All API endpoints are accessible and working!${NC}"
     echo ""
     echo "Frontend components should be able to:"
-    echo "  ✓ Fetch DLQ stats and items"
-    echo "  ✓ Fetch circuit breaker states"
-    echo "  ✓ Fetch health summary"
-    echo "  ✓ Perform retry/resolve actions"
-    echo "  ✓ Reset circuit breakers"
+    echo "  :check: Fetch DLQ stats and items"
+    echo "  :check: Fetch circuit breaker states"
+    echo "  :check: Fetch health summary"
+    echo "  :check: Perform retry/resolve actions"
+    echo "  :check: Reset circuit breakers"
     exit 0
 else
     echo -e "${RED}Some endpoints failed. Please check the errors above.${NC}"

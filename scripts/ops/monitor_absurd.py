@@ -65,7 +65,7 @@ def print_health(health):
     print(f"Status: {color}{health['status'].upper()}{reset} - {health['message']}")
     print(f"Queue Depth: {health['queue_depth']} tasks")
     print(
-        f"Database: {'✓ Available' if health['database_available'] else '✗ Unavailable'} "
+        f"Database: {':check: Available' if health['database_available'] else ':cross: Unavailable'} "
         f"({health['database_latency_ms']:.0f}ms)"
     )
     print(f"Workers: {health['worker_pool_message']}")
@@ -81,14 +81,14 @@ def print_health(health):
         print(f"\n{'ALERTS':^100}")
         print("-" * 100)
         for alert in health["alerts"]:
-            print(f"🚨 {alert}")
+            print(f":police_cars_revolving_light: {alert}")
 
     # Print warnings
     if health["warnings"]:
         print(f"\n{'WARNINGS':^100}")
         print("-" * 100)
         for warning in health["warnings"]:
-            print(f"⚠️  {warning}")
+            print(f":warning:  {warning}")
 
 
 def print_task_metrics(metrics):
@@ -174,7 +174,7 @@ async def monitor_loop(client: AbsurdClient, queue_name: str, interval: float):
             print("=" * 100)
 
         except Exception as e:
-            print(f"\n❌ Monitoring error: {e}")
+            print(f"\n:cross: Monitoring error: {e}")
 
         await asyncio.sleep(interval)
 

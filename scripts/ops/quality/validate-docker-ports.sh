@@ -43,11 +43,11 @@ check_file "docker/docker-compose.test.yml"
 check_file "frontend/docker-compose.test.yml"
 
 if [ $ERRORS -eq 0 ]; then
-    echo "✓ All Docker Compose files use environment variables for ports"
+    echo ":check: All Docker Compose files use environment variables for ports"
     exit 0
 else
     echo ""
-    echo "✗ Found $ERRORS hardcoded port(s)"
+    echo ":cross: Found $ERRORS hardcoded port(s)"
     echo "  Use environment variables instead (e.g., \${CONTIMG_API_PORT:-8000})"
     exit 1
 fi

@@ -56,7 +56,7 @@ log() {
 
 log_verbose() {
     if [[ "$VERBOSE" == "true" && "$JSON_OUTPUT" != "true" ]]; then
-        echo -e "  ${BLUE}→${NC} $1"
+        echo -e "  ${BLUE}:arrow_right:${NC} $1"
     fi
 }
 
@@ -333,9 +333,9 @@ print_results() {
             
             local status_icon status_color
             case ${RESULTS[$service]} in
-                healthy)  status_icon="✓"; status_color="$GREEN" ;;
+                healthy)  status_icon=":check:"; status_color="$GREEN" ;;
                 degraded) status_icon="◐"; status_color="$YELLOW" ;;
-                failed)   status_icon="✗"; status_color="$RED" ;;
+                failed)   status_icon=":cross:"; status_color="$RED" ;;
                 skipped)  status_icon="○"; status_color="$BLUE" ;;
             esac
             
@@ -347,13 +347,13 @@ print_results() {
         
         case $OVERALL_STATUS in
             healthy)
-                log "${GREEN}✓ All services healthy - safe to open browser${NC}"
+                log "${GREEN}:check: All services healthy - safe to open browser${NC}"
                 ;;
             degraded)
                 log "${YELLOW}◐ Some services degraded - browser may work with issues${NC}"
                 ;;
             unhealthy)
-                log "${RED}✗ Services unhealthy - DO NOT trust browser access${NC}"
+                log "${RED}:cross: Services unhealthy - DO NOT trust browser access${NC}"
                 log ""
                 log "  Run: ${BLUE}sudo systemctl status <service>${NC} for details"
                 log "  Or:  ${BLUE}sudo journalctl -u <service> -n 20${NC} for logs"

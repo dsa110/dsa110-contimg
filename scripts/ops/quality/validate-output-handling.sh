@@ -29,7 +29,7 @@ check_file() {
                 continue
             fi
             
-            echo "❌ VIOLATION in $file:$line_num: Suppression detected"
+            echo ":cross: VIOLATION in $file:$line_num: Suppression detected"
             echo "   $line"
             echo "   Hint: Add a comment explaining why suppression is acceptable (e.g., '# Note: exception for...')"
             VIOLATIONS=$((VIOLATIONS + 1))
@@ -40,7 +40,7 @@ check_file() {
         if echo "$line" | grep -qE "2>&1.*>.*dev/null|2>&1.*>/dev/null"; then
             # Skip if it's a comment explaining the exception
             if ! echo "$line" | grep -qE "#.*exception|#.*acceptable|#.*Note:"; then
-                echo "❌ VIOLATION in $file:$line_num: 2>&1 used for suppression"
+                echo ":cross: VIOLATION in $file:$line_num: 2>&1 used for suppression"
                 echo "   $line"
                 echo "   Hint: 2>&1 is only allowed when combining streams (e.g., with tee)"
                 VIOLATIONS=$((VIOLATIONS + 1))
@@ -51,7 +51,7 @@ check_file() {
         if echo "$line" | grep -qE "\| grep -v|\| grep.*-v"; then
             # Allow if commented or explicitly documented
             if ! echo "$line" | grep -qE "#.*grep -v|#.*filter"; then
-                echo "⚠️  WARNING in $file:$line_num: Output filtering detected"
+                echo ":warning:  WARNING in $file:$line_num: Output filtering detected"
                 echo "   $line"
                 echo "   (May be OK if explicitly requested)"
             fi
@@ -60,7 +60,7 @@ check_file() {
         # Check for head/tail truncation without explicit request
         if echo "$line" | grep -qE "\| head|\| tail"; then
             if ! echo "$line" | grep -qE "#.*head|#.*tail|#.*truncate"; then
-                echo "⚠️  WARNING in $file:$line_num: Output truncation detected"
+                echo ":warning:  WARNING in $file:$line_num: Output truncation detected"
                 echo "   $line"
                 echo "   (May be OK if explicitly requested)"
             fi
@@ -84,7 +84,7 @@ find scripts -name "*.py" -type f | while read -r file; do
         # Check for subprocess calls that might suppress output
         if grep -q "subprocess\|Popen\|call\|run" "$file"; then
             if grep -q "stdout.*devnull\|stderr.*devnull\|PIPE.*devnull" "$file"; then
-                echo "❌ VIOLATION in $file: Python subprocess suppressing output"
+                echo ":cross: VIOLATION in $file: Python subprocess suppressing output"
                 grep -n "devnull\|PIPE" "$file" | head -5
                 VIOLATIONS=$((VIOLATIONS + 1))
             fi
@@ -94,10 +94,10 @@ done
 
 echo ""
 if [ $VIOLATIONS -eq 0 ]; then
-    echo "✅ No violations found!"
+    echo ":check: No violations found!"
     exit 0
 else
-    echo "❌ Found $VIOLATIONS violation(s)"
+    echo ":cross: Found $VIOLATIONS violation(s)"
     exit 1
 fi
 

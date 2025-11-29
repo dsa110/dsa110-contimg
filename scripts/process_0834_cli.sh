@@ -57,7 +57,7 @@ for i in 0 1 2; do
     fi
     
     if [ ! -d "$MS_PATH" ]; then
-        echo "  ⚠ MS not found, skipping..."
+        echo "  :warning: MS not found, skipping..."
         continue
     fi
     
@@ -99,10 +99,10 @@ for i in 0 1 2; do
             --box 7 \
             --annulus 15 25
     else
-        echo "  ⚠ No FITS file found for photometry"
+        echo "  :warning: No FITS file found for photometry"
     fi
     
-    echo "  ✓ Completed group $((i+1))"
+    echo "  :check: Completed group $((i+1))"
 done
 
 echo ""

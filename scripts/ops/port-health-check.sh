@@ -16,9 +16,9 @@ FIX_MODE=false
 ERRORS=0
 WARNINGS=0
 
-log_ok() { echo "✓ $1"; }
-log_warn() { echo "⚠ $1"; ((WARNINGS++)); }
-log_err() { echo "✗ $1"; ((ERRORS++)); }
+log_ok() { echo ":check: $1"; }
+log_warn() { echo ":warning: $1"; ((WARNINGS++)); }
+log_err() { echo ":cross: $1"; ((ERRORS++)); }
 
 # Check if a port has a listener (using ss for reliability)
 port_has_listener() {

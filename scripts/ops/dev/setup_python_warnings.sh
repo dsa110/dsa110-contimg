@@ -21,7 +21,7 @@ fi
 
 # Check if already set
 if grep -q "PYTHONWARNINGS.*ignore::DeprecationWarning" "$PROFILE_FILE" 2>/dev/null; then
-    echo "✓ PYTHONWARNINGS already set in $PROFILE_FILE"
+    echo ":check: PYTHONWARNINGS already set in $PROFILE_FILE"
     exit 0
 fi
 
@@ -31,7 +31,7 @@ echo "# Suppress SWIG deprecation warnings from CASA/casacore" >> "$PROFILE_FILE
 echo "# Added by dsa110-contimg setup script" >> "$PROFILE_FILE"
 echo "export PYTHONWARNINGS=\"ignore::DeprecationWarning\"" >> "$PROFILE_FILE"
 
-echo "✓ Added PYTHONWARNINGS to $PROFILE_FILE"
+echo ":check: Added PYTHONWARNINGS to $PROFILE_FILE"
 echo ""
 echo "To apply immediately, run:"
 echo "  source $PROFILE_FILE"

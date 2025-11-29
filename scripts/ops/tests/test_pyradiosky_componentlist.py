@@ -1,6 +1,6 @@
 #!/opt/miniforge/envs/casa6/bin/python
 """
-Test pyradiosky → componentlist → CASA ft() workflow.
+Test pyradiosky :arrow_right: componentlist :arrow_right: CASA ft() workflow.
 
 This is the recommended workflow since DP3 cannot handle 2-pol MS files.
 """
@@ -55,11 +55,11 @@ def check_model_data(ms_path: str):
 
 
 def main():
-    """Test pyradiosky → componentlist → ft() workflow."""
+    """Test pyradiosky :arrow_right: componentlist :arrow_right: ft() workflow."""
     ms_path = "/tmp/dp3_pyradiosky_test/test_ms.ms"
     
     print("=" * 60)
-    print("Test: pyradiosky → componentlist → CASA ft()")
+    print("Test: pyradiosky :arrow_right: componentlist :arrow_right: CASA ft()")
     print("=" * 60)
     print()
     print("This is the recommended workflow for 2-pol MS files.")
@@ -91,7 +91,7 @@ def main():
         spectral_type='flat',
         component_type='point',
     )
-    print(f"✓ Created SkyModel with {sky.Ncomponents} source(s)")
+    print(f":check: Created SkyModel with {sky.Ncomponents} source(s)")
     
     # Step 2: Convert to componentlist
     print("\n" + "-" * 60)
@@ -103,16 +103,16 @@ def main():
         
         try:
             result_path = convert_skymodel_to_componentlist(sky, out_path=cl_path)
-            print(f"✓ Converted to componentlist: {result_path}")
+            print(f":check: Converted to componentlist: {result_path}")
             
             # Verify it exists
             if os.path.exists(result_path):
-                print(f"  Componentlist exists: ✓")
+                print(f"  Componentlist exists: :check:")
             else:
-                print(f"  Componentlist exists: ✗")
+                print(f"  Componentlist exists: :cross:")
                 return 1
         except Exception as e:
-            print(f"✗ Conversion failed: {e}")
+            print(f":cross: Conversion failed: {e}")
             import traceback
             traceback.print_exc()
             return 1
@@ -133,9 +133,9 @@ def main():
         try:
             ft_from_cl(ms_path, cl_path, field="0")
             ft_time = time.time() - start_time
-            print(f"✓ CASA ft() completed in {ft_time:.2f} seconds")
+            print(f":check: CASA ft() completed in {ft_time:.2f} seconds")
         except Exception as e:
-            print(f"✗ CASA ft() failed: {e}")
+            print(f":cross: CASA ft() failed: {e}")
             import traceback
             traceback.print_exc()
             return 1
@@ -151,17 +151,17 @@ def main():
         print("\n" + "=" * 60)
         print("Test Summary")
         print("=" * 60)
-        print(f"pyradiosky SkyModel: ✓ Created")
-        print(f"Componentlist conversion: ✓")
+        print(f"pyradiosky SkyModel: :check: Created")
+        print(f"Componentlist conversion: :check:")
         print(f"CASA ft() time: {ft_time:.2f} seconds")
-        print(f"MODEL_DATA: {'✓ Populated' if after_ok else '✗ Not populated'}")
+        print(f"MODEL_DATA: {':check: Populated' if after_ok else ':cross: Not populated'}")
         
         if after_ok:
-            print("\n✓ Full workflow PASSED")
-            print("  pyradiosky → componentlist → CASA ft() is working!")
+            print("\n:check: Full workflow PASSED")
+            print("  pyradiosky :arrow_right: componentlist :arrow_right: CASA ft() is working!")
             return 0
         else:
-            print("\n✗ Workflow FAILED")
+            print("\n:cross: Workflow FAILED")
             return 1
 
 

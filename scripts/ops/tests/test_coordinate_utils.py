@@ -55,14 +55,14 @@ def test_coordinate_bounds():
     
     tiles = find_test_tiles()
     if not tiles:
-        print("✗ No tiles found - skipping test")
+        print(":cross: No tiles found - skipping test")
         return False
     
     success_count = 0
     for tile in tiles[:3]:
         bounds = get_tile_coordinate_bounds(str(tile))
         if bounds:
-            print(f"\n✓ {tile.name}:")
+            print(f"\n:check: {tile.name}:")
             print(f"  RA: [{bounds['ra_min']:.6f}, {bounds['ra_max']:.6f}] rad")
             print(f"  Dec: [{bounds['dec_min']:.6f}, {bounds['dec_max']:.6f}] rad")
             print(f"  Center: ({bounds['center_ra']:.6f}, {bounds['center_dec']:.6f}) rad")
@@ -70,9 +70,9 @@ def test_coordinate_bounds():
             print(f"  Shape: {bounds['shape']}")
             success_count += 1
         else:
-            print(f"\n✗ {tile.name}: Failed to extract bounds")
+            print(f"\n:cross: {tile.name}: Failed to extract bounds")
     
-    print(f"\n✓ Extracted bounds from {success_count}/{len(tiles[:3])} tiles")
+    print(f"\n:check: Extracted bounds from {success_count}/{len(tiles[:3])} tiles")
     return success_count > 0
 
 def test_overlap_check():
@@ -83,7 +83,7 @@ def test_overlap_check():
     
     tiles = find_test_tiles()
     if len(tiles) < 2:
-        print("✗ Need at least 2 tiles - skipping test")
+        print(":cross: Need at least 2 tiles - skipping test")
         return False
     
     template = tiles[0]
@@ -93,12 +93,12 @@ def test_overlap_check():
     for tile in tiles[1:]:
         overlaps, reason = check_tile_overlaps_template(str(tile), str(template))
         if overlaps:
-            print(f"  ✓ {tile.name}: Overlaps")
+            print(f"  :check: {tile.name}: Overlaps")
             success_count += 1
         else:
-            print(f"  ✗ {tile.name}: Does NOT overlap - {reason}")
+            print(f"  :cross: {tile.name}: Does NOT overlap - {reason}")
     
-    print(f"\n✓ {success_count}/{len(tiles)-1} tiles overlap template")
+    print(f"\n:check: {success_count}/{len(tiles)-1} tiles overlap template")
     return True
 
 def test_filter_tiles():
@@ -109,7 +109,7 @@ def test_filter_tiles():
     
     tiles = find_test_tiles()
     if len(tiles) < 2:
-        print("✗ Need at least 2 tiles - skipping test")
+        print(":cross: Need at least 2 tiles - skipping test")
         return False
     
     template = tiles[0]
@@ -123,13 +123,13 @@ def test_filter_tiles():
     print(f"\nResults:")
     print(f"  Overlapping tiles: {len(overlapping)}")
     for tile_path in overlapping:
-        print(f"    ✓ {Path(tile_path).name}")
+        print(f"    :check: {Path(tile_path).name}")
     
     print(f"  Skipped tiles: {len(skipped)}")
     for tile_path, reason in skipped:
-        print(f"    ✗ {Path(tile_path).name}: {reason}")
+        print(f"    :cross: {Path(tile_path).name}: {reason}")
     
-    print(f"\n✓ Filtered {len(skipped)} non-overlapping tiles")
+    print(f"\n:check: Filtered {len(skipped)} non-overlapping tiles")
     return True
 
 def test_bounding_box():
@@ -140,14 +140,14 @@ def test_bounding_box():
     
     tiles = find_test_tiles()
     if len(tiles) < 2:
-        print("✗ Need at least 2 tiles - skipping test")
+        print(":cross: Need at least 2 tiles - skipping test")
         return False
     
     tile_paths = [str(t) for t in tiles]
     bbox = compute_tiles_bounding_box(tile_paths)
     
     if bbox:
-        print(f"\n✓ Computed bounding box:")
+        print(f"\n:check: Computed bounding box:")
         print(f"  RA: [{bbox['ra_min']:.6f}, {bbox['ra_max']:.6f}] rad")
         print(f"  Dec: [{bbox['dec_min']:.6f}, {bbox['dec_max']:.6f}] rad")
         print(f"  Center: ({bbox['center_ra']:.6f}, {bbox['center_dec']:.6f}) rad")
@@ -155,7 +155,7 @@ def test_bounding_box():
         print(f"  Dimensions: {bbox['nx']} x {bbox['ny']} pixels")
         return True
     else:
-        print("\n✗ Failed to compute bounding box")
+        print("\n:cross: Failed to compute bounding box")
         return False
 
 if __name__ == '__main__':
@@ -174,15 +174,15 @@ if __name__ == '__main__':
     print("Test Summary")
     print("=" * 60)
     for test_name, passed in results:
-        status = "✓ PASSED" if passed else "✗ FAILED/SKIPPED"
+        status = ":check: PASSED" if passed else ":cross: FAILED/SKIPPED"
         print(f"{test_name:20s}: {status}")
     
     all_passed = all(passed for _, passed in results)
     if all_passed:
-        print("\n✓✓✓ All tests passed!")
+        print("\n:check::check::check: All tests passed!")
         sys.exit(0)
     else:
-        print("\n⚠ Some tests were skipped (no tiles available)")
+        print("\n:warning: Some tests were skipped (no tiles available)")
         print("  This is expected if no test tiles are available.")
         sys.exit(0)  # Don't fail if no tiles available
 

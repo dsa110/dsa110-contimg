@@ -19,7 +19,7 @@ export interface SortableTableHeaderProps {
 
 /**
  * Sortable table header with visual sort indicators.
- * Click to toggle sort direction: none → asc → desc → none
+ * Click to toggle sort direction: none :arrow_right: asc :arrow_right: desc :arrow_right: none
  */
 const SortableTableHeader: React.FC<SortableTableHeaderProps> = ({
   columnKey,

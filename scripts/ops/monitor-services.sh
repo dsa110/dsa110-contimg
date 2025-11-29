@@ -37,20 +37,20 @@ function log() {
 
 function check_frontend() {
     if curl -sf --max-time 5 http://localhost:3210/ > /dev/null 2>&1; then
-        echo -e "${GREEN}✅ Frontend (3210): Healthy${NC}"
+        echo -e "${GREEN}:check: Frontend (3210): Healthy${NC}"
         return 0
     else
-        echo -e "${RED}❌ Frontend (3210): Not responding${NC}"
+        echo -e "${RED}:cross: Frontend (3210): Not responding${NC}"
         return 1
     fi
 }
 
 function check_backend() {
     if curl -sf --max-time 5 http://localhost:8000/api/status > /dev/null 2>&1; then
-        echo -e "${GREEN}✅ Backend (8000): Healthy${NC}"
+        echo -e "${GREEN}:check: Backend (8000): Healthy${NC}"
         return 0
     else
-        echo -e "${RED}❌ Backend (8000): Not responding${NC}"
+        echo -e "${RED}:cross: Backend (8000): Not responding${NC}"
         return 1
     fi
 }

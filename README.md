@@ -134,7 +134,7 @@ python scripts/generate_structure_diagram.py /data/dsa110-contimg/docs docs_stru
 - Automatically detects Python packages, key files, and directory structure
 - Generates Mermaid flowchart diagrams showing module relationships
 - Renders to SVG format (ready to use in documentation)
-- Detects common pipeline relationships (conversion → calibration → imaging, etc.)
+- Detects common pipeline relationships (conversion :arrow_right: calibration :arrow_right: imaging, etc.)
 - Color-codes different module types for easy identification
 
 **Output:**
@@ -204,7 +204,7 @@ All databases are stored in `state/` with `.sqlite3` extension.
 | `products.sqlite3`            | MS index, images, photometry, mosaic groups             |
 | `hdf5.sqlite3`                | HDF5 file index for fast queries                        |
 
-> **📖 Full Documentation:** See
+> **:book: Full Documentation:** See
 > [Database Reference](docs/reference/DATABASE_REFERENCE_INDEX.md) for complete
 > schemas, common queries, and Python access examples.
 
@@ -461,7 +461,7 @@ dsa110-benchmark compare HEAD~1 HEAD  # Regression check
 
 | Category    | Command                    | Measures                           |
 | ----------- | -------------------------- | ---------------------------------- |
-| Conversion  | `make bench-conversion`    | HDF5 → MS conversion (SSD staging) |
+| Conversion  | `make bench-conversion`    | HDF5 :arrow_right: MS conversion (SSD staging) |
 | Calibration | `make bench-calibration`   | Bandpass, gain, applycal           |
 | Flagging    | (included in `make bench`) | Flag reset, zero flagging          |
 | Imaging     | (disabled by default)      | WSClean imaging                    |
@@ -510,7 +510,7 @@ setup and details.
 The current setup uses ngrok's built-in GitHub OAuth which requires any GitHub account to access the API. For proper access control with email filtering (e.g., only `@caltech.edu` emails), implement application-level authentication:
 
 **Components needed:**
-1. **GitHub OAuth App** - Create at GitHub Settings → Developer settings → OAuth Apps
+1. **GitHub OAuth App** - Create at GitHub Settings :arrow_right: Developer settings :arrow_right: OAuth Apps
    - Callback URL: `https://code.deepsynoptic.org/dsa110-contimg/dashboard/callback`
    
 2. **Backend auth endpoints** (`/api/auth/*`):

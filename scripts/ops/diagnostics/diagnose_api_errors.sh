@@ -15,24 +15,24 @@ test_endpoint() {
   body=$(echo "$response" | sed '$d')
   
   if [ "$http_code" = "200" ]; then
-    echo "✓ OK"
+    echo ":check: OK"
     return 0
   elif [ "$http_code" = "404" ]; then
-    echo "✗ 404 Not Found"
+    echo ":cross: 404 Not Found"
     return 1
   elif [ "$http_code" = "500" ]; then
     error_msg=$(echo "$body" | grep -o '"detail":"[^"]*"' | head -1 | cut -d'"' -f4 || echo "Internal Server Error")
-    echo "✗ 500 Error: $error_msg"
+    echo ":cross: 500 Error: $error_msg"
     return 1
   elif [ "$http_code" = "422" ]; then
     error_msg=$(echo "$body" | grep -o '"detail"[^}]*' | head -1 | cut -c1-60 || echo "Validation Error")
-    echo "⚠ 422 Validation: $error_msg"
+    echo ":warning: 422 Validation: $error_msg"
     return 1
   elif [ "$http_code" = "000" ]; then
-    echo "✗ Connection Failed (Backend not running?)"
+    echo ":cross: Connection Failed (Backend not running?)"
     return 1
   else
-    echo "⚠ $http_code"
+    echo ":warning: $http_code"
     return 1
   fi
 }

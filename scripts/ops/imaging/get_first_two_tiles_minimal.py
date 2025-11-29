@@ -71,7 +71,7 @@ def main():
 
     if not earliest_file:
         sys.exit("No observations found")
-    print(f"✓ Found: {earliest_file.name}")
+    print(f":check: Found: {earliest_file.name}")
 
     # Extract declination and observation time
     pointing = load_pointing(earliest_file)
@@ -87,8 +87,8 @@ def main():
         dec_deg = pt_dec_rad.to_value("deg")
 
     earliest_time = Time(earliest_mjd, format="mjd")
-    print(f"✓ Declination: {dec_deg:.6f}°")
-    print(f"✓ Observation time: {earliest_time.isot}")
+    print(f":check: Declination: {dec_deg:.6f}°")
+    print(f":check: Observation time: {earliest_time.isot}")
 
     # Find calibrator and first validity window
     print("\nStep 2: Finding calibrator...")
@@ -103,19 +103,19 @@ def main():
     cal = manager.get_bandpass_calibrator_for_dec(dec_deg)
     if not cal:
         sys.exit(f"No calibrator for Dec={dec_deg:.6f}°")
-    print(f"✓ Calibrator: {cal['name']} (RA={cal['ra_deg']:.6f}°)")
+    print(f":check: Calibrator: {cal['name']} (RA={cal['ra_deg']:.6f}°)")
 
     # Calculate the first transit >= earliest observation time
     # This is the correct approach: compute transit directly rather than searching backwards
     print("\nStep 3: Finding first validity window...")
     transit = next_transit_time(cal["ra_deg"], earliest_mjd)
-    print(f"✓ First transit >= earliest observation: {transit.isot}")
+    print(f":check: First transit >= earliest observation: {transit.isot}")
     # Bandpass validity window is ±12 hours around transit (24-hour window centered on transit)
     validity_window_hours = 12.0
     window_start = transit - TimeDelta(validity_window_hours * 3600, format="sec")
     window_end = transit + TimeDelta(validity_window_hours * 3600, format="sec")
     print(
-        f"✓ Validity window: {window_start.isot} to {window_end.isot} (±{validity_window_hours}h around transit)"
+        f":check: Validity window: {window_start.isot} to {window_end.isot} (±{validity_window_hours}h around transit)"
     )
 
     # Find observations in /data/incoming that fall within the validity window
@@ -208,7 +208,7 @@ def main():
             f"No observations found in /data/incoming within validity window ({window_start.isot} to {window_end.isot})"
         )
 
-    print(f"✓ Found {len(observations_in_window)} observation(s) in validity window:")
+    print(f":check: Found {len(observations_in_window)} observation(s) in validity window:")
     for i, (obs_file, obs_time) in enumerate(
         observations_in_window[:10], 1
     ):  # Show first 10
@@ -241,7 +241,7 @@ def main():
         if not groups:
             sys.exit("No complete 16-subband groups found in validity window")
 
-        print(f"✓ Found {len(groups)} complete group(s) in validity window")
+        print(f":check: Found {len(groups)} complete group(s) in validity window")
         if len(groups) < 2:
             sys.exit(f"Need at least 2 groups, but only found {len(groups)}")
 
@@ -260,12 +260,12 @@ def main():
             print("  Would form group and solve calibration")
             print("  Would apply calibration to MS files")
             print("  Would image MS files to create tiles")
-            print("✓ Tile creation workflow validated (dry-run)")
+            print(":check: Tile creation workflow validated (dry-run)")
             # In dry-run, we can't actually create tiles, so simulate success
             print("\nStep 5c: Re-querying for tiles (simulated)...")
             # Create placeholder tiles for dry-run continuation
             tiles = ["simulated_tile_1.fits", "simulated_tile_2.fits"]
-            print("✓ Found 2 tile(s) (simulated for dry-run)")
+            print(":check: Found 2 tile(s) (simulated for dry-run)")
         else:
             print("\nStep 5b: Creating tiles from groups...")
             ms_dir = Path("/stage/dsa110-contimg/ms")
@@ -285,19 +285,19 @@ def main():
                 pbcor_path = Path(f"{imagename}.image.pbcor")
 
                 if pbcor_path.exists():
-                    print(f"  ✓ Using existing tile for {group_label}: {pbcor_path}")
+                    print(f"  :check: Using existing tile for {group_label}: {pbcor_path}")
                     tiles.append(str(pbcor_path))
                     continue
 
                 if ms_path.exists():
-                    print(f"  ✓ MS already exists for {group_label}: {ms_path}")
+                    print(f"  :check: MS already exists for {group_label}: {ms_path}")
                 else:
-                    print(f"  → Converting {group_label} to MS: {ms_path}")
+                    print(f"  :arrow_right: Converting {group_label} to MS: {ms_path}")
                     write_ms_from_subbands(
                         group, str(ms_path), scratch_dir=str(scratch_dir)
                     )
 
-                print(f"  → Calibrating {group_label} MS")
+                print(f"  :arrow_right: Calibrating {group_label} MS")
                 cal_args = argparse.Namespace(
                     ms=str(ms_path),
                     auto_fields=True,
@@ -330,7 +330,7 @@ def main():
                         f"Calibration failed for {ms_path} (exit code {cal_result})"
                     )
 
-                print(f"  → Imaging {group_label} (pbcor)")
+                print(f"  :arrow_right: Imaging {group_label} (pbcor)")
                 image_ms(
                     str(ms_path),
                     imagename=str(imagename),
@@ -345,14 +345,14 @@ def main():
 
                 if pbcor_path.exists():
                     tiles.append(str(pbcor_path))
-                    print(f"  ✓ Created tile: {pbcor_path}")
+                    print(f"  :check: Created tile: {pbcor_path}")
                 else:
                     sys.exit(
                         f"Tile imaging failed for {ms_path}: {pbcor_path} not found"
                     )
 
     if tiles:
-        print(f"✓ Found {len(tiles)} tile(s):")
+        print(f":check: Found {len(tiles)} tile(s):")
         for i, tile in enumerate(tiles, 1):
             print(f"  {i}. {Path(tile).name}")
 
@@ -369,12 +369,12 @@ def main():
         )
 
     if dry_run:
-        print("✓ Mosaic plan validated (dry-run)")
+        print(":check: Mosaic plan validated (dry-run)")
     else:
         fits_path = Path(f"{mosaic_path}.fits")
         if not fits_path.exists():
             sys.exit(f"Mosaic FITS not found: {fits_path}")
-        print(f"✓ Mosaic built: {fits_path}")
+        print(f":check: Mosaic built: {fits_path}")
 
     # Run photometry on mosaic
     print("\nStep 7: Running photometry...")
@@ -385,7 +385,7 @@ def main():
         print("  (dry-run: mosaic FITS not yet created)")
         print("  Would query NVSS catalog for sources in mosaic field")
         print("  Would create batch photometry job for measurements")
-        print("✓ Photometry workflow validated (dry-run)")
+        print(":check: Photometry workflow validated (dry-run)")
     else:
         if not fits_path.exists():
             sys.exit(f"Mosaic FITS not found: {fits_path}")
@@ -400,10 +400,10 @@ def main():
             create_batch_job=True,
         )
         if result:
-            print(f"✓ Photometry batch job created: {result.batch_job_id}")
+            print(f":check: Photometry batch job created: {result.batch_job_id}")
             print(f"  Sources: {result.sources_queried}")
         else:
-            print("⚠ No photometry job created (no sources found or error)")
+            print(":warning: No photometry job created (no sources found or error)")
 
     if dry_run:
         print("\n" + "=" * 60)
@@ -411,7 +411,7 @@ def main():
         print("Run without --dry-run to execute the workflow")
         print("=" * 60)
     else:
-        print("\n✓ Complete!")
+        print("\n:check: Complete!")
 
 
 if __name__ == "__main__":

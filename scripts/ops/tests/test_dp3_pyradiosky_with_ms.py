@@ -130,10 +130,10 @@ def main():
     
     # Check MS exists
     if not os.path.exists(ms_path):
-        print(f"✗ MS not found: {ms_path}")
+        print(f":cross: MS not found: {ms_path}")
         return 1
     
-    print(f"✓ MS found: {ms_path}")
+    print(f":check: MS found: {ms_path}")
     
     # Get MS info
     print("\n" + "-" * 60)
@@ -141,7 +141,7 @@ def main():
     print("-" * 60)
     ms_info = get_ms_info(ms_path)
     if ms_info is None:
-        print("✗ Failed to read MS")
+        print(":cross: Failed to read MS")
         return 1
     
     print(f"  Rows: {ms_info['nrows']:,}")
@@ -155,9 +155,9 @@ def main():
     print("-" * 60)
     dp3_cmd = _find_dp3_executable()
     if not dp3_cmd:
-        print("✗ DP3 not found")
+        print(":cross: DP3 not found")
         return 1
-    print(f"✓ DP3 available: {dp3_cmd}")
+    print(f":check: DP3 available: {dp3_cmd}")
     
     # Create sky model
     print("\n" + "-" * 60)
@@ -169,11 +169,11 @@ def main():
             center_dec_deg=ms_info['phase_dec'],
             n_sources=5,
         )
-        print(f"✓ Created SkyModel with {sky.Ncomponents} sources")
+        print(f":check: Created SkyModel with {sky.Ncomponents} sources")
         print(f"  Component type: {sky.component_type}")
         print(f"  Spectral type: {sky.spectral_type}")
     except Exception as e:
-        print(f"✗ Failed to create SkyModel: {e}")
+        print(f":cross: Failed to create SkyModel: {e}")
         import traceback
         traceback.print_exc()
         return 1
@@ -187,7 +187,7 @@ def main():
     
     try:
         result_path = convert_skymodel_to_dp3(sky, out_path=dp3_path)
-        print(f"✓ Converted to DP3 format: {result_path}")
+        print(f":check: Converted to DP3 format: {result_path}")
         
         # Check file
         file_size = os.path.getsize(result_path)
@@ -196,7 +196,7 @@ def main():
         print(f"  File size: {file_size} bytes")
         print(f"  Sources: {len(lines) - 1}")  # -1 for header
     except Exception as e:
-        print(f"✗ Conversion failed: {e}")
+        print(f":cross: Conversion failed: {e}")
         import traceback
         traceback.print_exc()
         if os.path.exists(dp3_path):
@@ -224,9 +224,9 @@ def main():
             operation="replace",
         )
         elapsed = time.time() - start_time
-        print(f"✓ DP3 predict completed in {elapsed:.2f} seconds")
+        print(f":check: DP3 predict completed in {elapsed:.2f} seconds")
     except Exception as e:
-        print(f"✗ DP3 predict failed: {e}")
+        print(f":cross: DP3 predict failed: {e}")
         import traceback
         traceback.print_exc()
         if os.path.exists(dp3_path):
@@ -250,15 +250,15 @@ def main():
     print("=" * 60)
     print(f"MS: {ms_path}")
     print(f"Sky Model: {sky.Ncomponents} sources")
-    print(f"DP3 Predict: {'✓' if after_ok else '✗'}")
-    print(f"MODEL_DATA: {'✓ Populated' if after_ok else '✗ Not populated'}")
+    print(f"DP3 Predict: {':check:' if after_ok else ':cross:'}")
+    print(f"MODEL_DATA: {':check: Populated' if after_ok else ':cross: Not populated'}")
     
     if after_ok:
-        print("\n✓ Full integration test PASSED")
+        print("\n:check: Full integration test PASSED")
         print("  pyradiosky + DP3 workflow is working correctly")
         return 0
     else:
-        print("\n✗ Integration test FAILED")
+        print("\n:cross: Integration test FAILED")
         print("  Check output above for details")
         return 1
 

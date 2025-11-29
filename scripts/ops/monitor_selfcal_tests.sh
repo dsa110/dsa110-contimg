@@ -30,8 +30,8 @@ for log in "${LOG_DIR}"/selfcal_masked_*.log; do
         echo "  $(basename "$log"): $size, $lines lines, updated: $last_update"
         
         # Show last status line
-        if grep -q "✅ SUCCESS\|❌ FAILED" "$log"; then
-            status=$(grep -E "✅ SUCCESS|❌ FAILED" "$log" | tail -1)
+        if grep -q ":check: SUCCESS\|:cross: FAILED" "$log"; then
+            status=$(grep -E ":check: SUCCESS|:cross: FAILED" "$log" | tail -1)
             echo "    Status: $status"
         elif grep -q "Iteration" "$log"; then
             iter=$(grep "Iteration" "$log" | tail -1)

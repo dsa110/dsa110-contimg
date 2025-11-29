@@ -42,9 +42,9 @@ can run from any directory or CI environment.
 
 **Output**:
 
-- ✓ Green: Pass
-- ⚠ Yellow: Warning (non-critical)
-- ✗ Red: Error (critical failure)
+- :check: Green: Pass
+- :warning: Yellow: Warning (non-critical)
+- :cross: Red: Error (critical failure)
 
 ---
 
@@ -133,7 +133,7 @@ PROJECT_ROOT="${1:-$(dirname "$SCRIPT_DIR")}"
 
 Configured in `.vscode/tasks.json`:
 
-- "🔍 Preflight Check" - Runs before startup
+- ":search: Preflight Check" - Runs before startup
 - Auto-runs when folder opens (requires `"task.allowAutomaticTasks": "on"`)
 
 ### Pre-commit Hook

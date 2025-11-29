@@ -79,7 +79,7 @@ def main():
     
     # Ensure USE_NEW_PIPELINE is set
     if os.getenv("USE_NEW_PIPELINE", "false").lower() != "true":
-        print("⚠️  WARNING: USE_NEW_PIPELINE is not set to 'true'")
+        print(":warning:  WARNING: USE_NEW_PIPELINE is not set to 'true'")
         print("   Setting USE_NEW_PIPELINE=true for this test...")
         os.environ["USE_NEW_PIPELINE"] = "true"
     
@@ -117,7 +117,7 @@ def main():
     try:
         job_id = create_job(conn, "workflow", "", params)
         conn.commit()
-        print(f"✓ Created workflow job: {job_id}")
+        print(f":check: Created workflow job: {job_id}")
         print()
         
         # Run workflow
@@ -165,16 +165,16 @@ def main():
         # Return exit code based on status
         if job_data['status'] == 'done':
             print()
-            print("✓ Test PASSED: Workflow completed successfully")
+            print(":check: Test PASSED: Workflow completed successfully")
             return 0
         else:
             print()
-            print(f"✗ Test FAILED: Workflow status is '{job_data['status']}'")
+            print(f":cross: Test FAILED: Workflow status is '{job_data['status']}'")
             return 1
             
     except Exception as e:
         print()
-        print(f"✗ Test FAILED with exception: {e}")
+        print(f":cross: Test FAILED with exception: {e}")
         import traceback
         traceback.print_exc()
         return 1

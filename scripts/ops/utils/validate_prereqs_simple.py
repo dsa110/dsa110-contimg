@@ -17,7 +17,7 @@ def check_data_registry():
     db_path = Path("state/db/data_registry.sqlite3")
 
     if not db_path.exists():
-        print(f"❌ Data registry not found at {db_path}")
+        print(f":cross: Data registry not found at {db_path}")
         return False
 
     conn = sqlite3.connect(str(db_path))
@@ -39,11 +39,11 @@ def check_data_registry():
     missing = required_cols - columns
 
     if missing:
-        print(f"❌ Missing required columns: {missing}")
+        print(f":cross: Missing required columns: {missing}")
         conn.close()
         return False
 
-    print(f"✅ Data registry schema valid")
+    print(f":check: Data registry schema valid")
     print(f"   - All required columns present including: photometry_status, photometry_job_id")
 
     # Check for existing mosaics
@@ -64,7 +64,7 @@ def check_data_registry():
     if phot_records:
         print(f"   - Records with photometry status: {len(phot_records)}")
         for rec in phot_records:
-            print(f"     • {rec[0]}: {rec[2]} (phot: {rec[3]})")
+            print(f"     :bullet: {rec[0]}: {rec[2]} (phot: {rec[3]})")
     else:
         print(f"   - No records with photometry status yet (expected for first run)")
 
@@ -78,7 +78,7 @@ def check_cal_registry():
     db_path = Path("state/db/cal_registry.sqlite3")
 
     if not db_path.exists():
-        print(f"❌ Calibration registry not found at {db_path}")
+        print(f":cross: Calibration registry not found at {db_path}")
         return False
 
     conn = sqlite3.connect(str(db_path))
@@ -89,12 +89,12 @@ def check_cal_registry():
     tables = [row[0] for row in cursor.fetchall()]
 
     if not tables:
-        print(f"⚠️  Calibration registry exists but has no tables")
+        print(f":warning:  Calibration registry exists but has no tables")
         print(f"   This is expected if no calibration has been run yet")
         conn.close()
         return True
 
-    print(f"✅ Calibration registry exists")
+    print(f":check: Calibration registry exists")
     print(f"   - Tables: {', '.join(tables)}")
 
     if "caltables" in tables:
@@ -118,7 +118,7 @@ def check_cal_registry():
                 start_str = f"{start:.3f}" if start else "None"
                 end_str = f"{end:.3f}" if end else "None"
                 print(
-                    f"     • {Path(path_str).name if path else 'N/A'} ({ttype}, MJD {start_str}-{end_str})"
+                    f"     :bullet: {Path(path_str).name if path else 'N/A'} ({ttype}, MJD {start_str}-{end_str})"
                 )
 
     conn.close()
@@ -131,7 +131,7 @@ def check_hdf5_index():
     db_path = Path("state/hdf5.sqlite3")
 
     if not db_path.exists():
-        print(f"❌ HDF5 index not found at {db_path}")
+        print(f":cross: HDF5 index not found at {db_path}")
         return False
 
     conn = sqlite3.connect(str(db_path))
@@ -141,7 +141,7 @@ def check_hdf5_index():
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
     tables = [row[0] for row in cursor.fetchall()]
 
-    print(f"✅ HDF5 index exists")
+    print(f":check: HDF5 index exists")
     print(f"   - Tables: {', '.join(tables)}")
 
     if "hdf5_files" in tables:
@@ -162,9 +162,9 @@ def check_hdf5_index():
             recent = cursor.fetchall()
             print(f"   - Recent files:")
             for path, start, end in recent:
-                print(f"     • {Path(path).name} (MJD {start:.3f} - {end:.3f})")
+                print(f"     :bullet: {Path(path).name} (MJD {start:.3f} - {end:.3f})")
         else:
-            print(f"   ⚠️  No HDF5 files indexed yet")
+            print(f"   :warning:  No HDF5 files indexed yet")
             print(f"      Run HDF5 indexing before creating mosaics")
 
     conn.close()
@@ -177,7 +177,7 @@ def check_products_db():
     db_path = Path("state/db/products.sqlite3")
 
     if not db_path.exists():
-        print(f"   ℹ️  Products database not yet created (will be created on first use)")
+        print(f"   :info:  Products database not yet created (will be created on first use)")
         return True
 
     conn = sqlite3.connect(str(db_path))
@@ -186,7 +186,7 @@ def check_products_db():
     cursor.execute("SELECT name FROM sqlite_master WHERE type='table'")
     tables = [row[0] for row in cursor.fetchall()]
 
-    print(f"✅ Products database exists")
+    print(f":check: Products database exists")
     print(f"   - Tables: {', '.join(tables)}")
 
     for table in ["products", "photometry", "images", "mosaics"]:
@@ -214,9 +214,9 @@ def check_directory_structure():
     for path, (description, is_external) in dirs.items():
         p = Path(path)
         if p.exists():
-            print(f"✅ {description}: {path}")
+            print(f":check: {description}: {path}")
         else:
-            print(f"⚠️  {description} not found: {path}")
+            print(f":warning:  {description} not found: {path}")
             if is_external:
                 print(f"   (External directory - may be created on demand)")
             else:
@@ -242,7 +242,7 @@ def summarize_readiness():
         try:
             results[name] = func()
         except Exception as e:
-            print(f"\n❌ {name} check failed: {e}")
+            print(f"\n:cross: {name} check failed: {e}")
             import traceback
 
             traceback.print_exc()
@@ -267,7 +267,7 @@ def main():
 
     all_passed = True
     for name, passed in results.items():
-        status = "✅ PASS" if passed else "❌ FAIL"
+        status = ":check: PASS" if passed else ":cross: FAIL"
         print(f"{status}: {name}")
         if not passed:
             all_passed = False
@@ -275,22 +275,22 @@ def main():
     print("=" * 70)
 
     if all_passed:
-        print("\n🎉 All prerequisites validated successfully!")
-        print("\n📋 Key Changes Implemented:")
-        print("   ✓ MODEL_DATA seeding will run after calibration for each science MS")
-        print("   ✓ WSClean will only run after MODEL_DATA is populated and verified")
-        print("   ✓ Photometry is enabled by default in MosaicOrchestrator")
-        print("   ✓ Publishing is blocked until photometry_status='completed'")
-        print("\n🚀 Next Steps:")
+        print("\n:party_popper: All prerequisites validated successfully!")
+        print("\n:clipboard: Key Changes Implemented:")
+        print("   :check: MODEL_DATA seeding will run after calibration for each science MS")
+        print("   :check: WSClean will only run after MODEL_DATA is populated and verified")
+        print("   :check: Photometry is enabled by default in MosaicOrchestrator")
+        print("   :check: Publishing is blocked until photometry_status='completed'")
+        print("\n:rocket: Next Steps:")
         print("   1. Run create_15min_mosaic.ipynb to create a full mosaic")
         print("   2. Monitor logs for 'Populating MODEL_DATA' messages after calibration")
         print("   3. Verify photometry job is created and linked in data registry")
         print("   4. Confirm publishing waits for photometry_status='completed'")
-        print("\n💡 Optional Dry-Run Test:")
+        print("\n:lightbulb: Optional Dry-Run Test:")
         print("   Open create_15min_mosaic.ipynb and run with dry_run=True")
         return 0
     else:
-        print("\n⚠️  Some checks failed. Please review the output above.")
+        print("\n:warning:  Some checks failed. Please review the output above.")
         return 1
 
 

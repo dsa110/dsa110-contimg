@@ -38,13 +38,13 @@ check_response() {
     local body=$(echo "$response" | sed 's/HTTP_STATUS:[0-9]*$//' | sed 's/HTTP\/[0-9]\.[0-9] [0-9]*$//')
     
     if [ "$status_code" = "$expected_status" ]; then
-        echo -e "${GREEN}✓${NC} $test_name: Status $status_code"
+        echo -e "${GREEN}:check:${NC} $test_name: Status $status_code"
         echo "Response body:"
         echo "$body" | jq . 2>/dev/null || echo "$body"
         ((TESTS_PASSED++))
         return 0
     else
-        echo -e "${RED}✗${NC} $test_name: Expected $expected_status, got $status_code"
+        echo -e "${RED}:cross:${NC} $test_name: Expected $expected_status, got $status_code"
         echo "Response:"
         echo "$response"
         ((TESTS_FAILED++))
@@ -86,9 +86,9 @@ echo ""
 # Check if backend is running
 print_test "Backend Health Check"
 if curl -s -f "${BASE_URL}/health/liveness" > /dev/null 2>&1; then
-    echo -e "${GREEN}✓${NC} Backend is running"
+    echo -e "${GREEN}:check:${NC} Backend is running"
 else
-    echo -e "${RED}✗${NC} Backend is not running at ${BASE_URL}"
+    echo -e "${RED}:cross:${NC} Backend is not running at ${BASE_URL}"
     echo "Please start the backend server first"
     exit 1
 fi
@@ -159,7 +159,7 @@ if [ -n "$first_item_id" ] && [ "$first_item_id" != "null" ]; then
         "${API_BASE}/operations/dlq/items/${first_item_id}/resolve")
     check_response "POST /api/operations/dlq/items/${first_item_id}/resolve" "$response" "200"
 else
-    echo -e "${YELLOW}⚠${NC} No DLQ items found, skipping item detail and action tests"
+    echo -e "${YELLOW}:warning:${NC} No DLQ items found, skipping item detail and action tests"
     echo "   Run scripts/test_dlq_endpoints.py to create test items"
 fi
 
@@ -210,10 +210,10 @@ response=$(curl -s -w "\nHTTP_STATUS:%{http_code}" "${API_BASE}/operations/dlq/i
 # Should return 422 (validation error) or handle gracefully
 status_code=$(echo "$response" | grep -oP 'HTTP_STATUS:\K\d+' || echo "000")
 if [ "$status_code" = "422" ] || [ "$status_code" = "400" ]; then
-    echo -e "${GREEN}✓${NC} Invalid query parameters handled correctly (Status $status_code)"
+    echo -e "${GREEN}:check:${NC} Invalid query parameters handled correctly (Status $status_code)"
     ((TESTS_PASSED++))
 else
-    echo -e "${YELLOW}⚠${NC} Unexpected status for invalid query: $status_code"
+    echo -e "${YELLOW}:warning:${NC} Unexpected status for invalid query: $status_code"
 fi
 
 # ============================================================================

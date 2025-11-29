@@ -52,11 +52,11 @@ def test_single_source():
                 beam_fwhm_arcsec=60.0,  # Convolve with 1 arcmin beam
             )
             
-            print(f"✓ FITS created: {fits_path} ({os.path.getsize(fits_path)} bytes)")
-            print(f"✓ PNG created: {png_path} ({os.path.getsize(png_path)} bytes)")
+            print(f":check: FITS created: {fits_path} ({os.path.getsize(fits_path)} bytes)")
+            print(f":check: PNG created: {png_path} ({os.path.getsize(png_path)} bytes)")
             return True
         except Exception as e:
-            print(f"✗ Failed: {e}")
+            print(f":cross: Failed: {e}")
             import traceback
             traceback.print_exc()
             return False
@@ -109,12 +109,12 @@ def test_multiple_sources():
                 beam_fwhm_arcsec=30.0,  # 30 arcsec beam
             )
             
-            print(f"✓ FITS created: {fits_path} ({os.path.getsize(fits_path)} bytes)")
-            print(f"✓ PNG created: {png_path} ({os.path.getsize(png_path)} bytes)")
+            print(f":check: FITS created: {fits_path} ({os.path.getsize(fits_path)} bytes)")
+            print(f":check: PNG created: {png_path} ({os.path.getsize(png_path)} bytes)")
             print(f"  Sources: {n_sources}")
             return True
         except Exception as e:
-            print(f"✗ Failed: {e}")
+            print(f":cross: Failed: {e}")
             import traceback
             traceback.print_exc()
             return False
@@ -145,7 +145,7 @@ def test_with_nvss_region():
         keep = (sep <= radius_deg) & (flux_mjy >= 10.0)  # >10 mJy
         
         if keep.sum() == 0:
-            print("  ⚠ No NVSS sources found in region")
+            print("  :warning: No NVSS sources found in region")
             return False
         
         # Create sky model from NVSS sources
@@ -181,12 +181,12 @@ def test_with_nvss_region():
                 beam_fwhm_arcsec=45.0,  # 45 arcsec beam
             )
             
-            print(f"✓ FITS created: {fits_path} ({os.path.getsize(fits_path)} bytes)")
-            print(f"✓ PNG created: {png_path} ({os.path.getsize(png_path)} bytes)")
+            print(f":check: FITS created: {fits_path} ({os.path.getsize(fits_path)} bytes)")
+            print(f":check: PNG created: {png_path} ({os.path.getsize(png_path)} bytes)")
             print(f"  Sources: {len(ras)}")
             return True
     except Exception as e:
-        print(f"  ⚠ NVSS test skipped: {e}")
+        print(f"  :warning: NVSS test skipped: {e}")
         return False
 
 
@@ -207,16 +207,16 @@ def main():
     print("\n" + "=" * 60)
     print("Test Summary")
     print("=" * 60)
-    print(f"Single source: {'✓' if results['single'] else '✗'}")
-    print(f"Multiple sources: {'✓' if results['multiple'] else '✗'}")
-    print(f"NVSS region: {'✓' if results['nvss'] else '⚠'}")
+    print(f"Single source: {':check:' if results['single'] else ':cross:'}")
+    print(f"Multiple sources: {':check:' if results['multiple'] else ':cross:'}")
+    print(f"NVSS region: {':check:' if results['nvss'] else ':warning:'}")
     
     if results['single'] and results['multiple']:
-        print("\n✓ Sky model imaging is working!")
+        print("\n:check: Sky model imaging is working!")
         print("  You can now generate FITS and PNG images from sky models")
         return 0
     else:
-        print("\n✗ Some tests failed")
+        print("\n:cross: Some tests failed")
         return 1
 
 

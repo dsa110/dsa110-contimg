@@ -252,9 +252,9 @@ EOF
             message=$(echo "${check}" | ${PYTHON} -c "import json,sys; print(json.load(sys.stdin)['message'])")
             
             case "${status}" in
-                pass) echo "  ✓ ${name}: ${message}" ;;
-                fail) echo "  ✗ ${name}: ${message}" ;;
-                critical) echo "  ✗✗ ${name}: ${message}" ;;
+                pass) echo "  :check: ${name}: ${message}" ;;
+                fail) echo "  :cross: ${name}: ${message}" ;;
+                critical) echo "  :cross::cross: ${name}: ${message}" ;;
             esac
         done
         echo ""

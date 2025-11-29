@@ -158,7 +158,7 @@ def check_port_config() -> bool:
     config_path = project_root / "config" / "ports.yaml"
 
     if not config_path.exists():
-        print(f"⚠️  Warning: {config_path} not found")
+        print(f":warning:  Warning: {config_path} not found")
         print(f"   Run: cp config/ports.yaml.example config/ports.yaml")
         return False
 
@@ -169,15 +169,15 @@ def check_port_config() -> bool:
         with open(config_path) as f:
             config = yaml.safe_load(f)
         if "ports" not in config:
-            print(f"❌ Error: {config_path} missing 'ports' section")
+            print(f":cross: Error: {config_path} missing 'ports' section")
             return False
-        print(f"✓ Port configuration file exists and is valid")
+        print(f":check: Port configuration file exists and is valid")
         return True
     except ImportError:
-        print(f"⚠️  Warning: PyYAML not available, cannot validate {config_path}")
+        print(f":warning:  Warning: PyYAML not available, cannot validate {config_path}")
         return True  # Assume OK if we can't validate
     except Exception as e:
-        print(f"❌ Error: {config_path} is invalid: {e}")
+        print(f":cross: Error: {config_path} is invalid: {e}")
         return False
 
 
@@ -213,7 +213,7 @@ def check_code_for_hardcoded_ports() -> bool:
             issues_found.append((yaml_file, issues))
 
     if issues_found:
-        print("\n❌ Hardcoded ports found (should use port manager or env vars):")
+        print("\n:cross: Hardcoded ports found (should use port manager or env vars):")
         for file_path, issues in issues_found:
             rel_path = file_path.relative_to(project_root)
             print(f"\n  {rel_path}:")
@@ -223,7 +223,7 @@ def check_code_for_hardcoded_ports() -> bool:
                 print(f"    ... and {len(issues) - 5} more")
         return False
     else:
-        print("✓ No hardcoded ports found in code")
+        print(":check: No hardcoded ports found in code")
         return True
 
 
@@ -237,10 +237,10 @@ def main() -> int:
 
     print()
     if config_ok and code_ok:
-        print("✓ All port configuration checks passed")
+        print(":check: All port configuration checks passed")
         return 0
     else:
-        print("❌ Port configuration validation failed")
+        print(":cross: Port configuration validation failed")
         print("\nSee docs/operations/port_organization_recommendations.md for details")
         return 1
 

@@ -24,7 +24,7 @@ def test_data_registry():
         # 1. Create database
         print("1. Creating database...")
         conn = ensure_data_registry_db(db_path)
-        print("   ✓ Database created\n")
+        print("   :check: Database created\n")
         
         # 2. Register test data
         print("2. Registering test data...")
@@ -36,7 +36,7 @@ def test_data_registry():
             metadata={'test': True, 'frequency': 1.4},
             auto_publish=True,
         )
-        print(f"   ✓ Registered MS: {ms_id}\n")
+        print(f"   :check: Registered MS: {ms_id}\n")
         
         image_id = register_data(
             conn,
@@ -46,33 +46,33 @@ def test_data_registry():
             metadata={'ms_id': ms_id, 'beam': 5.0},
             auto_publish=True,
         )
-        print(f"   ✓ Registered Image: {image_id}\n")
+        print(f"   :check: Registered Image: {image_id}\n")
         
         # 3. Link data
         print("3. Linking data...")
         link_data(conn, ms_id, image_id, 'derived_from')
-        print("   ✓ Linked MS -> Image\n")
+        print("   :check: Linked MS -> Image\n")
         
         # 4. Retrieve data
         print("4. Retrieving data...")
         ms_record = get_data(conn, ms_id)
         if ms_record:
-            print(f"   ✓ Retrieved MS: {ms_record.data_id}, status={ms_record.status}")
+            print(f"   :check: Retrieved MS: {ms_record.data_id}, status={ms_record.status}")
         else:
-            print("   ✗ Failed to retrieve MS")
+            print("   :cross: Failed to retrieve MS")
             return False
         
         # 5. List data
         print("\n5. Listing data...")
         all_data = list_data(conn)
-        print(f"   ✓ Found {len(all_data)} data instances")
+        print(f"   :check: Found {len(all_data)} data instances")
         for d in all_data:
             print(f"     - {d.data_type}: {d.data_id} ({d.status})")
         
         # 6. Get lineage
         print("\n6. Getting lineage...")
         lineage = get_data_lineage(conn, image_id)
-        print(f"   ✓ Lineage for {image_id}:")
+        print(f"   :check: Lineage for {image_id}:")
         print(f"     Parents: {lineage['parents']}")
         print(f"     Children: {lineage['children']}")
         
@@ -84,20 +84,20 @@ def test_data_registry():
             qa_status='passed',
             validation_status='validated',
         )
-        print(f"   ✓ Finalized: {finalized}")
+        print(f"   :check: Finalized: {finalized}")
         
         # Check if auto-published
         updated = get_data(conn, image_id)
         if updated and updated.status == 'published':
-            print(f"   ✓ Auto-published to: {updated.published_path}")
+            print(f"   :check: Auto-published to: {updated.published_path}")
         else:
-            print(f"   ⚠ Status: {updated.status if updated else 'unknown'}")
+            print(f"   :warning: Status: {updated.status if updated else 'unknown'}")
         
         print("\n=== All Tests Passed ===")
         return True
         
     except Exception as e:
-        print(f"\n✗ Test failed: {e}")
+        print(f"\n:cross: Test failed: {e}")
         import traceback
         traceback.print_exc()
         return False

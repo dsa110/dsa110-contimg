@@ -78,7 +78,7 @@ def create_png_with_wcs(fits_path, output_png, title=""):
             plt.savefig(str(output_png), dpi=150, bbox_inches='tight')
             plt.close()
             
-            print(f"    ✓ PNG created")
+            print(f"    :check: PNG created")
             break
     
     hdul.close()
@@ -102,12 +102,12 @@ def main():
         print(f"Converting CASA image to FITS: {fits_path}")
         try:
             exportfits(imagename=casa_image, fitsimage=fits_path, overwrite=True)
-            print(f"✓ FITS exported: {fits_path}")
+            print(f":check: FITS exported: {fits_path}")
         except Exception as e:
             print(f"ERROR: Failed to export FITS: {e}")
             return 1
     else:
-        print(f"✓ FITS already exists: {fits_path}")
+        print(f":check: FITS already exists: {fits_path}")
     
     # Create PNG for mosaic
     mosaic_png = output_dir / "mosaic_test.png"
@@ -128,13 +128,13 @@ def main():
         tile_png = output_dir / f"{tile_name}.png"
         
         if not Path(tile_path).exists():
-            print(f"  ✗ Tile {i} not found: {tile_path}")
+            print(f"  :cross: Tile {i} not found: {tile_path}")
             continue
         
         print(f"  Tile {i}: {tile_name}")
         create_png_with_wcs(tile_path, tile_png, title=f"Tile {i}: {tile_name} (zscale)")
     
-    print(f"\n✓ All visualizations created in: {output_dir}")
+    print(f"\n:check: All visualizations created in: {output_dir}")
     return 0
 
 if __name__ == "__main__":

@@ -23,48 +23,48 @@ unified orchestrator CLI.
 
 #### Conversion/Transit Scripts (Archive)
 
-- **`generate_calibrator_ms.py`** ⚠️ **REDUNDANT**
+- **`generate_calibrator_ms.py`** :warning: **REDUNDANT**
   - Purpose: Finds most recent calibrator transit and generates MS
   - **Superseded by**: `hdf5_orchestrator` CLI with `--calibrator` flag
   - Action: Archive to `archive/scripts/`
 
-- **`generate_transit_hour_ms.py`** ⚠️ **REDUNDANT**
+- **`generate_transit_hour_ms.py`** :warning: **REDUNDANT**
   - Purpose: Generates multiple MS files spanning 1 hour around transit
   - **Superseded by**: `hdf5_orchestrator` CLI with `--calibrator` and time
     windows
   - Action: Archive OR migrate core logic to orchestrator if useful as
     `--multi-group` flag
 
-- **`list_calibrator_transits.py`** ✓ **KEEP (but migrate to CLI)**
+- **`list_calibrator_transits.py`** :check: **KEEP (but migrate to CLI)**
   - Purpose: Lists all available transits with data
   - **Action**: Migrate to `dsa110_contimg.calibration.cli` as `list-transits`
     subcommand
   - Reason: Useful utility, should be part of calibration/transit CLI
 
-- **`find_daily_transit_groups.py`** ⚠️ **REDUNDANT**
+- **`find_daily_transit_groups.py`** :warning: **REDUNDANT**
   - Purpose: Finds transit groups for a specific day
   - **Superseded by**: `hdf5_orchestrator` with `--calibrator --transit-date`
   - Action: Archive
 
-- **`find_latest_transit_group.py`** ⚠️ **REDUNDANT**
+- **`find_latest_transit_group.py`** :warning: **REDUNDANT**
   - Purpose: Finds latest transit group
   - **Superseded by**: `hdf5_orchestrator` with `--calibrator` (uses most recent
     by default)
   - Action: Archive
 
-- **`run_conversion.sh`** ✓ **KEEP (Operational)**
+- **`run_conversion.sh`** :check: **KEEP (Operational)**
   - Purpose: Bash wrapper for orchestrator with staging/scratch setup
   - **Action**: Keep as operational script (not part of main codebase)
   - Reason: System-specific staging logic, useful for ops team
 
 #### Bash Wrappers (Archive or Keep)
 
-- **`image_ms.sh`** ⚠️ **REDUNDANT**
+- **`image_ms.sh`** :warning: **REDUNDANT**
   - Purpose: Bash wrapper for imaging CLI
   - **Superseded by**: `dsa110_contimg.imaging.cli`
   - Action: Archive OR document as convenience wrapper
 
-- **`calibrate_bandpass.sh`** ⚠️ **REDUNDANT**
+- **`calibrate_bandpass.sh`** :warning: **REDUNDANT**
   - Purpose: Bash wrapper for calibration
   - **Superseded by**: `dsa110_contimg.calibration.cli`
   - Action: Archive OR document as convenience wrapper
@@ -73,27 +73,27 @@ unified orchestrator CLI.
 
 These should be moved to `tests/` directory with proper test structure.
 
-- **`test_pipeline_end_to_end.sh`** ✓ **MOVE TO tests/**
+- **`test_pipeline_end_to_end.sh`** :check: **MOVE TO tests/**
   - Purpose: Comprehensive end-to-end pipeline test
   - **Action**: Move to `tests/integration/test_pipeline_end_to_end.sh`
   - Note: Already well-structured, just needs relocation
 
-- **`comprehensive_test_suite.py`** ✓ **MOVE TO tests/**
+- **`comprehensive_test_suite.py`** :check: **MOVE TO tests/**
   - Purpose: Comprehensive Python test suite for all modules
   - **Action**: Move to `tests/comprehensive_test_suite.py` or break into module
     tests
   - Note: Could be refactored into pytest structure
 
-- **`test_qa_integration.py`** ✓ **MOVE TO tests/**
-- **`test_qa_modules.py`** ✓ **MOVE TO tests/**
-- **`test_data_accessibility.py`** ✓ **MOVE TO tests/**
-- **`test_integration_points.py`** ✓ **MOVE TO tests/**
-- **`test_photometry_without_db.py`** ✓ **MOVE TO tests/**
-- **`test_alerting.py`** ✓ **MOVE TO tests/**
-- **`test_monitor_daemon.py`** ✓ **MOVE TO tests/**
-- **`test_ingest_vla_catalog.py`** ✓ **MOVE TO tests/**
-- **`test_catalog_builder.py`** ✓ **MOVE TO tests/**
-- **`test_graphiti_mcp.py`** ✓ **MOVE TO tests/**
+- **`test_qa_integration.py`** :check: **MOVE TO tests/**
+- **`test_qa_modules.py`** :check: **MOVE TO tests/**
+- **`test_data_accessibility.py`** :check: **MOVE TO tests/**
+- **`test_integration_points.py`** :check: **MOVE TO tests/**
+- **`test_photometry_without_db.py`** :check: **MOVE TO tests/**
+- **`test_alerting.py`** :check: **MOVE TO tests/**
+- **`test_monitor_daemon.py`** :check: **MOVE TO tests/**
+- **`test_ingest_vla_catalog.py`** :check: **MOVE TO tests/**
+- **`test_catalog_builder.py`** :check: **MOVE TO tests/**
+- **`test_graphiti_mcp.py`** :check: **MOVE TO tests/**
 
 ### 3. USEFUL - MIGRATE TO CLI
 
@@ -101,19 +101,19 @@ Scripts with valuable functionality that should become CLI commands.
 
 #### QA/Inspection Utilities (Migrate to QA CLI)
 
-- **`check_upstream_delays.py`** ✓ **MIGRATE TO CLI**
+- **`check_upstream_delays.py`** :check: **MIGRATE TO CLI**
   - Purpose: Check if instrumental delays are already corrected upstream
   - **Action**: Migrate to `dsa110_contimg.calibration.cli` as `check-delays`
     subcommand
   - Value: Useful diagnostic tool
 
-- **`verify_kcal_delays.py`** ✓ **MIGRATE TO CLI**
+- **`verify_kcal_delays.py`** :check: **MIGRATE TO CLI**
   - Purpose: Verify K-calibration delay solutions
   - **Action**: Migrate to `dsa110_contimg.calibration.cli` as `verify-delays`
     subcommand
   - Value: Useful QA tool for calibration validation
 
-- **`inspect_kcal_simple.py`** ✓ **MIGRATE TO CLI**
+- **`inspect_kcal_simple.py`** :check: **MIGRATE TO CLI**
   - Purpose: Simple inspection of K-calibration tables
   - **Action**: Migrate to `dsa110_contimg.calibration.cli` as `inspect-delays`
     subcommand
@@ -121,13 +121,13 @@ Scripts with valuable functionality that should become CLI commands.
 
 #### Transit/Pointing Utilities (Migrate to Calibration/Pointing CLI)
 
-- **`crossmatch_transits_pointings.py`** ✓ **MIGRATE TO CLI**
+- **`crossmatch_transits_pointings.py`** :check: **MIGRATE TO CLI**
   - Purpose: Crossmatch transit times with pointing history
   - **Action**: Migrate to `dsa110_contimg.pointing.cli` (create if needed) or
     `calibration.cli`
   - Value: Useful for validation and analysis
 
-- **`plot_observation_timeline.py`** ✓ **MIGRATE TO CLI**
+- **`plot_observation_timeline.py`** :check: **MIGRATE TO CLI**
   - Purpose: Plot observation timeline with declination
   - **Action**: Migrate to `dsa110_contimg.pointing.cli` (create if needed) as
     `plot-timeline` command
@@ -136,18 +136,18 @@ Scripts with valuable functionality that should become CLI commands.
 
 #### Imaging/Export Utilities (Migrate to Imaging CLI)
 
-- **`export_to_fits_and_png.py`** ✓ **MIGRATE TO CLI**
+- **`export_to_fits_and_png.py`** :check: **MIGRATE TO CLI**
   - Purpose: Export images to FITS and PNG formats
   - **Action**: Migrate to `dsa110_contimg.imaging.cli` as `export` subcommand
   - Value: Useful utility, should be part of imaging workflow
 
-- **`make_nvss_mask_crtf.py`** ✓ **MIGRATE TO CLI**
+- **`make_nvss_mask_crtf.py`** :check: **MIGRATE TO CLI**
   - Purpose: Create NVSS mask in CASA region format
   - **Action**: Migrate to `dsa110_contimg.imaging.cli` as `create-nvss-mask`
     subcommand
   - Value: Useful for source masking
 
-- **`make_nvss_overlay.py`** ✓ **MIGRATE TO CLI**
+- **`make_nvss_overlay.py`** :check: **MIGRATE TO CLI**
   - Purpose: Create NVSS overlay visualization
   - **Action**: Migrate to `dsa110_contimg.imaging.cli` as `create-nvss-overlay`
     subcommand
@@ -155,14 +155,14 @@ Scripts with valuable functionality that should become CLI commands.
 
 #### Test Data Creation (Keep or Migrate)
 
-- **`create_test_ms.py`** ✓ **MIGRATE TO CLI**
+- **`create_test_ms.py`** :check: **MIGRATE TO CLI**
   - Purpose: Create smaller test MS from full MS
   - **Action**: Migrate to `dsa110_contimg.conversion.cli` as `create-test-ms`
     subcommand
   - Value: Useful for testing and development
   - Note: Could also stay in `scripts/` if considered operational tool
 
-- **`create_test_catalog.py`** ✓ **KEEP OR ARCHIVE**
+- **`create_test_catalog.py`** :check: **KEEP OR ARCHIVE**
   - Purpose: Create test catalog for testing
   - **Action**: Determine if still needed; if yes, move to `tests/fixtures/` or
     archive
@@ -175,40 +175,40 @@ stay in `scripts/` as they're not part of the core pipeline.
 
 #### CASA Log Management
 
-- **`casa_log_daemon.py`** ✓ **KEEP**
+- **`casa_log_daemon.py`** :check: **KEEP**
   - Purpose: Daemon to move CASA log files
   - **Action**: Keep in `scripts/` (operational tool)
 
-- **`move_casa_logs.sh`** ✓ **KEEP**
+- **`move_casa_logs.sh`** :check: **KEEP**
   - Purpose: One-time bulk move of CASA logs
   - **Action**: Keep in `scripts/` (operational tool)
 
-- **`cleanup_casa_logs.sh`** ✓ **KEEP**
+- **`cleanup_casa_logs.sh`** :check: **KEEP**
   - Purpose: Cleanup old CASA logs
   - **Action**: Keep in `scripts/` (operational tool)
 
-- **`setup_casa_log_fallback.sh`** ✓ **KEEP**
+- **`setup_casa_log_fallback.sh`** :check: **KEEP**
   - Purpose: Setup log fallback configuration
   - **Action**: Keep in `scripts/` (operational tool)
 
-- **`casa_wrapper.sh`** ✓ **KEEP**
+- **`casa_wrapper.sh`** :check: **KEEP**
   - Purpose: Wrapper for CASA commands
   - **Action**: Keep in `scripts/` (operational tool)
 
-- **`casa-log-daemon.service`** ✓ **KEEP**
-- **`casa-log-cleanup.service`** ✓ **KEEP**
-- **`casa-log-cleanup.timer`** ✓ **KEEP**
-- **`casa-log-mover.service`** ✓ **KEEP**
+- **`casa-log-daemon.service`** :check: **KEEP**
+- **`casa-log-cleanup.service`** :check: **KEEP**
+- **`casa-log-cleanup.timer`** :check: **KEEP**
+- **`casa-log-mover.service`** :check: **KEEP**
   - Purpose: Systemd service files for CASA log management
   - **Action**: Keep in `scripts/` (operational/deployment files)
 
 #### System Management
 
-- **`manage-services.sh`** ✓ **KEEP**
+- **`manage-services.sh`** :check: **KEEP**
   - Purpose: Manage system services
   - **Action**: Keep in `scripts/` (operational tool)
 
-- **`scratch_sync.sh`** ✓ **KEEP**
+- **`scratch_sync.sh`** :check: **KEEP**
   - Purpose: Sync scratch directory
   - **Action**: Keep in `scripts/` (operational tool)
 
@@ -217,26 +217,26 @@ stay in `scripts/` as they're not part of the core pipeline.
 Knowledge graph–specific scripts for graph management. These should stay in
 `scripts/` but could be organized into a subdirectory.
 
-- **`graphiti_ingest_docs.py`** ✓ **KEEP (Maybe move to scripts/graphiti/)**
-- **`graphiti_guardrails_check.py`** ✓ **KEEP (Maybe move to
+- **`graphiti_ingest_docs.py`** :check: **KEEP (Maybe move to scripts/graphiti/)**
+- **`graphiti_guardrails_check.py`** :check: **KEEP (Maybe move to
   scripts/graphiti/)**
-- **`graphiti_add_components_from_manifests.py`** ✓ **KEEP (Maybe move to
+- **`graphiti_add_components_from_manifests.py`** :check: **KEEP (Maybe move to
   scripts/graphiti/)**
-- **`graphiti_import_cursor_memory.py`** ✓ **KEEP (Maybe move to
+- **`graphiti_import_cursor_memory.py`** :check: **KEEP (Maybe move to
   scripts/graphiti/)**
-- **`graphiti_reembed_all.py`** ✓ **KEEP (Maybe move to scripts/graphiti/)**
-- **`graphiti_reembed_mismatched.py`** ✓ **KEEP (Maybe move to
+- **`graphiti_reembed_all.py`** :check: **KEEP (Maybe move to scripts/graphiti/)**
+- **`graphiti_reembed_mismatched.py`** :check: **KEEP (Maybe move to
   scripts/graphiti/)**
 
 **Action**: Consider organizing into `scripts/graph/` subdirectory for clarity.
 
 ### 6. DOCUMENTATION FILES
 
-- **`README.md`** ✓ **KEEP**
+- **`README.md`** :check: **KEEP**
   - Purpose: Documents CASA log management and MS utilities
   - **Action**: Update to reflect new structure after migration
 
-- **`TEST_SCRIPT_VERIFICATION.md`** ✓ **KEEP**
+- **`TEST_SCRIPT_VERIFICATION.md`** :check: **KEEP**
   - Purpose: Documents test script verification
   - **Action**: Move to `tests/` or `docs/testing/` if relevant
 
@@ -288,23 +288,23 @@ Knowledge graph–specific scripts for graph management. These should stay in
 
 | Script                             | Status       | Action                        |
 | ---------------------------------- | ------------ | ----------------------------- |
-| `generate_calibrator_ms.py`        | ❌ Redundant | Archive                       |
-| `generate_transit_hour_ms.py`      | ❌ Redundant | Archive                       |
-| `list_calibrator_transits.py`      | ✅ Migrate   | → `calibration.cli`           |
-| `find_daily_transit_groups.py`     | ❌ Redundant | Archive                       |
-| `find_latest_transit_group.py`     | ❌ Redundant | Archive                       |
-| `check_upstream_delays.py`         | ✅ Migrate   | → `calibration.cli`           |
-| `verify_kcal_delays.py`            | ✅ Migrate   | → `calibration.cli`           |
-| `inspect_kcal_simple.py`           | ✅ Migrate   | → `calibration.cli`           |
-| `plot_observation_timeline.py`     | ✅ Migrate   | → `pointing.cli`              |
-| `crossmatch_transits_pointings.py` | ✅ Migrate   | → `pointing.cli`              |
-| `export_to_fits_and_png.py`        | ✅ Migrate   | → `imaging.cli`               |
-| `make_nvss_mask_crtf.py`           | ✅ Migrate   | → `imaging.cli`               |
-| `make_nvss_overlay.py`             | ✅ Migrate   | → `imaging.cli`               |
-| `create_test_ms.py`                | ✅ Migrate   | → `conversion.cli`            |
-| All `test_*.py`                    | ✅ Move      | → `tests/`                    |
-| `test_pipeline_end_to_end.sh`      | ✅ Move      | → `tests/`                    |
-| `comprehensive_test_suite.py`      | ✅ Move      | → `tests/`                    |
-| Knowledge graph scripts            | ✅ Keep      | → `scripts/graph/` (organize) |
-| CASA log scripts                   | ✅ Keep      | Stay in `scripts/`            |
-| System management scripts          | ✅ Keep      | Stay in `scripts/`            |
+| `generate_calibrator_ms.py`        | :cross: Redundant | Archive                       |
+| `generate_transit_hour_ms.py`      | :cross: Redundant | Archive                       |
+| `list_calibrator_transits.py`      | :check: Migrate   | :arrow_right: `calibration.cli`           |
+| `find_daily_transit_groups.py`     | :cross: Redundant | Archive                       |
+| `find_latest_transit_group.py`     | :cross: Redundant | Archive                       |
+| `check_upstream_delays.py`         | :check: Migrate   | :arrow_right: `calibration.cli`           |
+| `verify_kcal_delays.py`            | :check: Migrate   | :arrow_right: `calibration.cli`           |
+| `inspect_kcal_simple.py`           | :check: Migrate   | :arrow_right: `calibration.cli`           |
+| `plot_observation_timeline.py`     | :check: Migrate   | :arrow_right: `pointing.cli`              |
+| `crossmatch_transits_pointings.py` | :check: Migrate   | :arrow_right: `pointing.cli`              |
+| `export_to_fits_and_png.py`        | :check: Migrate   | :arrow_right: `imaging.cli`               |
+| `make_nvss_mask_crtf.py`           | :check: Migrate   | :arrow_right: `imaging.cli`               |
+| `make_nvss_overlay.py`             | :check: Migrate   | :arrow_right: `imaging.cli`               |
+| `create_test_ms.py`                | :check: Migrate   | :arrow_right: `conversion.cli`            |
+| All `test_*.py`                    | :check: Move      | :arrow_right: `tests/`                    |
+| `test_pipeline_end_to_end.sh`      | :check: Move      | :arrow_right: `tests/`                    |
+| `comprehensive_test_suite.py`      | :check: Move      | :arrow_right: `tests/`                    |
+| Knowledge graph scripts            | :check: Keep      | :arrow_right: `scripts/graph/` (organize) |
+| CASA log scripts                   | :check: Keep      | Stay in `scripts/`            |
+| System management scripts          | :check: Keep      | Stay in `scripts/`            |

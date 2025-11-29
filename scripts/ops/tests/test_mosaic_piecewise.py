@@ -42,42 +42,42 @@ def test_coordinate_extraction(tile_path: str):
         # Try coordsys() first
         try:
             coordsys = img.coordsys()
-            print("✓ Got coordsys()")
+            print(":check: Got coordsys()")
             method = "coordsys()"
         except AttributeError:
             coordsys = img.coordinates()
-            print("✓ Got coordinates()")
+            print(":check: Got coordinates()")
             method = "coordinates()"
 
         # Try to get reference value
         try:
             ref_val = coordsys.referencevalue()
             print(
-                f"✓ referencevalue(): {ref_val[:2] if len(ref_val) >= 2 else ref_val}")
+                f":check: referencevalue(): {ref_val[:2] if len(ref_val) >= 2 else ref_val}")
         except AttributeError:
             ref_val = coordsys.get_referencevalue()
             print(
-                f"✓ get_referencevalue(): {ref_val[:2] if len(ref_val) >= 2 else ref_val}")
+                f":check: get_referencevalue(): {ref_val[:2] if len(ref_val) >= 2 else ref_val}")
 
         # Try to get increment
         try:
             incr = coordsys.increment()
-            print(f"✓ increment(): {incr[:2] if len(incr) >= 2 else incr}")
+            print(f":check: increment(): {incr[:2] if len(incr) >= 2 else incr}")
         except AttributeError:
             incr = coordsys.get_increment()
-            print(f"✓ get_increment(): {incr[:2] if len(incr) >= 2 else incr}")
+            print(f":check: get_increment(): {incr[:2] if len(incr) >= 2 else incr}")
 
         # Try to close
         try:
             img.close()
-            print("✓ Image closed")
+            print(":check: Image closed")
         except AttributeError:
-            print("✓ Image doesn't have close() (FITS file)")
+            print(":check: Image doesn't have close() (FITS file)")
 
-        print("✓ TEST 1 PASSED")
+        print(":check: TEST 1 PASSED")
         return True
     except Exception as e:
-        print(f"✗ TEST 1 FAILED: {e}")
+        print(f":cross: TEST 1 FAILED: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -92,14 +92,14 @@ def test_bounding_box(tiles: list):
 
     try:
         ra_min, ra_max, dec_min, dec_max = _calculate_mosaic_bounds(tiles)
-        print(f"✓ Bounding box calculated:")
+        print(f":check: Bounding box calculated:")
         print(f"  RA:  [{ra_min:.6f}°, {ra_max:.6f}°]")
         print(f"  Dec: [{dec_min:.6f}°, {dec_max:.6f}°]")
         print(f"  Span: RA={ra_max-ra_min:.6f}°, Dec={dec_max-dec_min:.6f}°")
-        print("✓ TEST 2 PASSED")
+        print(":check: TEST 2 PASSED")
         return True, (ra_min, ra_max, dec_min, dec_max)
     except Exception as e:
-        print(f"✗ TEST 2 FAILED: {e}")
+        print(f":cross: TEST 2 FAILED: {e}")
         import traceback
         traceback.print_exc()
         return False, None
@@ -128,17 +128,17 @@ def test_common_coordsys(ra_min, ra_max, dec_min, dec_max, pixel_scale_arcsec=2.
             nx = int(np.ceil(ra_span / pixel_scale_deg)) + 2 * padding_pixels
             ny = int(np.ceil(dec_span / pixel_scale_deg)) + 2 * padding_pixels
 
-            print(f"✓ Bounds are valid:")
+            print(f":check: Bounds are valid:")
             print(f"  Expected shape: ({ny}, {nx})")
             print(f"  Span: RA={ra_span:.6f}°, Dec={dec_span:.6f}°")
-            print("✓ TEST 3 PASSED (bounds validation)")
+            print(":check: TEST 3 PASSED (bounds validation)")
             print("  Note: Full coordinate system creation requires CASA API")
             return True, (None, (ny, nx))
         else:
-            print("✗ Invalid bounds")
+            print(":cross: Invalid bounds")
             return False, None
     except Exception as e:
-        print(f"✗ TEST 3 FAILED: {e}")
+        print(f":cross: TEST 3 FAILED: {e}")
         import traceback
         traceback.print_exc()
         return False, None
@@ -164,7 +164,7 @@ def test_single_tile_regrid(tile_path: str, template_path: str, output_path: str
 
         # Verify output
         if os.path.exists(output_path) or os.path.isdir(output_path):
-            print("✓ Regridded image created")
+            print(":check: Regridded image created")
 
             # Check shape matches template
             template_img = casaimage(template_path)
@@ -177,9 +177,9 @@ def test_single_tile_regrid(tile_path: str, template_path: str, output_path: str
             print(f"  Regridded shape: {regridded_shape}")
 
             if template_shape == regridded_shape:
-                print("✓ Shapes match")
+                print(":check: Shapes match")
             else:
-                print("⚠ Shapes don't match (may be OK for different data types)")
+                print(":warning: Shapes don't match (may be OK for different data types)")
 
             try:
                 template_img.close()
@@ -187,13 +187,13 @@ def test_single_tile_regrid(tile_path: str, template_path: str, output_path: str
             except AttributeError:
                 pass
 
-            print("✓ TEST 4 PASSED")
+            print(":check: TEST 4 PASSED")
             return True
         else:
-            print("✗ Output file not found")
+            print(":cross: Output file not found")
             return False
     except Exception as e:
-        print(f"✗ TEST 4 FAILED: {e}")
+        print(f":cross: TEST 4 FAILED: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -214,7 +214,7 @@ def test_wcs_metadata_extraction(tile_path: str):
         wcs_metadata = cache.get_tile_wcs_metadata(tile_path)
 
         if wcs_metadata:
-            print("✓ WCS metadata extracted:")
+            print(":check: WCS metadata extracted:")
             for key, value in wcs_metadata.items():
                 print(f"  {key}: {value} ({type(value).__name__})")
 
@@ -222,21 +222,21 @@ def test_wcs_metadata_extraction(tile_path: str):
             cdelt_ra = wcs_metadata.get('cdelt_ra')
             cdelt_dec = wcs_metadata.get('cdelt_dec')
             if cdelt_ra is not None and isinstance(cdelt_ra, (int, float)):
-                print("✓ cdelt_ra is scalar")
+                print(":check: cdelt_ra is scalar")
             else:
-                print(f"⚠ cdelt_ra is not scalar: {type(cdelt_ra)}")
+                print(f":warning: cdelt_ra is not scalar: {type(cdelt_ra)}")
             if cdelt_dec is not None and isinstance(cdelt_dec, (int, float)):
-                print("✓ cdelt_dec is scalar")
+                print(":check: cdelt_dec is scalar")
             else:
-                print(f"⚠ cdelt_dec is not scalar: {type(cdelt_dec)}")
+                print(f":warning: cdelt_dec is not scalar: {type(cdelt_dec)}")
 
-            print("✓ TEST 0 PASSED")
+            print(":check: TEST 0 PASSED")
             return True
         else:
-            print("✗ Empty metadata returned")
+            print(":cross: Empty metadata returned")
             return False
     except Exception as e:
-        print(f"✗ TEST 0 FAILED: {e}")
+        print(f":cross: TEST 0 FAILED: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -271,14 +271,14 @@ def main():
     if args.test in ['0', 'all']:
         results['wcs_metadata'] = test_wcs_metadata_extraction(args.tiles[0])
         if not results['wcs_metadata']:
-            print("\n⚠ Stopping early due to WCS metadata failure")
+            print("\n:warning: Stopping early due to WCS metadata failure")
             return 1
 
     # Test 1: Coordinate extraction
     if args.test in ['1', 'all']:
         results['coords'] = test_coordinate_extraction(args.tiles[0])
         if not results['coords']:
-            print("\n⚠ Stopping early due to coordinate extraction failure")
+            print("\n:warning: Stopping early due to coordinate extraction failure")
             return 1
 
     # Test 2: Bounding box
@@ -286,7 +286,7 @@ def main():
         success, bounds = test_bounding_box(args.tiles)
         results['bounds'] = success
         if not success:
-            print("\n⚠ Stopping early due to bounding box failure")
+            print("\n:warning: Stopping early due to bounding box failure")
             return 1
         ra_min, ra_max, dec_min, dec_max = bounds
     else:
@@ -302,7 +302,7 @@ def main():
         )
         results['coordsys'] = success
         if not success:
-            print("\n⚠ Stopping early due to coordinate system creation failure")
+            print("\n:warning: Stopping early due to coordinate system creation failure")
             return 1
         common_coordsys, common_shape = coordsys_result
     else:
@@ -317,7 +317,7 @@ def main():
             args.tiles[0], template_path, test_output
         )
     elif args.test == '4' and not args.template:
-        print("\n⚠ Test 4 requires --template argument")
+        print("\n:warning: Test 4 requires --template argument")
         return 1
 
     # Summary
@@ -325,15 +325,15 @@ def main():
     print("TEST SUMMARY")
     print(f"{'='*60}")
     for test_name, passed in results.items():
-        status = "✓ PASSED" if passed else "✗ FAILED"
+        status = ":check: PASSED" if passed else ":cross: FAILED"
         print(f"  {test_name}: {status}")
 
     all_passed = all(results.values())
     if all_passed:
-        print("\n✓ All tests passed!")
+        print("\n:check: All tests passed!")
         return 0
     else:
-        print("\n✗ Some tests failed")
+        print("\n:cross: Some tests failed")
         return 1
 
 

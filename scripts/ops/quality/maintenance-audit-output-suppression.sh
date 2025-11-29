@@ -54,7 +54,7 @@ while IFS=: read -r file line_num line_content; do
         # Check if file exists and line contains suppression
         if [ -f "$file" ]; then
             if grep -n "2>/dev/null\|>/dev/null\|&>/dev/null" "$file" 2>/dev/null | grep -q "^${line_num}:"; then
-                echo "⚠️  Non-whitelisted: $file:$line_num"
+                echo ":warning:  Non-whitelisted: $file:$line_num"
                 NON_WHITELISTED=$((NON_WHITELISTED + 1))
             fi
         fi
@@ -62,10 +62,10 @@ while IFS=: read -r file line_num line_content; do
 done < <(grep -E "\[.*\]" "$AUDIT_FILE" | grep -v "PATTERNS=" | head -50)
 
 if [ $NON_WHITELISTED -eq 0 ]; then
-    echo "✅ All suppressions are whitelisted or in comments"
+    echo ":check: All suppressions are whitelisted or in comments"
 else
     echo ""
-    echo "⚠️  Found $NON_WHITELISTED non-whitelisted suppressions"
+    echo ":warning:  Found $NON_WHITELISTED non-whitelisted suppressions"
     echo "   Review and add to whitelist if legitimate"
 fi
 

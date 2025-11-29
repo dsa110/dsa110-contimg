@@ -106,7 +106,7 @@ _prevent_output_suppression() {
 echo "" >> "$SHELL_RC"
 echo "$CONFIG_BLOCK" >> "$SHELL_RC"
 
-echo "✓ Developer environment configured in $SHELL_RC"
+echo ":check: Developer environment configured in $SHELL_RC"
 echo ""
 echo "To activate, run:"
 echo "  source $SHELL_RC"

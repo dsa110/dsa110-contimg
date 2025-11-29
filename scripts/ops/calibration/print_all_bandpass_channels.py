@@ -63,13 +63,13 @@ def print_all_channels(bp_table_path: str, spw: int = None):
                 
                 # Determine status
                 if n_flagged == 0:
-                    status = "✓ ALL OK"
+                    status = ":check: ALL OK"
                 elif baselines_with_flags >= 28:
-                    status = "⚠ PRINTED"
+                    status = ":warning: PRINTED"
                 elif baselines_with_flags >= 27:
-                    status = "⚠ NOT PRINTED"
+                    status = ":warning: NOT PRINTED"
                 else:
-                    status = "⚠ MINOR"
+                    status = ":warning: MINOR"
                 
                 print(f"chan={chan:<7} {n_flagged:>4}/{n_total_per_chan:<7} "
                       f"{n_unflagged:>4}/{n_total_per_chan:<7} {n_total_per_chan:>4}     "

@@ -312,11 +312,18 @@ class EmojiReplacer:
             if part in self.ignore_dirs:
                 return False
             # Also check if path contains ignored substrings
-            if any(ignore in str(file_path) for ignore in ["/.local/", "/archive/", "/legacy"]):
+            if any(ignore in str(file_path) for ignore in ["/.local/", "/archive/", "/legacy", "/.venv", "/venv/", "/site-packages/"]):
                 return False
         
         # Check if ignored file
         if file_path.name in self.ignore_files:
+            return False
+        
+        # Skip very large files (>10MB) to avoid memory issues
+        try:
+            if file_path.stat().st_size > 10 * 1024 * 1024:
+                return False
+        except (OSError, IOError):
             return False
         
         # Check extension filter
@@ -325,12 +332,15 @@ class EmojiReplacer:
                 return False
         
         # Skip binary files (heuristic: check if file is text-based)
+        # Only check first 512 bytes for speed
         try:
-            # Try to read as text to see if it's binary
             with open(file_path, "rb") as f:
-                chunk = f.read(1024)
+                chunk = f.read(512)
                 if b"\x00" in chunk:
                     return False  # Likely binary
+                # Also skip if file appears to be an image or other binary format
+                if chunk.startswith((b'\x89PNG', b'\xff\xd8\xff', b'GIF', b'BM', b'PK')):
+                    return False
         except (IOError, OSError):
             return False
         
@@ -445,11 +455,25 @@ class EmojiReplacer:
             print(f"Extensions: {', '.join(self.extensions)}")
         print("-" * 60)
         
-        # Walk directory tree
-        for file_path in self.root_dir.rglob("*"):
-            if file_path.is_file() and self.should_process_file(file_path):
-                self.stats["files_processed"] += 1
-                
+        # Collect all files first (more efficient than rglob with checks)
+        all_files = []
+        try:
+            for file_path in self.root_dir.rglob("*"):
+                if file_path.is_file() and self.should_process_file(file_path):
+                    all_files.append(file_path)
+        except (OSError, PermissionError) as e:
+            print(f"Warning: Error scanning directory: {e}", file=sys.stderr)
+        
+        print(f"Found {len(all_files)} files to process...")
+        
+        # Process files with progress indication
+        for idx, file_path in enumerate(all_files, 1):
+            if idx % 100 == 0:
+                print(f"Processing file {idx}/{len(all_files)}...", file=sys.stderr)
+            
+            self.stats["files_processed"] += 1
+            
+            try:
                 modified, details = self.process_file(file_path)
                 if modified:
                     rel_path = file_path.relative_to(self.root_dir)
@@ -458,6 +482,11 @@ class EmojiReplacer:
                     if self.verbose and details:
                         for emoji, icon, count in details:
                             print(f"    {emoji} -> {icon} ({count}x)")
+            except Exception as e:
+                error_msg = f"Error processing {file_path}: {e}"
+                self.stats["errors"].append(error_msg)
+                print(f"ERROR: {error_msg}", file=sys.stderr)
+                continue
         
         # Print statistics
         self.print_statistics()

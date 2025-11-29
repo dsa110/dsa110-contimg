@@ -240,10 +240,10 @@ def main() -> int:
     
     api_ok = test_api_connection(args.api_url, args.api_key)
     if not api_ok:
-        print("❌ API connection failed")
+        print(":cross: API connection failed")
         success = False
     else:
-        print("✅ API connection OK")
+        print(":check: API connection OK")
     
     # Test MCP connection
     if not args.skip_mcp:
@@ -253,10 +253,10 @@ def main() -> int:
         
         mcp_ok = asyncio.run(test_sse_connection(args.sse_url, args.api_key))
         if not mcp_ok:
-            print("❌ MCP SSE connection failed")
+            print(":cross: MCP SSE connection failed")
             print("   (This may be OK if MCP client is not installed)")
         else:
-            print("✅ MCP SSE connection OK")
+            print(":check: MCP SSE connection OK")
             
             # Run query test if requested
             if args.query:
@@ -271,14 +271,14 @@ def main() -> int:
                 ))
                 
                 if results:
-                    print(f"✅ Found {len(results)} results")
+                    print(f":check: Found {len(results)} results")
                     for i, chunk in enumerate(results[:3], 1):
                         score = chunk.get("similarity", 0)
                         content = chunk.get("content", "")[:100]
                         print(f"\n[{i}] Score: {score:.4f}")
                         print(f"    {content}...")
                 else:
-                    print("⚠️  No results found (this may be OK if no documents uploaded)")
+                    print(":warning:  No results found (this may be OK if no documents uploaded)")
     
     # Summary
     print("\n" + "=" * 60)
@@ -289,10 +289,10 @@ def main() -> int:
     print(f"API Key:     {'Set' if args.api_key else 'Not set'}")
     
     if not args.api_key:
-        print("\n⚠️  No API key set. To get one:")
+        print("\n:warning:  No API key set. To get one:")
         print("   1. Open http://localhost:9080 in your browser")
         print("   2. Create an account or log in")
-        print("   3. Go to Settings → API Keys")
+        print("   3. Go to Settings :arrow_right: API Keys")
         print("   4. Create a new API key")
         print("   5. Set RAGFLOW_API_KEY environment variable")
     

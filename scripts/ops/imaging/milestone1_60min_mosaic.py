@@ -189,12 +189,12 @@ def convert_groups_to_ms(
             
             if ms_path.exists():
                 ms_files.append(ms_path)
-                logger.info(f"✓ Successfully created MS: {ms_path}")
+                logger.info(f":check: Successfully created MS: {ms_path}")
             else:
-                logger.error(f"✗ MS conversion failed: {ms_path} not found")
+                logger.error(f":cross: MS conversion failed: {ms_path} not found")
                 
         except Exception as e:
-            logger.error(f"✗ Failed to convert group {i+1}: {e}", exc_info=True)
+            logger.error(f":cross: Failed to convert group {i+1}: {e}", exc_info=True)
             continue
     
     return ms_files
@@ -259,12 +259,12 @@ def calibrate_ms_files(
             result = handle_calibrate(args)
             if result == 0:
                 calibrated_ms.append(ms_path)
-                logger.info(f"✓ Successfully calibrated: {ms_path}")
+                logger.info(f":check: Successfully calibrated: {ms_path}")
             else:
-                logger.error(f"✗ Calibration failed for {ms_path} (exit code: {result})")
+                logger.error(f":cross: Calibration failed for {ms_path} (exit code: {result})")
                 
         except Exception as e:
-            logger.error(f"✗ Failed to calibrate {ms_path}: {e}", exc_info=True)
+            logger.error(f":cross: Failed to calibrate {ms_path}: {e}", exc_info=True)
             continue
     
     return calibrated_ms
@@ -317,12 +317,12 @@ def image_ms_files(
             pbcor_image = Path(f"{imagename}.image.pbcor")
             if pbcor_image.exists():
                 image_paths.append(pbcor_image)
-                logger.info(f"✓ Successfully imaged: {pbcor_image}")
+                logger.info(f":check: Successfully imaged: {pbcor_image}")
             else:
-                logger.error(f"✗ Image not found: {pbcor_image}")
+                logger.error(f":cross: Image not found: {pbcor_image}")
                 
         except Exception as e:
-            logger.error(f"✗ Failed to image {ms_path}: {e}", exc_info=True)
+            logger.error(f":cross: Failed to image {ms_path}: {e}", exc_info=True)
             continue
     
     return image_paths
@@ -365,14 +365,14 @@ def create_mosaic(
         
         result = cmd_build(args)
         if result == 0 and output_path.exists():
-            logger.info(f"✓ Successfully created mosaic: {output_path}")
+            logger.info(f":check: Successfully created mosaic: {output_path}")
             return output_path
         else:
-            logger.error(f"✗ Mosaic creation failed (exit code: {result})")
+            logger.error(f":cross: Mosaic creation failed (exit code: {result})")
             return None
             
     except Exception as e:
-        logger.error(f"✗ Failed to create mosaic: {e}", exc_info=True)
+        logger.error(f":cross: Failed to create mosaic: {e}", exc_info=True)
         return None
 
 
@@ -469,7 +469,7 @@ def main():
         logger.error("No MS files available!")
         return 1
     
-    logger.info(f"\n✓ Found {len(ms_files)} MS files for processing")
+    logger.info(f"\n:check: Found {len(ms_files)} MS files for processing")
     
     # Step 4: Calibrate
     calibrated_ms = ms_files
@@ -509,7 +509,7 @@ def main():
         logger.error("No images available for mosaic!")
         return 1
     
-    logger.info(f"\n✓ Found {len(image_paths)} images for mosaic")
+    logger.info(f"\n:check: Found {len(image_paths)} images for mosaic")
     
     # Step 6: Create mosaic
     logger.info("\n" + "=" * 80)

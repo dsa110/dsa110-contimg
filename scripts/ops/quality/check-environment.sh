@@ -19,21 +19,21 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 error() {
-  echo -e "${RED}❌ ERROR:${NC} $1" >&2
+  echo -e "${RED}:cross: ERROR:${NC} $1" >&2
   ((ERRORS++)) || true
 }
 
 warning() {
-  echo -e "${YELLOW}⚠️  WARNING:${NC} $1" >&2
+  echo -e "${YELLOW}:warning:  WARNING:${NC} $1" >&2
   ((WARNINGS++)) || true
 }
 
 success() {
-  echo -e "${GREEN}✓${NC} $1"
+  echo -e "${GREEN}:check:${NC} $1"
 }
 
 info() {
-  echo -e "${BLUE}ℹ️${NC} $1"
+  echo -e "${BLUE}:info:${NC} $1"
 }
 
 echo "Checking development environment..."
@@ -165,14 +165,14 @@ fi
 echo ""
 echo "=========================================="
 if [ $ERRORS -eq 0 ] && [ $WARNINGS -eq 0 ]; then
-  echo -e "${GREEN}✓ All checks passed!${NC}"
+  echo -e "${GREEN}:check: All checks passed!${NC}"
   exit 0
 elif [ $ERRORS -eq 0 ]; then
-  echo -e "${YELLOW}⚠️  $WARNINGS warning(s) found${NC}"
+  echo -e "${YELLOW}:warning:  $WARNINGS warning(s) found${NC}"
   echo "   Run './scripts/setup-dev.sh' to fix most issues"
   exit 0
 else
-  echo -e "${RED}❌ $ERRORS error(s), $WARNINGS warning(s) found${NC}"
+  echo -e "${RED}:cross: $ERRORS error(s), $WARNINGS warning(s) found${NC}"
   echo ""
   echo "To fix issues:"
   echo "  1. Run: ./scripts/setup-dev.sh"

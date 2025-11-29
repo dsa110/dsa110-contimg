@@ -34,7 +34,7 @@ if [ ! -f "$PYTHON_ENV" ]; then
     exit 1
 fi
 
-echo -e "${GREEN}✓ Prerequisites verified${NC}"
+echo -e "${GREEN}:check: Prerequisites verified${NC}"
 echo ""
 
 # Step 2: Backup existing databases
@@ -44,12 +44,12 @@ mkdir -p "$BACKUP_DIR"
 
 if [ -f "$PRODUCTS_DB" ]; then
     cp "$PRODUCTS_DB" "$BACKUP_DIR/products.sqlite3.backup"
-    echo -e "${GREEN}✓ Backed up products.sqlite3${NC}"
+    echo -e "${GREEN}:check: Backed up products.sqlite3${NC}"
 fi
 
 if [ -f "$CALIBRATORS_DB" ]; then
     cp "$CALIBRATORS_DB" "$BACKUP_DIR/calibrators.sqlite3.backup"
-    echo -e "${GREEN}✓ Backed up calibrators.sqlite3${NC}"
+    echo -e "${GREEN}:check: Backed up calibrators.sqlite3${NC}"
 fi
 
 echo ""
@@ -66,7 +66,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-echo -e "${GREEN}✓ Dry-run successful${NC}"
+echo -e "${GREEN}:check: Dry-run successful${NC}"
 echo ""
 
 # Step 4: Run actual migration
@@ -80,7 +80,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-echo -e "${GREEN}✓ Migration completed${NC}"
+echo -e "${GREEN}:check: Migration completed${NC}"
 echo ""
 
 # Step 5: Verify migration
@@ -117,9 +117,9 @@ print(f'Products DB: {products_count} calibrators')
 print(f'Calibrators DB: {calibrators_count} calibrators')
 
 if calibrators_count > 0:
-    print('✓ Migration verified: Calibrators found in new database')
+    print(':check: Migration verified: Calibrators found in new database')
 else:
-    print('⚠ No calibrators migrated (database may have been empty)')
+    print(':warning: No calibrators migrated (database may have been empty)')
 "
 
 echo ""
@@ -133,7 +133,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-echo -e "${GREEN}✓ Integration tests passed${NC}"
+echo -e "${GREEN}:check: Integration tests passed${NC}"
 echo ""
 
 # Step 7: Run unit tests
@@ -145,7 +145,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-echo -e "${GREEN}✓ Unit tests passed${NC}"
+echo -e "${GREEN}:check: Unit tests passed${NC}"
 echo ""
 
 # Step 8: Verify database schema
@@ -175,7 +175,7 @@ if missing:
     print(f'ERROR: Missing tables: {missing}')
     exit(1)
 else:
-    print('✓ All required tables present')
+    print(':check: All required tables present')
 
 conn.close()
 "
@@ -185,7 +185,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-echo -e "${GREEN}✓ Schema verified${NC}"
+echo -e "${GREEN}:check: Schema verified${NC}"
 echo ""
 
 # Summary
@@ -194,7 +194,7 @@ echo "Backup location: $BACKUP_DIR"
 echo "Products DB: $PRODUCTS_DB"
 echo "Calibrators DB: $CALIBRATORS_DB"
 echo ""
-echo -e "${GREEN}✓ Migration deployment completed successfully!${NC}"
+echo -e "${GREEN}:check: Migration deployment completed successfully!${NC}"
 echo ""
 echo "Next steps:"
 echo "  1. Monitor pipeline logs for any issues"

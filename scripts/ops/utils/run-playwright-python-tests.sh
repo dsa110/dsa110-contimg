@@ -126,10 +126,10 @@ fi
 
 # Report results
 if [ $EXIT_CODE -eq 0 ]; then
-    echo -e "\n${GREEN}✓ All tests passed!${NC}"
+    echo -e "\n${GREEN}:check: All tests passed!${NC}"
     echo -e "Test results: test-results/playwright-python/"
 else
-    echo -e "\n${RED}✗ Some tests failed (exit code: $EXIT_CODE)${NC}"
+    echo -e "\n${RED}:cross: Some tests failed (exit code: $EXIT_CODE)${NC}"
     echo -e "Test results: test-results/playwright-python/"
 fi
 

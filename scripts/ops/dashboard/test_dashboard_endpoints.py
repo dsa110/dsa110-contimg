@@ -119,14 +119,14 @@ def main():
     print("Test Results Summary:")
     print("=" * 50)
     for endpoint, success in results.items():
-        status = "✓ PASS" if success else "✗ NO DATA"
+        status = ":check: PASS" if success else ":cross: NO DATA"
         print(f"  {endpoint:20s} {status}")
     
     all_have_data = all(results.values())
     if all_have_data:
-        print("\n✓ All endpoints returned data successfully!")
+        print("\n:check: All endpoints returned data successfully!")
     else:
-        print("\n⚠ Some endpoints returned no data (this may be expected)")
+        print("\n:warning: Some endpoints returned no data (this may be expected)")
         print("  Endpoints are working correctly - they just need data in the database")
     
     return 0 if all_have_data else 1

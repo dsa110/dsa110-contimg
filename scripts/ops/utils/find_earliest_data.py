@@ -165,7 +165,7 @@ def main():
     print("1. Querying MS Index (processed/converted data)...")
     ms_data = query_earliest_ms(args.products_db)
     if ms_data:
-        print(f"   ✓ Earliest MS file found:")
+        print(f"   :check: Earliest MS file found:")
         print(f"     Path: {ms_data['path']}")
         print(f"     Mid MJD: {ms_data['mid_mjd']:.6f}")
         print(f"     Mid Time: {format_mjd_to_datetime(ms_data['mid_mjd'])}")
@@ -174,14 +174,14 @@ def main():
         print(f"     Status: {ms_data['status']}")
         print(f"     Stage: {ms_data['stage']}")
     else:
-        print("   ✗ No MS files found in products database")
+        print("   :cross: No MS files found in products database")
     print()
 
     # Query ingest queue (raw observation groups)
     print("2. Querying Ingest Queue (raw observation groups)...")
     ingest_data = query_earliest_ingest(args.ingest_db)
     if ingest_data:
-        print(f"   ✓ Earliest observation group found:")
+        print(f"   :check: Earliest observation group found:")
         print(f"     Group ID: {ingest_data['group_id']}")
         print(f"     Received At: {format_unix_to_datetime(ingest_data['received_at'])}")
         print(f"     State: {ingest_data['state']}")
@@ -194,21 +194,21 @@ def main():
         except ValueError:
             pass
     else:
-        print("   ✗ No observation groups found in ingest queue")
+        print("   :cross: No observation groups found in ingest queue")
     print()
 
     # Scan HDF5 files (raw visibility data)
     print("3. Scanning HDF5 Files (raw visibility data)...")
     hdf5_data = find_earliest_hdf5(args.data_dir)
     if hdf5_data:
-        print(f"   ✓ Earliest HDF5 file found:")
+        print(f"   :check: Earliest HDF5 file found:")
         print(f"     Earliest Time: {hdf5_data['earliest_time'].isoformat()}")
         print(f"     Latest Time: {hdf5_data['latest_time'].isoformat()}")
         print(f"     Total Files: {hdf5_data['total_files']}")
         print(f"     Unique Timestamps: {hdf5_data['unique_timestamps']}")
         print(f"     Timeline Segments: {hdf5_data['segments']}")
     else:
-        print(f"   ✗ No HDF5 files found in {args.data_dir}")
+        print(f"   :cross: No HDF5 files found in {args.data_dir}")
     print()
 
     # Summary

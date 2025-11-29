@@ -145,7 +145,7 @@ definitively determine pre-calibration percentages.
             refant=args.refant,
             cal_table_paths=cal_table_paths,
         )
-        print("✓ Snapshot captured\n")
+        print(":check: Snapshot captured\n")
     except Exception as e:
         print(f"ERROR: Failed to capture snapshot: {e}", file=sys.stderr)
         sys.exit(1)
@@ -193,7 +193,7 @@ definitively determine pre-calibration percentages.
                                 ]
                                 if missing:
                                     output_lines.append(
-                                        f"     → MISSING solutions for SPWs {missing}"
+                                        f"     :arrow_right: MISSING solutions for SPWs {missing}"
                                     )
                     except Exception as e:
                         output_lines.append(f"{cal_type:3s}: Error reading table - {e}")
@@ -208,7 +208,7 @@ definitively determine pre-calibration percentages.
         output_lines.append("=" * 80)
         output_lines.append("")
         output_lines.append(
-            "⚠️  LIMITATION: This is a RETROSPECTIVE analysis of an already-calibrated MS."
+            ":warning:  LIMITATION: This is a RETROSPECTIVE analysis of an already-calibrated MS."
         )
         output_lines.append("   The current MS state shows POST-applycal flagging.")
         output_lines.append("")
@@ -254,14 +254,14 @@ definitively determine pre-calibration percentages.
             if not has_solutions and cal_table_paths:
                 output_lines.append(f"  Calibration tables: NO SOLUTIONS")
                 output_lines.append(
-                    f"  → LIKELY CAUSE: Pre-calibration flagging prevented calibration solve,"
+                    f"  :arrow_right: LIKELY CAUSE: Pre-calibration flagging prevented calibration solve,"
                 )
                 output_lines.append(
-                    f"    then CASA applycal flagged remaining data → 100% flagging"
+                    f"    then CASA applycal flagged remaining data :arrow_right: 100% flagging"
                 )
             else:
                 output_lines.append(
-                    f"  → Unable to determine cause without pre-calibration snapshot"
+                    f"  :arrow_right: Unable to determine cause without pre-calibration snapshot"
                 )
 
         output_lines.append("")
@@ -278,7 +278,7 @@ definitively determine pre-calibration percentages.
     if args.output:
         with open(args.output, "w") as f:
             f.write(output_text)
-        print(f"✓ Diagnosis written to: {args.output}")
+        print(f":check: Diagnosis written to: {args.output}")
     else:
         print(output_text)
 

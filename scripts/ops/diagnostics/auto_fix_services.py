@@ -254,7 +254,7 @@ def apply_fixes():
     print(f"Applied fixes to: {routes_file}")
 
     print()
-    print("✓ Successfully added 7 missing endpoint implementations")
+    print(":check: Successfully added 7 missing endpoint implementations")
     print()
     print("Next steps:")
     print("  1. Restart backend API: systemctl restart dsa110-backend")

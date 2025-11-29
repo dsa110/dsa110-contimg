@@ -32,9 +32,9 @@ else:
     print('All ports validated successfully')
     sys.exit(0)
 " 2>/dev/null; then
-    echo "✓ Port validation passed"
+    echo ":check: Port validation passed"
     exit 0
 else
-    echo "✗ Port validation failed"
+    echo ":cross: Port validation failed"
     exit 1
 fi

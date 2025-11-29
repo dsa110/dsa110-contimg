@@ -35,9 +35,9 @@ for proto_file in "${PROTO_FILES[@]}"; do
   output_file="$PROTO_DIR/$proto_file"
   
   if curl -f -s -o "$output_file" "$CARTA_PROTO_URL/$proto_file"; then
-    echo "  ✓ Downloaded $proto_file ($(wc -c < "$output_file" | tr -d ' ') bytes)"
+    echo "  :check: Downloaded $proto_file ($(wc -c < "$output_file" | tr -d ' ') bytes)"
   else
-    echo "  ✗ Failed to download $proto_file"
+    echo "  :cross: Failed to download $proto_file"
     exit 1
   fi
 done

@@ -203,11 +203,11 @@ start_api() {
     done
     
     if check_port $API_PORT; then
-        echo -e "${GREEN}✓ API started successfully (PID: $pid)${NC}"
+        echo -e "${GREEN}:check: API started successfully (PID: $pid)${NC}"
         echo -e "  Logs: $LOG_DIR/api.log"
         echo -e "  URL: http://localhost:$API_PORT"
     else
-        echo -e "${RED}✗ API failed to start${NC}"
+        echo -e "${RED}:cross: API failed to start${NC}"
         tail -20 "$LOG_DIR/api.log"
         return 1
     fi
@@ -260,11 +260,11 @@ start_dashboard() {
     sleep 5
     
     if check_port $chosen_port; then
-        echo -e "${GREEN}✓ Dashboard started successfully (PID: $pid)${NC}"
+        echo -e "${GREEN}:check: Dashboard started successfully (PID: $pid)${NC}"
         echo -e "  Logs: $LOG_DIR/dashboard.log"
         echo -e "  URL: http://localhost:$chosen_port/dashboard"
     else
-        echo -e "${RED}✗ Dashboard failed to start${NC}"
+        echo -e "${RED}:cross: Dashboard failed to start${NC}"
         tail -20 "$LOG_DIR/dashboard.log"
         return 1
     fi
@@ -278,7 +278,7 @@ stop_api() {
         local pid=$(cat "$PID_DIR/api.pid")
         if ps -p $pid > /dev/null 2>&1; then
             kill $pid 2>/dev/null || sudo kill $pid 2>/dev/null
-            echo -e "${GREEN}✓ API stopped (PID: $pid)${NC}"
+            echo -e "${GREEN}:check: API stopped (PID: $pid)${NC}"
         fi
         rm "$PID_DIR/api.pid"
     fi
@@ -295,7 +295,7 @@ stop_dashboard() {
         local pid=$(cat "$PID_DIR/dashboard.pid")
         if ps -p $pid > /dev/null 2>&1; then
             kill $pid 2>/dev/null || sudo kill $pid 2>/dev/null
-            echo -e "${GREEN}✓ Dashboard stopped (PID: $pid)${NC}"
+            echo -e "${GREEN}:check: Dashboard stopped (PID: $pid)${NC}"
         fi
         rm "$PID_DIR/dashboard.pid"
     fi
@@ -315,10 +315,10 @@ status() {
     echo -e "${YELLOW}API (Port $API_PORT):${NC}"
     if check_port $API_PORT; then
         local pid=$(lsof -ti:$API_PORT)
-        echo -e "  ${GREEN}✓ Running${NC} (PID: $pid)"
+        echo -e "  ${GREEN}:check: Running${NC} (PID: $pid)"
         echo -e "  URL: http://localhost:$API_PORT"
     else
-        echo -e "  ${RED}✗ Not running${NC}"
+        echo -e "  ${RED}:cross: Not running${NC}"
     fi
     
     # Dashboard Status
@@ -329,20 +329,20 @@ status() {
     fi
     if check_port $dash_port; then
         local pid=$(lsof -ti:$dash_port)
-        echo -e "  ${GREEN}✓ Running${NC} (PID: $pid)"
+        echo -e "  ${GREEN}:check: Running${NC} (PID: $pid)"
         echo -e "  URL: http://localhost:$dash_port"
     else
-        echo -e "  ${RED}✗ Not running${NC}"
+        echo -e "  ${RED}:cross: Not running${NC}"
     fi
 
     # Docs Status
     echo -e "\n${YELLOW}Docs (Port $DOCS_PORT):${NC}"
     if check_port $DOCS_PORT; then
         local pid=$(lsof -ti:$DOCS_PORT)
-        echo -e "  ${GREEN}✓ Running${NC} (PID: $pid)"
+        echo -e "  ${GREEN}:check: Running${NC} (PID: $pid)"
         echo -e "  URL: http://localhost:$DOCS_PORT"
     else
-        echo -e "  ${RED}✗ Not running${NC}"
+        echo -e "  ${RED}:cross: Not running${NC}"
     fi
     
     # Port conflicts
@@ -386,11 +386,11 @@ start_docs() {
     echo $pid > "$PID_DIR/docs.pid"
     sleep 2
     if check_port $DOCS_PORT; then
-        echo -e "${GREEN}✓ Docs started successfully (PID: $pid)${NC}"
+        echo -e "${GREEN}:check: Docs started successfully (PID: $pid)${NC}"
         echo -e "  Logs: $LOG_DIR/docs.log"
         echo -e "  URL: http://localhost:$DOCS_PORT"
     else
-        echo -e "${RED}✗ Docs failed to start${NC}"
+        echo -e "${RED}:cross: Docs failed to start${NC}"
         tail -20 "$LOG_DIR/docs.log"
         return 1
     fi
@@ -402,7 +402,7 @@ stop_docs() {
         local pid=$(cat "$PID_DIR/docs.pid")
         if ps -p $pid > /dev/null 2>&1; then
             kill $pid 2>/dev/null || sudo kill $pid 2>/dev/null
-            echo -e "${GREEN}✓ Docs stopped (PID: $pid)${NC}"
+            echo -e "${GREEN}:check: Docs stopped (PID: $pid)${NC}"
         fi
         rm "$PID_DIR/docs.pid"
     fi

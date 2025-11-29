@@ -53,7 +53,7 @@ const AppLayout: React.FC = () => {
 
       {/* Footer */}
       <footer className="bg-slate-900 text-gray-400 px-6 py-3 text-center text-sm">
-        DSA-110 Continuum Imaging Pipeline • Deep Synoptic Array
+        DSA-110 Continuum Imaging Pipeline :bullet: Deep Synoptic Array
       </footer>
     </div>
   );

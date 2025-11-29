@@ -73,7 +73,7 @@ def convert_skymodel_to_dp3(sky: SkyModel, out_path: str, spectral_index: float 
 def test_pyradiosky_to_dp3_conversion():
     """Test converting pyradiosky SkyModel to DP3 format."""
     print("=" * 60)
-    print("Test: pyradiosky → DP3 Conversion")
+    print("Test: pyradiosky :arrow_right: DP3 Conversion")
     print("=" * 60)
     
     # Create a SkyModel with multiple sources
@@ -97,7 +97,7 @@ def test_pyradiosky_to_dp3_conversion():
         component_type='point',
     )
     
-    print(f"✓ Created SkyModel with {sky.Ncomponents} sources")
+    print(f":check: Created SkyModel with {sky.Ncomponents} sources")
     
     # Convert to DP3 format
     with tempfile.NamedTemporaryFile(mode='w', suffix='.skymodel', delete=False) as f:
@@ -105,7 +105,7 @@ def test_pyradiosky_to_dp3_conversion():
     
     try:
         result_path = convert_skymodel_to_dp3(sky, temp_path)
-        print(f"✓ Converted to DP3 format: {result_path}")
+        print(f":check: Converted to DP3 format: {result_path}")
         
         # Verify file contents
         with open(result_path, 'r') as f:
@@ -120,21 +120,21 @@ def test_pyradiosky_to_dp3_conversion():
         if len(lines) >= 2:
             # Check header
             if "Format" in lines[0]:
-                print("  ✓ Header format correct")
+                print("  :check: Header format correct")
             else:
-                print("  ⚠ Header format may be incorrect")
+                print("  :warning: Header format may be incorrect")
             
             # Check source line format
             parts = lines[1].strip().split(',')
             if len(parts) >= 8:
-                print(f"  ✓ Source line has {len(parts)} fields (expected 8+)")
+                print(f"  :check: Source line has {len(parts)} fields (expected 8+)")
             else:
-                print(f"  ⚠ Source line has only {len(parts)} fields")
+                print(f"  :warning: Source line has only {len(parts)} fields")
         
         os.unlink(result_path)
         return True
     except Exception as e:
-        print(f"✗ Conversion failed: {e}")
+        print(f":cross: Conversion failed: {e}")
         import traceback
         traceback.print_exc()
         if os.path.exists(temp_path):
@@ -154,10 +154,10 @@ def test_dp3_predict_integration():
     # Check DP3 availability
     dp3_cmd = _find_dp3_executable()
     if not dp3_cmd:
-        print("⚠ DP3 not available - skipping predict test")
+        print(":warning: DP3 not available - skipping predict test")
         return False
     
-    print(f"✓ DP3 available: {dp3_cmd}")
+    print(f":check: DP3 available: {dp3_cmd}")
     print("  (Full predict test requires valid MS file)")
     print("  Integration test passed - ready for production use")
     return True
@@ -182,18 +182,18 @@ def main():
     print("\n" + "=" * 60)
     print("Integration Test Summary")
     print("=" * 60)
-    print(f"pyradiosky → DP3 Conversion: {'✓' if results['conversion'] else '✗'}")
-    print(f"DP3 Integration: {'✓' if results['dp3'] else '⚠'}")
+    print(f"pyradiosky :arrow_right: DP3 Conversion: {':check:' if results['conversion'] else ':cross:'}")
+    print(f"DP3 Integration: {':check:' if results['dp3'] else ':warning:'}")
     
     if results['conversion']:
-        print("\n✓ Integration workflow is ready")
+        print("\n:check: Integration workflow is ready")
         print("  Next steps:")
         print("  1. Use pyradiosky to read/create sky models")
         print("  2. Convert SkyModel to DP3 format")
         print("  3. Use DP3 predict to populate MODEL_DATA")
         return 0
     else:
-        print("\n✗ Integration test failed")
+        print("\n:cross: Integration test failed")
         return 1
 
 

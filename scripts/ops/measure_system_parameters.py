@@ -506,7 +506,7 @@ def find_calibrator_field(ms_path: str, calibrator: str) -> int:
         calib_name, ra_deg, dec_deg, flux_jy = calib_info
 
         logger.info(
-            f"✓ Found {calib_name} in field {peak_field_idx} "
+            f":check: Found {calib_name} in field {peak_field_idx} "
             f"(RA={ra_deg:.2f}°, Dec={dec_deg:.2f}°, Flux={flux_jy:.1f} Jy)"
         )
         logger.info(f"  Candidate fields: {indices}, peak field: {peak_field_idx}")

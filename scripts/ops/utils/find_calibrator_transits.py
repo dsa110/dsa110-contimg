@@ -168,11 +168,11 @@ Examples:
 
     for date in sorted(by_date.keys()):
         items = by_date[date]
-        print(f"📅 {date}:")
+        print(f":calendar: {date}:")
         for item in items:
             group = item["group"]
             transit = item["transit"]
-            complete = "✓" if group.present_count >= 16 else "⚠"
+            complete = ":check:" if group.present_count >= 16 else ":warning:"
             transit_str = transit.datetime.strftime("%H:%M:%S")
             print(
                 f"   {complete} Obs: {item['group_time']} | Transit: {transit_str} | "

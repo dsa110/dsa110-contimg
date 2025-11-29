@@ -28,7 +28,7 @@ def test_cache_backend():
     print("=" * 60)
 
     if CacheBackend is None:
-        print("\n⚠ Cache backend not available, skipping tests")
+        print("\n:warning: Cache backend not available, skipping tests")
         return
 
     redis_url = os.getenv("REDIS_URL")
@@ -39,7 +39,7 @@ def test_cache_backend():
     cache.set("test_key", {"data": "test_value"}, ttl=60)
     result = cache.get("test_key")
     assert result == {"data": "test_value"}, f"Expected {{'data': 'test_value'}}, got {result}"
-    print("   ✓ Set/get operations working")
+    print("   :check: Set/get operations working")
 
     # Test expiration
     print("\n2. Testing expiration...")
@@ -47,7 +47,7 @@ def test_cache_backend():
     time.sleep(2)
     result = cache.get("expire_key")
     assert result is None, f"Expected None (expired), got {result}"
-    print("   ✓ Expiration working")
+    print("   :check: Expiration working")
 
     # Test delete
     print("\n3. Testing delete operation...")
@@ -55,16 +55,16 @@ def test_cache_backend():
     cache.delete("delete_key")
     result = cache.get("delete_key")
     assert result is None, f"Expected None (deleted), got {result}"
-    print("   ✓ Delete operation working")
+    print("   :check: Delete operation working")
 
     # Test stats
     print("\n4. Testing statistics...")
     stats = cache.get_stats()
     print(f"   Backend: {stats['backend']}")
     print(f"   Keys: {stats['keys']}")
-    print("   ✓ Statistics working")
+    print("   :check: Statistics working")
 
-    print("\n✓ All cache backend tests passed!")
+    print("\n:check: All cache backend tests passed!")
 
 
 def test_rate_limiting():
@@ -74,20 +74,20 @@ def test_rate_limiting():
     print("=" * 60)
 
     if not SLOWAPI_AVAILABLE or get_limiter is None:
-        print("\n⚠ slowapi not available, skipping rate limiting tests")
+        print("\n:warning: slowapi not available, skipping rate limiting tests")
         return
 
     try:
         limiter = get_limiter()
         if limiter is None:
-            print("\n⚠ Rate limiter not available, skipping tests")
+            print("\n:warning: Rate limiter not available, skipping tests")
             return
 
-        print(f"\n✓ Rate limiter initialized: {limiter}")
+        print(f"\n:check: Rate limiter initialized: {limiter}")
         print("   Backend:", "Redis" if os.getenv("REDIS_URL") else "Memory")
-        print("\n✓ Rate limiting tests passed!")
+        print("\n:check: Rate limiting tests passed!")
     except Exception as e:
-        print(f"\n⚠ Rate limiting test failed: {e}")
+        print(f"\n:warning: Rate limiting test failed: {e}")
         print("   (This may be expected if app is not fully initialized)")
 
 
@@ -104,9 +104,9 @@ def test_api_endpoints():
     try:
         response = requests.get(f"{api_url}/health", timeout=5)
         assert response.status_code == 200, f"Expected 200, got {response.status_code}"
-        print(f"   ✓ Health endpoint responding (status: {response.status_code})")
+        print(f"   :check: Health endpoint responding (status: {response.status_code})")
     except requests.exceptions.RequestException as e:
-        print(f"   ⚠ Health endpoint not available: {e}")
+        print(f"   :warning: Health endpoint not available: {e}")
         print("   (This is expected if the API server is not running)")
 
     # Test performance metrics endpoint
@@ -115,13 +115,13 @@ def test_api_endpoints():
         response = requests.get(f"{api_url}/api/performance/metrics", timeout=5)
         if response.status_code == 200:
             metrics = response.json()
-            print(f"   ✓ Performance metrics available")
+            print(f"   :check: Performance metrics available")
             print(f"   Cache backend: {metrics.get('cache', {}).get('backend', 'unknown')}")
             print(f"   Rate limiting: {metrics.get('rate_limiting', {}).get('enabled', False)}")
         else:
-            print(f"   ⚠ Performance metrics endpoint returned {response.status_code}")
+            print(f"   :warning: Performance metrics endpoint returned {response.status_code}")
     except requests.exceptions.RequestException as e:
-        print(f"   ⚠ Performance metrics endpoint not available: {e}")
+        print(f"   :warning: Performance metrics endpoint not available: {e}")
 
     # Test task queue endpoint
     print("\n3. Testing task queue endpoint...")
@@ -129,13 +129,13 @@ def test_api_endpoints():
         response = requests.get(f"{api_url}/api/tasks/available", timeout=5)
         if response.status_code == 200:
             task_info = response.json()
-            print(f"   ✓ Task queue available: {task_info.get('available', False)}")
+            print(f"   :check: Task queue available: {task_info.get('available', False)}")
         else:
-            print(f"   ⚠ Task queue endpoint returned {response.status_code}")
+            print(f"   :warning: Task queue endpoint returned {response.status_code}")
     except requests.exceptions.RequestException as e:
-        print(f"   ⚠ Task queue endpoint not available: {e}")
+        print(f"   :warning: Task queue endpoint not available: {e}")
 
-    print("\n✓ API endpoint tests completed!")
+    print("\n:check: API endpoint tests completed!")
 
 
 def test_timeout_handling():
@@ -144,10 +144,10 @@ def test_timeout_handling():
     print("Testing Timeout Handling")
     print("=" * 60)
 
-    print("\n✓ Timeout middleware is configured in the application")
+    print("\n:check: Timeout middleware is configured in the application")
     print("   Default timeout: 60 seconds")
     print("   Configurable via REQUEST_TIMEOUT_SECONDS environment variable")
-    print("\n✓ Timeout handling tests passed!")
+    print("\n:check: Timeout handling tests passed!")
 
 
 def main():
@@ -160,7 +160,7 @@ def main():
     try:
         test_cache_backend()
     except Exception as e:
-        print(f"\n✗ Cache backend test failed: {e}")
+        print(f"\n:cross: Cache backend test failed: {e}")
         import traceback
 
         traceback.print_exc()
@@ -169,7 +169,7 @@ def main():
     try:
         test_rate_limiting()
     except Exception as e:
-        print(f"\n✗ Rate limiting test failed: {e}")
+        print(f"\n:cross: Rate limiting test failed: {e}")
         import traceback
 
         traceback.print_exc()
@@ -178,7 +178,7 @@ def main():
     try:
         test_api_endpoints()
     except Exception as e:
-        print(f"\n✗ API endpoint test failed: {e}")
+        print(f"\n:cross: API endpoint test failed: {e}")
         import traceback
 
         traceback.print_exc()
@@ -187,7 +187,7 @@ def main():
     try:
         test_timeout_handling()
     except Exception as e:
-        print(f"\n✗ Timeout handling test failed: {e}")
+        print(f"\n:cross: Timeout handling test failed: {e}")
         import traceback
 
         traceback.print_exc()
@@ -196,7 +196,7 @@ def main():
     try:
         test_task_queue()
     except Exception as e:
-        print(f"\n✗ Task queue test failed: {e}")
+        print(f"\n:cross: Task queue test failed: {e}")
         import traceback
 
         traceback.print_exc()
@@ -205,11 +205,11 @@ def main():
     print("Test Suite Complete")
     print("=" * 60)
     print("\nSummary:")
-    print("  - Cache backend: ✓")
-    print("  - Rate limiting: ✓")
-    print("  - API endpoints: ✓")
-    print("  - Timeout handling: ✓")
-    print("  - Task queue: ✓")
+    print("  - Cache backend: :check:")
+    print("  - Rate limiting: :check:")
+    print("  - API endpoints: :check:")
+    print("  - Timeout handling: :check:")
+    print("  - Task queue: :check:")
     print("\nAll performance improvements are configured and ready!")
 
 
@@ -223,14 +223,14 @@ def test_task_queue():
                                                is_task_queue_available)
 
     available = is_task_queue_available()
-    print(f"\n✓ Task queue available: {available}")
+    print(f"\n:check: Task queue available: {available}")
 
     if available:
         stats = get_queue_stats("default")
         print(f"   Queue stats: {stats}")
-        print("\n✓ Task queue tests passed!")
+        print("\n:check: Task queue tests passed!")
     else:
-        print("\n⚠ Task queue not available (RQ not installed or Redis not configured)")
+        print("\n:warning: Task queue not available (RQ not installed or Redis not configured)")
         print("   Install with: pip install rq")
         print("   Configure Redis: Set REDIS_URL environment variable")
 

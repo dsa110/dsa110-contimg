@@ -8,13 +8,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SCRATCH_DIR="/scratch/dsa110-contimg-build/api"
 
-echo "🔨 Building API Docker image in /scratch/ for faster I/O..."
+echo ":hammer: Building API Docker image in /scratch/ for faster I/O..."
 echo "   Source: $PROJECT_ROOT"
 echo "   Scratch: $SCRATCH_DIR"
 
 # Check if /scratch/ is available
 if [ ! -d "/scratch" ]; then
-    echo "❌ Error: /scratch/ directory not available"
+    echo ":cross: Error: /scratch/ directory not available"
     echo "   Falling back to building in /data/..."
     cd "$PROJECT_ROOT"
     docker compose build api "$@"
@@ -27,7 +27,7 @@ mkdir -p "$SCRATCH_DIR/src"
 mkdir -p "$SCRATCH_DIR/scripts"
 mkdir -p "$SCRATCH_DIR/ops"
 
-echo "📦 Copying minimal build context to /scratch/..."
+echo ":package: Copying minimal build context to /scratch/..."
 # Copy only what Dockerfile needs (from Dockerfile: COPY ops/docker/environment.yml, COPY src, COPY scripts, COPY ops)
 # Exclude cache directories and build artifacts for faster rsync
 rsync -av --delete \
@@ -46,7 +46,7 @@ rsync -av --delete \
 # Copy docker-compose.yml for build context
 cp "$PROJECT_ROOT/docker-compose.yml" "$SCRATCH_DIR/"
 
-echo "🐳 Building Docker image in /scratch/..."
+echo ":spouting_whale: Building Docker image in /scratch/..."
 cd "$SCRATCH_DIR"
 
 # Enable BuildKit for better progress output
@@ -85,13 +85,13 @@ echo ""
 echo "   Completed at: $(date '+%Y-%m-%d %H:%M:%S')"
 echo "   Build time: ${MINUTES}m ${SECONDS}s"
 
-echo "✅ Build complete!"
+echo ":check: Build complete!"
 echo "   Docker image is now in Docker's registry"
 echo "   You can start it with: cd $PROJECT_ROOT && docker compose up -d api"
 
 # Cleanup scratch directory
-echo "🧹 Cleaning up /scratch/ build directory..."
+echo ":broom: Cleaning up /scratch/ build directory..."
 rm -rf "$SCRATCH_DIR"
 
-echo "✨ Done!"
+echo ":sparkles: Done!"
 

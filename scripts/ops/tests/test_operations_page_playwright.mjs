@@ -50,7 +50,7 @@ import { chromium } from 'playwright';
         try {
           const element = page.locator(selector).first();
           if (await element.isVisible({ timeout: 2000 })) {
-            console.log(`✓ DLQ Stats component found (selector: ${selector})`);
+            console.log(`:check: DLQ Stats component found (selector: ${selector})`);
             const statsText = await element.textContent();
             console.log(`  Stats preview: ${statsText?.substring(0, 150)}...`);
             found = true;
@@ -61,10 +61,10 @@ import { chromium } from 'playwright';
         }
       }
       if (!found) {
-        console.log('✗ DLQ Stats component not found with any selector');
+        console.log(':cross: DLQ Stats component not found with any selector');
       }
     } catch (e) {
-      console.log(`⚠ DLQ Stats check: ${e.message}`);
+      console.log(`:warning: DLQ Stats check: ${e.message}`);
     }
     
     // Check for Circuit Breaker - try multiple selectors
@@ -82,7 +82,7 @@ import { chromium } from 'playwright';
         try {
           const element = page.locator(selector).first();
           if (await element.isVisible({ timeout: 2000 })) {
-            console.log(`✓ Circuit Breaker component found (selector: ${selector})`);
+            console.log(`:check: Circuit Breaker component found (selector: ${selector})`);
             found = true;
             break;
           }
@@ -91,10 +91,10 @@ import { chromium } from 'playwright';
         }
       }
       if (!found) {
-        console.log('✗ Circuit Breaker component not found');
+        console.log(':cross: Circuit Breaker component not found');
       }
     } catch (e) {
-      console.log(`⚠ Circuit Breaker check: ${e.message}`);
+      console.log(`:warning: Circuit Breaker check: ${e.message}`);
     }
     
     // Check for Navigation - try multiple selectors
@@ -112,7 +112,7 @@ import { chromium } from 'playwright';
         try {
           const element = page.locator(selector).first();
           if (await element.isVisible({ timeout: 2000 })) {
-            console.log(`✓ Operations navigation link found (selector: ${selector})`);
+            console.log(`:check: Operations navigation link found (selector: ${selector})`);
             found = true;
             break;
           }
@@ -121,10 +121,10 @@ import { chromium } from 'playwright';
         }
       }
       if (!found) {
-        console.log('✗ Operations navigation link not found');
+        console.log(':cross: Operations navigation link not found');
       }
     } catch (e) {
-      console.log(`⚠ Navigation check: ${e.message}`);
+      console.log(`:warning: Navigation check: ${e.message}`);
     }
     
     // Check for tabs
@@ -132,13 +132,13 @@ import { chromium } from 'playwright';
     try {
       const tabs = page.locator('button[role="tab"]');
       const tabCount = await tabs.count();
-      console.log(`✓ Found ${tabCount} tabs`);
+      console.log(`:check: Found ${tabCount} tabs`);
       for (let i = 0; i < Math.min(tabCount, 5); i++) {
         const tabText = await tabs.nth(i).textContent();
         console.log(`  Tab ${i + 1}: ${tabText}`);
       }
     } catch (e) {
-      console.log(`⚠ Tabs check: ${e.message}`);
+      console.log(`:warning: Tabs check: ${e.message}`);
     }
     
     console.log('\n=== Checking Console Errors ===');
@@ -152,10 +152,10 @@ import { chromium } from 'playwright';
     await page.waitForTimeout(2000);
     
     if (errors.length > 0) {
-      console.log(`⚠ Found ${errors.length} console errors:`);
+      console.log(`:warning: Found ${errors.length} console errors:`);
       errors.slice(0, 5).forEach(err => console.log(`  - ${err}`));
     } else {
-      console.log('✓ No console errors found');
+      console.log(':check: No console errors found');
     }
     
     console.log('\n=== Checking Network Requests ===');
@@ -176,13 +176,13 @@ import { chromium } from 'playwright';
     await page.waitForTimeout(12000);
     
     if (apiRequests.length > 0) {
-      console.log(`✓ Found ${apiRequests.length} API requests:`);
+      console.log(`:check: Found ${apiRequests.length} API requests:`);
       const uniqueRequests = [...new Map(apiRequests.map(r => [r.url, r])).values()];
       uniqueRequests.forEach(req => {
         console.log(`  - ${req.method} ${req.url}`);
       });
     } else {
-      console.log('⚠ No API requests detected');
+      console.log(':warning: No API requests detected');
     }
     
     // Check response status
@@ -201,9 +201,9 @@ import { chromium } from 'playwright';
     await page.waitForTimeout(2000);
     
     if (responses.length > 0) {
-      console.log(`\n✓ Found ${responses.length} API responses:`);
+      console.log(`\n:check: Found ${responses.length} API responses:`);
       responses.forEach(resp => {
-        const status = resp.ok ? '✓' : '✗';
+        const status = resp.ok ? ':check:' : ':cross:';
         console.log(`  ${status} ${resp.status} ${resp.url}`);
       });
     }

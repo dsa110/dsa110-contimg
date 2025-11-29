@@ -20,7 +20,7 @@ API_URL = "http://localhost:8000/api/absurd"
 
 def submit_task(task_name: str, params: dict, priority: int = 10):
     """Submit a task via the API."""
-    print(f"\n📤 Submitting task: {task_name}")
+    print(f"\n:outbox_tray: Submitting task: {task_name}")
     print(f"   Priority: {priority}")
 
     response = requests.post(
@@ -29,19 +29,19 @@ def submit_task(task_name: str, params: dict, priority: int = 10):
 
     if response.status_code == 200:
         task = response.json()
-        print(f"✅ Task submitted successfully!")
+        print(f":check: Task submitted successfully!")
         print(f"   Task ID: {task['task_id']}")
         print(f"   Status: {task['status']}")
         return task["task_id"]
     else:
-        print(f"❌ Failed to submit task: {response.status_code}")
+        print(f":cross: Failed to submit task: {response.status_code}")
         print(f"   Error: {response.text}")
         return None
 
 
 def check_task(task_id: str):
     """Check task status via the API."""
-    print(f"\n🔍 Checking task status: {task_id}")
+    print(f"\n:search: Checking task status: {task_id}")
 
     response = requests.get(f"{API_URL}/tasks/{task_id}")
 
@@ -52,13 +52,13 @@ def check_task(task_id: str):
             print(f"   Result: {json.dumps(task['result'], indent=2)[:200]}...")
         return task
     else:
-        print(f"❌ Failed to get task: {response.status_code}")
+        print(f":cross: Failed to get task: {response.status_code}")
         return None
 
 
 def list_tasks(limit: int = 5):
     """List recent tasks."""
-    print(f"\n📋 Listing recent tasks (limit={limit})...")
+    print(f"\n:clipboard: Listing recent tasks (limit={limit})...")
 
     response = requests.get(f"{API_URL}/tasks?limit={limit}")
 
@@ -69,13 +69,13 @@ def list_tasks(limit: int = 5):
             print(f"   - {task['task_id'][:8]}... | {task['task_name']:20} | {task['status']}")
         return tasks
     else:
-        print(f"❌ Failed to list tasks: {response.status_code}")
+        print(f":cross: Failed to list tasks: {response.status_code}")
         return None
 
 
 def get_queue_stats(queue_name: str = "dsa110-pipeline"):
     """Get queue statistics."""
-    print(f"\n📊 Queue statistics for: {queue_name}")
+    print(f"\n:chart: Queue statistics for: {queue_name}")
 
     response = requests.get(f"{API_URL}/queues/{queue_name}/stats")
 
@@ -87,7 +87,7 @@ def get_queue_stats(queue_name: str = "dsa110-pipeline"):
         print(f"   Failed: {stats.get('failed', 0)}")
         return stats
     else:
-        print(f"❌ Failed to get queue stats: {response.status_code}")
+        print(f":cross: Failed to get queue stats: {response.status_code}")
         return None
 
 
@@ -101,17 +101,17 @@ def main():
     try:
         response = requests.get(f"{API_URL}/health")
         if response.status_code != 200:
-            print(f"\n❌ API not reachable at {API_URL}")
+            print(f"\n:cross: API not reachable at {API_URL}")
             print("   Make sure the FastAPI server is running:")
             print("   uvicorn src.dsa110_contimg.api.routes:app --port 8000")
             sys.exit(1)
     except requests.exceptions.ConnectionError:
-        print(f"\n❌ Cannot connect to API at {API_URL}")
+        print(f"\n:cross: Cannot connect to API at {API_URL}")
         print("   Make sure the FastAPI server is running:")
         print("   uvicorn src.dsa110_contimg.api.routes:app --port 8000")
         sys.exit(1)
 
-    print("\n✅ API server is reachable")
+    print("\n:check: API server is reachable")
 
     # Get current queue stats
     get_queue_stats()
@@ -156,7 +156,7 @@ def main():
     get_queue_stats()
 
     print("\n" + "╔════════════════════════════════════════════════════════════════╗")
-    print("║                    ✅ Test Complete                            ║")
+    print("║                    :check: Test Complete                            ║")
     print("╚════════════════════════════════════════════════════════════════╝")
     print("\nNext steps:")
     print("  - Check worker logs to see task execution")

@@ -25,8 +25,8 @@ ${PYTHON_BIN} -c "
 import sys
 sys.path.insert(0, '${PROJECT_ROOT}/src')
 from dsa110_contimg.qa import create_cutout
-print('  ✓ Import successful')
-" || { echo "  ✗ FAILED"; exit 1; }
+print('  :check: Import successful')
+" || { echo "  :cross: FAILED"; exit 1; }
 
 # Test 2: Import CasaTable
 echo "Test 2: Importing CasaTable..."
@@ -34,8 +34,8 @@ ${PYTHON_BIN} -c "
 import sys
 sys.path.insert(0, '${PROJECT_ROOT}/src')
 from dsa110_contimg.qa.visualization import CasaTable
-print('  ✓ Import successful')
-" || { echo "  ✗ FAILED"; exit 1; }
+print('  :check: Import successful')
+" || { echo "  :cross: FAILED"; exit 1; }
 
 # Test 3: Verify CASA not initialized on import
 echo "Test 3: Verifying CASA not initialized on import..."
@@ -44,8 +44,8 @@ import sys
 sys.path.insert(0, '${PROJECT_ROOT}/src')
 from dsa110_contimg.qa.visualization.casatable import _CASACORE_AVAILABLE
 assert _CASACORE_AVAILABLE is None, 'CASA should not be initialized on import'
-print('  ✓ CASA not initialized (as expected)')
-" || { echo "  ✗ FAILED"; exit 1; }
+print('  :check: CASA not initialized (as expected)')
+" || { echo "  :cross: FAILED"; exit 1; }
 
 # Test 4: Multiple imports
 echo "Test 4: Testing multiple imports..."
@@ -55,8 +55,8 @@ sys.path.insert(0, '${PROJECT_ROOT}/src')
 from dsa110_contimg.qa import create_cutout
 from dsa110_contimg.qa.visualization import CasaTable
 from dsa110_contimg.qa.postage_stamps import create_cutout as ps_create_cutout
-print('  ✓ All imports successful')
-" || { echo "  ✗ FAILED"; exit 1; }
+print('  :check: All imports successful')
+" || { echo "  :cross: FAILED"; exit 1; }
 
 # Test 5: Subprocess test (catches segfaults that might not be caught in same process)
 echo "Test 5: Subprocess import test..."
@@ -65,16 +65,16 @@ import sys
 sys.path.insert(0, '${PROJECT_ROOT}/src')
 from dsa110_contimg.qa import create_cutout
 print('SUCCESS: Import completed without segfault')
-" || { echo "  ✗ FAILED"; exit 1; }
+" || { echo "  :cross: FAILED"; exit 1; }
 
 # Test 6: Run pytest tests
 echo "Test 6: Running pytest unit tests..."
 cd ${PROJECT_ROOT}
-PYTHONPATH=${PYTHONPATH} ${PYTHON_BIN} -m pytest tests/unit/test_casa_lazy_imports.py -v --tb=short -q || { echo "  ✗ FAILED"; exit 1; }
+PYTHONPATH=${PYTHONPATH} ${PYTHON_BIN} -m pytest tests/unit/test_casa_lazy_imports.py -v --tb=short -q || { echo "  :cross: FAILED"; exit 1; }
 
 echo ""
 echo "=========================================="
-echo "All tests passed! ✓"
+echo "All tests passed! :check:"
 echo "=========================================="
 echo ""
 echo "The lazy import fix successfully prevents CASA segfaults."

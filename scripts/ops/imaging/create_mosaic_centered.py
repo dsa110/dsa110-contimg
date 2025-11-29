@@ -116,7 +116,7 @@ def main():
     #   - Registers storage locations in data_registry with status='staging'
     #     via StreamingMosaicManager._register_storage_locations()
     #
-    # PHASE 5: Calibration Solving (orchestrator._process_group_workflow →
+    # PHASE 5: Calibration Solving (orchestrator._process_group_workflow :arrow_right:
     #          StreamingMosaicManager.solve_calibration_for_group)
     #   - Selects 5th MS (index 4) as calibration source via
     #     StreamingMosaicManager.select_calibration_ms()

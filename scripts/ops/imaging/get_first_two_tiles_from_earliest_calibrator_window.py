@@ -45,10 +45,10 @@ def find_earliest_observation(data_dir: Path) -> Optional[Dict]:
     timeline = fetch_observation_timeline(data_dir)
 
     if not timeline.earliest_time:
-        print(f"✗ No observations found in {data_dir}")
+        print(f":cross: No observations found in {data_dir}")
         return None
 
-    print(f"✓ Earliest observation time: {timeline.earliest_time.isot}")
+    print(f":check: Earliest observation time: {timeline.earliest_time.isot}")
     print(f"  Total files: {timeline.total_files}")
     print(f"  Unique timestamps: {timeline.unique_timestamps}")
 
@@ -78,20 +78,20 @@ def find_earliest_observation(data_dir: Path) -> Optional[Dict]:
                     break
 
     if not earliest_file:
-        print(f"⚠ Could not find specific file for earliest time, using first available")
+        print(f":warning: Could not find specific file for earliest time, using first available")
         # Last resort: find any HDF5 file
         hdf5_files = list(data_dir.glob("*_sb*.hdf5"))
         if hdf5_files:
             earliest_file = sorted(hdf5_files)[0]
 
     if earliest_file:
-        print(f"✓ Using file: {earliest_file.name}")
+        print(f":check: Using file: {earliest_file.name}")
         return {
             "earliest_time": timeline.earliest_time,
             "file_path": earliest_file,
         }
     else:
-        print(f"✗ Could not find any HDF5 files")
+        print(f":cross: Could not find any HDF5 files")
         return None
 
 
@@ -110,19 +110,19 @@ def extract_declination(file_path: Path) -> Optional[float]:
         pointing_info = load_pointing(file_path)
         if pointing_info and "dec_deg" in pointing_info:
             dec_deg = pointing_info["dec_deg"]
-            print(f"✓ Declination extracted: {dec_deg:.6f}°")
+            print(f":check: Declination extracted: {dec_deg:.6f}°")
             return dec_deg
     except Exception as e:
-        print(f"⚠ load_pointing failed: {e}, trying direct HDF5 read...")
+        print(f":warning: load_pointing failed: {e}, trying direct HDF5 read...")
 
     # Fallback: direct HDF5 read
     try:
         _, pt_dec, _ = _peek_uvh5_phase_and_midtime(str(file_path))
         dec_deg = float(pt_dec.to_value(u.deg))
-        print(f"✓ Declination extracted (direct HDF5): {dec_deg:.6f}°")
+        print(f":check: Declination extracted (direct HDF5): {dec_deg:.6f}°")
         return dec_deg
     except Exception as e:
-        print(f"✗ Failed to extract declination: {e}")
+        print(f":cross: Failed to extract declination: {e}")
         return None
 
 
@@ -140,14 +140,14 @@ def find_calibrator_for_dec(dec_deg: float, products_db: Path) -> Optional[Dict]
     calibrator_info = manager.get_bandpass_calibrator_for_dec(dec_deg)
 
     if not calibrator_info:
-        print(f"✗ No calibrator registered for Dec = {dec_deg:.6f}°")
+        print(f":cross: No calibrator registered for Dec = {dec_deg:.6f}°")
         print("  You may need to register a calibrator first using:")
         print("  python -m dsa110_contimg.mosaic.cli register-bp-calibrator \\")
         print(f"    --calibrator <NAME>,<RA_DEG>,<DEC_DEG> \\")
         print(f"    --dec-tolerance 5.0")
         return None
 
-    print(f"✓ Found calibrator: {calibrator_info['name']}")
+    print(f":check: Found calibrator: {calibrator_info['name']}")
     print(f"  RA: {calibrator_info['ra_deg']:.6f}°")
     print(f"  Dec: {calibrator_info['dec_deg']:.6f}°")
     print(
@@ -187,16 +187,16 @@ def find_first_validity_window(
     )
 
     if not transits:
-        print(f"✗ No transits found for {calibrator_name}")
+        print(f":cross: No transits found for {calibrator_name}")
         return None
 
-    print(f"✓ Found {len(transits)} transits with data")
+    print(f":check: Found {len(transits)} transits with data")
 
     # Get the earliest transit (last in list, since sorted most recent first)
     earliest_transit = transits[-1]
     transit_time = Time(earliest_transit["transit_iso"])
 
-    print(f"✓ First transit: {transit_time.isot}")
+    print(f":check: First transit: {transit_time.isot}")
     print(f"  Group ID: {earliest_transit.get('group_id', 'N/A')}")
     print(f"  Files: {len(earliest_transit.get('files', []))} subband files")
 
@@ -205,7 +205,7 @@ def find_first_validity_window(
     valid_start = transit_time
     valid_end = transit_time + TimeDelta(12 * 3600, format="sec")
 
-    print(f"\n✓ First validity window:")
+    print(f"\n:check: First validity window:")
     print(f"  Start: {valid_start.isot}")
     print(f"  End: {valid_end.isot}")
     print(f"  Duration: 12 hours")
@@ -254,8 +254,8 @@ def get_first_two_tiles(
         ).fetchall()
 
         if not rows:
-            print("✗ No tiles found in validity window")
-            print("  Tiles may need to be created first (convert → calibrate → image)")
+            print(":cross: No tiles found in validity window")
+            print("  Tiles may need to be created first (convert :arrow_right: calibrate :arrow_right: image)")
             return []
 
         tiles = []
@@ -272,13 +272,13 @@ def get_first_two_tiles(
                 print(f"     Created: {created_time.isot}")
                 print(f"     PB-corrected: {pbcor}")
             else:
-                print(f"  ⚠ Tile {i} not found on disk: {tile_path}")
+                print(f"  :warning: Tile {i} not found on disk: {tile_path}")
 
         if len(tiles) < 2:
-            print(f"\n⚠ Only {len(tiles)} tile(s) found (expected 2)")
+            print(f"\n:warning: Only {len(tiles)} tile(s) found (expected 2)")
             print("  You may need to process more observations in this window")
 
-        print(f"\n✓ Found {len(tiles)} tile(s) in validity window")
+        print(f"\n:check: Found {len(tiles)} tile(s) in validity window")
         return tiles
 
 
@@ -315,19 +315,19 @@ def main():
     # Step 1: Find earliest observation
     earliest_obs = find_earliest_observation(args.data_dir)
     if not earliest_obs:
-        print("\n✗ Failed to find earliest observations")
+        print("\n:cross: Failed to find earliest observations")
         return 1
 
     # Step 2: Extract declination
     dec_deg = extract_declination(earliest_obs["file_path"])
     if dec_deg is None:
-        print("\n✗ Failed to extract declination")
+        print("\n:cross: Failed to extract declination")
         return 1
 
     # Step 3: Find calibrator for this Dec
     calibrator_info = find_calibrator_for_dec(dec_deg, args.products_db)
     if not calibrator_info:
-        print("\n✗ Failed to find calibrator")
+        print("\n:cross: Failed to find calibrator")
         return 1
 
     calibrator_name = calibrator_info["name"]
@@ -339,7 +339,7 @@ def main():
         max_days_back=args.max_days_back,
     )
     if not validity_window:
-        print("\n✗ Failed to find validity window")
+        print("\n:cross: Failed to find validity window")
         return 1
 
     # Step 5: Get first two tiles
@@ -350,7 +350,7 @@ def main():
     )
 
     if not tiles:
-        print("\n✗ No tiles found in validity window")
+        print("\n:cross: No tiles found in validity window")
         return 1
 
     # Summary
@@ -373,9 +373,9 @@ def main():
         with open(args.output, "w") as f:
             for tile in tiles:
                 f.write(f"{tile}\n")
-        print(f"\n✓ Tile paths saved to: {args.output}")
+        print(f"\n:check: Tile paths saved to: {args.output}")
 
-    print("\n✓ Success!")
+    print("\n:check: Success!")
     return 0
 
 

@@ -20,27 +20,27 @@ const { chromium } = require("playwright");
     console.log("Checking for DLQ Stats component...");
     const dlqStats = await page.locator("text=Total").first();
     if (await dlqStats.isVisible()) {
-      console.log("✓ DLQ Stats component found");
+      console.log(":check: DLQ Stats component found");
       const statsText = await dlqStats.textContent();
       console.log(`  Stats text: ${statsText}`);
     } else {
-      console.log("✗ DLQ Stats component not found");
+      console.log(":cross: DLQ Stats component not found");
     }
 
     console.log("Checking for Circuit Breaker component...");
     const circuitBreaker = await page.locator("text=ese_detection").first();
     if (await circuitBreaker.isVisible()) {
-      console.log("✓ Circuit Breaker component found");
+      console.log(":check: Circuit Breaker component found");
     } else {
-      console.log("✗ Circuit Breaker component not found");
+      console.log(":cross: Circuit Breaker component not found");
     }
 
     console.log("Checking for navigation link...");
     const navLink = await page.locator("text=Operations").first();
     if (await navLink.isVisible()) {
-      console.log("✓ Operations navigation link found");
+      console.log(":check: Operations navigation link found");
     } else {
-      console.log("✗ Operations navigation link not found");
+      console.log(":cross: Operations navigation link not found");
     }
 
     console.log("Checking console for errors...");
@@ -55,10 +55,10 @@ const { chromium } = require("playwright");
     await page.waitForTimeout(2000);
 
     if (errors.length > 0) {
-      console.log(`⚠ Found ${errors.length} console errors:`);
+      console.log(`:warning: Found ${errors.length} console errors:`);
       errors.forEach((err) => console.log(`  - ${err}`));
     } else {
-      console.log("✓ No console errors found");
+      console.log(":check: No console errors found");
     }
 
     console.log("Checking network requests...");
@@ -75,12 +75,12 @@ const { chromium } = require("playwright");
     // Wait for auto-refresh to trigger
     await page.waitForTimeout(12000);
 
-    console.log(`✓ Found ${requests.length} API requests:`);
+    console.log(`:check: Found ${requests.length} API requests:`);
     requests.forEach((req) => {
       console.log(`  - ${req.method} ${req.url}`);
     });
 
-    console.log("\n✓ Operations page test complete!");
+    console.log("\n:check: Operations page test complete!");
     console.log("Screenshot saved as: operations_page.png");
   } catch (error) {
     console.error("Error during testing:", error);

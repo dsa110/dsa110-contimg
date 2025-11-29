@@ -46,9 +46,9 @@ try:
         metrics_dict=metrics_dict,
         output_path=output_path
     )
-    print(f"\n✓ Mosaic built successfully at: {output_path}")
+    print(f"\n:check: Mosaic built successfully at: {output_path}")
 except Exception as e:
-    print(f"\n✗ Mosaic build failed: {e}")
+    print(f"\n:cross: Mosaic build failed: {e}")
     import traceback
     traceback.print_exc()
     sys.exit(1)
@@ -69,7 +69,7 @@ $PYTHON scripts/create_mosaic_visualizations.py
 if [ $? -eq 0 ]; then
     echo ""
     echo "=========================================="
-    echo "✓ All done! Outputs in /stage/dsa110-contimg/tmp/:"
+    echo ":check: All done! Outputs in /stage/dsa110-contimg/tmp/:"
     echo "=========================================="
     ls -lh /stage/dsa110-contimg/tmp/*.{fits,png} 2>/dev/null | awk '{print "  " $9 " (" $5 ")"}'
 fi

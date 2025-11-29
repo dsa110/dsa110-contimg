@@ -80,21 +80,21 @@ def check_ms_rephase_status(ms_path, cal_ra_deg=None, cal_dec_deg=None):
             
             # Determine if MS is phased to calibrator or meridian
             if ref_sep_arcmin < 1.0 and phase_sep_arcmin < 1.0:
-                print(f"\n✓ MS is phased to CALIBRATOR position (< 1 arcmin)")
-                print(f"  → NOT SAFE to use --skip-rephase")
-                print(f"  → MS needs to be rephased BACK to meridian, OR")
-                print(f"  → Use rephasing workflow (default)")
+                print(f"\n:check: MS is phased to CALIBRATOR position (< 1 arcmin)")
+                print(f"  :arrow_right: NOT SAFE to use --skip-rephase")
+                print(f"  :arrow_right: MS needs to be rephased BACK to meridian, OR")
+                print(f"  :arrow_right: Use rephasing workflow (default)")
             elif ref_sep_arcmin > 10.0 and phase_sep_arcmin > 10.0:
-                print(f"\n✓ MS is phased to MERIDIAN position (> 10 arcmin from calibrator)")
-                print(f"  → SAFE to use --skip-rephase")
-                print(f"  → ft() will work correctly with meridian phase center")
+                print(f"\n:check: MS is phased to MERIDIAN position (> 10 arcmin from calibrator)")
+                print(f"  :arrow_right: SAFE to use --skip-rephase")
+                print(f"  :arrow_right: ft() will work correctly with meridian phase center")
             else:
-                print(f"\n⚠ MS phase center is INTERMEDIATE (between meridian and calibrator)")
-                print(f"  → Uncertain - check manually")
+                print(f"\n:warning: MS phase center is INTERMEDIATE (between meridian and calibrator)")
+                print(f"  :arrow_right: Uncertain - check manually")
         else:
-            print(f"\n⚠ No calibrator position provided")
-            print(f"  → Cannot determine if MS is phased to calibrator or meridian")
-            print(f"  → Provide calibrator RA/Dec to check")
+            print(f"\n:warning: No calibrator position provided")
+            print(f"  :arrow_right: Cannot determine if MS is phased to calibrator or meridian")
+            print(f"  :arrow_right: Provide calibrator RA/Dec to check")
     
     # Check if MODEL_DATA exists and its phase structure
     print(f"\n" + "=" * 100)
@@ -103,7 +103,7 @@ def check_ms_rephase_status(ms_path, cal_ra_deg=None, cal_dec_deg=None):
     try:
         with table(ms_path, readonly=True) as tb:
             if "MODEL_DATA" in tb.colnames():
-                print(f"  ✓ MODEL_DATA column exists")
+                print(f"  :check: MODEL_DATA column exists")
                 
                 # Sample MODEL_DATA phase scatter
                 n_sample = min(5000, tb.nrows())
@@ -121,15 +121,15 @@ def check_ms_rephase_status(ms_path, cal_ra_deg=None, cal_dec_deg=None):
                     print(f"  Phase scatter: {model_phase_scatter:.2f}°")
                     
                     if model_phase_scatter < 10:
-                        print(f"  ✓ Low phase scatter - MODEL_DATA correctly phased")
+                        print(f"  :check: Low phase scatter - MODEL_DATA correctly phased")
                     elif model_phase_scatter > 100:
-                        print(f"  ✗ High phase scatter - MODEL_DATA may be incorrectly phased")
+                        print(f"  :cross: High phase scatter - MODEL_DATA may be incorrectly phased")
                         print(f"    This suggests MS was rephased but ft() used wrong phase center")
                 else:
-                    print(f"  ⚠ All MODEL_DATA is flagged - cannot check phase structure")
+                    print(f"  :warning: All MODEL_DATA is flagged - cannot check phase structure")
             else:
-                print(f"  ⚠ MODEL_DATA column does not exist")
-                print(f"  → Will be populated during calibration")
+                print(f"  :warning: MODEL_DATA column does not exist")
+                print(f"  :arrow_right: Will be populated during calibration")
     except Exception as e:
         print(f"  ERROR: Could not check MODEL_DATA: {e}")
     
@@ -140,21 +140,21 @@ def check_ms_rephase_status(ms_path, cal_ra_deg=None, cal_dec_deg=None):
     
     if cal_ra_deg is not None and cal_dec_deg is not None:
         if ref_sep_arcmin < 1.0:
-            print(f"⚠ MS is ALREADY REPHASED to calibrator position")
-            print(f"  → Using --skip-rephase will NOT help")
-            print(f"  → Options:")
+            print(f":warning: MS is ALREADY REPHASED to calibrator position")
+            print(f"  :arrow_right: Using --skip-rephase will NOT help")
+            print(f"  :arrow_right: Options:")
             print(f"     1. Use default workflow (rephasing enabled)")
             print(f"     2. Rephase BACK to meridian first, then use --skip-rephase")
         elif ref_sep_arcmin > 10.0:
-            print(f"✓ MS is at MERIDIAN phase center")
-            print(f"  → SAFE to use --skip-rephase")
-            print(f"  → ft() will work correctly")
+            print(f":check: MS is at MERIDIAN phase center")
+            print(f"  :arrow_right: SAFE to use --skip-rephase")
+            print(f"  :arrow_right: ft() will work correctly")
         else:
-            print(f"⚠ MS phase center is INTERMEDIATE")
-            print(f"  → Manual verification needed")
+            print(f":warning: MS phase center is INTERMEDIATE")
+            print(f"  :arrow_right: Manual verification needed")
     else:
-        print(f"⚠ Cannot determine safety without calibrator position")
-        print(f"  → Provide calibrator RA/Dec to check")
+        print(f":warning: Cannot determine safety without calibrator position")
+        print(f"  :arrow_right: Provide calibrator RA/Dec to check")
     
     print("=" * 100)
 

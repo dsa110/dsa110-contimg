@@ -13,7 +13,7 @@ HDF5_DB="${HDF5_DB_PATH:-/data/dsa110-contimg/state/hdf5.sqlite3}"
 MAX_FILES="${MAX_FILES:-}"  # No limit by default
 FORCE_RESCAN="${FORCE_RESCAN:-false}"
 
-echo "🗂️  HDF5 File Indexing Script"
+echo ":card_index:  HDF5 File Indexing Script"
 echo "============================"
 echo ""
 echo "Input directory: $INPUT_DIR"
@@ -30,12 +30,12 @@ echo ""
 
 # Check if input directory exists
 if [ ! -d "$INPUT_DIR" ]; then
-    echo "❌ Error: Input directory does not exist: $INPUT_DIR"
+    echo ":cross: Error: Input directory does not exist: $INPUT_DIR"
     exit 1
 fi
 
 # Count total HDF5 files
-echo "📊 Counting HDF5 files in $INPUT_DIR..."
+echo ":chart: Counting HDF5 files in $INPUT_DIR..."
 TOTAL_FILES=$(find "$INPUT_DIR" -name "*.hdf5" -type f 2>/dev/null | wc -l)
 echo "   Found: $TOTAL_FILES HDF5 files"
 echo ""
@@ -50,7 +50,7 @@ fi
 ESTIMATED_SECONDS=$((FILES_TO_PROCESS / 100))  # ~100 files/sec estimate
 ESTIMATED_MINUTES=$((ESTIMATED_SECONDS / 60))
 
-echo "⏱️  Estimated time: ~$ESTIMATED_MINUTES minutes for $FILES_TO_PROCESS files"
+echo ":stopwatch:  Estimated time: ~$ESTIMATED_MINUTES minutes for $FILES_TO_PROCESS files"
 echo ""
 
 # Build command (use casa6 Python if available, else system Python)
@@ -73,7 +73,7 @@ if [ -n "$MAX_FILES" ]; then
 fi
 
 # Run indexing
-echo "🚀 Starting indexing..."
+echo ":rocket: Starting indexing..."
 echo "   Command: $CMD"
 echo ""
 
@@ -83,12 +83,12 @@ cd "$PROJECT_ROOT"
 PYTHONUNBUFFERED=1 $CMD
 
 echo ""
-echo "✅ Indexing complete!"
+echo ":check: Indexing complete!"
 echo ""
 
 # Show summary
 if [ -f "$HDF5_DB" ]; then
-    echo "📈 Database summary:"
+    echo ":chart_up: Database summary:"
     python3 -c "
 import sqlite3
 conn = sqlite3.connect('$HDF5_DB')
@@ -105,4 +105,4 @@ if min_mjd and max_mjd:
     echo ""
 fi
 
-echo "🎉 Done!"
+echo ":party_popper: Done!"

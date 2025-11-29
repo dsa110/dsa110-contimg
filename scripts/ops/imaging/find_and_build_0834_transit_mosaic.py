@@ -67,7 +67,7 @@ def find_transit_before_date(calibrator_name: str, target_date: str, max_days_ba
         transit_dt = datetime.fromisoformat(transit_iso.split('T')[0])
         
         if transit_dt < target_dt:
-            print(f"\n✓ Found transit before {target_date}: {transit_iso}")
+            print(f"\n:check: Found transit before {target_date}: {transit_iso}")
             print(f"  Group ID: {transit['group_id']}")
             print(f"  Files: {len(transit.get('files', []))} subband files")
             print(f"  Has MS: {transit.get('has_ms', False)}")
@@ -176,7 +176,7 @@ def main():
         return build_result
     
     print(f"\n{'=' * 70}")
-    print(f"✓ SUCCESS! Mosaic created at: {output_path}")
+    print(f":check: SUCCESS! Mosaic created at: {output_path}")
     print(f"{'=' * 70}")
     return 0
 

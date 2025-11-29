@@ -91,17 +91,17 @@ def main():
     print(f"2. Bandpass Table SPWs: {n_bp_spw}")
     
     if n_bp_spw == 1:
-        print("   ✓ Bandpass table has 1 SPW (from combine_spw)")
-        print(f"   → Fix should detect this and set spwmap=[0]*{n_ms_spw}")
+        print("   :check: Bandpass table has 1 SPW (from combine_spw)")
+        print(f"   :arrow_right: Fix should detect this and set spwmap=[0]*{n_ms_spw}")
     else:
-        print(f"   ℹ Bandpass table has {n_bp_spw} SPWs (not from combine_spw)")
+        print(f"   :info: Bandpass table has {n_bp_spw} SPWs (not from combine_spw)")
     
     # Check gain table solutions
     print(f"\n3. Gain Table Solutions:")
     gain_spws, spw_status = check_gain_solutions(gain_table)
     
     if gain_spws is None:
-        print("   ✗ Could not read gain table")
+        print("   :cross: Could not read gain table")
         sys.exit(1)
     
     print(f"   Gain table has solutions for {len(gain_spws)} SPWs: {gain_spws}")
@@ -118,31 +118,31 @@ def main():
         print(f"   Gain table SPWs: {sorted(gain_spw_set)}")
         
         if missing_spws:
-            print(f"   ✗ MISSING SPWs: {sorted(missing_spws)}")
-            print(f"\n   ⚠ ISSUE: Gain calibration failed for {len(missing_spws)} SPWs")
+            print(f"   :cross: MISSING SPWs: {sorted(missing_spws)}")
+            print(f"\n   :warning: ISSUE: Gain calibration failed for {len(missing_spws)} SPWs")
             print(f"   This suggests the spwmap fix was NOT applied or did not work.")
             return False
         else:
-            print(f"   ✓ All {n_ms_spw} SPWs have solutions")
+            print(f"   :check: All {n_ms_spw} SPWs have solutions")
             
             # Check if solutions are actually valid (not all flagged)
             all_valid = True
             for spw_id in sorted(gain_spws):
                 if spw_id in spw_status:
                     if not spw_status[spw_id]:
-                        print(f"   ⚠ SPW {spw_id}: All solutions flagged")
+                        print(f"   :warning: SPW {spw_id}: All solutions flagged")
                         all_valid = False
                 else:
-                    print(f"   ⚠ SPW {spw_id}: Status unknown")
+                    print(f"   :warning: SPW {spw_id}: Status unknown")
                     all_valid = False
             
             if all_valid:
-                print(f"\n   ✓ SUCCESS: All SPWs have valid solutions")
+                print(f"\n   :check: SUCCESS: All SPWs have valid solutions")
                 if n_bp_spw == 1:
-                    print(f"   ✓ The spwmap fix is working correctly!")
+                    print(f"   :check: The spwmap fix is working correctly!")
                 return True
             else:
-                print(f"\n   ⚠ Some SPWs have all solutions flagged (may be data quality issue)")
+                print(f"\n   :warning: Some SPWs have all solutions flagged (may be data quality issue)")
                 return False
     
     return True

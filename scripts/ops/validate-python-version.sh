@@ -34,7 +34,7 @@ WARNINGS=0
 # Use arithmetic expansion that doesn't fail on zero
 : $((ERRORS)) $((WARNINGS))
 
-echo "🔍 Validating Python version usage in dsa110-contimg..."
+echo ":search: Validating Python version usage in dsa110-contimg..."
 echo ""
 
 # Function to check if a Python executable is forbidden
@@ -50,7 +50,7 @@ check_python_version() {
     
     for forbidden in "${FORBIDDEN_VERSIONS[@]}"; do
         if echo "$version_output" | grep -q "Python $forbidden"; then
-            echo -e "${RED}❌ FORBIDDEN:${NC} $python_path uses Python $forbidden"
+            echo -e "${RED}:cross: FORBIDDEN:${NC} $python_path uses Python $forbidden"
             echo "   Version: $version_output"
             return 1
         fi
@@ -79,7 +79,7 @@ check_shebang() {
     
     # Check for problematic shebangs
     if echo "$shebang" | grep -qE "^#!/usr/bin/(env )?python2"; then
-        echo -e "${RED}❌ FORBIDDEN SHEBANG:${NC} $file"
+        echo -e "${RED}:cross: FORBIDDEN SHEBANG:${NC} $file"
         echo "   Shebang: $shebang"
         echo "   Uses Python 2.x"
         ((ERRORS++)) || true
@@ -87,7 +87,7 @@ check_shebang() {
     fi
     
     if echo "$shebang" | grep -qE "^#!/usr/bin/python3$"; then
-        echo -e "${YELLOW}⚠️  WARNING:${NC} $file uses system python3"
+        echo -e "${YELLOW}:warning:  WARNING:${NC} $file uses system python3"
         echo "   Shebang: $shebang"
         echo "   This may resolve to Python 3.6.9 instead of 3.11.13"
         echo "   Consider: #!/usr/bin/env python3.11 or use CASA6_PYTHON"
@@ -99,30 +99,30 @@ check_shebang() {
 }
 
 # Check system Python installations (informational only - they're OK for system tools)
-echo "📋 Checking system Python installations (informational)..."
+echo ":clipboard: Checking system Python installations (informational)..."
 echo "   Note: System Python 2.7 and 3.6 are OK for system tools,"
 echo "   but dsa110-contimg must not use them."
 for py in /usr/bin/python /usr/bin/python2 /usr/bin/python2.7 /usr/bin/python3 /usr/bin/python3.6; do
     if [ -x "$py" ]; then
         version_output=$("$py" --version 2>&1 || echo "unknown")
-        echo "   Found: $py → $version_output (system tool - OK)"
+        echo "   Found: $py :arrow_right: $version_output (system tool - OK)"
     fi
 done
 
 # Check CASA6 Python
 echo ""
-echo "📋 Checking CASA6 Python..."
+echo ":clipboard: Checking CASA6 Python..."
 if [ -x "$CASA6_PYTHON" ]; then
     casa6_version=$("$CASA6_PYTHON" --version 2>&1)
     if echo "$casa6_version" | grep -q "Python $REQUIRED_MAJOR_MINOR"; then
-        echo -e "${GREEN}✅ CASA6 Python OK:${NC} $casa6_version"
+        echo -e "${GREEN}:check: CASA6 Python OK:${NC} $casa6_version"
     else
-        echo -e "${RED}❌ CASA6 Python version mismatch:${NC} $casa6_version"
+        echo -e "${RED}:cross: CASA6 Python version mismatch:${NC} $casa6_version"
         echo "   Expected: Python $REQUIRED_MAJOR_MINOR.x"
         ((ERRORS++))
     fi
 else
-    echo -e "${RED}❌ CASA6 Python not found:${NC} $CASA6_PYTHON"
+    echo -e "${RED}:cross: CASA6 Python not found:${NC} $CASA6_PYTHON"
     ((ERRORS++))
 fi
 
@@ -132,7 +132,7 @@ PROJECT_ROOT="/data/dsa110-contimg"
 # In pre-commit mode, only check staged files
 if [ "$PRE_COMMIT_MODE" = true ]; then
     echo ""
-    echo "📋 Checking staged Python files..."
+    echo ":clipboard: Checking staged Python files..."
     PYTHON_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E "\.py$" || true)
     if [ -z "$PYTHON_FILES" ]; then
         # No Python files staged, skip
@@ -152,14 +152,14 @@ else
     # In full mode, skip file checking to avoid hanging on large directories
     # The important checks (CASA6 Python, system Python) are already done above
     echo ""
-    echo "📋 Python script shebang check skipped in full mode (use --pre-commit for file checks)"
+    echo ":clipboard: Python script shebang check skipped in full mode (use --pre-commit for file checks)"
 fi
 
 # Check for direct python/python2/python3 calls in scripts
 # Skip in full mode to avoid hanging - pre-commit mode handles this
 if [ "$PRE_COMMIT_MODE" = true ]; then
     echo ""
-    echo "📋 Checking shell scripts for Python calls..."
+    echo ":clipboard: Checking shell scripts for Python calls..."
     # Only check staged shell scripts in pre-commit mode
     SHELL_SCRIPTS=$(git diff --cached --name-only --diff-filter=ACM | grep -E "\.(sh|bash)$" || true)
     for script in $SHELL_SCRIPTS; do
@@ -167,7 +167,7 @@ if [ "$PRE_COMMIT_MODE" = true ]; then
         [ ! -f "$script" ] && continue
         if timeout 2 grep -qE "\b(python|python2|python3)\s" "$script" 2>/dev/null; then
             if ! timeout 2 grep -qE "(CASA6_PYTHON|/opt/miniforge/envs/casa6/bin/python)" "$script" 2>/dev/null; then
-                echo -e "${YELLOW}⚠️  WARNING:${NC} $script may use system Python"
+                echo -e "${YELLOW}:warning:  WARNING:${NC} $script may use system Python"
                 ((WARNINGS++)) || true
             fi
         fi
@@ -178,16 +178,16 @@ fi
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 if [ $ERRORS -eq 0 ] && [ $WARNINGS -eq 0 ]; then
-    echo -e "${GREEN}✅ All checks passed!${NC}"
+    echo -e "${GREEN}:check: All checks passed!${NC}"
     echo "   No forbidden Python versions detected."
     exit 0
 elif [ $ERRORS -eq 0 ]; then
-    echo -e "${YELLOW}⚠️  Validation completed with warnings${NC}"
+    echo -e "${YELLOW}:warning:  Validation completed with warnings${NC}"
     echo "   Errors: $ERRORS"
     echo "   Warnings: $WARNINGS"
     exit 0
 else
-    echo -e "${RED}❌ Validation failed!${NC}"
+    echo -e "${RED}:cross: Validation failed!${NC}"
     echo "   Errors: $ERRORS"
     echo "   Warnings: $WARNINGS"
     echo ""

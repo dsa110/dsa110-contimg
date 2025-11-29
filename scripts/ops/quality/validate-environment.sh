@@ -10,84 +10,84 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 ERRORS=0
 WARNINGS=0
 
-echo "🔍 Validating developer environment..."
+echo ":search: Validating developer environment..."
 echo ""
 
 # 1. Check casa6 Python
 if [ ! -f "/opt/miniforge/envs/casa6/bin/python" ]; then
-    echo "❌ ERROR: casa6 Python not found"
+    echo ":cross: ERROR: casa6 Python not found"
     echo "   Expected: /opt/miniforge/envs/casa6/bin/python"
     ERRORS=$((ERRORS + 1))
 else
-    echo "✅ casa6 Python found"
+    echo ":check: casa6 Python found"
 fi
 
 # 2. Check error detection
 if [ -z "$(type -t _run_with_error_detection 2>/dev/null)" ]; then
-    echo "⚠️  WARNING: Error detection not enabled"
+    echo ":warning:  WARNING: Error detection not enabled"
     echo "   Run: source scripts/developer-setup.sh"
     WARNINGS=$((WARNINGS + 1))
 else
-    echo "✅ Error detection enabled"
+    echo ":check: Error detection enabled"
 fi
 
 # 3. Check CASA environment
 if ! /opt/miniforge/envs/casa6/bin/python -c "import casacore" 2>/dev/null; then
-    echo "⚠️  WARNING: casacore not importable"
+    echo ":warning:  WARNING: casacore not importable"
     echo "   CASA environment may need setup"
     WARNINGS=$((WARNINGS + 1))
 else
-    echo "✅ CASA environment OK"
+    echo ":check: CASA environment OK"
 fi
 
 # 4. Check pre-commit hooks
 if [ ! -f "$PROJECT_ROOT/.githooks/pre-commit" ]; then
-    echo "⚠️  WARNING: Pre-commit hook not found"
+    echo ":warning:  WARNING: Pre-commit hook not found"
     WARNINGS=$((WARNINGS + 1))
 else
     if [ ! -x "$PROJECT_ROOT/.githooks/pre-commit" ]; then
-        echo "⚠️  WARNING: Pre-commit hook not executable"
+        echo ":warning:  WARNING: Pre-commit hook not executable"
         WARNINGS=$((WARNINGS + 1))
     else
-        echo "✅ Pre-commit hooks configured"
+        echo ":check: Pre-commit hooks configured"
     fi
 fi
 
 # 5. Check pytest-safe wrapper
 if [ ! -f "$SCRIPT_DIR/pytest-safe.sh" ]; then
-    echo "❌ ERROR: pytest-safe.sh not found"
+    echo ":cross: ERROR: pytest-safe.sh not found"
     ERRORS=$((ERRORS + 1))
 else
     if [ ! -x "$SCRIPT_DIR/pytest-safe.sh" ]; then
-        echo "⚠️  WARNING: pytest-safe.sh not executable"
+        echo ":warning:  WARNING: pytest-safe.sh not executable"
         WARNINGS=$((WARNINGS + 1))
     else
-        echo "✅ pytest-safe.sh available"
+        echo ":check: pytest-safe.sh available"
     fi
 fi
 
 # 6. Check test directories
 for dir in tests/smoke tests/unit tests/integration tests/science tests/e2e; do
     if [ ! -d "$PROJECT_ROOT/$dir" ]; then
-        echo "⚠️  WARNING: Test directory missing: $dir"
+        echo ":warning:  WARNING: Test directory missing: $dir"
         WARNINGS=$((WARNINGS + 1))
     fi
 done
 if [ $WARNINGS -eq 0 ] || [ $WARNINGS -lt 6 ]; then
-    echo "✅ Test directories exist"
+    echo ":check: Test directories exist"
 fi
 
 # Summary
 echo ""
 if [ $ERRORS -eq 0 ] && [ $WARNINGS -eq 0 ]; then
-    echo "✅ Environment validation passed!"
+    echo ":check: Environment validation passed!"
     exit 0
 elif [ $ERRORS -eq 0 ]; then
-    echo "⚠️  Validation passed with $WARNINGS warning(s)"
+    echo ":warning:  Validation passed with $WARNINGS warning(s)"
     echo "   Run: ./scripts/auto-fix-common-issues.sh to fix warnings"
     exit 0
 else
-    echo "❌ Validation failed with $ERRORS error(s) and $WARNINGS warning(s)"
+    echo ":cross: Validation failed with $ERRORS error(s) and $WARNINGS warning(s)"
     echo "   Run: ./scripts/auto-fix-common-issues.sh to fix issues"
     exit 1
 fi

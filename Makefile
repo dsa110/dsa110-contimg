@@ -63,7 +63,7 @@ bench-info:
 BASE ?= HEAD~1
 TARGET ?= HEAD
 bench-compare:
-	@echo "Comparing $(BASE) → $(TARGET)..."
+	@echo "Comparing $(BASE) :arrow_right: $(TARGET)..."
 	@cd $(BENCHMARK_DIR) && asv continuous $(BASE) $(TARGET) --factor 1.1
 
 # ============================================================================

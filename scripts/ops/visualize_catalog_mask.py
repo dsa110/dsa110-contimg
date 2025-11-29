@@ -56,7 +56,7 @@ def create_mask_visualization(
         min_flux_mjy=flux_limit_mjy,
     )
 
-    print(f"✓ Found {len(sources)} sources")
+    print(f":check: Found {len(sources)} sources")
 
     # Create WCS
     cell_arcsec = (fov_deg * 3600.0) / imsize
@@ -157,7 +157,7 @@ def create_mask_visualization(
 
     plt.tight_layout()
     plt.savefig(output_path, dpi=150, bbox_inches="tight")
-    print(f"\n✓ Saved: {output_path}")
+    print(f"\n:check: Saved: {output_path}")
 
     return sources, mask, masked_fraction
 
@@ -203,5 +203,5 @@ if __name__ == "__main__":
         print(f"  Speedup: ~{1/frac:.1f}x")
 
     print("\n" + "=" * 80)
-    print("✅ All mask visualizations created!")
+    print(":check: All mask visualizations created!")
     print("=" * 80)

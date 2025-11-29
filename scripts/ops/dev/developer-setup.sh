@@ -15,10 +15,10 @@ fi
 
 if [ -f "${CASA6_ENV_PATH}" ]; then
     source "${CASA6_ENV_PATH}"
-    CASA6_STATUS="✅"
+    CASA6_STATUS=":check:"
 else
-    echo "⚠️  WARNING: casa6-env.sh not found at ${CASA6_ENV_PATH}" >&2
-    CASA6_STATUS="❌"
+    echo ":warning:  WARNING: casa6-env.sh not found at ${CASA6_ENV_PATH}" >&2
+    CASA6_STATUS=":cross:"
 fi
 
 # Set BASH_ENV if not already set
@@ -33,8 +33,8 @@ if [ -z "${AUTO_ERROR_DETECTION:-}" ]; then
     fi
 fi
 
-echo "✅ Developer setup complete"
-echo "   Error detection: ${AUTO_ERROR_DETECTION:-❌ not enabled}"
-echo "   Casa6 enforcement: ${CASA6_ENV_ENFORCED:-❌ not enabled}"
-echo "   Casa6 Python: ${CASA6_PYTHON:-❌ not set}"
+echo ":check: Developer setup complete"
+echo "   Error detection: ${AUTO_ERROR_DETECTION:-:cross: not enabled}"
+echo "   Casa6 enforcement: ${CASA6_ENV_ENFORCED:-:cross: not enabled}"
+echo "   Casa6 Python: ${CASA6_PYTHON:-:cross: not set}"
 echo "   BASH_ENV: ${BASH_ENV}"

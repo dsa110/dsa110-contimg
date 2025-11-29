@@ -62,7 +62,7 @@ def convert_group_to_ms(group_info, output_dir):
     # Configure for imaging
     configure_ms_for_imaging(str(ms_path))
     
-    log(f"  ✓ Created: {ms_path.name}")
+    log(f"  :check: Created: {ms_path.name}")
     return ms_path
 
 
@@ -94,10 +94,10 @@ def calibrate_ms(ms_path):
     )
     
     if result.returncode != 0:
-        log(f"  ⚠ Calibration warning: {result.stderr[-500:] if result.stderr else 'unknown'}")
+        log(f"  :warning: Calibration warning: {result.stderr[-500:] if result.stderr else 'unknown'}")
         return False
     
-    log(f"  ✓ Calibrated: {ms_path.name}")
+    log(f"  :check: Calibrated: {ms_path.name}")
     return True
 
 
@@ -139,7 +139,7 @@ def image_ms(ms_path, output_dir, ra_deg, dec_deg):
     )
     
     if result.returncode != 0:
-        log(f"  ⚠ Imaging warning: {result.stderr[-500:] if result.stderr else 'unknown'}")
+        log(f"  :warning: Imaging warning: {result.stderr[-500:] if result.stderr else 'unknown'}")
         # Try without phase center
         cmd_simple = [
             '/opt/miniforge/envs/casa6/bin/python',
@@ -167,16 +167,16 @@ def image_ms(ms_path, output_dir, ra_deg, dec_deg):
     
     for p in possible_fits:
         if p.exists():
-            log(f"  ✓ Created: {p.name}")
+            log(f"  :check: Created: {p.name}")
             return p
     
     # Look for any FITS file
     for p in output_dir.glob(f"{ms_path.stem}*.fits"):
         if 'pbcor' in p.name.lower() or 'image' in p.name.lower():
-            log(f"  ✓ Created: {p.name}")
+            log(f"  :check: Created: {p.name}")
             return p
     
-    log(f"  ⚠ No FITS file found for {ms_path.name}")
+    log(f"  :warning: No FITS file found for {ms_path.name}")
     return None
 
 
@@ -263,7 +263,7 @@ def plot_lightcurve(measurements, output_path):
     plt.savefig(output_path, dpi=150, bbox_inches='tight')
     plt.close()
     
-    log(f"  ✓ Saved lightcurve plot: {output_path}")
+    log(f"  :check: Saved lightcurve plot: {output_path}")
     return {
         'mean_flux_jy': mean_flux,
         'std_flux_jy': std_flux,
@@ -305,7 +305,7 @@ def main():
         
         try:
             # Step 1: Convert to MS
-            log("\n[Step 1/4] Converting UVH5 → MS")
+            log("\n[Step 1/4] Converting UVH5 :arrow_right: MS")
             ms_path = convert_group_to_ms(group, ms_dir)
             
             # Step 2: Calibrate
@@ -334,12 +334,12 @@ def main():
                         'fits_path': str(fits_path),
                     })
                 else:
-                    log("  ⚠ Photometry failed")
+                    log("  :warning: Photometry failed")
             else:
-                log("  ⚠ No image available for photometry")
+                log("  :warning: No image available for photometry")
                 
         except Exception as e:
-            log(f"  ✗ Error processing group: {e}")
+            log(f"  :cross: Error processing group: {e}")
             import traceback
             traceback.print_exc()
     

@@ -26,7 +26,7 @@ def test_database_images() -> Dict:
     print("=" * 60)
     
     if not PRODUCTS_DB.exists():
-        print(f"  ✗ Database not found: {PRODUCTS_DB}")
+        print(f"  :cross: Database not found: {PRODUCTS_DB}")
         return {"status": "error", "message": "Database not found"}
     
     try:
@@ -41,7 +41,7 @@ def test_database_images() -> Dict:
             """)
             rows = cur.fetchall()
             
-            print(f"  ✓ Found {len(rows)} images in database")
+            print(f"  :check: Found {len(rows)} images in database")
             
             results = []
             for row in rows:
@@ -55,14 +55,14 @@ def test_database_images() -> Dict:
                 }
                 results.append(image_info)
                 
-                status = "✓" if image_info["exists"] else "✗"
+                status = ":check:" if image_info["exists"] else ":cross:"
                 print(f"  {status} ID={image_info['id']}: {Path(image_info['path']).name}")
                 print(f"      Type: {image_info['type']}, PBcor: {image_info['pbcor']}")
                 print(f"      Exists: {image_info['exists']}")
             
             return {"status": "success", "images": results, "count": len(rows)}
     except Exception as e:
-        print(f"  ✗ Error: {e}")
+        print(f"  :cross: Error: {e}")
         import traceback
         traceback.print_exc()
         return {"status": "error", "error": str(e)}
@@ -75,7 +75,7 @@ def test_image_path_resolution() -> Dict:
     print("=" * 60)
     
     if not PRODUCTS_DB.exists():
-        print("  ⚠ Skipping - database not found")
+        print("  :warning: Skipping - database not found")
         return {"status": "skipped"}
     
     try:
@@ -84,7 +84,7 @@ def test_image_path_resolution() -> Dict:
             rows = cur.fetchall()
             
             if not rows:
-                print("  ⚠ No images to test")
+                print("  :warning: No images to test")
                 return {"status": "no_images"}
             
             results = []
@@ -133,7 +133,7 @@ def test_image_path_resolution() -> Dict:
             
             return {"status": "success", "results": results}
     except Exception as e:
-        print(f"  ✗ Error: {e}")
+        print(f"  :cross: Error: {e}")
         import traceback
         traceback.print_exc()
         return {"status": "error", "error": str(e)}
@@ -146,7 +146,7 @@ def test_api_endpoint_logic() -> Dict:
     print("=" * 60)
     
     if not PRODUCTS_DB.exists():
-        print("  ⚠ Skipping - database not found")
+        print("  :warning: Skipping - database not found")
         return {"status": "skipped"}
     
     try:
@@ -200,17 +200,17 @@ def test_api_endpoint_logic() -> Dict:
                 fits_path = get_fits_path(image_path)
                 
                 if fits_path and Path(fits_path).exists():
-                    status = "✓"
+                    status = ":check:"
                     message = f"FITS file available: {Path(fits_path).name}"
                 else:
-                    status = "✗"
+                    status = ":cross:"
                     message = "FITS file not found (conversion may be needed)"
                 
                 print(f"    {status} Image {image_id}: {message}")
             
             return {"status": "success"}
     except Exception as e:
-        print(f"  ✗ Error: {e}")
+        print(f"  :cross: Error: {e}")
         import traceback
         traceback.print_exc()
         return {"status": "error", "error": str(e)}
@@ -234,19 +234,19 @@ def main():
     print("Test Summary")
     print("=" * 60)
     
-    print(f"\nDatabase Queries: {'✓' if db_result.get('status') == 'success' else '✗'}")
+    print(f"\nDatabase Queries: {':check:' if db_result.get('status') == 'success' else ':cross:'}")
     if db_result.get('status') == 'success':
         existing = sum(1 for img in db_result.get('images', []) if img.get('exists'))
         total = len(db_result.get('images', []))
         print(f"  Images with valid paths: {existing}/{total}")
     
-    print(f"\nPath Resolution: {'✓' if path_result.get('status') == 'success' else '✗'}")
+    print(f"\nPath Resolution: {':check:' if path_result.get('status') == 'success' else ':cross:'}")
     if path_result.get('status') == 'success':
         results = path_result.get('results', [])
         fits_available = sum(1 for r in results if r.get('fits_exists'))
         print(f"  FITS files available: {fits_available}/{len(results)}")
     
-    print(f"\nAPI Logic: {'✓' if api_result.get('status') == 'success' else '✗'}")
+    print(f"\nAPI Logic: {':check:' if api_result.get('status') == 'success' else ':cross:'}")
     
     # Recommendations
     print("\n" + "=" * 60)
@@ -257,19 +257,19 @@ def main():
         images = db_result.get('images', [])
         missing = [img for img in images if not img.get('exists')]
         if missing:
-            print(f"  • {len(missing)} image paths in database do not exist on filesystem")
+            print(f"  :bullet: {len(missing)} image paths in database do not exist on filesystem")
             print("    Update database with correct paths or ensure images are accessible")
     
     if path_result.get('status') == 'success':
         results = path_result.get('results', [])
         needs_conversion = [r for r in results if r.get('is_casa') and not r.get('fits_exists')]
         if needs_conversion:
-            print(f"  • {len(needs_conversion)} CASA images need FITS conversion")
+            print(f"  :bullet: {len(needs_conversion)} CASA images need FITS conversion")
             print("    Conversion will happen on-demand when accessed via API")
     
-    print("\n  • To test full functionality, start API container:")
+    print("\n  :bullet: To test full functionality, start API container:")
     print("    cd ops/docker && docker-compose up -d api")
-    print("  • Then access SkyView page at: http://localhost:5173/skyview")
+    print("  :bullet: Then access SkyView page at: http://localhost:5173/skyview")
     print()
 
 

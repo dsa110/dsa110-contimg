@@ -38,7 +38,7 @@ echo "  Setting permissions..."
 chown -R dsa:dsa "${QA_BASE}" 2>/dev/null || true
 chmod -R 755 "${QA_BASE}"
 
-echo "✓ QA directory structure created successfully!"
+echo ":check: QA directory structure created successfully!"
 echo ""
 echo "Base directory: ${QA_BASE}"
 echo "Temporary plots: /tmp/dsa110_monitoring_plots"

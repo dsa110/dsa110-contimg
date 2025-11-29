@@ -32,7 +32,7 @@ if ! psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -c '\q' 2>/dev/null; then
     exit 1
 fi
 
-echo "✓ PostgreSQL connection verified"
+echo ":check: PostgreSQL connection verified"
 
 # Check if database exists
 if psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -lqt | cut -d \| -f 1 | grep -qw "$DB_NAME"; then
@@ -50,9 +50,9 @@ fi
 if ! psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -lqt | cut -d \| -f 1 | grep -qw "$DB_NAME"; then
     echo "Creating database '$DB_NAME'..."
     psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -c "CREATE DATABASE $DB_NAME;"
-    echo "✓ Database created"
+    echo ":check: Database created"
 else
-    echo "✓ Using existing database"
+    echo ":check: Using existing database"
 fi
 
 # Install Absurd schema
@@ -64,12 +64,12 @@ fi
 
 echo "Installing Absurd schema from: $ABSURD_SQL_PATH"
 psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "$ABSURD_SQL_PATH"
-echo "✓ Schema installed"
+echo ":check: Schema installed"
 
 # Verify installation
 echo "Verifying installation..."
 QUEUE_COUNT=$(psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -tAc "SELECT COUNT(*) FROM absurd.queues;")
-echo "✓ Absurd schema verified (queues table has $QUEUE_COUNT rows)"
+echo ":check: Absurd schema verified (queues table has $QUEUE_COUNT rows)"
 
 # Print connection string
 echo ""

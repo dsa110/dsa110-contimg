@@ -10,7 +10,7 @@ SCRIPT_NAME="python_warnings.sh"
 
 # Check if casa6 environment exists
 if [ ! -d "$CASA6_ENV" ]; then
-    echo "✗ Error: casa6 conda environment not found at $CASA6_ENV"
+    echo ":cross: Error: casa6 conda environment not found at $CASA6_ENV"
     echo "  Please ensure casa6 environment is installed"
     exit 1
 fi
@@ -21,11 +21,11 @@ mkdir -p "$ACTIVATE_DIR"
 # Check if script already exists
 if [ -f "${ACTIVATE_DIR}/${SCRIPT_NAME}" ]; then
     if grep -q "PYTHONWARNINGS.*ignore::DeprecationWarning" "${ACTIVATE_DIR}/${SCRIPT_NAME}" 2>/dev/null; then
-        echo "✓ PYTHONWARNINGS already configured in casa6 environment"
+        echo ":check: PYTHONWARNINGS already configured in casa6 environment"
         echo "  Location: ${ACTIVATE_DIR}/${SCRIPT_NAME}"
         exit 0
     else
-        echo "⚠ Warning: ${SCRIPT_NAME} exists but doesn't contain expected content"
+        echo ":warning: Warning: ${SCRIPT_NAME} exists but doesn't contain expected content"
         echo "  Location: ${ACTIVATE_DIR}/${SCRIPT_NAME}"
         exit 1
     fi
@@ -46,7 +46,7 @@ EOF
 
 chmod +x "${ACTIVATE_DIR}/${SCRIPT_NAME}"
 
-echo "✓ Added PYTHONWARNINGS to casa6 conda environment"
+echo ":check: Added PYTHONWARNINGS to casa6 conda environment"
 echo "  Location: ${ACTIVATE_DIR}/${SCRIPT_NAME}"
 echo ""
 echo "The warning suppression will be active:"
@@ -55,5 +55,5 @@ echo "  - Automatically if casa6 is your default/base environment"
 echo ""
 echo "To test, activate the environment:"
 echo "  conda activate casa6"
-echo "  python -c \"from casatools import linearmosaic; print('✓ No warnings')\""
+echo "  python -c \"from casatools import linearmosaic; print(':check: No warnings')\""
 

@@ -66,7 +66,7 @@ def get_pointing_declination(ms_path: str, uvh5_path: str = None) -> u.Quantity:
                     ek = f['Header']['extra_keywords']
                     if 'phase_center_dec' in ek:
                         dec_rad = float(np.asarray(ek['phase_center_dec']))
-                        print(f"✓ Found pointing declination in UVH5: {np.degrees(dec_rad):.6f}°")
+                        print(f":check: Found pointing declination in UVH5: {np.degrees(dec_rad):.6f}°")
                         return dec_rad * u.rad
         except Exception as e:
             print(f"WARNING: Could not read UVH5: {e}")
@@ -90,7 +90,7 @@ def get_pointing_declination(ms_path: str, uvh5_path: str = None) -> u.Quantity:
                 raise ValueError("MS has no REFERENCE_DIR or PHASE_DIR")
             
             dec_deg = np.degrees(dec_rad)
-            print(f"⚠ Using first field declination from MS: {dec_deg:.6f}°")
+            print(f":warning: Using first field declination from MS: {dec_deg:.6f}°")
             print(f"  WARNING: This may be calibrator declination, not pointing declination!")
             print(f"  If incorrect, provide UVH5 file path to get correct pointing declination.")
             
@@ -168,7 +168,7 @@ def rephase_to_meridian(ms_path: str, uvh5_path: str = None, output_path: str = 
         # No field parameter = rephase ALL fields
     )
     
-    print(f"\n✓ phaseshift completed successfully")
+    print(f"\n:check: phaseshift completed successfully")
     
     # Verify phase center
     print("\n5. Verifying phase center...")
@@ -187,11 +187,11 @@ def rephase_to_meridian(ms_path: str, uvh5_path: str = None, output_path: str = 
                 print(f"   Separation from meridian: {separation.to(u.arcmin):.4f}")
                 
                 if separation.to(u.arcmin).value > 1.0:
-                    print(f"   ⚠ WARNING: Phase center still offset by {separation.to(u.arcmin):.4f}")
+                    print(f"   :warning: WARNING: Phase center still offset by {separation.to(u.arcmin):.4f}")
                 else:
-                    print(f"   ✓ Phase center aligned (within 1 arcmin)")
+                    print(f"   :check: Phase center aligned (within 1 arcmin)")
     except Exception as e:
-        print(f"   ⚠ Could not verify phase center: {e}")
+        print(f"   :warning: Could not verify phase center: {e}")
     
     # Update REFERENCE_DIR to match PHASE_DIR
     print("\n6. Updating REFERENCE_DIR to match PHASE_DIR...")
@@ -213,11 +213,11 @@ def rephase_to_meridian(ms_path: str, uvh5_path: str = None, output_path: str = 
                 if needs_update:
                     print(f"   Updating REFERENCE_DIR for all {nfields} fields...")
                     tf.putcol("REFERENCE_DIR", phase_dir_all)
-                    print(f"   ✓ REFERENCE_DIR updated")
+                    print(f"   :check: REFERENCE_DIR updated")
                 else:
-                    print(f"   ✓ REFERENCE_DIR already matches PHASE_DIR")
+                    print(f"   :check: REFERENCE_DIR already matches PHASE_DIR")
     except Exception as e:
-        print(f"   ⚠ Could not update REFERENCE_DIR: {e}")
+        print(f"   :warning: Could not update REFERENCE_DIR: {e}")
     
     print("\n" + "=" * 100)
     print("REPHASING COMPLETE")
