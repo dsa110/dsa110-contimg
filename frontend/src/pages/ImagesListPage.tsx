@@ -1,8 +1,10 @@
-import React, { useMemo, useCallback } from "react";
+import React, { useMemo, useCallback, useState } from "react";
 import { Link } from "react-router-dom";
 import { useImages } from "../hooks/useQueries";
 import { LoadingSpinner, SortableTableHeader, useTableSort } from "../components/common";
 import { BulkDownloadPanel } from "../components/download";
+import { FitsViewerGrid } from "../components/fits";
+import { FilterPanel, FilterConfig, FilterValues } from "../components/filters";
 import { useSelectionStore } from "../stores/appStore";
 
 interface ImageItem {
@@ -21,6 +23,29 @@ const ImagesListPage: React.FC = () => {
     "created_at",
     "desc"
   );
+
+  // View mode: list or comparison
+  const [viewMode, setViewMode] = useState<"list" | "compare">("list");
+
+  // Filter state
+  const [filterValues, setFilterValues] = useState<FilterValues>({});
+  const filterConfigs: FilterConfig[] = [
+    {
+      id: "qa_grade",
+      label: "QA Grade",
+      type: "select",
+      options: [
+        { value: "good", label: "Good" },
+        { value: "warn", label: "Warning" },
+        { value: "fail", label: "Fail" },
+      ],
+    },
+    {
+      id: "search",
+      label: "Search",
+      type: "text",
+    },
+  ];
 
   // Multi-select state from store
   const selectedImages = useSelectionStore((s) => s.selectedImages);
@@ -47,10 +72,28 @@ const ImagesListPage: React.FC = () => {
     window.open(url, "_blank");
   }, []);
 
-  const sortedImages = useMemo(() => {
+  // Apply filters
+  const filteredImages = useMemo(() => {
     if (!images) return [];
-    return sortItems(images, sortKey, sortDirection);
-  }, [images, sortKey, sortDirection, sortItems]);
+    let result = images as ImageItem[];
+
+    if (filterValues.qa_grade) {
+      result = result.filter((img) => img.qa_grade === filterValues.qa_grade);
+    }
+    if (filterValues.search && typeof filterValues.search === "string") {
+      const term = filterValues.search.toLowerCase();
+      result = result.filter(
+        (img) => img.path?.toLowerCase().includes(term) || img.id.toLowerCase().includes(term)
+      );
+    }
+
+    return result;
+  }, [images, filterValues]);
+
+  const sortedImages = useMemo(() => {
+    if (!filteredImages) return [];
+    return sortItems(filteredImages, sortKey, sortDirection);
+  }, [filteredImages, sortKey, sortDirection, sortItems]);
 
   if (isLoading) {
     return <LoadingSpinner label="Loading images..." />;
@@ -75,14 +118,71 @@ const ImagesListPage: React.FC = () => {
     [sortedImages]
   );
 
+  // FITS URLs for selected images comparison
+  const comparisonUrls = useMemo(() => {
+    const baseUrl = import.meta.env.VITE_API_URL || "/api";
+    return selectedIds.map((id) => `${baseUrl}/images/${id}/fits`);
+  }, [selectedIds]);
+
+  const comparisonLabels = useMemo(() => {
+    return selectedIds.map((id) => {
+      const img = sortedImages.find((i) => i.id === id);
+      return img?.path?.split("/").pop() || id;
+    });
+  }, [selectedIds, sortedImages]);
+
   return (
     <div className="max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Images</h1>
-        {selectedIds.length > 0 && (
-          <span className="text-sm text-gray-500">{selectedIds.length} selected</span>
-        )}
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold text-gray-900">Images</h1>
+          {selectedIds.length > 0 && (
+            <span className="text-sm text-gray-500">{selectedIds.length} selected</span>
+          )}
+        </div>
+        <div className="flex gap-2">
+          {selectedIds.length >= 2 && selectedIds.length <= 4 && (
+            <button
+              onClick={() => setViewMode(viewMode === "compare" ? "list" : "compare")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                viewMode === "compare"
+                  ? "bg-purple-600 text-white"
+                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+              }`}
+            >
+              {viewMode === "compare" ? "Back to List" : "Compare Selected"}
+            </button>
+          )}
+        </div>
       </div>
+
+      {/* Filter Panel */}
+      <div className="mb-4">
+        <FilterPanel
+          filters={filterConfigs}
+          values={filterValues}
+          onChange={setFilterValues}
+          title="Filter Images"
+          collapsible
+          defaultCollapsed
+        />
+      </div>
+
+      {/* Comparison View */}
+      {viewMode === "compare" && selectedIds.length >= 2 && (
+        <div className="mb-6">
+          <div className="card p-4">
+            <h3 className="text-lg font-semibold mb-4">Image Comparison</h3>
+            <FitsViewerGrid
+              fitsUrls={comparisonUrls}
+              labels={comparisonLabels}
+              columns={selectedIds.length <= 2 ? 2 : selectedIds.length <= 3 ? 3 : 4}
+              viewerSize={350}
+              syncViews
+            />
+          </div>
+        </div>
+      )}
 
       {/* Bulk Download Panel - show when items selected */}
       {sortedImages.length > 0 && (
