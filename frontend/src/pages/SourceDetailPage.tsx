@@ -244,6 +244,15 @@ const SourceDetailPage: React.FC = () => {
             )}
           </Card>
 
+          {/* VizieR Catalog Overlays */}
+          <Card title="Catalog Crossmatch">
+            <CatalogOverlayPanel
+              centerRa={sourceData.ra_deg}
+              centerDec={sourceData.dec_deg}
+              defaultRadius={2}
+            />
+          </Card>
+
           {/* Light Curve Chart */}
           {lightCurveData.length > 1 && (
             <Card title="Light Curve" subtitle={`${lightCurveData.length} measurements`}>
