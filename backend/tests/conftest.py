@@ -45,6 +45,7 @@ def pytest_runtest_call(item):
     global _casa_cpp_loaded
     if not _casa_cpp_loaded and _check_casa_loaded():
         _casa_cpp_loaded = True
+        print(f"\n[DEBUG] CASA loaded during: {item.name}", file=sys.stderr)
 
 
 def pytest_runtest_teardown(item, nextitem):

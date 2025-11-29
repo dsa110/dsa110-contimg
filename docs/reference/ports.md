@@ -132,6 +132,9 @@ sudo /usr/local/bin/claim-port.sh 8000
 
 # Custom timeout (default 5 seconds)
 sudo /usr/local/bin/claim-port.sh 8000 --timeout=10
+
+# Skip graceful shutdown, use SIGKILL immediately
+sudo /usr/local/bin/claim-port.sh 8000 --force
 ```
 
 ### How It Works
@@ -148,22 +151,22 @@ sudo /usr/local/bin/claim-port.sh 8000 --timeout=10
 
 ### Safety Features
 
-- **Protected Process Detection**: Will not kill systemd, journald, sshd, init,
-  or any process with PID ≤ 2
+- **Protected Process Detection**: Will not kill systemd, systemd-*, journald,
+  sshd, init, dbus-daemon, or any process with PID ≤ 2
 - **Structured Logging**: All output prefixed with `[claim-port:<port>]` for
   easy filtering in journalctl
 - **Port Validation**: Rejects invalid port numbers (must be 1-65535)
+- **Timeout Validation**: Ensures `--timeout` is a valid number
+- **Dependency Check**: Verifies `lsof` is installed before running
 - **Detailed Process Info**: Logs full command line of processes being killed
 
 ### Systemd Integration
 
-Services use `ExecStartPre` to invoke this script:
+All services use `ExecStartPre=+` to run the script as root (required to kill
+processes owned by other users):
 
 ```ini
-# In service file
-ExecStartPre=/usr/local/bin/claim-port.sh <port>
-
-# For services running as non-root, use + prefix to run as root
+# The + prefix ensures claim-port runs as root regardless of service User=
 ExecStartPre=+/usr/local/bin/claim-port.sh <port>
 ```
 

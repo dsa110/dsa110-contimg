@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import * as echarts from "echarts";
-import VariabilityControls, {
-  VariabilityControlsValues,
-} from "./VariabilityControls";
+import VariabilityControls, { VariabilityControlsValues } from "./VariabilityControls";
 import SourcePreview from "./SourcePreview";
 
 export interface SourcePoint {
@@ -86,15 +84,11 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
   }, [sources, controls]);
 
   // Filter sources by min data points
-  const filteredSources = sources.filter(
-    (s) => (s.nMeasurements ?? 10) >= controls.minDataPoints
-  );
+  const filteredSources = sources.filter((s) => (s.nMeasurements ?? 10) >= controls.minDataPoints);
 
   // Identify candidates (above both thresholds)
   const { etaLine, vLine } = calculateThresholds();
-  const candidates = filteredSources.filter(
-    (s) => s.eta > etaLine && s.v > vLine
-  );
+  const candidates = filteredSources.filter((s) => s.eta > etaLine && s.v > vLine);
 
   // Color mapping function
   const getPointColor = useCallback(
@@ -207,7 +201,12 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
             silent: true,
             symbol: "none",
             lineStyle: { color: "#ff6b6b", type: "dashed", width: 2 },
-            data: [[{ xAxis: etaLine, yAxis: "min" }, { xAxis: etaLine, yAxis: "max" }]],
+            data: [
+              [
+                { xAxis: etaLine, yAxis: "min" },
+                { xAxis: etaLine, yAxis: "max" },
+              ],
+            ],
             label: {
               formatter: `η = ${etaLine.toFixed(2)}`,
               position: "end",
@@ -221,7 +220,12 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
             silent: true,
             symbol: "none",
             lineStyle: { color: "#ff6b6b", type: "dashed", width: 2 },
-            data: [[{ xAxis: "min", yAxis: vLine }, { xAxis: "max", yAxis: vLine }]],
+            data: [
+              [
+                { xAxis: "min", yAxis: vLine },
+                { xAxis: "max", yAxis: vLine },
+              ],
+            ],
             label: {
               formatter: `V = ${vLine.toFixed(3)}`,
               position: "end",
@@ -331,9 +335,7 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
                   </button>
                 ))}
                 {candidates.length > 10 && (
-                  <p className="text-xs text-red-500">
-                    +{candidates.length - 10} more
-                  </p>
+                  <p className="text-xs text-red-500">+{candidates.length - 10} more</p>
                 )}
               </div>
             </div>
