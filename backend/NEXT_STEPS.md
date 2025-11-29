@@ -6,23 +6,23 @@ The API backend is fully operational with real data, monitoring, and caching.
 
 ### Current State
 
-| Component           | Status         | Details                        |
-| ------------------- | -------------- | ------------------------------ |
-| API Server          | ✅ Running     | Port 8000, systemd enabled     |
-| MS Records          | ✅ 12 records  | Real measurement sets          |
-| Images              | ✅ 4 records   | FITS files registered          |
-| Photometry          | ✅ 21 records  | 5 unique sources               |
-| Cal Tables          | ✅ 3 records   | Linked to source MS            |
-| Batch Jobs          | ✅ 7 jobs      | Provenance tracking            |
-| Lightcurve          | ✅ Implemented | Returns real flux data         |
-| Nginx               | ✅ Configured  | Reverse proxy on port 80       |
-| Prometheus Metrics  | ✅ Enabled     | Metrics at /metrics            |
-| Prometheus Server   | ✅ Running     | Scraping API on port 9090      |
-| Redis Cache         | ✅ Connected   | TTL-based caching enabled      |
-| Stats API           | ✅ Implemented | Summary counts at /api/stats   |
-| IP Security         | ✅ Active      | Localhost + private networks   |
-| Grafana             | ✅ Running     | Dashboard on port 3030         |
-| Scientific Metrics  | ✅ Enabled     | MS, images, sources gauges     |
+| Component          | Status         | Details                      |
+| ------------------ | -------------- | ---------------------------- |
+| API Server         | ✅ Running     | Port 8000, systemd enabled   |
+| MS Records         | ✅ 12 records  | Real measurement sets        |
+| Images             | ✅ 4 records   | FITS files registered        |
+| Photometry         | ✅ 21 records  | 5 unique sources             |
+| Cal Tables         | ✅ 3 records   | Linked to source MS          |
+| Batch Jobs         | ✅ 7 jobs      | Provenance tracking          |
+| Lightcurve         | ✅ Implemented | Returns real flux data       |
+| Nginx              | ✅ Configured  | Reverse proxy on port 80     |
+| Prometheus Metrics | ✅ Enabled     | Metrics at /metrics          |
+| Prometheus Server  | ✅ Running     | Scraping API on port 9090    |
+| Redis Cache        | ✅ Connected   | TTL-based caching enabled    |
+| Stats API          | ✅ Implemented | Summary counts at /api/stats |
+| IP Security        | ✅ Active      | Localhost + private networks |
+| Grafana            | ✅ Running     | Dashboard on port 3030       |
+| Scientific Metrics | ✅ Enabled     | MS, images, sources gauges   |
 
 ---
 
@@ -144,7 +144,6 @@ calibrator catalog | | `jobs:list` | 1 min | Changes during pipeline runs |
 ---
 
 ## Long-term Improvements
-
 
 ### Performance
 
