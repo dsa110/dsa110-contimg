@@ -1,0 +1,215 @@
+#!/opt/miniforge/envs/casa6/bin/python
+"""
+Monitor bandpass calibration progress.
+
+This script checks:
+1. Process status (running/completed)
+2. Calibration table creation (pre-bandpass phase, bandpass)
+3. File system activity (table files being written)
+4. CASA log files (if available)
+
+Usage:
+    python monitor_calibration.py <ms_path> [--watch]
+"""
+
+import os
+import sys
+import time
+from datetime import datetime
+from pathlib import Path
+
+
+def check_process():
+    """Check if calibration process is running."""
+    import subprocess
+    try:
+        result = subprocess.run(
+            ["pgrep", "-f", "calibration.cli calibrate"],
+            capture_output=True,
+            text=True
+        )
+        if result.returncode == 0:
+            pids = result.stdout.strip().split('\n')
+            # Get CPU usage for the Python process (not the shell wrapper)
+            for pid in pids:
+                try:
+                    ps_result = subprocess.run(
+                        ["ps", "-p", pid, "-o", "pid,pcpu,etime,cmd", "--no-headers"],
+                        capture_output=True,
+                        text=True
+                    )
+                    if "python -m" in ps_result.stdout:
+                        return ps_result.stdout.strip()
+                except:
+                    pass
+            return "Process running (PID: {})".format(', '.join(pids))
+        return None
+    except:
+        return None
+
+def check_calibration_tables(ms_path):
+    """Check for calibration table files."""
+    ms_dir = Path(ms_path)
+    if not ms_dir.exists():
+        return []
+    
+    tables = []
+    # Look for pre-bandpass phase table
+    bpphase = ms_dir / ".bpphase.gcal"
+    if bpphase.exists():
+        size = bpphase.stat().st_size
+        mtime = datetime.fromtimestamp(bpphase.stat().st_mtime)
+        tables.append(("Pre-bandpass phase", bpphase, size, mtime))
+    
+    # Look for bandpass table
+    bp_patterns = [
+        ms_dir / f"{ms_dir.name}_bpcal",
+        ms_dir / "*.bpcal",
+    ]
+    for pattern in bp_patterns:
+        if pattern.exists():
+            if pattern.is_file():
+                size = pattern.stat().st_size
+                mtime = datetime.fromtimestamp(pattern.stat().st_mtime)
+                tables.append(("Bandpass", pattern, size, mtime))
+        elif "*" in str(pattern):
+            # Glob pattern
+            matches = list(ms_dir.glob(pattern.name))
+            for match in matches:
+                if match.is_dir():
+                    size = sum(f.stat().st_size for f in match.rglob('*') if f.is_file())
+                    mtime = datetime.fromtimestamp(match.stat().st_mtime)
+                    tables.append(("Bandpass", match, size, mtime))
+    
+    return tables
+
+def check_table_activity(ms_path):
+    """Check for recent file activity in MS directory."""
+    ms_dir = Path(ms_path)
+    if not ms_dir.exists():
+        return []
+    
+    recent_files = []
+    now = time.time()
+    # Check for files modified in last 30 seconds
+    for item in ms_dir.iterdir():
+        try:
+            if item.is_file():
+                mtime = item.stat().st_mtime
+                if now - mtime < 30:
+                    size = item.stat().st_size
+                    recent_files.append((item.name, size, now - mtime))
+        except:
+            pass
+    
+    # Sort by modification time (most recent first)
+    recent_files.sort(key=lambda x: x[2])
+    return recent_files[:5]  # Return top 5 most recent
+
+def check_casa_logs(ms_path):
+    """Check for CASA log files."""
+    # CASA logs are typically in current directory or CASA log directory
+    log_dirs = [
+        Path.cwd(),
+        Path.home() / ".casa" / "logs",
+        Path("/tmp"),
+    ]
+    
+    logs = []
+    for log_dir in log_dirs:
+        if log_dir.exists():
+            # Look for recent log files
+            for log_file in log_dir.glob("*.log"):
+                try:
+                    mtime = datetime.fromtimestamp(log_file.stat().st_mtime)
+                    # Only show logs from last hour
+                    if (datetime.now() - mtime).total_seconds() < 3600:
+                        logs.append((log_file, mtime))
+                except:
+                    pass
+    
+    return sorted(logs, key=lambda x: x[1], reverse=True)[:3]
+
+def monitor(ms_path, watch=False):
+    """Monitor calibration progress."""
+    print("=" * 80)
+    print("Bandpass Calibration Progress Monitor")
+    print("=" * 80)
+    print(f"MS: {ms_path}")
+    print(f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print()
+    
+    # Check process
+    print("1. Process Status:")
+    proc_info = check_process()
+    if proc_info:
+        print(f"   :check_mark: {proc_info}")
+    else:
+        print(f"   :ballot_x: Process not running (may have completed or failed)")
+    print()
+    
+    # Check calibration tables
+    print("2. Calibration Tables:")
+    tables = check_calibration_tables(ms_path)
+    if tables:
+        for name, path, size, mtime in tables:
+            size_mb = size / (1024 * 1024) if size > 0 else 0
+            age = datetime.now() - mtime
+            age_str = f"{age.seconds}s ago" if age.seconds < 60 else f"{age.seconds//60}m {age.seconds%60}s ago"
+            status = ":check_mark:" if age.seconds < 60 else "•"
+            print(f"   {status} {name}: {path.name} ({size_mb:.2f} MB, modified {age_str})")
+    else:
+        print(f"   • No calibration tables found yet")
+    print()
+    
+    # Check recent file activity
+    print("3. Recent File Activity (last 30s):")
+    recent = check_table_activity(ms_path)
+    if recent:
+        for name, size, age in recent:
+            print(f"   • {name} ({size/1024:.1f} KB, {age:.1f}s ago)")
+    else:
+        print(f"   • No recent file activity")
+    print()
+    
+    # Check CASA logs
+    print("4. Recent CASA Logs:")
+    logs = check_casa_logs(ms_path)
+    if logs:
+        for log_file, mtime in logs:
+            age = datetime.now() - mtime
+            age_str = f"{age.seconds}s ago" if age.seconds < 60 else f"{age.seconds//60}m ago"
+            print(f"   • {log_file.name} (modified {age_str})")
+    else:
+        print(f"   • No recent CASA logs found")
+    print()
+    
+    # Summary
+    print("=" * 80)
+    if proc_info:
+        print("Status: RUNNING - Calibration in progress")
+    elif tables:
+        print("Status: COMPLETED - Calibration tables found")
+    else:
+        print("Status: UNKNOWN - Check log files for details")
+    print("=" * 80)
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print(__doc__)
+        sys.exit(1)
+    
+    ms_path = sys.argv[1]
+    watch = "--watch" in sys.argv or "-w" in sys.argv
+    
+    if watch:
+        try:
+            while True:
+                os.system("clear")
+                monitor(ms_path)
+                time.sleep(5)
+        except KeyboardInterrupt:
+            print("\nMonitoring stopped.")
+    else:
+        monitor(ms_path)
+

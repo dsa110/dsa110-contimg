@@ -9,7 +9,7 @@ items
 
 ## Executive Summary
 
-✅ **Core pipeline is production-ready with 87% of code quality TODOs
+:white_heavy_check_mark: **Core pipeline is production-ready with 87% of code quality TODOs
 completed**
 
 The investigation found that most TODO markers in archived documentation have
@@ -51,7 +51,7 @@ updated: 2025-11-12)
 
 #### Detailed Verification
 
-**✅ COMPLETED Items:**
+**:white_heavy_check_mark: COMPLETED Items:**
 
 1. **`api/routes.py` - Logging** (Line 144, 236, 1415)
 
@@ -59,7 +59,7 @@ updated: 2025-11-12)
    logger = logging.getLogger(__name__)
    ```
 
-   - Status: ✅ DONE
+   - Status: :white_heavy_check_mark: DONE
    - Evidence: Multiple logger instances, proper logging throughout
 
 2. **`catalog/build_master.py` - Logging** (Line 46)
@@ -68,7 +68,7 @@ updated: 2025-11-12)
    logger = logging.getLogger(__name__)
    ```
 
-   - Status: ✅ DONE
+   - Status: :white_heavy_check_mark: DONE
    - Evidence: Logger present, docstrings with Args/Returns
 
 3. **`api/job_adapters.py` - Error Handling** (Line 37)
@@ -77,7 +77,7 @@ updated: 2025-11-12)
    logger = structlog.get_logger(__name__)
    ```
 
-   - Status: ✅ DONE
+   - Status: :white_heavy_check_mark: DONE
    - Evidence: Structured logging, ValidationError exceptions
 
 4. **`calibration/cli_calibrate.py` - Error Handling** (Line 50)
@@ -86,18 +86,18 @@ updated: 2025-11-12)
    logger = logging.getLogger(__name__)
    ```
 
-   - Status: ✅ DONE
+   - Status: :white_heavy_check_mark: DONE
    - Evidence: Imports error_context, performance tracking modules
 
 5. **Database functions - Type Hints**
-   - Status: ✅ IMPROVED
+   - Status: :white_heavy_check_mark: IMPROVED
    - Evidence: Type hints present in function signatures
 6. **API routes - Type Hints**
-   - Status: ✅ IMPROVED
+   - Status: :white_heavy_check_mark: IMPROVED
    - Evidence: Type hints in routes.py (e.g.,
      `def _validate(value: str | None, ...)`)
 7. **Conversion strategies - Type Hints**
-   - Status: ✅ IMPROVED
+   - Status: :white_heavy_check_mark: IMPROVED
    - Evidence: Type hints throughout (e.g., `-> Optional[Time]`,
      `-> Optional[str]`)
 
@@ -115,13 +115,13 @@ updated: 2025-11-12)
 **Source**: `backend/docs/reports/ABSURD_IMPLEMENTATION_STATUS.md` (Last
 updated: 2025-11-19)
 
-**Status**: ✅ Active roadmap document (not archived)
+**Status**: :white_heavy_check_mark: Active roadmap document (not archived)
 
 | Phase                                    | Status      | Notes                           |
 | ---------------------------------------- | ----------- | ------------------------------- |
-| **Phase A**: Testing & Validation        | ✅ COMPLETE | 12 comprehensive tests          |
-| **Phase B**: Monitoring & Administration | ✅ COMPLETE | Dashboard, alerts, log rotation |
-| **Phase C**: Documentation               | ✅ COMPLETE | 10 runbooks, ops guide          |
+| **Phase A**: Testing & Validation        | :white_heavy_check_mark: COMPLETE | 12 comprehensive tests          |
+| **Phase B**: Monitoring & Administration | :white_heavy_check_mark: COMPLETE | Dashboard, alerts, log rotation |
+| **Phase C**: Documentation               | :white_heavy_check_mark: COMPLETE | 10 runbooks, ops guide          |
 | **Phase D1**: React Dashboard            | ⏳ TODO     | HIGH priority, 25-30 hours      |
 | **Phase D2**: Mosaic Executor            | ⏳ TODO     | MEDIUM priority, 16-20 hours    |
 | **Phase D3**: Advanced Features          | ⏳ TODO     | LOW priority, 60-80 hours       |
@@ -133,7 +133,7 @@ items are legitimate future features, not missing functionality.
 
 ### 3. Test Implementation Stubs
 
-**Status**: ❌ Not yet implemented (intentional placeholders)
+**Status**: :cross_mark: Not yet implemented (intentional placeholders)
 
 **Empty test files:**
 
@@ -162,8 +162,8 @@ priority placeholders.
 # ./test_enhanced_pipeline_production.sh
 ```
 
-**Status**: ❌ Placeholder step, needs decision  
-**Priority**: 🔴 CRITICAL  
+**Status**: :cross_mark: Placeholder step, needs decision  
+**Priority**: :large_red_circle: CRITICAL  
 **Impact**: CI workflow has commented-out step  
 **Recommendation**: Decide to implement or remove (see Roadmap Phase 1.1)
 
@@ -189,10 +189,10 @@ log "NOTIFY" "Container $container is unhealthy..."
 
 | Issue                                                | Priority  | Status     | Impact            |
 | ---------------------------------------------------- | --------- | ---------- | ----------------- |
-| State DBs in wrong location (move /stage/ to /data/) | 🟡 MEDIUM | ⏳ PARTIAL | Operational       |
-| No retention policy                                  | 🟡 MEDIUM | ❌ TODO    | Disk space risk   |
-| Config path mismatch                                 | 🟢 LOW    | ⏳ PARTIAL | Documentation     |
-| No archive mechanism                                 | 🟡 MEDIUM | ❌ TODO    | Data accumulation |
+| State DBs in wrong location (move /stage/ to /data/) | :yellow_circle: MEDIUM | ⏳ PARTIAL | Operational       |
+| No retention policy                                  | :yellow_circle: MEDIUM | :cross_mark: TODO    | Disk space risk   |
+| Config path mismatch                                 | :green_circle: LOW    | ⏳ PARTIAL | Documentation     |
+| No archive mechanism                                 | :yellow_circle: MEDIUM | :cross_mark: TODO    | Data accumulation |
 
 **Analysis**: Operational/infrastructure improvements, not critical missing
 features.
@@ -205,14 +205,14 @@ features.
 
 | Module      | Logger | Type Hints | Error Handling | Docstrings | Status       |
 | ----------- | ------ | ---------- | -------------- | ---------- | ------------ |
-| Conversion  | ✅     | ✅         | ✅             | ✅         | Clean        |
-| Calibration | ✅     | ✅         | ✅             | ✅         | Clean        |
-| Imaging     | ✅     | ✅         | ✅             | ✅         | Clean        |
-| API         | ✅     | ✅         | ✅             | ⏳         | Mostly clean |
-| Pipeline    | ✅     | ✅         | ✅             | ✅         | Clean        |
-| Database    | ✅     | ✅         | ✅             | ✅         | Clean        |
+| Conversion  | :white_heavy_check_mark:     | :white_heavy_check_mark:         | :white_heavy_check_mark:             | :white_heavy_check_mark:         | Clean        |
+| Calibration | :white_heavy_check_mark:     | :white_heavy_check_mark:         | :white_heavy_check_mark:             | :white_heavy_check_mark:         | Clean        |
+| Imaging     | :white_heavy_check_mark:     | :white_heavy_check_mark:         | :white_heavy_check_mark:             | :white_heavy_check_mark:         | Clean        |
+| API         | :white_heavy_check_mark:     | :white_heavy_check_mark:         | :white_heavy_check_mark:             | ⏳         | Mostly clean |
+| Pipeline    | :white_heavy_check_mark:     | :white_heavy_check_mark:         | :white_heavy_check_mark:             | :white_heavy_check_mark:         | Clean        |
+| Database    | :white_heavy_check_mark:     | :white_heavy_check_mark:         | :white_heavy_check_mark:             | :white_heavy_check_mark:         | Clean        |
 
-**Production Code Quality**: ✅ Excellent - All core modules have proper
+**Production Code Quality**: :white_heavy_check_mark: Excellent - All core modules have proper
 implementation
 
 ---
@@ -223,12 +223,12 @@ implementation
 
 | Category                       | Count    | Priority  | Status      |
 | ------------------------------ | -------- | --------- | ----------- |
-| Archived doc TODOs (completed) | ~30      | N/A       | ✅ DONE     |
-| Code quality improvements      | 8        | Various   | ✅ 87% done |
-| Test stubs                     | 4 files  | 🟢 LOW    | ❌ TODO     |
-| CI/Workflow                    | 2        | 🔴 HIGH   | ❌ TODO     |
+| Archived doc TODOs (completed) | ~30      | N/A       | :white_heavy_check_mark: DONE     |
+| Code quality improvements      | 8        | Various   | :white_heavy_check_mark: 87% done |
+| Test stubs                     | 4 files  | :green_circle: LOW    | :cross_mark: TODO     |
+| CI/Workflow                    | 2        | :large_red_circle: HIGH   | :cross_mark: TODO     |
 | Absurd roadmap (Phase D)       | 3 phases | Various   | ⏳ Future   |
-| Directory architecture         | 4 items  | 🟡 MEDIUM | ⏳ Ops      |
+| Directory architecture         | 4 items  | :yellow_circle: MEDIUM | ⏳ Ops      |
 
 ### Files by Status
 
@@ -244,7 +244,7 @@ implementation
 
 ### Immediate Actions (Week 1)
 
-1. **🔴 CRITICAL**: Decide on CI workflow validation test
+1. **:large_red_circle: CRITICAL**: Decide on CI workflow validation test
 
    - Option A: Implement `test_enhanced_pipeline_production.sh`
    - Option B: Remove placeholder step
@@ -262,12 +262,12 @@ implementation
    - Email/Slack alerts
    - Estimated effort: 8-12 hours
 
-2. **🟡 MEDIUM**: Database location consolidation
+2. **:yellow_circle: MEDIUM**: Database location consolidation
 
    - Move catalog DBs from /stage/ to /data/
    - Estimated effort: 6-8 hours
 
-3. **🟡 MEDIUM**: Implement data retention policy
+3. **:yellow_circle: MEDIUM**: Implement data retention policy
    - Automatic cleanup of old files
    - Estimated effort: 12-16 hours
 
@@ -278,12 +278,12 @@ implementation
    - Real-time task monitoring
    - Estimated effort: 25-30 hours
 
-2. **🟡 MEDIUM**: Distributed mosaic executor (Absurd Phase D2)
+2. **:yellow_circle: MEDIUM**: Distributed mosaic executor (Absurd Phase D2)
 
    - Parallel mosaic processing
    - Estimated effort: 16-20 hours
 
-3. **🟢 LOW**: Advanced workflow features (Absurd Phase D3)
+3. **:green_circle: LOW**: Advanced workflow features (Absurd Phase D3)
    - DAG dependencies, scheduling, templates
    - Estimated effort: 60-80 hours
 
@@ -298,15 +298,15 @@ implementation
 ```bash
 # Logging verification
 grep -n "logger = " backend/src/dsa110_contimg/api/routes.py
-# Result: Line 144, 236, 1415 ✅
+# Result: Line 144, 236, 1415 :white_heavy_check_mark:
 
 # Type hints verification
 grep "def.*-> Optional" backend/src/dsa110_contimg/conversion/strategies/hdf5_orchestrator.py
-# Result: Multiple functions with type hints ✅
+# Result: Multiple functions with type hints :white_heavy_check_mark:
 
 # Error handling verification
 grep "ValidationError\|error_context" backend/src/dsa110_contimg/api/job_adapters.py
-# Result: Proper exception handling ✅
+# Result: Proper exception handling :white_heavy_check_mark:
 ```
 
 ### Test Coverage Verification
@@ -314,18 +314,18 @@ grep "ValidationError\|error_context" backend/src/dsa110_contimg/api/job_adapter
 ```bash
 # Integration tests exist
 ls -la backend/tests/integration/absurd/test_absurd_e2e.py
-# Result: 12 comprehensive tests ✅
+# Result: 12 comprehensive tests :white_heavy_check_mark:
 
 # Empty test stubs
 grep "# TODO: Implement test" backend/tests/unit/api/*.py
-# Result: 3 empty test files ❌
+# Result: 3 empty test files :cross_mark:
 ```
 
 ---
 
 ## Conclusion
 
-### What's Working Well ✅
+### What's Working Well :white_heavy_check_mark:
 
 1. **Code quality**: Logging, type hints, error handling properly implemented
 2. **Core pipeline**: Conversion, calibration, imaging modules are
@@ -340,9 +340,9 @@ grep "# TODO: Implement test" backend/tests/unit/api/*.py
 3. **Operations**: Data retention and archiving workflows (medium priority)
 4. **Test coverage**: Empty API test stubs (low priority)
 
-### Overall Assessment 🎯
+### Overall Assessment :direct_hit:
 
-**Production Readiness**: ✅ **READY**
+**Production Readiness**: :white_heavy_check_mark: **READY**
 
 The DSA-110 continuum imaging pipeline is production-ready with mature code
 quality. Most archived TODOs have been addressed through implementation.
@@ -350,7 +350,7 @@ Remaining items are operational improvements and future enhancements rather than
 missing critical functionality.
 
 The pipeline successfully processes radio telescope observations through the
-complete data flow: UVH5 conversion → calibration → imaging → mosaicking, with
+complete data flow: UVH5 conversion :arrow_right: calibration :arrow_right: imaging :arrow_right: mosaicking, with
 robust task orchestration via the Absurd system.
 
 ---

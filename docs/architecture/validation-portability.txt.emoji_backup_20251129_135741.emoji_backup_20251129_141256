@@ -53,11 +53,11 @@ Portability Architecture
 Key Features
 ============
 
-✓ No hardcoded paths
-✓ Works from any working directory
-✓ Accepts explicit PROJECT_ROOT parameter
-✓ Auto-detects from script location
-✓ Backward compatible
+:check_mark: No hardcoded paths
+:check_mark: Works from any working directory
+:check_mark: Accepts explicit PROJECT_ROOT parameter
+:check_mark: Auto-detects from script location
+:check_mark: Backward compatible
 
 
 Usage Patterns

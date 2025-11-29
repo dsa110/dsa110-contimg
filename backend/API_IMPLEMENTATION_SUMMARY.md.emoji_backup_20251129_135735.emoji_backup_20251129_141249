@@ -156,55 +156,55 @@ Updated to include all routers:
 
 All endpoints tested and passing:
 
-- ✓ Health check
-- ✓ MS metadata and calibrator matches
-- ✓ Source detail
-- ✓ Job provenance and logs
-- ✓ QA endpoints (image, MS, job)
-- ✓ Calibration table detail
-- ✓ Error responses (404s) with proper envelopes
+- :check_mark: Health check
+- :check_mark: MS metadata and calibrator matches
+- :check_mark: Source detail
+- :check_mark: Job provenance and logs
+- :check_mark: QA endpoints (image, MS, job)
+- :check_mark: Calibration table detail
+- :check_mark: Error responses (404s) with proper envelopes
 
 ## Data Mapping
 
-### Database → Response Schema
+### Database :arrow_right: Response Schema
 
 **MS Metadata:**
 
 ```
-ms_index.path → MSDetailResponse.path
-ms_index.pointing_ra_deg → MSDetailResponse.pointing_ra_deg
-ms_index.pointing_dec_deg → MSDetailResponse.pointing_dec_deg
-ms_index.stage → MSDetailResponse.qa_grade (transformed)
-caltables.* → MSDetailResponse.calibrator_matches
+ms_index.path :arrow_right: MSDetailResponse.path
+ms_index.pointing_ra_deg :arrow_right: MSDetailResponse.pointing_ra_deg
+ms_index.pointing_dec_deg :arrow_right: MSDetailResponse.pointing_dec_deg
+ms_index.stage :arrow_right: MSDetailResponse.qa_grade (transformed)
+caltables.* :arrow_right: MSDetailResponse.calibrator_matches
 ```
 
 **Image Metadata:**
 
 ```
-images.id → ImageDetailResponse.id
-images.path → ImageDetailResponse.path
-images.center_ra_deg → ImageDetailResponse.pointing_ra_deg
-images.center_dec_deg → ImageDetailResponse.pointing_dec_deg
-images.noise_jy → QA summary calculation
-images.dynamic_range → QA summary calculation
+images.id :arrow_right: ImageDetailResponse.id
+images.path :arrow_right: ImageDetailResponse.path
+images.center_ra_deg :arrow_right: ImageDetailResponse.pointing_ra_deg
+images.center_dec_deg :arrow_right: ImageDetailResponse.pointing_dec_deg
+images.noise_jy :arrow_right: QA summary calculation
+images.dynamic_range :arrow_right: QA summary calculation
 ```
 
 **Source Data:**
 
 ```
-photometry.source_id → SourceDetailResponse.id
-photometry.ra_deg → SourceDetailResponse.ra_deg
-photometry.dec_deg → SourceDetailResponse.dec_deg
-photometry.image_path → ContributingImage.path
+photometry.source_id :arrow_right: SourceDetailResponse.id
+photometry.ra_deg :arrow_right: SourceDetailResponse.ra_deg
+photometry.dec_deg :arrow_right: SourceDetailResponse.dec_deg
+photometry.image_path :arrow_right: ContributingImage.path
 ```
 
 ## QA Grade Mapping
 
 Stage/status combinations mapped to QA grades:
 
-- `imaged`, `mosaicked`, `cataloged` → `"good"`
-- `calibrated` → `"warn"`
-- `discovered`, `null`, or other → `"fail"`
+- `imaged`, `mosaicked`, `cataloged` :arrow_right: `"good"`
+- `calibrated` :arrow_right: `"warn"`
+- `discovered`, `null`, or other :arrow_right: `"fail"`
 
 ## Notes
 

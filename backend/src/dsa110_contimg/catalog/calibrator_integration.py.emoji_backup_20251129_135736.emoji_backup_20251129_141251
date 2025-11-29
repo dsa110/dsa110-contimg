@@ -31,7 +31,7 @@ def select_bandpass_calibrator_fast(
     """Fast bandpass calibrator selection using registry.
 
     This is the main replacement for select_bandpass_from_catalog().
-    Expected speedup: 10× (30s → 3s per selection).
+    Expected speedup: 10× (30s :arrow_right: 3s per selection).
 
     Args:
         dec_deg: Target declination [degrees]

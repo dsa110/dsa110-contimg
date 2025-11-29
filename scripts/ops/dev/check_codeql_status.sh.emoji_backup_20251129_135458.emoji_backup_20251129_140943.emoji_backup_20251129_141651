@@ -1,0 +1,112 @@
+#!/bin/bash
+# Check CodeQL analysis status and compare results when complete
+
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$PROJECT_ROOT"
+
+export PATH="$HOME/codeql:$PATH"
+
+echo "=== CodeQL Analysis Status Check ==="
+echo ""
+
+# Check if analysis is running
+if pgrep -f "codeql.*analyze" > /dev/null; then
+    echo "Status: Analysis RUNNING"
+    echo ""
+    ps aux | grep "codeql.*analyze" | grep -v grep | head -2
+    echo ""
+    echo "Check progress: tail -f codeql-db-python/log/execute-queries-*.log"
+else
+    echo "Status: Analysis NOT running"
+fi
+
+echo ""
+
+# Check if results file exists
+if [ -f "codeql-results-fixed.sarif" ]; then
+    echo ":check_mark: Results file found: codeql-results-fixed.sarif"
+    echo ""
+    
+    # Compare results
+    python3 << 'PYTHON_SCRIPT'
+import json
+import sys
+
+try:
+    # Load both results
+    with open('codeql-results.sarif', 'r') as f:
+        old_data = json.load(f)
+    with open('codeql-results-fixed.sarif', 'r') as f:
+        new_data = json.load(f)
+
+    old_results = old_data['runs'][0]['results']
+    new_results = new_data['runs'][0]['results']
+
+    # Count path injection in src/ (excluding archive)
+    def count_path_injections(results):
+        return [r for r in results 
+            if r.get('ruleId') == 'py/path-injection' 
+            and 'src/' in r.get('locations', [{}])[0].get('physicalLocation', {}).get('artifactLocation', {}).get('uri', '')
+            and 'archive' not in r.get('locations', [{}])[0].get('physicalLocation', {}).get('artifactLocation', {}).get('uri', '')]
+
+    old_path = count_path_injections(old_results)
+    new_path = count_path_injections(new_results)
+
+    print('=' * 60)
+    print('CodeQL Analysis Comparison - Path Injection Issues')
+    print('=' * 60)
+    print('')
+    print(f'Before fixes: {len(old_path)} path injection issues in src/')
+    print(f'After fixes:  {len(new_path)} path injection issues in src/')
+    print('')
+    print(f'Reduction:    {len(old_path) - len(new_path)} issues fixed')
+    if len(old_path) > 0:
+        print(f'Improvement:  {((len(old_path) - len(new_path)) / len(old_path) * 100):.1f}% reduction')
+    print('')
+    print('Breakdown by file:')
+    print('-' * 60)
+
+    files_to_check = ['routes.py', 'visualization_routes.py', 'casa_ms_qa.py', 'qa/casa_ms_qa.py']
+    for file in files_to_check:
+        old_count = len([r for r in old_path if file in r.get('locations', [{}])[0].get('physicalLocation', {}).get('artifactLocation', {}).get('uri', '')])
+        new_count = len([r for r in new_path if file in r.get('locations', [{}])[0].get('physicalLocation', {}).get('artifactLocation', {}).get('uri', '')])
+        if old_count > 0 or new_count > 0:
+            fixed = old_count - new_count
+            status = ':check_mark:' if fixed > 0 else ':warning_sign:' if new_count == 0 else '○'
+            print(f'{status} {file:40s} {old_count:3d} → {new_count:3d} (fixed {fixed:3d})')
+
+    print('')
+    print('=' * 60)
+    
+    # Show remaining issues if any
+    if len(new_path) > 0:
+        print('')
+        print(f'Remaining issues: {len(new_path)}')
+        from collections import Counter
+        files = Counter([r.get('locations', [{}])[0].get('physicalLocation', {}).get('artifactLocation', {}).get('uri', '') for r in new_path])
+        print('Top files:')
+        for f, count in files.most_common(3):
+            print(f'  {f}: {count} issues')
+    
+    sys.exit(0)
+except FileNotFoundError as e:
+    print(f"Error: {e}")
+    sys.exit(1)
+except Exception as e:
+    print(f"Error comparing results: {e}")
+    import traceback
+    traceback.print_exc()
+    sys.exit(1)
+PYTHON_SCRIPT
+
+else
+    echo ":warning_sign: Results file not found yet"
+    echo ""
+    echo "Analysis may still be running. Check:"
+    echo "  ps aux | grep codeql"
+    echo "  tail -f codeql-db-python/log/execute-queries-*.log"
+fi
+

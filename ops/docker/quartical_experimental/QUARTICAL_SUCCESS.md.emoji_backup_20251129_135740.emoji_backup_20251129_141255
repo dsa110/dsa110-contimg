@@ -1,4 +1,4 @@
-# QuartiCal Installation - SUCCESS ✅
+# QuartiCal Installation - SUCCESS :white_heavy_check_mark:
 
 ## Status: INSTALLED AND WORKING
 
@@ -9,16 +9,16 @@ QuartiCal has been successfully installed in the Docker container!
 - **Version**: 0.2.5 (from PyPI)
 - **Python**: 3.10.13
 - **Method**: `pip install quartical`
-- **Status**: ✅ Installation completed successfully
-- **Import**: ✅ Module imports successfully
+- **Status**: :white_heavy_check_mark: Installation completed successfully
+- **Import**: :white_heavy_check_mark: Module imports successfully
 
 ## Key Dependencies Installed
 
-- ✅ `codex-africanus` 0.4.1 (instead of problematic sharedarray)
-- ✅ `dask` 2024.10.0 and `dask-ms` 0.2.23
-- ✅ `astro-tigger-lsm` 1.7.3 (for sky models)
-- ✅ `python-casacore` 3.7.1 (for MS I/O)
-- ✅ All other dependencies resolved
+- :white_heavy_check_mark: `codex-africanus` 0.4.1 (instead of problematic sharedarray)
+- :white_heavy_check_mark: `dask` 2024.10.0 and `dask-ms` 0.2.23
+- :white_heavy_check_mark: `astro-tigger-lsm` 1.7.3 (for sky models)
+- :white_heavy_check_mark: `python-casacore` 3.7.1 (for MS I/O)
+- :white_heavy_check_mark: All other dependencies resolved
 
 ## Known Issues
 
@@ -44,16 +44,16 @@ goquartical <config_file>
 
 ## Next Steps
 
-1. ✅ QuartiCal installed
-2. ⏭️ Create QuartiCal configuration for calibration
-3. ⏭️ Test QuartiCal on MS file
+1. :white_heavy_check_mark: QuartiCal installed
+2. ⏭:variation_selector-16: Create QuartiCal configuration for calibration
+3. ⏭:variation_selector-16: Test QuartiCal on MS file
    (`/scratch/ms/timesetv3/caltables/2025-10-29T13:54:17.cal.ms`)
-4. ⏭️ Compare results with CASA
+4. ⏭:variation_selector-16: Compare results with CASA
 
 ## Advantages Over CubiCal
 
-- ✅ No sharedarray dependency issues
-- ✅ Modern Python support (3.10-3.12)
-- ✅ Easier installation (`pip install quartical`)
-- ✅ More flexible Jones term combinations
-- ✅ Better documentation and active development
+- :white_heavy_check_mark: No sharedarray dependency issues
+- :white_heavy_check_mark: Modern Python support (3.10-3.12)
+- :white_heavy_check_mark: Easier installation (`pip install quartical`)
+- :white_heavy_check_mark: More flexible Jones term combinations
+- :white_heavy_check_mark: Better documentation and active development

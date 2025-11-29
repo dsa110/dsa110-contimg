@@ -79,11 +79,11 @@ def main(argv: list[str] | None = None) -> int:
             cache_dir=args.cache_dir,
         )
 
-        print(f"\n✓ FIRST SQLite database created: {output_path}")
+        print(f"\n:check_mark: FIRST SQLite database created: {output_path}")
         return 0
 
     except Exception as e:
-        print(f"\n✗ Error building FIRST database: {e}")
+        print(f"\n:ballot_x: Error building FIRST database: {e}")
         import traceback
 
         traceback.print_exc()

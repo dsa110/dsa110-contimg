@@ -1,6 +1,6 @@
 # Dashboard Quick Start Guide
 
-**Status:** ✅ Authoritative Reference  
+**Status:** :white_heavy_check_mark: Authoritative Reference  
 **Last Updated:** November 26, 2025
 
 This is the primary dashboard documentation for the DSA-110 Continuum Imaging
@@ -194,7 +194,7 @@ FITS image viewer and sky navigation (integration in progress):
 │  └───────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────┘
                              │
-                             ▼ HTTP/JSON (port 5173 → 8000)
+                             ▼ HTTP/JSON (port 5173 :arrow_right: 8000)
 ┌─────────────────────────────────────────────────────────────┐
 │                 FastAPI Backend (localhost:8000)             │
 │  ┌───────────────────────────────────────────────────────┐  │

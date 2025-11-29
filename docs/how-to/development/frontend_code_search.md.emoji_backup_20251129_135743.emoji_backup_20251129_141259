@@ -3,11 +3,11 @@
 **Date:** 2025-11-27  
 **Purpose:** Semantic search over frontend TypeScript/React code
 
-> **⚠️ Migration Note:** The frontend is being rewritten. The new `frontend/`
+> **:warning_sign::variation_selector-16: Migration Note:** The frontend is being rewritten. The new `frontend/`
 > contains a minimal scaffold. See `legacy.frontend/` for the full reference
 > implementation. API endpoint examples below reference `legacy.backend`.
 
-> **💡 Quick Start Guide:** For a simplified task-oriented guide, see
+> **:electric_light_bulb: Quick Start Guide:** For a simplified task-oriented guide, see
 > **[Frontend Code Search Guide](../../guides/code-search.md)**.  
 > This document provides comprehensive reference material for advanced usage and
 > troubleshooting.
@@ -562,9 +562,9 @@ from search import DocSearch
 Frontend code search enables semantic discovery of components, hooks, and API
 usage across the codebase:
 
-✅ **Index once, search anytime**: `python cli.py index-frontend`  
-✅ **Find components**: `python cli.py search-components "query"`  
-✅ **Find hooks**: `python cli.py search-hooks "query"`  
-✅ **Track API usage**: `python cli.py find-api "/api/status"`  
-✅ **Incremental updates**: Only changed files are re-indexed  
-✅ **Shared cache**: Minimizes OpenAI API costs
+:white_heavy_check_mark: **Index once, search anytime**: `python cli.py index-frontend`  
+:white_heavy_check_mark: **Find components**: `python cli.py search-components "query"`  
+:white_heavy_check_mark: **Find hooks**: `python cli.py search-hooks "query"`  
+:white_heavy_check_mark: **Track API usage**: `python cli.py find-api "/api/status"`  
+:white_heavy_check_mark: **Incremental updates**: Only changed files are re-indexed  
+:white_heavy_check_mark: **Shared cache**: Minimizes OpenAI API costs

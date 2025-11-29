@@ -16,9 +16,9 @@ Quick reference checklist for tracking TODO completion progress.
 
 ---
 
-## Phase 1: Critical Fixes (Target: Week 1-2) ✅ COMPLETE
+## Phase 1: Critical Fixes (Target: Week 1-2) :white_heavy_check_mark: COMPLETE
 
-### 1.1 CI/CD Workflow Cleanup 🔴 ✅
+### 1.1 CI/CD Workflow Cleanup :large_red_circle: :white_heavy_check_mark:
 
 - [x] Decision made: Remove validation test placeholder
 - [x] Clean up workflow file (replaced with environment verification)
@@ -29,7 +29,7 @@ Quick reference checklist for tracking TODO completion progress.
 **Owner**: DevOps  
 **Completed**: 2025-11-27
 
-### 1.2 Archive CODE_QUALITY_IMPROVEMENTS_GUIDE.md 🟠 ✅
+### 1.2 Archive CODE_QUALITY_IMPROVEMENTS_GUIDE.md 🟠 :white_heavy_check_mark:
 
 - [x] Verify completion status (DONE)
 - [x] Add completion summary to document header
@@ -59,7 +59,7 @@ Quick reference checklist for tracking TODO completion progress.
 **Effort**: 8-12 hours  
 **Owner**: Operations
 
-### 2.2 Database Location Consolidation 🟡
+### 2.2 Database Location Consolidation :yellow_circle:
 
 - [ ] Audit all database locations
 - [ ] Plan migration strategy
@@ -73,7 +73,7 @@ Quick reference checklist for tracking TODO completion progress.
 **Effort**: 6-8 hours  
 **Owner**: DevOps
 
-### 2.3 Data Retention Policy Implementation 🟡
+### 2.3 Data Retention Policy Implementation :yellow_circle:
 
 - [ ] Define retention policy (days per type)
 - [ ] Create `scripts/ops/cleanup_old_data.sh`
@@ -87,7 +87,7 @@ Quick reference checklist for tracking TODO completion progress.
 **Effort**: 12-16 hours  
 **Owner**: Pipeline + Ops
 
-### 2.4 Archive Mechanism for Cold Storage 🟡
+### 2.4 Archive Mechanism for Cold Storage :yellow_circle:
 
 - [ ] Define archive strategy
 - [ ] Create `scripts/ops/archive_to_cold_storage.sh`
@@ -105,7 +105,7 @@ Quick reference checklist for tracking TODO completion progress.
 
 ## Phase 3: Test Coverage & Quality (Target: Week 5-6)
 
-### 3.1 Implement Empty API Test Stubs 🟢
+### 3.1 Implement Empty API Test Stubs :green_circle:
 
 - [ ] Review API endpoint behavior
 - [ ] Implement `test_api_hook_success_test.py`
@@ -117,7 +117,7 @@ Quick reference checklist for tracking TODO completion progress.
 **Effort**: 8-12 hours  
 **Owner**: Backend developer
 
-### 3.2 Logging Consistency Audit (Remaining Files) 🟢
+### 3.2 Logging Consistency Audit (Remaining Files) :green_circle:
 
 - [ ] Generate list of Python files
 - [ ] Run audit script
@@ -207,7 +207,7 @@ Quick reference checklist for tracking TODO completion progress.
 **Effort**: 4-5 hours  
 **Owner**: Frontend team
 
-### 4.2 Distributed Mosaic Executor 🟡
+### 4.2 Distributed Mosaic Executor :yellow_circle:
 
 #### 4.2.1 Create Mosaic Task Adapter
 
@@ -254,7 +254,7 @@ Quick reference checklist for tracking TODO completion progress.
 **Effort**: 2-4 hours  
 **Owner**: Pipeline engineer
 
-### 4.3 Advanced Workflow Features 🟢
+### 4.3 Advanced Workflow Features :green_circle:
 
 #### 4.3.1 DAG-based Dependencies
 
@@ -334,7 +334,7 @@ Quick reference checklist for tracking TODO completion progress.
 
 ## Phase 5: Documentation & Polish (Target: Week 13)
 
-### 5.1 Complete Absurd Documentation 🟢
+### 5.1 Complete Absurd Documentation :green_circle:
 
 - [ ] Write calibrator registration guide
 - [ ] Write performance tuning guide
@@ -346,7 +346,7 @@ Quick reference checklist for tracking TODO completion progress.
 **Effort**: 8-12 hours  
 **Owner**: Technical writer + Engineer
 
-### 5.2 Update System Architecture Diagrams 🟢
+### 5.2 Update System Architecture Diagrams :green_circle:
 
 - [ ] Update DIRECTORY_ARCHITECTURE.md
 - [ ] Create data flow diagrams
@@ -394,14 +394,14 @@ pytest backend/tests/unit/api/ --cov=backend/src/dsa110_contimg/api
 
 # Run logging audit
 find backend/src/dsa110_contimg -name "*.py" -type f | \
-  while read f; do grep -q "logger = \|logger=" "$f" || echo "❌ $f"; done
+  while read f; do grep -q "logger = \|logger=" "$f" || echo ":cross_mark: $f"; done
 ```
 
 ---
 
 ## Notes
 
-- Priority: 🔴 Critical, 🟠 High, 🟡 Medium, 🟢 Low
+- Priority: :large_red_circle: Critical, 🟠 High, :yellow_circle: Medium, :green_circle: Low
 - Update "Last Updated" date when making changes
 - Mark items complete with [x] when finished
 - Add completion dates in comments for tracking

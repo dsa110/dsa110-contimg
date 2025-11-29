@@ -47,12 +47,12 @@ STAGED_PYTHON_FILES=$(echo "$STAGED_FILES_EARLY" | grep -E "\.(py)$" || true)
 if [ -n "$STAGED_PYTHON_FILES" ]; then
   # Python files are staged - Python environment is CRITICAL
   if [ -z "$CURRENT_PYTHON" ]; then
-    echo "❌ ERROR: Python not found in PATH" >&2
+    echo ":cross_mark: ERROR: Python not found in PATH" >&2
     echo "  Python files are staged, but Python is not available" >&2
     echo "  Fix: conda activate casa6" >&2
     exit 1
   elif [ "$CURRENT_PYTHON" != "$CASA6_PYTHON" ]; then
-    echo "❌ ERROR: Using wrong Python environment for Python files" >&2
+    echo ":cross_mark: ERROR: Using wrong Python environment for Python files" >&2
     echo "  Current: $CURRENT_PYTHON" >&2
     echo "  Required: $CASA6_PYTHON" >&2
     echo "  Fix: conda activate casa6" >&2
@@ -70,7 +70,7 @@ fi
 # Exclude README.md, CHANGELOG.md, and LICENSE.md (consistent with .githooks/pre-commit)
 STAGED_MARKDOWN_IN_ROOT=$(echo "$STAGED_FILES_EARLY" | grep -E "^[^/]+\.md$" | grep -v "^README\.md$" | grep -v "^CHANGELOG\.md$" | grep -v "^LICENSE\.md$" || true)
 if [ -n "$STAGED_MARKDOWN_IN_ROOT" ]; then
-  echo "❌ ERROR: Cannot commit markdown files in root directory" >&2
+  echo ":cross_mark: ERROR: Cannot commit markdown files in root directory" >&2
   echo "  Documentation must be in docs/ structure" >&2
   echo "  See: docs/DOCUMENTATION_QUICK_REFERENCE.md" >&2
   echo "" >&2
@@ -99,7 +99,7 @@ fi
 # Check for .env files being committed (FAIL - security risk)
 STAGED_ENV_FILES=$(echo "$STAGED_FILES_EARLY" | grep -E "\.env$|\.env\.[^/]+$" | grep -v "\.env\.example$" || true)
 if [ -n "$STAGED_ENV_FILES" ]; then
-  echo "❌ ERROR: Cannot commit .env files (security risk)" >&2
+  echo ":cross_mark: ERROR: Cannot commit .env files (security risk)" >&2
   echo "  .env files may contain secrets and must not be committed" >&2
   echo "" >&2
   echo "  Files to unstage:" >&2
@@ -121,7 +121,7 @@ STAGED_LARGE_FILES=$(echo "$STAGED_FILES_EARLY" | while read -r file; do
   fi
 done)
 if [ -n "$STAGED_LARGE_FILES" ]; then
-  echo "❌ ERROR: Cannot commit files larger than 10MB" >&2
+  echo ":cross_mark: ERROR: Cannot commit files larger than 10MB" >&2
   echo "  Large files should use Git LFS or be excluded" >&2
   echo "" >&2
   echo "  Large files:" >&2
@@ -147,7 +147,7 @@ STAGED_SECRET_PATTERNS=$(echo "$STAGED_FILES_EARLY" | while read -r file; do
   fi
 done)
 if [ -n "$STAGED_SECRET_PATTERNS" ]; then
-  echo "❌ ERROR: Potential hardcoded secrets detected" >&2
+  echo ":cross_mark: ERROR: Potential hardcoded secrets detected" >&2
   echo "  Secrets must not be committed to the repository" >&2
   echo "" >&2
   echo "  Files with potential secrets:" >&2
@@ -182,7 +182,7 @@ if [ -f "${REPO_ROOT}/scripts/lib/anti-pattern-detection.sh" ]; then
     echo "Checking commit message for anti-patterns..."
     if ! detect_process_anti_patterns "$COMMIT_MSG"; then
       echo ""
-      echo "❌ Anti-pattern detected in commit message!"
+      echo ":cross_mark: Anti-pattern detected in commit message!"
       echo ""
       echo "Please revise your commit message to avoid dismissive or rationalizing language."
       echo "Examples to avoid: 'doesn't matter', 'edge case', 'works in practice', etc."
@@ -241,7 +241,7 @@ else
         cd "${FRONTEND_DIR}" || exit 1
         if ! echo "$STAGED_FRONTEND_FILES" | sed 's|^frontend/||' | xargs -r npx prettier --check; then
           echo "" >&2
-          echo "❌ Prettier formatting check failed for frontend files!" >&2
+          echo ":cross_mark: Prettier formatting check failed for frontend files!" >&2
           echo "Please run: cd frontend && npx prettier --write 'src/**/*.{js,jsx,ts,tsx,json,css,scss,less,html,md,graphql,vue}'" >&2
           exit 1
         fi
@@ -268,7 +268,7 @@ else
     # Check formatting (fail if files still need formatting)
     if ! echo "$STAGED_ROOT_FILES" | xargs -r npx prettier --check; then
       echo "" >&2
-      echo "❌ Prettier formatting check failed for root files!" >&2
+      echo ":cross_mark: Prettier formatting check failed for root files!" >&2
       echo "Please run: npx prettier --write '*.{js,json,yaml,yml,md}'" >&2
       exit 1
     fi

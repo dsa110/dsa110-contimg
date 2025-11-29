@@ -63,7 +63,7 @@ CONTIMG_SCRATCH_DIR=/stage/dsa110-contimg
    `/stage/dsa110-contimg/`
 2. **Separate fast from slow**: Hot data on `/stage/` (fast SSD),
    cold/persistent on `/data/` or archive
-3. **Clear lifecycle**: Incoming → Processing → Archive → Purge
+3. **Clear lifecycle**: Incoming :arrow_right: Processing :arrow_right: Archive :arrow_right: Purge
 4. **Predictable paths**: Standard naming conventions for automated discovery
 5. **Production-ready**: Support 24/7 streaming operations with minimal human
    intervention
@@ -235,7 +235,7 @@ retention policies can be re-evaluated.
 **Future Archive Strategy:**
 
 - Primary: Copy to `/data/` (details TBD)
-- Compress images: FITS → FITS.fz (rice compression, ~50% reduction)
+- Compress images: FITS :arrow_right: FITS.fz (rice compression, ~50% reduction)
 - Tar mosaics: `.tar.gz` of related products
 - Keep database entries for discoverability
 - External backup (cloud/tape) TBD
@@ -268,7 +268,7 @@ retention policies can be re-evaluated.
 
 ---
 
-## Migration Plan (Current → Recommended)
+## Migration Plan (Current :arrow_right: Recommended)
 
 ### Phase 1: Align Configuration with Reality
 
@@ -440,14 +440,14 @@ incoming_file_count = Gauge('contimg_incoming_file_count', 'Files in incoming/')
 ## Current Issues to Address
 
 1. **State databases in wrong location**: Move from `/stage/` to `/data/` (TODO)
-2. **Flat directory structure**: ✅ COMPLETED - Organized MS files by date and
+2. **Flat directory structure**: :white_heavy_check_mark: COMPLETED - Organized MS files by date and
    type (`calibrators/`, `science/`, `failed/`)
 3. **No retention policy**: Implement automatic cleanup (TODO)
 4. **Config path mismatch**: Align environment variables with reality (TODO)
-5. **Missing directories**: ✅ COMPLETED - Created `science/`, `calibrators/`,
+5. **Missing directories**: :white_heavy_check_mark: COMPLETED - Created `science/`, `calibrators/`,
    `failed/` structure
 6. **No archive mechanism**: Set up tape/cold storage workflow (TODO)
-7. **Storage location registration**: ✅ COMPLETED - Base directories registered
+7. **Storage location registration**: :white_heavy_check_mark: COMPLETED - Base directories registered
    in `storage_locations` table, individual paths tracked in `ms_index` and
    `cal_registry`
 
@@ -593,12 +593,12 @@ The pipeline maintains a two-level registry system for tracking file locations:
 
 Tracks where different file types are stored:
 
-- `ms_files` → `/stage/dsa110-contimg/ms/`
-- `calibration_tables` → `/stage/dsa110-contimg/ms/calibrators/`
-- `science_ms` → `/stage/dsa110-contimg/ms/science/`
-- `failed_ms` → `/stage/dsa110-contimg/ms/failed/`
-- `images` → `/stage/dsa110-contimg/images/`
-- `mosaics` → `/stage/dsa110-contimg/mosaics/`
+- `ms_files` :arrow_right: `/stage/dsa110-contimg/ms/`
+- `calibration_tables` :arrow_right: `/stage/dsa110-contimg/ms/calibrators/`
+- `science_ms` :arrow_right: `/stage/dsa110-contimg/ms/science/`
+- `failed_ms` :arrow_right: `/stage/dsa110-contimg/ms/failed/`
+- `images` :arrow_right: `/stage/dsa110-contimg/images/`
+- `mosaics` :arrow_right: `/stage/dsa110-contimg/mosaics/`
 
 Registered automatically when `StreamingMosaicManager` initializes.
 

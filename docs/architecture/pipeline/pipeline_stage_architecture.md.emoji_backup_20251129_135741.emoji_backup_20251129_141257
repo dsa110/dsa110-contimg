@@ -13,7 +13,7 @@
 | #   | Stage                       | Line | Purpose                                       | Inputs                                 | Outputs                |
 | --- | --------------------------- | ---- | --------------------------------------------- | -------------------------------------- | ---------------------- |
 | 1   | **CatalogSetupStage**       | 39   | Build NVSS/FIRST/RAX catalogs for declination | `input_path`                           | `catalog_setup_status` |
-| 2   | **ConversionStage**         | 383  | Convert UVH5 → Measurement Set                | `input_path`, `start_time`, `end_time` | `ms_path`              |
+| 2   | **ConversionStage**         | 383  | Convert UVH5 :arrow_right: Measurement Set                | `input_path`, `start_time`, `end_time` | `ms_path`              |
 | 3   | **CalibrationSolveStage**   | 673  | Solve calibration tables (K, BP, G)           | `ms_path`                              | `calibration_tables`   |
 | 4   | **CalibrationStage**        | 1351 | Apply calibration solutions to MS             | `ms_path`, `calibration_tables`        | `ms_path` (calibrated) |
 | 5   | **ImagingStage**            | 1746 | Create continuum images via tclean            | `ms_path`                              | `image_path`           |
@@ -31,9 +31,9 @@
 
 | Workflow             | Stages                                                                                 | Use Case                         |
 | -------------------- | -------------------------------------------------------------------------------------- | -------------------------------- |
-| **standard_imaging** | CatalogSetup → Conversion → CalibrationSolve → CalibrationApply → Imaging [+ optional] | Full end-to-end processing       |
-| **quicklook**        | CatalogSetup → Conversion → Imaging                                                    | Fast preview without calibration |
-| **reprocessing**     | CatalogSetup → Calibration → Imaging                                                   | Re-process existing MS           |
+| **standard_imaging** | CatalogSetup :arrow_right: Conversion :arrow_right: CalibrationSolve :arrow_right: CalibrationApply :arrow_right: Imaging [+ optional] | Full end-to-end processing       |
+| **quicklook**        | CatalogSetup :arrow_right: Conversion :arrow_right: Imaging                                                    | Fast preview without calibration |
+| **reprocessing**     | CatalogSetup :arrow_right: Calibration :arrow_right: Imaging                                                   | Re-process existing MS           |
 | **streaming**        | Full pipeline with TransientDetection                                                  | Real-time ingest with alerts     |
 
 > **Source:** `backend/src/dsa110_contimg/pipeline/workflows.py`
@@ -320,9 +320,9 @@ class PipelineContext:
 **Responsibilities:**
 
 - Move MS files to organized locations:
-  - Calibrators → `ms/calibrators/YYYY-MM-DD/`
-  - Science → `ms/science/YYYY-MM-DD/`
-  - Failed → `ms/failed/YYYY-MM-DD/`
+  - Calibrators :arrow_right: `ms/calibrators/YYYY-MM-DD/`
+  - Science :arrow_right: `ms/science/YYYY-MM-DD/`
+  - Failed :arrow_right: `ms/failed/YYYY-MM-DD/`
 - Update database paths
 - Atomic moves (prevents partial states)
 
@@ -542,29 +542,29 @@ def _topological_sort(self) -> List[str]:
 
 ```
 CatalogSetupStage (no deps)
-    ↓
+    :arrow_down:
 ConversionStage (no deps)
-    ↓
+    :arrow_down:
 CalibrationSolveStage (depends on ConversionStage)
-    ↓
+    :arrow_down:
 CalibrationStage (depends on ConversionStage, CalibrationSolveStage)
-    ↓
+    :arrow_down:
 ImagingStage (depends on CalibrationStage)
-    ↓
+    :arrow_down:
     ├── OrganizationStage (depends on ConversionStage)
     ├── ValidationStage (depends on ImagingStage)
     ├── CrossMatchStage (depends on ImagingStage)
     └── MosaicStage (depends on ImagingStage)
-            ↓
+            :arrow_down:
         AdaptivePhotometryStage (depends on MosaicStage or ImagingStage)
-            ↓
+            :arrow_down:
         LightCurveStage (depends on AdaptivePhotometryStage, MosaicStage)
 ```
 
 **Complete Streaming Workflow:**
 
 ```
-HDF5 → MS → Calibration → Imaging → Mosaic → Photometry → Light Curves
+HDF5 :arrow_right: MS :arrow_right: Calibration :arrow_right: Imaging :arrow_right: Mosaic :arrow_right: Photometry :arrow_right: Light Curves
 ```
 
 ---
@@ -595,7 +595,7 @@ result = await workflow.execute(context)
 | Stage                 | Timeout | Description                                    |
 | --------------------- | ------- | ---------------------------------------------- |
 | `catalog_setup`       | 5 min   | Initialize calibrator catalog                  |
-| `conversion`          | 30 min  | UVH5 → Measurement Set                         |
+| `conversion`          | 30 min  | UVH5 :arrow_right: Measurement Set                         |
 | `calibration_solve`   | 15 min  | Solve delay, bandpass, gain tables             |
 | `calibration_apply`   | 10 min  | Apply calibration to MS                        |
 | `imaging`             | 30 min  | WSClean imaging                                |
@@ -625,25 +625,25 @@ config = PipelineConfig(
 
 ```
 catalog_setup
-     ↓
+     :arrow_down:
 conversion
-     ↓
+     :arrow_down:
 calibration_solve
-     ↓
+     :arrow_down:
 calibration_apply
-     ↓
+     :arrow_down:
 imaging
-     ↓
+     :arrow_down:
      ├── mosaic (if enabled)
-     │      ↓
+     │      :arrow_down:
      │      └─┬── validation (if enabled)
      │        │
      │        └── crossmatch (depends on validation if enabled)
      │
      └── adaptive_photometry (if enabled)
-            ↓
+            :arrow_down:
          light_curve (if enabled, requires photometry + mosaic)
-            ↓
+            :arrow_down:
          transient_detection (if enabled)
 ```
 
@@ -659,9 +659,9 @@ All stages use exponential backoff retry:
 
 | Workflow                      | Description                                    |
 | ----------------------------- | ---------------------------------------------- |
-| `standard_imaging_workflow()` | Convert → Calibrate → Image (production)       |
-| `quicklook_workflow()`        | Convert → Image (no calibration, fast preview) |
-| `reprocessing_workflow()`     | Calibrate → Image (MS already exists)          |
+| `standard_imaging_workflow()` | Convert :arrow_right: Calibrate :arrow_right: Image (production)       |
+| `quicklook_workflow()`        | Convert :arrow_right: Image (no calibration, fast preview) |
+| `reprocessing_workflow()`     | Calibrate :arrow_right: Image (MS already exists)          |
 
 ---
 

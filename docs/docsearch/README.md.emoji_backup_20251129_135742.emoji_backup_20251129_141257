@@ -217,11 +217,11 @@ for c in chunks:
 DocSearch now supports indexing TypeScript/React code for semantic search over
 components, hooks, and API clients.
 
-> **💡 Quick Start:** See
+> **:electric_light_bulb: Quick Start:** See
 > **[Frontend Code Search Guide](../guides/code-search.md)** for a simple
 > task-oriented introduction.
 >
-> **📖 Detailed Reference:** See
+> **:open_book: Detailed Reference:** See
 > [Complete Frontend Code Search Guide](../how-to/development/frontend_code_search.md)
 > for comprehensive documentation.
 
@@ -320,7 +320,7 @@ for r in results:
 
 **Initial indexing:**
 
-- ~2-5 minutes for full frontend (~87 files → ~500 chunks)
+- ~2-5 minutes for full frontend (~87 files :arrow_right: ~500 chunks)
 - Depends on: HDD I/O speed + OpenAI API latency
 
 **Incremental re-indexing:**

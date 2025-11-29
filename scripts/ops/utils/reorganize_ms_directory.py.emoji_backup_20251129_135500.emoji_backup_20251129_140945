@@ -3,9 +3,9 @@
 Reorganize MS directory structure to match pipeline conventions.
 
 Moves files from flat structure to organized date-based subdirectories:
-- MS files → ms/calibrators/YYYY-MM-DD/ or ms/science/YYYY-MM-DD/
-- Calibration tables → ms/calibrators/YYYY-MM-DD/ (alongside MS)
-- Image FITS files → images/ (should not be in ms/)
+- MS files :arrow_right: ms/calibrators/YYYY-MM-DD/ or ms/science/YYYY-MM-DD/
+- Calibration tables :arrow_right: ms/calibrators/YYYY-MM-DD/ (alongside MS)
+- Image FITS files :arrow_right: images/ (should not be in ms/)
 - Updates database paths
 
 Usage:
@@ -110,13 +110,13 @@ def move_file_safely(src: Path, dst: Path, dry_run: bool = False) -> bool:
         return False
     
     if dry_run:
-        print(f"  [DRY RUN] Would move: {src} → {dst}")
+        print(f"  [DRY RUN] Would move: {src} :arrow_right: {dst}")
         return True
     
     try:
         dst.parent.mkdir(parents=True, exist_ok=True)
         shutil.move(str(src), str(dst))
-        print(f"  Moved: {src.name} → {dst}")
+        print(f"  Moved: {src.name} :arrow_right: {dst}")
         return True
     except Exception as e:
         print(f"  ERROR: Failed to move {src}: {e}")
@@ -131,7 +131,7 @@ def update_database_paths(
 ) -> None:
     """Update MS paths in products database."""
     if dry_run:
-        print(f"  [DRY RUN] Would update database: {old_path} → {new_path}")
+        print(f"  [DRY RUN] Would update database: {old_path} :arrow_right: {new_path}")
         return
     
     try:
@@ -165,7 +165,7 @@ def update_cal_registry_paths(
 ) -> None:
     """Update calibration table paths in registry database."""
     if dry_run:
-        print(f"  [DRY RUN] Would update cal registry: {old_path} → {new_path}")
+        print(f"  [DRY RUN] Would update cal registry: {old_path} :arrow_right: {new_path}")
         return
     
     try:

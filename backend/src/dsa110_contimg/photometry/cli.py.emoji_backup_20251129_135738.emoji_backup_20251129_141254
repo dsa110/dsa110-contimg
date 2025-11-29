@@ -524,7 +524,7 @@ def cmd_plot(args: argparse.Namespace) -> int:
     )
     img = np.clip(data, lo, hi)
 
-    # Compute FoV outline directly in pixel space to avoid spherical → WCS distortions
+    # Compute FoV outline directly in pixel space to avoid spherical :arrow_right: WCS distortions
     nx = hdr.get("NAXIS1", 0)
     ny = hdr.get("NAXIS2", 0)
     cx = (nx - 1) / 2.0

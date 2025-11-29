@@ -1,6 +1,6 @@
 # Final Status Report
 
-## ✅ Successfully Completed
+## :white_heavy_check_mark: Successfully Completed
 
 ### 1. TIME Conversion Bug Fix
 
@@ -8,7 +8,7 @@
   `detect_casa_time_format()`
 - **Fixed**: `api/routes.py` uses `extract_ms_time_range()`
 - **Fixed**: `test_utils.py` handles both TIME formats
-- **Impact**: Phase centers now calculated correctly (RA: ~170° → ~128°)
+- **Impact**: Phase centers now calculated correctly (RA: ~170° :arrow_right: ~128°)
 
 ### 2. Phase Center Correction
 
@@ -23,7 +23,7 @@
 - **Packages**: NumPy, Astropy, SciPy, CuPy, python-casacore all working
 - **Status**: Ready for use (once CubiCal is installed)
 
-## ⚠️ Current Blocker
+## :warning_sign::variation_selector-16: Current Blocker
 
 ### CubiCal Installation
 
@@ -40,7 +40,7 @@
 3. Fixing sharedarray setup.py - Broke syntax
 4. Older CubiCal version - Version doesn't exist
 
-## 🎯 Recommended Next Steps
+## :direct_hit: Recommended Next Steps
 
 ### Option 1: Rebuild with Python 3.10 (Recommended)
 
@@ -68,13 +68,13 @@
 
 **What Works**:
 
-- ✓ TIME conversion fixes
-- ✓ Phase center corrections
-- ✓ Docker environment
-- ✓ All core packages
+- :check_mark: TIME conversion fixes
+- :check_mark: Phase center corrections
+- :check_mark: Docker environment
+- :check_mark: All core packages
 
 **What's Blocked**:
 
-- ✗ CubiCal installation (sharedarray/Python 3.11 issue)
+- :ballot_x: CubiCal installation (sharedarray/Python 3.11 issue)
 
 **Recommendation**: Try Python 3.10 rebuild, or proceed with CPU optimizations

@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useEffect } from "react";
-import FitsViewer from "./FitsViewer";
+// TODO: FitsViewerProps will be used for typed prop spreading in grid cells
+// eslint-disable-next-line unused-imports/no-unused-imports
+import FitsViewer, { FitsViewerProps } from "./FitsViewer";
 
 export interface FitsViewerGridProps {
   /** Array of FITS URLs to display */

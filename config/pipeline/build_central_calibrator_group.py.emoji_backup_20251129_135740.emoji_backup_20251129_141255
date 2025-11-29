@@ -241,7 +241,7 @@ def main() -> int:
     print(f'Using outrigger refant chain: {refant}')
     
     prefix = os.fspath(ms_out.with_suffix('')) + '_all'
-    # Flagging: reset → zero-amplitude → RFI (tfcrop + rflag)
+    # Flagging: reset :arrow_right: zero-amplitude :arrow_right: RFI (tfcrop + rflag)
     try:
         print('Flagging: reset flags ...')
         qa_flag.reset_flags(os.fspath(ms_out))

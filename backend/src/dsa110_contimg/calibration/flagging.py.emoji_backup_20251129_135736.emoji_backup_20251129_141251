@@ -364,7 +364,7 @@ def flag_rfi_aoflagger(
     logger.info(f"Running AOFlagger: {' '.join(cmd)}")
     try:
         subprocess.run(cmd, check=True, capture_output=False)
-        logger.info("✓ AOFlagger RFI flagging complete")
+        logger.info(":check_mark: AOFlagger RFI flagging complete")
     except subprocess.CalledProcessError as e:
         logger.error(f"AOFlagger failed with exit code {e.returncode}")
         raise
@@ -850,7 +850,7 @@ def flag_problematic_channels(
             datacolumn=datacolumn,
             flagbackup=False,
         )
-        logger.info(f"✓ Flagged {total_channels} problematic channel(s) before calibration")
+        logger.info(f":check_mark: Flagged {total_channels} problematic channel(s) before calibration")
     except Exception as e:
         logger.error(f"Failed to flag problematic channels: {e}")
         raise RuntimeError(f"Channel flagging failed: {e}") from e

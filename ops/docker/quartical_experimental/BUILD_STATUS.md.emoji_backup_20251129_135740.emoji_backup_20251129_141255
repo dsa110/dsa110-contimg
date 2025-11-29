@@ -6,18 +6,18 @@
 
 ### What Works:
 
-- ✓ Ubuntu 20.04 base image
-- ✓ Miniconda installation
-- ✓ Python 3.9 environment
-- ✓ CUDA toolkit 11.1
-- ✓ CuPy (GPU NumPy) installed
-- ✓ NumPy, SciPy, Astropy installed
-- ✓ Volume mounting works
-- ✓ GPU access available
+- :check_mark: Ubuntu 20.04 base image
+- :check_mark: Miniconda installation
+- :check_mark: Python 3.9 environment
+- :check_mark: CUDA toolkit 11.1
+- :check_mark: CuPy (GPU NumPy) installed
+- :check_mark: NumPy, SciPy, Astropy installed
+- :check_mark: Volume mounting works
+- :check_mark: GPU access available
 
 ### What Needs Work:
 
-- ✗ CubiCal installation failed (complex dependency issue)
+- :ballot_x: CubiCal installation failed (complex dependency issue)
   - Issue: `sharedarray` dependency build failure
   - This is a known issue with CubiCal's dependencies
   - May need to install dependencies manually or use different approach

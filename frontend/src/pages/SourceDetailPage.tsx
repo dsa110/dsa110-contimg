@@ -2,7 +2,9 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import ProvenanceStrip from "../components/provenance/ProvenanceStrip";
 import ErrorDisplay from "../components/errors/ErrorDisplay";
-import { Card, CoordinateDisplay, LoadingSpinner } from "../components/common";
+// TODO: QAMetrics will be used for source quality assessment display
+// eslint-disable-next-line unused-imports/no-unused-imports
+import { Card, CoordinateDisplay, LoadingSpinner, QAMetrics } from "../components/common";
 import { AladinLiteViewer, LightCurveChart } from "../components/widgets";
 import { CatalogOverlayPanel } from "../components/catalogs";
 import { NearbyObjectsPanel, NearbyObject } from "../components/crossmatch";

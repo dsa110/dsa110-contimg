@@ -1,6 +1,6 @@
 # Streaming Service API Reference
 
-> **⚠️ Migration Note:** These endpoints are implemented in `legacy.backend` and
+> **:warning_sign::variation_selector-16: Migration Note:** These endpoints are implemented in `legacy.backend` and
 > serve as the specification for the new `backend` implementation. See
 > `legacy.backend/src/dsa110_contimg/api/routes.py` for the reference
 > implementation.

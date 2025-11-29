@@ -69,7 +69,7 @@ def _verify_corrected_data_populated(ms_path: str, min_fraction: float = 0.01) -
                 )
 
             print(
-                f"✓ Verified CORRECTED_DATA populated: {nonzero_fraction * 100:.1f}% "
+                f":check_mark: Verified CORRECTED_DATA populated: {nonzero_fraction * 100:.1f}% "
                 f"non-zero ({nonzero_count}/{len(unflagged)} unflagged samples)"
             )
     except RuntimeError:
@@ -113,7 +113,7 @@ def apply_to_target(
     for gaintable in gaintables:
         if "NON_SCIENCE" in gaintable:
             raise ValueError(
-                f"⚠️  STRICT SEPARATION VIOLATION: Attempting to apply NON_SCIENCE calibration table '{gaintable}' to production data.\n"
+                f":warning_sign::variation_selector-16:  STRICT SEPARATION VIOLATION: Attempting to apply NON_SCIENCE calibration table '{gaintable}' to production data.\n"
                 f"   NON_SCIENCE tables (prefixed with 'NON_SCIENCE_*') are created by development tier calibration.\n"
                 f"   These tables CANNOT be applied to production/science data due to time-channel binning mismatches.\n"
                 f"   Use standard or high_precision tier calibration for production data."

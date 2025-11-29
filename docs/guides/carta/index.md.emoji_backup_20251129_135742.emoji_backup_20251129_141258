@@ -1,7 +1,7 @@
 # CARTA Integration Guide
 
 **Last Updated:** November 29, 2025  
-**Status:** ✅ Production Ready
+**Status:** :white_heavy_check_mark: Production Ready
 
 CARTA (Cube Analysis and Rendering Tool for Astronomy) provides interactive
 visualization of FITS images with advanced analysis capabilities. This guide
@@ -33,10 +33,10 @@ CARTA integration is available in two modes:
 
 | Component             | Status     | URL                           |
 | --------------------- | ---------- | ----------------------------- |
-| CARTA Container       | ✅ Running | `carta-backend`               |
+| CARTA Container       | :white_heavy_check_mark: Running | `carta-backend`               |
 | CARTA Version         | 5.0.3      | -                             |
 | Backend Port          | 9002       | `http://localhost:9002/`      |
-| Dashboard Integration | ✅ Active  | `http://localhost:3210/carta` |
+| Dashboard Integration | :white_heavy_check_mark: Active  | `http://localhost:3210/carta` |
 
 ---
 
@@ -44,7 +44,7 @@ CARTA integration is available in two modes:
 
 ### 1. Main Navigation Menu
 
-- **Location:** Top navigation bar → "CARTA"
+- **Location:** Top navigation bar :arrow_right: "CARTA"
 - **Route:** `/carta`
 - **Features:** Full integration page, mode toggle, file browser
 
@@ -61,8 +61,8 @@ CARTA integration is available in two modes:
 
 ### 4. Data Browser
 
-- **Location:** `/data` → select image → "View in CARTA"
-- **Route:** `/data` → `/images/:imageId` → `/carta?file=<path>`
+- **Location:** `/data` :arrow_right: select image :arrow_right: "View in CARTA"
+- **Route:** `/data` :arrow_right: `/images/:imageId` :arrow_right: `/carta?file=<path>`
 
 ---
 

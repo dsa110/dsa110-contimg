@@ -2,7 +2,7 @@
 
 Welcome to the documentation for the DSA-110 Continuum Imaging Pipeline.
 
-## 🚀 Quick Start for Developers
+## :rocket: Quick Start for Developers
 
 - **[System Context](SYSTEM_CONTEXT.md)**: **START HERE.** Technical
   architecture and implementation details.
@@ -13,9 +13,9 @@ Welcome to the documentation for the DSA-110 Continuum Imaging Pipeline.
 
 ---
 
-## 📚 Documentation Structure
+## :books: Documentation Structure
 
-### 🏗️ Architecture
+### :building_construction::variation_selector-16: Architecture
 
 System design, strategies, and analysis.
 
@@ -27,7 +27,7 @@ System design, strategies, and analysis.
 - **[Dashboard Architecture](architecture/dashboard/dashboard_architecture.md)**:
   Frontend design
 
-### 🚀 Guides
+### :rocket: Guides
 
 Practical how-to guides for common tasks.
 
@@ -41,7 +41,7 @@ Practical how-to guides for common tasks.
 - **[Streaming Guide](guides/streaming/index.md)**: Real-time data processing
 - **[CARTA Guide](guides/carta/index.md)**: CARTA visualization integration
 
-### 📖 Reference
+### :open_book: Reference
 
 Technical specifications and standards.
 
@@ -52,7 +52,7 @@ Technical specifications and standards.
   schemas
 - **[Environment Variables](reference/env.md)**: Configuration options
 
-### 🛠️ Troubleshooting
+### :hammer_and_wrench::variation_selector-16: Troubleshooting
 
 Problem resolution and known issues.
 
@@ -60,7 +60,7 @@ Problem resolution and known issues.
   Known Docker issues
 - **[Known Issues](troubleshooting/known-issues/)**: Tracked issues
 
-### 🏛️ Archive
+### :classical_building::variation_selector-16: Archive
 
 Historical records and superseded documents.
 
@@ -68,7 +68,7 @@ Historical records and superseded documents.
 
 ---
 
-## 📋 Documentation Maintenance
+## :clipboard: Documentation Maintenance
 
 - **[Documentation Audit](DOCUMENTATION_AUDIT.md)**: Redundancy analysis and
   improvement plan

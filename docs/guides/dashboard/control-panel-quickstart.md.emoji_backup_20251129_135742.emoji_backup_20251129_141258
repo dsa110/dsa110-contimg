@@ -46,8 +46,8 @@ Expected output:
 ```text
   VITE v5.x.x  ready in xxx ms
 
-  ➜  Local:   http://localhost:5173/
-  ➜  Network: http://192.168.x.x:5173/
+  :heavy_round-tipped_rightwards_arrow:  Local:   http://localhost:5173/
+  :heavy_round-tipped_rightwards_arrow:  Network: http://192.168.x.x:5173/
 ```
 
 ## Accessing the Control Panel
@@ -155,10 +155,10 @@ Expected output:
 - **ID**: Unique job identifier
 - **Type**: calibrate, apply, or image
 - **Status**:
-  - 🔵 pending - waiting to start
-  - 🟢 running - in progress
-  - ✓ done - completed successfully
-  - ✗ failed - error occurred
+  - :large_blue_circle: pending - waiting to start
+  - :green_circle: running - in progress
+  - :check_mark: done - completed successfully
+  - :ballot_x: failed - error occurred
 - **MS**: Basename of Measurement Set
 
 **Click any row** to load that job's logs in the viewer.
@@ -238,7 +238,7 @@ sqlite3 state/products.sqlite3 \
 
 **Solution**:
 
-1. Open browser DevTools → Network tab
+1. Open browser DevTools :arrow_right: Network tab
 2. Look for `/api/jobs/id/{job_id}/logs` with type `eventsource`
 3. If connection fails, check CORS settings
 4. Verify job ID is valid

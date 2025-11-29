@@ -99,7 +99,7 @@
 │  │ ensure_ms_files_in_window()                                        │    │
 │  │                                                                     │    │
 │  │  ┌──────────────┐              ┌──────────────┐                   │    │
-│  │  │ MS CHECKER   │              │ HDF5→MS      │                   │    │
+│  │  │ MS CHECKER   │              │ HDF5:arrow_right:MS      │                   │    │
 │  │  │ (U8A)        │              │ CONVERTER    │                   │    │
 │  │  │              │              │ (U8B)        │                   │    │
 │  │  │ Query DB     │              │              │                   │    │
@@ -187,7 +187,7 @@
 │  │ │ │ ┌────────────────────────────────────────────────┐    │    │    │
 │  │ │ │ │ apply_calibration_to_group()                   │    │    │    │
 │  │ │ │ │  ├─ apply_to_target() for each MS              │    │    │    │
-│  │ │ │ │  └─ Update MS status → 'calibrated'            │    │    │    │
+│  │ │ │ │  └─ Update MS status :arrow_right: 'calibrated'            │    │    │    │
 │  │ │ │ └────────────────────────────────────────────────┘    │    │    │
 │  │ │ └────────────────────────────────────────────────────┘    │    │    │
 │  │ │                                                            │    │    │
@@ -320,7 +320,7 @@
 │  4. MS Check:    Ensure files exist (convert if needed)                     │
 │  5. Validation:  Dry-run check (optional)                                   │
 │  6. Grouping:    Form MS group in database                                  │
-│  7. Calibration: Solve → Apply                                              │
+│  7. Calibration: Solve :arrow_right: Apply                                              │
 │  8. Imaging:     Parallel tile creation                                     │
 │  9. Mosaic:      Weighted combination                                       │
 │ 10. Photometry:  Optional measurement                                       │

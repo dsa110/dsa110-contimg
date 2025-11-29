@@ -1,4 +1,4 @@
-"""Helper utilities for UVH5 → CASA Measurement Set conversion.
+"""Helper utilities for UVH5 :arrow_right: CASA Measurement Set conversion.
 
 This module provides backward-compatible imports from specialized helper modules.
 All functions have been split into logical modules for better organization:

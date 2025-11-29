@@ -153,7 +153,7 @@ export OPENAI_API_KEY="your-key-here"
 
 **Performance:**
 
-- First index: 2-5 minutes (~87 files → ~500 code blocks)
+- First index: 2-5 minutes (~87 files :arrow_right: ~500 code blocks)
 - Re-index: <30 seconds (only changed files)
 - Search: <2 seconds
 
@@ -163,7 +163,7 @@ export OPENAI_API_KEY="your-key-here"
 
 For Python API usage, detailed configuration, and troubleshooting, see:
 
-**→
+**:arrow_right:
 [Complete Frontend Code Search Guide](../how-to/development/frontend_code_search.md)**
 
 ---

@@ -7,7 +7,7 @@ better logging, and consistent error handling across all pipeline stages.
 Exception Hierarchy:
     PipelineError (base)
     ├── SubbandGroupingError - Errors during subband file grouping
-    ├── ConversionError - Errors during UVH5→MS conversion
+    ├── ConversionError - Errors during UVH5:arrow_right:MS conversion
     ├── DatabaseError - Database access and migration errors
     │   └── DatabaseMigrationError - Schema migration failures
     ├── CalibrationError - Calibration pipeline errors

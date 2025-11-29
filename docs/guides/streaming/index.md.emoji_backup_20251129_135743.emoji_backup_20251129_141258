@@ -42,7 +42,7 @@ CASA Measurement Sets (MS), optionally triggering calibration and imaging.
 
 ## Dashboard Control
 
-**Page:** Dashboard → Streaming (`/streaming`)
+**Page:** Dashboard :arrow_right: Streaming (`/streaming`)
 
 **Controls:**
 

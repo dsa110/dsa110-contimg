@@ -71,7 +71,7 @@ def validate_ms_frequency_order(ms_path: str) -> None:
                     )
 
             logger.info(
-                f"✓ Frequency order validation passed: {chan_freq.shape[0]} SPW(s), "
+                f":check_mark: Frequency order validation passed: {chan_freq.shape[0]} SPW(s), "
                 f"range {chan_freq.min() / 1e6:.1f}-{chan_freq.max() / 1e6:.1f} MHz"
             )
     except Exception as e:
@@ -148,7 +148,7 @@ def validate_phase_center_coherence(ms_path: str, tolerance_arcsec: float = 1.0)
                                     and max_separation_arcsec > expected_lst_change_arcsec * 0.8
                                 ):
                                     logger.info(
-                                        f"✓ Time-dependent phase centers detected: "
+                                        f":check_mark: Time-dependent phase centers detected: "
                                         f"{phase_dirs.shape[0]} field(s), "
                                         f"max separation {max_separation_arcsec:.2f} arcsec "
                                         f"(expected LST change: {expected_lst_change_arcsec:.2f} arcsec). "
@@ -197,11 +197,11 @@ def validate_phase_center_coherence(ms_path: str, tolerance_arcsec: float = 1.0)
                         )
 
                 logger.info(
-                    f"✓ Phase center coherence validated: {phase_dirs.shape[0]} field(s), "
+                    f":check_mark: Phase center coherence validated: {phase_dirs.shape[0]} field(s), "
                     f"max separation {max_separation_arcsec:.2f} arcsec"
                 )
             else:
-                logger.info("✓ Single field MS - phase center coherence OK")
+                logger.info(":check_mark: Single field MS - phase center coherence OK")
 
     except Exception as e:
         if "incoherent" in str(e):
@@ -299,7 +299,7 @@ def validate_uvw_precision(ms_path: str, tolerance_lambda: float = 0.1) -> None:
         tolerance_m = tolerance_lambda * wavelength_m
 
         logger.info(
-            f"✓ UVW coordinate validation passed: "
+            f":check_mark: UVW coordinate validation passed: "
             f"median baseline {median_uvw_m:.1f}m, max {max_uvw_m:.1f}m "
             f"(λ={wavelength_m:.2f}m, tolerance={tolerance_m:.3f}m)"
         )
@@ -375,7 +375,7 @@ def validate_antenna_positions(ms_path: str, position_tolerance_m: float = 0.05)
                     f"This indicates position coordinate errors."
                 )
 
-            logger.info(f"✓ Basic antenna position validation passed: {n_antennas} antennas")
+            logger.info(f":check_mark: Basic antenna position validation passed: {n_antennas} antennas")
             return
 
         # Compare MS positions with reference positions
@@ -419,7 +419,7 @@ def validate_antenna_positions(ms_path: str, position_tolerance_m: float = 0.05)
             )
 
         logger.info(
-            f"✓ Antenna position validation passed: {n_antennas} antennas, "
+            f":check_mark: Antenna position validation passed: {n_antennas} antennas, "
             f"max error {max_error_m * 100:.1f}cm, RMS {rms_error_m * 100:.1f}cm "
             f"(tolerance {position_tolerance_m * 100:.1f}cm)"
         )
@@ -541,7 +541,7 @@ def validate_model_data_quality(
 
             field_desc = f"field {field_id}" if field_id is not None else "all fields"
             logger.info(
-                f"✓ MODEL_DATA validation passed for {field_desc}: "
+                f":check_mark: MODEL_DATA validation passed for {field_desc}: "
                 f"median flux {median_flux:.3f} Jy, max {max_flux:.3f} Jy"
             )
 

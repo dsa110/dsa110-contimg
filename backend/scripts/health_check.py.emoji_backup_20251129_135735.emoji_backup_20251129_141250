@@ -471,13 +471,13 @@ def main(argv: Optional[List[str]] = None) -> int:
                 components[r.component] = []
             components[r.component].append(r)
         
-        status_icons = {"ok": "✅", "warning": "⚠️", "error": "❌"}
+        status_icons = {"ok": ":white_heavy_check_mark:", "warning": ":warning_sign::variation_selector-16:", "error": ":cross_mark:"}
         
         for component, checks in components.items():
             print(f"\n{component.upper()}")
             print("-" * 40)
             for check in checks:
-                icon = status_icons.get(check.status, "❓")
+                icon = status_icons.get(check.status, ":black_question_mark_ornament:")
                 print(f"  {icon} {check.name}: {check.message}")
         
         # Summary
@@ -487,13 +487,13 @@ def main(argv: Optional[List[str]] = None) -> int:
         
         print("\n" + "=" * 60)
         if errors:
-            print(f"❌ {errors} errors, {warnings} warnings, {ok} ok")
+            print(f":cross_mark: {errors} errors, {warnings} warnings, {ok} ok")
             return 1
         elif warnings:
-            print(f"⚠️  {warnings} warnings, {ok} ok")
+            print(f":warning_sign::variation_selector-16:  {warnings} warnings, {ok} ok")
             return 0
         else:
-            print(f"✅ All {ok} checks passed")
+            print(f":white_heavy_check_mark: All {ok} checks passed")
             return 0
 
 

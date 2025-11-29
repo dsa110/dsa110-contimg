@@ -71,12 +71,12 @@ def main(argv: list[str] | None = None) -> int:
             output_path=args.output,
             min_flux_mjy=args.min_flux_mjy,
         )
-        print("\n✓ Successfully built NVSS declination strip database")
+        print("\n:check_mark: Successfully built NVSS declination strip database")
         print(f"  Database: {output_path}")
         return 0
 
     except Exception as e:
-        print(f"\n✗ Error building database: {e}")
+        print(f"\n:ballot_x: Error building database: {e}")
         import traceback
 
         traceback.print_exc()

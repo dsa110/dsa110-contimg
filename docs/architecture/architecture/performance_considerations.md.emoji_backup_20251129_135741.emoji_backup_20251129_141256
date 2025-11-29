@@ -336,7 +336,7 @@ Based on HDF Group best practices:
 
 ## Conversion Pipeline Optimizations
 
-The conversion pipeline (UVH5 → MS) has been optimized with several techniques
+The conversion pipeline (UVH5 :arrow_right: MS) has been optimized with several techniques
 implemented in November 2025. These optimizations reduce total conversion time
 by ~35% and HDF5 read time by ~48%.
 
@@ -368,7 +368,7 @@ for i in range(n_unique):
     time_mjd = float(mjd_unique[i])
 ```
 
-**Impact**: 21.9x speedup for JD→MJD conversion in `phase_to_meridian()`.
+**Impact**: 21.9x speedup for JD:arrow_right:MJD conversion in `phase_to_meridian()`.
 
 ### Pre-allocation Patterns
 
@@ -433,22 +433,22 @@ Use this decision tree when optimizing conversion code:
 
 ```text
 Is the operation I/O-bound?
-├─ Yes → Consider parallel I/O with ThreadPoolExecutor
+├─ Yes :arrow_right: Consider parallel I/O with ThreadPoolExecutor
 │        └─ Check: Is there enough memory for concurrent loads?
 │
 ├─ No, it's CPU-bound
 │   ├─ Is it a numpy/array operation?
-│   │   └─ Yes → Use vectorized operations, avoid loops
+│   │   └─ Yes :arrow_right: Use vectorized operations, avoid loops
 │   │
 │   ├─ Is it creating many small objects?
-│   │   └─ Yes → Pre-allocate arrays/lists
+│   │   └─ Yes :arrow_right: Pre-allocate arrays/lists
 │   │
 │   └─ Is it calling astropy repeatedly?
-│       └─ Yes → Batch the calls (e.g., Time(array) not Time(scalar))
+│       └─ Yes :arrow_right: Batch the calls (e.g., Time(array) not Time(scalar))
 │
 └─ Is astrometric precision required?
-    ├─ Yes → Use astropy (fast=False)
-    └─ No  → Consider numba fast path (if available)
+    ├─ Yes :arrow_right: Use astropy (fast=False)
+    └─ No  :arrow_right: Consider numba fast path (if available)
 ```
 
 ### Performance Regression Tests
@@ -486,7 +486,7 @@ See `tests/performance/test_io_optimizations.py` for detailed assertions.
 1. HDF5 parallel loading (4 subbands per batch)
 2. Phase center computation (rigorous astropy)
 3. Per-subband MS writes
-4. MS concatenation (16 parts → 1)
+4. MS concatenation (16 parts :arrow_right: 1)
 5. Move from `/dev/shm/` to `/stage/` (SSD)
 6. MS configuration and validation
 

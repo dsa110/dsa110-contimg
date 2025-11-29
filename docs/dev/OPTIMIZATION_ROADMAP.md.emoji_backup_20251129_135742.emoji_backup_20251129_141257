@@ -1,7 +1,7 @@
 # Performance Optimization Roadmap
 
 **Created**: 2025-11-27  
-**Status**: ✅ COMPLETED  
+**Status**: :white_heavy_check_mark: COMPLETED  
 **Completed**: 2025-11-27  
 **Branch**: `master-dev`
 
@@ -26,21 +26,21 @@ significant performance improvements in HDF5 I/O and conversion operations.
 
 | Metric                  | Before Optimization | After All Phases | Target   | Status |
 | ----------------------- | ------------------- | ---------------- | -------- | ------ |
-| Single group conversion | 2m 40s              | 2m 08s (mean)    | < 2m 30s | ✅     |
-| Per-group range         | —                   | 1m 18s - 2m 31s  | —        | ✅     |
-| Batch Time() conversion | 2.73ms              | 0.12ms           | —        | ✅     |
-| MS file size            | —                   | ~5.1 GB          | —        | ✅     |
+| Single group conversion | 2m 40s              | 2m 08s (mean)    | < 2m 30s | :white_heavy_check_mark:     |
+| Per-group range         | —                   | 1m 18s - 2m 31s  | —        | :white_heavy_check_mark:     |
+| Batch Time() conversion | 2.73ms              | 0.12ms           | —        | :white_heavy_check_mark:     |
+| MS file size            | —                   | ~5.1 GB          | —        | :white_heavy_check_mark:     |
 
 **Notes**:
 
-- Times include full pipeline: HDF5 load → phase → write → concatenate →
-  configure → validate
+- Times include full pipeline: HDF5 load :arrow_right: phase :arrow_right: write :arrow_right: concatenate :arrow_right:
+  configure :arrow_right: validate
 - First group is faster (~78s) due to filesystem caching
 - Variance (±20s) is normal due to I/O patterns and concurrent disk activity
 
 ---
 
-## Phase 1: Foundation (✅ COMPLETED)
+## Phase 1: Foundation (:white_heavy_check_mark: COMPLETED)
 
 ### 1.1 HDF5 Chunk Cache Optimization
 
@@ -73,7 +73,7 @@ significant performance improvements in HDF5 I/O and conversion operations.
 
 ---
 
-## Phase 2: Numba Integration (⚠️ PARTIALLY REVERTED)
+## Phase 2: Numba Integration (:warning_sign::variation_selector-16: PARTIALLY REVERTED)
 
 **Goal**: Replace numpy/astropy computations with JIT-compiled versions in hot
 paths.
@@ -86,7 +86,7 @@ calculation. JIT warm-up and angular separation acceleration remain active.
 
 **File**: `conversion/helpers_coordinates.py`  
 **Function**: `compute_and_set_uvw()`  
-**Status**: ⚠️ REVERTED to astropy
+**Status**: :warning_sign::variation_selector-16: REVERTED to astropy
 
 - [x] Profile current `compute_and_set_uvw()` to identify bottlenecks
 - [x] Add `fast=True` parameter using numba LST calculation
@@ -103,10 +103,10 @@ not acceptable for scientific data products.
 
 **File**: `conversion/helpers_coordinates.py`  
 **Function**: `get_meridian_coords()`  
-**Status**: ⚠️ REVERTED to astropy
+**Status**: :warning_sign::variation_selector-16: REVERTED to astropy
 
-- [x] Profile astropy overhead in `get_meridian_coords()` → **5.15ms/call**
-- [x] Add fast path using `approx_lst_jit()` → **0.02ms/call**
+- [x] Profile astropy overhead in `get_meridian_coords()` :arrow_right: **5.15ms/call**
+- [x] Add fast path using `approx_lst_jit()` :arrow_right: **0.02ms/call**
 - [x] Keep astropy path for high-precision requirements (`fast=False`)
 - [x] Add `OVRO_LON_RAD` constant for numba compatibility
 
@@ -117,7 +117,7 @@ the main conversion pipeline. Rigorous astrometry takes priority.
 ### 2.3 Streaming Converter JIT Warm-up
 
 **File**: `conversion/streaming/streaming_converter.py`  
-**Status**: ✅ ACTIVE
+**Status**: :white_heavy_check_mark: ACTIVE
 
 - [x] Call `warm_up_jit()` during daemon initialization
 - [x] Log warm-up timing (~64ms)
@@ -129,7 +129,7 @@ non-critical paths.
 
 ---
 
-## Phase 3: Memory-Mapped I/O Integration (⚠️ REVISED)
+## Phase 3: Memory-Mapped I/O Integration (:warning_sign::variation_selector-16: REVISED)
 
 **Goal**: Use memory-mapped I/O for appropriate scenarios.
 
@@ -141,7 +141,7 @@ However, it's faster for **repeated random access** to the same file
 **Recommendation**: Use mmap only for scenarios with >50 reads to the same file.
 For validation (1-2 reads), standard h5py is faster.
 
-### 3.1 Fast File Validation (❌ DEPRIORITIZED)
+### 3.1 Fast File Validation (:cross_mark: DEPRIORITIZED)
 
 **Status**: Not beneficial for this use case
 
@@ -163,7 +163,7 @@ single-file validation.
 
 ---
 
-## Phase 4: Parallel Loading Integration (✅ COMPLETED)
+## Phase 4: Parallel Loading Integration (:white_heavy_check_mark: COMPLETED)
 
 **Goal**: Enable parallel subband loading in all applicable code paths.
 
@@ -173,7 +173,7 @@ CLI options added for explicit control.
 ### 4.1 PyUVData Writer Strategy
 
 **File**: `conversion/strategies/hdf5_orchestrator.py`  
-**Status**: ✅ COMPLETED
+**Status**: :white_heavy_check_mark: COMPLETED
 
 - [x] Verify `_load_and_merge_subbands()` defaults to `parallel_io=True`
 - [x] Add CLI flags: `--parallel-io`, `--no-parallel-io`, `--io-batch-size`
@@ -207,21 +207,21 @@ python -m dsa110_contimg.conversion.cli groups ... --max-workers 8
 
 ---
 
-## Phase 5: Pre-allocation Patterns (✅ COMPLETED)
+## Phase 5: Pre-allocation Patterns (:white_heavy_check_mark: COMPLETED)
 
 **Goal**: Apply pre-allocation pattern to reduce GC pressure in hot paths.
 
 **Optimizations Implemented**:
 
 1. Pre-allocated phase center coordinate arrays in `phase_to_meridian()`
-2. Batch JD→MJD conversion (single `Time()` call instead of per-iteration)
+2. Batch JD:arrow_right:MJD conversion (single `Time()` call instead of per-iteration)
 3. Pre-allocated result list in `_load_and_merge_subbands_single_batch()`
 4. Index assignment instead of list append for loaded UVData objects
 
 ### 5.1 Visibility Processing Pre-allocation
 
 **File**: `conversion/strategies/hdf5_orchestrator.py`  
-**Status**: ✅ COMPLETED
+**Status**: :white_heavy_check_mark: COMPLETED
 
 - [x] Pre-allocate result list with known size (`[None] * n_files`)
 - [x] Use index assignment instead of append (`acc[i] = tmp`)
@@ -246,10 +246,10 @@ for i, path in file_iter:
 ### 5.2 Phase Center Array Reuse
 
 **File**: `conversion/helpers_coordinates.py`  
-**Status**: ✅ COMPLETED
+**Status**: :white_heavy_check_mark: COMPLETED
 
 - [x] Pre-allocate `phase_ra_arr` and `phase_dec_arr` arrays
-- [x] Batch convert JD→MJD with single `Time()` call
+- [x] Batch convert JD:arrow_right:MJD with single `Time()` call
 - [x] Use `np.int32` for phase center ID arrays (memory efficient)
 
 ```python
@@ -271,13 +271,13 @@ for i in range(n_unique):
 
 ---
 
-## Phase 6: Measurement & Validation (✅ COMPLETED)
+## Phase 6: Measurement & Validation (:white_heavy_check_mark: COMPLETED)
 
 ### 6.1 Performance Regression Tests
 
 **Effort**: 4 hours  
 **Priority**: HIGH  
-**Status**: ✅ COMPLETED
+**Status**: :white_heavy_check_mark: COMPLETED
 
 - [x] Add performance assertions to CI
 - [x] Set thresholds based on current optimized performance
@@ -308,7 +308,7 @@ Created `tests/performance/test_io_optimizations.py` with 13 regression tests:
 
 **Effort**: 2 hours  
 **Priority**: MEDIUM  
-**Status**: ✅ COMPLETED
+**Status**: :white_heavy_check_mark: COMPLETED
 
 - [x] Update `performance_considerations.md` with all optimizations
 - [x] Add optimization decision tree (when to use what)

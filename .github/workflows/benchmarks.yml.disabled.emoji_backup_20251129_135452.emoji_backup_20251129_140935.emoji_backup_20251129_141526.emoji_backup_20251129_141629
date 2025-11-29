@@ -1,0 +1,144 @@
+name: Performance Benchmarks
+
+on:
+  pull_request:
+    branches:
+      - master-dev
+      - main
+    paths:
+      - "backend/src/**/*.py"
+      - "benchmarks/**"
+      - ".github/workflows/benchmarks.yml"
+  push:
+    branches:
+      - master-dev
+    paths:
+      - "backend/src/**/*.py"
+      - "benchmarks/**"
+  workflow_dispatch:
+    inputs:
+      full_run:
+        description: "Run full benchmark suite (not just quick check)"
+        required: false
+        default: false
+        type: boolean
+
+# Cancel in-progress runs for same PR
+concurrency:
+  group: benchmarks-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  benchmark-check:
+    name: Benchmark Validation
+    runs-on: self-hosted
+    # Only run on self-hosted runner with casa6 environment
+    # Falls back to skip if runner unavailable
+    continue-on-error: true
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history for commit comparison
+
+      - name: Setup conda environment
+        run: |
+          source /opt/miniforge/etc/profile.d/conda.sh
+          conda activate casa6
+          echo "Python: $(which python)"
+          echo "ASV: $(which asv || echo 'not found')"
+
+      - name: Install asv if needed
+        run: |
+          source /opt/miniforge/etc/profile.d/conda.sh
+          conda activate casa6
+          pip install asv --quiet
+
+      - name: Validate benchmark configuration
+        run: |
+          source /opt/miniforge/etc/profile.d/conda.sh
+          conda activate casa6
+          cd benchmarks
+          asv check
+
+      - name: Run quick benchmarks
+        if: ${{ github.event.inputs.full_run != 'true' }}
+        run: |
+          source /opt/miniforge/etc/profile.d/conda.sh
+          conda activate casa6
+          cd benchmarks
+          asv run --quick --python=same --set-commit-hash=${{ github.sha }}
+
+      - name: Run full benchmarks
+        if: ${{ github.event.inputs.full_run == 'true' }}
+        run: |
+          source /opt/miniforge/etc/profile.d/conda.sh
+          conda activate casa6
+          cd benchmarks
+          asv run --python=same --set-commit-hash=${{ github.sha }}
+
+      - name: Check for regressions (PR only)
+        if: github.event_name == 'pull_request'
+        run: |
+          source /opt/miniforge/etc/profile.d/conda.sh
+          conda activate casa6
+          cd benchmarks
+          # Compare against base branch
+          # Exit code 1 = regression detected (but don't fail CI)
+          asv compare ${{ github.event.pull_request.base.sha }} ${{ github.sha }} --factor 1.1 || true
+
+      - name: Generate HTML report
+        run: |
+          source /opt/miniforge/etc/profile.d/conda.sh
+          conda activate casa6
+          cd benchmarks
+          asv publish
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results-${{ github.sha }}
+          path: |
+            benchmarks/.asv/results/
+            benchmarks/.asv/html/
+          retention-days: 30
+
+  benchmark-comment:
+    name: Post Benchmark Summary
+    runs-on: ubuntu-latest
+    needs: benchmark-check
+    if: github.event_name == 'pull_request'
+    permissions:
+      pull-requests: write
+
+    steps:
+      - name: Download benchmark results
+        uses: actions/download-artifact@v4
+        with:
+          name: benchmark-results-${{ github.sha }}
+          path: benchmark-results
+
+      - name: Post comment with results
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            // Try to read results summary
+            let summary = '## Performance Benchmark Results\n\n';
+            summary += '✅ Benchmark check completed for commit ${{ github.sha }}\n\n';
+            summary += '📊 Full results available in workflow artifacts.\n\n';
+            summary += '**Quick Commands:**\n';
+            summary += '```bash\n';
+            summary += 'make bench-quick  # Run quick benchmark locally\n';
+            summary += 'make bench-report # Generate HTML report\n';
+            summary += '```\n';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });

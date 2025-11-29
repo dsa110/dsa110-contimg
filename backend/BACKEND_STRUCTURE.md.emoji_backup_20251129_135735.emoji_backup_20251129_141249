@@ -8,15 +8,15 @@ The `backend/` directory contains the DSA-110 Continuum Imaging Pipeline - a Pyt
 
 ```
 backend/
-├── 📄 Configuration & Setup
+├── :page_facing_up: Configuration & Setup
 │   ├── pyproject.toml          # Project dependencies & metadata
 │   ├── setup.py                 # Package installation script
 │   ├── README.md                # Project overview & quick start
 │   └── .gitignore               # Git ignore rules
 │
-├── 📁 src/dsa110_contimg/       # Main Python package
+├── :file_folder: src/dsa110_contimg/       # Main Python package
 │   │
-│   ├── 🌐 api/                  # REST API Layer (FastAPI)
+│   ├── :globe_with_meridians: api/                  # REST API Layer (FastAPI)
 │   │   ├── app.py               # FastAPI application setup
 │   │   ├── routes.py            # API endpoint definitions
 │   │   ├── schemas.py           # Pydantic request/response models
@@ -26,7 +26,7 @@ backend/
 │   │   ├── metrics.py           # Performance metrics
 │   │   └── batch_jobs.py        # Batch job management
 │   │
-│   ├── 🔄 conversion/           # UVH5 → Measurement Set Conversion
+│   ├── :anticlockwise_downwards_and_upwards_open_circle_arrows: conversion/           # UVH5 :arrow_right: Measurement Set Conversion
 │   │   ├── cli.py               # Command-line interface
 │   │   ├── helpers*.py          # Helper functions (antenna, coordinates, etc.)
 │   │   ├── ms_utils.py          # MS utilities
@@ -38,7 +38,7 @@ backend/
 │   │   └── streaming/           # Streaming conversion
 │   │       └── streaming_converter.py
 │   │
-│   ├── 📡 calibration/         # Data Calibration
+│   ├── :satellite_antenna: calibration/         # Data Calibration
 │   │   ├── calibration.py       # Core calibration logic
 │   │   ├── applycal.py          # Apply calibration tables
 │   │   ├── caltables.py         # Calibration table management
@@ -51,7 +51,7 @@ backend/
 │   │   ├── validate.py          # Validation routines
 │   │   └── streaming.py         # Streaming calibration
 │   │
-│   ├── 🖼️ imaging/             # Radio Imaging
+│   ├── :frame_with_picture::variation_selector-16: imaging/             # Radio Imaging
 │   │   ├── cli.py               # Imaging CLI
 │   │   ├── cli_imaging.py       # Imaging commands
 │   │   ├── cli_utils.py         # CLI utilities
@@ -62,7 +62,7 @@ backend/
 │   │   ├── nvss_tools.py        # NVSS catalog tools
 │   │   └── worker.py             # Imaging worker processes
 │   │
-│   ├── 💾 database/            # Data Persistence
+│   ├── :floppy_disk: database/            # Data Persistence
 │   │   ├── models.py            # SQLAlchemy ORM models
 │   │   ├── repositories.py      # Repository pattern implementations
 │   │   ├── session.py           # Database session management
@@ -74,7 +74,7 @@ backend/
 │   │   ├── calibrators.py       # Calibrator catalog
 │   │   └── hdf5_index.py        # HDF5 file indexing
 │   │
-│   ├── 📚 catalog/             # Source Catalogs
+│   ├── :books: catalog/             # Source Catalogs
 │   │   ├── query.py             # Catalog queries
 │   │   ├── crossmatch.py        # Cross-matching sources
 │   │   ├── calibrator_registry.py # Calibrator registry
@@ -89,7 +89,7 @@ backend/
 │   │   ├── multiwavelength.py   # Multi-wavelength analysis
 │   │   └── coverage.py          # Coverage analysis
 │   │
-│   ├── 🔍 photometry/          # Source Photometry & Detection
+│   ├── :left-pointing_magnifying_glass: photometry/          # Source Photometry & Detection
 │   │   ├── forced.py            # Forced photometry
 │   │   ├── ese_detection.py     # Extended source extraction
 │   │   ├── ese_detection_enhanced.py # Enhanced ESE
@@ -110,10 +110,10 @@ backend/
 │   │   ├── parallel.py          # Parallel processing
 │   │   └── cli.py               # CLI interface
 │   │
-│   ├── ⚙️ pipeline/            # Pipeline Orchestration
+│   ├── :gear::variation_selector-16: pipeline/            # Pipeline Orchestration
 │   │   └── stages_impl.py       # Pipeline stage implementations
 │   │
-│   ├── 🛠️ utils/               # Utility Functions
+│   ├── :hammer_and_wrench::variation_selector-16: utils/               # Utility Functions
 │   │   ├── logging.py           # Logging configuration
 │   │   ├── logging_config.py    # Log config
 │   │   ├── graphiti_logging.py  # Graphiti logging
@@ -153,18 +153,18 @@ backend/
 │   │   ├── runtime_safeguards.py # Runtime safeguards
 │   │   └── antpos_local/        # Antenna position data
 │   │
-│   ├── 🧪 simulation/          # Simulation & Testing
+│   ├── :test_tube: simulation/          # Simulation & Testing
 │   │   └── generate_uvh5.py     # Generate synthetic UVH5 data
 │   │
-│   ├── 📖 docsearch/            # Documentation Search
+│   ├── :open_book: docsearch/            # Documentation Search
 │   │   └── cli.py               # Documentation search CLI
 │   │
-│   └── 🔄 migrations/           # Database Migrations (Alembic)
+│   └── :anticlockwise_downwards_and_upwards_open_circle_arrows: migrations/           # Database Migrations (Alembic)
 │       ├── env.py               # Migration environment
 │       └── versions/            # Migration scripts
 │           └── 0001_baseline.py
 │
-├── 🧪 tests/                    # Test Suite
+├── :test_tube: tests/                    # Test Suite
 │   ├── conftest.py              # Pytest configuration & fixtures
 │   ├── fixtures/                # Test fixtures
 │   │   └── writers.py           # Writer fixtures
@@ -181,19 +181,19 @@ backend/
 │   └── integration/             # Integration Tests
 │       └── (integration test files)
 │
-├── 📁 scripts/                  # Utility Scripts
+├── :file_folder: scripts/                  # Utility Scripts
 │   ├── run_api.py               # API server launcher
 │   ├── run_api.sh               # API server shell script
 │   ├── health_check.py          # Health check script
 │   ├── ensure_port.py           # Port availability check
 │   └── fix_schemas.py           # Schema fixer
 │
-├── 📁 docs/                     # Documentation
+├── :file_folder: docs/                     # Documentation
 │   ├── README.md                # Documentation index
 │   └── runbooks/                # Operational runbooks
 │       └── troubleshooting_common_scenarios.md
 │
-└── 📄 Project Files
+└── :page_facing_up: Project Files
     ├── API_IMPLEMENTATION_SUMMARY.md # API implementation notes
     ├── NEXT_STEPS.md             # Next steps document
     ├── test_api_endpoints.sh     # API endpoint test script
@@ -204,33 +204,33 @@ backend/
 
 ### Data Flow
 ```
-UVH5 Files → conversion/ → Measurement Sets → calibration/ → Calibrated MS
-                                                                    ↓
-                                                              imaging/ → Images
-                                                                    ↓
-                                                          photometry/ → Sources
-                                                                    ↓
-                                                           catalog/ → Catalog
+UVH5 Files :arrow_right: conversion/ :arrow_right: Measurement Sets :arrow_right: calibration/ :arrow_right: Calibrated MS
+                                                                    :arrow_down:
+                                                              imaging/ :arrow_right: Images
+                                                                    :arrow_down:
+                                                          photometry/ :arrow_right: Sources
+                                                                    :arrow_down:
+                                                           catalog/ :arrow_right: Catalog
 ```
 
 ### API Layer
 ```
 FastAPI (api/app.py)
-    ↓
+    :arrow_down:
 Routes (api/routes.py)
-    ↓
+    :arrow_down:
 Repositories (api/repositories.py)
-    ↓
+    :arrow_down:
 Database (database/)
 ```
 
 ### Pipeline Orchestration
 ```
 pipeline/stages_impl.py
-    ├──→ conversion/
-    ├──→ calibration/
-    ├──→ imaging/
-    └──→ photometry/
+    ├──:arrow_right: conversion/
+    ├──:arrow_right: calibration/
+    ├──:arrow_right: imaging/
+    └──:arrow_right: photometry/
 ```
 
 ## Key Concepts

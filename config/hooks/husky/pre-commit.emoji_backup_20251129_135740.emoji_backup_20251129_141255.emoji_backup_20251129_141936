@@ -1,0 +1,326 @@
+set -e
+
+# Error detection and anti-pattern detection pre-commit hook
+# Runs pre-flight checks and anti-pattern detection before allowing commit
+
+# Get absolute path to repo root (hook lives in .husky/)
+REPO_ROOT="$(cd "$(dirname -- "$0")/.." && pwd)"
+FRONTEND_DIR="${REPO_ROOT}/frontend"
+
+# Change to repo root to ensure all paths work correctly
+cd "$REPO_ROOT" || {
+  echo "Error: Could not change to repository root directory" >&2
+  exit 1
+}
+
+# Run doc audit to prevent endpoint/link drift
+# CRITICAL: Use casa6 Python environment per PYTHON_ENVIRONMENT_REQUIREMENT
+CASA6_PYTHON="${CASA6_PYTHON:-/opt/miniforge/envs/casa6/bin/python}"
+if [ -x "$CASA6_PYTHON" ]; then
+  echo "Running documentation audit..."
+  if ! "$CASA6_PYTHON" scripts/doc_audit.py; then
+    printf "\n[doc-audit] Documentation audit failed. Fix issues or run: %s scripts/doc_audit.py\n\n" "$CASA6_PYTHON" >&2
+    exit 1
+  fi
+elif command -v python3 >/dev/null 2>&1; then
+  echo "Warning: casa6 Python not found at $CASA6_PYTHON, falling back to python3" >&2
+  echo "Running documentation audit..."
+  if ! python3 scripts/doc_audit.py; then
+    printf "\n[doc-audit] Documentation audit failed. Fix issues or run: python3 scripts/doc_audit.py\n\n" >&2
+    exit 1
+  fi
+fi
+
+# Get staged files early to check what we're committing
+STAGED_FILES_EARLY=$(git diff --cached --name-only --diff-filter=ACM 2>/dev/null || echo "")
+
+# Check Python environment - FAIL if Python files are staged
+# Use CASA6_PYTHON from environment if set, otherwise use default
+# (CASA6_PYTHON was already set on line 19 with default fallback)
+CURRENT_PYTHON=$(which python 2>/dev/null || echo "")
+# Don't overwrite CASA6_PYTHON if it was set via environment variable
+if [ -z "$CASA6_PYTHON" ]; then
+  CASA6_PYTHON="/opt/miniforge/envs/casa6/bin/python"
+fi
+STAGED_PYTHON_FILES=$(echo "$STAGED_FILES_EARLY" | grep -E "\.(py)$" || true)
+
+if [ -n "$STAGED_PYTHON_FILES" ]; then
+  # Python files are staged - Python environment is CRITICAL
+  if [ -z "$CURRENT_PYTHON" ]; then
+    echo "❌ ERROR: Python not found in PATH" >&2
+    echo "  Python files are staged, but Python is not available" >&2
+    echo "  Fix: conda activate casa6" >&2
+    exit 1
+  elif [ "$CURRENT_PYTHON" != "$CASA6_PYTHON" ]; then
+    echo "❌ ERROR: Using wrong Python environment for Python files" >&2
+    echo "  Current: $CURRENT_PYTHON" >&2
+    echo "  Required: $CASA6_PYTHON" >&2
+    echo "  Fix: conda activate casa6" >&2
+    echo "  Or use: ./scripts/run-python.sh <script.py>" >&2
+    exit 1
+  fi
+elif [ -n "$CURRENT_PYTHON" ] && [ "$CURRENT_PYTHON" != "$CASA6_PYTHON" ]; then
+  # No Python files staged, but wrong Python - warn only
+  echo "Warning: Using wrong Python environment: $CURRENT_PYTHON" >&2
+  echo "  Should be: $CASA6_PYTHON" >&2
+  echo "  Some checks may fail. Run: conda activate casa6" >&2
+fi
+
+# Check for NEW markdown files in root - FAIL if staging new ones
+# Exclude README.md, CHANGELOG.md, and LICENSE.md (consistent with .githooks/pre-commit)
+STAGED_MARKDOWN_IN_ROOT=$(echo "$STAGED_FILES_EARLY" | grep -E "^[^/]+\.md$" | grep -v "^README\.md$" | grep -v "^CHANGELOG\.md$" | grep -v "^LICENSE\.md$" || true)
+if [ -n "$STAGED_MARKDOWN_IN_ROOT" ]; then
+  echo "❌ ERROR: Cannot commit markdown files in root directory" >&2
+  echo "  Documentation must be in docs/ structure" >&2
+  echo "  See: docs/DOCUMENTATION_QUICK_REFERENCE.md" >&2
+  echo "" >&2
+  echo "  Files to move:" >&2
+  echo "$STAGED_MARKDOWN_IN_ROOT" | while read -r file; do
+    echo "    - $file" >&2
+    echo "      Suggested location: docs/dev-notes/status/$(date +%Y-%m)/$(basename "$file")" >&2
+  done
+  echo "" >&2
+  echo "  To fix: Move files to docs/ structure and unstage, then re-add from new location" >&2
+  exit 1
+fi
+
+# Check for existing markdown files in root (warn but don't fail - might be legacy)
+# Exclude README.md, CHANGELOG.md, and LICENSE.md (consistent with .githooks/pre-commit)
+ROOT_MARKDOWN=$(find "$REPO_ROOT" -maxdepth 1 -name "*.md" -type f ! -name "README.md" ! -name "CHANGELOG.md" ! -name "LICENSE.md" 2>/dev/null | wc -l)
+if [ "$ROOT_MARKDOWN" -gt 0 ]; then
+  echo "Warning: Found $ROOT_MARKDOWN existing markdown file(s) in root directory" >&2
+  echo "  Documentation should be in docs/ structure" >&2
+  echo "  See: docs/DOCUMENTATION_QUICK_REFERENCE.md" >&2
+  find "$REPO_ROOT" -maxdepth 1 -name "*.md" -type f ! -name "README.md" ! -name "CHANGELOG.md" ! -name "LICENSE.md" 2>/dev/null | while read -r file; do
+    echo "  Found: $(basename "$file")" >&2
+  done
+fi
+
+# Check for .env files being committed (FAIL - security risk)
+STAGED_ENV_FILES=$(echo "$STAGED_FILES_EARLY" | grep -E "\.env$|\.env\.[^/]+$" | grep -v "\.env\.example$" || true)
+if [ -n "$STAGED_ENV_FILES" ]; then
+  echo "❌ ERROR: Cannot commit .env files (security risk)" >&2
+  echo "  .env files may contain secrets and must not be committed" >&2
+  echo "" >&2
+  echo "  Files to unstage:" >&2
+  echo "$STAGED_ENV_FILES" | while read -r file; do
+    echo "    - $file" >&2
+  done
+  echo "" >&2
+  echo "  To fix: git reset HEAD <file> and ensure .env is in .gitignore" >&2
+  exit 1
+fi
+
+# Check for large files (>10MB) that might be accidentally committed
+STAGED_LARGE_FILES=$(echo "$STAGED_FILES_EARLY" | while read -r file; do
+  if [ -f "$file" ]; then
+    SIZE=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null || echo "0")
+    if [ "$SIZE" -gt 10485760 ]; then  # 10MB in bytes
+      echo "$file"
+    fi
+  fi
+done)
+if [ -n "$STAGED_LARGE_FILES" ]; then
+  echo "❌ ERROR: Cannot commit files larger than 10MB" >&2
+  echo "  Large files should use Git LFS or be excluded" >&2
+  echo "" >&2
+  echo "  Large files:" >&2
+  echo "$STAGED_LARGE_FILES" | while read -r file; do
+    SIZE=$(stat -f%z "$file" 2>/dev/null || stat -c%s "$file" 2>/dev/null || echo "0")
+    SIZE_MB=$((SIZE / 1048576))
+    echo "    - $file (${SIZE_MB}MB)" >&2
+  done
+  echo "" >&2
+  echo "  To fix: Unstage large files or use Git LFS" >&2
+  exit 1
+fi
+
+# Check for potential secrets in staged files (FAIL for obvious secrets)
+STAGED_SECRET_PATTERNS=$(echo "$STAGED_FILES_EARLY" | while read -r file; do
+  if [ -f "$file" ] && echo "$file" | grep -qvE "\.(lock|log|md|json)$|node_modules|\.git"; then
+    # Check for obvious secret patterns (but allow in test files and known safe files)
+    if echo "$file" | grep -qvE "test|spec|example|mock|fixture"; then
+      if grep -qE "(password|secret|api[_-]?key|token)\s*[:=]\s*['\"][^'\"]{8,}" "$file" 2>/dev/null; then
+        echo "$file"
+      fi
+    fi
+  fi
+done)
+if [ -n "$STAGED_SECRET_PATTERNS" ]; then
+  echo "❌ ERROR: Potential hardcoded secrets detected" >&2
+  echo "  Secrets must not be committed to the repository" >&2
+  echo "" >&2
+  echo "  Files with potential secrets:" >&2
+  echo "$STAGED_SECRET_PATTERNS" | while read -r file; do
+    echo "    - $file" >&2
+  done
+  echo "" >&2
+  echo "  To fix: Use environment variables instead of hardcoded secrets" >&2
+  echo "  See: docs/how-to/SECURITY_BEST_PRACTICES.md" >&2
+  exit 1
+fi
+
+# Check for console.log in production code (warn but don't fail)
+if [ -d "${FRONTEND_DIR}/src" ]; then
+  CONSOLE_LOGS=$(grep -r "console\.log\|console\.debug" --include="*.ts" --include="*.tsx" "${FRONTEND_DIR}/src" 2>/dev/null | grep -v "node_modules" | wc -l || echo "0")
+  if [ "$CONSOLE_LOGS" -gt 0 ]; then
+    echo "Warning: Found $CONSOLE_LOGS console.log/debug statement(s) in frontend code" >&2
+    echo "  Consider removing or using proper logging" >&2
+  fi
+fi
+
+# Get commit message
+COMMIT_MSG_FILE="$1"
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE" 2>/dev/null || echo "")
+
+# Source anti-pattern detection library
+if [ -f "${REPO_ROOT}/scripts/lib/anti-pattern-detection.sh" ]; then
+  . "${REPO_ROOT}/scripts/lib/anti-pattern-detection.sh"
+  
+  # Check commit message for dismissive/rationalizing language
+  if [ -n "$COMMIT_MSG" ]; then
+    echo "Checking commit message for anti-patterns..."
+    if ! detect_process_anti_patterns "$COMMIT_MSG"; then
+      echo ""
+      echo "❌ Anti-pattern detected in commit message!"
+      echo ""
+      echo "Please revise your commit message to avoid dismissive or rationalizing language."
+      echo "Examples to avoid: 'doesn't matter', 'edge case', 'works in practice', etc."
+      echo ""
+      echo "Instead, describe what you fixed and why."
+      exit 1
+    fi
+  fi
+else
+  echo "Warning: anti-pattern-detection.sh not found, skipping anti-pattern checks" >&2
+fi
+
+# Format code with Prettier (all file types)
+echo "Running Prettier on staged files..." >&2
+
+# Use staged files we already got (or get them if not set)
+if [ -z "$STAGED_FILES_EARLY" ]; then
+  STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM) || {
+    echo "Error: Failed to get staged files" >&2
+    exit 1
+  }
+else
+  STAGED_FILES="$STAGED_FILES_EARLY"
+fi
+
+# Check if prettier is available
+if ! command -v npx >/dev/null 2>&1; then
+  echo "Warning: npx not found, skipping Prettier formatting" >&2
+else
+  # Format frontend files if any are staged
+  STAGED_FRONTEND_FILES=$(echo "$STAGED_FILES" | grep -E "^frontend/.*\.(js|jsx|ts|tsx|json|css|scss|less|html|md|graphql|vue|yaml|yml)$" || true)
+  
+  if [ -n "$STAGED_FRONTEND_FILES" ]; then
+    if [ ! -f "${FRONTEND_DIR}/package.json" ]; then
+      echo "Warning: frontend/package.json not found, skipping frontend formatting" >&2
+    else
+      # Format staged frontend files (strip frontend/ prefix for paths inside frontend/)
+      # Use subshell to avoid changing directory
+      (
+        cd "${FRONTEND_DIR}" || exit 1
+        echo "$STAGED_FRONTEND_FILES" | sed 's|^frontend/||' | xargs -r npx prettier --write || {
+          echo "Error: Prettier formatting failed for frontend files" >&2
+          exit 1
+        }
+      ) || exit 1
+      
+      # Re-stage formatted files so changes are included in commit
+      # Use absolute paths from repo root
+      echo "$STAGED_FRONTEND_FILES" | xargs -r git add || {
+        echo "Error: Failed to re-stage formatted frontend files" >&2
+        exit 1
+      }
+      
+      # Check formatting (fail if files still need formatting)
+      (
+        cd "${FRONTEND_DIR}" || exit 1
+        if ! echo "$STAGED_FRONTEND_FILES" | sed 's|^frontend/||' | xargs -r npx prettier --check; then
+          echo "" >&2
+          echo "❌ Prettier formatting check failed for frontend files!" >&2
+          echo "Please run: cd frontend && npx prettier --write 'src/**/*.{js,jsx,ts,tsx,json,css,scss,less,html,md,graphql,vue}'" >&2
+          exit 1
+        fi
+      ) || exit 1
+    fi
+  fi
+  
+  # Format root-level and other files
+  STAGED_ROOT_FILES=$(echo "$STAGED_FILES" | grep -E "\.(js|json|yaml|yml|md|html|css|scss|less)$" | grep -v "^frontend/" || true)
+  
+  if [ -n "$STAGED_ROOT_FILES" ]; then
+    # Format root files (from repo root)
+    echo "$STAGED_ROOT_FILES" | xargs -r npx prettier --write || {
+      echo "Error: Prettier formatting failed for root files" >&2
+      exit 1
+    }
+    
+    # Re-stage formatted files so changes are included in commit
+    echo "$STAGED_ROOT_FILES" | xargs -r git add || {
+      echo "Error: Failed to re-stage formatted root files" >&2
+      exit 1
+    }
+    
+    # Check formatting (fail if files still need formatting)
+    if ! echo "$STAGED_ROOT_FILES" | xargs -r npx prettier --check; then
+      echo "" >&2
+      echo "❌ Prettier formatting check failed for root files!" >&2
+      echo "Please run: npx prettier --write '*.{js,json,yaml,yml,md}'" >&2
+      exit 1
+    fi
+  fi
+fi
+
+# Error detection checks - only run if frontend files are staged
+STAGED_FRONTEND_FILES=$(echo "$STAGED_FILES" | grep -E "^frontend/" || true)
+
+if [ -n "$STAGED_FRONTEND_FILES" ]; then
+  echo "Frontend files staged, running frontend checks..." >&2
+  
+  # Source error detection library
+  if [ -f "${REPO_ROOT}/scripts/lib/error-detection.sh" ]; then
+    . "${REPO_ROOT}/scripts/lib/error-detection.sh"
+    
+    # Run checks in frontend directory using subshell
+    (
+      cd "${FRONTEND_DIR}" || exit 1
+      
+      # Run pre-flight checks
+      if ! preflight_checks; then
+        echo "" >&2
+        echo "Pre-flight checks failed. Please fix issues before committing." >&2
+        exit 1
+      fi
+      
+      # Run type check
+      if ! execute_with_monitoring "npm run type-check"; then
+        echo "" >&2
+        echo "Type check failed. Please fix type errors before committing." >&2
+        exit 1
+      fi
+      
+      # Verify page components have default exports (required for React.lazy())
+      if ! execute_with_monitoring "npm run verify:page-exports"; then
+        echo "" >&2
+        echo "Page export verification failed. All page components must use default exports for React.lazy()." >&2
+        echo "Fix: Change 'export function ComponentName()' to 'export default function ComponentName()'" >&2
+        exit 1
+      fi
+      
+      # Run lint
+      if ! execute_with_monitoring "npm run lint"; then
+        echo "" >&2
+        echo "Lint check failed. Please fix linting errors before committing." >&2
+        exit 1
+      fi
+    ) || exit 1
+  else
+    echo "Warning: error-detection.sh not found, skipping pre-flight checks" >&2
+  fi
+else
+  echo "No frontend files staged, skipping frontend checks." >&2
+fi

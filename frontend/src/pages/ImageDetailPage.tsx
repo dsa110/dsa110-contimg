@@ -10,7 +10,9 @@ import {
   Modal,
   QAMetrics,
 } from "../components/common";
-import { AladinLiteViewer } from "../components/widgets";
+// TODO: GifPlayer will be used for animated FITS cutout visualization feature
+// eslint-disable-next-line unused-imports/no-unused-imports
+import { AladinLiteViewer, GifPlayer } from "../components/widgets";
 import { FitsViewer } from "../components/fits";
 import { RatingCard, RatingTag } from "../components/rating";
 import { mapProvenanceFromImageDetail, ImageDetailResponse } from "../utils/provenanceMappers";

@@ -1,0 +1,53 @@
+#!/bin/bash
+# Validates that all script references in package.json and systemd services exist
+# Run as part of pre-commit or CI
+
+set -e
+
+REPO_ROOT="${1:-/data/dsa110-contimg}"
+ERRORS=0
+
+echo "Validating script references..."
+
+# Check package.json script references
+echo "--- Checking frontend/package.json ---"
+cd "$REPO_ROOT/frontend"
+
+# Extract bash script paths from package.json
+scripts=$(grep -oE 'bash [^"]+\.sh' package.json 2>/dev/null | sed 's/bash //' || true)  # suppress-output-check
+
+for script in $scripts; do
+    if [ ! -f "$script" ]; then
+        echo "ERROR: package.json references missing script: $script"
+        ((ERRORS++))
+    else
+        echo "  :check_mark: $script"
+    fi
+done
+
+# Check systemd service references
+echo "--- Checking systemd services ---"
+cd "$REPO_ROOT/ops/systemd"
+
+for service in *.service; do
+    # Extract ExecStart and ExecStartPre paths
+    scripts=$(grep -E '^Exec(Start|StartPre)=' "$service" 2>/dev/null | grep -oE '/[^ ]+\.sh' || true)  # suppress-output-check
+    
+    for script in $scripts; do
+        if [ ! -f "$script" ]; then
+            echo "ERROR: $service references missing script: $script"
+            ((ERRORS++))
+        else
+            echo "  :check_mark: $service → $script"
+        fi
+    done
+done
+
+echo ""
+if [ $ERRORS -eq 0 ]; then
+    echo "All script references valid!"
+    exit 0
+else
+    echo "Found $ERRORS missing script references!"
+    exit 1
+fi

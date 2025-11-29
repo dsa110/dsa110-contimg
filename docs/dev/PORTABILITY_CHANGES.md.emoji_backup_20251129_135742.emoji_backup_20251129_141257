@@ -117,10 +117,10 @@ RUN /scripts/preflight-check.sh /app
 
 All scripts tested from multiple locations:
 
-- ✅ From `/tmp` - Passed
-- ✅ From `/home/ubuntu` - Passed
-- ✅ From project root - Passed
-- ✅ With explicit parameter - Passed
+- :white_heavy_check_mark: From `/tmp` - Passed
+- :white_heavy_check_mark: From `/home/ubuntu` - Passed
+- :white_heavy_check_mark: From project root - Passed
+- :white_heavy_check_mark: With explicit parameter - Passed
 
 ## Benefits
 

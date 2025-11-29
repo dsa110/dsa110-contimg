@@ -34,9 +34,9 @@ docker run -d \
 
 The container is configured with `--restart unless-stopped`:
 
-- ✅ Survives system reboots
-- ✅ Restarts automatically if it crashes
-- ✅ Stays stopped only if manually stopped
+- :white_heavy_check_mark: Survives system reboots
+- :white_heavy_check_mark: Restarts automatically if it crashes
+- :white_heavy_check_mark: Stays stopped only if manually stopped
 
 ---
 

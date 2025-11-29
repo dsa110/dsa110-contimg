@@ -1,0 +1,79 @@
+#!/bin/bash
+# Kill all frontend dev server processes (npm and vite)
+# Use this when you have multiple instances and want a clean slate
+
+set -e
+
+# Colors
+RED='\033[0;31m'
+YELLOW='\033[1;33m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+
+echo "Killing all frontend dev server processes..."
+echo ""
+
+# Find all npm run dev processes
+npm_pids=$(pgrep -f "npm run dev" 2>/dev/null || true)
+if [ -n "$npm_pids" ]; then
+    echo -e "${YELLOW}Found npm run dev processes:${NC}"
+    for pid in $npm_pids; do
+        cmd=$(ps -p "$pid" -o cmd --no-headers 2>/dev/null | head -c 80)
+        echo "  PID $pid: $cmd"
+    done
+    echo ""
+    read -p "Kill all npm run dev processes? (y/n) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        for pid in $npm_pids; do
+            echo "  Killing PID $pid..."
+            kill "$pid" 2>/dev/null || true
+        done
+        echo -e "${GREEN}✓ npm processes killed${NC}"
+    fi
+else
+    echo -e "${GREEN}✓ No npm run dev processes found${NC}"
+fi
+
+echo ""
+
+# Find all Vite processes
+vite_pids=$(pgrep -f "vite" 2>/dev/null | grep -v "grep" || true)
+if [ -n "$vite_pids" ]; then
+    echo -e "${YELLOW}Found Vite processes:${NC}"
+    for pid in $vite_pids; do
+        port=$(lsof -ti -a -p "$pid" -i :5173-5179 2>/dev/null | head -1 || echo "unknown")
+        cmd=$(ps -p "$pid" -o cmd --no-headers 2>/dev/null | head -c 80)
+        echo "  PID $pid (port $port): $cmd"
+    done
+    echo ""
+    read -p "Kill all Vite processes? (y/n) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        for pid in $vite_pids; do
+            echo "  Killing PID $pid..."
+            kill "$pid" 2>/dev/null || true
+        done
+        echo -e "${GREEN}✓ Vite processes killed${NC}"
+    fi
+else
+    echo -e "${GREEN}✓ No Vite processes found${NC}"
+fi
+
+echo ""
+sleep 2
+
+# Verify cleanup
+echo "Verifying cleanup..."
+remaining=$(pgrep -f "npm run dev|vite" 2>/dev/null | wc -l | tr -d ' ')
+if [ "$remaining" -eq 0 ]; then
+    echo -e "${GREEN}✓ All frontend dev processes stopped${NC}"
+else
+    echo -e "${YELLOW}⚠ $remaining process(es) still running${NC}"
+    echo "Run 'ps aux | grep -E \"npm|vite\"' to see remaining processes"
+fi
+
+echo ""
+echo "You can now start a fresh dev server:"
+echo "  cd frontend && npm run dev"
+
