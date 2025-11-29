@@ -33,6 +33,8 @@ export default defineConfig({
         },
       },
     },
+    // Allow larger vendor chunks for optional heavy viewers (echarts, aladin-lite)
+    chunkSizeWarningLimit: 2500,
   },
   resolve: {
     alias: {
