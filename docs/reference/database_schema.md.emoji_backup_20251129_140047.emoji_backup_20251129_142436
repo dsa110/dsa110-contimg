@@ -395,7 +395,7 @@ CREATE TABLE IF NOT EXISTS sources (
     s_nvss REAL,                           -- NVSS flux (Jy)
     snr_nvss REAL,                         -- NVSS S/N
     s_vlass REAL,                          -- VLASS flux (Jy)
-    alpha REAL,                            -- Spectral index (NVSS:arrow_right:VLASS)
+    alpha REAL,                            -- Spectral index (NVSS→VLASS)
     resolved_flag INTEGER DEFAULT 0,       -- From FIRST deconvolved size
     confusion_flag INTEGER DEFAULT 0,      -- Multiple matches within radius
     first_size_maj_arcsec REAL,           -- FIRST major axis

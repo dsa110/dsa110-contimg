@@ -91,7 +91,7 @@ uvicorn dsa110_contimg.api.routes:create_app --factory --host 0.0.0.0 --port 800
 ### Logs Not Streaming
 
 ```bash
-# Check SSE connection in browser DevTools :arrow_right: Network tab
+# Check SSE connection in browser DevTools → Network tab
 # Look for /api/jobs/id/{job_id}/logs with type "eventsource"
 
 # Test SSE endpoint
@@ -230,13 +230,13 @@ sudo fuser -k 8000/tcp
 # Navigate to http://localhost:5173/control
 
 # 3. Calibrate calibrator MS
-# Select MS :arrow_right: Calibrate tab :arrow_right: Set field=0, refant=103 :arrow_right: Run
+# Select MS → Calibrate tab → Set field=0, refant=103 → Run
 
 # 4. Apply to target MS
-# Select target :arrow_right: Apply tab :arrow_right: Paste caltable paths :arrow_right: Run
+# Select target → Apply tab → Paste caltable paths → Run
 
 # 5. Image calibrated MS
-# Select same target :arrow_right: Image tab :arrow_right: Set gridder=wproject :arrow_right: Run
+# Select same target → Image tab → Set gridder=wproject → Run
 ```
 
 ### Check Job Status
@@ -259,7 +259,7 @@ sqlite3 state/products.sqlite3 \
 - **Python Env**: Jobs run in `casa6` (Python 3.11), base is Python 3.6
 - **Log Batching**: Every 10 lines to database for performance
 - **SSE Protocol**: Server-Sent Events for log streaming
-- **Job States**: pending :arrow_right: running :arrow_right: done/failed
+- **Job States**: pending → running → done/failed
 - **Ports**: 8000 (API), 3000 (Dashboard)
 
 ## :books: Documentation

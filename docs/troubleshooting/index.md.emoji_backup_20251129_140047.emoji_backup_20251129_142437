@@ -136,7 +136,7 @@ These documents provide audit results and analysis, not issue resolutions:
 
    **Date:** YYYY-MM-DD  
    **Severity:** HIGH | MEDIUM | LOW  
-   **Status:** :large_red_circle: Open | :yellow_circle: In Progress | :white_heavy_check_mark: Resolved
+   **Status:** :large_red_circle: Open | 🟡 In Progress | :white_heavy_check_mark: Resolved
 
    ## Problem
 

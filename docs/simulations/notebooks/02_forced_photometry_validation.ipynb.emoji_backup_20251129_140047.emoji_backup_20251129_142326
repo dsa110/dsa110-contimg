@@ -313,7 +313,7 @@
     "    snr = measured_flux / flux_error\n",
     "    recovered = abs(measured_flux - expected_flux) / expected_flux < 0.2\n",
     "    \n",
-    "    recovered_str = \":check_mark:\" if recovered else \":ballot_x:\"\n",
+    "    recovered_str = \"✓\" if recovered else \"✗\"\n",
     "    \n",
     "    print(f\"{src['name']:<20s} {expected_flux:10.4f} {measured_flux:10.4f} \"\n",
     "          f\"{flux_error:10.4f} {snr:8.1f} {recovered_str:>10s}\")\n",
@@ -589,7 +589,7 @@
     "    print(f\"Expected: 1.0000\")\n",
     "    \n",
     "    ratio_ok = abs(mean_ratio - 1.0) < 0.1\n",
-    "    print(f\"Flux scale accuracy: {':check_mark: PASS' if ratio_ok else ':ballot_x: FAIL'}\")"
+    "    print(f\"Flux scale accuracy: {'✓ PASS' if ratio_ok else '✗ FAIL'}\")"
    ]
   },
   {
@@ -674,7 +674,7 @@
     "    if np.isfinite(res.peak_jyb) and src['flux_jy'] > 0:\n",
     "        ratio = res.peak_jyb / src['flux_jy']\n",
     "        print(f\"  Ratio (measured/expected): {ratio:.4f}\")\n",
-    "        print(f\"  Recovery: {':check_mark: PASS' if r['recovered'] else ':ballot_x: FAIL'}\")"
+    "        print(f\"  Recovery: {'✓ PASS' if r['recovered'] else '✗ FAIL'}\")"
    ]
   },
   {

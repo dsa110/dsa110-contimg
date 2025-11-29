@@ -113,9 +113,9 @@ site-wide default via `CONTIMG_CAL_BP_UVRANGE`.
 **Connected-Element Array Characteristics**:
 
 - Shared frequency reference (no clock drift delays)
-- Short baselines (< 100 km) :arrow_right: atmospheric delays partially cancel
+- Short baselines (< 100 km) → atmospheric delays partially cancel
 - Known instrumental delays incorporated into correlator model
-- Residual delays < 0.5 ns :arrow_right: absorbed into complex gain calibration
+- Residual delays < 0.5 ns → absorbed into complex gain calibration
 
 **VLBI vs Connected Arrays**:
 

@@ -264,7 +264,7 @@ Quantitative summary...
 
 1. **Update Content**: Make necessary changes
 2. **Update Date**: Change `**Date:**` field if significant
-3. **Update Status**: Change if needed (Current :arrow_right: Complete, etc.)
+3. **Update Status**: Change if needed (Current → Complete, etc.)
 4. **Update INDEX.md**: Update entry in INDEX.md
 5. **Update Last Updated**: At end of document
 
@@ -273,14 +273,14 @@ Quantitative summary...
 ```markdown
 # Existing Document
 
-**Date:** 2025-11-14 :arrow_left: Update if significant changes **Status:** :anticlockwise_downwards_and_upwards_open_circle_arrows: In Progress
-:arrow_left: Change to :white_heavy_check_mark: Complete when done
+**Date:** 2025-11-14 ← Update if significant changes **Status:** :anticlockwise_downwards_and_upwards_open_circle_arrows: In Progress
+← Change to :white_heavy_check_mark: Complete when done
 
 [Content updates here...]
 
 ---
 
-**Last Updated:** 2025-11-16 :arrow_left: Always update this
+**Last Updated:** 2025-11-16 ← Always update this
 ```
 
 ---
@@ -349,7 +349,7 @@ touch docs/NEW_FEATURE_IMPLEMENTATION.md
 
 - **:clipboard: Planned**: Documented but not yet implemented
   - Use for: Planned features, future work
-  - Update when work begins (:arrow_right: In Progress)
+  - Update when work begins (→ In Progress)
 
 - **:warning_sign::variation_selector-16: Deprecated**: Documented approach is outdated
   - Use for: Old approaches being replaced

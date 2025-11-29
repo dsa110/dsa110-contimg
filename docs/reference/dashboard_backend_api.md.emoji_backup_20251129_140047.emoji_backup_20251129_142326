@@ -1,6 +1,6 @@
 # DSA-110 Dashboard: Backend API & Integration
 
-> **:warning_sign::variation_selector-16: Migration Status:** This documentation references the `legacy.backend`
+> **⚠️ Migration Status:** This documentation references the `legacy.backend`
 > API implementation. The new `backend` is being developed with a cleaner
 > architecture. These endpoints serve as the specification for what the new
 > backend will implement.
@@ -19,11 +19,11 @@ generated from the code and is the single source of truth.
 
 | Endpoint Category | Legacy Backend | New Backend |
 | ----------------- | -------------- | ----------- |
-| Core Health       | :white_heavy_check_mark: Implemented | :anticlockwise_downwards_and_upwards_open_circle_arrows: Planned  |
-| WebSocket/SSE     | :white_heavy_check_mark: Implemented | :anticlockwise_downwards_and_upwards_open_circle_arrows: Planned  |
-| Jobs API          | :white_heavy_check_mark: Implemented | :anticlockwise_downwards_and_upwards_open_circle_arrows: Planned  |
-| Pipeline API      | :white_heavy_check_mark: Implemented | :anticlockwise_downwards_and_upwards_open_circle_arrows: Planned  |
-| Streaming API     | :white_heavy_check_mark: Implemented | :anticlockwise_downwards_and_upwards_open_circle_arrows: Planned  |
+| Core Health       | ✅ Implemented | 🔄 Planned  |
+| WebSocket/SSE     | ✅ Implemented | 🔄 Planned  |
+| Jobs API          | ✅ Implemented | 🔄 Planned  |
+| Pipeline API      | ✅ Implemented | 🔄 Planned  |
+| Streaming API     | ✅ Implemented | 🔄 Planned  |
 
 ## Reference Implementation
 

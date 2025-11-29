@@ -11,11 +11,11 @@ troubleshooting guides in the DSA-110 Continuum Imaging Pipeline.
 
 | Issue                                                         | Status      | Category        | Guide                                                                                  |
 | ------------------------------------------------------------- | ----------- | --------------- | -------------------------------------------------------------------------------------- |
-| [Docker WSClean Hang](#docker-wsclean-hang)                   | :large_red_circle: Open     | Backend/Imaging | [docker-wsclean.md](docker-wsclean.md)                                                 |
-| [Image Metadata Not Populated](#image-metadata-not-populated) | :large_red_circle: Open     | Database        | [known-issues/image-metadata-population.md](known-issues/image-metadata-population.md) |
-| [CASA C++ Shutdown Error](#casa-c-shutdown-error)             | :white_heavy_check_mark: Resolved | Testing/CASA    | [resolved/casa-shutdown-error.md](resolved/casa-shutdown-error.md)                     |
-| [MS Permission Errors](#ms-permission-errors)                 | :white_heavy_check_mark: Resolved | Backend/CASA    | [resolved/ms-permission-errors.md](resolved/ms-permission-errors.md)                   |
-| [Frontend Restart Required](#frontend-restart-required)       | :white_heavy_check_mark: Resolved | Frontend        | [resolved/frontend-restart-needed.md](resolved/frontend-restart-needed.md)             |
+| [Docker WSClean Hang](#docker-wsclean-hang)                   | 🔴 Open     | Backend/Imaging | [docker-wsclean.md](docker-wsclean.md)                                                 |
+| [Image Metadata Not Populated](#image-metadata-not-populated) | 🔴 Open     | Database        | [known-issues/image-metadata-population.md](known-issues/image-metadata-population.md) |
+| [CASA C++ Shutdown Error](#casa-c-shutdown-error)             | ✅ Resolved | Testing/CASA    | [resolved/casa-shutdown-error.md](resolved/casa-shutdown-error.md)                     |
+| [MS Permission Errors](#ms-permission-errors)                 | ✅ Resolved | Backend/CASA    | [resolved/ms-permission-errors.md](resolved/ms-permission-errors.md)                   |
+| [Frontend Restart Required](#frontend-restart-required)       | ✅ Resolved | Frontend        | [resolved/frontend-restart-needed.md](resolved/frontend-restart-needed.md)             |
 
 ---
 
@@ -24,7 +24,7 @@ troubleshooting guides in the DSA-110 Continuum Imaging Pipeline.
 ### Docker WSClean Hang
 
 **Severity:** HIGH  
-**Status:** :large_red_circle: Open (Workaround Available)  
+**Status:** 🔴 Open (Workaround Available)  
 **Affects:** NVSS seeding, Docker-based WSClean `-predict` operations
 
 Docker WSClean `-predict` operations hang at "Cleaning up temporary files..."
@@ -40,7 +40,7 @@ Docker/kernel level.
 ### Image Metadata Not Populated
 
 **Severity:** HIGH  
-**Status:** :large_red_circle: Open  
+**Status:** 🔴 Open  
 **Affects:** Image filtering, database queries
 
 Database images have `noise_jy`, `center_ra_deg`, `center_dec_deg` set to NULL,
@@ -61,7 +61,7 @@ causing noise filtering to fail and declination filtering to be slow.
 ### CASA C++ Shutdown Error
 
 **Severity:** MEDIUM  
-**Status:** :white_heavy_check_mark: Resolved  
+**Status:** ✅ Resolved  
 **Resolution Date:** November 29, 2025
 
 pytest would crash after tests passed with:
@@ -84,7 +84,7 @@ Python's normal shutdown when tests pass.
 ### MS Permission Errors
 
 **Severity:** MEDIUM  
-**Status:** :white_heavy_check_mark: Resolved  
+**Status:** ✅ Resolved  
 **Resolution Date:** November 2025
 
 CASA tasks failed with "Permission denied" errors on Measurement Set files
@@ -101,7 +101,7 @@ manual script available.
 ### Frontend Restart Required
 
 **Severity:** LOW  
-**Status:** :white_heavy_check_mark: Resolved  
+**Status:** ✅ Resolved  
 **Resolution Date:** November 2025
 
 Frontend dev server needed restart to pick up `.env.development` changes.
@@ -136,7 +136,7 @@ These documents provide audit results and analysis, not issue resolutions:
 
    **Date:** YYYY-MM-DD  
    **Severity:** HIGH | MEDIUM | LOW  
-   **Status:** :large_red_circle: Open | :yellow_circle: In Progress | :white_heavy_check_mark: Resolved
+   **Status:** 🔴 Open | 🟡 In Progress | ✅ Resolved
 
    ## Problem
 

@@ -2,7 +2,7 @@
 
 **Date:** 2025-11-19  
 **Type:** Troubleshooting  
-**Status:** :white_heavy_check_mark: Resolved
+**Status:** ✅ Resolved
 
 ---
 
@@ -119,7 +119,7 @@ For manual/ad-hoc fixes, use the provided script:
 #   - Changing ownership to ubuntu...
 #   - Setting permissions (u+rw,g+r,o+r)...
 #   - Making directories executable...
-# :check_mark: Permissions fixed successfully
+# ✓ Permissions fixed successfully
 ```
 
 ---
@@ -168,7 +168,7 @@ Check if you can write:
 
 ```bash
 # Test write access
-touch /path/to/file.ms/test_write && rm /path/to/file.ms/test_write && echo ":check_mark: Write access OK"
+touch /path/to/file.ms/test_write && rm /path/to/file.ms/test_write && echo "✓ Write access OK"
 ```
 
 ---
@@ -258,9 +258,9 @@ operations
 
 **Solutions:**
 
-1. :white_heavy_check_mark: **Automatic:** `selfcal.py` fixes permissions automatically
-2. :white_heavy_check_mark: **Manual:** Use `fix_ms_permissions.sh` script
-3. :white_heavy_check_mark: **Prevention:** Run as correct user from the start
+1. ✅ **Automatic:** `selfcal.py` fixes permissions automatically
+2. ✅ **Manual:** Use `fix_ms_permissions.sh` script
+3. ✅ **Prevention:** Run as correct user from the start
 
 **Status:** Resolved - self-calibration now handles permissions automatically
 

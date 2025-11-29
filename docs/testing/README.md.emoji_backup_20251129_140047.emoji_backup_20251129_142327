@@ -101,28 +101,28 @@ npx playwright test
 
 ### Pages Tested
 
-- :white_heavy_check_mark: Navigation Component
-- :white_heavy_check_mark: Dashboard Page
-- :white_heavy_check_mark: Control Page (Convert, Calibrate, Apply, Image tabs)
-- :white_heavy_check_mark: Data Browser Page
-- :white_heavy_check_mark: Data Detail Page
-- :white_heavy_check_mark: Streaming Page
-- :white_heavy_check_mark: Mosaic Gallery Page
-- :white_heavy_check_mark: Source Monitoring Page
-- :white_heavy_check_mark: Sky View Page
+- ✅ Navigation Component
+- ✅ Dashboard Page
+- ✅ Control Page (Convert, Calibrate, Apply, Image tabs)
+- ✅ Data Browser Page
+- ✅ Data Detail Page
+- ✅ Streaming Page
+- ✅ Mosaic Gallery Page
+- ✅ Source Monitoring Page
+- ✅ Sky View Page
 
 ### Feature Categories
 
-- :white_heavy_check_mark: Navigation and Routing
-- :white_heavy_check_mark: Form Interactions
-- :white_heavy_check_mark: Button Actions
-- :white_heavy_check_mark: Table/List Interactions
-- :white_heavy_check_mark: Modal/Dialog Interactions
-- :white_heavy_check_mark: Tab Navigation
-- :white_heavy_check_mark: API Integration
-- :white_heavy_check_mark: Error Handling
-- :white_heavy_check_mark: Accessibility
-- :white_heavy_check_mark: Performance
+- ✅ Navigation and Routing
+- ✅ Form Interactions
+- ✅ Button Actions
+- ✅ Table/List Interactions
+- ✅ Modal/Dialog Interactions
+- ✅ Tab Navigation
+- ✅ API Integration
+- ✅ Error Handling
+- ✅ Accessibility
+- ✅ Performance
 
 ## Test Statistics
 

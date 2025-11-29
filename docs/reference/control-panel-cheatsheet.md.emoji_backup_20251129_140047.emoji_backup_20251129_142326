@@ -1,9 +1,9 @@
 # Control Panel Quick Reference Card
 
-> **:warning_sign::variation_selector-16: Migration Note:** This cheatsheet references the `legacy.backend` API.
+> **⚠️ Migration Note:** This cheatsheet references the `legacy.backend` API.
 > The new `backend` is under development. See `legacy.backend/` for reference.
 
-## :rocket: Starting Services
+## 🚀 Starting Services
 
 ```bash
 # Kill port conflicts and start API
@@ -17,13 +17,13 @@ sudo fuser -k 8000/tcp
 /data/dsa110-contimg/scripts/manage-services.sh logs api
 ```
 
-## :globe_with_meridians: URLs
+## 🌐 URLs
 
 - **API**: http://localhost:8000
 - **Dashboard**: http://localhost:5173 (dev) / http://localhost:3000 (Docker)
 - **Control Panel**: http://localhost:5173/control
 
-## :satellite_antenna: API Endpoints
+## 📡 API Endpoints
 
 ```bash
 # List Measurement Sets
@@ -44,7 +44,7 @@ curl -X POST http://localhost:8000/api/jobs/calibrate \
   -d '{"ms_path": "/path/to/ms", "params": {"field": "0", "refant": "103"}}'
 ```
 
-## :wrench: Service Management
+## 🔧 Service Management
 
 ```bash
 # Start/Stop/Restart
@@ -60,7 +60,7 @@ curl -X POST http://localhost:8000/api/jobs/calibrate \
 ./scripts/manage-services.sh logs dashboard
 ```
 
-## :bug: Troubleshooting
+## 🐛 Troubleshooting
 
 ### Port Already in Use
 
@@ -91,7 +91,7 @@ uvicorn dsa110_contimg.api.routes:create_app --factory --host 0.0.0.0 --port 800
 ### Logs Not Streaming
 
 ```bash
-# Check SSE connection in browser DevTools :arrow_right: Network tab
+# Check SSE connection in browser DevTools → Network tab
 # Look for /api/jobs/id/{job_id}/logs with type "eventsource"
 
 # Test SSE endpoint
@@ -111,7 +111,7 @@ conda env list | grep casa6
 echo $PYTHONPATH
 ```
 
-## :bar_chart: Database Queries
+## 📊 Database Queries
 
 ```bash
 # List recent jobs
@@ -128,7 +128,7 @@ sqlite3 /data/dsa110-contimg/state/products.sqlite3 \
   "DELETE FROM jobs WHERE status='failed';"
 ```
 
-## :memo: Job Parameters
+## 📝 Job Parameters
 
 ### Calibrate
 
@@ -172,7 +172,7 @@ sqlite3 /data/dsa110-contimg/state/products.sqlite3 \
 }
 ```
 
-## :left-pointing_magnifying_glass: Health Checks
+## 🔍 Health Checks
 
 ```bash
 # Check API health
@@ -188,7 +188,7 @@ netstat -tlnp | grep -E ":(8000|5173)"
 ps aux | grep -E "uvicorn|dsa110"
 ```
 
-## :open_file_folder: Important Paths
+## 📂 Important Paths
 
 ```
 /data/dsa110-contimg/
@@ -217,7 +217,7 @@ ps aux | grep -E "uvicorn|dsa110"
     └── dashboard.log          # Dashboard logs
 ```
 
-## :direct_hit: Common Workflows
+## 🎯 Common Workflows
 
 ### Full Calibration Pipeline
 
@@ -230,13 +230,13 @@ sudo fuser -k 8000/tcp
 # Navigate to http://localhost:5173/control
 
 # 3. Calibrate calibrator MS
-# Select MS :arrow_right: Calibrate tab :arrow_right: Set field=0, refant=103 :arrow_right: Run
+# Select MS → Calibrate tab → Set field=0, refant=103 → Run
 
 # 4. Apply to target MS
-# Select target :arrow_right: Apply tab :arrow_right: Paste caltable paths :arrow_right: Run
+# Select target → Apply tab → Paste caltable paths → Run
 
 # 5. Image calibrated MS
-# Select same target :arrow_right: Image tab :arrow_right: Set gridder=wproject :arrow_right: Run
+# Select same target → Image tab → Set gridder=wproject → Run
 ```
 
 ### Check Job Status
@@ -253,16 +253,16 @@ sqlite3 state/products.sqlite3 \
 ./scripts/manage-services.sh status
 ```
 
-## :key: Key Technical Details
+## 🔑 Key Technical Details
 
 - **API Factory**: `uvicorn dsa110_contimg.api.routes:create_app --factory`
 - **Python Env**: Jobs run in `casa6` (Python 3.11), base is Python 3.6
 - **Log Batching**: Every 10 lines to database for performance
 - **SSE Protocol**: Server-Sent Events for log streaming
-- **Job States**: pending :arrow_right: running :arrow_right: done/failed
+- **Job States**: pending → running → done/failed
 - **Ports**: 8000 (API), 3000 (Dashboard)
 
-## :books: Documentation
+## 📚 Documentation
 
 - `CONTROL_PANEL_README.md` - Full architecture docs
 - `CONTROL_PANEL_QUICKSTART.md` - User guide with examples

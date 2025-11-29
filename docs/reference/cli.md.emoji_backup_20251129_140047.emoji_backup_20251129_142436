@@ -18,7 +18,7 @@ python -m dsa110_contimg.imaging.worker --help
 python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator --help
 ```
 
-- Standalone converter (single UVH5 :arrow_right: MS)
+- Standalone converter (single UVH5 → MS)
 
 ```
 python -m dsa110_contimg.conversion.uvh5_to_ms --help

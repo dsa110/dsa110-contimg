@@ -78,8 +78,8 @@ calibration is **optional** and skipped by default for connected-element arrays.
 
 **Sky Model Creation:**
 
-- **Single calibrator:** `make_point_cl()` :arrow_right: pyradiosky :arrow_right: componentlist
-- **NVSS sources:** `make_nvss_component_cl()` :arrow_right: pyradiosky :arrow_right: componentlist
+- **Single calibrator:** `make_point_cl()` → pyradiosky → componentlist
+- **NVSS sources:** `make_nvss_component_cl()` → pyradiosky → componentlist
 
 **Key Change:** All sky model creation now uses **pyradiosky internally** for
 better management.
@@ -293,8 +293,8 @@ python -m dsa110_contimg.calibration.cli calibrate \
 
 **All sky model creation now uses pyradiosky internally:**
 
-- `make_point_cl()` :arrow_right: pyradiosky :arrow_right: componentlist
-- `make_nvss_component_cl()` :arrow_right: pyradiosky :arrow_right: componentlist
+- `make_point_cl()` → pyradiosky → componentlist
+- `make_nvss_component_cl()` → pyradiosky → componentlist
 
 **Benefits:**
 
@@ -362,7 +362,7 @@ python -m dsa110_contimg.calibration.cli calibrate \
 
 1. :white_heavy_check_mark: **MS Validation** - Comprehensive checks
 2. :white_heavy_check_mark: **Pre-Calibration Flagging** - Zero-value data (default)
-3. :white_heavy_check_mark: **Model Data Population** - pyradiosky (default) :arrow_right: componentlist :arrow_right: `ft()`
+3. :white_heavy_check_mark: **Model Data Population** - pyradiosky (default) → componentlist → `ft()`
 4. :white_heavy_check_mark: **Bandpass Calibration** - Enabled by default
 5. :white_heavy_check_mark: **Gain Calibration** - Enabled by default
 6. :cross_mark: **Delay Calibration** - Skipped by default (use `--do-k` to enable)
