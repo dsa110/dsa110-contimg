@@ -33,7 +33,7 @@ jobs:
           # Run validation
           if ! ./scripts/quality/validate-output-handling.sh; then
             echo ""
-            echo ":cross: Output handling validation failed!"
+            echo "❌ Output handling validation failed!"
             echo ""
             echo "Please fix violations in scripts before merging."
             echo "See: .cursor/rules/output-suppression.mdc for rules"
@@ -42,7 +42,7 @@ jobs:
           fi
 
           echo ""
-          echo ":check: Output handling validation passed!"
+          echo "✅ Output handling validation passed!"
 
       - name: Check for 2>&1 usage
         run: |
@@ -60,7 +60,7 @@ jobs:
               if echo "$content" | grep -qiE "#.*exception|#.*suppress-output-check|#.*Note:|#.*acceptable"; then
                 continue
               fi
-              echo ":cross: VIOLATION in $file:$line_num"
+              echo "❌ VIOLATION in $file:$line_num"
               echo "   $content"
               VIOLATIONS=$((VIOLATIONS + 1))
             done < <(grep -n "2>&1.*>.*dev/null\|2>&1.*>/dev/null" "$file" 2>/dev/null || true)
@@ -68,10 +68,10 @@ jobs:
 
           if [ $VIOLATIONS -gt 0 ]; then
             echo ""
-            echo ":cross: Found $VIOLATIONS violation(s) of 2>&1 usage"
+            echo "❌ Found $VIOLATIONS violation(s) of 2>&1 usage"
             echo "2>&1 is only allowed when combining streams (e.g., with tee), not for suppression"
             echo "Add '# Exception: <reason>' comment to justify the suppression"
             exit 1
           fi
 
-          echo ":check: No improper 2>&1 usage found"
+          echo "✅ No improper 2>&1 usage found"

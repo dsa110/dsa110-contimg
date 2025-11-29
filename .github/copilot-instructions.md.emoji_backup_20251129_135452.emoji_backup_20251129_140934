@@ -174,15 +174,15 @@ parameter.
    - Real-time daemon for live data ingest
    - SQLite-backed queue with checkpoint recovery
    - Run as systemd service (`ops/systemd/contimg-stream.service`)
-   - **States**: `collecting` :arrow_right: `pending` :arrow_right: `in_progress` :arrow_right: `completed`/`failed`
+   - **States**: `collecting` → `pending` → `in_progress` → `completed`/`failed`
    - **Performance tracking**: Records load/phase/write times per observation
 
 ### Conversion Data Flow
 
 ```
-UVH5 files :arrow_right: pyuvdata.UVData :arrow_right: combine subbands :arrow_right:
-direct MS writing :arrow_right: configure_ms_for_imaging :arrow_right:
-update antenna positions :arrow_right: auto-rename calibrator fields
+UVH5 files → pyuvdata.UVData → combine subbands →
+direct MS writing → configure_ms_for_imaging →
+update antenna positions → auto-rename calibrator fields
 ```
 
 **Key Implementation Details**:
@@ -273,8 +273,8 @@ through `meridian_icrs_t23` (one per 12.88-second timestamp during drift-scan).
 known calibrator from the VLA catalog and renames it to `{calibrator}_t{idx}`:
 
 ```python
-# Field 17 contains 3C286 :arrow_right: renamed to "3C286_t17"
-# Field 5 contains J1331+3030 :arrow_right: renamed to "J1331+3030_t5"
+# Field 17 contains 3C286 → renamed to "3C286_t17"
+# Field 5 contains J1331+3030 → renamed to "J1331+3030_t5"
 ```
 
 **Implementation**: `configure_ms_for_imaging()` calls
@@ -458,8 +458,8 @@ python -m dsa110_contimg.simulation.generate_uvh5 \
 
 **Active Development** (use these):
 
-- :check: `backend/src/dsa110_contimg/` - Main Python package (production code)
-  - `conversion/` - UVH5 :arrow_right: MS conversion
+- ✅ `backend/src/dsa110_contimg/` - Main Python package (production code)
+  - `conversion/` - UVH5 → MS conversion
   - `calibration/` - Calibration routines
   - `imaging/` - Imaging wrappers (WSClean, CASA tclean)
   - `pipeline/` - Pipeline stage architecture
@@ -469,8 +469,8 @@ python -m dsa110_contimg.simulation.generate_uvh5 \
 
 **Legacy/Deprecated** (avoid):
 
-- :cross: `.local/archive/` - Old deprecated code, external references (gitignored)
-- :cross: Files with "legacy" in the path
+- ❌ `.local/archive/` - Old deprecated code, external references (gitignored)
+- ❌ Files with "legacy" in the path
 
 **When in doubt**: Check `backend/src/dsa110_contimg/` first.
 

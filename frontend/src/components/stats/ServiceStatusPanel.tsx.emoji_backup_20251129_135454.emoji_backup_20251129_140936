@@ -58,7 +58,7 @@ function StatusBadge({ status }: { status: ServiceStatus["status"] }) {
   const labels: Record<ServiceStatus["status"], string> = {
     running: "● Running",
     stopped: "○ Stopped",
-    error: ":warning: Error",
+    error: "⚠ Error",
     checking: "◌ Checking...",
   };
 
@@ -172,16 +172,16 @@ export function ServiceStatusPanel() {
       <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
         <details className="text-sm">
           <summary className="cursor-pointer text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
-            :info: About Port Reservation
+            ℹ️ About Port Reservation
           </summary>
           <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800/50 rounded text-gray-600 dark:text-gray-400 text-xs space-y-1">
             <p>
               All services use <strong>robust port reservation</strong> via{" "}
               <code className="text-blue-600 dark:text-blue-400">/usr/local/bin/claim-port.sh</code>
             </p>
-            <p>:bullet: Services automatically kill any process occupying their assigned port</p>
-            <p>:bullet: Services will NOT fall back to alternative ports</p>
-            <p>:bullet: Managed by systemd with auto-restart on failure</p>
+            <p>• Services automatically kill any process occupying their assigned port</p>
+            <p>• Services will NOT fall back to alternative ports</p>
+            <p>• Managed by systemd with auto-restart on failure</p>
           </div>
         </details>
       </div>

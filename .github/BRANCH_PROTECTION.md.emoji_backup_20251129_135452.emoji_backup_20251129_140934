@@ -9,42 +9,42 @@ document serves as a reference.
 
 **Required Settings:**
 
-- :check: Require a pull request before merging
+- ✅ Require a pull request before merging
   - Required approvals: 1
   - Dismiss stale pull request approvals when new commits are pushed
   - Require review from Code Owners (if CODEOWNERS file exists)
-- :check: Require status checks to pass before merging
+- ✅ Require status checks to pass before merging
   - Required checks:
     - `environment-validation` (environment validation workflow)
     - `prettier-check` (Prettier formatting check)
     - `error-detection` (error detection workflow)
     - Any other required CI checks
-- :check: Require conversation resolution before merging
-- :check: Require linear history (no merge commits)
-- :check: Include administrators (enforce rules for admins too)
+- ✅ Require conversation resolution before merging
+- ✅ Require linear history (no merge commits)
+- ✅ Include administrators (enforce rules for admins too)
 
 **Optional but Recommended:**
 
-- :check: Restrict pushes that create files larger than 10MB
-- :check: Require signed commits (if GPG signing is used)
+- ✅ Restrict pushes that create files larger than 10MB
+- ✅ Require signed commits (if GPG signing is used)
 
 ### Develop Branch (`develop`)
 
 **Required Settings:**
 
-- :check: Require a pull request before merging
+- ✅ Require a pull request before merging
   - Required approvals: 1
-- :check: Require status checks to pass before merging
+- ✅ Require status checks to pass before merging
   - Required checks:
     - `environment-validation`
     - `prettier-check`
     - `error-detection`
-- :check: Require conversation resolution before merging
+- ✅ Require conversation resolution before merging
 
 **Optional:**
 
-- :warning: Allow force pushes (for rebasing, but risky)
-- :warning: Allow deletions (for cleanup, but risky)
+- ⚠️ Allow force pushes (for rebasing, but risky)
+- ⚠️ Allow deletions (for cleanup, but risky)
 
 ## Status Checks Configuration
 

@@ -6,7 +6,7 @@ As you work on code, if you discover any lessons or principles about this projec
 
 <PYTHON_ENVIRONMENT_REQUIREMENT>
 
-:warning: CRITICAL: ALL Python execution MUST use casa6. NEVER use python/python3/system Python.
+⚠️ CRITICAL: ALL Python execution MUST use casa6. NEVER use python/python3/system Python.
 
 REQUIRED PATH: /opt/miniforge/envs/casa6/bin/python
 
@@ -30,7 +30,7 @@ This is MANDATORY - the pipeline will not work without casa6.
 
 <CODEBASE_ORGANIZATION>
 
-:folder: Before creating files, check: docs/concepts/DIRECTORY_ARCHITECTURE.md
+📁 Before creating files, check: docs/concepts/DIRECTORY_ARCHITECTURE.md
 
 KEY PATHS:
 - Code: /data/dsa110-contimg/

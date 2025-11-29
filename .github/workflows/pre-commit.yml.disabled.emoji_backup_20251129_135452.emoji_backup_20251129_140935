@@ -93,4 +93,4 @@ jobs:
             echo "ERROR: Deprecated shebang pattern found in husky hooks"
             exit 1
           fi
-          echo ":check: No deprecated husky patterns found"
+          echo "✓ No deprecated husky patterns found"

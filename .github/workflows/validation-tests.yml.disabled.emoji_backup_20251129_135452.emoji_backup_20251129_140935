@@ -109,12 +109,12 @@ jobs:
           export PYTHONPATH="${GITHUB_WORKSPACE}/src:${PYTHONPATH:-}"
 
           # Verify conda environment and key packages
-          echo ":check: Conda environment activated"
+          echo "✓ Conda environment activated"
           python --version
-          python -c "import casa; print(f'CASA version: {casa.__version__}')" || echo ":warning: CASA import check skipped"
+          python -c "import casa; print(f'CASA version: {casa.__version__}')" || echo "⚠️ CASA import check skipped"
           python -c "import pyuvdata; print(f'pyuvdata version: {pyuvdata.__version__}')"
 
-          echo ":check: Environment validation complete"
+          echo "✓ Environment validation complete"
           echo "Note: Comprehensive validation tests run in integration-tests job"
 
   integration-tests:
@@ -278,17 +278,17 @@ jobs:
       - name: Notify success
         if: ${{ (needs.unit-tests.result == 'success' || needs.unit-tests.result == 'skipped') && (needs.validation-tests.result == 'success' || needs.validation-tests.result == 'skipped') && (needs.integration-tests.result == 'success' || needs.integration-tests.result == 'skipped') && (needs.code-quality.result == 'success' || needs.code-quality.result == 'skipped') && needs.unit-tests.result != 'failure' && needs.validation-tests.result != 'failure' && needs.integration-tests.result != 'failure' && needs.code-quality.result != 'failure' }}
         run: |
-          echo ":check: All DSA-110 pipeline validation tests passed!"
+          echo "✅ All DSA-110 pipeline validation tests passed!"
           echo "The enhanced validation functions are working correctly."
 
       - name: Notify partial success
         if: ${{ (needs.unit-tests.result == 'success' || needs.unit-tests.result == 'skipped') && needs.unit-tests.result != 'failure' && (needs.validation-tests.result == 'failure' || needs.integration-tests.result == 'failure') }}
         run: |
-          echo ":warning: Unit tests passed but validation/integration tests failed."
+          echo "⚠️ Unit tests passed but validation/integration tests failed."
           echo "This may indicate environment setup issues or real validation problems."
 
       - name: Notify failure
         if: ${{ needs.unit-tests.result == 'failure' }}
         run: |
-          echo ":cross: Unit tests failed - this indicates problems with the validation function logic."
+          echo "❌ Unit tests failed - this indicates problems with the validation function logic."
           echo "Review the test results and fix validation function implementation."

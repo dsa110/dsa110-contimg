@@ -156,7 +156,7 @@
 ### For Documentation Issues
 
 ```
-:cross: Documentation Location Issue
+❌ Documentation Location Issue
 
 The file `FILENAME.md` is in the root directory. Documentation must be in the `docs/` structure.
 
@@ -168,7 +168,7 @@ See: `docs/DOCUMENTATION_QUICK_REFERENCE.md`
 ### For Python Environment Issues
 
 ```
-:cross: Python Environment Issue
+❌ Python Environment Issue
 
 This code uses system Python instead of casa6 Python.
 
@@ -182,7 +182,7 @@ See: `docs/reference/CRITICAL_PYTHON_ENVIRONMENT.md`
 ### For Test Organization Issues
 
 ```
-:cross: Test Organization Issue
+❌ Test Organization Issue
 
 The test file is not in the correct location.
 

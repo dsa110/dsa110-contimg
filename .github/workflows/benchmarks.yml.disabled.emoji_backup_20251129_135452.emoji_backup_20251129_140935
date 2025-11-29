@@ -128,8 +128,8 @@ jobs:
 
             // Try to read results summary
             let summary = '## Performance Benchmark Results\n\n';
-            summary += ':check: Benchmark check completed for commit ${{ github.sha }}\n\n';
-            summary += ':chart: Full results available in workflow artifacts.\n\n';
+            summary += '✅ Benchmark check completed for commit ${{ github.sha }}\n\n';
+            summary += '📊 Full results available in workflow artifacts.\n\n';
             summary += '**Quick Commands:**\n';
             summary += '```bash\n';
             summary += 'make bench-quick  # Run quick benchmark locally\n';
