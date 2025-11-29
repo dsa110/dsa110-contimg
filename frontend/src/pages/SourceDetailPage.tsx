@@ -85,7 +85,7 @@ const SourceDetailPage: React.FC = () => {
         <Card>
           <p className="text-gray-500 mb-4">Source not found.</p>
           <Link to="/sources" className="link">
-            ← Back to Sources
+            Back to Sources
           </Link>
         </Card>
       </div>
@@ -104,7 +104,7 @@ const SourceDetailPage: React.FC = () => {
       {/* Header */}
       <div className="mb-6">
         <Link to="/sources" className="text-sm text-gray-500 hover:text-gray-700 mb-2 inline-block">
-          ← Back to Sources
+          Back to Sources
         </Link>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
           {sourceData.name || `Source ${sourceData.id}`}
@@ -165,7 +165,7 @@ const SourceDetailPage: React.FC = () => {
                   )
                 }
               >
-                📈 View Lightcurve
+                View Lightcurve
               </button>
               <button
                 type="button"
@@ -177,7 +177,7 @@ const SourceDetailPage: React.FC = () => {
                   )
                 }
               >
-                🖼️ Download Postage Stamps
+                Download Postage Stamps
               </button>
               <button
                 type="button"
@@ -189,7 +189,7 @@ const SourceDetailPage: React.FC = () => {
                   )
                 }
               >
-                📊 Variability Analysis
+                Variability Analysis
               </button>
             </div>
           </Card>

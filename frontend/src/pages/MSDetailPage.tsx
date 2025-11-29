@@ -42,7 +42,7 @@ const MSDetailPage: React.FC = () => {
         <Card>
           <p className="text-gray-500 mb-4">Measurement Set not found.</p>
           <Link to="/images" className="link">
-            ← Back to Images
+            Back to Images
           </Link>
         </Card>
       </div>
@@ -66,7 +66,7 @@ const MSDetailPage: React.FC = () => {
       {/* Header */}
       <div className="mb-6">
         <Link to="/images" className="text-sm text-gray-500 hover:text-gray-700 mb-2 inline-block">
-          ← Back to Images
+          Back to Images
         </Link>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">{filename}</h1>
         <ProvenanceStrip {...provenance} />
@@ -102,7 +102,7 @@ const MSDetailPage: React.FC = () => {
                   )
                 }
               >
-                📥 Download MS
+                Download MS
               </button>
               <button
                 type="button"
@@ -111,14 +111,14 @@ const MSDetailPage: React.FC = () => {
                   window.open(`/viewer/carta?ms=${encodeURIComponent(msPath ?? "")}`, "_blank")
                 }
               >
-                🔭 Open in CARTA
+                Open in CARTA
               </button>
               {ms.qa_grade && (
                 <Link
                   to={`/qa/ms/${encodeURIComponent(msPath ?? "")}`}
                   className="btn btn-secondary text-center"
                 >
-                  📊 View QA Report
+                  View QA Report
                 </Link>
               )}
             </div>

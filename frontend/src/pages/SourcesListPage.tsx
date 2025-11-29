@@ -106,7 +106,7 @@ const SourcesListPage: React.FC = () => {
             }`}
             onClick={() => setActiveTab("list")}
           >
-            📋 List View
+            List View
           </button>
           <button
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -116,7 +116,7 @@ const SourcesListPage: React.FC = () => {
             }`}
             onClick={() => setActiveTab("variability")}
           >
-            📈 Variability Plot
+            Variability Plot
           </button>
         </div>
       </div>
