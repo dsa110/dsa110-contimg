@@ -7,15 +7,18 @@ populated and all endpoints are returning real data.
 
 ### Current State
 
-| Component  | Status         | Details                    |
-| ---------- | -------------- | -------------------------- |
-| API Server | ✅ Running     | Port 8000, systemd enabled |
-| MS Records | ✅ 12 records  | Real measurement sets      |
-| Images     | ✅ 4 records   | FITS files registered      |
-| Photometry | ✅ 21 records  | 5 unique sources           |
-| Cal Tables | ✅ 3 records   | Linked to source MS        |
-| Batch Jobs | ✅ 7 jobs      | Provenance tracking        |
-| Lightcurve | ✅ Implemented | Returns real flux data     |
+| Component   | Status         | Details                      |
+| ----------- | -------------- | ---------------------------- |
+| API Server  | ✅ Running     | Port 8000, systemd enabled   |
+| MS Records  | ✅ 12 records  | Real measurement sets        |
+| Images      | ✅ 4 records   | FITS files registered        |
+| Photometry  | ✅ 21 records  | 5 unique sources             |
+| Cal Tables  | ✅ 3 records   | Linked to source MS          |
+| Batch Jobs  | ✅ 7 jobs      | Provenance tracking          |
+| Lightcurve  | ✅ Implemented | Returns real flux data       |
+| Nginx       | ✅ Configured  | Reverse proxy on port 80     |
+| Prometheus  | ✅ Enabled     | Metrics at /metrics          |
+| IP Security | ✅ Active      | Localhost + private networks |
 
 ---
 
@@ -59,51 +62,34 @@ populated and all endpoints are returning real data.
 - Health endpoint always accessible for monitoring
 - Custom IPs via `DSA110_ALLOWED_IPS` environment variable
 
+### 8. Nginx Reverse Proxy ✅
+
+- Config at `/etc/nginx/sites-available/dsa110-contimg`
+- Serves frontend from `/data/dsa110-contimg/frontend/dist`
+- Proxies `/api/` to FastAPI on port 8000
+- Metrics endpoint restricted to localhost only
+- Security headers (X-Frame-Options, X-Content-Type-Options)
+- Gzip compression enabled
+
+### 9. Prometheus Monitoring ✅
+
+- Metrics endpoint at `/metrics`
+- Collects request latency, count, and status codes
+- Python GC and process metrics included
+- Access via `curl http://localhost:8000/metrics`
+
 ---
 
 ## Remaining Tasks
 
-### 8. Build and Deploy Frontend
-
-**Goal:** Build production frontend and serve it
+### 10. Optional Enhancements
 
 ```bash
-cd /data/dsa110-contimg/frontend
+# Add Redis caching for frequently accessed data
+pip install redis aioredis
 
-# Build for production
-npm run build:scratch
-
-# Option A: Serve with Nginx (recommended)
-sudo tee /etc/nginx/sites-available/dsa110-frontend > /dev/null <<EOF
-server {
-    listen 80;
-    server_name dsa110.local;
-    root /data/dsa110-contimg/frontend/dist;
-    index index.html;
-
-    location / {
-        try_files \$uri \$uri/ /index.html;
-    }
-
-    location /api/ {
-        proxy_pass http://localhost:8000/api/;
-    }
-}
-EOF
-
-sudo ln -s /etc/nginx/sites-available/dsa110-frontend /etc/nginx/sites-enabled/
-sudo nginx -t && sudo systemctl reload nginx
-```
-
-### 9. Add Monitoring (Optional)
-
-```bash
-# Add Prometheus metrics
-pip install prometheus-fastapi-instrumentator
-
-# In app.py:
-from prometheus_fastapi_instrumentator import Instrumentator
-Instrumentator().instrument(app).expose(app)
+# Grafana dashboard for Prometheus metrics
+# Import dashboard JSON or create custom panels
 ```
 
 ---
