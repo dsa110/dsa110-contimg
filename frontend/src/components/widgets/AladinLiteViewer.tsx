@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
+import Aladin from "aladin-lite";
 
 export interface AladinLiteViewerProps {
   /** Right Ascension in degrees */
@@ -17,20 +18,6 @@ export interface AladinLiteViewerProps {
   className?: string;
   /** Enable fullscreen toggle */
   showFullscreen?: boolean;
-}
-
-declare global {
-  interface Window {
-    A?: {
-      aladin: (element: HTMLElement, options: AladinOptions) => AladinInstance;
-      catalogFromVizieR: (
-        catalog: string,
-        position: string,
-        radius: number,
-        options?: { shape?: string; color?: string }
-      ) => void;
-    };
-  }
 }
 
 interface AladinOptions {
@@ -57,10 +44,6 @@ interface AladinInstance {
   toggleFullscreen: () => void;
 }
 
-const ALADIN_CSS_URL = "https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.min.css";
-const ALADIN_JS_URL = "https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.min.js";
-const ALADIN_INTEGRITY = "sha384-5Fz016Wxf7jHEXNKZn3kQ2Ac9cnag6/VZw04/m+uxBUASk3G5i63DtAo0LikMIFm";
-
 /**
  * Interactive sky viewer using Aladin Lite v3.
  * Displays an interactive sky map centered on the specified coordinates.
@@ -77,90 +60,45 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const aladinRef = useRef<AladinInstance | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentFov, setCurrentFov] = useState(fov);
-
-  // Load Aladin Lite scripts
-  useEffect(() => {
-    const loadAladinLite = async () => {
-      // Check if already loaded
-      if (window.A) {
-        setIsLoading(false);
-        return;
-      }
-
-      try {
-        // Load CSS
-        if (!document.querySelector(`link[href="${ALADIN_CSS_URL}"]`)) {
-          const link = document.createElement("link");
-          link.rel = "stylesheet";
-          link.href = ALADIN_CSS_URL;
-          link.integrity = ALADIN_INTEGRITY;
-          link.crossOrigin = "anonymous";
-          document.head.appendChild(link);
-        }
-
-        // Load JS
-        if (!document.querySelector(`script[src="${ALADIN_JS_URL}"]`)) {
-          await new Promise<void>((resolve, reject) => {
-            const script = document.createElement("script");
-            script.src = ALADIN_JS_URL;
-            script.async = true;
-            script.integrity = ALADIN_INTEGRITY;
-            script.crossOrigin = "anonymous";
-            script.onload = () => resolve();
-            script.onerror = () => reject(new Error("Failed to load Aladin Lite"));
-            document.head.appendChild(script);
-          });
-        }
-
-        // Wait for A to be available
-        let attempts = 0;
-        while (!window.A && attempts < 50) {
-          await new Promise((resolve) => setTimeout(resolve, 100));
-          attempts++;
-        }
-
-        if (!window.A) {
-          throw new Error("Aladin Lite failed to initialize");
-        }
-
-        setIsLoading(false);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load sky viewer");
-        setIsLoading(false);
-      }
-    };
-
-    loadAladinLite();
+  const destroyInstance = useCallback(() => {
+    if (aladinRef.current && typeof (aladinRef.current as any).destroy === "function") {
+      (aladinRef.current as any).destroy();
+    }
+    aladinRef.current = null;
   }, []);
 
   // Initialize Aladin viewer
   useEffect(() => {
-    if (isLoading || error || !containerRef.current || !window.A) return;
+    if (error || !containerRef.current) return;
 
     const target = `${raDeg.toFixed(6)} ${decDeg >= 0 ? "+" : ""}${decDeg.toFixed(6)}`;
 
-    aladinRef.current = window.A.aladin(containerRef.current, {
-      target,
-      fov: currentFov,
-      survey,
-      showReticle: true,
-      showZoomControl: true,
-      showFullscreenControl: showFullscreen,
-      showLayersControl: true,
-      showGotoControl: false,
-      showShareControl: false,
-      showCatalog: true,
-      showFrame: true,
-    });
+    try {
+      destroyInstance();
 
-    // Add marker at source position if name provided
-    if (sourceName) {
-      // Aladin will show the crosshair at center
+      aladinRef.current = Aladin.aladin(containerRef.current, {
+        target,
+        fov: currentFov,
+        survey,
+        showReticle: true,
+        showZoomControl: true,
+        showFullscreenControl: showFullscreen,
+        showLayersControl: true,
+        showGotoControl: false,
+        showShareControl: false,
+        showCatalog: true,
+        showFrame: true,
+      });
+      setIsLoading(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load sky viewer");
     }
-  }, [isLoading, error, raDeg, decDeg, currentFov, survey, showFullscreen, sourceName]);
+
+    return destroyInstance;
+  }, [destroyInstance, error, raDeg, decDeg, currentFov, survey, showFullscreen]);
 
   // Update position when coordinates change
   useEffect(() => {
