@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
-// Treat aladin-lite as an emitted asset so it does not bloat the main bundle
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import aladinScriptUrl from "aladin-lite?url";
+
+// Use the official Aladin Lite CDN URL for reliable loading
+// Version 3.5.0 is the latest stable release from CDS
+const ALADIN_LITE_CDN_URL = "https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.js";
 
 export interface AladinLiteViewerProps {
   /** Right Ascension in degrees */
@@ -74,6 +74,7 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentFov, setCurrentFov] = useState(fov);
+  const [shouldLoad, setShouldLoad] = useState(false);
   const destroyInstance = useCallback(() => {
     if (aladinRef.current && typeof (aladinRef.current as any).destroy === "function") {
       (aladinRef.current as any).destroy();
@@ -85,7 +86,7 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
   useEffect(() => {
     let cancelled = false;
     const init = async () => {
-      if (error || !containerRef.current) return;
+      if (!shouldLoad || error || !containerRef.current) return;
 
       const target = `${raDeg.toFixed(6)} ${decDeg >= 0 ? "+" : ""}${decDeg.toFixed(6)}`;
 
@@ -93,10 +94,12 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
         setIsLoading(true);
         destroyInstance();
 
-        // Load Aladin from the emitted asset if not already present
+        // Load Aladin from CDN if not already present
         if (!window.A) {
           await new Promise<void>((resolve, reject) => {
-            let script = document.querySelector<HTMLScriptElement>('script[data-aladin-lite="true"]');
+            let script = document.querySelector<HTMLScriptElement>(
+              'script[data-aladin-lite="true"]'
+            );
             if (script) {
               script.onload = () => resolve();
               script.onerror = () => reject(new Error("Failed to load Aladin Lite"));
@@ -104,7 +107,7 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
             }
 
             script = document.createElement("script");
-            script.src = aladinScriptUrl;
+            script.src = ALADIN_LITE_CDN_URL;
             script.async = true;
             script.dataset.aladinLite = "true";
             script.onload = () => resolve();
@@ -146,7 +149,7 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
       cancelled = true;
       destroyInstance();
     };
-  }, [destroyInstance, error, raDeg, decDeg, survey, showFullscreen]);
+  }, [destroyInstance, error, raDeg, decDeg, survey, showFullscreen, shouldLoad]);
 
   // Update position when coordinates change
   useEffect(() => {
@@ -188,6 +191,29 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
   }, []);
 
   const heightStyle = typeof height === "number" ? `${height}px` : height;
+
+  if (!shouldLoad) {
+    return (
+      <div className={`bg-gray-100 rounded-lg p-4 ${className}`} style={{ height: heightStyle }}>
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-semibold text-gray-800">Sky Viewer</p>
+            <p className="text-sm text-gray-600">
+              Load the interactive Aladin viewer on demand to reduce initial page weight.
+            </p>
+          </div>
+          <button
+            type="button"
+            className="btn btn-primary btn-sm"
+            onClick={() => setShouldLoad(true)}
+            aria-label="Load sky viewer"
+          >
+            Load viewer
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (error) {
     return (

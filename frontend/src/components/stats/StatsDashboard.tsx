@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useMemo } from "react";
-import * as echarts from "echarts";
+import React, { useEffect, useRef, useMemo, useState } from "react";
+import { loadEcharts } from "../../lib/loadEcharts";
 
 export interface RatingStat {
   label: string;
@@ -48,187 +48,218 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({
   const userChartRef = useRef<HTMLDivElement>(null);
   const tagChartRef = useRef<HTMLDivElement>(null);
   const pieChartRef = useRef<HTMLDivElement>(null);
+  const [chartsReady, setChartsReady] = useState(false);
 
   // Render User Stats Chart
   useEffect(() => {
-    if (!userChartRef.current || byUser.length === 0) return;
+    if (!chartsReady || !userChartRef.current || byUser.length === 0) return;
 
-    const chart = echarts.init(userChartRef.current);
+    let disposed = false;
+    const init = async () => {
+      const echarts = await loadEcharts();
+      if (!userChartRef.current || disposed) return;
 
-    chart.setOption({
-      title: {
-        text: "Ratings by User",
-        left: "center",
-        textStyle: { fontSize: 14 },
-      },
-      tooltip: {
-        trigger: "axis",
-        axisPointer: { type: "shadow" },
-      },
-      legend: {
-        data: ["True", "False", "Unsure"],
-        bottom: 0,
-      },
-      grid: {
-        left: "3%",
-        right: "4%",
-        bottom: "15%",
-        top: "15%",
-        containLabel: true,
-      },
-      xAxis: {
-        type: "category",
-        data: byUser.map((s) => s.label),
-        axisLabel: { rotate: 45 },
-      },
-      yAxis: { type: "value" },
-      series: [
-        {
-          name: "True",
-          type: "bar",
-          stack: "total",
-          data: byUser.map((s) => s.trueCount),
-          itemStyle: { color: "#22c55e" },
+      const chart = echarts.init(userChartRef.current);
+
+      chart.setOption({
+        title: {
+          text: "Ratings by User",
+          left: "center",
+          textStyle: { fontSize: 14 },
         },
-        {
-          name: "False",
-          type: "bar",
-          stack: "total",
-          data: byUser.map((s) => s.falseCount),
-          itemStyle: { color: "#ef4444" },
+        tooltip: {
+          trigger: "axis",
+          axisPointer: { type: "shadow" },
         },
-        {
-          name: "Unsure",
-          type: "bar",
-          stack: "total",
-          data: byUser.map((s) => s.unsureCount),
-          itemStyle: { color: "#f59e0b" },
+        legend: {
+          data: ["True", "False", "Unsure"],
+          bottom: 0,
         },
-      ],
-    });
+        grid: {
+          left: "3%",
+          right: "4%",
+          bottom: "15%",
+          top: "15%",
+          containLabel: true,
+        },
+        xAxis: {
+          type: "category",
+          data: byUser.map((s) => s.label),
+          axisLabel: { rotate: 45 },
+        },
+        yAxis: { type: "value" },
+        series: [
+          {
+            name: "True",
+            type: "bar",
+            stack: "total",
+            data: byUser.map((s) => s.trueCount),
+            itemStyle: { color: "#22c55e" },
+          },
+          {
+            name: "False",
+            type: "bar",
+            stack: "total",
+            data: byUser.map((s) => s.falseCount),
+            itemStyle: { color: "#ef4444" },
+          },
+          {
+            name: "Unsure",
+            type: "bar",
+            stack: "total",
+            data: byUser.map((s) => s.unsureCount),
+            itemStyle: { color: "#f59e0b" },
+          },
+        ],
+      });
 
-    const handleResize = () => chart.resize();
-    window.addEventListener("resize", handleResize);
+      const handleResize = () => chart.resize();
+      window.addEventListener("resize", handleResize);
 
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      chart.dispose();
+      return () => {
+        window.removeEventListener("resize", handleResize);
+        chart.dispose();
+        disposed = true;
+      };
     };
-  }, [byUser]);
+
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    init();
+  }, [byUser, chartsReady]);
 
   // Render Tag Stats Chart
   useEffect(() => {
-    if (!tagChartRef.current || byTag.length === 0) return;
+    if (!chartsReady || !tagChartRef.current || byTag.length === 0) return;
 
-    const chart = echarts.init(tagChartRef.current);
+    let disposed = false;
+    const init = async () => {
+      const echarts = await loadEcharts();
+      if (!tagChartRef.current || disposed) return;
 
-    chart.setOption({
-      title: {
-        text: "Ratings by Tag",
-        left: "center",
-        textStyle: { fontSize: 14 },
-      },
-      tooltip: {
-        trigger: "axis",
-        axisPointer: { type: "shadow" },
-      },
-      legend: {
-        data: ["True", "False", "Unsure"],
-        bottom: 0,
-      },
-      grid: {
-        left: "3%",
-        right: "4%",
-        bottom: "15%",
-        top: "15%",
-        containLabel: true,
-      },
-      xAxis: {
-        type: "category",
-        data: byTag.map((s) => s.label),
-        axisLabel: { rotate: 45 },
-      },
-      yAxis: { type: "value" },
-      series: [
-        {
-          name: "True",
-          type: "bar",
-          stack: "total",
-          data: byTag.map((s) => s.trueCount),
-          itemStyle: { color: "#22c55e" },
+      const chart = echarts.init(tagChartRef.current);
+
+      chart.setOption({
+        title: {
+          text: "Ratings by Tag",
+          left: "center",
+          textStyle: { fontSize: 14 },
         },
-        {
-          name: "False",
-          type: "bar",
-          stack: "total",
-          data: byTag.map((s) => s.falseCount),
-          itemStyle: { color: "#ef4444" },
+        tooltip: {
+          trigger: "axis",
+          axisPointer: { type: "shadow" },
         },
-        {
-          name: "Unsure",
-          type: "bar",
-          stack: "total",
-          data: byTag.map((s) => s.unsureCount),
-          itemStyle: { color: "#f59e0b" },
+        legend: {
+          data: ["True", "False", "Unsure"],
+          bottom: 0,
         },
-      ],
-    });
+        grid: {
+          left: "3%",
+          right: "4%",
+          bottom: "15%",
+          top: "15%",
+          containLabel: true,
+        },
+        xAxis: {
+          type: "category",
+          data: byTag.map((s) => s.label),
+          axisLabel: { rotate: 45 },
+        },
+        yAxis: { type: "value" },
+        series: [
+          {
+            name: "True",
+            type: "bar",
+            stack: "total",
+            data: byTag.map((s) => s.trueCount),
+            itemStyle: { color: "#22c55e" },
+          },
+          {
+            name: "False",
+            type: "bar",
+            stack: "total",
+            data: byTag.map((s) => s.falseCount),
+            itemStyle: { color: "#ef4444" },
+          },
+          {
+            name: "Unsure",
+            type: "bar",
+            stack: "total",
+            data: byTag.map((s) => s.unsureCount),
+            itemStyle: { color: "#f59e0b" },
+          },
+        ],
+      });
 
-    const handleResize = () => chart.resize();
-    window.addEventListener("resize", handleResize);
+      const handleResize = () => chart.resize();
+      window.addEventListener("resize", handleResize);
 
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      chart.dispose();
+      return () => {
+        window.removeEventListener("resize", handleResize);
+        chart.dispose();
+        disposed = true;
+      };
     };
-  }, [byTag]);
+
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    init();
+  }, [byTag, chartsReady]);
 
   // Render Pie Chart
   useEffect(() => {
-    if (!pieChartRef.current || tagDistribution.length === 0) return;
+    if (!chartsReady || !pieChartRef.current || tagDistribution.length === 0) return;
 
-    const chart = echarts.init(pieChartRef.current);
+    let disposed = false;
+    const init = async () => {
+      const echarts = await loadEcharts();
+      if (!pieChartRef.current || disposed) return;
 
-    chart.setOption({
-      title: {
-        text: "Tag Distribution",
-        left: "center",
-        textStyle: { fontSize: 14 },
-      },
-      tooltip: {
-        trigger: "item",
-        formatter: "{b}: {c} ({d}%)",
-      },
-      series: [
-        {
-          type: "pie",
-          radius: ["40%", "70%"],
-          avoidLabelOverlap: false,
-          itemStyle: {
-            borderRadius: 4,
-            borderColor: "#fff",
-            borderWidth: 2,
-          },
-          label: {
-            show: true,
-            formatter: "{b}",
-          },
-          data: tagDistribution.map((d) => ({
-            name: d.tag,
-            value: d.count,
-          })),
+      const chart = echarts.init(pieChartRef.current);
+
+      chart.setOption({
+        title: {
+          text: "Tag Distribution",
+          left: "center",
+          textStyle: { fontSize: 14 },
         },
-      ],
-    });
+        tooltip: {
+          trigger: "item",
+          formatter: "{b}: {c} ({d}%)",
+        },
+        series: [
+          {
+            type: "pie",
+            radius: ["40%", "70%"],
+            avoidLabelOverlap: false,
+            itemStyle: {
+              borderRadius: 4,
+              borderColor: "#fff",
+              borderWidth: 2,
+            },
+            label: {
+              show: true,
+              formatter: "{b}",
+            },
+            data: tagDistribution.map((d) => ({
+              name: d.tag,
+              value: d.count,
+            })),
+          },
+        ],
+      });
 
-    const handleResize = () => chart.resize();
-    window.addEventListener("resize", handleResize);
+      const handleResize = () => chart.resize();
+      window.addEventListener("resize", handleResize);
 
-    return () => {
-      window.removeEventListener("resize", handleResize);
-      chart.dispose();
+      return () => {
+        window.removeEventListener("resize", handleResize);
+        chart.dispose();
+        disposed = true;
+      };
     };
-  }, [tagDistribution]);
+
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    init();
+  }, [tagDistribution, chartsReady]);
 
   // Calculate overall stats
   const stats = useMemo(() => {
@@ -255,6 +286,24 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({
       <div className={`flex items-center justify-center h-64 ${className}`}>
         <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
         <span className="ml-2 text-gray-500">Loading statistics...</span>
+      </div>
+    );
+  }
+
+  if (!chartsReady) {
+    return (
+      <div className={`flex items-center justify-center h-64 ${className}`}>
+        <div className="flex flex-col items-center gap-3 text-gray-600">
+          <p className="text-sm text-center">Charts are deferred to avoid loading heavy libraries automatically.</p>
+          <button
+            type="button"
+            className="btn btn-primary btn-sm"
+            onClick={() => setChartsReady(true)}
+            aria-label="Load charts"
+          >
+            Load charts
+          </button>
+        </div>
       </div>
     );
   }
