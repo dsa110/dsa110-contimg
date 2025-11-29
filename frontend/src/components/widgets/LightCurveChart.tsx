@@ -78,157 +78,156 @@ const LightCurveChart: React.FC<LightCurveChartProps> = ({
   useEffect(() => {
     if (!libraryLoaded || error || !containerRef.current || isLoading) return;
 
-    // Initialize or get existing instance
-    if (!chartRef.current) {
+    let cancelled = false;
+    const renderChart = async () => {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        loadEcharts()
-          .then((echarts) => {
-            if (!containerRef.current) return;
-            chartRef.current = echarts.init(containerRef.current);
-            setError(null);
-          })
-          .catch((err) => {
-            setError(err instanceof Error ? err.message : "Failed to initialize chart");
+        const echarts = await loadEcharts();
+        if (!containerRef.current || cancelled) return;
+
+        if (!chartRef.current) {
+          chartRef.current = echarts.init(containerRef.current);
+        }
+
+        // Transform data
+        const chartData: [number, number][] = data.map((point) => {
+          const time =
+            typeof point.time === "string" ? new Date(point.time).getTime() : point.time;
+          return [time, point.flux];
+        });
+
+        // Build error bar data if available
+        const errorBarData: { coord: [number, number, number, number] }[] = [];
+        if (showErrorBars) {
+          data.forEach((point, index) => {
+            if (point.fluxError !== undefined) {
+              const time = chartData[index][0];
+              errorBarData.push({
+                coord: [time, point.flux - point.fluxError, time, point.flux + point.fluxError],
+              });
+            }
           });
+        }
+
+        const formatFlux = (value: number): string => {
+          if (Math.abs(value) < 0.001) {
+            return `${(value * 1e6).toFixed(1)} μJy`;
+          }
+          if (Math.abs(value) < 1) {
+            return `${(value * 1e3).toFixed(2)} mJy`;
+          }
+          return `${value.toFixed(3)} Jy`;
+        };
+
+        const option: EChartsOption = {
+          title: title
+            ? {
+                text: title,
+                left: "center",
+                textStyle: { fontSize: 14, fontWeight: "bold" },
+              }
+            : undefined,
+          tooltip: {
+            trigger: "item",
+            formatter: (params: EChartsTooltipParams) => {
+              const point = data[params.dataIndex];
+              const date = new Date(params.data[0]);
+              let html = `<div class="text-sm">
+                <div class="font-medium">${escapeHtml(date.toLocaleString())}</div>
+                <div>Flux: ${escapeHtml(formatFlux(params.data[1]))}</div>`;
+              if (point?.fluxError) {
+                html += `<div>Error: ±${escapeHtml(formatFlux(point.fluxError))}</div>`;
+              }
+              if (point?.label) {
+                html += `<div class="text-gray-500">${escapeHtml(point.label)}</div>`;
+              }
+              html += "</div>";
+              return html;
+            },
+            axisPointer: { type: "cross" },
+          },
+          xAxis: {
+            type: "time",
+            name: xAxisLabel,
+            nameLocation: "middle",
+            axisLabel: {
+              formatter: (value: number) => {
+                const date = new Date(value);
+                return `${date.getMonth() + 1}/${date.getDate()}`;
+              },
+            },
+          },
+          yAxis: {
+            type: "value",
+            name: yAxisLabel,
+            nameLocation: "middle",
+            axisLabel: {
+              formatter: formatFlux,
+            },
+          },
+          series: [
+            {
+              type: "line",
+              data: chartData,
+              symbolSize: 8,
+              itemStyle: { color: "#3b82f6" },
+              lineStyle: { width: 2 },
+              showSymbol: true,
+              emphasis: {
+                focus: "series",
+                itemStyle: { shadowBlur: 10, shadowColor: "rgba(59, 130, 246, 0.5)" },
+              },
+            },
+          ],
+          dataZoom: enableZoom
+            ? [
+                { type: "inside", start: 0, end: 100, xAxisIndex: 0 },
+                { type: "slider", start: 0, end: 100, xAxisIndex: 0 },
+              ]
+            : undefined,
+          grid: {
+            left: "15%",
+            right: "10%",
+            bottom: enableZoom ? "20%" : "15%",
+            top: title ? "15%" : "10%",
+            containLabel: true,
+          },
+          toolbox: {
+            feature: {
+              dataZoom: { yAxisIndex: "none", title: { zoom: "Zoom", back: "Reset" } },
+              restore: { title: "Restore" },
+              saveAsImage: { title: "Save" },
+            },
+          },
+        };
+
+        chartRef.current.setOption(option);
+
+        if (onPointClick) {
+          chartRef.current.off("click");
+          chartRef.current.on("click", (params: EChartsEventParams) => {
+            if (params.dataIndex !== undefined) {
+              onPointClick(data[params.dataIndex], params.dataIndex);
+            }
+          });
+        }
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to initialize chart");
-        return;
-      }
-    }
-
-    // Transform data
-    const chartData: [number, number][] = data.map((point) => {
-      const time =
-        typeof point.time === "string" ? new Date(point.time).getTime() : point.time;
-      return [time, point.flux];
-    });
-
-    // Build error bar data if available
-    const errorBarData: { coord: [number, number, number, number] }[] = [];
-    if (showErrorBars) {
-      data.forEach((point, index) => {
-        if (point.fluxError !== undefined) {
-          const time = chartData[index][0];
-          errorBarData.push({
-            coord: [time, point.flux - point.fluxError, time, point.flux + point.fluxError],
-          });
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Failed to render chart");
         }
-      });
-    }
-
-    // Format flux values smartly
-    const formatFlux = (value: number): string => {
-      if (Math.abs(value) < 0.001) {
-        return `${(value * 1e6).toFixed(1)} μJy`;
       }
-      if (Math.abs(value) < 1) {
-        return `${(value * 1e3).toFixed(2)} mJy`;
-      }
-      return `${value.toFixed(3)} Jy`;
     };
 
-    const option: EChartsOption = {
-      title: title
-        ? {
-            text: title,
-            left: "center",
-            textStyle: { fontSize: 14, fontWeight: "bold" },
-          }
-        : undefined,
-      tooltip: {
-        trigger: "item",
-        formatter: (params: EChartsTooltipParams) => {
-          const point = data[params.dataIndex];
-          const date = new Date(params.data[0]);
-          let html = `<div class="text-sm">
-            <div class="font-medium">${escapeHtml(date.toLocaleString())}</div>
-            <div>Flux: ${escapeHtml(formatFlux(params.data[1]))}</div>`;
-          if (point?.fluxError) {
-            html += `<div>Error: ±${escapeHtml(formatFlux(point.fluxError))}</div>`;
-          }
-          if (point?.label) {
-            html += `<div class="text-gray-500">${escapeHtml(point.label)}</div>`;
-          }
-          html += "</div>";
-          return html;
-        },
-        axisPointer: { type: "cross" },
-      },
-      xAxis: {
-        type: "time",
-        name: xAxisLabel,
-        nameLocation: "middle",
-        axisLabel: {
-          formatter: (value: number) => {
-            const date = new Date(value);
-            return `${date.getMonth() + 1}/${date.getDate()}`;
-          },
-        },
-      },
-      yAxis: {
-        type: "value",
-        name: yAxisLabel,
-        nameLocation: "middle",
-        axisLabel: {
-          formatter: formatFlux,
-        },
-      },
-      series: [
-        {
-          type: "line",
-          data: chartData,
-          symbolSize: 8,
-          itemStyle: { color: "#3b82f6" },
-          lineStyle: { width: 2 },
-          showSymbol: true,
-          emphasis: {
-            focus: "series",
-            itemStyle: { shadowBlur: 10, shadowColor: "rgba(59, 130, 246, 0.5)" },
-          },
-        },
-      ],
-      dataZoom: enableZoom
-        ? [
-            { type: "inside", start: 0, end: 100, xAxisIndex: 0 },
-            { type: "slider", start: 0, end: 100, xAxisIndex: 0 },
-          ]
-        : undefined,
-      grid: {
-        left: "15%",
-        right: "10%",
-        bottom: enableZoom ? "20%" : "15%",
-        top: title ? "15%" : "10%",
-        containLabel: true,
-      },
-      toolbox: {
-        feature: {
-          dataZoom: { yAxisIndex: "none", title: { zoom: "Zoom", back: "Reset" } },
-          restore: { title: "Restore" },
-          saveAsImage: { title: "Save" },
-        },
-      },
-    };
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    renderChart();
 
-    chartRef.current.setOption(option);
-
-    // Handle click events
-    if (onPointClick) {
-      chartRef.current.off("click");
-      chartRef.current.on("click", (params: EChartsEventParams) => {
-        if (params.dataIndex !== undefined) {
-          onPointClick(data[params.dataIndex], params.dataIndex);
-        }
-      });
-    }
-
-    // Cleanup
     return () => {
+      cancelled = true;
       if (chartRef.current) {
         chartRef.current.off("click");
       }
     };
   }, [
+    libraryLoaded,
     error,
     data,
     title,
@@ -238,7 +237,6 @@ const LightCurveChart: React.FC<LightCurveChartProps> = ({
     showErrorBars,
     onPointClick,
     isLoading,
-    escapeHtml,
   ]);
 
   // Handle resize
