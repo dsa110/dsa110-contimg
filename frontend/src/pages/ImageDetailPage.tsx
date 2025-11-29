@@ -1,41 +1,29 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { useParams, Link } from "react-router-dom";
 import ProvenanceStrip from "../components/provenance/ProvenanceStrip";
 import ErrorDisplay from "../components/errors/ErrorDisplay";
 import { mapProvenanceFromImageDetail, ImageDetailResponse } from "../utils/provenanceMappers";
 import type { ErrorResponse } from "../types/errors";
-import apiClient from "../api/client";
-
-interface ImageDetailPageProps {
-  imageId: string;
-}
+import { useImage } from "../hooks/useQueries";
+import { usePreferencesStore } from "../stores/appStore";
 
 /**
  * Detail page for a single image.
  * Displays image metadata, provenance strip, and visualization options.
  */
-const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId }) => {
-  const [image, setImage] = useState<ImageDetailResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<ErrorResponse | null>(null);
+const ImageDetailPage: React.FC = () => {
+  const { imageId } = useParams<{ imageId: string }>();
+  const { data: image, isLoading, error, refetch } = useImage(imageId);
+  const addRecentImage = usePreferencesStore((state) => state.addRecentImage);
 
-  useEffect(() => {
-    const fetchImage = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await apiClient.get<ImageDetailResponse>(`/images/${imageId}`);
-        setImage(response.data);
-      } catch (err) {
-        setError(err as ErrorResponse);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Track in recent items when image loads
+  React.useEffect(() => {
+    if (image && imageId) {
+      addRecentImage(imageId);
+    }
+  }, [image, imageId, addRecentImage]);
 
-    fetchImage();
-  }, [imageId]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="page-loading" style={{ padding: "20px", textAlign: "center" }}>
         Loading image details...
@@ -46,7 +34,7 @@ const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId }) => {
   if (error) {
     return (
       <div className="page-error" style={{ padding: "20px" }}>
-        <ErrorDisplay error={error} />
+        <ErrorDisplay error={error as ErrorResponse} onRetry={() => refetch()} />
       </div>
     );
   }
@@ -54,12 +42,14 @@ const ImageDetailPage: React.FC<ImageDetailPageProps> = ({ imageId }) => {
   if (!image) {
     return (
       <div className="page-empty" style={{ padding: "20px" }}>
-        Image not found.
+        <p>Image not found.</p>
+        <Link to="/images">← Back to Images</Link>
       </div>
     );
   }
 
-  const provenance = mapProvenanceFromImageDetail(image);
+  // Cast to expected response type for mapper
+  const provenance = mapProvenanceFromImageDetail(image as ImageDetailResponse);
 
   return (
     <div className="image-detail-page" style={{ padding: "20px" }}>

@@ -1,47 +1,39 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
 import ProvenanceStrip from "../components/provenance/ProvenanceStrip";
 import ErrorDisplay from "../components/errors/ErrorDisplay";
 import { mapProvenanceFromSourceDetail, SourceDetailResponse } from "../utils/provenanceMappers";
 import type { ErrorResponse } from "../types/errors";
 import type { ProvenanceStripProps } from "../types/provenance";
-import apiClient from "../api/client";
-
-interface SourceDetailPageProps {
-  sourceId: string;
-}
+import { useSource } from "../hooks/useQueries";
+import { usePreferencesStore } from "../stores/appStore";
 
 /**
  * Detail page for an astronomical source.
  * Displays source info, lightcurve, contributing images, and provenance.
  */
-const SourceDetailPage: React.FC<SourceDetailPageProps> = ({ sourceId }) => {
-  const [source, setSource] = useState<SourceDetailResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<ErrorResponse | null>(null);
+const SourceDetailPage: React.FC = () => {
+  const { sourceId } = useParams<{ sourceId: string }>();
+  const { data: source, isLoading, error, refetch } = useSource(sourceId);
+  const addRecentSource = usePreferencesStore((state) => state.addRecentSource);
   const [selectedImageId, setSelectedImageId] = useState<string | undefined>(undefined);
 
+  // Track in recent items when source loads
   useEffect(() => {
-    const fetchSource = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const response = await apiClient.get<SourceDetailResponse>(`/sources/${sourceId}`);
-        setSource(response.data);
-        // Default to first contributing image
-        if (response.data.contributing_images?.length) {
-          setSelectedImageId(response.data.contributing_images[0].image_id);
-        }
-      } catch (err) {
-        setError(err as ErrorResponse);
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (source && sourceId) {
+      addRecentSource(sourceId);
+    }
+  }, [source, sourceId, addRecentSource]);
 
-    fetchSource();
-  }, [sourceId]);
+  // Set default selected image when source loads
+  useEffect(() => {
+    const sourceData = source as SourceDetailResponse | undefined;
+    if (sourceData?.contributing_images?.length) {
+      setSelectedImageId(sourceData.contributing_images[0].image_id);
+    }
+  }, [source]);
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="page-loading" style={{ padding: "20px", textAlign: "center" }}>
         Loading source details...
@@ -52,7 +44,7 @@ const SourceDetailPage: React.FC<SourceDetailPageProps> = ({ sourceId }) => {
   if (error) {
     return (
       <div className="page-error" style={{ padding: "20px" }}>
-        <ErrorDisplay error={error} />
+        <ErrorDisplay error={error as ErrorResponse} onRetry={() => refetch()} />
       </div>
     );
   }
@@ -60,20 +52,24 @@ const SourceDetailPage: React.FC<SourceDetailPageProps> = ({ sourceId }) => {
   if (!source) {
     return (
       <div className="page-empty" style={{ padding: "20px" }}>
-        Source not found.
+        <p>Source not found.</p>
+        <Link to="/sources">← Back to Sources</Link>
       </div>
     );
   }
 
+  // Cast for provenance mapper (API response may have additional fields)
+  const sourceData = source as unknown as SourceDetailResponse;
+
   const provenance: ProvenanceStripProps | null = mapProvenanceFromSourceDetail(
-    source,
+    sourceData,
     selectedImageId
   );
 
   return (
     <div className="source-detail-page" style={{ padding: "20px" }}>
       <header style={{ marginBottom: "20px" }}>
-        <h1 style={{ margin: "0 0 12px" }}>Source: {source.name || source.id}</h1>
+        <h1 style={{ margin: "0 0 12px" }}>Source: {sourceData.name || sourceData.id}</h1>
         {provenance && <ProvenanceStrip {...provenance} />}
       </header>
 
@@ -86,7 +82,7 @@ const SourceDetailPage: React.FC<SourceDetailPageProps> = ({ sourceId }) => {
                 RA
               </td>
               <td style={{ padding: "8px", borderBottom: "1px solid #eee" }}>
-                {source.ra_deg.toFixed(6)}°
+                {sourceData.ra_deg.toFixed(6)}°
               </td>
             </tr>
             <tr>
@@ -94,18 +90,18 @@ const SourceDetailPage: React.FC<SourceDetailPageProps> = ({ sourceId }) => {
                 Dec
               </td>
               <td style={{ padding: "8px", borderBottom: "1px solid #eee" }}>
-                {source.dec_deg.toFixed(6)}°
+                {sourceData.dec_deg.toFixed(6)}°
               </td>
             </tr>
           </tbody>
         </table>
       </section>
 
-      {source.contributing_images && source.contributing_images.length > 0 && (
+      {sourceData.contributing_images && sourceData.contributing_images.length > 0 && (
         <section className="source-images" style={{ marginBottom: "20px" }}>
-          <h2>Contributing Images ({source.contributing_images.length})</h2>
+          <h2>Contributing Images ({sourceData.contributing_images.length})</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxWidth: "600px" }}>
-            {source.contributing_images.map((img) => (
+            {sourceData.contributing_images.map((img) => (
               <div
                 key={img.image_id}
                 style={{

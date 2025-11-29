@@ -1,42 +1,24 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { useParams, Link } from "react-router-dom";
 import ProvenanceStrip from "../components/provenance/ProvenanceStrip";
 import ErrorDisplay from "../components/errors/ErrorDisplay";
 import { mapProvenanceFromMSDetail, MSDetailResponse } from "../utils/provenanceMappers";
 import type { ErrorResponse } from "../types/errors";
-import apiClient from "../api/client";
-
-interface MSDetailPageProps {
-  msPath: string;
-}
+import { useMS } from "../hooks/useQueries";
 
 /**
  * Detail page for a Measurement Set.
  * Displays MS metadata, calibrator matches, provenance, and related images.
+ *
+ * Route: /ms/*
+ * The "*" captures the full MS path which may contain slashes.
  */
-const MSDetailPage: React.FC<MSDetailPageProps> = ({ msPath }) => {
-  const [ms, setMS] = useState<MSDetailResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<ErrorResponse | null>(null);
+const MSDetailPage: React.FC = () => {
+  // React Router v6 captures the rest of the path with "*"
+  const { "*": msPath } = useParams<{ "*": string }>();
+  const { data: ms, isLoading, error, refetch } = useMS(msPath);
 
-  useEffect(() => {
-    const fetchMS = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const encodedPath = encodeURIComponent(msPath);
-        const response = await apiClient.get<MSDetailResponse>(`/ms/${encodedPath}/metadata`);
-        setMS(response.data);
-      } catch (err) {
-        setError(err as ErrorResponse);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMS();
-  }, [msPath]);
-
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="page-loading" style={{ padding: "20px", textAlign: "center" }}>
         Loading Measurement Set details...
@@ -47,20 +29,29 @@ const MSDetailPage: React.FC<MSDetailPageProps> = ({ msPath }) => {
   if (error) {
     return (
       <div className="page-error" style={{ padding: "20px" }}>
-        <ErrorDisplay error={error} />
+        <ErrorDisplay error={error as ErrorResponse} onRetry={() => refetch()} />
       </div>
     );
   }
 
-  if (!ms) {
+  if (!ms || !msPath) {
     return (
       <div className="page-empty" style={{ padding: "20px" }}>
-        Measurement Set not found.
+        <p>Measurement Set not found.</p>
+        <Link to="/images">← Back to Images</Link>
       </div>
     );
   }
 
-  const provenance = mapProvenanceFromMSDetail(ms);
+  // Cast for provenance mapper
+  const msForMapper: MSDetailResponse = {
+    path: ms.path,
+    cal_table: ms.cal_table,
+    pointing_ra_deg: undefined, // Not in MSMetadata type, would need to extend
+    pointing_dec_deg: undefined,
+    created_at: undefined,
+  };
+  const provenance = mapProvenanceFromMSDetail(msForMapper);
 
   return (
     <div className="ms-detail-page" style={{ padding: "20px" }}>
@@ -162,7 +153,9 @@ const MSDetailPage: React.FC<MSDetailPageProps> = ({ msPath }) => {
             borderRadius: "4px",
             cursor: "pointer",
           }}
-          onClick={() => window.open(`/api/ms/${encodeURIComponent(msPath)}/download`, "_blank")}
+          onClick={() =>
+            window.open(`/api/ms/${encodeURIComponent(msPath ?? "")}/download`, "_blank")
+          }
         >
           Download MS
         </button>
@@ -176,13 +169,15 @@ const MSDetailPage: React.FC<MSDetailPageProps> = ({ msPath }) => {
             borderRadius: "4px",
             cursor: "pointer",
           }}
-          onClick={() => window.open(`/viewer/carta?ms=${encodeURIComponent(msPath)}`, "_blank")}
+          onClick={() =>
+            window.open(`/viewer/carta?ms=${encodeURIComponent(msPath ?? "")}`, "_blank")
+          }
         >
           Open in CARTA
         </button>
-        {ms.qa_grade && (
+        {(ms as MSDetailResponse & { qa_grade?: string }).qa_grade && (
           <a
-            href={`/qa/ms/${encodeURIComponent(msPath)}`}
+            href={`/qa/ms/${encodeURIComponent(msPath ?? "")}`}
             style={{
               padding: "10px 16px",
               backgroundColor: "#6c757d",
