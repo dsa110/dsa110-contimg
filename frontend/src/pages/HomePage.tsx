@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { StatCardGrid } from "../components/summary";
 import { SkyCoverageMap } from "../components/skymap";
-import { StatsDashboard } from "../components/stats";
+import { StatsDashboard, ServiceStatusPanel } from "../components/stats";
 import { useImages, useSources, useJobs } from "../hooks/useQueries";
 
 /**
@@ -206,6 +206,12 @@ const HomePage: React.FC = () => {
             </a>
           </li>
         </ul>
+      </section>
+
+      {/* Service Status Panel */}
+      <section className="mt-8">
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Infrastructure Status</h2>
+        <ServiceStatusPanel />
       </section>
     </div>
   );
