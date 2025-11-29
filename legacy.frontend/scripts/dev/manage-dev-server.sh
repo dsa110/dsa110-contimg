@@ -84,7 +84,7 @@ function start_server() {
     sleep 5
     
     if health_check; then
-        log "✅ Server started successfully and responding on port 3210"
+        log ":white_heavy_check_mark: Server started successfully and responding on port 3210"
         log "Access at: http://localhost:3210/"
         return 0
     else
@@ -92,7 +92,7 @@ function start_server() {
         log "Initial health check failed, waiting longer for Vite to initialize..."
         sleep 10
         if health_check; then
-            log "✅ Server started successfully and responding on port 3210"
+            log ":white_heavy_check_mark: Server started successfully and responding on port 3210"
             log "Access at: http://localhost:3210/"
             return 0
         else
@@ -129,7 +129,7 @@ function stop_server() {
     fi
     
     rm -f "$PID_FILE"
-    log "✅ Server stopped"
+    log ":white_heavy_check_mark: Server stopped"
 }
 
 function restart_server() {
@@ -150,9 +150,9 @@ function status() {
         echo "Port: 3210"
         
         if health_check; then
-            echo -e "${GREEN}Health:${NC} ✅ Responding"
+            echo -e "${GREEN}Health:${NC} :white_heavy_check_mark: Responding"
         else
-            echo -e "${RED}Health:${NC} ⚠️ Not responding"
+            echo -e "${RED}Health:${NC} :warning_sign::variation_selector-16: Not responding"
         fi
         
         # Show resource usage

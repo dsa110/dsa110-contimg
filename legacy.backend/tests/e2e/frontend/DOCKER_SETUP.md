@@ -71,9 +71,9 @@ Results are saved to:
 
 ## Advantages
 
-✅ **No browser installation issues** - Browsers installed in container ✅
-**Consistent environment** - Same setup everywhere ✅ **Easy CI/CD** - Works the
-same locally and in CI ✅ **Isolated** - Doesn't affect host system
+:white_heavy_check_mark: **No browser installation issues** - Browsers installed in container :white_heavy_check_mark:
+**Consistent environment** - Same setup everywhere :white_heavy_check_mark: **Easy CI/CD** - Works the
+same locally and in CI :white_heavy_check_mark: **Isolated** - Doesn't affect host system
 
 ## See Also
 

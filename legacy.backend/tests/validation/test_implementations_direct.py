@@ -53,7 +53,7 @@ def test_performance_metrics():
     summary = performance.get_performance_summary()
     assert "test_operation" in summary, "Summary should include test_operation"
 
-    print("✓ Performance metrics module works correctly")
+    print(":check_mark: Performance metrics module works correctly")
     print()
 
 
@@ -89,7 +89,7 @@ def test_error_context():
     assert "MS not found" in result, "Error message should be included"
     assert "Check MS path" in result, "First suggestion should be included"
 
-    print("✓ Error context module works correctly")
+    print(":check_mark: Error context module works correctly")
     print()
 
 
@@ -133,7 +133,7 @@ def test_cache_stats():
     assert ms_stats["maxsize"] == 128, f"Expected maxsize=128, got {ms_stats['maxsize']}"
     assert flag_stats["maxsize"] == 64, f"Expected maxsize=64, got {flag_stats['maxsize']}"
 
-    print("✓ Cache statistics function works correctly")
+    print(":check_mark: Cache statistics function works correctly")
     print(f"  MS metadata cache: maxsize={ms_stats['maxsize']}, currsize={ms_stats['currsize']}")
     print(
         f"  Flag validation cache: maxsize={flag_stats['maxsize']}, currsize={flag_stats['currsize']}"
@@ -169,7 +169,7 @@ def test_parallel_processing():
     results_empty = parallel.process_parallel([], square, show_progress=False)
     assert results_empty == [], "Empty list should return empty results"
 
-    print("✓ Parallel processing module works correctly")
+    print(":check_mark: Parallel processing module works correctly")
     print()
 
 
@@ -208,7 +208,7 @@ def test_type_annotations():
         None,
     ), f"Expected None type, got {sig2.return_annotation}"
 
-    print("✓ Type annotations present and correct")
+    print(":check_mark: Type annotations present and correct")
     print()
 
 
@@ -247,15 +247,15 @@ def test_duplicate_function_fix():
     # Verify the file compiles
     try:
         compile(content, str(file_path), "exec")
-        print("✓ File compiles successfully")
+        print(":check_mark: File compiles successfully")
     except SyntaxError as e:
-        print(f"✗ Syntax error: {e}")
+        print(f":ballot_x: Syntax error: {e}")
         return False
 
     # Verify sort_key_files is used in the sorted() call
     assert "key=sort_key_files" in content, "sorted() should use sort_key_files"
 
-    print("✓ Duplicate function fix verified")
+    print(":check_mark: Duplicate function fix verified")
     print()
 
 
@@ -282,7 +282,7 @@ def run_all_tests():
             test_func()
             passed += 1
         except Exception as e:
-            print(f"\n✗ {name} TEST FAILED: {e}")
+            print(f"\n:ballot_x: {name} TEST FAILED: {e}")
             import traceback
 
             traceback.print_exc()

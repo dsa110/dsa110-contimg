@@ -157,7 +157,7 @@ def main() -> int:
         )
 
         if result.found:
-            logger.info(f"✓ Transit found: {result.transit_time.iso}")
+            logger.info(f":check_mark: Transit found: {result.transit_time.iso}")
             logger.info(f"  Data available: {result.data_available}")
             logger.info(f"  Files: {len(result.files) if result.files else 0}")
             logger.info(f"  Declination match: {result.dec_match}")
@@ -169,7 +169,7 @@ def main() -> int:
                     logger.warning(f"  - {warning}")
             return 0 if result.data_available and not result.errors else 1
         else:
-            logger.error("✗ Transit not found")
+            logger.error(":ballot_x: Transit not found")
             if result.errors:
                 for error in result.errors:
                     logger.error(f"  - {error}")

@@ -1,54 +1,54 @@
 # Catalog Coverage Features - Integration Test Summary
 
 **Date:** 2025-11-16  
-**Status:** ✅ Integration Tests Complete
+**Status:** :white_heavy_check_mark: Integration Tests Complete
 
 ## Test Suites
 
 ### 1. Basic Integration Tests (`test_coverage_integration_simple.py`)
 
-**Status:** ✅ ALL TESTS PASSING (5/5)
+**Status:** :white_heavy_check_mark: ALL TESTS PASSING (5/5)
 
 Tests basic functionality and integration:
 
-- ✅ Auto-build integration
-- ✅ API Status integration
-- ✅ Visualization integration
-- ✅ NVSS Query integration
-- ✅ Coverage Limits validation
+- :white_heavy_check_mark: Auto-build integration
+- :white_heavy_check_mark: API Status integration
+- :white_heavy_check_mark: Visualization integration
+- :white_heavy_check_mark: NVSS Query integration
+- :white_heavy_check_mark: Coverage Limits validation
 
 ### 2. Auto-Build Real Operations (`test_auto_build_real_operations.py`)
 
-**Status:** ✅ MOSTLY PASSING (3/4)
+**Status:** :white_heavy_check_mark: MOSTLY PASSING (3/4)
 
 Tests auto-build with real operations:
 
-- ✅ Auto-build detects missing databases
-- ✅ Auto-build respects coverage limits
-- ✅ Auto-build function callable (actually built NVSS database!)
-- ✅ Coverage limits complete
+- :white_heavy_check_mark: Auto-build detects missing databases
+- :white_heavy_check_mark: Auto-build respects coverage limits
+- :white_heavy_check_mark: Auto-build function callable (actually built NVSS database!)
+- :white_heavy_check_mark: Coverage limits complete
 
 **Note:** One test fails due to FIRST catalog source files not being available,
 which is expected in test environment.
 
 ### 3. API Status Endpoint Test
 
-**Status:** ✅ PASSING
+**Status:** :white_heavy_check_mark: PASSING
 
 Tests API status endpoint with real database:
 
-- ✅ API status returns correct structure
-- ✅ Handles pointing history correctly
-- ✅ Returns catalog coverage status for all catalogs
+- :white_heavy_check_mark: API status returns correct structure
+- :white_heavy_check_mark: Handles pointing history correctly
+- :white_heavy_check_mark: Returns catalog coverage status for all catalogs
 
 ## Key Findings
 
-### ✅ Successes
+### :white_heavy_check_mark: Successes
 
 1. **Auto-build actually works!** The test successfully built the NVSS database:
 
    ```
-   ✅ Auto-build function executed (result: {'nvss': PosixPath('/data/dsa110-contimg/state/catalogs/nvss_dec+54.6.sqlite3')})
+   :white_heavy_check_mark: Auto-build function executed (result: {'nvss': PosixPath('/data/dsa110-contimg/state/catalogs/nvss_dec+54.6.sqlite3')})
    ```
 
 2. **API Status Endpoint works correctly:**
@@ -57,12 +57,12 @@ Tests API status endpoint with real database:
    - Handles coverage limits properly
 
 3. **All core functions are callable and integrated:**
-   - `check_missing_catalog_databases()` - ✅
-   - `auto_build_missing_catalog_databases()` - ✅
-   - `get_catalog_coverage_status()` - ✅
-   - `plot_catalog_coverage()` - ✅
+   - `check_missing_catalog_databases()` - :white_heavy_check_mark:
+   - `auto_build_missing_catalog_databases()` - :white_heavy_check_mark:
+   - `get_catalog_coverage_status()` - :white_heavy_check_mark:
+   - `plot_catalog_coverage()` - :white_heavy_check_mark:
 
-### ⚠️ Expected Limitations
+### :warning_sign::variation_selector-16: Expected Limitations
 
 1. **FIRST and RAX catalog source files not available:**
    - Tests fail when trying to auto-build FIRST/RAX databases
@@ -76,7 +76,7 @@ Tests API status endpoint with real database:
 
 ## Test Coverage
 
-### ✅ Fully Tested
+### :white_heavy_check_mark: Fully Tested
 
 - Auto-build detection logic
 - Coverage limits validation
@@ -84,12 +84,12 @@ Tests API status endpoint with real database:
 - Visualization function availability
 - NVSS query integration
 
-### ⚠️ Partially Tested
+### :warning_sign::variation_selector-16: Partially Tested
 
 - Auto-build with FIRST/RAX (requires source files)
 - Full pipeline integration (requires additional dependencies)
 
-### 📋 Not Tested (Requires Full Pipeline)
+### :clipboard: Not Tested (Requires Full Pipeline)
 
 - Real-time coverage status updates during observations
 - Performance impact of status checks
@@ -126,7 +126,7 @@ print(f'Status: {status}')
 
 ## Conclusion
 
-✅ **Integration testing is successful!** All core functionality works
+:white_heavy_check_mark: **Integration testing is successful!** All core functionality works
 correctly:
 
 - Auto-build detects and builds missing databases (NVSS tested successfully)

@@ -16,7 +16,7 @@ def test_syntax(file_path):
         compile(code, file_path, "exec")
         return True
     except SyntaxError as e:
-        print(f"✗ Syntax error in {file_path}: {e}")
+        print(f":ballot_x: Syntax error in {file_path}: {e}")
         return False
 
 
@@ -48,7 +48,7 @@ def test_performance_direct():
     stats = perf.get_performance_stats("test")
     assert "test" in stats and stats["test"]["count"] == 1
 
-    print("✓ Performance metrics work correctly")
+    print(":check_mark: Performance metrics work correctly")
     return True
 
 
@@ -74,7 +74,7 @@ def test_error_context_direct():
     assert "Operation: test" in result
     assert "Suggestion:" in result
 
-    print("✓ Error context works correctly (without metadata)")
+    print(":check_mark: Error context works correctly (without metadata)")
     return True
 
 
@@ -98,7 +98,7 @@ def test_cache_stats():
     assert stats["ms_metadata"]["maxsize"] == 128
     assert stats["flag_validation"]["maxsize"] == 64
 
-    print("✓ Cache statistics work correctly")
+    print(":check_mark: Cache statistics work correctly")
     return True
 
 
@@ -121,7 +121,7 @@ def test_parallel_direct():
     results = par.process_parallel([1, 2, 3], square, max_workers=2, show_progress=False)
     assert results == [1, 4, 9], f"Expected [1,4,9], got {results}"
 
-    print("✓ Parallel processing works correctly")
+    print(":check_mark: Parallel processing works correctly")
     return True
 
 
@@ -142,7 +142,7 @@ def test_type_annotations():
     assert sig1.return_annotation != inspect.Signature.empty
     assert sig2.return_annotation != inspect.Signature.empty
 
-    print("✓ Type annotations present")
+    print(":check_mark: Type annotations present")
     return True
 
 
@@ -163,7 +163,7 @@ def test_duplicate_function():
     # Verify file compiles
     compile(content, str(file_path), "exec")
 
-    print("✓ Duplicate function fix verified")
+    print(":check_mark: Duplicate function fix verified")
     return True
 
 
@@ -191,7 +191,7 @@ def main():
             else:
                 failed += 1
         except Exception as e:
-            print(f"✗ {name} FAILED: {e}\n")
+            print(f":ballot_x: {name} FAILED: {e}\n")
             failed += 1
 
     print("\n" + "=" * 70)

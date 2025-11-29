@@ -2,23 +2,23 @@
 
 ## Current Status
 
-✅ **Test Infrastructure**: Complete
+:white_heavy_check_mark: **Test Infrastructure**: Complete
 
 - Test files created
 - Page Object Model implemented
 - Fixtures configured
 - Test suites ready
 
-⚠️ **Browser Installation**: Issue on Ubuntu 18.04
+:warning_sign::variation_selector-16: **Browser Installation**: Issue on Ubuntu 18.04
 
 - Playwright doesn't support browser installation on Ubuntu 18.04
 - Need to use system browser or Docker
 
-❌ **Frontend Service**: Not running
+:cross_mark: **Frontend Service**: Not running
 
 - Frontend needs to be started before running tests
 
-✅ **Backend API**: Running
+:white_heavy_check_mark: **Backend API**: Running
 
 - API is accessible at http://localhost:8000
 

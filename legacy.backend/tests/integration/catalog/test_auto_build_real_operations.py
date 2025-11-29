@@ -33,7 +33,7 @@ def test_auto_build_detects_missing_databases():
 
     # Returns a dict with catalog status
     assert isinstance(missing, dict)
-    print("✅ Missing databases correctly detected")
+    print(":white_heavy_check_mark: Missing databases correctly detected")
 
     # Verify coverage limits are respected
     # missing is a dict: {catalog_type: exists (bool)}
@@ -45,16 +45,16 @@ def test_auto_build_detects_missing_databases():
             if exists:
                 # If catalog exists, declination should be within coverage
                 assert is_within_coverage, f"{catalog_type} exists but dec={dec_deg} is outside coverage"
-                print(f"✅ {catalog_type.upper()}: exists (within coverage for dec={dec_deg}°)")
+                print(f":white_heavy_check_mark: {catalog_type.upper()}: exists (within coverage for dec={dec_deg}°)")
             elif not is_within_coverage:
                 # If catalog doesn't exist and we're outside coverage, that's expected
                 print(
-                    f"ℹ️  {catalog_type.upper()}: not available "
+                    f"ℹ:variation_selector-16:  {catalog_type.upper()}: not available "
                     f"(dec={dec_deg}° outside coverage [{limits['dec_min']}°, {limits['dec_max']}°])"
                 )
             else:
                 # If catalog doesn't exist but we're within coverage, it's just missing
-                print(f"⚠️  {catalog_type.upper()}: missing (within coverage for dec={dec_deg}°)")
+                print(f":warning_sign::variation_selector-16:  {catalog_type.upper()}: missing (within coverage for dec={dec_deg}°)")
 
 
 def test_auto_build_respects_coverage_limits():
@@ -78,7 +78,7 @@ def test_auto_build_respects_coverage_limits():
             # (not because it needs to be built)
             print(f"  {catalog}: coverage {limits['dec_min']}° to {limits['dec_max']}°")
 
-    print("✅ Coverage limits correctly respected")
+    print(":white_heavy_check_mark: Coverage limits correctly respected")
 
     # Test with declination within coverage
     dec_deg_inside = 54.6  # Within all coverage limits
@@ -88,7 +88,7 @@ def test_auto_build_respects_coverage_limits():
 
     # Should detect missing databases within coverage
     assert isinstance(missing_inside, dict)
-    print("✅ Databases within coverage correctly identified")
+    print(":white_heavy_check_mark: Databases within coverage correctly identified")
 
 
 def test_auto_build_function_callable():
@@ -99,17 +99,17 @@ def test_auto_build_function_callable():
 
     # Verify function exists and is callable
     assert callable(auto_build_missing_catalog_databases)
-    print("✅ Auto-build function is callable")
+    print(":white_heavy_check_mark: Auto-build function is callable")
 
     # Test with a declination (may fail if databases can't be built, but function should be callable)
     dec_deg = 54.6
     try:
         # This may fail if catalog source files don't exist, but function should be callable
         result = auto_build_missing_catalog_databases(dec_deg)
-        print(f"✅ Auto-build function executed (result: {result})")
+        print(f":white_heavy_check_mark: Auto-build function executed (result: {result})")
     except Exception as e:
         # Expected if catalog source files don't exist
-        print(f"⚠️  Auto-build function callable but failed (expected): {type(e).__name__}")
+        print(f":warning_sign::variation_selector-16:  Auto-build function callable but failed (expected): {type(e).__name__}")
         print("   This is expected if catalog source files are not available")
 
 
@@ -127,7 +127,7 @@ def test_coverage_limits_complete():
         assert "dec_min" in limits, f"{catalog} missing dec_min"
         assert "dec_max" in limits, f"{catalog} missing dec_max"
         assert limits["dec_min"] < limits["dec_max"], f"{catalog} invalid range"
-        print(f"✅ {catalog.upper()}: {limits['dec_min']}° to {limits['dec_max']}°")
+        print(f":white_heavy_check_mark: {catalog.upper()}: {limits['dec_min']}° to {limits['dec_max']}°")
 
 
 def run_all_tests():
@@ -141,7 +141,7 @@ def run_all_tests():
     try:
         results.append(("Detect Missing", test_auto_build_detects_missing_databases()))
     except Exception as e:
-        print(f"❌ Test failed: {e}")
+        print(f":cross_mark: Test failed: {e}")
         import traceback
 
         traceback.print_exc()
@@ -150,7 +150,7 @@ def run_all_tests():
     try:
         results.append(("Respect Limits", test_auto_build_respects_coverage_limits()))
     except Exception as e:
-        print(f"❌ Test failed: {e}")
+        print(f":cross_mark: Test failed: {e}")
         import traceback
 
         traceback.print_exc()
@@ -159,7 +159,7 @@ def run_all_tests():
     try:
         results.append(("Function Callable", test_auto_build_function_callable()))
     except Exception as e:
-        print(f"❌ Test failed: {e}")
+        print(f":cross_mark: Test failed: {e}")
         import traceback
 
         traceback.print_exc()
@@ -168,7 +168,7 @@ def run_all_tests():
     try:
         results.append(("Coverage Limits", test_coverage_limits_complete()))
     except Exception as e:
-        print(f"❌ Test failed: {e}")
+        print(f":cross_mark: Test failed: {e}")
         import traceback
 
         traceback.print_exc()
@@ -183,16 +183,16 @@ def run_all_tests():
     total = len(results)
 
     for name, result in results:
-        status = "✅ PASS" if result else "❌ FAIL"
+        status = ":white_heavy_check_mark: PASS" if result else ":cross_mark: FAIL"
         print(f"{status}: {name}")
 
     print(f"\nTotal: {passed}/{total} tests passed")
 
     if passed == total:
-        print("\n✅ All auto-build integration tests passed!")
+        print("\n:white_heavy_check_mark: All auto-build integration tests passed!")
         return 0
     else:
-        print(f"\n⚠️  {total - passed} test(s) failed")
+        print(f"\n:warning_sign::variation_selector-16:  {total - passed} test(s) failed")
         return 1
 
 

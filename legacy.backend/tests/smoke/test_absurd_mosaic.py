@@ -41,21 +41,21 @@ class TestMosaicImports:
         assert CALIBRATOR_CHAIN is not None
         assert TARGET_CHAIN is not None
         assert callable(execute_chained_task)
-        print("✓ Task chaining imports successful")
+        print(":check_mark: Task chaining imports successful")
 
     def test_housekeeping_import(self):
         """Test housekeeping function import."""
         from dsa110_contimg.absurd import execute_housekeeping
 
         assert callable(execute_housekeeping)
-        print("✓ Housekeeping import successful")
+        print(":check_mark: Housekeeping import successful")
 
     def test_streaming_bridge_import(self):
         """Test AbsurdStreamingBridge import."""
         from dsa110_contimg.absurd import AbsurdStreamingBridge
 
         assert AbsurdStreamingBridge is not None
-        print("✓ Streaming bridge import successful")
+        print(":check_mark: Streaming bridge import successful")
 
     def test_websocket_manager_import(self):
         """Test WebSocket manager and worker integration imports."""
@@ -65,7 +65,7 @@ class TestMosaicImports:
         assert callable(set_websocket_manager)
         assert callable(emit_task_update)
         assert callable(emit_queue_stats_update)
-        print("✓ WebSocket manager imports successful")
+        print(":check_mark: WebSocket manager imports successful")
 
 
 @pytest.mark.smoke
@@ -90,7 +90,7 @@ class TestChainStructure:
         assert conv_idx < solve_idx
         assert solve_idx < tasks.index("calibration-apply")
         assert tasks.index("calibration-apply") < tasks.index("imaging")
-        print("✓ Standard chain order verified")
+        print(":check_mark: Standard chain order verified")
 
     def test_quick_imaging_chain_skips_solve(self):
         """Test QUICK_IMAGING_CHAIN skips calibration-solve."""
@@ -102,7 +102,7 @@ class TestChainStructure:
         assert "calibration-apply" in tasks
         assert "imaging" in tasks
         assert "calibration-solve" not in tasks
-        print("✓ Quick imaging chain verified (skips solve)")
+        print(":check_mark: Quick imaging chain verified (skips solve)")
 
 
 @pytest.mark.smoke
@@ -123,7 +123,7 @@ class TestStreamingBridge:
 
         assert bridge.client == mock_client
         assert bridge.queue_name == "test-queue"
-        print("✓ Streaming bridge instantiation successful")
+        print(":check_mark: Streaming bridge instantiation successful")
 
 
 @pytest.mark.smoke
@@ -141,7 +141,7 @@ class TestDLQRouter:
 
         assert "/items" in routes or any("/items" in r for r in routes)
         assert "/stats" in routes or any("/stats" in r for r in routes)
-        print("✓ DLQ router exists with expected endpoints")
+        print(":check_mark: DLQ router exists with expected endpoints")
 
     def test_dlq_models_exist(self):
         """Test DLQ Pydantic models exist."""
@@ -158,7 +158,7 @@ class TestDLQRouter:
         assert DLQStatsResponse is not None
         assert DLQActionRequest is not None
         assert DLQRetryRequest is not None
-        print("✓ DLQ models exist")
+        print(":check_mark: DLQ models exist")
 
 
 @pytest.mark.smoke
@@ -182,7 +182,7 @@ class TestDeadLetterQueue:
         assert "get_pending" in dlq_methods
         assert "mark_retrying" in dlq_methods
         assert "mark_failed" in dlq_methods
-        print("✓ DeadLetterQueue has all required methods")
+        print(":check_mark: DeadLetterQueue has all required methods")
 
 
 @pytest.mark.smoke
@@ -211,7 +211,7 @@ class TestMosaicIntegration:
         for export in chaining_exports:
             assert export in exports, f"Missing export: {export}"
 
-        print(f"✓ All {len(chaining_exports)} chaining exports present")
+        print(f":check_mark: All {len(chaining_exports)} chaining exports present")
 
     def test_task_chain_dataclass(self):
         """Test TaskChain is a proper dataclass."""
@@ -229,7 +229,7 @@ class TestMosaicIntegration:
 
         assert chain.name == "test"
         assert len(chain.tasks) == 3
-        print("✓ TaskChain is a valid dataclass")
+        print(":check_mark: TaskChain is a valid dataclass")
 
 
 if __name__ == "__main__":

@@ -121,11 +121,11 @@ with table(ms_path, readonly=True) as tb:
 
                 if phase_std_deg < 0.01 and max_imag < 1e-6:
                     print(
-                        "  ✓ MODEL_DATA is purely real (phase ≈ 0) - consistent with source at phase center"
+                        "  :check_mark: MODEL_DATA is purely real (phase ≈ 0) - consistent with source at phase center"
                     )
                 else:
                     print(
-                        "  ✗ MODEL_DATA has phase variation - may indicate source not at phase center"
+                        "  :ballot_x: MODEL_DATA has phase variation - may indicate source not at phase center"
                     )
 
 print("\n" + "=" * 70)

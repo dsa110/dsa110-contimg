@@ -29,17 +29,17 @@ def test_imports():
     try:
         from dsa110_contimg.catalog import transient_detection
 
-        print("✓ transient_detection imported")
+        print(":check_mark: transient_detection imported")
     except Exception as e:
-        print(f"✗ Failed to import transient_detection: {e}")
+        print(f":ballot_x: Failed to import transient_detection: {e}")
         return False
 
     try:
         from dsa110_contimg.catalog import astrometric_calibration
 
-        print("✓ astrometric_calibration imported")
+        print(":check_mark: astrometric_calibration imported")
     except Exception as e:
-        print(f"✗ Failed to import astrometric_calibration: {e}")
+        print(f":ballot_x: Failed to import astrometric_calibration: {e}")
         return False
 
     return True
@@ -55,13 +55,13 @@ def test_transient_detection_tables():
         try:
             result = create_transient_detection_tables(tmp.name)
             if result:
-                print("✓ Transient detection tables created")
+                print(":check_mark: Transient detection tables created")
                 return True
             else:
-                print("✗ Failed to create transient detection tables")
+                print(":ballot_x: Failed to create transient detection tables")
                 return False
         except Exception as e:
-            print(f"✗ Exception during table creation: {e}")
+            print(f":ballot_x: Exception during table creation: {e}")
             return False
 
 
@@ -75,13 +75,13 @@ def test_astrometry_tables():
         try:
             result = create_astrometry_tables(tmp.name)
             if result:
-                print("✓ Astrometry tables created")
+                print(":check_mark: Astrometry tables created")
                 return True
             else:
-                print("✗ Failed to create astrometry tables")
+                print(":ballot_x: Failed to create astrometry tables")
                 return False
         except Exception as e:
-            print(f"✗ Exception during table creation: {e}")
+            print(f":ballot_x: Exception during table creation: {e}")
             return False
 
 
@@ -126,27 +126,27 @@ def test_transient_detection_algorithm():
 
         # Should find 1 new, 1 variable (brightening), 1 fading
         if len(new_sources) >= 1:
-            print("✓ New source detection works")
+            print(":check_mark: New source detection works")
         else:
-            print("✗ New source detection failed")
+            print(":ballot_x: New source detection failed")
             return False
 
         if len(variable_sources) >= 1:
-            print("✓ Variable source detection works")
+            print(":check_mark: Variable source detection works")
         else:
-            print("✗ Variable source detection failed")
+            print(":ballot_x: Variable source detection failed")
             return False
 
         if len(fading_sources) >= 1:
-            print("✓ Fading source detection works")
+            print(":check_mark: Fading source detection works")
         else:
-            print("✗ Fading source detection failed")
+            print(":ballot_x: Fading source detection failed")
             return False
 
         return True
 
     except Exception as e:
-        print(f"✗ Exception during detection: {e}")
+        print(f":ballot_x: Exception during detection: {e}")
         import traceback
 
         traceback.print_exc()
@@ -198,7 +198,7 @@ def test_astrometric_offset_calculation():
         )
 
         if solution is None:
-            print("✗ No astrometric solution found")
+            print(":ballot_x: No astrometric solution found")
             return False
 
         print(f"  Matches: {solution['n_matches']}")
@@ -211,14 +211,14 @@ def test_astrometric_offset_calculation():
         dec_error = abs(solution["dec_offset_mas"] - (-50.0))
 
         if ra_error < 20.0 and dec_error < 20.0:
-            print("✓ Astrometric offset calculation accurate")
+            print(":check_mark: Astrometric offset calculation accurate")
             return True
         else:
-            print(f"✗ Offset errors too large: RA={ra_error:.1f} mas, Dec={dec_error:.1f} mas")
+            print(f":ballot_x: Offset errors too large: RA={ra_error:.1f} mas, Dec={dec_error:.1f} mas")
             return False
 
     except Exception as e:
-        print(f"✗ Exception during offset calculation: {e}")
+        print(f":ballot_x: Exception during offset calculation: {e}")
         import traceback
 
         traceback.print_exc()
@@ -269,21 +269,21 @@ def test_transient_storage():
             )
 
             if len(candidate_ids) != 2:
-                print(f"✗ Expected 2 candidate IDs, got {len(candidate_ids)}")
+                print(f":ballot_x: Expected 2 candidate IDs, got {len(candidate_ids)}")
                 return False
 
             # Query back
             df = get_transient_candidates(min_significance=5.0, db_path=tmp.name)
 
             if len(df) != 2:
-                print(f"✗ Expected 2 candidates in query, got {len(df)}")
+                print(f":ballot_x: Expected 2 candidates in query, got {len(df)}")
                 return False
 
-            print("✓ Transient storage and retrieval works")
+            print(":check_mark: Transient storage and retrieval works")
             return True
 
         except Exception as e:
-            print(f"✗ Exception during storage test: {e}")
+            print(f":ballot_x: Exception during storage test: {e}")
             import traceback
 
             traceback.print_exc()
@@ -337,21 +337,21 @@ def test_astrometry_storage():
             )
 
             if solution_id is None:
-                print("✗ Failed to store astrometric solution")
+                print(":ballot_x: Failed to store astrometric solution")
                 return False
 
             # Query back
             df = get_recent_astrometric_solutions(limit=10, db_path=tmp.name)
 
             if len(df) != 1:
-                print(f"✗ Expected 1 solution in query, got {len(df)}")
+                print(f":ballot_x: Expected 1 solution in query, got {len(df)}")
                 return False
 
-            print("✓ Astrometric solution storage and retrieval works")
+            print(":check_mark: Astrometric solution storage and retrieval works")
             return True
 
         except Exception as e:
-            print(f"✗ Exception during storage test: {e}")
+            print(f":ballot_x: Exception during storage test: {e}")
             import traceback
 
             traceback.print_exc()
@@ -380,7 +380,7 @@ def main():
             result = test_func()
             results.append((name, result))
         except Exception as e:
-            print(f"\n✗ {name} crashed: {e}")
+            print(f"\n:ballot_x: {name} crashed: {e}")
             import traceback
 
             traceback.print_exc()
@@ -391,7 +391,7 @@ def main():
     print("=" * 60)
 
     for name, result in results:
-        status = "✓ PASS" if result else "✗ FAIL"
+        status = ":check_mark: PASS" if result else ":ballot_x: FAIL"
         print(f"{status}: {name}")
 
     passed = sum(1 for _, result in results if result)
@@ -400,10 +400,10 @@ def main():
     print(f"\n{passed}/{total} tests passed")
 
     if passed == total:
-        print("\n✓ All transient detection smoke tests passed!")
+        print("\n:check_mark: All transient detection smoke tests passed!")
         return 0
     else:
-        print(f"\n✗ {total - passed} tests failed")
+        print(f"\n:ballot_x: {total - passed} tests failed")
         return 1
 
 

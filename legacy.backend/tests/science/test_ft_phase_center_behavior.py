@@ -157,13 +157,13 @@ def test_ft_uses_reference_dir_or_phase_dir(ms_path):
 
                 # Determine which phase center ft() used
                 if scatter_a < 10:
-                    print("\n✓ ft() USES REFERENCE_DIR for phase calculations")
+                    print("\n:check_mark: ft() USES REFERENCE_DIR for phase calculations")
                     assert scatter_a < 10, "ft() should use REFERENCE_DIR"
                 elif scatter_b < 10:
-                    print("\n✓ ft() USES PHASE_DIR for phase calculations")
+                    print("\n:check_mark: ft() USES PHASE_DIR for phase calculations")
                     assert scatter_b < 10, "ft() should use PHASE_DIR"
                 else:
-                    print("\n✗ ft() does NOT match either REFERENCE_DIR or PHASE_DIR")
+                    print("\n:ballot_x: ft() does NOT match either REFERENCE_DIR or PHASE_DIR")
                     print("  This suggests ft() uses a different source or has a bug")
                     pytest.fail("ft() phase center behavior unclear")
 

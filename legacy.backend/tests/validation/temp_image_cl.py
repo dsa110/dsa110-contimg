@@ -28,9 +28,9 @@ print("=" * 70)
 print("\nStep 1: Applying component list to MODEL_DATA...")
 try:
     ft_from_cl(ms_path, cl_path, field="", usescratch=True)
-    print("  ✓ Component list applied")
+    print("  :check_mark: Component list applied")
 except Exception as e:
-    print(f"  ✗ Error: {e}")
+    print(f"  :ballot_x: Error: {e}")
     import traceback
 
     traceback.print_exc()
@@ -52,9 +52,9 @@ with table(temp_ms, readonly=False) as tb:
     if "MODEL_DATA" in tb.colnames() and "DATA" in tb.colnames():
         model_data = tb.getcol("MODEL_DATA")
         tb.putcol("DATA", model_data)
-        print("  ✓ Copied MODEL_DATA to DATA")
+        print("  :check_mark: Copied MODEL_DATA to DATA")
     else:
-        print("  ✗ Required columns not found")
+        print("  :ballot_x: Required columns not found")
         sys.exit(1)
 
 # Step 3: Image the temporary MS
@@ -98,9 +98,9 @@ try:
         pblimit=0.2,
         savemodel="none",
     )
-    print("  ✓ Image created")
+    print("  :check_mark: Image created")
 except Exception as e:
-    print(f"  ✗ Error: {e}")
+    print(f"  :ballot_x: Error: {e}")
     import traceback
 
     traceback.print_exc()
@@ -110,7 +110,7 @@ except Exception as e:
 print("\nStep 4: Cleaning up...")
 if os.path.exists(temp_ms):
     shutil.rmtree(temp_ms)
-    print("  ✓ Removed temporary MS")
+    print("  :check_mark: Removed temporary MS")
 
 # Verify image
 image_path = imagename + ".image"
@@ -122,12 +122,12 @@ if os.path.exists(image_path):
     shape = ia.shape()
     stats = ia.statistics()
     max_val = stats["max"][0]
-    print(f"\n✓ Image created: {image_path}")
+    print(f"\n:check_mark: Image created: {image_path}")
     print(f"  Shape: {shape}")
     print(f"  Peak flux: {max_val:.3f} Jy/beam")
     ia.close()
 else:
-    print(f"\n✗ Image not found: {image_path}")
+    print(f"\n:ballot_x: Image not found: {image_path}")
 
 print("\n" + "=" * 70)
 print("COMPLETE")

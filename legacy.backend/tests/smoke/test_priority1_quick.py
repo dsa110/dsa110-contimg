@@ -26,17 +26,17 @@ def test_imports():
     print("=" * 60)
 
     try:
-        print("✓ Region utilities imported")
+        print(":check_mark: Region utilities imported")
     except Exception as e:
         pytest.fail(f"Failed to import region utilities: {e}")
 
     try:
-        print("✓ Fitting utilities imported")
+        print(":check_mark: Fitting utilities imported")
     except Exception as e:
         pytest.fail(f"Failed to import fitting utilities: {e}")
 
     try:
-        print("✓ Astropy imports work")
+        print(":check_mark: Astropy imports work")
     except Exception as e:
         pytest.fail(f"Failed to import astropy: {e}")
 
@@ -51,7 +51,7 @@ def test_imports():
         with open(routes_path) as f:
             code = f.read()
             compile(code, routes_path, "exec")
-        print("✓ routes.py syntax is valid")
+        print(":check_mark: routes.py syntax is valid")
     except Exception as e:
         pytest.fail(f"routes.py has syntax errors: {e}")
 
@@ -84,7 +84,7 @@ def test_region_mask_synthetic():
 
     try:
         wcs = WCS(header)
-        print("✓ Created synthetic WCS")
+        print(":check_mark: Created synthetic WCS")
     except Exception as e:
         pytest.fail(f"Failed to create WCS: {e}")
 
@@ -108,14 +108,14 @@ def test_region_mask_synthetic():
 
         n_pixels = np.sum(circle_mask)
         print(
-            f"✓ Circle mask created: {n_pixels} pixels ({100 * n_pixels / np.prod(shape):.1f}% of image)"
+            f":check_mark: Circle mask created: {n_pixels} pixels ({100 * n_pixels / np.prod(shape):.1f}% of image)"
         )
 
         assert n_pixels > 0, "Mask is empty"
         assert circle_mask.shape == shape, f"Mask shape {circle_mask.shape} != image shape {shape}"
 
-        print("  ✓ Mask shape is correct")
-        print("  ✓ Mask is boolean array")
+        print("  :check_mark: Mask shape is correct")
+        print("  :check_mark: Mask is boolean array")
 
     except AssertionError:
         raise
@@ -144,14 +144,14 @@ def test_region_mask_synthetic():
 
         n_pixels = np.sum(rect_mask)
         print(
-            f"✓ Rectangle mask created: {n_pixels} pixels ({100 * n_pixels / np.prod(shape):.1f}% of image)"
+            f":check_mark: Rectangle mask created: {n_pixels} pixels ({100 * n_pixels / np.prod(shape):.1f}% of image)"
         )
 
         assert n_pixels > 0, "Mask is empty"
         assert rect_mask.shape == shape, f"Mask shape {rect_mask.shape} != image shape {shape}"
 
-        print("  ✓ Mask shape is correct")
-        print("  ✓ Mask is boolean array")
+        print("  :check_mark: Mask shape is correct")
+        print("  :check_mark: Mask is boolean array")
 
     except AssertionError:
         raise
@@ -202,9 +202,9 @@ def test_api_structure():
     failed_checks = []
     for name, search_term, found in checks:
         if found:
-            print(f"✓ {name}")
+            print(f":check_mark: {name}")
         else:
-            print(f"✗ {name} - not found")
+            print(f":ballot_x: {name} - not found")
             failed_checks.append(name)
 
     assert not failed_checks, f"Failed checks: {', '.join(failed_checks)}"
@@ -241,13 +241,13 @@ def main():
 
     print("\n" + "=" * 60)
     if all_passed:
-        print("✓ All tests passed!")
+        print(":check_mark: All tests passed!")
         print("\nNext steps:")
         print("  - Code integration is correct")
         print("  - Region mask creation works")
         print("  - Ready for end-to-end testing with real data")
     else:
-        print("✗ Some tests failed")
+        print(":ballot_x: Some tests failed")
         print("  - Review errors above")
         print("  - Fix issues before proceeding")
     print("=" * 60)

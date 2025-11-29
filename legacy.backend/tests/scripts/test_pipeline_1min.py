@@ -117,13 +117,13 @@ def test_pipeline_stages(ms_path, output_dir, skip_calibration=False):
     LOG.info("=" * 70)
     try:
         validate_ms(str(ms_path), check_empty=True)
-        LOG.info("✓ MS validation passed")
+        LOG.info(":check_mark: MS validation passed")
 
         configure_ms_for_imaging(str(ms_path))
-        LOG.info("✓ MS configured for imaging")
+        LOG.info(":check_mark: MS configured for imaging")
         success_stages.append("validation")
     except Exception as e:
-        LOG.error(f"✗ Stage 1 failed: {e}")
+        LOG.error(f":ballot_x: Stage 1 failed: {e}")
         failed_stages.append("validation")
         return False
 
@@ -134,16 +134,16 @@ def test_pipeline_stages(ms_path, output_dir, skip_calibration=False):
     LOG.info("=" * 70)
     try:
         reset_flags(str(ms_path))
-        LOG.info("✓ Flags reset")
+        LOG.info(":check_mark: Flags reset")
 
         flag_zeros(str(ms_path), datacolumn="data")
-        LOG.info("✓ Zero values flagged")
+        LOG.info(":check_mark: Zero values flagged")
 
         flag_rfi(str(ms_path), datacolumn="data")
-        LOG.info("✓ RFI flagged")
+        LOG.info(":check_mark: RFI flagged")
         success_stages.append("flagging")
     except Exception as e:
-        LOG.error(f"✗ Stage 2 failed: {e}")
+        LOG.error(f":ballot_x: Stage 2 failed: {e}")
         failed_stages.append("flagging")
         import traceback
 
@@ -179,11 +179,11 @@ def test_pipeline_stages(ms_path, output_dir, skip_calibration=False):
                     freq_ghz=freq_ghz,
                     out_path=cl_path,
                 )
-                LOG.info(f"✓ NVSS component list created: {cl_path}")
+                LOG.info(f":check_mark: NVSS component list created: {cl_path}")
 
                 # Apply to MODEL_DATA via ft()
                 ft_from_cl(str(ms_path), cl_path, field="0")
-                LOG.info("✓ MODEL_DATA populated with NVSS sources")
+                LOG.info(":check_mark: MODEL_DATA populated with NVSS sources")
 
             except Exception as e:
                 LOG.warning(f"Failed to populate MODEL_DATA with NVSS: {e}")
@@ -211,7 +211,7 @@ def test_pipeline_stages(ms_path, output_dir, skip_calibration=False):
             )
 
             if bp_tabs:
-                LOG.info(f"✓ Bandpass calibration: {bp_tabs[0]}")
+                LOG.info(f":check_mark: Bandpass calibration: {bp_tabs[0]}")
                 caltables.extend(bp_tabs)
 
             # G calibration with phase-only (fast mode)
@@ -226,11 +226,11 @@ def test_pipeline_stages(ms_path, output_dir, skip_calibration=False):
                     phase_only=True,  # Fast mode
                 )
                 if g_tabs:
-                    LOG.info(f"✓ Gain calibration: {g_tabs[0]}")
+                    LOG.info(f":check_mark: Gain calibration: {g_tabs[0]}")
                     caltables.extend(g_tabs)
 
             if caltables:
-                LOG.info(f"✓ Calibration complete: {len(caltables)} tables")
+                LOG.info(f":check_mark: Calibration complete: {len(caltables)} tables")
                 success_stages.append("calibration")
             else:
                 LOG.warning("No calibration tables generated")
@@ -269,7 +269,7 @@ def test_pipeline_stages(ms_path, output_dir, skip_calibration=False):
             with table(str(ms_path), readonly=True) as t:
                 corrected = t.getcol("CORRECTED_DATA")
             if corrected is not None and not (corrected == 0).all():
-                LOG.info("✓ Calibration applied (CORRECTED_DATA populated)")
+                LOG.info(":check_mark: Calibration applied (CORRECTED_DATA populated)")
                 success_stages.append("applycal")
             else:
                 LOG.warning("CORRECTED_DATA appears all zeros")
@@ -278,7 +278,7 @@ def test_pipeline_stages(ms_path, output_dir, skip_calibration=False):
             LOG.info("No calibration tables to apply (using DATA column)")
             success_stages.append("applycal")  # Not a failure if no caltables
     except Exception as e:
-        LOG.error(f"✗ Stage 4 failed: {e}")
+        LOG.error(f":ballot_x: Stage 4 failed: {e}")
         failed_stages.append("applycal")
         import traceback
 
@@ -317,13 +317,13 @@ def test_pipeline_stages(ms_path, output_dir, skip_calibration=False):
             image_files = list(output_dir.glob("test_1min_wsclean.image*"))
 
         if image_files:
-            LOG.info(f"✓ Imaging complete: {len(image_files)} image files created")
+            LOG.info(f":check_mark: Imaging complete: {len(image_files)} image files created")
             success_stages.append("imaging")
         else:
             LOG.warning("No image files found")
             failed_stages.append("imaging")
     except Exception as e:
-        LOG.error(f"✗ Stage 5 failed: {e}")
+        LOG.error(f":ballot_x: Stage 5 failed: {e}")
         failed_stages.append("imaging")
         import traceback
 
@@ -336,11 +336,11 @@ def test_pipeline_stages(ms_path, output_dir, skip_calibration=False):
     LOG.info("=" * 70)
     LOG.info(f"Successful stages: {len(success_stages)}/{5}")
     for stage in success_stages:
-        LOG.info(f"  ✓ {stage}")
+        LOG.info(f"  :check_mark: {stage}")
     if failed_stages:
         LOG.info(f"Failed stages: {len(failed_stages)}")
         for stage in failed_stages:
-            LOG.info(f"  ✗ {stage}")
+            LOG.info(f"  :ballot_x: {stage}")
 
     LOG.info("")
     LOG.info(f"Output directory: {output_dir}")

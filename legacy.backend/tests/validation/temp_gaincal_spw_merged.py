@@ -46,18 +46,18 @@ try:
 
     # Check if table was created
     if os.path.exists(caltable):
-        print("\n✓ SUCCESS: Calibration table created")
+        print("\n:check_mark: SUCCESS: Calibration table created")
         print(f"  Location: {caltable}")
         # Just check if directory exists and has files
         if os.path.isdir(caltable):
             files = os.listdir(caltable)
             print(f"  Table directory contains {len(files)} items")
-            print("\n✓ This confirms the issue is with field merging, not SPW merging!")
+            print("\n:check_mark: This confirms the issue is with field merging, not SPW merging!")
     else:
-        print("\n✗ ERROR: Table was not created")
+        print("\n:ballot_x: ERROR: Table was not created")
 
 except Exception as e:
-    print(f"\n✗ ERROR: {e}")
+    print(f"\n:ballot_x: ERROR: {e}")
     import traceback
 
     traceback.print_exc()

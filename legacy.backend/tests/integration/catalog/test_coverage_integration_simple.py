@@ -33,23 +33,23 @@ def test_auto_build_integration():
 
     # Check missing databases
     missing = check_missing_catalog_databases(dec_deg, auto_build=False)
-    print(f"✅ Missing databases check: {len(missing)} missing")
+    print(f":white_heavy_check_mark: Missing databases check: {len(missing)} missing")
 
     # Verify coverage limits
     assert "nvss" in CATALOG_COVERAGE_LIMITS
     assert "first" in CATALOG_COVERAGE_LIMITS
     assert "rax" in CATALOG_COVERAGE_LIMITS
-    print(f"✅ Coverage limits defined: {list(CATALOG_COVERAGE_LIMITS.keys())}")
+    print(f":white_heavy_check_mark: Coverage limits defined: {list(CATALOG_COVERAGE_LIMITS.keys())}")
 
     # Verify auto-build function exists
     assert callable(auto_build_missing_catalog_databases)
-    print("✅ Auto-build function callable")
+    print(":white_heavy_check_mark: Auto-build function callable")
 
     # Test coverage limits
     nvss_limits = CATALOG_COVERAGE_LIMITS["nvss"]
     assert nvss_limits["dec_min"] == -40.0
     assert nvss_limits["dec_max"] == 90.0
-    print(f"✅ NVSS coverage: {nvss_limits['dec_min']}° to {nvss_limits['dec_max']}°")
+    print(f":white_heavy_check_mark: NVSS coverage: {nvss_limits['dec_min']}° to {nvss_limits['dec_max']}°")
 
 
 def test_api_status_integration():
@@ -62,11 +62,11 @@ def test_api_status_integration():
 
     # Test function exists and is callable
     assert callable(get_catalog_coverage_status)
-    print("✅ API status function callable")
+    print(":white_heavy_check_mark: API status function callable")
 
     # Test with None (no database) - should handle gracefully
     status = get_catalog_coverage_status(ingest_db_path=None)
-    print(f"✅ API status handles None gracefully: {status is None or hasattr(status, 'dec_deg')}")
+    print(f":white_heavy_check_mark: API status handles None gracefully: {status is None or hasattr(status, 'dec_deg')}")
 
 
 def test_visualization_integration():
@@ -79,7 +79,7 @@ def test_visualization_integration():
 
     # Verify function exists and is callable
     assert callable(plot_catalog_coverage)
-    print("✅ Visualization function callable")
+    print(":white_heavy_check_mark: Visualization function callable")
 
 
 def test_nvss_query_integration():
@@ -92,7 +92,7 @@ def test_nvss_query_integration():
 
     # Verify function exists and is callable
     assert callable(query_nvss_sources)
-    print("✅ NVSS query function callable")
+    print(":white_heavy_check_mark: NVSS query function callable")
 
     # Note: Actual query would require catalog databases
     # This test just verifies the function is available
@@ -111,7 +111,7 @@ def test_coverage_limits_validation():
         assert "dec_min" in limits
         assert "dec_max" in limits
         assert limits["dec_min"] < limits["dec_max"]
-        print(f"✅ {catalog.upper()}: {limits['dec_min']}° to {limits['dec_max']}°")
+        print(f":white_heavy_check_mark: {catalog.upper()}: {limits['dec_min']}° to {limits['dec_max']}°")
 
 
 def _run_all_integration_tests():
@@ -126,35 +126,35 @@ def _run_all_integration_tests():
         test_auto_build_integration()
         results.append(("Auto-build", True))
     except Exception as e:
-        print(f"❌ Auto-build test failed: {e}")
+        print(f":cross_mark: Auto-build test failed: {e}")
         results.append(("Auto-build", False))
 
     try:
         test_api_status_integration()
         results.append(("API Status", True))
     except Exception as e:
-        print(f"❌ API Status test failed: {e}")
+        print(f":cross_mark: API Status test failed: {e}")
         results.append(("API Status", False))
 
     try:
         test_visualization_integration()
         results.append(("Visualization", True))
     except Exception as e:
-        print(f"❌ Visualization test failed: {e}")
+        print(f":cross_mark: Visualization test failed: {e}")
         results.append(("Visualization", False))
 
     try:
         test_nvss_query_integration()
         results.append(("NVSS Query", True))
     except Exception as e:
-        print(f"❌ NVSS Query test failed: {e}")
+        print(f":cross_mark: NVSS Query test failed: {e}")
         results.append(("NVSS Query", False))
 
     try:
         test_coverage_limits_validation()
         results.append(("Coverage Limits", True))
     except Exception as e:
-        print(f"❌ Coverage Limits test failed: {e}")
+        print(f":cross_mark: Coverage Limits test failed: {e}")
         results.append(("Coverage Limits", False))
 
     # Summary
@@ -166,16 +166,16 @@ def _run_all_integration_tests():
     total = len(results)
 
     for name, result in results:
-        status = "✅ PASS" if result else "❌ FAIL"
+        status = ":white_heavy_check_mark: PASS" if result else ":cross_mark: FAIL"
         print(f"{status}: {name}")
 
     print(f"\nTotal: {passed}/{total} tests passed")
 
     if passed == total:
-        print("\n✅ All integration tests passed!")
+        print("\n:white_heavy_check_mark: All integration tests passed!")
         return 0
     else:
-        print(f"\n⚠️  {total - passed} test(s) failed")
+        print(f"\n:warning_sign::variation_selector-16:  {total - passed} test(s) failed")
         return 1
 
 

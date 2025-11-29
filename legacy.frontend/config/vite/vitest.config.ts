@@ -24,7 +24,7 @@ function checkCasa6Node(): void {
       versionParts[0] < requiredParts[0] ||
       (versionParts[0] === requiredParts[0] && versionParts[1] < requiredParts[1])
     ) {
-      console.error("\n❌ ERROR: Node.js version too old in CI");
+      console.error("\n:cross_mark: ERROR: Node.js version too old in CI");
       console.error(`   Current: v${currentVersion}`);
       console.error(`   Required: v${REQUIRED_VERSION}+`);
       process.exit(1);
@@ -40,7 +40,7 @@ function checkCasa6Node(): void {
       .replace("v", "");
 
     if (currentNode !== CASA6_NODE) {
-      console.error("\n❌ ERROR: Frontend tests require casa6 Node.js v22.6.0");
+      console.error("\n:cross_mark: ERROR: Frontend tests require casa6 Node.js v22.6.0");
       console.error(`   Current: ${currentNode} (v${currentVersion})`);
       console.error(`   Required: ${CASA6_NODE} (v22.6.0)`);
       console.error(
@@ -57,14 +57,14 @@ function checkCasa6Node(): void {
       versionParts[0] < requiredParts[0] ||
       (versionParts[0] === requiredParts[0] && versionParts[1] < requiredParts[1])
     ) {
-      console.error("\n❌ ERROR: Node.js version too old");
+      console.error("\n:cross_mark: ERROR: Node.js version too old");
       console.error(`   Current: v${currentVersion}`);
       console.error(`   Required: v${REQUIRED_VERSION}+`);
       console.error("\n   Fix: Use casa6 Node.js v22.6.0\n");
       process.exit(1);
     }
   } catch (error) {
-    console.error("\n❌ ERROR: Failed to check Node.js version");
+    console.error("\n:cross_mark: ERROR: Failed to check Node.js version");
     console.error("   Fix: Ensure casa6 is activated\n");
     process.exit(1);
   }

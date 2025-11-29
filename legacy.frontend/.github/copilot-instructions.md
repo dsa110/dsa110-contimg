@@ -449,7 +449,7 @@ python -m dsa110_contimg.simulation.generate_uvh5 \
 
 **Active Development** (use these):
 
-- ✅ `backend/src/dsa110_contimg/` - Main Python package (production code)
+- :white_heavy_check_mark: `backend/src/dsa110_contimg/` - Main Python package (production code)
   - `conversion/` - UVH5 → MS conversion
   - `calibration/` - Calibration routines
   - `imaging/` - Imaging wrappers (WSClean, CASA tclean)
@@ -460,8 +460,8 @@ python -m dsa110_contimg.simulation.generate_uvh5 \
 
 **Legacy/Deprecated** (avoid):
 
-- ❌ `.local/archive/` - Old deprecated code, external references (gitignored)
-- ❌ Files with "legacy" in the path
+- :cross_mark: `.local/archive/` - Old deprecated code, external references (gitignored)
+- :cross_mark: Files with "legacy" in the path
 
 **When in doubt**: Check `backend/src/dsa110_contimg/` first.
 

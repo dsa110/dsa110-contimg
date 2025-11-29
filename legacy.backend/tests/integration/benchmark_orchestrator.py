@@ -244,19 +244,19 @@ def main():
         # Check if targets met
         all_passed = True
         if form_stats["mean"] > 0.1:
-            print("⚠ Warning: Group formation slower than target")
+            print(":warning_sign: Warning: Group formation slower than target")
             all_passed = False
         if workflow_stats["mean"] > 0.1:
-            print("⚠ Warning: Workflow processing slower than target")
+            print(":warning_sign: Warning: Workflow processing slower than target")
             all_passed = False
         if db_stats["mean"] > 0.01:
-            print("⚠ Warning: Database queries slower than target")
+            print(":warning_sign: Warning: Database queries slower than target")
             all_passed = False
 
         if all_passed:
-            print("✓ All benchmarks within target performance")
+            print(":check_mark: All benchmarks within target performance")
         else:
-            print("✗ Some benchmarks exceed target performance")
+            print(":ballot_x: Some benchmarks exceed target performance")
 
         return 0 if all_passed else 1
 

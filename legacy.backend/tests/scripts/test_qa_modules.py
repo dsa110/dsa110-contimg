@@ -32,7 +32,7 @@ def test_ms_quality():
     ms_files = list(ms_dir.glob("2025-10-13T13:28:03.ms"))
 
     if not ms_files:
-        print("❌ No MS files found for testing")
+        print(":cross_mark: No MS files found for testing")
         return False
 
     ms_path = str(ms_files[0])
@@ -47,10 +47,10 @@ def test_ms_quality():
     )
 
     if passed:
-        print("✓ MS passed quick check")
+        print(":check_mark: MS passed quick check")
         print(f"  Message: {metrics.get('message', 'OK')}")
     else:
-        print("✗ MS failed quick check")
+        print(":ballot_x: MS failed quick check")
         print(f"  Message: {metrics.get('message', 'Unknown')}")
 
     # Full validation
@@ -62,9 +62,9 @@ def test_ms_quality():
     )
 
     if passed:
-        print("✓ MS passed full validation")
+        print(":check_mark: MS passed full validation")
     else:
-        print("✗ MS failed full validation")
+        print(":ballot_x: MS failed full validation")
 
     # Print key metrics
     if "data_quality" in metrics:
@@ -81,11 +81,11 @@ def test_ms_quality():
     if "quality" in metrics:
         q = metrics["quality"]
         if q.get("has_critical_issues"):
-            print(f"\n  ⚠️  Critical Issues: {q.get('issues', [])}")
+            print(f"\n  :warning_sign::variation_selector-16:  Critical Issues: {q.get('issues', [])}")
         if q.get("has_warnings"):
-            print(f"  ⚠️  Warnings: {q.get('warnings', [])}")
+            print(f"  :warning_sign::variation_selector-16:  Warnings: {q.get('warnings', [])}")
         if not q.get("has_critical_issues") and not q.get("has_warnings"):
-            print("\n  ✓ No issues or warnings")
+            print("\n  :check_mark: No issues or warnings")
 
     return passed
 
@@ -101,7 +101,7 @@ def test_calibration_quality():
     caltables = list(cal_dir.glob("2025-10-13T13:28:03.shift_all_*cal"))
 
     if not caltables:
-        print("❌ No calibration tables found for testing")
+        print(":cross_mark: No calibration tables found for testing")
         return False
 
     caltables = [str(p) for p in caltables]
@@ -117,9 +117,9 @@ def test_calibration_quality():
     )
 
     if passed:
-        print("\n✓ All calibration tables passed validation")
+        print("\n:check_mark: All calibration tables passed validation")
     else:
-        print("\n✗ Some calibration tables failed validation")
+        print("\n:ballot_x: Some calibration tables failed validation")
 
     # Print results for each table
     for caltable, metrics in results["caltables"].items():
@@ -136,9 +136,9 @@ def test_calibration_quality():
 
         qual = metrics.get("quality", {})
         if qual.get("has_issues"):
-            print(f"    ⚠️  Issues: {qual.get('issues', [])}")
+            print(f"    :warning_sign::variation_selector-16:  Issues: {qual.get('issues', [])}")
         if qual.get("has_warnings"):
-            print(f"    ⚠️  Warnings: {qual.get('warnings', [])}")
+            print(f"    :warning_sign::variation_selector-16:  Warnings: {qual.get('warnings', [])}")
 
     return passed
 
@@ -154,7 +154,7 @@ def test_image_quality():
     images = list(img_dir.glob("2025-10-13T13:28:03.wproj.image.pbcor"))
 
     if not images:
-        print("❌ No images found for testing")
+        print(":cross_mark: No images found for testing")
         return False
 
     image_path = str(images[0])
@@ -169,10 +169,10 @@ def test_image_quality():
     )
 
     if passed:
-        print("✓ Image passed quick check")
+        print(":check_mark: Image passed quick check")
         print(f"  Message: {metrics.get('message', 'OK')}")
     else:
-        print("✗ Image failed quick check")
+        print(":ballot_x: Image failed quick check")
         print(f"  Message: {metrics.get('message', 'Unknown')}")
 
     # Full validation
@@ -184,9 +184,9 @@ def test_image_quality():
     )
 
     if passed:
-        print("✓ Image passed full validation")
+        print(":check_mark: Image passed full validation")
     else:
-        print("✗ Image failed full validation")
+        print(":ballot_x: Image failed full validation")
 
     # Print key metrics
     print("\n  Image Properties:")
@@ -209,11 +209,11 @@ def test_image_quality():
 
     qual = metrics.get("quality", {})
     if qual.get("has_issues"):
-        print(f"\n  ⚠️  Issues: {qual.get('issues', [])}")
+        print(f"\n  :warning_sign::variation_selector-16:  Issues: {qual.get('issues', [])}")
     if qual.get("has_warnings"):
-        print(f"  ⚠️  Warnings: {qual.get('warnings', [])}")
+        print(f"  :warning_sign::variation_selector-16:  Warnings: {qual.get('warnings', [])}")
     if not qual.get("has_issues") and not qual.get("has_warnings"):
-        print("\n  ✓ No issues or warnings")
+        print("\n  :check_mark: No issues or warnings")
 
     return passed
 
@@ -235,7 +235,7 @@ def main():
     try:
         results["ms_quality"] = test_ms_quality()
     except Exception as e:
-        print(f"\n❌ MS quality test failed with exception: {e}")
+        print(f"\n:cross_mark: MS quality test failed with exception: {e}")
         import traceback
 
         traceback.print_exc()
@@ -243,7 +243,7 @@ def main():
     try:
         results["calibration_quality"] = test_calibration_quality()
     except Exception as e:
-        print(f"\n❌ Calibration quality test failed with exception: {e}")
+        print(f"\n:cross_mark: Calibration quality test failed with exception: {e}")
         import traceback
 
         traceback.print_exc()
@@ -251,7 +251,7 @@ def main():
     try:
         results["image_quality"] = test_image_quality()
     except Exception as e:
-        print(f"\n❌ Image quality test failed with exception: {e}")
+        print(f"\n:cross_mark: Image quality test failed with exception: {e}")
         import traceback
 
         traceback.print_exc()
@@ -262,16 +262,16 @@ def main():
     print("=" * 70)
 
     for test_name, passed in results.items():
-        status = "✓ PASSED" if passed else "✗ FAILED"
+        status = ":check_mark: PASSED" if passed else ":ballot_x: FAILED"
         print(f"{test_name:30s} {status}")
 
     all_passed = all(results.values())
 
     if all_passed:
-        print("\n✓ All QA module tests PASSED")
+        print("\n:check_mark: All QA module tests PASSED")
         return 0
     else:
-        print("\n✗ Some QA module tests FAILED")
+        print("\n:ballot_x: Some QA module tests FAILED")
         return 1
 
 

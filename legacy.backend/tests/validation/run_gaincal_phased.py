@@ -48,9 +48,9 @@ gaincal(
 )
 
 if os.path.exists(caltable):
-    print("\n✓ SUCCESS: Calibration table created")
+    print("\n:check_mark: SUCCESS: Calibration table created")
     print(f"  Location: {caltable}")
 else:
-    print("\n✗ ERROR: Calibration table was not created")
+    print("\n:ballot_x: ERROR: Calibration table was not created")
 
 print("=" * 70)

@@ -180,7 +180,7 @@ def run_flagging_backend(
     )
 
     execution_time = time.time() - start_time
-    logger.info(f"✓ RFI flagging completed in {execution_time:.1f} seconds")
+    logger.info(f":check_mark: RFI flagging completed in {execution_time:.1f} seconds")
 
     # Collect flagging statistics
     total_frac, per_spw, fully_flagged = get_ms_flagging_stats(ms_path)
@@ -306,7 +306,7 @@ def run_calibration_test(
     except:
         total_spws = len(succeeded_spws) + len(failed_spws)
 
-    logger.info(f"✓ Calibration completed in {execution_time:.1f} seconds")
+    logger.info(f":check_mark: Calibration completed in {execution_time:.1f} seconds")
     logger.info(f"Success: {success}")
     logger.info(f"Succeeded SPWs: {succeeded_spws}")
     logger.info(f"Failed SPWs: {failed_spws}")
@@ -457,10 +457,10 @@ def generate_comparison_report(results: ComparisonResults, output_path: Path) ->
 
     # Speed
     if ao.execution_time_sec < casa.execution_time_sec * 0.9:
-        report.append("✓ AOFlagger is significantly faster")
+        report.append(":check_mark: AOFlagger is significantly faster")
         ao_wins += 1
     elif casa.execution_time_sec < ao.execution_time_sec * 0.9:
-        report.append("✓ CASA is significantly faster")
+        report.append(":check_mark: CASA is significantly faster")
         casa_wins += 1
     else:
         report.append("= Both have similar speed")
@@ -477,10 +477,10 @@ def generate_comparison_report(results: ComparisonResults, output_path: Path) ->
         )
 
         if ao_success_rate > casa_success_rate + 0.05:
-            report.append("✓ AOFlagger enables better calibration success")
+            report.append(":check_mark: AOFlagger enables better calibration success")
             ao_wins += 1
         elif casa_success_rate > ao_success_rate + 0.05:
-            report.append("✓ CASA enables better calibration success")
+            report.append(":check_mark: CASA enables better calibration success")
             casa_wins += 1
         else:
             report.append("= Both have similar calibration success")
@@ -488,11 +488,11 @@ def generate_comparison_report(results: ComparisonResults, output_path: Path) ->
 
     report.append("")
     if ao_wins > casa_wins:
-        report.append(f"🏆 WINNER: AOFlagger ({ao_wins} advantages vs {casa_wins})")
+        report.append(f":trophy: WINNER: AOFlagger ({ao_wins} advantages vs {casa_wins})")
     elif casa_wins > ao_wins:
-        report.append(f"🏆 WINNER: CASA ({casa_wins} advantages vs {ao_wins})")
+        report.append(f":trophy: WINNER: CASA ({casa_wins} advantages vs {ao_wins})")
     else:
-        report.append(f"🤝 TIE: Both backends perform similarly")
+        report.append(f":handshake: TIE: Both backends perform similarly")
 
     report.append("")
     report.append("=" * 80)
@@ -502,7 +502,7 @@ def generate_comparison_report(results: ComparisonResults, output_path: Path) ->
     # Write report
     report_text = "\n".join(report)
     output_path.write_text(report_text)
-    logger.info(f"✓ Report saved to: {output_path}")
+    logger.info(f":check_mark: Report saved to: {output_path}")
 
     # Also print to console
     print("\n" + report_text)
@@ -634,7 +634,7 @@ def main():
     json_path = work_dir / "comparison_results.json"
     with open(json_path, "w") as f:
         json.dump(asdict(results), f, indent=2)
-    logger.info(f"✓ JSON results saved to: {json_path}")
+    logger.info(f":check_mark: JSON results saved to: {json_path}")
 
     # Generate and save report
     report_path = work_dir / "comparison_report.txt"

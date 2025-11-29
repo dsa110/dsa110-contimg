@@ -67,7 +67,7 @@ with table(ms_path + "/FIELD", readonly=True) as field:
         if sep_arcsec > max_offset:
             max_offset = sep_arcsec
 
-        match_symbol = "✓" if sep_arcsec < 0.1 else "✗"
+        match_symbol = ":check_mark:" if sep_arcsec < 0.1 else ":ballot_x:"
 
         row = f"{i:<8} {field_names[i]:<25} {ra_deg:>14.10f} {dec_deg:>14.10f} {sep_arcsec:>14.6f} {match_symbol}"
         print(row)
@@ -79,10 +79,10 @@ with table(ms_path + "/FIELD", readonly=True) as field:
     print(f"  Max: {np.max(offsets):.6f} arcsec")
 
     if max_offset < 0.1:
-        print("\n✓ All fields match expected phase center (max offset < 0.1 arcsec)")
+        print("\n:check_mark: All fields match expected phase center (max offset < 0.1 arcsec)")
     else:
         print(
-            f"\n✗ Some fields do not match expected phase center (max offset = {max_offset:.6f} arcsec)"
+            f"\n:ballot_x: Some fields do not match expected phase center (max offset = {max_offset:.6f} arcsec)"
         )
 
         # Investigate why MODEL_DATA might have different phase center

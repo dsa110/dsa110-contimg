@@ -41,7 +41,7 @@ def check_directory_structure():
         get_workspace_dir,
     )
 
-    logger.info("✓ Consolidated directory structure is active")
+    logger.info(":check_mark: Consolidated directory structure is active")
 
     # Check directories exist
     dirs_to_check = [
@@ -54,9 +54,9 @@ def check_directory_structure():
     all_exist = True
     for dir_path, name in dirs_to_check:
         if dir_path.exists():
-            logger.info(f"✓ {name} directory exists: {dir_path}")
+            logger.info(f":check_mark: {name} directory exists: {dir_path}")
         else:
-            logger.error(f"✗ {name} directory missing: {dir_path}")
+            logger.error(f":ballot_x: {name} directory missing: {dir_path}")
             all_exist = False
 
     return all_exist
@@ -148,7 +148,7 @@ def monitor_path_issues(log_file="pipeline_test_new_structure.log"):
             logger.warning(f"  Line {line_num}: {line}")
         return False
     else:
-        logger.info("✓ No path-related issues found in logs")
+        logger.info(":check_mark: No path-related issues found in logs")
         return True
 
 
@@ -173,9 +173,9 @@ def main():
     logger.info("=" * 80)
     logger.info("Test Summary")
     logger.info("=" * 80)
-    logger.info("✓ Directory structure: OK")
+    logger.info(":check_mark: Directory structure: OK")
     logger.info(
-        f"{'✓' if has_calibrated else '⚠'} Calibrated MS files: {'Found' if has_calibrated else 'None found (expected if no calibration has run)'}"
+        f"{':check_mark:' if has_calibrated else ':warning_sign:'} Calibrated MS files: {'Found' if has_calibrated else 'None found (expected if no calibration has run)'}"
     )
     logger.info("=" * 80)
 

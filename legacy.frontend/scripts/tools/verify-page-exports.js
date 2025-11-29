@@ -52,17 +52,17 @@ async function checkPageExports() {
   }
 
   if (errors.length > 0) {
-    console.error("❌ Page export verification failed:\n");
+    console.error(":cross_mark: Page export verification failed:\n");
     errors.forEach(({ file, message }) => {
       console.error(`  ${file}: ${message}`);
     });
     console.error(
-      "\n💡 Fix: Change 'export function ComponentName()' to 'export default function ComponentName()'"
+      "\n:electric_light_bulb: Fix: Change 'export function ComponentName()' to 'export default function ComponentName()'"
     );
     process.exit(1);
   }
 
-  console.log(`✅ All ${pageFiles.length} page components have default exports`);
+  console.log(`:white_heavy_check_mark: All ${pageFiles.length} page components have default exports`);
 }
 
 checkPageExports().catch((error) => {

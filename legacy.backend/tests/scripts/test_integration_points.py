@@ -151,9 +151,9 @@ catalog_paths = [
 for path in catalog_paths:
     if Path(path).exists():
         size = Path(path).stat().st_size / 1024 / 1024
-        print(f"  ✓ {path} ({size:.1f} MB)")
+        print(f"  :check_mark: {path} ({size:.1f} MB)")
     else:
-        print(f"  ✗ {path} NOT FOUND")
+        print(f"  :ballot_x: {path} NOT FOUND")
 
 print("\n" + "=" * 70)
 print("SUMMARY")
@@ -161,10 +161,10 @@ print("=" * 70)
 print(
     """
 CURRENT STATUS:
-- QA modules: IMPLEMENTED and TESTED ✓
-- Alerting system: IMPLEMENTED and TESTED ✓
-- Pipeline integration: NOT IMPLEMENTED ✗
-- Database population: NOT DONE ✗
+- QA modules: IMPLEMENTED and TESTED :check_mark:
+- Alerting system: IMPLEMENTED and TESTED :check_mark:
+- Pipeline integration: NOT IMPLEMENTED :ballot_x:
+- Database population: NOT DONE :ballot_x:
 
 BLOCKERS:
 1. No QA calls in streaming_converter.py

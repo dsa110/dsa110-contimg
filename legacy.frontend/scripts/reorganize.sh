@@ -707,9 +707,9 @@ phase_12_symlinks() {
     
     for path in "${critical_paths[@]}"; do
         if [[ -e "$ROOT_DIR/$path" ]]; then
-            log OK "✓ $path exists"
+            log OK ":check_mark: $path exists"
         else
-            log WARN "✗ $path missing!"
+            log WARN ":ballot_x: $path missing!"
         fi
     done
 }

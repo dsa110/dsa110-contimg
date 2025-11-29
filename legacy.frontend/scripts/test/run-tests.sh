@@ -23,7 +23,7 @@ npm test -- --run --reporter=verbose 2>&1 | tee /tmp/test-results.log
 # Extract summary
 echo ""
 echo "=== Test Summary ==="
-tail -50 /tmp/test-results.log | grep -E "(Test Files|Tests|passed|failed|PASS|FAIL|✓|×)" || echo "No summary found"
+tail -50 /tmp/test-results.log | grep -E "(Test Files|Tests|passed|failed|PASS|FAIL|:check_mark:|×)" || echo "No summary found"
 
 # Exit with test exit code
 exit ${PIPESTATUS[0]}

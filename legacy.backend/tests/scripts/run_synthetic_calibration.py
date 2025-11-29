@@ -106,7 +106,7 @@ def run(
             raise SystemExit(
                 f"FAIL: Bandpass flagged fraction {frac:.3f} not < {assert_bp_flagged_lt:.3f}"
             )
-        print("✓ Bandpass flagged fraction within expected bounds")
+        print(":check_mark: Bandpass flagged fraction within expected bounds")
     except Exception as e:
         print(f"WARNING: Could not compute bandpass flagged fraction: {e}")
 

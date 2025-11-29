@@ -31,21 +31,21 @@ class TestResults:
     def add_pass(self, name, message=""):
         self.tests.append(("PASS", name, message))
         self.passed += 1
-        print(f"  ✓ {name}")
+        print(f"  :check_mark: {name}")
         if message:
             print(f"    {message}")
 
     def add_fail(self, name, message=""):
         self.tests.append(("FAIL", name, message))
         self.failed += 1
-        print(f"  ✗ {name}")
+        print(f"  :ballot_x: {name}")
         if message:
             print(f"    {message}")
 
     def add_error(self, name, exception):
         self.tests.append(("ERROR", name, str(exception)))
         self.errors += 1
-        print(f"  ⚠  {name}")
+        print(f"  :warning_sign:  {name}")
         print(f"    ERROR: {exception}")
 
     def summary(self):
@@ -394,10 +394,10 @@ def main():
     all_passed = results.summary()
 
     if all_passed:
-        print("\n✓ ALL TESTS PASSED")
+        print("\n:check_mark: ALL TESTS PASSED")
         return 0
     else:
-        print("\n✗ SOME TESTS FAILED OR HAD ERRORS")
+        print("\n:ballot_x: SOME TESTS FAILED OR HAD ERRORS")
         print("\nReview failures above and fix issues before integration.")
         return 1
 

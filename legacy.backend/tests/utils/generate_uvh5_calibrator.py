@@ -180,7 +180,7 @@ def main() -> int:
         dec_deg=args.dec_deg,
         flux_jy=args.flux_jy,
     )
-    print(f"✓ Wrote synthetic UVH5: {args.output}")
+    print(f":check_mark: Wrote synthetic UVH5: {args.output}")
     return 0
 
 

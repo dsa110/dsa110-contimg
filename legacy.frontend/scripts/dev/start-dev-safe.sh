@@ -45,7 +45,7 @@ if [ -f "$PROJECT_DIR/scripts/service-lock.sh" ]; then
         echo "  Wait a moment and try again, or check: $PROJECT_DIR/scripts/check-duplicate-services.sh"
         exit 1
     fi
-    echo -e "${GREEN}✓ Lock acquired${NC}"
+    echo -e "${GREEN}:check_mark: Lock acquired${NC}"
 else
     echo -e "${YELLOW}Warning: service-lock.sh not found, skipping lock${NC}"
 fi
@@ -61,7 +61,7 @@ if lsof -ti :$DEV_PORT >/dev/null 2>&1; then
     "$PROJECT_DIR/scripts/service-lock.sh" frontend-dev release 2>/dev/null || true
     exit 1
 fi
-echo -e "${GREEN}✓ Port $DEV_PORT is free${NC}"
+echo -e "${GREEN}:check_mark: Port $DEV_PORT is free${NC}"
 
 echo ""
 

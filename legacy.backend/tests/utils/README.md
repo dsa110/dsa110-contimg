@@ -10,7 +10,7 @@ pipeline.
 **Purpose**: Refactored version of old standalone converters that now uses
 production modules.
 
-**Status**: ✅ **Use this instead of archived versions**
+**Status**: :white_heavy_check_mark: **Use this instead of archived versions**
 
 **Key improvements**:
 

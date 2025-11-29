@@ -141,7 +141,7 @@ async def test_worker_crash_task_recovery(absurd_client: AbsurdClient):
     assert task["status"] == "claimed", f"Task not claimed, status: {task['status']}"
 
     # Simulate crash (SIGKILL)
-    print(f"\n💥 Crashing worker (PID {worker_pid})")
+    print(f"\n:collision_symbol: Crashing worker (PID {worker_pid})")
     worker.stop(graceful=False)
 
     # Wait for timeout to expire
@@ -155,7 +155,7 @@ async def test_worker_crash_task_recovery(absurd_client: AbsurdClient):
     ], f"Task not recovered after crash, status: {task['status']}"
     assert task["retry_count"] == 1, f"Retry count not incremented, got {task['retry_count']}"
 
-    print(f"✓ Task recovered after crash (retry_count={task['retry_count']})")
+    print(f":check_mark: Task recovered after crash (retry_count={task['retry_count']})")
 
 
 @pytest.mark.asyncio
@@ -178,7 +178,7 @@ async def test_multiple_worker_crash_recovery(absurd_client: AbsurdClient):
 
         task = await absurd_client.get_task(task_id)
         print(
-            f"\n🔄 Attempt {attempt + 1}: Task status={task['status']}, retry={task['retry_count']}"
+            f"\n:anticlockwise_downwards_and_upwards_open_circle_arrows: Attempt {attempt + 1}: Task status={task['status']}, retry={task['retry_count']}"
         )
 
         # Crash worker
@@ -195,7 +195,7 @@ async def test_multiple_worker_crash_recovery(absurd_client: AbsurdClient):
     ], f"Task failed prematurely, status: {task['status']}"
     assert task["retry_count"] <= 3, f"Too many retries: {task['retry_count']}"
 
-    print(f"✓ Task survived {3} crashes, retry_count={task['retry_count']}")
+    print(f":check_mark: Task survived {3} crashes, retry_count={task['retry_count']}")
 
 
 @pytest.mark.asyncio
@@ -219,7 +219,7 @@ async def test_graceful_shutdown_preserves_tasks(absurd_client: AbsurdClient):
     await asyncio.sleep(2)
 
     # Graceful shutdown
-    print("\n🛑 Graceful shutdown")
+    print("\n:octagonal_sign: Graceful shutdown")
     worker.stop(graceful=True)
 
     # Check task states
@@ -238,7 +238,7 @@ async def test_graceful_shutdown_preserves_tasks(absurd_client: AbsurdClient):
     assert total == len(task_ids), f"Lost tasks: expected {len(task_ids)}, found {total}"
 
     print(
-        f"✓ All {len(task_ids)} tasks preserved (pending/claimed: {pending_or_claimed}, completed: {completed})"
+        f":check_mark: All {len(task_ids)} tasks preserved (pending/claimed: {pending_or_claimed}, completed: {completed})"
     )
 
 
@@ -261,7 +261,7 @@ async def test_database_connection_retry():
         pytest.fail("Should have raised connection error")
     except Exception as e:
         assert "connection" in str(e).lower() or "could not connect" in str(e).lower()
-        print(f"✓ Connection error handled gracefully: {e}")
+        print(f":check_mark: Connection error handled gracefully: {e}")
 
 
 @pytest.mark.asyncio
@@ -292,12 +292,12 @@ async def test_query_timeout_handling(absurd_client: AbsurdClient):
     # Check for errors
     errors = [r for r in results if isinstance(r, Exception)]
     if errors:
-        print(f"⚠ Some operations failed: {errors}")
+        print(f":warning_sign: Some operations failed: {errors}")
 
     # Should complete reasonably fast even with concurrent operations
     assert elapsed < 5.0, f"Operations took too long: {elapsed:.2f}s"
 
-    print(f"✓ Handled {len(results)} concurrent operations in {elapsed:.2f}s")
+    print(f":check_mark: Handled {len(results)} concurrent operations in {elapsed:.2f}s")
 
 
 # ============================================================================
@@ -324,7 +324,7 @@ async def test_no_duplicate_task_claims(absurd_client: AbsurdClient):
     # Only one claim should succeed
     assert len(successful_claims) == 1, f"Task claimed {len(successful_claims)} times (expected 1)"
 
-    print(f"✓ Task claimed exactly once despite {len(claims)} concurrent attempts")
+    print(f":check_mark: Task claimed exactly once despite {len(claims)} concurrent attempts")
 
 
 @pytest.mark.asyncio
@@ -358,7 +358,7 @@ async def test_task_state_atomicity(absurd_client: AbsurdClient):
 
     # Count errors (concurrent operations should fail gracefully)
     errors = [r for r in results if isinstance(r, Exception)]
-    print(f"✓ Final state: {task['status']}, {len(errors)} conflicting operations rejected")
+    print(f":check_mark: Final state: {task['status']}, {len(errors)} conflicting operations rejected")
 
 
 # ============================================================================
@@ -392,7 +392,7 @@ async def test_connection_pool_saturation(absurd_client: AbsurdClient):
     successes = [r for r in results if not isinstance(r, Exception)]
     errors = [r for r in results if isinstance(r, Exception)]
 
-    print(f"\n✓ Connection pool test:")
+    print(f"\n:check_mark: Connection pool test:")
     print(f"  {len(successes)} successes, {len(errors)} errors")
     print(f"  Completed in {elapsed:.2f}s ({len(successes)/elapsed:.1f} ops/s)")
 
@@ -437,7 +437,7 @@ async def test_memory_leak_detection(absurd_client: AbsurdClient):
     final_mb = process.memory_info().rss / 1024 / 1024
     growth_mb = final_mb - baseline_mb
 
-    print(f"\n✓ Memory usage: {baseline_mb:.1f} MB → {final_mb:.1f} MB (+{growth_mb:.1f} MB)")
+    print(f"\n:check_mark: Memory usage: {baseline_mb:.1f} MB → {final_mb:.1f} MB (+{growth_mb:.1f} MB)")
 
     # Memory growth should be reasonable (< 50 MB for 500 tasks)
     assert growth_mb < 50, f"Potential memory leak: {growth_mb:.1f} MB growth"
@@ -474,7 +474,7 @@ async def test_worker_reconnection_after_network_issue():
 
     await client.close()
 
-    print("✓ Worker has reconnection infrastructure")
+    print(":check_mark: Worker has reconnection infrastructure")
 
 
 # ============================================================================
@@ -508,7 +508,7 @@ async def test_chaos_mixed_failures(absurd_client: AbsurdClient):
     await asyncio.sleep(2)
 
     # Introduce chaos
-    print("\n💥 Introducing chaos:")
+    print("\n:collision_symbol: Introducing chaos:")
 
     # Crash one worker
     print("  - Crashing worker 0")
@@ -531,7 +531,7 @@ async def test_chaos_mixed_failures(absurd_client: AbsurdClient):
     # Check final state
     stats = await absurd_client.get_queue_stats(TEST_QUEUE_NAME)
 
-    print(f"\n✓ Chaos test results:")
+    print(f"\n:check_mark: Chaos test results:")
     print(f"  Completed: {stats['completed']}")
     print(f"  Failed: {stats['failed']}")
     print(f"  Pending: {stats['pending']}")

@@ -235,10 +235,10 @@ def mode_validate(args):
     # Success criteria
     print("\nValidation:")
     if dev_mad < 0.03:
-        print(f"  ✓ Normalization PASSED: MAD={100 * dev_mad:.2f}% < 3%")
+        print(f"  :check_mark: Normalization PASSED: MAD={100 * dev_mad:.2f}% < 3%")
         status = 0
     else:
-        print(f"  ✗ Normalization FAILED: MAD={100 * dev_mad:.2f}% >= 3%")
+        print(f"  :ballot_x: Normalization FAILED: MAD={100 * dev_mad:.2f}% >= 3%")
         status = 1
 
     # Plot

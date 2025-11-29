@@ -93,7 +93,7 @@ def test_forced_photometry_recovery(tmp_path):
             snr = 0.0
             recovered = False
 
-        recovered_str = "✓" if recovered else "✗"
+        recovered_str = ":check_mark:" if recovered else ":ballot_x:"
 
         print(
             f"{src['name']:<20s} {expected_flux:10.4f} {measured_flux:10.4f} "
@@ -135,7 +135,7 @@ def test_forced_photometry_recovery(tmp_path):
 
         # Check if mean ratio is close to 1.0
         ratio_ok = abs(mean_ratio - 1.0) < 0.1  # Within 10%
-        print(f"Flux scale accuracy: {'✓ PASS' if ratio_ok else '✗ FAIL'}")
+        print(f"Flux scale accuracy: {':check_mark: PASS' if ratio_ok else ':ballot_x: FAIL'}")
 
     # Detailed results for each source
     print(f"\n{'=' * 80}")
@@ -156,7 +156,7 @@ def test_forced_photometry_recovery(tmp_path):
         if np.isfinite(res.peak_jyb) and src["flux_jy"] > 0:
             ratio = res.peak_jyb / src["flux_jy"]
             print(f"  Ratio (measured/expected): {ratio:.4f}")
-            print(f"  Recovery: {'✓ PASS' if r['recovered'] else '✗ FAIL'}")
+            print(f"  Recovery: {':check_mark: PASS' if r['recovered'] else ':ballot_x: FAIL'}")
 
     # Assertions for automated testing
     assert (
@@ -168,7 +168,7 @@ def test_forced_photometry_recovery(tmp_path):
         ), f"Flux scale error too large: {mean_ratio:.4f} (expected ~1.0)"
 
     print(f"\n{'=' * 80}")
-    print("✓ All checks passed!")
+    print(":check_mark: All checks passed!")
     print(f"{'=' * 80}\n")
 
 
@@ -290,7 +290,7 @@ if __name__ == "__main__":
         print("\nRunning edge sources test...")
         test_forced_photometry_edge_sources(tmp_path)
 
-        print("\n✓ All tests passed!")
+        print("\n:check_mark: All tests passed!")
         print(f"\nOutput files saved to: {tmp_path}")
         print("Files:")
         for f in sorted(tmp_path.glob("*.fits")):
@@ -315,4 +315,4 @@ if __name__ == "__main__":
             print("\nRunning edge sources test...")
             test_forced_photometry_edge_sources(tmp_path)
 
-            print("\n✓ All tests passed!")
+            print("\n:check_mark: All tests passed!")

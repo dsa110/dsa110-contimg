@@ -102,12 +102,12 @@ def test_uvw_transformation_after_phaseshift(ms_path):
         # For 54 arcmin shift, expected UVW change: ~baseline_length * sin(54 arcmin) ≈ 1-2 meters
 
         if max_diff < 0.1:
-            print("\n✗ UVW coordinates NOT transformed by phaseshift!")
+            print("\n:ballot_x: UVW coordinates NOT transformed by phaseshift!")
             print("  This suggests phaseshift didn't update UVW correctly")
             print("  ft() will use old phase center frame (WRONG)")
             pytest.fail("phaseshift did not transform UVW coordinates")
         else:
-            print("\n✓ UVW coordinates transformed by phaseshift")
+            print("\n:check_mark: UVW coordinates transformed by phaseshift")
             print(f"  Max change: {max_diff:.3f} meters (expected for large phase shift)")
 
         # Verify new phase center in FIELD table
@@ -124,10 +124,10 @@ def test_uvw_transformation_after_phaseshift(ms_path):
             print(f"  Dec={phase_dec:.6f}° (offset: {offset_dec:.3f} arcsec)")
 
             if offset_ra > 1.0 or offset_dec > 1.0:
-                print("\n✗ PHASE_DIR not correctly updated by phaseshift")
+                print("\n:ballot_x: PHASE_DIR not correctly updated by phaseshift")
                 pytest.fail("phaseshift did not update PHASE_DIR correctly")
             else:
-                print("\n✓ PHASE_DIR correctly updated by phaseshift")
+                print("\n:check_mark: PHASE_DIR correctly updated by phaseshift")
 
     finally:
         # Cleanup

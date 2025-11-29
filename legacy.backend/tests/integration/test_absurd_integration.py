@@ -423,7 +423,7 @@ async def test_concurrent_task_spawning(absurd_client: AbsurdClient, clean_queue
     # Performance check: should be able to spawn 100 tasks in < 5 seconds
     assert elapsed < 5.0, f"Took {elapsed:.2f}s to spawn {num_tasks} tasks"
 
-    print(f"\n✓ Spawned {num_tasks} tasks in {elapsed:.2f}s ({num_tasks/elapsed:.1f} tasks/s)")
+    print(f"\n:check_mark: Spawned {num_tasks} tasks in {elapsed:.2f}s ({num_tasks/elapsed:.1f} tasks/s)")
 
 
 @pytest.mark.asyncio
@@ -463,7 +463,7 @@ async def test_concurrent_task_claiming(absurd_client: AbsurdClient, clean_queue
     assert elapsed < 3.0, f"Took {elapsed:.2f}s to claim {num_tasks} tasks"
 
     print(
-        f"\n✓ Claimed {len(claimed_tasks)} tasks in {elapsed:.2f}s ({len(claimed_tasks)/elapsed:.1f} tasks/s)"
+        f"\n:check_mark: Claimed {len(claimed_tasks)} tasks in {elapsed:.2f}s ({len(claimed_tasks)/elapsed:.1f} tasks/s)"
     )
 
 
@@ -494,7 +494,7 @@ async def test_task_listing_performance(absurd_client: AbsurdClient, clean_queue
     # Performance check: should list 200 tasks in < 1 second
     assert elapsed < 1.0, f"Took {elapsed:.2f}s to list {num_tasks} tasks"
 
-    print(f"\n✓ Listed {len(tasks)} tasks in {elapsed:.2f}s")
+    print(f"\n:check_mark: Listed {len(tasks)} tasks in {elapsed:.2f}s")
 
 
 @pytest.mark.asyncio
@@ -519,7 +519,7 @@ async def test_queue_stats_performance(absurd_client: AbsurdClient, clean_queue)
     # Performance check: should compute stats in < 0.5 seconds
     assert elapsed < 0.5, f"Took {elapsed:.2f}s to compute queue stats"
 
-    print(f"\n✓ Computed queue stats in {elapsed:.2f}s")
+    print(f"\n:check_mark: Computed queue stats in {elapsed:.2f}s")
     print(f"  Stats: {stats}")
 
 
@@ -553,7 +553,7 @@ async def test_end_to_end_throughput(absurd_client: AbsurdClient, clean_queue):
     elapsed = time.time() - start
     throughput = num_tasks / elapsed
 
-    print(f"\n✓ End-to-end throughput: {throughput:.1f} tasks/s")
+    print(f"\n:check_mark: End-to-end throughput: {throughput:.1f} tasks/s")
     print(f"  Processed {num_tasks} tasks in {elapsed:.2f}s")
 
     # Verify all tasks completed

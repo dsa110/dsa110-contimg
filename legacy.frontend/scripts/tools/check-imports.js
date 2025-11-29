@@ -93,7 +93,7 @@ function main() {
 
   // Report results
   if (errors.length > 0) {
-    console.error("❌ Import errors found:\n");
+    console.error(":cross_mark: Import errors found:\n");
     errors.forEach(({ file, message }) => {
       console.error(`  ${file}: ${message}`);
     });
@@ -101,14 +101,14 @@ function main() {
   }
 
   if (missingDeps.length > 0) {
-    console.error("❌ Missing required dependencies:\n");
+    console.error(":cross_mark: Missing required dependencies:\n");
     missingDeps.forEach((dep) => {
       console.error(`  ${dep} is not installed`);
     });
     process.exit(1);
   }
 
-  console.log("✅ All imports are valid");
+  console.log(":white_heavy_check_mark: All imports are valid");
   console.log(`   Checked ${files.length} files`);
 }
 

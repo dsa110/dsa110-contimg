@@ -21,8 +21,8 @@ print("-" * 70)
 ms_dir = Path("/stage/dsa110-contimg/ms/central_cal_rebuild")
 if ms_dir.exists():
     ms_files = list(ms_dir.glob("*.ms"))
-    print(f"  ✓ MS directory exists: {ms_dir}")
-    print(f"  ✓ Found {len(ms_files)} MS files")
+    print(f"  :check_mark: MS directory exists: {ms_dir}")
+    print(f"  :check_mark: Found {len(ms_files)} MS files")
 
     if ms_files:
         test_ms = ms_files[0]
@@ -36,11 +36,11 @@ if ms_dir.exists():
             nrows = tb.nrows()
             cols = tb.colnames()
             tb.close()
-            print(f"    ✓ Can open MS: {nrows} rows, {len(cols)} columns")
+            print(f"    :check_mark: Can open MS: {nrows} rows, {len(cols)} columns")
         except Exception as e:
-            print(f"    ✗ Cannot open MS: {e}")
+            print(f"    :ballot_x: Cannot open MS: {e}")
 else:
-    print(f"  ✗ MS directory does not exist: {ms_dir}")
+    print(f"  :ballot_x: MS directory does not exist: {ms_dir}")
 
 # Test 2: Can we access caltables?
 print("\n2. CALTABLE ACCESS")
@@ -58,11 +58,11 @@ for pattern in cal_patterns:
     if path_obj.exists():
         files = list(path_obj.parent.glob(path_obj.name + "*" + pattern.split("*")[1]))
         if files:
-            print(f"  ✓ Found {len(files)} {pattern.split('*')[1]} tables")
+            print(f"  :check_mark: Found {len(files)} {pattern.split('*')[1]} tables")
             found_any = True
 
 if not found_any:
-    print("  ✗ No caltables found in expected locations")
+    print("  :ballot_x: No caltables found in expected locations")
 
 # Test 3: Can we access images?
 print("\n3. IMAGE ACCESS")
@@ -78,7 +78,7 @@ for ms_file in list(ms_dir.glob("*.ms"))[:3]:  # Check first 3 MS
     for pattern in image_patterns:
         images = list(ms_dir.glob(f"{ms_file.stem}{pattern}"))
         if images:
-            print(f"  ✓ Found {pattern} for {ms_file.stem}")
+            print(f"  :check_mark: Found {pattern} for {ms_file.stem}")
 
 # Test 4: Can we write to temp locations?
 print("\n4. WRITE ACCESS")
@@ -98,9 +98,9 @@ for test_dir in test_dirs:
         test_file.write_text("test")
         test_file.unlink()
         test_path.rmdir()
-        print(f"  ✓ Can write to: {test_dir}")
+        print(f"  :check_mark: Can write to: {test_dir}")
     except Exception as e:
-        print(f"  ✗ Cannot write to {test_dir}: {e}")
+        print(f"  :ballot_x: Cannot write to {test_dir}: {e}")
 
 # Test 5: Environment variables
 print("\n5. ENVIRONMENT CONFIGURATION")
@@ -119,7 +119,7 @@ for var in env_vars:
         # Mask webhook URL for security
         if "WEBHOOK" in var:
             value = value[:20] + "..." if len(value) > 20 else value
-        print(f"  ✓ {var} = {value}")
+        print(f"  :check_mark: {var} = {value}")
     else:
         print(f"  ○ {var} = (not set)")
 
@@ -139,11 +139,11 @@ for db_file in db_files:
     if path.exists():
         size = path.stat().st_size
         if size == 0:
-            print(f"  ⚠ {path.name}: EXISTS but EMPTY")
+            print(f"  :warning_sign: {path.name}: EXISTS but EMPTY")
         else:
-            print(f"  ✓ {path.name}: {size:,} bytes")
+            print(f"  :check_mark: {path.name}: {size:,} bytes")
     else:
-        print(f"  ✗ {path.name}: NOT FOUND")
+        print(f"  :ballot_x: {path.name}: NOT FOUND")
 
 print("\n" + "=" * 70)
 print("SUMMARY")
@@ -151,11 +151,11 @@ print("=" * 70)
 print(
     """
 ACCESSIBILITY:
-- MS files: Can access and read ✓
-- Caltables: Present and accessible ✓  
-- Images: Present and accessible ✓
-- Temp directories: Can write ✓
-- Databases: Mostly present, master_sources EMPTY ⚠
+- MS files: Can access and read :check_mark:
+- Caltables: Present and accessible :check_mark:  
+- Images: Present and accessible :check_mark:
+- Temp directories: Can write :check_mark:
+- Databases: Mostly present, master_sources EMPTY :warning_sign:
 
 BLOCKERS:
 - master_sources.sqlite3 is empty (photometry will fail)

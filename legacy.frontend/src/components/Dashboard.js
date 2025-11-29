@@ -14,7 +14,7 @@ const Dashboard = () => {
       {error && (
         <div className="error-banner">
           <strong>Error:</strong> {error}
-          <button onClick={() => setError(null)}>✕</button>
+          <button onClick={() => setError(null)}>:multiplication_x:</button>
         </div>
       )}
       {/* ...existing code... */}

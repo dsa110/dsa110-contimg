@@ -23,9 +23,9 @@ try:
         min_snr=50.0,
         max_sources=20,
     )
-    print("✓ Query succeeded (should have failed!)")
+    print(":check_mark: Query succeeded (should have failed!)")
     print(f"  Found {len(refs)} reference sources")
 
 except Exception as e:
-    print(f"✗ Query failed as expected: {type(e).__name__}")
+    print(f":ballot_x: Query failed as expected: {type(e).__name__}")
     print(f"  Error: {e}")

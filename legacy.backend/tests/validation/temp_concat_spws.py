@@ -33,7 +33,7 @@ if os.path.exists(ms_copy):
 
 print("  Copying...")
 shutil.copytree(ms_path, ms_copy)
-print(f"  ✓ Copy created: {ms_copy}")
+print(f"  :check_mark: Copy created: {ms_copy}")
 
 # Verify copy
 with table(ms_copy + "/SPECTRAL_WINDOW", readonly=True) as spw:
@@ -56,9 +56,9 @@ try:
         keepflags=True,
         remove_sigma_spectrum=True,
     )
-    print(f"  ✓ Concatenated MS created: {ms_concat}")
+    print(f"  :check_mark: Concatenated MS created: {ms_concat}")
 except Exception as e:
-    print(f"  ✗ Error: {e}")
+    print(f"  :ballot_x: Error: {e}")
     import traceback
 
     traceback.print_exc()
@@ -72,7 +72,7 @@ with table(ms_concat + "/SPECTRAL_WINDOW", readonly=True) as spw:
     print(f"  Number of SPWs in concatenated MS: {nspw}")
 
     if nspw == 1:
-        print("  ✓ Successfully concatenated to 1 SPW")
+        print("  :check_mark: Successfully concatenated to 1 SPW")
 
         # Get frequency info
         ref_freq = spw.getcol("REF_FREQUENCY")[0]
@@ -83,7 +83,7 @@ with table(ms_concat + "/SPECTRAL_WINDOW", readonly=True) as spw:
         print(f"  Total channels: {nchans}")
         print(f"  Total bandwidth: {total_bw / 1e6:.3f} MHz")
     else:
-        print(f"  ⚠ Expected 1 SPW, found {nspw}")
+        print(f"  :warning_sign: Expected 1 SPW, found {nspw}")
 
 with table(ms_concat, readonly=True) as tb:
     nrows = tb.nrows()

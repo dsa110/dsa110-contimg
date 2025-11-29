@@ -89,7 +89,7 @@ docs/
 ### 3. Clean Up Scattered State Directories
 
 **Current State:**
-- `/state/` (6.8 GB) - Main runtime state ✅ Keep
+- `/state/` (6.8 GB) - Main runtime state :white_heavy_check_mark: Keep
 - `backend/state/` - Should not exist separately
 - `frontend/state/` - Pointing data, specific use case
 - `docs/state/` - Docs about state management
@@ -129,11 +129,11 @@ docs/
 - `.output-suppression-whitelist` - Move to `ops/config/`
 
 **Keep at Root:**
-- `README.md` ✅
-- `Makefile` ✅
-- `docker-compose.yml` ✅
-- `mkdocs.yml` ✅
-- Config files (`.pre-commit-config.yaml`, `.editorconfig`, etc.) ✅
+- `README.md` :white_heavy_check_mark:
+- `Makefile` :white_heavy_check_mark:
+- `docker-compose.yml` :white_heavy_check_mark:
+- `mkdocs.yml` :white_heavy_check_mark:
+- Config files (`.pre-commit-config.yaml`, `.editorconfig`, etc.) :white_heavy_check_mark:
 
 ---
 

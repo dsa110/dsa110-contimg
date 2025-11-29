@@ -39,7 +39,7 @@ def test_syntax(file_path):
         compile(code, file_path, "exec")
         return True
     except SyntaxError as e:
-        print(f"✗ Syntax error in {file_path}: {e}")
+        print(f":ballot_x: Syntax error in {file_path}: {e}")
         return False
 
 
@@ -69,7 +69,7 @@ def test_performance():
     stats = perf.get_performance_stats("test")
     assert "test" in stats and stats["test"]["count"] == 1
 
-    print("  ✓ Performance metrics work correctly")
+    print("  :check_mark: Performance metrics work correctly")
     return True
 
 
@@ -92,7 +92,7 @@ def test_error_context():
     assert "Error: Test" in result
     assert "Operation: test" in result
 
-    print("  ✓ Error context works correctly")
+    print("  :check_mark: Error context works correctly")
     return True
 
 
@@ -115,7 +115,7 @@ def test_cache_stats():
     assert stats["ms_metadata"]["maxsize"] == 128
     assert stats["flag_validation"]["maxsize"] == 64
 
-    print("  ✓ Cache statistics work correctly")
+    print("  :check_mark: Cache statistics work correctly")
     return True
 
 
@@ -146,15 +146,15 @@ def test_parallel():
     try:
         result = test_with_timeout(run_test, timeout=10)
         if result:
-            print("  ✓ Parallel processing works correctly")
+            print("  :check_mark: Parallel processing works correctly")
             return True
         else:
-            print("  ⚠ Parallel test timed out (may need ProcessPoolExecutor which can hang)")
-            print("  ✓ Module structure is correct (function exists and compiles)")
+            print("  :warning_sign: Parallel test timed out (may need ProcessPoolExecutor which can hang)")
+            print("  :check_mark: Module structure is correct (function exists and compiles)")
             return True  # Return True anyway since structure is correct
     except Exception as e:
-        print(f"  ⚠ Parallel test issue: {e}")
-        print("  ✓ Module structure is correct (function exists and compiles)")
+        print(f"  :warning_sign: Parallel test issue: {e}")
+        print("  :check_mark: Module structure is correct (function exists and compiles)")
         return True
 
 
@@ -175,7 +175,7 @@ def test_type_annotations():
     assert sig1.return_annotation != inspect.Signature.empty
     assert sig2.return_annotation != inspect.Signature.empty
 
-    print("  ✓ Type annotations present")
+    print("  :check_mark: Type annotations present")
     return True
 
 
@@ -194,7 +194,7 @@ def test_duplicate_function():
 
     compile(content, str(file_path), "exec")
 
-    print("  ✓ Duplicate function fix verified")
+    print("  :check_mark: Duplicate function fix verified")
     return True
 
 
@@ -204,13 +204,13 @@ def test_optimization_tests():
     file_path = Path("tests/unit/test_optimizations.py")
 
     if not file_path.exists():
-        print("  ✗ Test file not found")
+        print("  :ballot_x: Test file not found")
         return False
 
     if not test_syntax(file_path):
         return False
 
-    print("  ✓ Optimization test file exists and compiles")
+    print("  :check_mark: Optimization test file exists and compiles")
     return True
 
 
@@ -241,7 +241,7 @@ def main():
                 failed += 1
                 print()
         except Exception as e:
-            print(f"  ✗ {name} FAILED: {e}\n")
+            print(f"  :ballot_x: {name} FAILED: {e}\n")
             import traceback
 
             traceback.print_exc()
@@ -252,7 +252,7 @@ def main():
     print("=" * 70)
 
     if failed == 0:
-        print("\n✓ ALL IMPLEMENTATIONS VERIFIED AND WORKING CORRECTLY")
+        print("\n:check_mark: ALL IMPLEMENTATIONS VERIFIED AND WORKING CORRECTLY")
 
     return failed == 0
 

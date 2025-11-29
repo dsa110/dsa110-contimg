@@ -30,7 +30,7 @@ with table(ms_path, readonly=True) as tb:
             print(f"\nShape: {data.shape} (rows, channels, pols)")
 
             if np.all(data == 0):
-                print("\n✗ All zeros - column not populated")
+                print("\n:ballot_x: All zeros - column not populated")
                 continue
 
             # Analyze by polarization
@@ -65,11 +65,11 @@ with table(ms_path, readonly=True) as tb:
                 print(f"  Imaginary: max={max_imag:.6e}, mean={mean_imag:.6e}")
 
                 if max_imag < 1e-6:
-                    print("  ✓ Purely real")
+                    print("  :check_mark: Purely real")
                 elif max_imag < 0.01:
-                    print("  ⚠ Mostly real (small imag)")
+                    print("  :warning_sign: Mostly real (small imag)")
                 else:
-                    print("  ✓ Complex")
+                    print("  :check_mark: Complex")
 
                 # Sample values
                 if len(non_zero) >= 3:
@@ -108,9 +108,9 @@ with table(ms_path, readonly=True) as tb:
 
                     # Check if DATA is scaled MODEL_DATA
                     if np.std(ratio_phase) < 0.1:  # Low phase scatter
-                        print("  ✓ Phase consistent (low scatter) - DATA may be scaled MODEL_DATA")
+                        print("  :check_mark: Phase consistent (low scatter) - DATA may be scaled MODEL_DATA")
                     else:
-                        print("  ⚠ Phase scatter - DATA has different phase structure")
+                        print("  :warning_sign: Phase scatter - DATA has different phase structure")
 
         except Exception as e:
             print(f"Error: {e}")

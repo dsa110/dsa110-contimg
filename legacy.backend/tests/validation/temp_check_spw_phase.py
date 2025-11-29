@@ -109,8 +109,8 @@ with table(ms_path, readonly=True) as tb:
                 print(f"  Max |imag|: {max_imag:.6e}")
 
                 if phase_std_deg < 0.01 and max_imag < 1e-6:
-                    print("  ✓ Purely real (phase ≈ 0) - consistent with same phase center")
+                    print("  :check_mark: Purely real (phase ≈ 0) - consistent with same phase center")
                 else:
-                    print("  ✗ Has phase variation - may indicate different phase center")
+                    print("  :ballot_x: Has phase variation - may indicate different phase center")
 
 print("\n" + "=" * 70)

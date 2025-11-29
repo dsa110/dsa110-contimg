@@ -52,15 +52,15 @@ def diagnose_model_data_phase(ms_path: str, cal_ra_deg: float, cal_dec_deg: floa
     print(f"   Separation: {separation.to(u.arcmin):.4f}")
 
     if separation.to(u.arcmin).value > 1.0:
-        print("   ✗ PROBLEM: Phase center offset > 1 arcmin!")
+        print("   :ballot_x: PROBLEM: Phase center offset > 1 arcmin!")
     else:
-        print("   ✓ Phase center aligned")
+        print("   :check_mark: Phase center aligned")
 
     # 2. Check MODEL_DATA phase structure
     print("\n2. MODEL_DATA Phase Structure:")
     with table(ms_path, readonly=True) as tb:
         if "MODEL_DATA" not in tb.colnames():
-            print("   ✗ MODEL_DATA column not present")
+            print("   :ballot_x: MODEL_DATA column not present")
             return
 
         n_sample = min(5000, tb.nrows())
@@ -70,7 +70,7 @@ def diagnose_model_data_phase(ms_path: str, cal_ra_deg: float, cal_dec_deg: floa
 
         unflagged_mask = ~flags.any(axis=(1, 2))
         if unflagged_mask.sum() == 0:
-            print("   ✗ All MODEL_DATA is flagged")
+            print("   :ballot_x: All MODEL_DATA is flagged")
             return
 
         model_unflagged = model_data[unflagged_mask]
@@ -86,10 +86,10 @@ def diagnose_model_data_phase(ms_path: str, cal_ra_deg: float, cal_dec_deg: floa
         print(f"   Phase:      mean={np.mean(phases_deg):.1f}°, std={np.std(phases_deg):.1f}°")
 
         if np.std(phases_deg) > 50:
-            print(f"   ✗ PROBLEM: Phase scatter too high ({np.std(phases_deg):.1f}°)")
+            print(f"   :ballot_x: PROBLEM: Phase scatter too high ({np.std(phases_deg):.1f}°)")
             print("      Expected: < 10° for point source at phase center")
         else:
-            print("   ✓ Phase scatter acceptable")
+            print("   :check_mark: Phase scatter acceptable")
 
         # 3. Calculate expected phase for point source
         print("\n3. Expected Phase Calculation:")
@@ -128,7 +128,7 @@ def diagnose_model_data_phase(ms_path: str, cal_ra_deg: float, cal_dec_deg: floa
         print(f"   Actual - Expected phase scatter: {np.std(phase_diff_deg):.1f}°")
 
         if np.std(phase_diff_deg) > 50:
-            print("   ✗ PROBLEM: MODEL_DATA phase doesn't match expected phase structure")
+            print("   :ballot_x: PROBLEM: MODEL_DATA phase doesn't match expected phase structure")
             print("      This indicates ft() calculated MODEL_DATA incorrectly")
             print("      Possible causes:")
             print("        1. Component list position doesn't match MS phase center")
@@ -136,7 +136,7 @@ def diagnose_model_data_phase(ms_path: str, cal_ra_deg: float, cal_dec_deg: floa
             print("        3. MODEL_DATA was written before MS rephasing and not properly cleared")
             print("        4. ft() has a bug with phase calculation")
         else:
-            print("   ✓ MODEL_DATA phase matches expected structure")
+            print("   :check_mark: MODEL_DATA phase matches expected structure")
 
     # 4. Check if component list exists and verify position
     print("\n4. Component List Check:")

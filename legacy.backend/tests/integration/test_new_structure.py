@@ -23,7 +23,7 @@ def test_new_structure():
     print("=" * 80)
     print()
 
-    print("✓ Consolidated directory structure is enforced")
+    print(":check_mark: Consolidated directory structure is enforced")
     print()
 
     print("Directory Paths:")
@@ -39,22 +39,22 @@ def test_new_structure():
     expected_cal = STAGE_BASE / "calibrated" / "ms"
 
     if get_raw_ms_dir() == expected_raw:
-        print("✓ Raw MS directory uses new structure")
+        print(":check_mark: Raw MS directory uses new structure")
     else:
-        print(f"✗ Raw MS directory incorrect: {get_raw_ms_dir()} (expected {expected_raw})")
+        print(f":ballot_x: Raw MS directory incorrect: {get_raw_ms_dir()} (expected {expected_raw})")
         return 1
 
     if get_calibrated_ms_dir() == expected_cal:
-        print("✓ Calibrated MS directory uses new structure")
+        print(":check_mark: Calibrated MS directory uses new structure")
     else:
         print(
-            f"✗ Calibrated MS directory incorrect: {get_calibrated_ms_dir()} (expected {expected_cal})"
+            f":ballot_x: Calibrated MS directory incorrect: {get_calibrated_ms_dir()} (expected {expected_cal})"
         )
         return 1
 
     print()
     print("=" * 80)
-    print("✓ All tests passed! New structure is enabled and working.")
+    print(":check_mark: All tests passed! New structure is enabled and working.")
     print("=" * 80)
 
     return 0

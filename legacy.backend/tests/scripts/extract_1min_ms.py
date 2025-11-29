@@ -94,7 +94,7 @@ def extract_1minute(ms_in, ms_out):
             keepflags=True,
             datacolumn="DATA",
         )
-        print(f"\n✓ Successfully created 1-minute MS: {ms_out}")
+        print(f"\n:check_mark: Successfully created 1-minute MS: {ms_out}")
 
         # Verify output
         out_start, out_end, out_mid = _ms_time_range(str(ms_out))
@@ -108,7 +108,7 @@ def extract_1minute(ms_in, ms_out):
         return True
 
     except Exception as e:
-        print(f"\n✗ Failed to extract 1-minute subset: {e}")
+        print(f"\n:ballot_x: Failed to extract 1-minute subset: {e}")
         import traceback
 
         traceback.print_exc()

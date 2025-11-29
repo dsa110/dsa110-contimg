@@ -36,31 +36,31 @@ if [ "$USE_DOCKER" = "yes" ]; then
     sh -c "
       echo '1. Checking imports...'
       node scripts/check-imports.js
-      echo '   ✓ Imports OK'
+      echo '   :check_mark: Imports OK'
       echo ''
       
       echo '2. Type checking...'
       npx tsc --noEmit 2>&1 | grep -v 'node_modules' || true
-      echo '   ✓ Type check passed'
+      echo '   :check_mark: Type check passed'
       echo ''
       
       echo '3. Build verification...'
       npm run build 2>&1 | tail -5
-      echo '   ✓ Build successful'
+      echo '   :check_mark: Build successful'
       echo ''
       
       echo '4. Running component tests...'
       npm test -- src/components/Sky/ImageBrowser.test.tsx --run 2>&1 | tail -30
-      echo '   ✓ Component tests passed'
+      echo '   :check_mark: Component tests passed'
       echo ''
       
       echo '5. Linting...'
       npm run lint 2>&1 | grep -E '(error|Error)' && exit 1 || true
-      echo '   ✓ Linting passed'
+      echo '   :check_mark: Linting passed'
       echo ''
       
       echo '=========================================='
-      echo '✓ All SkyView tests passed!'
+      echo ':check_mark: All SkyView tests passed!'
       echo '=========================================='
     "
 else
@@ -72,41 +72,41 @@ else
   # 1. Check imports
   echo "1. Checking imports..."
   node scripts/check-imports.js
-  echo "   ✓ Imports OK"
+  echo "   :check_mark: Imports OK"
   echo ""
   
   # 2. Type checking
   echo "2. Type checking..."
   npx tsc --noEmit 2>&1 | grep -v "node_modules" || true
-  echo "   ✓ Type check passed"
+  echo "   :check_mark: Type check passed"
   echo ""
   
   # 3. Build verification
   echo "3. Build verification..."
   npm run build 2>&1 | tail -5 || {
-    echo "   ✗ Build failed"
+    echo "   :ballot_x: Build failed"
     exit 1
   }
-  echo "   ✓ Build successful"
+  echo "   :check_mark: Build successful"
   echo ""
   
   # 4. Run component tests
   echo "4. Running component tests..."
   npm test -- src/components/Sky/ImageBrowser.test.tsx --run 2>&1 | tail -30 || {
-    echo "   ✗ Tests failed"
+    echo "   :ballot_x: Tests failed"
     exit 1
   }
-  echo "   ✓ Component tests passed"
+  echo "   :check_mark: Component tests passed"
   echo ""
   
   # 5. Linting
   echo "5. Linting..."
   npm run lint 2>&1 | grep -E "(error|Error)" && exit 1 || true
-  echo "   ✓ Linting passed"
+  echo "   :check_mark: Linting passed"
   echo ""
   
   echo "=========================================="
-  echo "✓ All SkyView tests passed!"
+  echo ":check_mark: All SkyView tests passed!"
   echo "=========================================="
 fi
 

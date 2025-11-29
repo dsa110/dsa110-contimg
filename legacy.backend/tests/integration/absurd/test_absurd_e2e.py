@@ -121,14 +121,14 @@ class TestAbsurdE2E:
         )
 
         assert task_id is not None
-        print(f"✓ Task spawned: {task_id}")
+        print(f":check_mark: Task spawned: {task_id}")
 
         # Claim the task
         task = await absurd_client.claim_task(test_config.queue_name, "test-worker-1")
         assert task is not None
         assert task["task_id"] == task_id
         assert task["status"] == "claimed"
-        print(f"✓ Task claimed: {task_id}")
+        print(f":check_mark: Task claimed: {task_id}")
 
         # Complete the task
         await absurd_client.complete_task(task_id, {"result": "success"})
@@ -137,7 +137,7 @@ class TestAbsurdE2E:
         completed_task = await absurd_client.get_task(task_id)
         assert completed_task["status"] == "completed"
         assert completed_task["result"]["result"] == "success"
-        print(f"✓ Task completed: {task_id}")
+        print(f":check_mark: Task completed: {task_id}")
 
     @pytest.mark.asyncio
     async def test_task_failure_handling(self, absurd_client, test_config):
@@ -157,7 +157,7 @@ class TestAbsurdE2E:
         failed_task = await absurd_client.get_task(task_id)
         assert failed_task["status"] == "failed"
         assert "Intentional test failure" in failed_task["error"]
-        print(f"✓ Task failure handled correctly: {task_id}")
+        print(f":check_mark: Task failure handled correctly: {task_id}")
 
     @pytest.mark.asyncio
     async def test_heartbeat_mechanism(self, absurd_client, test_config):
@@ -182,7 +182,7 @@ class TestAbsurdE2E:
         # Verify heartbeat updated
         updated_task = await absurd_client.get_task(task_id)
         assert updated_task["last_heartbeat"] > initial_heartbeat
-        print(f"✓ Heartbeat mechanism working: {task_id}")
+        print(f":check_mark: Heartbeat mechanism working: {task_id}")
 
         # Complete task
         await absurd_client.complete_task(task_id, {"result": "heartbeat_test_passed"})
@@ -204,7 +204,7 @@ class TestAbsurdE2E:
             )
             task_ids.append(task_id)
 
-        print(f"✓ Spawned {num_tasks} tasks")
+        print(f":check_mark: Spawned {num_tasks} tasks")
 
         # Simulate multiple workers claiming tasks
         claimed_tasks = []
@@ -216,7 +216,7 @@ class TestAbsurdE2E:
                 if task:
                     claimed_tasks.append(task)
 
-        print(f"✓ Claimed {len(claimed_tasks)} tasks across 3 workers")
+        print(f":check_mark: Claimed {len(claimed_tasks)} tasks across 3 workers")
 
         # Complete all claimed tasks
         for task in claimed_tasks:
@@ -232,7 +232,7 @@ class TestAbsurdE2E:
                 completed_count += 1
 
         assert completed_count == num_tasks
-        print(f"✓ All {num_tasks} tasks completed successfully")
+        print(f":check_mark: All {num_tasks} tasks completed successfully")
 
     @pytest.mark.asyncio
     async def test_task_retry_on_failure(self, absurd_client, test_config):
@@ -252,7 +252,7 @@ class TestAbsurdE2E:
         failed_task = await absurd_client.get_task(task_id)
         assert failed_task["status"] == "failed"
         assert failed_task["retry_count"] == 0
-        print(f"✓ Task failed on first attempt: {task_id}")
+        print(f":check_mark: Task failed on first attempt: {task_id}")
 
         # Note: Automatic retry logic would need to be implemented in the worker
         # For now, we just verify the retry_count field is tracked
@@ -270,14 +270,14 @@ class TestAbsurdE2E:
         # Claim task but don't complete it (simulate crash)
         task = await absurd_client.claim_task(test_config.queue_name, "test-worker-crash")
         assert task is not None
-        print(f"✓ Task claimed by worker (simulating crash): {task_id}")
+        print(f":check_mark: Task claimed by worker (simulating crash): {task_id}")
 
         # In production, timeout handler would mark this as failed
         # and make it available for retry
         # For this test, we just verify the task is in claimed state
         claimed_task = await absurd_client.get_task(task_id)
         assert claimed_task["status"] == "claimed"
-        print(f"✓ Task in claimed state (would timeout and be retried): {task_id}")
+        print(f":check_mark: Task in claimed state (would timeout and be retried): {task_id}")
 
 
 class TestAbsurdPerformance:
@@ -302,7 +302,7 @@ class TestAbsurdPerformance:
         spawn_time = time.time() - start_time
         spawn_rate = num_tasks / spawn_time
 
-        print(f"✓ Spawn rate: {spawn_rate:.2f} tasks/sec ({spawn_time:.2f}s for {num_tasks} tasks)")
+        print(f":check_mark: Spawn rate: {spawn_rate:.2f} tasks/sec ({spawn_time:.2f}s for {num_tasks} tasks)")
 
         # Benchmark claiming
         start_time = time.time()
@@ -317,7 +317,7 @@ class TestAbsurdPerformance:
         claim_rate = claimed_count / claim_time
 
         print(
-            f"✓ Claim+complete rate: {claim_rate:.2f} tasks/sec ({claim_time:.2f}s for {claimed_count} tasks)"
+            f":check_mark: Claim+complete rate: {claim_rate:.2f} tasks/sec ({claim_time:.2f}s for {claimed_count} tasks)"
         )
 
         # Performance assertions
@@ -335,7 +335,7 @@ class TestAbsurdPerformance:
                 await client.connect()
                 clients.append(client)
 
-            print(f"✓ Created {len(clients)} concurrent clients")
+            print(f":check_mark: Created {len(clients)} concurrent clients")
 
             # Execute concurrent operations
             tasks = []
@@ -348,7 +348,7 @@ class TestAbsurdPerformance:
                     )
 
             results = await asyncio.gather(*tasks)
-            print(f"✓ Executed {len(results)} concurrent operations")
+            print(f":check_mark: Executed {len(results)} concurrent operations")
 
         finally:
             # Cleanup
@@ -381,7 +381,7 @@ class TestAbsurdFaultTolerance:
         if task2:
             assert task2["task_id"] != task_id
 
-        print(f"✓ Duplicate claim prevention working")
+        print(f":check_mark: Duplicate claim prevention working")
 
         # Cleanup
         await absurd_client.complete_task(task_id, {})
@@ -392,7 +392,7 @@ class TestAbsurdFaultTolerance:
         # Try to claim from empty queue
         task = await absurd_client.claim_task(test_config.queue_name, "worker-empty")
         assert task is None
-        print(f"✓ Empty queue handling works correctly")
+        print(f":check_mark: Empty queue handling works correctly")
 
     @pytest.mark.asyncio
     async def test_invalid_task_id_handling(self, absurd_client):
@@ -404,7 +404,7 @@ class TestAbsurdFaultTolerance:
         # Try to get non-existent task
         task = await absurd_client.get_task(fake_task_id)
         assert task is None
-        print(f"✓ Invalid task ID handled gracefully")
+        print(f":check_mark: Invalid task ID handled gracefully")
 
 
 # Pytest configuration

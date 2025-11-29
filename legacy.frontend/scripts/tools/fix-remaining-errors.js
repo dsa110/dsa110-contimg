@@ -358,7 +358,7 @@ function main() {
     const fixes = fixMissingExports(categories.missingExports);
     totalFixes += fixes.length;
     fixes.forEach((fix) => {
-      console.log(`  ✓ ${fix.file}: ${fix.action}`);
+      console.log(`  :check_mark: ${fix.file}: ${fix.action}`);
     });
   }
 
@@ -368,7 +368,7 @@ function main() {
     const fixes = fixMissingTypes(categories.missingTypes);
     totalFixes += fixes.length;
     fixes.forEach((fix) => {
-      console.log(`  ✓ ${fix.file}: ${fix.action}`);
+      console.log(`  :check_mark: ${fix.file}: ${fix.action}`);
     });
   }
 
@@ -378,7 +378,7 @@ function main() {
     const fixes = fixPropertyErrors(categories.propertyErrors);
     totalFixes += fixes.length;
     fixes.forEach((fix) => {
-      console.log(`  ✓ ${fix.file}:${fix.line}: ${fix.action}`);
+      console.log(`  :check_mark: ${fix.file}:${fix.line}: ${fix.action}`);
     });
   }
 
@@ -388,7 +388,7 @@ function main() {
     const fixes = fixNamespaceErrors(categories.namespaceErrors);
     totalFixes += fixes.length;
     fixes.forEach((fix) => {
-      console.log(`  ✓ ${fix.file}:${fix.line}: ${fix.action}`);
+      console.log(`  :check_mark: ${fix.file}:${fix.line}: ${fix.action}`);
     });
   }
 
@@ -398,11 +398,11 @@ function main() {
     const fixes = fixConversionErrors(categories.conversionErrors);
     totalFixes += fixes.length;
     fixes.forEach((fix) => {
-      console.log(`  ✓ ${fix.file}:${fix.line}: ${fix.action}`);
+      console.log(`  :check_mark: ${fix.file}:${fix.line}: ${fix.action}`);
     });
   }
 
-  console.log(`\n✓ Applied ${totalFixes} fixes`);
+  console.log(`\n:check_mark: Applied ${totalFixes} fixes`);
   console.log("\nRemaining errors:");
   console.log(`  - Unused variables (TS6133): ${categories.unusedVars.length} - Run ESLint --fix`);
   console.log(

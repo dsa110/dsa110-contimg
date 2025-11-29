@@ -30,12 +30,12 @@ if Path(ms_path).exists():
             alert_on_issues=True,
         )
         if passed:
-            print(f"  ✓ MS QA PASSED: {ms_path}")
+            print(f"  :check_mark: MS QA PASSED: {ms_path}")
         else:
-            print(f"  ⚠ MS QA ISSUES: {ms_path}")
+            print(f"  :warning_sign: MS QA ISSUES: {ms_path}")
         print(f"    Metrics: {metrics}")
     except Exception as e:
-        print(f"  ✗ MS QA ERROR: {e}")
+        print(f"  :ballot_x: MS QA ERROR: {e}")
 else:
     print(f"  ○ MS not found (skipped): {ms_path}")
 
@@ -53,12 +53,12 @@ if Path(image_path).exists():
             alert_on_issues=True,
         )
         if passed:
-            print(f"  ✓ IMAGE QA PASSED: {image_path}")
+            print(f"  :check_mark: IMAGE QA PASSED: {image_path}")
         else:
-            print(f"  ⚠ IMAGE QA ISSUES: {image_path}")
+            print(f"  :warning_sign: IMAGE QA ISSUES: {image_path}")
         print(f"    Metrics: {metrics}")
     except Exception as e:
-        print(f"  ✗ IMAGE QA ERROR: {e}")
+        print(f"  :ballot_x: IMAGE QA ERROR: {e}")
 else:
     print(f"  ○ Image not found (skipped): {image_path}")
 
@@ -79,12 +79,12 @@ if caltables:
             alert_on_issues=True,
         )
         if passed:
-            print(f"  ✓ CALIBRATION QA PASSED: {len(caltables)} tables")
+            print(f"  :check_mark: CALIBRATION QA PASSED: {len(caltables)} tables")
         else:
-            print(f"  ⚠ CALIBRATION QA ISSUES: {len(caltables)} tables")
+            print(f"  :warning_sign: CALIBRATION QA ISSUES: {len(caltables)} tables")
         print(f"    Metrics: {metrics}")
     except Exception as e:
-        print(f"  ✗ CALIBRATION QA ERROR: {e}")
+        print(f"  :ballot_x: CALIBRATION QA ERROR: {e}")
 else:
     print("  ○ No caltables found (skipped)")
 
@@ -95,9 +95,9 @@ try:
 
     alerting.info("qa_integration_test", "QA integration test running")
     alerting.warning("qa_integration_test", "Test warning message")
-    print("  ✓ ALERTING SYSTEM WORKS")
+    print("  :check_mark: ALERTING SYSTEM WORKS")
 except Exception as e:
-    print(f"  ✗ ALERTING ERROR: {e}")
+    print(f"  :ballot_x: ALERTING ERROR: {e}")
 
 # Test 5: Photometry normalization
 print("\n5. Testing Photometry Normalization...")
@@ -112,9 +112,9 @@ try:
         min_snr=20.0,
         max_sources=10,
     )
-    print(f"  ✓ PHOTOMETRY WORKS: {len(refs)} reference sources found")
+    print(f"  :check_mark: PHOTOMETRY WORKS: {len(refs)} reference sources found")
 except Exception as e:
-    print(f"  ✗ PHOTOMETRY ERROR: {e}")
+    print(f"  :ballot_x: PHOTOMETRY ERROR: {e}")
 
 print("\n" + "=" * 70)
 print("QA INTEGRATION TEST COMPLETE")

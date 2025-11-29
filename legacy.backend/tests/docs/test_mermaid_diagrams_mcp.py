@@ -310,7 +310,7 @@ class MermaidDiagramTester:
             load_time = time.time() - start_time
 
             if has_error:
-                print(f"  ✗ FAILED: {error_msg}")
+                print(f"  :ballot_x: FAILED: {error_msg}")
                 return TestResult(
                     url=url,
                     page_path=page_path,
@@ -320,7 +320,7 @@ class MermaidDiagramTester:
                     load_time=load_time,
                 )
             elif mermaid_count > 0:
-                print(f"  ✓ PASSED ({mermaid_count} diagram(s))")
+                print(f"  :check_mark: PASSED ({mermaid_count} diagram(s))")
             else:
                 print("  - SKIPPED (no Mermaid diagrams)")
 
@@ -335,7 +335,7 @@ class MermaidDiagramTester:
         except Exception as e:
             load_time = time.time() - start_time
             error_msg = f"Unexpected error: {str(e)}"
-            print(f"  ✗ ERROR: {error_msg}")
+            print(f"  :ballot_x: ERROR: {error_msg}")
             return TestResult(
                 url=url,
                 page_path=page_path,
@@ -360,7 +360,7 @@ class MermaidDiagramTester:
             print("-" * 80)
             for result in report.results:
                 if not result.success:
-                    print(f"  ✗ {result.page_path}")
+                    print(f"  :ballot_x: {result.page_path}")
                     print(f"    URL: {result.url}")
                     if result.error_message:
                         print(f"    Error: {result.error_message}")
@@ -373,7 +373,7 @@ class MermaidDiagramTester:
             print(f"\nPAGES WITH MERMAID DIAGRAMS ({len(pages_with_mermaid)}):")
             print("-" * 80)
             for result in pages_with_mermaid:
-                status = "✓" if result.success else "✗"
+                status = ":check_mark:" if result.success else ":ballot_x:"
                 print(f"  {status} {result.page_path} ({result.mermaid_count} diagram(s))")
 
     def save_report(self, report: TestReport, output_path: Path):

@@ -2,11 +2,11 @@
 
 **Date:** 2025-11-16
 
-> 📚 **Documentation Index**: For complete documentation navigation, see
+> :books: **Documentation Index**: For complete documentation navigation, see
 > [Documentation Home](../docs/index.md)  
-> 📝 **Quick Reference**: For formatting and structure guidelines, see
+> :memo: **Quick Reference**: For formatting and structure guidelines, see
 > [Quick Reference](../docs/reference/quick_ref.md)  
-> 🤖 **AI Agent Guidelines**: For creating/updating docs, see
+> :robot_face: **AI Agent Guidelines**: For creating/updating docs, see
 > [Agent Guidelines](../docs/reference/agent_guidelines.md)
 
 React + TypeScript web interface for monitoring the DSA-110 continuum imaging

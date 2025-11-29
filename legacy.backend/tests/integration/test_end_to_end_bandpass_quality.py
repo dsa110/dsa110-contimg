@@ -279,7 +279,7 @@ def test_complete_workflow_produces_good_bandpass(ms_path, calibration_output_di
 
     print("\nMODEL_DATA Quality:")
     if "error" in model_quality:
-        print(f"  ✗ {model_quality['error']}")
+        print(f"  :ballot_x: {model_quality['error']}")
         model_quality_ok = False
     else:
         print(f"  Phase scatter: {model_quality['phase_scatter_deg']:.1f}°")
@@ -287,16 +287,16 @@ def test_complete_workflow_produces_good_bandpass(ms_path, calibration_output_di
         model_quality_ok = (
             model_quality["phase_scatter_deg"] < thresholds["model_data_phase_scatter_max"]
         )
-        status = "✓" if model_quality_ok else "✗"
+        status = ":check_mark:" if model_quality_ok else ":ballot_x:"
         print(
             f"  {status} Phase scatter acceptable (< {thresholds['model_data_phase_scatter_max']}°)"
         )
 
     print("\nUVW Verification Status:")
     if "error" in uvw_status:
-        print(f"  ✗ {uvw_status['error']}")
+        print(f"  :ballot_x: {uvw_status['error']}")
     else:
-        status = "✓" if uvw_status.get("phase_center_verified", False) else "?"
+        status = ":check_mark:" if uvw_status.get("phase_center_verified", False) else "?"
         print(f"  {status} {uvw_status.get('note', 'Unknown')}")
         print(
             f"  Phase center: RA={uvw_status.get('phase_center', (0, 0))[0]:.6f}°, Dec={uvw_status.get('phase_center', (0, 0))[1]:.6f}°"
@@ -304,7 +304,7 @@ def test_complete_workflow_produces_good_bandpass(ms_path, calibration_output_di
 
     print("\nBandpass Solution Quality:")
     if "error" in bp_quality:
-        print(f"  ✗ {bp_quality['error']}")
+        print(f"  :ballot_x: {bp_quality['error']}")
         bp_quality_ok = False
     else:
         print(f"  Flagging rate: {bp_quality['flagging_rate']:.1%}")
@@ -322,7 +322,7 @@ def test_complete_workflow_produces_good_bandpass(ms_path, calibration_output_di
         }
 
         for check, passed in checks.items():
-            status = "✓" if passed else "✗"
+            status = ":check_mark:" if passed else ":ballot_x:"
             print(f"  {status} {check}")
 
         bp_quality_ok = all(checks.values())
@@ -333,7 +333,7 @@ def test_complete_workflow_produces_good_bandpass(ms_path, calibration_output_di
     print("=" * 70)
 
     if model_quality_ok and bp_quality_ok:
-        print("✓ WORKFLOW PRODUCES GOOD BANDPASS SOLUTIONS")
+        print(":check_mark: WORKFLOW PRODUCES GOOD BANDPASS SOLUTIONS")
         print("\nEvidence:")
         print(
             f"  - MODEL_DATA phase scatter: {model_quality.get('phase_scatter_deg', 'N/A'):.1f}° (< 10° required)"
@@ -344,7 +344,7 @@ def test_complete_workflow_produces_good_bandpass(ms_path, calibration_output_di
         if bp_quality.get("median_snr"):
             print(f"  - Bandpass median SNR: {bp_quality['median_snr']:.1f} (>= 3.0 required)")
     else:
-        print("✗ WORKFLOW NEEDS IMPROVEMENT")
+        print(":ballot_x: WORKFLOW NEEDS IMPROVEMENT")
         print("\nIssues:")
         if not model_quality_ok:
             print(

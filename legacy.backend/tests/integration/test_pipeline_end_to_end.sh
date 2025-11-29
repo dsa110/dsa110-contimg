@@ -40,7 +40,7 @@ if ! "${PYTHON_BIN}" --version >/dev/null 2>&1; then
     echo "ERROR: Python not found at ${PYTHON_BIN}"
     exit 1
 fi
-echo "✓ Python available: $("${PYTHON_BIN}" --version)"
+echo ":check_mark: Python available: $("${PYTHON_BIN}" --version)"
 
 # 2. Check CASA availability (try importing casatasks)
 if ! "${PYTHON_BIN}" -c "import casatasks" >/dev/null 2>&1; then
@@ -48,7 +48,7 @@ if ! "${PYTHON_BIN}" -c "import casatasks" >/dev/null 2>&1; then
     CASA_AVAILABLE=false
 else
     CASA_AVAILABLE=true
-    echo "✓ CASA available"
+    echo ":check_mark: CASA available"
 fi
 
 # 3. Check required Python modules
@@ -58,7 +58,7 @@ for module in "pyuvdata" "astropy" "numpy"; do
         exit 1
     fi
 done
-echo "✓ Required Python modules available"
+echo ":check_mark: Required Python modules available"
 
 # 4. Check directories are writable
 TEST_ROOT="${TEST_ROOT:-/tmp/dsa110-contimg-test}"
@@ -77,7 +77,7 @@ if ! touch "${SYNTHETIC_DIR}/.test" 2>/dev/null; then
     exit 1
 fi
 rm -f "${SYNTHETIC_DIR}/.test"
-echo "✓ Test directories writable"
+echo ":check_mark: Test directories writable"
 
 # 5. Check synthetic data dependencies
 if [[ ! -f "src/dsa110_contimg/simulation/config/minimal_test.yaml" ]]; then
@@ -192,7 +192,7 @@ except Exception as e:
         exit 1
     fi
 
-    echo -e "${GREEN}[✓]${NC} Synthetic data generated: ${GENERATED_COUNT} files"
+    echo -e "${GREEN}[:check_mark:]${NC} Synthetic data generated: ${GENERATED_COUNT} files"
 fi
 
 # Stage 2: Conversion (UVH5 → MS)
@@ -236,9 +236,9 @@ try:
         writer_kwargs={"max_workers": 4, "stage_to_tmpfs": False},
         scratch_dir="${TEST_ROOT}/scratch"
     )
-    print("  ✓ Conversion completed successfully")
+    print("  :check_mark: Conversion completed successfully")
 except Exception as e:
-    print(f"  ✗ Conversion failed: {e}")
+    print(f"  :ballot_x: Conversion failed: {e}")
     sys.exit(1)
 PY
     
@@ -263,13 +263,13 @@ try:
     from casacore.tables import table
     with table("${MS_PATH}", readonly=True) as tb:
         nrows = tb.nrows()
-        print(f"  ✓ MS verified: {nrows} rows")
+        print(f"  :check_mark: MS verified: {nrows} rows")
 except Exception as e:
-    print(f"  ✗ MS verification failed: {e}")
+    print(f"  :ballot_x: MS verification failed: {e}")
     sys.exit(1)
 PY
 
-    echo -e "${GREEN}[✓]${NC} Conversion complete: ${MS_PATH}"
+    echo -e "${GREEN}[:check_mark:]${NC} Conversion complete: ${MS_PATH}"
 fi
 
 # Stage 3: RFI Flagging (pre-calibration)
@@ -287,9 +287,9 @@ ms_path = "${MS_PATH}"
 try:
     reset_flags(ms_path)
     flag_zeros(ms_path)
-    print("  ✓ RFI flagging complete")
+    print("  :check_mark: RFI flagging complete")
 except Exception as e:
-    print(f"  ⚠ RFI flagging warning: {e}")
+    print(f"  :warning_sign: RFI flagging warning: {e}")
     sys.exit(0)  # Non-critical
 PY
 
@@ -334,7 +334,7 @@ else
 fi
 
 if [[ "${CAL_FAILED:-false}" != "true" ]]; then
-    echo -e "${GREEN}[✓]${NC} Calibration complete"
+    echo -e "${GREEN}[:check_mark:]${NC} Calibration complete"
 else
     echo -e "${YELLOW}[SKIP]${NC} Calibration skipped (expected for synthetic data)"
 fi
@@ -377,12 +377,12 @@ ms_path = "${MS_PATH}"
 caltables = [${PY_CALTABLES}]
 try:
     apply_to_target(ms_path, field="", gaintables=caltables, calwt=True, verify=True)
-    print("  ✓ Calibration applied successfully")
+    print("  :check_mark: Calibration applied successfully")
 except Exception as e:
-    print(f"  ✗ Apply calibration failed: {e}")
+    print(f"  :ballot_x: Apply calibration failed: {e}")
     sys.exit(1)
 PY
-    echo -e "${GREEN}[✓]${NC} Calibration applied"
+    echo -e "${GREEN}[:check_mark:]${NC} Calibration applied"
 else
     echo -e "${YELLOW}[SKIP]${NC} Apply calibration (no caltables found)"
 fi
@@ -410,7 +410,7 @@ except Exception as e:
 PY
 )
     if [[ ${MS_HAS_CORRECTED_AFTER} -eq 1 ]]; then
-        echo "  ✓ CORRECTED_DATA populated with non-zero values"
+        echo "  :check_mark: CORRECTED_DATA populated with non-zero values"
     else
         echo -e "${YELLOW}[WARNING]${NC} CORRECTED_DATA not properly populated"
     fi
@@ -464,7 +464,7 @@ if [[ ! -d "${IMAGE_BASENAME}.image" ]] && [[ ! -f "${IMAGE_BASENAME}.image" ]];
     exit 1
 fi
 
-echo -e "${GREEN}[✓]${NC} Imaging complete"
+echo -e "${GREEN}[:check_mark:]${NC} Imaging complete"
 
 # Stage 7: Basic QA checks
 echo ""
@@ -478,11 +478,11 @@ try:
     from dsa110_contimg.qa.pipeline_quality import check_ms_after_conversion
     passed, metrics = check_ms_after_conversion("${MS_PATH}", quick_check_only=True, alert_on_issues=False)
     if passed:
-        print("  ✓ MS QA: PASSED")
+        print("  :check_mark: MS QA: PASSED")
     else:
-        print(f"  ⚠ MS QA: ISSUES (non-critical for test)")
+        print(f"  :warning_sign: MS QA: ISSUES (non-critical for test)")
 except Exception as e:
-    print(f"  ⚠ MS QA check failed: {e}")
+    print(f"  :warning_sign: MS QA check failed: {e}")
 PY
 
 # Check image quality (if image exists)
@@ -495,11 +495,11 @@ try:
     image_path = "${IMAGE_BASENAME}.image"
     passed, metrics = check_image_quality(image_path, quick_check_only=True, alert_on_issues=False)
     if passed:
-        print("  ✓ Image QA: PASSED")
+        print("  :check_mark: Image QA: PASSED")
     else:
-        print(f"  ⚠ Image QA: ISSUES (non-critical for test)")
+        print(f"  :warning_sign: Image QA: ISSUES (non-critical for test)")
 except Exception as e:
-    print(f"  ⚠ Image QA check failed: {e}")
+    print(f"  :warning_sign: Image QA check failed: {e}")
 PY
 else
     echo -e "${YELLOW}[SKIP]${NC} Image QA (no image found)"
@@ -513,13 +513,13 @@ echo "MS: ${MS_PATH}"
 echo "Image: ${IMAGE_BASENAME}.image"
 echo ""
 echo "Summary:"
-echo "  ✓ Synthetic data: $(if [[ -n "${EXISTING_MS}" ]]; then echo "Skipped"; else echo "Generated"; fi)"
-echo "  ✓ Conversion: Completed"
-echo "  ✓ Flagging: Completed"
-echo "  ✓ Calibration: $(if [[ "${CAL_FAILED:-false}" == "true" ]]; then echo "Failed (expected)"; else echo "Completed"; fi)"
-echo "  ✓ Apply: $(if [[ ${#CALTABLES[@]} -gt 0 ]]; then echo "Completed"; else echo "Skipped"; fi)"
-echo "  ✓ Imaging: Completed (${DATACOLUMN})"
-echo "  ✓ QA: Completed"
+echo "  :check_mark: Synthetic data: $(if [[ -n "${EXISTING_MS}" ]]; then echo "Skipped"; else echo "Generated"; fi)"
+echo "  :check_mark: Conversion: Completed"
+echo "  :check_mark: Flagging: Completed"
+echo "  :check_mark: Calibration: $(if [[ "${CAL_FAILED:-false}" == "true" ]]; then echo "Failed (expected)"; else echo "Completed"; fi)"
+echo "  :check_mark: Apply: $(if [[ ${#CALTABLES[@]} -gt 0 ]]; then echo "Completed"; else echo "Skipped"; fi)"
+echo "  :check_mark: Imaging: Completed (${DATACOLUMN})"
+echo "  :check_mark: QA: Completed"
 echo ""
 echo "Test artifacts in: ${TEST_ROOT}"
 echo "  MS: ${MS_PATH}"

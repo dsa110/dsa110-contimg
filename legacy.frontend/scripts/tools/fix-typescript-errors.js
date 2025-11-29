@@ -536,7 +536,7 @@ function main() {
   });
 
   if (!dryRun && totalFixed > 0) {
-    console.log(`\n✓ Fixed ${totalFixed} errors in ${Object.keys(errorsByFile).length} files`);
+    console.log(`\n:check_mark: Fixed ${totalFixed} errors in ${Object.keys(errorsByFile).length} files`);
     if (verbose) {
       console.log("\nChanges made:");
       allChanges.forEach((change) => {
