@@ -71,6 +71,7 @@ from .routes import (
     cal_router,
     logs_router,
     stats_router,
+    cache_router,
 )
 
 
@@ -116,6 +117,7 @@ def create_app() -> FastAPI:
     app.include_router(cal_router, prefix="/api")
     app.include_router(logs_router, prefix="/api")
     app.include_router(stats_router, prefix="/api")
+    app.include_router(cache_router, prefix="/api")
     
     # Register exception handlers
     @app.exception_handler(ValidationError)

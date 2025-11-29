@@ -40,6 +40,7 @@ from .repositories import (
     SourceRepository,
     JobRepository,
 )
+from .cache import cache_manager, cached, make_cache_key, cache_lightcurve_key
 
 # Create routers for different resource types
 images_router = APIRouter(prefix="/images", tags=["images"])
@@ -50,6 +51,7 @@ qa_router = APIRouter(prefix="/qa", tags=["qa"])
 cal_router = APIRouter(prefix="/cal", tags=["calibration"])
 logs_router = APIRouter(prefix="/logs", tags=["logs"])
 stats_router = APIRouter(prefix="/stats", tags=["statistics"])
+cache_router = APIRouter(prefix="/cache", tags=["cache"])
 
 # Initialize repositories
 image_repo = ImageRepository()
@@ -751,3 +753,51 @@ async def get_stats():
             status_code=500,
             detail=internal_error(f"Failed to retrieve stats: {str(e)}").to_dict(),
         )
+
+
+# =============================================================================
+# Cache Management Endpoints
+# =============================================================================
+
+
+@cache_router.get("")
+async def get_cache_stats():
+    """
+    Get Redis cache statistics.
+    
+    Returns cache hit/miss rates, memory usage, and connection status.
+    """
+    return cache_manager.get_stats()
+
+
+@cache_router.post("/invalidate/{pattern}")
+async def invalidate_cache(pattern: str):
+    """
+    Invalidate cache keys matching pattern.
+    
+    Use glob patterns like:
+    - `sources:*` - All source-related cache entries
+    - `images:list:*` - All image list cache entries
+    - `stats` - Stats cache entry
+    
+    Requires admin access (enforced by IP filtering).
+    """
+    deleted = cache_manager.invalidate(pattern)
+    return {
+        "pattern": pattern,
+        "keys_deleted": deleted,
+    }
+
+
+@cache_router.post("/clear")
+async def clear_cache():
+    """
+    Clear all cache entries.
+    
+    Use with caution - will temporarily increase database load.
+    """
+    deleted = cache_manager.invalidate("*")
+    return {
+        "status": "cleared",
+        "keys_deleted": deleted,
+    }

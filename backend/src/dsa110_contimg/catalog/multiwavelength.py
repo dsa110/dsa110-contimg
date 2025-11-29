@@ -67,8 +67,19 @@ PULSAR_SCRAPER_URL = "https://pulsar.cgca-hub.org/api"
 SIMBAD_URL = "https://simbad.u-strasbg.fr/simbad/sim-id"
 GAIA_URL = "https://gaia.ari.uni-heidelberg.de/singlesource.html"
 VIZIER_URL = "https://vizier.cds.unistra.fr/viz-bin/VizieR-5"
-cSimbad = Simbad()
-cSimbad.add_votable_fields("pmra", "pmdec")
+
+# Lazy-initialized Simbad client (initialized on first use)
+_cSimbad = None
+
+
+def _get_simbad_client():
+    """Get or create the configured Simbad client."""
+    global _cSimbad
+    if _cSimbad is None:
+        _ensure_astroquery()
+        _cSimbad = Simbad()
+        _cSimbad.add_votable_fields("pmra", "pmdec")
+    return _cSimbad
 
 
 def format_radec(coord: SkyCoord) -> str:
@@ -185,7 +196,7 @@ def check_simbad(
     try:
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore")
-            r = cSimbad.query_region(source, radius=radius)
+            r = _get_simbad_client().query_region(source, radius=radius)
     except Exception as e:
         logger.warning(f"Simbad query failed: {e}")
         return {}
