@@ -133,12 +133,13 @@ sudo /usr/local/bin/claim-port.sh 8000
 
 ### How It Works
 
-1. Checks if the port is in use with `lsof`
+1. Checks if the port has a **listening** process with `lsof -sTCP:LISTEN`
+   (ignores client connections to that port)
 2. If free, exits successfully
-3. If occupied:
-   - Sends SIGTERM to occupying processes
+3. If occupied by a listener:
+   - Sends SIGTERM to the listening process
    - Waits up to 5 seconds for graceful shutdown
-   - Sends SIGKILL to any remaining processes
+   - Sends SIGKILL to any remaining listener
    - Verifies port is now free
 
 ### Systemd Integration
