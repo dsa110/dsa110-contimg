@@ -149,7 +149,7 @@ const ServiceStatus = () => {
           <span className="service-name">Services</span>
           <span className="status-dot unknown"></span>
           <span className="service-error" title={state.error}>
-            :warning_sign:
+            ⚠
           </span>
         </div>
       )}
@@ -168,7 +168,7 @@ const ServiceStatus = () => {
           <span className={`status-dot ${service.status}`}></span>
           {service.error && (
             <span className="service-error" title={service.error}>
-              :warning_sign:
+              ⚠
             </span>
           )}
         </div>

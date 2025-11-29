@@ -190,7 +190,7 @@ export default function SourceMonitoringPage() {
         width: 110,
         cellRenderer: (params: any) => (
           <span style={{ color: params.value ? "#f44336" : "#4caf50" }}>
-            {params.value ? ":check_mark: Yes" : "− No"}
+            {params.value ? "✓ Yes" : "− No"}
           </span>
         ),
       },

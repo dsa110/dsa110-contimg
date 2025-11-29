@@ -13,17 +13,17 @@ This directory contains end-to-end tests for the newly implemented components:
 
 Tests the consolidated Diagnostics & Alerts section on the Dashboard page:
 
-- :white_heavy_check_mark: Diagnostics section visibility
-- :white_heavy_check_mark: Queue Overview Card with statistics
-- :white_heavy_check_mark: Pointing Summary Card
-- :white_heavy_check_mark: Dead Letter Queue Stats
-- :white_heavy_check_mark: Circuit Breaker Status
-- :white_heavy_check_mark: Health Checks card
-- :white_heavy_check_mark: ESE Candidates Panel
-- :white_heavy_check_mark: Navigation buttons (View detailed diagnostics, Open Health Page, Open
+- ✅ Diagnostics section visibility
+- ✅ Queue Overview Card with statistics
+- ✅ Pointing Summary Card
+- ✅ Dead Letter Queue Stats
+- ✅ Circuit Breaker Status
+- ✅ Health Checks card
+- ✅ ESE Candidates Panel
+- ✅ Navigation buttons (View detailed diagnostics, Open Health Page, Open
   Observing View)
-- :white_heavy_check_mark: Loading states
-- :white_heavy_check_mark: Responsive layout
+- ✅ Loading states
+- ✅ Responsive layout
 
 **Test Tags:** `@regression`
 
@@ -31,16 +31,16 @@ Tests the consolidated Diagnostics & Alerts section on the Dashboard page:
 
 Tests the Live Operations card on the Control page:
 
-- :white_heavy_check_mark: Live Operations card visibility
-- :white_heavy_check_mark: Job statistics display (Total, Running, Completed, Failed)
-- :white_heavy_check_mark: Success rate and average duration chips
-- :white_heavy_check_mark: Active executions list
-- :white_heavy_check_mark: Open Pipeline Monitor button navigation
-- :white_heavy_check_mark: Loading states
-- :white_heavy_check_mark: Empty state handling
-- :white_heavy_check_mark: Layout positioning
-- :white_heavy_check_mark: Responsive design
-- :white_heavy_check_mark: Data update handling
+- ✅ Live Operations card visibility
+- ✅ Job statistics display (Total, Running, Completed, Failed)
+- ✅ Success rate and average duration chips
+- ✅ Active executions list
+- ✅ Open Pipeline Monitor button navigation
+- ✅ Loading states
+- ✅ Empty state handling
+- ✅ Layout positioning
+- ✅ Responsive design
+- ✅ Data update handling
 
 **Test Tags:** `@regression`
 
@@ -48,16 +48,16 @@ Tests the Live Operations card on the Control page:
 
 Tests the QA Snapshot card in the Data Browser Published tab:
 
-- :white_heavy_check_mark: QA Snapshot card visibility in Published tab
-- :white_heavy_check_mark: ESE candidate counts (Active, Resolved, Warnings, Total)
-- :white_heavy_check_mark: Top ESE candidates table
-- :white_heavy_check_mark: Empty state handling
-- :white_heavy_check_mark: Refresh button functionality
-- :white_heavy_check_mark: Open QA Tools button navigation
-- :white_heavy_check_mark: Loading states
-- :white_heavy_check_mark: Card positioning above data table
-- :white_heavy_check_mark: Responsive design
-- :white_heavy_check_mark: Tab-specific visibility (only in Published tab)
+- ✅ QA Snapshot card visibility in Published tab
+- ✅ ESE candidate counts (Active, Resolved, Warnings, Total)
+- ✅ Top ESE candidates table
+- ✅ Empty state handling
+- ✅ Refresh button functionality
+- ✅ Open QA Tools button navigation
+- ✅ Loading states
+- ✅ Card positioning above data table
+- ✅ Responsive design
+- ✅ Tab-specific visibility (only in Published tab)
 
 **Test Tags:** `@regression`
 
@@ -65,8 +65,8 @@ Tests the QA Snapshot card in the Data Browser Published tab:
 
 Combined smoke tests for quick verification:
 
-- :white_heavy_check_mark: All new components load without errors
-- :white_heavy_check_mark: Navigation buttons work correctly
+- ✅ All new components load without errors
+- ✅ Navigation buttons work correctly
 
 **Test Tags:** `@smoke`
 
@@ -195,13 +195,13 @@ The tests verify integration with these backend endpoints:
 
 These tests provide coverage for:
 
-- :white_heavy_check_mark: Component rendering
-- :white_heavy_check_mark: API integration
-- :white_heavy_check_mark: User interactions (button clicks, navigation)
-- :white_heavy_check_mark: Loading and error states
-- :white_heavy_check_mark: Responsive layout
-- :white_heavy_check_mark: Data display and formatting
-- :white_heavy_check_mark: Navigation flows
+- ✅ Component rendering
+- ✅ API integration
+- ✅ User interactions (button clicks, navigation)
+- ✅ Loading and error states
+- ✅ Responsive layout
+- ✅ Data display and formatting
+- ✅ Navigation flows
 
 ## Maintenance
 

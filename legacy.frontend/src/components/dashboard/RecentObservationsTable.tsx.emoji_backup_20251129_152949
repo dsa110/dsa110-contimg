@@ -64,7 +64,7 @@ export const RecentObservationsTable: React.FC<RecentObservationsTableProps> = (
                     <td style={{ textAlign: "right" }}>
                       {group.subbands_present}/{group.expected_subbands}
                     </td>
-                    <td>{group.has_calibrator ? ":check_mark:" : "—"}</td>
+                    <td>{group.has_calibrator ? "✓" : "—"}</td>
                   </tr>
                 ))}
               </tbody>

@@ -61,9 +61,9 @@ describe("API Contract Tests", () => {
       // Use /status endpoint which we know exists
       await api.get("/status", { timeout: 5000 });
       apiAvailable = true;
-      console.log(":white_heavy_check_mark: API available at", API_BASE);
+      console.log("✅ API available at", API_BASE);
     } catch (error) {
-      console.warn(":warning_sign::variation_selector-16: API not available at", API_BASE, "- skipping contract tests");
+      console.warn("⚠️ API not available at", API_BASE, "- skipping contract tests");
       console.warn("   Error:", error instanceof Error ? error.message : error);
     }
   });

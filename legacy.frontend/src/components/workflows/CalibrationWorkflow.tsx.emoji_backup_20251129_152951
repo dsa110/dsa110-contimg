@@ -528,14 +528,14 @@ export function CalibrationWorkflow({
                                           <Box sx={{ mt: 0.5 }}>
                                             {compat.is_compatible ? (
                                               <Chip
-                                                label=":check_mark: Compatible"
+                                                label="✓ Compatible"
                                                 size="small"
                                                 color="success"
                                                 sx={{ height: 16, fontSize: "0.6rem" }}
                                               />
                                             ) : (
                                               <Chip
-                                                label=":ballot_x: Incompatible"
+                                                label="✗ Incompatible"
                                                 size="small"
                                                 color="error"
                                                 sx={{ height: 16, fontSize: "0.6rem" }}
@@ -560,7 +560,7 @@ export function CalibrationWorkflow({
                                                 fontSize: "0.65rem",
                                               }}
                                             >
-                                              :warning_sign: {issue}
+                                              ⚠ {issue}
                                             </Typography>
                                           ))}
                                         </Box>
@@ -577,7 +577,7 @@ export function CalibrationWorkflow({
                                                 fontSize: "0.65rem",
                                               }}
                                             >
-                                              :warning_sign: {warning}
+                                              ⚠ {warning}
                                             </Typography>
                                           ))}
                                         </Box>
@@ -593,7 +593,7 @@ export function CalibrationWorkflow({
                                               fontSize: "0.65rem",
                                             }}
                                           >
-                                            :check_mark: All compatibility checks passed
+                                            ✓ All compatibility checks passed
                                           </Typography>
                                         )}
                                     </Box>
@@ -662,14 +662,14 @@ export function CalibrationWorkflow({
                                           <Box sx={{ mt: 0.5 }}>
                                             {compat.is_compatible ? (
                                               <Chip
-                                                label=":check_mark: Compatible"
+                                                label="✓ Compatible"
                                                 size="small"
                                                 color="success"
                                                 sx={{ height: 16, fontSize: "0.6rem" }}
                                               />
                                             ) : (
                                               <Chip
-                                                label=":ballot_x: Incompatible"
+                                                label="✗ Incompatible"
                                                 size="small"
                                                 color="error"
                                                 sx={{ height: 16, fontSize: "0.6rem" }}
@@ -694,7 +694,7 @@ export function CalibrationWorkflow({
                                                 fontSize: "0.65rem",
                                               }}
                                             >
-                                              :warning_sign: {issue}
+                                              ⚠ {issue}
                                             </Typography>
                                           ))}
                                         </Box>
@@ -711,7 +711,7 @@ export function CalibrationWorkflow({
                                                 fontSize: "0.65rem",
                                               }}
                                             >
-                                              :warning_sign: {warning}
+                                              ⚠ {warning}
                                             </Typography>
                                           ))}
                                         </Box>
@@ -727,7 +727,7 @@ export function CalibrationWorkflow({
                                               fontSize: "0.65rem",
                                             }}
                                           >
-                                            :check_mark: All compatibility checks passed
+                                            ✓ All compatibility checks passed
                                           </Typography>
                                         )}
                                     </Box>
@@ -796,14 +796,14 @@ export function CalibrationWorkflow({
                                           <Box sx={{ mt: 0.5 }}>
                                             {compat.is_compatible ? (
                                               <Chip
-                                                label=":check_mark: Compatible"
+                                                label="✓ Compatible"
                                                 size="small"
                                                 color="success"
                                                 sx={{ height: 16, fontSize: "0.6rem" }}
                                               />
                                             ) : (
                                               <Chip
-                                                label=":ballot_x: Incompatible"
+                                                label="✗ Incompatible"
                                                 size="small"
                                                 color="error"
                                                 sx={{ height: 16, fontSize: "0.6rem" }}
@@ -828,7 +828,7 @@ export function CalibrationWorkflow({
                                                 fontSize: "0.65rem",
                                               }}
                                             >
-                                              :warning_sign: {issue}
+                                              ⚠ {issue}
                                             </Typography>
                                           ))}
                                         </Box>
@@ -845,7 +845,7 @@ export function CalibrationWorkflow({
                                                 fontSize: "0.65rem",
                                               }}
                                             >
-                                              :warning_sign: {warning}
+                                              ⚠ {warning}
                                             </Typography>
                                           ))}
                                         </Box>
@@ -861,7 +861,7 @@ export function CalibrationWorkflow({
                                               fontSize: "0.65rem",
                                             }}
                                           >
-                                            :check_mark: All compatibility checks passed
+                                            ✓ All compatibility checks passed
                                           </Typography>
                                         )}
                                     </Box>

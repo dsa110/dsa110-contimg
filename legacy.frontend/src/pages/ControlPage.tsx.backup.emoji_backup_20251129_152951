@@ -1447,7 +1447,7 @@ export default function ControlPage() {
                                               <Box sx={{ mt: 0.5 }}>
                                                 {compat.is_compatible ? (
                                                   <Chip
-                                                    label=":check_mark: Compatible"
+                                                    label="✓ Compatible"
                                                     size="small"
                                                     color="success"
                                                     sx={{
@@ -1457,7 +1457,7 @@ export default function ControlPage() {
                                                   />
                                                 ) : (
                                                   <Chip
-                                                    label=":ballot_x: Incompatible"
+                                                    label="✗ Incompatible"
                                                     size="small"
                                                     color="error"
                                                     sx={{
@@ -1485,7 +1485,7 @@ export default function ControlPage() {
                                                     fontSize: "0.65rem",
                                                   }}
                                                 >
-                                                  :warning_sign: {issue}
+                                                  ⚠ {issue}
                                                 </Typography>
                                               ))}
                                             </Box>
@@ -1503,7 +1503,7 @@ export default function ControlPage() {
                                                       fontSize: "0.65rem",
                                                     }}
                                                   >
-                                                    :warning_sign: {warning}
+                                                    ⚠ {warning}
                                                   </Typography>
                                                 )
                                               )}
@@ -1520,7 +1520,7 @@ export default function ControlPage() {
                                                   fontSize: "0.65rem",
                                                 }}
                                               >
-                                                :check_mark: All compatibility checks passed
+                                                ✓ All compatibility checks passed
                                               </Typography>
                                             )}
                                         </Box>
@@ -1590,7 +1590,7 @@ export default function ControlPage() {
                                               <Box sx={{ mt: 0.5 }}>
                                                 {compat.is_compatible ? (
                                                   <Chip
-                                                    label=":check_mark: Compatible"
+                                                    label="✓ Compatible"
                                                     size="small"
                                                     color="success"
                                                     sx={{
@@ -1600,7 +1600,7 @@ export default function ControlPage() {
                                                   />
                                                 ) : (
                                                   <Chip
-                                                    label=":ballot_x: Incompatible"
+                                                    label="✗ Incompatible"
                                                     size="small"
                                                     color="error"
                                                     sx={{
@@ -1628,7 +1628,7 @@ export default function ControlPage() {
                                                     fontSize: "0.65rem",
                                                   }}
                                                 >
-                                                  :warning_sign: {issue}
+                                                  ⚠ {issue}
                                                 </Typography>
                                               ))}
                                             </Box>
@@ -1646,7 +1646,7 @@ export default function ControlPage() {
                                                       fontSize: "0.65rem",
                                                     }}
                                                   >
-                                                    :warning_sign: {warning}
+                                                    ⚠ {warning}
                                                   </Typography>
                                                 )
                                               )}
@@ -1663,7 +1663,7 @@ export default function ControlPage() {
                                                   fontSize: "0.65rem",
                                                 }}
                                               >
-                                                :check_mark: All compatibility checks passed
+                                                ✓ All compatibility checks passed
                                               </Typography>
                                             )}
                                         </Box>
@@ -1733,7 +1733,7 @@ export default function ControlPage() {
                                               <Box sx={{ mt: 0.5 }}>
                                                 {compat.is_compatible ? (
                                                   <Chip
-                                                    label=":check_mark: Compatible"
+                                                    label="✓ Compatible"
                                                     size="small"
                                                     color="success"
                                                     sx={{
@@ -1743,7 +1743,7 @@ export default function ControlPage() {
                                                   />
                                                 ) : (
                                                   <Chip
-                                                    label=":ballot_x: Incompatible"
+                                                    label="✗ Incompatible"
                                                     size="small"
                                                     color="error"
                                                     sx={{
@@ -1771,7 +1771,7 @@ export default function ControlPage() {
                                                     fontSize: "0.65rem",
                                                   }}
                                                 >
-                                                  :warning_sign: {issue}
+                                                  ⚠ {issue}
                                                 </Typography>
                                               ))}
                                             </Box>
@@ -1789,7 +1789,7 @@ export default function ControlPage() {
                                                       fontSize: "0.65rem",
                                                     }}
                                                   >
-                                                    :warning_sign: {warning}
+                                                    ⚠ {warning}
                                                   </Typography>
                                                 )
                                               )}
@@ -1806,7 +1806,7 @@ export default function ControlPage() {
                                                   fontSize: "0.65rem",
                                                 }}
                                               >
-                                                :check_mark: All compatibility checks passed
+                                                ✓ All compatibility checks passed
                                               </Typography>
                                             )}
                                         </Box>

@@ -44,15 +44,15 @@
           const response = await fetch(`${API_URL}/api/status`);
           if (response.ok) {
             const data = await response.json();
-            results.innerHTML += '<p class="success">:check_mark: API Status: SUCCESS</p>';
+            results.innerHTML += '<p class="success">✓ API Status: SUCCESS</p>';
             results.innerHTML += "<pre>" + JSON.stringify(data, null, 2) + "</pre>";
           } else {
             results.innerHTML +=
-              '<p class="error">:ballot_x: API returned status: ' + response.status + "</p>";
+              '<p class="error">✗ API returned status: ' + response.status + "</p>";
           }
         } catch (error) {
           results.innerHTML +=
-            '<p class="error">:ballot_x: API Connection Failed: ' + error.message + "</p>";
+            '<p class="error">✗ API Connection Failed: ' + error.message + "</p>";
           results.innerHTML +=
             "<p>This usually means CORS is blocking the request or the API is not running.</p>";
         }
@@ -63,14 +63,14 @@
           const response = await fetch(`${API_URL}/api/metrics/system`);
           if (response.ok) {
             const data = await response.json();
-            results.innerHTML += '<p class="success">:check_mark: System Metrics: SUCCESS</p>';
+            results.innerHTML += '<p class="success">✓ System Metrics: SUCCESS</p>';
             results.innerHTML += "<pre>" + JSON.stringify(data, null, 2) + "</pre>";
           } else {
             results.innerHTML +=
-              '<p class="error">:ballot_x: Metrics returned status: ' + response.status + "</p>";
+              '<p class="error">✗ Metrics returned status: ' + response.status + "</p>";
           }
         } catch (error) {
-          results.innerHTML += '<p class="error">:ballot_x: Metrics Failed: ' + error.message + "</p>";
+          results.innerHTML += '<p class="error">✗ Metrics Failed: ' + error.message + "</p>";
         }
       }
 

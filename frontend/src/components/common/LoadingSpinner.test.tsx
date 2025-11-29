@@ -120,20 +120,16 @@ describe("LoadingSpinner", () => {
 
   describe("combinations", () => {
     it("renders small spinner with label, not centered", () => {
-      const { container } = render(
-        <LoadingSpinner size="sm" label="Saving..." centered={false} />
-      );
-      
+      const { container } = render(<LoadingSpinner size="sm" label="Saving..." centered={false} />);
+
       expect(screen.getByRole("status")).toHaveClass("w-4", "h-4");
       expect(screen.getByText("Saving...")).toBeInTheDocument();
       expect(container.firstChild).toHaveClass("inline-flex");
     });
 
     it("renders large spinner with label, centered", () => {
-      const { container } = render(
-        <LoadingSpinner size="lg" label="Processing large file..." />
-      );
-      
+      const { container } = render(<LoadingSpinner size="lg" label="Processing large file..." />);
+
       expect(screen.getByRole("status")).toHaveClass("w-12", "h-12");
       expect(screen.getByText("Processing large file...")).toBeInTheDocument();
       expect(container.firstChild).toHaveClass("flex-col", "justify-center");

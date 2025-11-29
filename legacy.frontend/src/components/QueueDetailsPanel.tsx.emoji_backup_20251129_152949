@@ -133,7 +133,7 @@ export default function QueueDetailsPanel({
                   <TableCell align="right">
                     {group.subbands_present}/{group.expected_subbands}
                   </TableCell>
-                  <TableCell>{group.has_calibrator ? ":check_mark:" : "—"}</TableCell>
+                  <TableCell>{group.has_calibrator ? "✓" : "—"}</TableCell>
                   <TableCell>
                     {group.last_update ? new Date(group.last_update).toLocaleString() : "N/A"}
                   </TableCell>
