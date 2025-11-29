@@ -154,11 +154,7 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
     const path = d3.geoPath(proj);
 
     // Background
-    svg
-      .append("rect")
-      .attr("width", width)
-      .attr("height", height)
-      .attr("fill", "#1a1a2e");
+    svg.append("rect").attr("width", width).attr("height", height).attr("fill", "#1a1a2e");
 
     // Graticule (coordinate grid)
     const graticule = d3.geoGraticule().step([30, 15]);
@@ -279,10 +275,7 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
       // Convert degree radius to pixel radius (approximate)
       const pixelRadius = (radius / 180) * Math.min(width, height);
 
-      const group = pointingGroup
-        .append("g")
-        .attr("class", "pointing")
-        .attr("cursor", "pointer");
+      const group = pointingGroup.append("g").attr("class", "pointing").attr("cursor", "pointer");
 
       // Field of view circle
       group
@@ -332,7 +325,10 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
     legend
       .append("rect")
       .attr("width", 110)
-      .attr("height", showGalacticPlane && showEcliptic ? 90 : showGalacticPlane || showEcliptic ? 70 : 50)
+      .attr(
+        "height",
+        showGalacticPlane && showEcliptic ? 90 : showGalacticPlane || showEcliptic ? 70 : 50
+      )
       .attr("fill", "rgba(0,0,0,0.5)")
       .attr("rx", 4);
 
@@ -455,18 +451,11 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
           </label>
         </div>
 
-        <div className="text-sm text-gray-500">
-          {pointings.length} pointings
-        </div>
+        <div className="text-sm text-gray-500">{pointings.length} pointings</div>
       </div>
 
       {/* SVG Map */}
-      <svg
-        ref={svgRef}
-        width={width}
-        height={height}
-        className="rounded-lg shadow-md"
-      />
+      <svg ref={svgRef} width={width} height={height} className="rounded-lg shadow-md" />
 
       {/* Tooltip */}
       {hoveredPointing && (
@@ -477,9 +466,7 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
             top: tooltipPos.y + 15,
           }}
         >
-          <p className="font-semibold text-sm">
-            {hoveredPointing.label || hoveredPointing.id}
-          </p>
+          <p className="font-semibold text-sm">{hoveredPointing.label || hoveredPointing.id}</p>
           <p className="text-xs text-gray-500">
             {formatCoord(hoveredPointing.ra, hoveredPointing.dec)}
           </p>

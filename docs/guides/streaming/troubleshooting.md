@@ -60,7 +60,7 @@ ls -la /opt/miniforge/envs/casa6/bin/python
 
 **Solutions:**
 
-*Configuration Error:*
+_Configuration Error:_
 
 ```bash
 curl -X POST http://localhost:8010/api/streaming/config \
@@ -115,7 +115,7 @@ dmesg | tail -20
 
 **Solutions:**
 
-*Python Import Error:*
+_Python Import Error:_
 
 ```bash
 docker-compose exec stream python -c "import dsa110_contimg.conversion.streaming.streaming_converter"
@@ -171,7 +171,7 @@ docker-compose logs stream | grep -i "worker\|processing" | tail -20
 
 **Solutions:**
 
-*Files Not Arriving:*
+_Files Not Arriving:_
 
 ```bash
 # Check input directory setting
@@ -222,7 +222,7 @@ docker stats contimg-stream --no-stream
 
 **Solutions:**
 
-*Reduce Workers:*
+_Reduce Workers:_
 
 ```bash
 curl -X POST http://localhost:8010/api/streaming/config \
@@ -259,7 +259,7 @@ du -sh /data/incoming/*.hdf5 | sort -h | tail -5
 
 **Solutions:**
 
-*Reduce Workers:*
+_Reduce Workers:_
 
 ```bash
 curl -X POST http://localhost:8010/api/streaming/config \

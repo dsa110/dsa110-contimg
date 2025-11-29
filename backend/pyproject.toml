@@ -41,6 +41,8 @@ filterwarnings = [
     "ignore:pkg_resources is deprecated as an API:UserWarning",
     # Ignore setuptools deprecation warnings from any source
     "ignore:.*pkg_resources.*:DeprecationWarning",
+    # Ignore NumPy reload warning from astropy (occurs when CASA imports numpy separately)
+    "ignore:The NumPy module was reloaded:UserWarning",
 ]
 
 [tool.poetry.scripts]

@@ -49,16 +49,7 @@ const COLOR_MAPS = [
   "blue",
 ];
 
-const SCALES = [
-  "linear",
-  "log",
-  "sqrt",
-  "squared",
-  "asinh",
-  "sinh",
-  "histeq",
-  "power",
-];
+const SCALES = ["linear", "log", "sqrt", "squared", "asinh", "sinh", "histeq", "power"];
 
 /**
  * Control panel for FITS viewer settings.
@@ -85,23 +76,14 @@ const FitsViewerControls: React.FC<FitsViewerControlsProps> = ({
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full flex items-center justify-between px-3 py-2 bg-gray-50 hover:bg-gray-100 transition-colors"
       >
-        <span className="font-semibold text-sm text-gray-700">
-          Display Settings
-        </span>
+        <span className="font-semibold text-sm text-gray-700">Display Settings</span>
         <svg
-          className={`w-4 h-4 text-gray-500 transition-transform ${
-            isExpanded ? "rotate-180" : ""
-          }`}
+          className={`w-4 h-4 text-gray-500 transition-transform ${isExpanded ? "rotate-180" : ""}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M19 9l-7 7-7-7"
-          />
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </button>
 
@@ -170,9 +152,7 @@ const FitsViewerControls: React.FC<FitsViewerControlsProps> = ({
 
           {/* Color map */}
           <div>
-            <label className="block text-sm text-gray-600 mb-1">
-              Color Map
-            </label>
+            <label className="block text-sm text-gray-600 mb-1">Color Map</label>
             <select
               value={colorMap}
               onChange={(e) => onChange({ colorMap: e.target.value })}
@@ -214,9 +194,7 @@ const FitsViewerControls: React.FC<FitsViewerControlsProps> = ({
               max={1}
               step={0.01}
               value={contrast}
-              onChange={(e) =>
-                onChange({ contrast: parseFloat(e.target.value) })
-              }
+              onChange={(e) => onChange({ contrast: parseFloat(e.target.value) })}
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary"
             />
           </div>

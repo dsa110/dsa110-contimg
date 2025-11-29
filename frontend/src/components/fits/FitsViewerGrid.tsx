@@ -102,11 +102,7 @@ const FitsViewerGrid: React.FC<FitsViewerGridProps> = ({
   };
 
   if (fitsUrls.length === 0) {
-    return (
-      <div className="text-center text-gray-500 py-8">
-        No FITS files to display
-      </div>
-    );
+    return <div className="text-center text-gray-500 py-8">No FITS files to display</div>;
   }
 
   return (
@@ -148,9 +144,7 @@ const FitsViewerGrid: React.FC<FitsViewerGridProps> = ({
               showControls={false}
               onLoad={handleLoad}
               onCoordinateClick={
-                onCoordinateClick
-                  ? (ra, dec) => onCoordinateClick(ra, dec, index)
-                  : undefined
+                onCoordinateClick ? (ra, dec) => onCoordinateClick(ra, dec, index) : undefined
               }
             />
           </div>
@@ -160,9 +154,7 @@ const FitsViewerGrid: React.FC<FitsViewerGridProps> = ({
       {/* Shared controls */}
       <div className="mt-4 p-3 bg-gray-50 rounded-lg">
         <div className="flex items-center gap-4">
-          <span className="text-sm font-medium text-gray-700">
-            Grid Controls:
-          </span>
+          <span className="text-sm font-medium text-gray-700">Grid Controls:</span>
           <button
             onClick={() => {
               if (window.JS9) {

@@ -61,6 +61,7 @@ updated: 2025-11-12)
 
    - Status: ✅ DONE
    - Evidence: Multiple logger instances, proper logging throughout
+
 2. **`catalog/build_master.py` - Logging** (Line 46)
 
    ```python
@@ -69,6 +70,7 @@ updated: 2025-11-12)
 
    - Status: ✅ DONE
    - Evidence: Logger present, docstrings with Args/Returns
+
 3. **`api/job_adapters.py` - Error Handling** (Line 37)
 
    ```python
@@ -77,6 +79,7 @@ updated: 2025-11-12)
 
    - Status: ✅ DONE
    - Evidence: Structured logging, ValidationError exceptions
+
 4. **`calibration/cli_calibrate.py` - Error Handling** (Line 50)
 
    ```python
@@ -85,6 +88,7 @@ updated: 2025-11-12)
 
    - Status: ✅ DONE
    - Evidence: Imports error_context, performance tracking modules
+
 5. **Database functions - Type Hints**
    - Status: ✅ IMPROVED
    - Evidence: Type hints present in function signatures

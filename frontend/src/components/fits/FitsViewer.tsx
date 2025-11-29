@@ -1,7 +1,5 @@
 import React, { useEffect, useRef, useCallback, useState } from "react";
-import FitsViewerControls, {
-  FitsViewerControlsValues,
-} from "./FitsViewerControls";
+import FitsViewerControls, { FitsViewerControlsValues } from "./FitsViewerControls";
 
 // Declare JS9 global from CDN
 declare global {
@@ -222,11 +220,7 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
           style={{ width, height }}
         >
           {/* JS9 display div */}
-          <div
-            className="JS9"
-            id={displayId}
-            style={{ width: "100%", height: "100%" }}
-          />
+          <div className="JS9" id={displayId} style={{ width: "100%", height: "100%" }} />
 
           {/* Loading overlay */}
           {isLoading && (
@@ -278,9 +272,7 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
         {/* Coordinate display bar */}
         <div className="mt-2 flex justify-between text-xs text-gray-500">
           <span>JS9 Display: {displayId}</span>
-          <span>
-            {fitsUrl.split("/").pop()?.substring(0, 30) || "No file loaded"}
-          </span>
+          <span>{fitsUrl.split("/").pop()?.substring(0, 30) || "No file loaded"}</span>
         </div>
       </div>
 
