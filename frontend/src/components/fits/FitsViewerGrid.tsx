@@ -90,7 +90,7 @@ const FitsViewerGrid: React.FC<FitsViewerGridProps> = ({
         window.JS9.SetCallback("onpan", null, { display: "JS9Grid_0" });
       }
     };
-  }, [syncViews, loadedCount, fitsUrls.length, handleSync]);
+  }, [syncEnabled, loadedCount, fitsUrls.length, handleSync]);
 
   const handleLoad = () => {
     setLoadedCount((prev) => prev + 1);
