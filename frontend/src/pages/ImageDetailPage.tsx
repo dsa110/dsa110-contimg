@@ -28,6 +28,7 @@ const ImageDetailPage: React.FC = () => {
   const addRecentImage = usePreferencesStore((state) => state.addRecentImage);
   const [showSkyViewer, setShowSkyViewer] = useState(true);
   const [showFitsViewer, setShowFitsViewer] = useState(false);
+  const encodedImageId = imageId ? encodeURIComponent(imageId) : "";
   const [showRatingCard, setShowRatingCard] = useState(false);
 
   // Rating tags for QA assessment
@@ -117,7 +118,7 @@ const ImageDetailPage: React.FC = () => {
           <Card title="Actions">
             <div className="flex flex-col gap-2">
               <a
-                href={`${import.meta.env.VITE_API_URL || "/api"}/images/${imageId}/fits`}
+                href={`${import.meta.env.VITE_API_URL || "/api"}/images/${encodedImageId}/fits`}
                 target="_blank"
                 rel="noreferrer"
                 className="btn btn-primary text-center"
@@ -139,7 +140,7 @@ const ImageDetailPage: React.FC = () => {
                 {showRatingCard ? "Hide" : "Show"} Rating
               </button>
               {imageData.qa_grade && (
-                <Link to={`/qa/image/${imageId}`} className="btn btn-secondary text-center">
+                <Link to={`/qa/image/${encodedImageId}`} className="btn btn-secondary text-center">
                   View QA Report
                 </Link>
               )}
@@ -153,8 +154,8 @@ const ImageDetailPage: React.FC = () => {
           {showFitsViewer && (
             <Card title="FITS Viewer">
               <FitsViewer
-                fitsUrl={`${import.meta.env.VITE_API_URL || "/api"}/images/${imageId}/fits`}
-                displayId={`fits-${imageId}`}
+                fitsUrl={`${import.meta.env.VITE_API_URL || "/api"}/images/${encodedImageId}/fits`}
+                displayId={`fits-${encodedImageId}`}
                 width={600}
                 height={500}
                 showControls

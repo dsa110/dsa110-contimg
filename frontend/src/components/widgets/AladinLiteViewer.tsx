@@ -59,6 +59,7 @@ interface AladinInstance {
 
 const ALADIN_CSS_URL = "https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.min.css";
 const ALADIN_JS_URL = "https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.min.js";
+const ALADIN_INTEGRITY = "sha384-5Fz016Wxf7jHEXNKZn3kQ2Ac9cnag6/VZw04/m+uxBUASk3G5i63DtAo0LikMIFm";
 
 /**
  * Interactive sky viewer using Aladin Lite v3.
@@ -95,6 +96,8 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
           const link = document.createElement("link");
           link.rel = "stylesheet";
           link.href = ALADIN_CSS_URL;
+          link.integrity = ALADIN_INTEGRITY;
+          link.crossOrigin = "anonymous";
           document.head.appendChild(link);
         }
 
@@ -104,6 +107,8 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
             const script = document.createElement("script");
             script.src = ALADIN_JS_URL;
             script.async = true;
+            script.integrity = ALADIN_INTEGRITY;
+            script.crossOrigin = "anonymous";
             script.onload = () => resolve();
             script.onerror = () => reject(new Error("Failed to load Aladin Lite"));
             document.head.appendChild(script);

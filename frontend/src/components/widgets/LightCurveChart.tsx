@@ -59,57 +59,23 @@ const LightCurveChart: React.FC<LightCurveChartProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<EChartsInstance | null>(null);
-  const [isScriptLoading, setIsScriptLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Load ECharts script
-  useEffect(() => {
-    const loadECharts = async () => {
-      if (window.echarts) {
-        setIsScriptLoading(false);
-        return;
-      }
-
-      try {
-        if (!document.querySelector(`script[src="${ECHARTS_URL}"]`)) {
-          await new Promise<void>((resolve, reject) => {
-            const script = document.createElement("script");
-            script.src = ECHARTS_URL;
-            script.async = true;
-            script.onload = () => resolve();
-            script.onerror = () => reject(new Error("Failed to load ECharts"));
-            document.head.appendChild(script);
-          });
-        }
-
-        // Wait for echarts to be available
-        let attempts = 0;
-        while (!window.echarts && attempts < 50) {
-          await new Promise((resolve) => setTimeout(resolve, 100));
-          attempts++;
-        }
-
-        if (!window.echarts) {
-          throw new Error("ECharts failed to initialize");
-        }
-
-        setIsScriptLoading(false);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load chart library");
-        setIsScriptLoading(false);
-      }
-    };
-
-    loadECharts();
+  const escapeHtml = useCallback((value: string) => {
+    return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
   }, []);
 
   // Initialize and update chart
   useEffect(() => {
-    if (isScriptLoading || error || !containerRef.current || !window.echarts || isLoading) return;
+    if (error || !containerRef.current || isLoading) return;
 
     // Initialize or get existing instance
     if (!chartRef.current) {
-      chartRef.current = window.echarts.init(containerRef.current);
+      try {
+        chartRef.current = echarts.init(containerRef.current);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to initialize chart");
+        return;
+      }
     }
 
     // Transform data
@@ -157,13 +123,13 @@ const LightCurveChart: React.FC<LightCurveChartProps> = ({
           const point = data[params.dataIndex];
           const date = new Date(params.data[0]);
           let html = `<div class="text-sm">
-            <div class="font-medium">${date.toLocaleString()}</div>
-            <div>Flux: ${formatFlux(params.data[1])}</div>`;
+            <div class="font-medium">${escapeHtml(date.toLocaleString())}</div>
+            <div>Flux: ${escapeHtml(formatFlux(params.data[1]))}</div>`;
           if (point?.fluxError) {
-            html += `<div>Error: ±${formatFlux(point.fluxError)}</div>`;
+            html += `<div>Error: ±${escapeHtml(formatFlux(point.fluxError))}</div>`;
           }
           if (point?.label) {
-            html += `<div class="text-gray-500">${point.label}</div>`;
+            html += `<div class="text-gray-500">${escapeHtml(point.label)}</div>`;
           }
           html += "</div>";
           return html;
@@ -244,7 +210,6 @@ const LightCurveChart: React.FC<LightCurveChartProps> = ({
       }
     };
   }, [
-    isScriptLoading,
     error,
     data,
     title,
@@ -254,6 +219,7 @@ const LightCurveChart: React.FC<LightCurveChartProps> = ({
     showErrorBars,
     onPointClick,
     isLoading,
+    escapeHtml,
   ]);
 
   // Handle resize
@@ -317,7 +283,7 @@ const LightCurveChart: React.FC<LightCurveChartProps> = ({
     );
   }
 
-  if (isScriptLoading || isLoading) {
+  if (isLoading) {
     return (
       <div
         className={`bg-gray-100 rounded-lg flex items-center justify-center ${className}`}

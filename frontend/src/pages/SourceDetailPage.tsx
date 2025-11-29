@@ -36,6 +36,7 @@ const SourceDetailPage: React.FC = () => {
   const addRecentSource = usePreferencesStore((state) => state.addRecentSource);
   const [selectedImageId, setSelectedImageId] = useState<string | undefined>(undefined);
   const [showSkyViewer, setShowSkyViewer] = useState(true);
+  const encodedSourceId = sourceId ? encodeURIComponent(sourceId) : "";
   const [showNearbyPanel, setShowNearbyPanel] = useState(false);
 
   // Search for nearby objects in external catalogs
@@ -211,7 +212,7 @@ const SourceDetailPage: React.FC = () => {
                 className="btn btn-primary"
                 onClick={() =>
                   window.open(
-                    `${import.meta.env.VITE_API_URL || "/api"}/sources/${sourceId}/lightcurve`,
+                    `${import.meta.env.VITE_API_URL || "/api"}/sources/${encodedSourceId}/lightcurve`,
                     "_blank"
                   )
                 }
@@ -223,7 +224,7 @@ const SourceDetailPage: React.FC = () => {
                 className="btn btn-secondary"
                 onClick={() =>
                   window.open(
-                    `${import.meta.env.VITE_API_URL || "/api"}/sources/${sourceId}/postage_stamps`,
+                    `${import.meta.env.VITE_API_URL || "/api"}/sources/${encodedSourceId}/postage_stamps`,
                     "_blank"
                   )
                 }
@@ -235,7 +236,7 @@ const SourceDetailPage: React.FC = () => {
                 className="btn btn-secondary"
                 onClick={() =>
                   window.open(
-                    `${import.meta.env.VITE_API_URL || "/api"}/sources/${sourceId}/variability`,
+                    `${import.meta.env.VITE_API_URL || "/api"}/sources/${encodedSourceId}/variability`,
                     "_blank"
                   )
                 }

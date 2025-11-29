@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState, useMemo } from "react";
+import React, { useEffect, useRef, useMemo } from "react";
+import * as echarts from "echarts";
 
 export interface RatingStat {
   label: string;
@@ -47,37 +48,10 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({
   const userChartRef = useRef<HTMLDivElement>(null);
   const tagChartRef = useRef<HTMLDivElement>(null);
   const pieChartRef = useRef<HTMLDivElement>(null);
-  const [echartsLoaded, setEchartsLoaded] = useState(!!window.echarts);
-
-  // Load ECharts
-  useEffect(() => {
-    if (window.echarts) {
-      setEchartsLoaded(true);
-      return;
-    }
-
-    const script = document.createElement("script");
-    script.src = "https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js";
-    script.async = true;
-    script.onload = () => setEchartsLoaded(true);
-    document.head.appendChild(script);
-
-    return () => {
-      document.head.removeChild(script);
-    };
-  }, []);
 
   // Render User Stats Chart
   useEffect(() => {
-    if (!echartsLoaded || !userChartRef.current || byUser.length === 0) return;
-
-    const echarts = window.echarts as {
-      init: (el: HTMLElement) => {
-        setOption: (opt: unknown) => void;
-        resize: () => void;
-        dispose: () => void;
-      };
-    };
+    if (!userChartRef.current || byUser.length === 0) return;
 
     const chart = echarts.init(userChartRef.current);
 
@@ -140,19 +114,11 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({
       window.removeEventListener("resize", handleResize);
       chart.dispose();
     };
-  }, [echartsLoaded, byUser]);
+  }, [byUser]);
 
   // Render Tag Stats Chart
   useEffect(() => {
-    if (!echartsLoaded || !tagChartRef.current || byTag.length === 0) return;
-
-    const echarts = window.echarts as {
-      init: (el: HTMLElement) => {
-        setOption: (opt: unknown) => void;
-        resize: () => void;
-        dispose: () => void;
-      };
-    };
+    if (!tagChartRef.current || byTag.length === 0) return;
 
     const chart = echarts.init(tagChartRef.current);
 
@@ -215,19 +181,11 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({
       window.removeEventListener("resize", handleResize);
       chart.dispose();
     };
-  }, [echartsLoaded, byTag]);
+  }, [byTag]);
 
   // Render Pie Chart
   useEffect(() => {
-    if (!echartsLoaded || !pieChartRef.current || tagDistribution.length === 0) return;
-
-    const echarts = window.echarts as {
-      init: (el: HTMLElement) => {
-        setOption: (opt: unknown) => void;
-        resize: () => void;
-        dispose: () => void;
-      };
-    };
+    if (!pieChartRef.current || tagDistribution.length === 0) return;
 
     const chart = echarts.init(pieChartRef.current);
 
@@ -270,7 +228,7 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({
       window.removeEventListener("resize", handleResize);
       chart.dispose();
     };
-  }, [echartsLoaded, tagDistribution]);
+  }, [tagDistribution]);
 
   // Calculate overall stats
   const stats = useMemo(() => {
