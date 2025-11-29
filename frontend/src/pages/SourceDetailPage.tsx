@@ -2,13 +2,25 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import ProvenanceStrip from "../components/provenance/ProvenanceStrip";
 import ErrorDisplay from "../components/errors/ErrorDisplay";
-import { Card, CoordinateDisplay, QAMetrics } from "../components/common";
+import { Card, CoordinateDisplay, LoadingSpinner, QAMetrics } from "../components/common";
 import { mapProvenanceFromSourceDetail, SourceDetailResponse } from "../utils/provenanceMappers";
 import { relativeTime } from "../utils/relativeTime";
 import type { ErrorResponse } from "../types/errors";
 import type { ProvenanceStripProps } from "../types/provenance";
 import { useSource } from "../hooks/useQueries";
 import { usePreferencesStore } from "../stores/appStore";
+
+/** SIMBAD external link icon */
+const ExternalLinkIcon: React.FC<{ className?: string }> = ({ className = "w-4 h-4" }) => (
+  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeWidth={2}
+      d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+    />
+  </svg>
+);
 
 /**
  * Detail page for an astronomical source.
@@ -36,11 +48,7 @@ const SourceDetailPage: React.FC = () => {
   }, [source]);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-pulse text-gray-500">Loading source details...</div>
-      </div>
-    );
+    return <LoadingSpinner label="Loading source details..." />;
   }
 
   if (error) {
@@ -86,19 +94,40 @@ const SourceDetailPage: React.FC = () => {
 
       {/* Main content grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left column - Coordinates and actions */}
-        <div className="lg:col-span-1 space-y-6">
+        {/* Left column - Coordinates and actions (sticky on desktop) */}
+        <div className="lg:col-span-1 sticky-sidebar">
           {/* Coordinates */}
           <Card title="Position">
-            <CoordinateDisplay raDeg={sourceData.ra_deg} decDeg={sourceData.dec_deg} showDecimal />
-            <div className="mt-4 pt-4 border-t border-gray-100">
+            <CoordinateDisplay 
+              raDeg={sourceData.ra_deg} 
+              decDeg={sourceData.dec_deg} 
+              showDecimal 
+              allowFormatToggle
+            />
+            <div className="mt-4 pt-4 border-t border-gray-100 space-y-2">
               <a
                 href={`https://simbad.u-strasbg.fr/simbad/sim-coo?Coord=${sourceData.ra_deg}+${sourceData.dec_deg}&CooFrame=FK5&CooEpoch=2000&CooEqui=2000&Radius=2&Radius.unit=arcmin`}
                 target="_blank"
                 rel="noreferrer"
-                className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 hover:underline"
               >
-                Search in SIMBAD →
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+                </svg>
+                Search in SIMBAD
+                <ExternalLinkIcon className="w-3 h-3" />
+              </a>
+              <a
+                href={`https://ned.ipac.caltech.edu/conesearch?search_type=Near%20Position%20Search&ra=${sourceData.ra_deg}&dec=${sourceData.dec_deg}&radius=2&in_csys=Equatorial&in_equinox=J2000`}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 hover:underline"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z"/>
+                </svg>
+                Search in NED
+                <ExternalLinkIcon className="w-3 h-3" />
               </a>
             </div>
           </Card>
