@@ -3,6 +3,7 @@ import SesameResolver from "./SesameResolver";
 import FluxFilters from "./FluxFilters";
 import VariabilityFilters from "./VariabilityFilters";
 import TagFilter from "./TagFilter";
+import { parseRA, parseDec } from "../../utils/coordinateParser";
 
 export interface SourceQueryParams {
   // Cone search
@@ -86,7 +87,9 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
     new Set(["cone", "filters"])
   );
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  const debounceTimeoutRef = React.useRef<number | null>(null);
+  const [raInput, setRaInput] = useState<string>(initialParams?.ra?.toString() ?? "");
+  const [decInput, setDecInput] = useState<string>(initialParams?.dec?.toString() ?? "");
+  const debounceTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Parse URL hash into params
   const parseUrlHash = useCallback((): Partial<SourceQueryParams> => {
@@ -134,6 +137,32 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
         case "exclude_tags":
           urlParams.excludeTags = decoded.split(",").filter(Boolean);
           break;
+        // Flux filters
+        case "min_flux_min":
+          urlParams.minFlux = { ...urlParams.minFlux, min: parseFloat(decoded), type: "peak" };
+          break;
+        case "min_flux_max":
+          urlParams.minFlux = { ...urlParams.minFlux, max: parseFloat(decoded), type: "peak" };
+          break;
+        case "max_flux_min":
+          urlParams.maxFlux = { ...urlParams.maxFlux, min: parseFloat(decoded), type: "peak" };
+          break;
+        case "max_flux_max":
+          urlParams.maxFlux = { ...urlParams.maxFlux, max: parseFloat(decoded), type: "peak" };
+          break;
+        // Variability filters
+        case "eta_min":
+          urlParams.eta = { ...urlParams.eta, min: parseFloat(decoded), type: "peak" };
+          break;
+        case "eta_max":
+          urlParams.eta = { ...urlParams.eta, max: parseFloat(decoded), type: "peak" };
+          break;
+        case "v_min":
+          urlParams.v = { ...urlParams.v, min: parseFloat(decoded), type: "peak" };
+          break;
+        case "v_max":
+          urlParams.v = { ...urlParams.v, max: parseFloat(decoded), type: "peak" };
+          break;
       }
     });
     return urlParams;
@@ -161,6 +190,16 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
     if (params.excludeTags.length > 0) {
       parts.push(`exclude_tags=${params.excludeTags.map(encodeURIComponent).join(",")}`);
     }
+    // Flux filters
+    if (params.minFlux?.min != null) parts.push(`min_flux_min=${params.minFlux.min}`);
+    if (params.minFlux?.max != null) parts.push(`min_flux_max=${params.minFlux.max}`);
+    if (params.maxFlux?.min != null) parts.push(`max_flux_min=${params.maxFlux.min}`);
+    if (params.maxFlux?.max != null) parts.push(`max_flux_max=${params.maxFlux.max}`);
+    // Variability filters
+    if (params.eta?.min != null) parts.push(`eta_min=${params.eta.min}`);
+    if (params.eta?.max != null) parts.push(`eta_max=${params.eta.max}`);
+    if (params.v?.min != null) parts.push(`v_min=${params.v.min}`);
+    if (params.v?.max != null) parts.push(`v_max=${params.v.max}`);
 
     const newHash = parts.length > 0 ? `#${parts.join("&")}` : "";
     if (window.location.hash !== newHash) {
@@ -235,11 +274,15 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
 
   const handleConeSearchResolved = useCallback((ra: number, dec: number) => {
     setParams((prev) => ({ ...prev, ra, dec }));
+    setRaInput(ra.toFixed(6));
+    setDecInput(dec.toFixed(6));
   }, []);
 
   const handleReset = useCallback(() => {
     setParams({ ...DEFAULT_PARAMS });
     setValidationErrors({});
+    setRaInput("");
+    setDecInput("");
     window.history.replaceState(null, "", window.location.pathname);
     onReset?.();
   }, [onReset]);
@@ -349,31 +392,57 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
                 <label className="form-label">RA (deg or HMS)</label>
                 <input
                   type="text"
-                  value={params.ra ?? ""}
-                  onChange={(e) =>
+                  value={raInput}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setRaInput(value);
+                    // Try to parse and update params
+                    const parsed = parseRA(value);
                     setParams((prev) => ({
                       ...prev,
-                      ra: e.target.value ? parseFloat(e.target.value) : undefined,
-                    }))
-                  }
+                      ra: parsed ?? undefined,
+                    }));
+                  }}
+                  onBlur={() => {
+                    // On blur, normalize to decimal if valid
+                    if (params.ra != null) {
+                      setRaInput(params.ra.toFixed(6));
+                    }
+                  }}
                   placeholder="180.0 or 12:00:00"
-                  className="form-control"
+                  className={`form-control ${validationErrors.ra ? "border-red-500" : ""}`}
                 />
+                {validationErrors.ra && (
+                  <p className="text-xs text-red-500 mt-1">{validationErrors.ra}</p>
+                )}
               </div>
               <div className="form-group">
                 <label className="form-label">Dec (deg or DMS)</label>
                 <input
                   type="text"
-                  value={params.dec ?? ""}
-                  onChange={(e) =>
+                  value={decInput}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setDecInput(value);
+                    // Try to parse and update params
+                    const parsed = parseDec(value);
                     setParams((prev) => ({
                       ...prev,
-                      dec: e.target.value ? parseFloat(e.target.value) : undefined,
-                    }))
-                  }
+                      dec: parsed ?? undefined,
+                    }));
+                  }}
+                  onBlur={() => {
+                    // On blur, normalize to decimal if valid
+                    if (params.dec != null) {
+                      setDecInput(params.dec.toFixed(6));
+                    }
+                  }}
                   placeholder="+45.0 or +45:00:00"
-                  className="form-control"
+                  className={`form-control ${validationErrors.dec ? "border-red-500" : ""}`}
                 />
+                {validationErrors.dec && (
+                  <p className="text-xs text-red-500 mt-1">{validationErrors.dec}</p>
+                )}
               </div>
             </div>
 
@@ -392,8 +461,11 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
                   placeholder="2"
                   min={0}
                   step={0.1}
-                  className="form-control"
+                  className={`form-control ${validationErrors.radius ? "border-red-500" : ""}`}
                 />
+                {validationErrors.radius && (
+                  <p className="text-xs text-red-500 mt-1">{validationErrors.radius}</p>
+                )}
               </div>
               <div className="form-group">
                 <label className="form-label">Unit</label>

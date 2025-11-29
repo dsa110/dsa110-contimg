@@ -25,6 +25,54 @@ export interface CatalogQueryResult {
 
 const VIZIER_TAP_URL = "https://tapvizier.cds.unistra.fr/TAPVizieR/tap/sync";
 const MAX_RESULTS = 1000;
+const RATE_LIMIT_DELAY_MS = 200; // Delay between concurrent requests
+
+/**
+ * Simple rate limiter for VizieR requests
+ */
+class RateLimiter {
+  private queue: Array<() => Promise<void>> = [];
+  private processing = false;
+  private lastRequestTime = 0;
+
+  async enqueue<T>(fn: () => Promise<T>): Promise<T> {
+    return new Promise((resolve, reject) => {
+      this.queue.push(async () => {
+        try {
+          const result = await fn();
+          resolve(result);
+        } catch (err) {
+          reject(err);
+        }
+      });
+      this.processQueue();
+    });
+  }
+
+  private async processQueue() {
+    if (this.processing) return;
+    this.processing = true;
+
+    while (this.queue.length > 0) {
+      const now = Date.now();
+      const timeSinceLastRequest = now - this.lastRequestTime;
+
+      if (timeSinceLastRequest < RATE_LIMIT_DELAY_MS) {
+        await new Promise((r) => setTimeout(r, RATE_LIMIT_DELAY_MS - timeSinceLastRequest));
+      }
+
+      const fn = this.queue.shift();
+      if (fn) {
+        this.lastRequestTime = Date.now();
+        await fn();
+      }
+    }
+
+    this.processing = false;
+  }
+}
+
+const rateLimiter = new RateLimiter();
 
 /**
  * Build an ADQL cone search query for a VizieR catalog.
@@ -35,10 +83,9 @@ function buildConeSearchQuery(
   dec: number,
   radiusDeg: number
 ): string {
-  // Determine the RA/Dec column names based on catalog
-  // Most VizieR catalogs use RAJ2000/DEJ2000 or _RAJ2000/_DEJ2000
-  const raCol = "RAJ2000";
-  const decCol = "DEJ2000";
+  // Use catalog-specific column names or defaults
+  const raCol = catalog.raColumn || "RAJ2000";
+  const decCol = catalog.decColumn || "DEJ2000";
 
   return `
     SELECT TOP ${MAX_RESULTS} 
@@ -56,7 +103,12 @@ function buildConeSearchQuery(
 /**
  * Parse VOTable XML response from VizieR TAP service.
  */
-function parseVOTableResponse(xml: string, catalogId: string): CatalogSource[] {
+function parseVOTableResponse(
+  xml: string,
+  catalogId: string,
+  raColName: string,
+  decColName: string
+): CatalogSource[] {
   const parser = new DOMParser();
   const doc = parser.parseFromString(xml, "text/xml");
 
@@ -69,8 +121,18 @@ function parseVOTableResponse(xml: string, catalogId: string): CatalogSource[] {
   // Get field definitions
   const fields = Array.from(doc.querySelectorAll("FIELD"));
   const fieldNames = fields.map((f) => f.getAttribute("name") || "");
-  const raIndex = fieldNames.findIndex((n) => n.toLowerCase().includes("ra") || n === "ra");
-  const decIndex = fieldNames.findIndex((n) => n.toLowerCase().includes("de") || n === "dec");
+
+  // Look for the aliased 'ra' and 'dec' columns first, then fall back to original names
+  let raIndex = fieldNames.findIndex((n) => n.toLowerCase() === "ra");
+  let decIndex = fieldNames.findIndex((n) => n.toLowerCase() === "dec");
+
+  // If not found, try the original column names
+  if (raIndex === -1) {
+    raIndex = fieldNames.findIndex((n) => n === raColName);
+  }
+  if (decIndex === -1) {
+    decIndex = fieldNames.findIndex((n) => n === decColName);
+  }
 
   if (raIndex === -1 || decIndex === -1) {
     console.warn(`Could not find RA/Dec columns for ${catalogId}`, fieldNames);
@@ -102,7 +164,7 @@ function parseVOTableResponse(xml: string, catalogId: string): CatalogSource[] {
 }
 
 /**
- * Query a single VizieR catalog with cone search.
+ * Query a single VizieR catalog with cone search (rate-limited).
  */
 export async function queryCatalog(
   catalog: CatalogDefinition,
@@ -111,50 +173,54 @@ export async function queryCatalog(
   radiusArcmin: number,
   signal?: AbortSignal
 ): Promise<CatalogQueryResult> {
-  const radiusDeg = radiusArcmin / 60;
+  return rateLimiter.enqueue(async () => {
+    const radiusDeg = radiusArcmin / 60;
+    const raCol = catalog.raColumn || "RAJ2000";
+    const decCol = catalog.decColumn || "DEJ2000";
 
-  try {
-    const query = buildConeSearchQuery(catalog, ra, dec, radiusDeg);
+    try {
+      const query = buildConeSearchQuery(catalog, ra, dec, radiusDeg);
 
-    const params = new URLSearchParams({
-      REQUEST: "doQuery",
-      LANG: "ADQL",
-      FORMAT: "votable",
-      QUERY: query,
-    });
+      const params = new URLSearchParams({
+        REQUEST: "doQuery",
+        LANG: "ADQL",
+        FORMAT: "votable",
+        QUERY: query,
+      });
 
-    const response = await fetch(`${VIZIER_TAP_URL}?${params}`, {
-      signal,
-      headers: {
-        Accept: "application/xml",
-      },
-    });
+      const response = await fetch(`${VIZIER_TAP_URL}?${params}`, {
+        signal,
+        headers: {
+          Accept: "application/xml",
+        },
+      });
 
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const xml = await response.text();
+      const sources = parseVOTableResponse(xml, catalog.id, raCol, decCol);
+
+      return {
+        catalogId: catalog.id,
+        sources,
+        count: sources.length,
+        truncated: sources.length >= MAX_RESULTS,
+      };
+    } catch (err) {
+      if (err instanceof Error && err.name === "AbortError") {
+        throw err;
+      }
+      return {
+        catalogId: catalog.id,
+        sources: [],
+        count: 0,
+        truncated: false,
+        error: err instanceof Error ? err.message : "Query failed",
+      };
     }
-
-    const xml = await response.text();
-    const sources = parseVOTableResponse(xml, catalog.id);
-
-    return {
-      catalogId: catalog.id,
-      sources,
-      count: sources.length,
-      truncated: sources.length >= MAX_RESULTS,
-    };
-  } catch (err) {
-    if (err instanceof Error && err.name === "AbortError") {
-      throw err;
-    }
-    return {
-      catalogId: catalog.id,
-      sources: [],
-      count: 0,
-      truncated: false,
-      error: err instanceof Error ? err.message : "Query failed",
-    };
-  }
+  });
 }
 
 /**

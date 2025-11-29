@@ -40,9 +40,27 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
   const [radiusInput, setRadiusInput] = useState(searchRadius);
   const [queryResults, setQueryResults] = useState<Map<string, CatalogQueryResult>>(new Map());
   const [loadingCatalogs, setLoadingCatalogs] = useState<Set<string>>(new Set());
+  const [lastQueryRadius, setLastQueryRadius] = useState<number>(searchRadius);
 
   const abortControllerRef = useRef<AbortController | null>(null);
   const overlayLayersRef = useRef<Map<string, any>>(new Map());
+
+  // Clear results when radius changes
+  useEffect(() => {
+    if (radiusInput !== lastQueryRadius) {
+      setQueryResults(new Map());
+      setLastQueryRadius(radiusInput);
+    }
+  }, [radiusInput, lastQueryRadius]);
+
+  // Cleanup abort controller on unmount
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   // Query catalogs when selection or position changes
   useEffect(() => {

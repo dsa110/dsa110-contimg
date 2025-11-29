@@ -54,6 +54,8 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isJS9Ready, setIsJS9Ready] = useState(false);
+  const [cursorWCS, setCursorWCS] = useState<{ ra: string; dec: string } | null>(null);
+  const initialControlsRef = useRef<FitsViewerControlsValues | null>(null);
 
   // Control state
   const [controls, setControls] = useState<FitsViewerControlsValues>({
@@ -64,6 +66,11 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
     showRegions: true,
     showCrosshair: false,
   });
+
+  // Store initial controls to detect changes
+  if (initialControlsRef.current === null) {
+    initialControlsRef.current = { ...controls };
+  }
 
   // Check if JS9 is loaded
   useEffect(() => {
@@ -122,9 +129,12 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
             window.JS9.SetZoom("tofit", { display: displayId });
           }
 
-          // Apply controls
-          window.JS9.SetColormap(controls.colorMap, { display: displayId });
-          window.JS9.SetScale(controls.scale, { display: displayId });
+          // Apply initial controls (from ref, not state to avoid dependency)
+          const initControls = initialControlsRef.current;
+          if (initControls) {
+            window.JS9.SetColormap(initControls.colorMap, { display: displayId });
+            window.JS9.SetScale(initControls.scale, { display: displayId });
+          }
 
           onLoad?.();
         },
@@ -148,6 +158,36 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
           { display: displayId }
         );
       }
+
+      // Set up mouse move handler for live WCS display
+      window.JS9.SetCallback(
+        "onmousemove",
+        (im: any, xreg: any, evt: any) => {
+          try {
+            const wcs = window.JS9.PixToWCS(evt.x, evt.y, { display: displayId });
+            if (wcs && wcs.ra !== undefined && wcs.dec !== undefined) {
+              // Format as sexagesimal
+              const raH = wcs.ra / 15;
+              const raHours = Math.floor(raH);
+              const raMin = Math.floor((raH - raHours) * 60);
+              const raSec = ((raH - raHours) * 60 - raMin) * 60;
+              const raStr = `${raHours.toString().padStart(2, '0')}:${raMin.toString().padStart(2, '0')}:${raSec.toFixed(2).padStart(5, '0')}`;
+
+              const decSign = wcs.dec >= 0 ? '+' : '-';
+              const decAbs = Math.abs(wcs.dec);
+              const decDeg = Math.floor(decAbs);
+              const decMin = Math.floor((decAbs - decDeg) * 60);
+              const decSec = ((decAbs - decDeg) * 60 - decMin) * 60;
+              const decStr = `${decSign}${decDeg.toString().padStart(2, '0')}:${decMin.toString().padStart(2, '0')}:${decSec.toFixed(1).padStart(4, '0')}`;
+
+              setCursorWCS({ ra: raStr, dec: decStr });
+            }
+          } catch (e) {
+            // WCS may not be available
+          }
+        },
+        { display: displayId }
+      );
     } catch (err) {
       setError(String(err));
       setIsLoading(false);
@@ -159,7 +199,7 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
         window.JS9.CloseImage({ display: displayId });
       }
     };
-  }, [isJS9Ready, fitsUrl, displayId, initialCenter, initialFov, onLoad, onError]);
+  }, [isJS9Ready, fitsUrl, displayId, initialCenter, initialFov, onLoad, onError, onCoordinateClick]);
 
   // Apply control changes
   useEffect(() => {
