@@ -171,14 +171,18 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
               const raHours = Math.floor(raH);
               const raMin = Math.floor((raH - raHours) * 60);
               const raSec = ((raH - raHours) * 60 - raMin) * 60;
-              const raStr = `${raHours.toString().padStart(2, '0')}:${raMin.toString().padStart(2, '0')}:${raSec.toFixed(2).padStart(5, '0')}`;
+              const raStr = `${raHours.toString().padStart(2, "0")}:${raMin
+                .toString()
+                .padStart(2, "0")}:${raSec.toFixed(2).padStart(5, "0")}`;
 
-              const decSign = wcs.dec >= 0 ? '+' : '-';
+              const decSign = wcs.dec >= 0 ? "+" : "-";
               const decAbs = Math.abs(wcs.dec);
               const decDeg = Math.floor(decAbs);
               const decMin = Math.floor((decAbs - decDeg) * 60);
               const decSec = ((decAbs - decDeg) * 60 - decMin) * 60;
-              const decStr = `${decSign}${decDeg.toString().padStart(2, '0')}:${decMin.toString().padStart(2, '0')}:${decSec.toFixed(1).padStart(4, '0')}`;
+              const decStr = `${decSign}${decDeg.toString().padStart(2, "0")}:${decMin
+                .toString()
+                .padStart(2, "0")}:${decSec.toFixed(1).padStart(4, "0")}`;
 
               setCursorWCS({ ra: raStr, dec: decStr });
             }
@@ -199,7 +203,16 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
         window.JS9.CloseImage({ display: displayId });
       }
     };
-  }, [isJS9Ready, fitsUrl, displayId, initialCenter, initialFov, onLoad, onError, onCoordinateClick]);
+  }, [
+    isJS9Ready,
+    fitsUrl,
+    displayId,
+    initialCenter,
+    initialFov,
+    onLoad,
+    onError,
+    onCoordinateClick,
+  ]);
 
   // Apply control changes
   useEffect(() => {
@@ -333,9 +346,20 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
         </div>
 
         {/* Coordinate display bar */}
-        <div className="mt-2 flex justify-between text-xs text-gray-500">
-          <span>JS9 Display: {displayId}</span>
-          <span>{fitsUrl.split("/").pop()?.substring(0, 30) || "No file loaded"}</span>
+        <div className="mt-2 flex justify-between items-center text-xs text-gray-500 bg-gray-100 rounded px-2 py-1">
+          <span className="font-mono">
+            {cursorWCS ? (
+              <>
+                <span className="text-gray-700">RA:</span> {cursorWCS.ra}{" "}
+                <span className="text-gray-700 ml-2">Dec:</span> {cursorWCS.dec}
+              </>
+            ) : (
+              <span className="text-gray-400">Move cursor over image for coordinates</span>
+            )}
+          </span>
+          <span className="text-gray-400 truncate max-w-[150px]" title={fitsUrl}>
+            {fitsUrl.split("/").pop()?.substring(0, 25) || "No file"}
+          </span>
         </div>
       </div>
 
