@@ -29,12 +29,6 @@ const gradeColors: Record<string, { bg: string; text: string; border: string }> 
   fail: { bg: "bg-red-50", text: "text-red-700", border: "border-red-200" },
 };
 
-const gradeIcons: Record<string, string> = {
-  good: "✓",
-  warn: "⚠",
-  fail: "✗",
-};
-
 /**
  * Display QA metrics with visual indicators.
  */
@@ -52,7 +46,6 @@ const QAMetrics: React.FC<QAMetricsProps> = ({
   const colors = grade
     ? gradeColors[grade]
     : { bg: "bg-gray-50", text: "text-gray-600", border: "border-gray-200" };
-  const icon = grade ? gradeIcons[grade] : "?";
 
   // Format noise for display
   const formatNoise = (noise: number): string => {
@@ -87,7 +80,7 @@ const QAMetrics: React.FC<QAMetricsProps> = ({
                 : "badge-error"
             }`}
           >
-            {icon} {grade.toUpperCase()}
+            {grade.toUpperCase()}
           </span>
         )}
         {noiseJy !== undefined && (
@@ -109,7 +102,6 @@ const QAMetrics: React.FC<QAMetricsProps> = ({
       {/* Header with grade */}
       {grade && (
         <div className="flex items-center gap-2 mb-3">
-          <span className={`text-2xl ${colors.text}`}>{icon}</span>
           <span className={`font-semibold ${colors.text} uppercase`}>{grade}</span>
           {summary && <span className="text-gray-600 text-sm ml-2">— {summary}</span>}
         </div>

@@ -21,11 +21,11 @@ function log(msg) {
 }
 
 function error(msg) {
-  console.error(`[ensure-port] ❌ ${msg}`);
+  console.error(`[ensure-port] ERROR ${msg}`);
 }
 
 function success(msg) {
-  console.log(`[ensure-port] ✅ ${msg}`);
+  console.log(`[ensure-port] OK ${msg}`);
 }
 
 /**

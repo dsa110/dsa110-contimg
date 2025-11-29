@@ -57,7 +57,7 @@ const CoordinateDisplay: React.FC<CoordinateDisplayProps> = ({
             className="ml-2 text-xs text-blue-600 hover:text-blue-800"
             title={showHMS ? "Switch to decimal degrees" : "Switch to HMS/DMS"}
           >
-            ↔
+            Toggle
           </button>
         )}
       </div>

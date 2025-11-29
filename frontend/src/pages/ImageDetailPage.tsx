@@ -53,7 +53,7 @@ const ImageDetailPage: React.FC = () => {
         <Card>
           <p className="text-gray-500 mb-4">Image not found.</p>
           <Link to="/images" className="link">
-            ← Back to Images
+            Back to Images
           </Link>
         </Card>
       </div>
@@ -70,7 +70,7 @@ const ImageDetailPage: React.FC = () => {
       {/* Header */}
       <div className="mb-6">
         <Link to="/images" className="text-sm text-gray-500 hover:text-gray-700 mb-2 inline-block">
-          ← Back to Images
+          Back to Images
         </Link>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">{filename}</h1>
         <ProvenanceStrip {...provenance} />
@@ -96,18 +96,18 @@ const ImageDetailPage: React.FC = () => {
                 rel="noreferrer"
                 className="btn btn-primary text-center"
               >
-                📥 Download FITS
+                Download FITS
               </a>
               <button
                 type="button"
                 className={`btn ${showFitsViewer ? "btn-primary" : "btn-secondary"}`}
                 onClick={() => setShowFitsViewer(!showFitsViewer)}
               >
-                🔭 {showFitsViewer ? "Hide" : "Show"} FITS Viewer
+                {showFitsViewer ? "Hide" : "Show"} FITS Viewer
               </button>
               {imageData.qa_grade && (
                 <Link to={`/qa/image/${imageId}`} className="btn btn-secondary text-center">
-                  📊 View QA Report
+                  View QA Report
                 </Link>
               )}
             </div>

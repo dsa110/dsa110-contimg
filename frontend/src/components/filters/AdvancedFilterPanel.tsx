@@ -125,18 +125,21 @@ const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
 
   const renderFilter = (filter: FilterDefinition) => {
     switch (filter.type) {
-      case "range":
+      case "range": {
+        const rangeValue = values[filter.id] as { min: number; max: number } | undefined;
         return (
           <RangeSlider
             min={filter.min ?? 0}
             max={filter.max ?? 100}
             step={filter.step}
             unit={filter.unit}
-            value={values[filter.id] as { min: number; max: number }}
-            onChange={(val) => handleFilterChange(filter.id, val)}
+            minValue={rangeValue?.min}
+            maxValue={rangeValue?.max}
+            onChange={(minVal, maxVal) => handleFilterChange(filter.id, { min: minVal, max: maxVal })}
             histogram={filter.histogram}
           />
         );
+      }
 
       case "select":
         return (

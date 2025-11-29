@@ -18,21 +18,21 @@ const HomePage: React.FC = () => {
     {
       label: "Total Images",
       value: images?.length ?? 0,
-      icon: "🖼️",
+      icon: "IMG",
       href: "/images",
       variant: "primary" as const,
     },
     {
       label: "Detected Sources",
       value: sources?.length ?? 0,
-      icon: "⭐",
+      icon: "SRC",
       href: "/sources",
       variant: "success" as const,
     },
     {
       label: "Pipeline Jobs",
       value: jobs?.length ?? 0,
-      icon: "⚙️",
+      icon: "JOB",
       href: "/jobs",
       variant: "info" as const,
     },
@@ -88,19 +88,19 @@ const HomePage: React.FC = () => {
           title="Images"
           description="Browse processed FITS images and view QA assessments."
           link="/images"
-          icon="🖼️"
+          icon="IMG"
         />
         <DashboardCard
           title="Sources"
           description="Explore detected radio sources and lightcurves."
           link="/sources"
-          icon="⭐"
+          icon="SRC"
         />
         <DashboardCard
           title="Jobs"
           description="Monitor pipeline jobs and view provenance."
           link="/jobs"
-          icon="⚙️"
+          icon="JOB"
         />
       </div>
 
@@ -114,7 +114,7 @@ const HomePage: React.FC = () => {
               rel="noreferrer"
               className="text-blue-600 hover:text-blue-800 hover:underline"
             >
-              📖 Troubleshooting Guide
+              Troubleshooting Guide
             </a>
           </li>
           <li>
@@ -124,7 +124,7 @@ const HomePage: React.FC = () => {
               rel="noreferrer"
               className="text-blue-600 hover:text-blue-800 hover:underline"
             >
-              🔧 API Health Check
+              API Health Check
             </a>
           </li>
         </ul>

@@ -344,7 +344,7 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
 
       // Event handlers
       group
-        .on("mouseenter", (event) => {
+        .on("mouseenter", (event: MouseEvent) => {
           setHoveredPointing(pointing);
           setTooltipPos({ x: event.clientX, y: event.clientY });
           onPointingHover?.(pointing);
@@ -460,10 +460,10 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
     const zoom = d3
       .zoom<SVGSVGElement, unknown>()
       .scaleExtent([0.5, 8])
-      .on("zoom", (event) => {
+      .on("zoom", (event: d3.D3ZoomEvent<SVGSVGElement, unknown>) => {
         svg
           .selectAll("path, circle, text:not(.legend-text), line:not(.legend-line)")
-          .attr("transform", event.transform);
+          .attr("transform", event.transform.toString());
       });
 
     svg.call(zoom);

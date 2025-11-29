@@ -23,11 +23,11 @@ export interface BulkDownloadPanelProps {
 
 export type DownloadFormat = "fits" | "csv" | "zip" | "json";
 
-const FORMAT_OPTIONS: { value: DownloadFormat; label: string; icon: string }[] = [
-  { value: "fits", label: "FITS", icon: "📦" },
-  { value: "csv", label: "CSV", icon: "📊" },
-  { value: "json", label: "JSON", icon: "📄" },
-  { value: "zip", label: "ZIP Archive", icon: "🗜️" },
+const FORMAT_OPTIONS: { value: DownloadFormat; label: string }[] = [
+  { value: "fits", label: "FITS" },
+  { value: "csv", label: "CSV" },
+  { value: "json", label: "JSON" },
+  { value: "zip", label: "ZIP Archive" },
 ];
 
 /**
@@ -128,7 +128,6 @@ const BulkDownloadPanel: React.FC<BulkDownloadPanelProps> = ({
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                 }`}
               >
-                <span className="mr-1">{opt.icon}</span>
                 {opt.label}
               </button>
             ))}

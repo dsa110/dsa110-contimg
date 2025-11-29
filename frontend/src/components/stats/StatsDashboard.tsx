@@ -1,11 +1,5 @@
 import React, { useEffect, useRef, useState, useMemo } from "react";
 
-declare global {
-  interface Window {
-    echarts?: unknown;
-  }
-}
-
 export interface RatingStat {
   label: string;
   trueCount: number;

@@ -345,7 +345,7 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
 
           {!hasCoordinates && (
             <div className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
-              ⚠️ Set center coordinates to query catalogs
+              Set center coordinates to query catalogs
             </div>
           )}
 

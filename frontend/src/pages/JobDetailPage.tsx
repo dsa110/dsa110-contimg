@@ -10,11 +10,11 @@ import { usePreferencesStore } from "../stores/appStore";
 
 type JobStatus = "pending" | "running" | "completed" | "failed";
 
-const statusConfig: Record<JobStatus, { icon: string; bg: string; text: string }> = {
-  pending: { icon: "⏳", bg: "bg-gray-100", text: "text-gray-700" },
-  running: { icon: "🔄", bg: "bg-blue-100", text: "text-blue-700" },
-  completed: { icon: "✓", bg: "bg-green-100", text: "text-green-700" },
-  failed: { icon: "✗", bg: "bg-red-100", text: "text-red-700" },
+const statusConfig: Record<JobStatus, { bg: string; text: string; dot: string }> = {
+  pending: { bg: "bg-gray-100", text: "text-gray-700", dot: "bg-gray-500" },
+  running: { bg: "bg-blue-100", text: "text-blue-700", dot: "bg-blue-500" },
+  completed: { bg: "bg-green-100", text: "text-green-700", dot: "bg-green-500" },
+  failed: { bg: "bg-red-100", text: "text-red-700", dot: "bg-red-500" },
 };
 
 /**
@@ -50,7 +50,7 @@ const JobDetailPage: React.FC = () => {
         <Card>
           <p className="text-gray-500 mb-4">Job not found.</p>
           <Link to="/jobs" className="link">
-            ← Back to Jobs
+            Back to Jobs
           </Link>
         </Card>
       </div>
@@ -70,14 +70,14 @@ const JobDetailPage: React.FC = () => {
       {/* Header */}
       <div className="mb-6">
         <Link to="/jobs" className="text-sm text-gray-500 hover:text-gray-700 mb-2 inline-block">
-          ← Back to Jobs
+          Back to Jobs
         </Link>
         <div className="flex items-center gap-3 mb-2">
           <h1 className="text-2xl font-bold text-gray-900">Job: {runId}</h1>
           <span
             className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${statusInfo.bg} ${statusInfo.text}`}
           >
-            <span>{statusInfo.icon}</span>
+            <span className={`h-2.5 w-2.5 rounded-full ${statusInfo.dot}`} aria-hidden="true" />
             <span className="capitalize">{status}</span>
           </span>
         </div>
@@ -94,7 +94,7 @@ const JobDetailPage: React.FC = () => {
               <div
                 className={`p-4 rounded-lg ${statusInfo.bg} flex items-center justify-center gap-2`}
               >
-                <span className="text-2xl">{statusInfo.icon}</span>
+                <span className={`h-3 w-3 rounded-full ${statusInfo.dot}`} aria-hidden="true" />
                 <span className={`text-lg font-semibold ${statusInfo.text} capitalize`}>
                   {status}
                 </span>
@@ -123,12 +123,12 @@ const JobDetailPage: React.FC = () => {
                   rel="noreferrer"
                   className="btn btn-secondary text-center"
                 >
-                  📜 View Logs
+                  View Logs
                 </a>
               )}
               {provenance.imageUrl && (
                 <Link to={provenance.imageUrl} className="btn btn-primary text-center">
-                  🖼️ View Output Image
+                  View Output Image
                 </Link>
               )}
               {provenance.qaUrl && (
@@ -138,7 +138,7 @@ const JobDetailPage: React.FC = () => {
                   rel="noreferrer"
                   className="btn btn-secondary text-center"
                 >
-                  📊 QA Report
+                  QA Report
                 </a>
               )}
               <button
@@ -149,7 +149,7 @@ const JobDetailPage: React.FC = () => {
                   alert("Re-run functionality not yet implemented");
                 }}
               >
-                🔄 Re-run Job
+                Re-run Job
               </button>
             </div>
           </Card>
@@ -232,7 +232,9 @@ const JobDetailPage: React.FC = () => {
                   to={provenance.msUrl}
                   className="p-3 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-colors flex items-center gap-3"
                 >
-                  <span className="text-2xl">📁</span>
+                  <span className="h-10 w-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-semibold text-sm">
+                    MS
+                  </span>
                   <div>
                     <div className="font-medium text-gray-900">Measurement Set</div>
                     <div className="text-xs text-gray-500">View MS details</div>
@@ -244,7 +246,9 @@ const JobDetailPage: React.FC = () => {
                   to={provenance.imageUrl}
                   className="p-3 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-colors flex items-center gap-3"
                 >
-                  <span className="text-2xl">🖼️</span>
+                  <span className="h-10 w-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-semibold text-sm">
+                    IMG
+                  </span>
                   <div>
                     <div className="font-medium text-gray-900">Output Image</div>
                     <div className="text-xs text-gray-500">View image details</div>
@@ -258,7 +262,9 @@ const JobDetailPage: React.FC = () => {
                   rel="noreferrer"
                   className="p-3 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-colors flex items-center gap-3"
                 >
-                  <span className="text-2xl">📜</span>
+                  <span className="h-10 w-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-semibold text-sm">
+                    LOG
+                  </span>
                   <div>
                     <div className="font-medium text-gray-900">Logs</div>
                     <div className="text-xs text-gray-500">View job logs</div>
@@ -272,7 +278,9 @@ const JobDetailPage: React.FC = () => {
                   rel="noreferrer"
                   className="p-3 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-colors flex items-center gap-3"
                 >
-                  <span className="text-2xl">📊</span>
+                  <span className="h-10 w-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-semibold text-sm">
+                    QA
+                  </span>
                   <div>
                     <div className="font-medium text-gray-900">QA Report</div>
                     <div className="text-xs text-gray-500">Quality assessment</div>

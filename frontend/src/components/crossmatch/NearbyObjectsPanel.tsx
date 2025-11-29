@@ -128,8 +128,34 @@ const NearbyObjectsPanel: React.FC<NearbyObjectsPanelProps> = ({
   };
 
   const SortArrow: React.FC<{ column: SortKey }> = ({ column }) => {
-    if (sortKey !== column) return <span className="text-gray-300 ml-1">↕</span>;
-    return <span className="ml-1">{sortDir === "asc" ? "↑" : "↓"}</span>;
+    if (sortKey !== column) {
+      return (
+        <svg
+          className="w-3 h-3 text-gray-300 ml-1"
+          viewBox="0 0 10 10"
+          aria-hidden="true"
+        >
+          <path d="M5 2l2 2H3z" fill="currentColor" />
+          <path d="M5 8L3 6h4z" fill="currentColor" />
+        </svg>
+      );
+    }
+    if (sortDir === "asc") {
+      return (
+        <svg
+          className="w-3 h-3 text-gray-500 ml-1"
+          viewBox="0 0 10 10"
+          aria-hidden="true"
+        >
+          <path d="M5 2l3 4H2z" fill="currentColor" />
+        </svg>
+      );
+    }
+    return (
+      <svg className="w-3 h-3 text-gray-500 ml-1" viewBox="0 0 10 10" aria-hidden="true">
+        <path d="M5 8L2 4h6z" fill="currentColor" />
+      </svg>
+    );
   };
 
   return (
