@@ -1,0 +1,50 @@
+flowchart TB
+    subgraph backend["backend/"]
+        Config["Configuration<br/>setup.py"]
+        subgraph Src["src/"]
+            antpos_local["antpos_local/<br/>utils.py"]
+            api["api/<br/>app.py<br/>cache.py<br/>batch_jobs.py"]
+            calibration["calibration/<br/>calibration.py<br/>caltables.py<br/>applycal.py"]
+            catalog["catalog/<br/>builders.py<br/>blacklist_sources.py<br/>astrometric_calibration.py"]
+            conversion["conversion/<br/>helpers_antenna.py<br/>cli.py<br/>helpers.py<br/>(+1 more)"]
+            database["database/<br/>calibrators.py<br/>data_registry.py<br/>hdf5_index.py"]
+            docsearch["docsearch/<br/>cli.py"]
+            dsa110_contimg["dsa110_contimg/"]
+            fixtures["fixtures/<br/>writers.py"]
+            imaging["imaging/<br/>cli.py<br/>cli_imaging.py<br/>cli_utils.py"]
+            integration["integration/"]
+            photometry["photometry/<br/>adaptive_binning.py<br/>adaptive_photometry.py<br/>aegean_fitting.py"]
+            pipeline["pipeline/<br/>stages_impl.py"]
+            simulation["simulation/<br/>generate_uvh5.py"]
+            strategies["strategies/<br/>writers.py<br/>direct_subband.py<br/>hdf5_orchestrator.py"]
+            streaming["streaming/<br/>streaming_converter.py"]
+            unit["unit/<br/>test_conversion_errors.py<br/>test_database_orm.py<br/>test_errors.py"]
+            utils["utils/<br/>angles.py<br/>graphiti_logging.py<br/>alerting.py"]
+        end
+        tests["tests/<br/>Tests"]
+        Docs["docs/<br/>Documentation"]
+        Scripts["scripts/<br/>Utility Scripts"]
+    end
+    conversion --> calibration
+    calibration --> imaging
+    imaging --> photometry
+    photometry --> catalog
+    api --> database
+    api --> conversion
+    pipeline --> conversion
+    pipeline --> calibration
+    pipeline --> imaging
+    utils --> conversion
+    utils --> calibration
+    utils --> imaging
+
+    style backend fill:#e1f5ff
+    style api fill:#ffeb3b
+    style conversion fill:#4caf50
+    style calibration fill:#ff9800
+    style imaging fill:#9c27b0
+    style database fill:#f44336
+    style catalog fill:#00bcd4
+    style photometry fill:#8bc34a
+    style pipeline fill:#ff5722
+    style utils fill:#607d8b

@@ -1,0 +1,43 @@
+flowchart TB
+    subgraph backend["backend/"]
+        Config["Configuration<br/>setup.py"]
+        subgraph Src["src/dsa110_contimg/"]
+            api["api/<br/>cache.py<br/>batch_jobs.py<br/>app.py"]
+            calibration["calibration/<br/>calibration.py<br/>applycal.py<br/>caltables.py"]
+            catalog["catalog/<br/>blacklist_sources.py<br/>astrometric_calibration.py<br/>builders.py"]
+            conversion["conversion/<br/>helpers_antenna.py<br/>helpers.py<br/>cli.py"]
+            database["database/<br/>hdf5_index.py<br/>calibrators.py<br/>data_registry.py"]
+            docsearch["docsearch/<br/>cli.py"]
+            imaging["imaging/<br/>cli_imaging.py<br/>cli_utils.py<br/>cli.py"]
+            photometry["photometry/<br/>aegean_fitting.py<br/>adaptive_binning.py<br/>adaptive_photometry.py"]
+            pipeline["pipeline/<br/>stages_impl.py"]
+            simulation["simulation/<br/>generate_uvh5.py"]
+            utils["utils/<br/>alerting.py<br/>graphiti_logging.py<br/>angles.py"]
+        end
+        tests["tests/<br/>Tests"]
+        Docs["docs/<br/>Documentation"]
+        Scripts["scripts/<br/>Utility Scripts"]
+    end
+    conversion --> calibration
+    calibration --> imaging
+    imaging --> photometry
+    photometry --> catalog
+    api --> database
+    api --> conversion
+    pipeline --> conversion
+    pipeline --> calibration
+    pipeline --> imaging
+    utils --> conversion
+    utils --> calibration
+    utils --> imaging
+
+    style backend fill:#e1f5ff
+    style api fill:#ffeb3b
+    style conversion fill:#4caf50
+    style calibration fill:#ff9800
+    style imaging fill:#9c27b0
+    style database fill:#f44336
+    style catalog fill:#00bcd4
+    style photometry fill:#8bc34a
+    style pipeline fill:#ff5722
+    style utils fill:#607d8b

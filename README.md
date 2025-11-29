@@ -104,10 +104,52 @@ imaging.
 - `scripts/`: Utility and operational scripts
   - `ops/`: Operational scripts (dev, quality, utils, monitoring)
   - `archive/`: Archived scripts
+  - `generate_structure_diagram.py`: Directory structure visualization tool
 - `config/`: Configuration files (docker, editor, hooks, linting, pipeline)
 - `state/`: Runtime state (databases, logs, temporary artifacts)
 - `products/`: Output data products (images, mosaics, caltables)
 - `vendor/`: External dependencies (aocommon, everybeam)
+
+## Development Tools
+
+### Directory Structure Visualization
+
+The project includes a tool to automatically generate visual diagrams of directory structures. This is useful for understanding the organization of any directory in the project.
+
+**Usage:**
+
+```bash
+# Generate diagram for backend
+python scripts/generate_structure_diagram.py /data/dsa110-contimg/backend backend_structure.svg
+
+# Generate diagram for frontend
+python scripts/generate_structure_diagram.py /data/dsa110-contimg/frontend frontend_structure.svg
+
+# Generate diagram for any directory
+python scripts/generate_structure_diagram.py /data/dsa110-contimg/docs docs_structure.svg
+```
+
+**Features:**
+
+- Automatically detects Python packages, key files, and directory structure
+- Generates Mermaid flowchart diagrams showing module relationships
+- Renders to SVG format (ready to use in documentation)
+- Detects common pipeline relationships (conversion → calibration → imaging, etc.)
+- Color-codes different module types for easy identification
+
+**Output:**
+
+The script generates two files:
+- `<output>.svg` - Rendered SVG diagram (ready to use)
+- `<output>.mmd` - Mermaid source code (for manual editing)
+
+The diagrams can be used in:
+- GitHub/GitLab markdown (renders automatically)
+- Documentation
+- Presentations
+- Project onboarding materials
+
+For more details, see `backend/STRUCTURE_DIAGRAM_README.md`.
 
 ## Services and Components
 
