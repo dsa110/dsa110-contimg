@@ -12,6 +12,22 @@ export interface Pointing {
   epoch?: string;
 }
 
+/** Constellation display options */
+export interface ConstellationOptions {
+  /** Show constellation names (IAU abbreviations) */
+  names?: boolean;
+  /** Show constellation lines (stick figures connecting stars) */
+  lines?: boolean;
+  /** Show IAU constellation boundaries */
+  bounds?: boolean;
+  /** Line style */
+  lineStyle?: { stroke?: string; width?: number; opacity?: number };
+  /** Boundary style */
+  boundStyle?: { stroke?: string; width?: number; opacity?: number; dash?: string };
+  /** Name style */
+  nameStyle?: { fill?: string; fontSize?: number; opacity?: number };
+}
+
 export interface SkyCoverageMapProps {
   /** Array of pointing/observation data */
   pointings: Pointing[];
@@ -25,8 +41,8 @@ export interface SkyCoverageMapProps {
   showGalacticPlane?: boolean;
   /** Whether to show ecliptic */
   showEcliptic?: boolean;
-  /** Whether to show constellation labels (abbreviations at approximate centers) */
-  showConstellations?: boolean;
+  /** Whether to show constellations (true = names only for backwards compat, or pass options object) */
+  showConstellations?: boolean | ConstellationOptions;
   /** Color scheme for pointings */
   colorScheme?: "status" | "epoch" | "uniform";
   /** Default radius for pointings without radius (degrees) */
@@ -37,6 +53,46 @@ export interface SkyCoverageMapProps {
   onPointingHover?: (pointing: Pointing | null) => void;
   /** Custom class name */
   className?: string;
+}
+
+// Types for d3-celestial data files
+interface ConstellationFeature {
+  type: "Feature";
+  id: string;
+  properties: {
+    name: string;
+    desig: string;
+    rank: string;
+    display?: [number, number, number];
+  };
+  geometry: {
+    type: "Point";
+    coordinates: [number, number];
+  };
+}
+
+interface ConstellationLinesFeature {
+  type: "Feature";
+  id: string;
+  properties: { rank: string };
+  geometry: {
+    type: "MultiLineString";
+    coordinates: number[][][];
+  };
+}
+
+interface ConstellationBoundsFeature {
+  type: "Feature";
+  id: string;
+  geometry: {
+    type: "Polygon" | "MultiPolygon";
+    coordinates: number[][][] | number[][][][];
+  };
+}
+
+interface GeoJSONCollection<T> {
+  type: "FeatureCollection";
+  features: T[];
 }
 
 /**
@@ -124,6 +180,57 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
   const [selectedProjection, setSelectedProjection] = useState(projection);
   const [hoveredPointing, setHoveredPointing] = useState<Pointing | null>(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+
+  // Constellation data state (loaded from d3-celestial JSON files)
+  const [constellationNames, setConstellationNames] =
+    useState<GeoJSONCollection<ConstellationFeature> | null>(null);
+  const [constellationLines, setConstellationLines] =
+    useState<GeoJSONCollection<ConstellationLinesFeature> | null>(null);
+  const [constellationBounds, setConstellationBounds] =
+    useState<GeoJSONCollection<ConstellationBoundsFeature> | null>(null);
+
+  // Parse constellation options
+  const constOptions: ConstellationOptions =
+    typeof showConstellations === "object"
+      ? showConstellations
+      : showConstellations
+      ? { names: true, lines: true, bounds: true } // Default to full constellation display
+      : { names: false, lines: false, bounds: false };
+
+  // Load constellation data from d3-celestial JSON files
+  useEffect(() => {
+    if (!constOptions.names && !constOptions.lines && !constOptions.bounds) return;
+
+    const loadData = async () => {
+      try {
+        if (constOptions.names && !constellationNames) {
+          const resp = await fetch("/celestial-data/constellations.json");
+          const data = await resp.json();
+          setConstellationNames(data);
+        }
+        if (constOptions.lines && !constellationLines) {
+          const resp = await fetch("/celestial-data/constellations.lines.json");
+          const data = await resp.json();
+          setConstellationLines(data);
+        }
+        if (constOptions.bounds && !constellationBounds) {
+          const resp = await fetch("/celestial-data/constellations.bounds.json");
+          const data = await resp.json();
+          setConstellationBounds(data);
+        }
+      } catch (err) {
+        console.error("Failed to load constellation data:", err);
+      }
+    };
+    loadData();
+  }, [
+    constOptions.names,
+    constOptions.lines,
+    constOptions.bounds,
+    constellationNames,
+    constellationLines,
+    constellationBounds,
+  ]);
 
   // Get D3 projection
   const getProjection = useCallback(() => {
@@ -279,28 +386,155 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
     }
 
     // Constellation labels (simplified - major constellations at approximate centers)
-    if (showConstellations) {
+    // Convert d3-celestial coordinates to our projection format
+    // d3-celestial uses [lon, lat] where lon can be negative (west of prime meridian)
+    const convertCelestialCoord = (lon: number, lat: number): [number, number] => {
+      // Convert from d3-celestial format to standard RA/Dec
+      // d3-celestial uses -180 to 180 longitude, we use 0-360 RA
+      let ra = lon;
+      if (ra < 0) ra += 360;
+      return [ra, lat];
+    };
+
+    // Render constellation boundaries (behind lines and names)
+    if (constOptions.bounds && constellationBounds) {
+      const boundStyle = constOptions.boundStyle || {
+        stroke: "#666633",
+        width: 0.5,
+        opacity: 0.4,
+        dash: "2,4",
+      };
+
+      const boundsGroup = svg.append("g").attr("class", "constellation-bounds");
+
+      constellationBounds.features.forEach((feature) => {
+        if (feature.geometry.type === "Polygon") {
+          const coords = feature.geometry.coordinates[0] as number[][];
+          const pathData = coords
+            .map((coord, i) => {
+              const [lon, lat] = coord;
+              const converted = convertCelestialCoord(lon, lat);
+              const projected = proj(converted);
+              if (!projected) return null;
+              return `${i === 0 ? "M" : "L"}${projected[0]},${projected[1]}`;
+            })
+            .filter(Boolean)
+            .join(" ");
+
+          if (pathData) {
+            boundsGroup
+              .append("path")
+              .attr("d", pathData)
+              .attr("fill", "none")
+              .attr("stroke", boundStyle.stroke)
+              .attr("stroke-width", boundStyle.width)
+              .attr("stroke-opacity", boundStyle.opacity)
+              .attr("stroke-dasharray", boundStyle.dash);
+          }
+        }
+      });
+    }
+
+    // Render constellation lines (stick figures)
+    if (constOptions.lines && constellationLines) {
+      const lineStyle = constOptions.lineStyle || {
+        stroke: "#4a4a6a",
+        width: 1,
+        opacity: 0.5,
+      };
+
+      const linesGroup = svg.append("g").attr("class", "constellation-lines");
+
+      constellationLines.features.forEach((feature) => {
+        feature.geometry.coordinates.forEach((lineSegment) => {
+          // Each lineSegment is an array of [lon, lat] points
+          const pathData = lineSegment
+            .map((coord, i) => {
+              const [lon, lat] = coord;
+              const converted = convertCelestialCoord(lon, lat);
+              const projected = proj(converted);
+              if (!projected) return null;
+              return `${i === 0 ? "M" : "L"}${projected[0]},${projected[1]}`;
+            })
+            .filter(Boolean)
+            .join(" ");
+
+          if (pathData) {
+            linesGroup
+              .append("path")
+              .attr("d", pathData)
+              .attr("fill", "none")
+              .attr("stroke", lineStyle.stroke)
+              .attr("stroke-width", lineStyle.width)
+              .attr("stroke-opacity", lineStyle.opacity);
+          }
+        });
+      });
+    }
+
+    // Render constellation names
+    if (constOptions.names && constellationNames) {
+      const nameStyle = constOptions.nameStyle || {
+        fill: "#888888",
+        fontSize: 10,
+        opacity: 0.7,
+      };
+
+      const namesGroup = svg.append("g").attr("class", "constellation-names");
+
+      constellationNames.features.forEach((feature) => {
+        const [lon, lat] = feature.geometry.coordinates;
+        const converted = convertCelestialCoord(lon, lat);
+        const coords = proj(converted);
+
+        // Only render if within visible area
+        if (
+          coords &&
+          coords[0] > 30 &&
+          coords[0] < width - 30 &&
+          coords[1] > 20 &&
+          coords[1] < height - 20
+        ) {
+          // Font size based on constellation rank (1 = major, 3 = minor)
+          const rank = parseInt(feature.properties.rank) || 2;
+          const fontSize = nameStyle.fontSize - (rank - 1) * 2;
+
+          namesGroup
+            .append("text")
+            .attr("x", coords[0])
+            .attr("y", coords[1])
+            .attr("text-anchor", "middle")
+            .attr("dominant-baseline", "middle")
+            .attr("fill", nameStyle.fill)
+            .attr("font-size", fontSize)
+            .attr("font-style", "italic")
+            .attr("opacity", nameStyle.opacity)
+            .text(feature.properties.desig); // Use 3-letter abbreviation
+        }
+      });
+    } else if (showConstellations === true) {
+      // Fallback to hardcoded list if JSON not loaded yet
       const constellations = [
-        { name: "UMa", ra: 165, dec: 55 }, // Ursa Major
-        { name: "UMi", ra: 225, dec: 75 }, // Ursa Minor
-        { name: "Cas", ra: 15, dec: 60 }, // Cassiopeia
-        { name: "Cyg", ra: 310, dec: 42 }, // Cygnus
-        { name: "Lyr", ra: 285, dec: 35 }, // Lyra
-        { name: "Aql", ra: 295, dec: 5 }, // Aquila
-        { name: "Ori", ra: 85, dec: 5 }, // Orion
-        { name: "CMa", ra: 105, dec: -20 }, // Canis Major
-        { name: "Sgr", ra: 285, dec: -30 }, // Sagittarius
-        { name: "Sco", ra: 255, dec: -30 }, // Scorpius
-        { name: "Leo", ra: 165, dec: 15 }, // Leo
-        { name: "Vir", ra: 200, dec: -5 }, // Virgo
-        { name: "Cen", ra: 200, dec: -45 }, // Centaurus
-        { name: "Cru", ra: 190, dec: -60 }, // Crux
-        { name: "Car", ra: 130, dec: -60 }, // Carina
-        { name: "Peg", ra: 345, dec: 20 }, // Pegasus
-        { name: "And", ra: 10, dec: 38 }, // Andromeda
-        { name: "Per", ra: 55, dec: 45 }, // Perseus
-        { name: "Tau", ra: 65, dec: 18 }, // Taurus
-        { name: "Gem", ra: 110, dec: 25 }, // Gemini
+        { name: "UMa", ra: 165, dec: 55 },
+        { name: "UMi", ra: 225, dec: 75 },
+        { name: "Cas", ra: 15, dec: 60 },
+        { name: "Cyg", ra: 310, dec: 42 },
+        { name: "Lyr", ra: 285, dec: 35 },
+        { name: "Aql", ra: 295, dec: 5 },
+        { name: "Ori", ra: 85, dec: 5 },
+        { name: "CMa", ra: 105, dec: -20 },
+        { name: "Sgr", ra: 285, dec: -30 },
+        { name: "Sco", ra: 255, dec: -30 },
+        { name: "Leo", ra: 165, dec: 15 },
+        { name: "Vir", ra: 200, dec: -5 },
+        { name: "Cen", ra: 200, dec: -45 },
+        { name: "Cru", ra: 190, dec: -60 },
+        { name: "Car", ra: 130, dec: -60 },
+        { name: "Peg", ra: 345, dec: 20 },
+        { name: "And", ra: 10, dec: 38 },
+        { name: "Per", ra: 55, dec: 45 },
+        { name: "Tau", ra: 65, dec: 18 },
+        { name: "Gem", ra: 110, dec: 25 },
       ];
 
       const constGroup = svg.append("g").attr("class", "constellations");
@@ -528,6 +762,10 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
     showGalacticPlane,
     showEcliptic,
     showConstellations,
+    constOptions,
+    constellationNames,
+    constellationLines,
+    constellationBounds,
     colorScheme,
     defaultRadius,
     getProjection,
