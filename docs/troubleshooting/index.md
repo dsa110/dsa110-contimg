@@ -13,6 +13,7 @@ troubleshooting guides in the DSA-110 Continuum Imaging Pipeline.
 | ------------------------------------------------------------- | ----------- | --------------- | -------------------------------------------------------------------------------------- |
 | [Docker WSClean Hang](#docker-wsclean-hang)                   | 🔴 Open     | Backend/Imaging | [docker-wsclean.md](docker-wsclean.md)                                                 |
 | [Image Metadata Not Populated](#image-metadata-not-populated) | 🔴 Open     | Database        | [known-issues/image-metadata-population.md](known-issues/image-metadata-population.md) |
+| [CASA C++ Shutdown Error](#casa-c-shutdown-error)             | ✅ Resolved | Testing/CASA    | [resolved/casa-shutdown-error.md](resolved/casa-shutdown-error.md)                     |
 | [MS Permission Errors](#ms-permission-errors)                 | ✅ Resolved | Backend/CASA    | [resolved/ms-permission-errors.md](resolved/ms-permission-errors.md)                   |
 | [Frontend Restart Required](#frontend-restart-required)       | ✅ Resolved | Frontend        | [resolved/frontend-restart-needed.md](resolved/frontend-restart-needed.md)             |
 
