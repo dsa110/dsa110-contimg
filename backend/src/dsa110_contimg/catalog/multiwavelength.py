@@ -84,6 +84,7 @@ def check_gaia(
     source: SkyCoord, t: Time = None, radius: u.Quantity = 15 * u.arcsec
 ) -> Dict[str, u.Quantity]:
     """Check a source against Gaia, correcting for proper motion."""
+    _ensure_astroquery()
     if t is None:
         if source.obstime is None:
             logger.error(
@@ -132,6 +133,7 @@ def check_pulsarscraper(
     source: SkyCoord, radius: u.Quantity = 15 * u.arcsec
 ) -> Dict[str, u.Quantity]:
     """Check a source against the Pulsar survey scraper."""
+    _ensure_astroquery()  # For requests
     try:
         response = requests.get(
             PULSAR_SCRAPER_URL,
@@ -171,6 +173,7 @@ def check_simbad(
     source: SkyCoord, t: Time = None, radius: u.Quantity = 15 * u.arcsec
 ) -> Dict[str, u.Quantity]:
     """Check a source against Simbad, correcting for proper motion."""
+    _ensure_astroquery()
     if t is None:
         if source.obstime is None:
             logger.error(
@@ -226,6 +229,7 @@ def check_atnf(
     source: SkyCoord, t: Time = None, radius: u.Quantity = 15 * u.arcsec
 ) -> Dict[str, u.Quantity]:
     """Check a source against ATNF pulsar catalog."""
+    _ensure_astroquery()  # For psrqpy
     if t is None:
         if source.obstime is None:
             logger.error(
@@ -330,6 +334,7 @@ def _check_vizier(
     catalog_list: List[str] = None,
 ) -> Dict[str, u.Quantity]:
     """Generic Vizier check helper."""
+    _ensure_astroquery()
     try:
         cat_query = catalog_list if catalog_list else catalog
         result = Vizier().query_region(source, radius=radius, catalog=cat_query)
