@@ -122,6 +122,33 @@
   }
 }
 
+/* Rating/Action card responsive behavior */
+/* Desktop (≥1059px): Rating card sticky on right */
+@media (min-width: 1059px) {
+  .rating-side-card {
+    position: sticky;
+    top: 1rem;
+    max-width: 350px;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+  }
+}
+
+/* Mobile (<1059px): Rating card moves to top, full width */
+@media (max-width: 1058px) {
+  .rating-card-container {
+    order: -1;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    width: 100%;
+    background: white;
+    padding-bottom: 0.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid theme('colors.gray.200');
+  }
+}
+
 /* Loading spinner animation */
 @keyframes spin {
   to {
@@ -131,4 +158,36 @@
 
 .animate-spin {
   animation: spin 0.75s linear infinite;
+}
+
+/* Widget styles */
+.widget-container {
+  @apply bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden;
+}
+
+.widget-header {
+  @apply px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between;
+}
+
+.widget-title {
+  @apply text-sm font-medium text-gray-700;
+}
+
+.widget-body {
+  @apply p-4;
+}
+
+/* Aladin Lite overrides */
+.aladin-container .aladin-fov,
+.aladin-container .aladin-location {
+  font-size: 11px !important;
+}
+
+/* Range slider track */
+input[type="range"]::-webkit-slider-runnable-track {
+  @apply bg-transparent;
+}
+
+input[type="range"]::-moz-range-track {
+  @apply bg-transparent;
 }

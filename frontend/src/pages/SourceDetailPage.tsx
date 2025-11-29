@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import ProvenanceStrip from "../components/provenance/ProvenanceStrip";
 import ErrorDisplay from "../components/errors/ErrorDisplay";
 import { Card, CoordinateDisplay, LoadingSpinner, QAMetrics } from "../components/common";
+import { AladinLiteViewer, LightCurveChart } from "../components/widgets";
+import type { LightCurveDataPoint } from "../components/widgets";
 import { mapProvenanceFromSourceDetail, SourceDetailResponse } from "../utils/provenanceMappers";
 import { relativeTime } from "../utils/relativeTime";
 import type { ErrorResponse } from "../types/errors";
@@ -31,6 +33,7 @@ const SourceDetailPage: React.FC = () => {
   const { data: source, isLoading, error, refetch } = useSource(sourceId);
   const addRecentSource = usePreferencesStore((state) => state.addRecentSource);
   const [selectedImageId, setSelectedImageId] = useState<string | undefined>(undefined);
+  const [showSkyViewer, setShowSkyViewer] = useState(true);
 
   // Track in recent items when source loads
   useEffect(() => {
@@ -45,6 +48,22 @@ const SourceDetailPage: React.FC = () => {
     if (sourceData?.contributing_images?.length) {
       setSelectedImageId(sourceData.contributing_images[0].image_id);
     }
+  }, [source]);
+
+  // Generate light curve data from contributing images
+  const lightCurveData = useMemo((): LightCurveDataPoint[] => {
+    const sourceData = source as SourceDetailResponse | undefined;
+    if (!sourceData?.contributing_images) return [];
+
+    return sourceData.contributing_images
+      .filter((img) => img.flux_jy !== undefined && img.created_at)
+      .map((img) => ({
+        time: img.created_at!,
+        flux: img.flux_jy!,
+        fluxError: img.flux_error_jy,
+        label: img.path?.split("/").pop() || img.image_id,
+      }))
+      .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
   }, [source]);
 
   if (isLoading) {
@@ -197,8 +216,57 @@ const SourceDetailPage: React.FC = () => {
           </Card>
         </div>
 
-        {/* Right column - Contributing images */}
+        {/* Right column - Interactive widgets and images */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Sky Viewer - Aladin Lite */}
+          <Card
+            title="Sky View"
+            subtitle={
+              <button
+                type="button"
+                onClick={() => setShowSkyViewer(!showSkyViewer)}
+                className="text-xs text-blue-600 hover:text-blue-800"
+              >
+                {showSkyViewer ? "Hide" : "Show"}
+              </button>
+            }
+          >
+            {showSkyViewer && (
+              <AladinLiteViewer
+                raDeg={sourceData.ra_deg}
+                decDeg={sourceData.dec_deg}
+                fov={0.1}
+                height={300}
+                sourceName={sourceData.name || `Source ${sourceData.id}`}
+                className="rounded-lg overflow-hidden"
+              />
+            )}
+          </Card>
+
+          {/* Light Curve Chart */}
+          {lightCurveData.length > 1 && (
+            <Card title="Light Curve" subtitle={`${lightCurveData.length} measurements`}>
+              <LightCurveChart
+                data={lightCurveData}
+                height={300}
+                yAxisLabel="Flux"
+                xAxisLabel="Observation Date"
+                enableZoom={true}
+                showErrorBars={true}
+                onPointClick={(point) => {
+                  // Find the corresponding image and select it
+                  const img = sourceData.contributing_images?.find(
+                    (i) => i.created_at === point.time
+                  );
+                  if (img) {
+                    setSelectedImageId(img.image_id);
+                  }
+                }}
+              />
+            </Card>
+          )}
+
+          {/* Contributing Images */}
           {sourceData.contributing_images && sourceData.contributing_images.length > 0 && (
             <Card
               title="Contributing Images"
