@@ -1,27 +1,28 @@
 # Next Steps - DSA-110 Continuum Imaging Pipeline
 
-## Status: Core Setup Complete ✅ (Updated 2025-11-29)
+## Status: Full Stack Complete ✅ (Updated 2025-11-29)
 
-The API backend is fully operational with real data. Database tables are
-populated and all endpoints are returning real data.
+The API backend is fully operational with real data, monitoring, and caching.
 
 ### Current State
 
-| Component         | Status         | Details                      |
-| ----------------- | -------------- | ---------------------------- |
-| API Server        | ✅ Running     | Port 8000, systemd enabled   |
-| MS Records        | ✅ 12 records  | Real measurement sets        |
-| Images            | ✅ 4 records   | FITS files registered        |
-| Photometry        | ✅ 21 records  | 5 unique sources             |
-| Cal Tables        | ✅ 3 records   | Linked to source MS          |
-| Batch Jobs        | ✅ 7 jobs      | Provenance tracking          |
-| Lightcurve        | ✅ Implemented | Returns real flux data       |
-| Nginx             | ✅ Configured  | Reverse proxy on port 80     |
-| Prometheus        | ✅ Enabled     | Metrics at /metrics          |
-| Prometheus Server | ✅ Running     | Scraping API on port 9090    |
-| Redis Cache       | ✅ Connected   | TTL-based caching enabled    |
-| Stats API         | ✅ Implemented | Summary counts at /api/stats |
-| IP Security       | ✅ Active      | Localhost + private networks |
+| Component           | Status         | Details                        |
+| ------------------- | -------------- | ------------------------------ |
+| API Server          | ✅ Running     | Port 8000, systemd enabled     |
+| MS Records          | ✅ 12 records  | Real measurement sets          |
+| Images              | ✅ 4 records   | FITS files registered          |
+| Photometry          | ✅ 21 records  | 5 unique sources               |
+| Cal Tables          | ✅ 3 records   | Linked to source MS            |
+| Batch Jobs          | ✅ 7 jobs      | Provenance tracking            |
+| Lightcurve          | ✅ Implemented | Returns real flux data         |
+| Nginx               | ✅ Configured  | Reverse proxy on port 80       |
+| Prometheus Metrics  | ✅ Enabled     | Metrics at /metrics            |
+| Prometheus Server   | ✅ Running     | Scraping API on port 9090      |
+| Redis Cache         | ✅ Connected   | TTL-based caching enabled      |
+| Stats API           | ✅ Implemented | Summary counts at /api/stats   |
+| IP Security         | ✅ Active      | Localhost + private networks   |
+| Grafana             | ✅ Running     | Dashboard on port 3030         |
+| Scientific Metrics  | ✅ Enabled     | MS, images, sources gauges     |
 
 ---
 
@@ -117,34 +118,33 @@ calibrator catalog | | `jobs:list` | 1 min | Changes during pipeline runs |
 
 ---
 
-## Remaining Tasks
+## Completed Tasks ✅
 
-### 13. Optional: Grafana Dashboard
+### 13. Grafana Dashboard ✅
 
-Prometheus server is now running. Add Grafana for visualization:
+- Grafana running on port 3030 (3000 used by frontend dev server)
+- Prometheus datasource configured
+- DSA-110 Pipeline Dashboard imported with 10 panels:
+  - API Status, Error Rate, Request Rate, P95 Latency
+  - Total Images, Total Sources, Pending Jobs
+  - Cache Hit Rate, API Memory Usage, Request Rate by Endpoint
+- Access: `http://localhost:3030` (admin/admin)
+- Dashboard path: `/d/dsa110-pipeline/dsa-110-continuum-imaging-pipeline`
 
-```bash
-# Install Grafana
-sudo apt-get install grafana
-sudo systemctl enable grafana-server
-sudo systemctl start grafana-server
-# Access at http://localhost:3000 (admin/admin)
+### 14. Custom Scientific Metrics ✅
 
-# Add Prometheus data source:
-# URL: http://localhost:9090
-```
-
-**Recommended Dashboard Panels:**
-
-- Request rate by endpoint
-- P95 latency heatmap
-- Error rate (4xx/5xx)
-- Redis cache hit rate
-- Process memory usage
+- `dsa110_ms_count{stage}` - Measurement sets discovered
+- `dsa110_images_count{type}` - Images by type (image/mosaic)
+- `dsa110_sources_count` - Unique sources detected
+- `dsa110_photometry_count` - Total photometry measurements
+- `dsa110_pending_jobs` / `dsa110_running_jobs` - Job status
+- `dsa110_image_noise_jy` - Histogram of image RMS noise
+- Gauges sync from database every 60 seconds
 
 ---
 
 ## Long-term Improvements
+
 
 ### Performance
 
