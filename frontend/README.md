@@ -12,6 +12,7 @@ effectively.
 The project is organized into several directories:
 
 - **src**: Contains the main source code for the application.
+
   - **components**: Contains reusable React components for displaying provenance
     information and error messages.
     - **provenance**: Components related to provenance data.
@@ -59,9 +60,17 @@ To get started with the project, follow these steps:
    ```
 
 4. **Build the project**:
+
    ```
    npm run build
    ```
+
+5. **Run Storybook** (component development):
+   ```
+   npm run storybook
+   ```
+   See the [Storybook Guide](../docs/STORYBOOK.md) for detailed documentation on
+   developing components with Storybook.
 
 ## Components
 
