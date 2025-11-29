@@ -8,7 +8,7 @@ if [ -f "scripts/check-environment.sh" ]; then
   # Run quick check (suppress output, just check exit code)
   if ! bash scripts/check-environment.sh >/dev/null 2>&1; then
     echo ""
-    echo "⚠️  Post-commit check: Environment issues detected" >&2
+    echo ":warning:  Post-commit check: Environment issues detected" >&2
     echo "   Run './scripts/setup-dev.sh' to fix" >&2
     echo "   Or './scripts/check-environment.sh' for details" >&2
   fi
@@ -20,7 +20,7 @@ if [ -n "$LAST_COMMIT_FILES" ]; then
   CONSOLE_LOGS=$(echo "$LAST_COMMIT_FILES" | xargs grep -l "console\.log\|console\.debug" 2>/dev/null || true)
   if [ -n "$CONSOLE_LOGS" ]; then
     echo ""
-    echo "⚠️  Post-commit check: console.log statements in committed files" >&2
+    echo ":warning:  Post-commit check: console.log statements in committed files" >&2
     echo "   Consider removing or using proper logging" >&2
     echo "$CONSOLE_LOGS" | while read -r file; do
       echo "   - $file" >&2
@@ -32,7 +32,7 @@ fi
 ROOT_MARKDOWN=$(find . -maxdepth 1 -name "*.md" -type f ! -name "README.md" 2>/dev/null | wc -l)
 if [ "$ROOT_MARKDOWN" -gt 0 ]; then
   echo ""
-  echo "⚠️  Post-commit check: Markdown files in root directory" >&2
+  echo ":warning:  Post-commit check: Markdown files in root directory" >&2
   echo "   Documentation should be in docs/ structure" >&2
   echo "   See: docs/DOCUMENTATION_QUICK_REFERENCE.md" >&2
 fi

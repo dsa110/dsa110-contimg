@@ -1,11 +1,11 @@
 # Current Status Summary
 
-## Completed ✓
+## Completed :check:
 
 1. **TIME Conversion Bug Fixed**
    - Fixed `_fix_field_phase_centers_from_times()` to use format detection
    - Fixed `api/routes.py` and `test_utils.py`
-   - Phase centers corrected in MS file (RA: ~170° → ~128°)
+   - Phase centers corrected in MS file (RA: ~170° :arrow_right: ~128°)
 
 2. **Docker Environment Created**
    - Built with Python 3.11.13
@@ -27,8 +27,8 @@ packaging.version.InvalidVersion: Invalid version: "b'3.1.0-2-gdc90bd2\\n'"
 
 **Attempts Made**:
 
-- ✓ With Montblanc support: Failed
-- ✓ Without Montblanc: Failed (same error)
+- :check: With Montblanc support: Failed
+- :check: Without Montblanc: Failed (same error)
 - ⏳ Installing sharedarray separately: In progress
 
 ## Next Steps

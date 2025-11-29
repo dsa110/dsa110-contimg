@@ -95,9 +95,9 @@ docker run -it --rm --gpus all \
 
 ## Benefits
 
-✓ Isolated environment (no conflicts with host) ✓ Clean Ubuntu 20.04 base
-(better compatibility) ✓ GPU access via NVIDIA runtime ✓ Easy to rebuild/clean
-up ✓ Can run alongside existing CASA pipeline
+:check: Isolated environment (no conflicts with host) :check: Clean Ubuntu 20.04 base
+(better compatibility) :check: GPU access via NVIDIA runtime :check: Easy to rebuild/clean
+up :check: Can run alongside existing CASA pipeline
 
 ## Troubleshooting
 

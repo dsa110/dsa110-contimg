@@ -206,34 +206,34 @@ class CARTAClient {
 
 | Message    | Direction       | Description    |
 | ---------- | --------------- | -------------- |
-| OPEN_FILE  | Client → Server | Open FITS file |
-| FILE_INFO  | Server → Client | File metadata  |
-| CLOSE_FILE | Client → Server | Close file     |
+| OPEN_FILE  | Client :arrow_right: Server | Open FITS file |
+| FILE_INFO  | Server :arrow_right: Client | File metadata  |
+| CLOSE_FILE | Client :arrow_right: Server | Close file     |
 
 ### Image Data
 
 | Message           | Direction       | Description         |
 | ----------------- | --------------- | ------------------- |
-| SET_IMAGE_VIEW    | Client → Server | Set view parameters |
-| RASTER_IMAGE_DATA | Server → Client | Image tile data     |
-| SET_COLORMAP      | Client → Server | Change color map    |
+| SET_IMAGE_VIEW    | Client :arrow_right: Server | Set view parameters |
+| RASTER_IMAGE_DATA | Server :arrow_right: Client | Image tile data     |
+| SET_COLORMAP      | Client :arrow_right: Server | Change color map    |
 
 ### Regions
 
 | Message          | Direction       | Description          |
 | ---------------- | --------------- | -------------------- |
-| SET_REGION       | Client → Server | Create/modify region |
-| REGION_STATS     | Server → Client | Region statistics    |
-| REGION_HISTOGRAM | Server → Client | Region histogram     |
+| SET_REGION       | Client :arrow_right: Server | Create/modify region |
+| REGION_STATS     | Server :arrow_right: Client | Region statistics    |
+| REGION_HISTOGRAM | Server :arrow_right: Client | Region histogram     |
 
 ### Profiles
 
 | Message               | Direction       | Description              |
 | --------------------- | --------------- | ------------------------ |
-| SET_SPATIAL_PROFILE   | Client → Server | Request spatial profile  |
-| SPATIAL_PROFILE_DATA  | Server → Client | Spatial profile data     |
-| SET_SPECTRAL_PROFILE  | Client → Server | Request spectral profile |
-| SPECTRAL_PROFILE_DATA | Server → Client | Spectral profile data    |
+| SET_SPATIAL_PROFILE   | Client :arrow_right: Server | Request spatial profile  |
+| SPATIAL_PROFILE_DATA  | Server :arrow_right: Client | Spatial profile data     |
+| SET_SPECTRAL_PROFILE  | Client :arrow_right: Server | Request spectral profile |
+| SPECTRAL_PROFILE_DATA | Server :arrow_right: Client | Spectral profile data    |
 
 ---
 

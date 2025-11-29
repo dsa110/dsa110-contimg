@@ -118,11 +118,11 @@ ls -lh /data/dsa110-contimg/qa_outputs/disk_usage/current/
 Pipeline hooks are already integrated in the code and will automatically
 generate plots after:
 
-- MS Conversion complete → Performance plots
-- Fast plots complete → Antenna health plots
-- Calibration complete → Calibration quality plots
-- Mosaic creation complete → Mosaic quality plots
-- ESE detection complete → ESE candidate dashboard
+- MS Conversion complete :arrow_right: Performance plots
+- Fast plots complete :arrow_right: Antenna health plots
+- Calibration complete :arrow_right: Calibration quality plots
+- Mosaic creation complete :arrow_right: Mosaic quality plots
+- ESE detection complete :arrow_right: ESE candidate dashboard
 
 No additional configuration needed!
 

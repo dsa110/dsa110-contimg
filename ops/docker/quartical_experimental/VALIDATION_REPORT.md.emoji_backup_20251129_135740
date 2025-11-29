@@ -1,43 +1,43 @@
 # Docker Build & Validation Report
 
-## Build Status: ✓ SUCCESS
+## Build Status: :check: SUCCESS
 
 **Image**: `dsa110-cubical:experimental` (7.05 GB)
 
 ### Validated Components
 
-#### ✓ Base Environment
+#### :check: Base Environment
 
 - Ubuntu 20.04 base image
 - Miniconda installed
 - Python 3.9 environment created
 - All system dependencies installed
 
-#### ✓ Python Packages (via Conda)
+#### :check: Python Packages (via Conda)
 
 - CUDA toolkit 11.1
 - CuPy (GPU NumPy) - installed but needs nvidia-docker2 for GPU access
 - NumPy, SciPy
 - Python-casacore 3.4.0
 
-#### ✓ Python Packages (via Pip)
+#### :check: Python Packages (via Pip)
 
 - Astropy 6.0.1
 - Matplotlib 3.9.4
 - h5py 3.14.0
 
-#### ✓ Volume Mounting
+#### :check: Volume Mounting
 
 - Can mount /scratch for MS file access
 - Can mount output directories
 
-#### ⚠️ GPU Access
+#### :warning: GPU Access
 
 - **Requires nvidia-docker2** to be installed on host
 - Container has CUDA toolkit and CuPy ready
 - GPU access will work once nvidia-docker2 is configured
 
-#### ✗ CubiCal Installation
+#### :cross: CubiCal Installation
 
 - **Failed during build** (expected - complex dependencies)
 - Issue: `sharedarray` dependency build failure
@@ -52,7 +52,7 @@ docker run --rm dsa110-cubical:experimental \
   bash -c "source /opt/conda/etc/profile.d/conda.sh && conda activate cubical && python -c 'import numpy; print(numpy.__version__)'"
 ```
 
-**Result**: ✓ Works (NumPy 1.22.3 from conda, 1.26.4 after pip upgrades)
+**Result**: :check: Works (NumPy 1.22.3 from conda, 1.26.4 after pip upgrades)
 
 ### Volume Mounting Test
 
@@ -61,7 +61,7 @@ docker run --rm -v /scratch:/scratch:ro dsa110-cubical:experimental \
   ls /scratch/ms/timesetv3/
 ```
 
-**Result**: ✓ Works (can access MS files)
+**Result**: :check: Works (can access MS files)
 
 ### GPU Access Test
 
@@ -70,7 +70,7 @@ docker run --rm --gpus all dsa110-cubical:experimental \
   bash -c "source /opt/conda/etc/profile.d/conda.sh && conda activate cubical && python -c 'import cupy; print(cupy.cuda.runtime.getDeviceCount())'"
 ```
 
-**Result**: ✗ Fails - requires nvidia-docker2 installation on host
+**Result**: :cross: Fails - requires nvidia-docker2 installation on host
 
 ## Next Steps
 
@@ -112,15 +112,15 @@ pip install "cubical@git+https://github.com/ratt-ru/CubiCal.git@1.4.0"
 
 **What's Working**:
 
-- ✓ Container builds successfully
-- ✓ Python environment configured
-- ✓ Dependencies installed (except CubiCal)
-- ✓ Volume mounting works
+- :check: Container builds successfully
+- :check: Python environment configured
+- :check: Dependencies installed (except CubiCal)
+- :check: Volume mounting works
 
 **What's Needed**:
 
-- ⚠️ nvidia-docker2 for GPU access (host system setup)
-- ⚠️ Manual CubiCal installation (complex dependency resolution)
+- :warning: nvidia-docker2 for GPU access (host system setup)
+- :warning: Manual CubiCal installation (complex dependency resolution)
 
 **Recommendation**: The Docker setup is solid. Proceed with manual CubiCal
 installation inside the container, or investigate alternative installation

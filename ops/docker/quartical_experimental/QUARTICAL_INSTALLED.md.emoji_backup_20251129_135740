@@ -1,6 +1,6 @@
 # QuartiCal Installation - SUCCESS
 
-## Status: ✅ INSTALLED
+## Status: :check: INSTALLED
 
 QuartiCal has been successfully installed in the Docker container!
 
@@ -35,15 +35,15 @@ docker run --rm dsa110-cubical:experimental \
 
 ## Next Steps
 
-1. ✅ QuartiCal installed
-2. ⏭️ Create QuartiCal configuration for calibration
-3. ⏭️ Test QuartiCal on MS file
-4. ⏭️ Compare results with CASA
+1. :check: QuartiCal installed
+2. ⏭:variation_selector-16: Create QuartiCal configuration for calibration
+3. ⏭:variation_selector-16: Test QuartiCal on MS file
+4. ⏭:variation_selector-16: Compare results with CASA
 
 ## Advantages Over CubiCal
 
-- ✅ No sharedarray dependency issues
-- ✅ Modern Python support (3.10-3.12)
-- ✅ Easier installation
-- ✅ More flexible Jones term combinations
-- ✅ Better documentation
+- :check: No sharedarray dependency issues
+- :check: Modern Python support (3.10-3.12)
+- :check: Easier installation
+- :check: More flexible Jones term combinations
+- :check: Better documentation

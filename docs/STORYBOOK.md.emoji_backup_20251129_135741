@@ -188,7 +188,7 @@ Every reusable component should have stories covering:
 ### 2. Use Args for Dynamic Props
 
 ```typescript
-// ✅ Good: Use args for configurable props
+// :check: Good: Use args for configurable props
 export const Primary: Story = {
   args: {
     variant: "primary",
@@ -197,7 +197,7 @@ export const Primary: Story = {
   },
 };
 
-// ❌ Avoid: Hardcoding in render
+// :cross: Avoid: Hardcoding in render
 export const Primary: Story = {
   render: () => <Button variant="primary">Button text</Button>,
 };

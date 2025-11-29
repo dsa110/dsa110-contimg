@@ -79,11 +79,11 @@ def main(argv: list[str] | None = None) -> int:
             cache_dir=args.cache_dir,
         )
 
-        print(f"\n✓ RAX SQLite database created: {output_path}")
+        print(f"\n:check: RAX SQLite database created: {output_path}")
         return 0
 
     except Exception as e:
-        print(f"\n✗ Error building RAX database: {e}")
+        print(f"\n:cross: Error building RAX database: {e}")
         import traceback
 
         traceback.print_exc()

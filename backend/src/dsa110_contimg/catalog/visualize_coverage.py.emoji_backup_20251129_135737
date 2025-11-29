@@ -114,9 +114,9 @@ def plot_catalog_coverage(
             if not within_coverage:
                 status_text = " (outside coverage)"
             elif db_exists:
-                status_text = " ✓ DB exists"
+                status_text = " :check: DB exists"
             else:
-                status_text = " ✗ DB missing"
+                status_text = " :cross: DB missing"
 
         ax.text(
             dec_min + width / 2,
@@ -281,7 +281,7 @@ def plot_coverage_summary_table(
             if within_coverage == "Yes":
                 exists, _ = check_catalog_database_exists(catalog_type, dec_deg)
                 db_exists = "Yes" if exists else "No"
-                status = "✓ Ready" if exists else "✗ Missing"
+                status = ":check: Ready" if exists else ":cross: Missing"
             else:
                 db_exists = "N/A"
                 status = "Outside coverage"
@@ -313,9 +313,9 @@ def plot_coverage_summary_table(
     # Color code cells
     for i in range(len(table_data)):
         status_cell = table[(i + 1, 4)]  # Status column
-        if "✓" in table_data[i][4]:
+        if ":check:" in table_data[i][4]:
             status_cell.set_facecolor("#90EE90")  # Light green
-        elif "✗" in table_data[i][4]:
+        elif ":cross:" in table_data[i][4]:
             status_cell.set_facecolor("#FFB6C1")  # Light red
         else:
             status_cell.set_facecolor("#D3D3D3")  # Light gray
@@ -414,7 +414,7 @@ def main():
             show_database_status=not args.no_db_status,
             ingest_db_path=ingest_db_path,
         )
-        print(f"✓ Coverage plot: {plot_path}")
+        print(f":check: Coverage plot: {plot_path}")
 
     if args.plot_type in ["both", "table"]:
         table_path = plot_coverage_summary_table(
@@ -422,7 +422,7 @@ def main():
             output_path=output_dir / "coverage_table.png",
             ingest_db_path=ingest_db_path,
         )
-        print(f"✓ Coverage table: {table_path}")
+        print(f":check: Coverage table: {table_path}")
 
 
 if __name__ == "__main__":

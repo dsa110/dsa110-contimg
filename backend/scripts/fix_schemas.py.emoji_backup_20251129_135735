@@ -523,19 +523,19 @@ def main(argv: Optional[List[str]] = None) -> int:
     print("=" * 60)
     
     if errors:
-        print(f"\n🔴 ERRORS ({len(errors)}):")
+        print(f"\n:red_circle: ERRORS ({len(errors)}):")
         for r in errors:
             print(f"  - [{r.database or 'system'}] {r.issue_type}: {r.description}")
     
     if warnings:
-        print(f"\n🟡 WARNINGS ({len(warnings)}):")
+        print(f"\n:yellow_circle: WARNINGS ({len(warnings)}):")
         for r in warnings:
             print(f"  - [{r.database}] {r.issue_type}: {r.description}")
             if r.fix_sql:
                 print(f"    Fix: {r.fix_sql}")
     
     if infos and args.verbose:
-        print(f"\n🟢 INFO ({len(infos)}):")
+        print(f"\n:green_circle: INFO ({len(infos)}):")
         for r in infos:
             print(f"  - {r.description}")
     
@@ -543,15 +543,15 @@ def main(argv: Optional[List[str]] = None) -> int:
     if args.fix:
         fixable = [r for r in all_results if r.fix_sql and r.severity in ("warning", "error")]
         if fixable:
-            print(f"\n📧 Applying {len(fixable)} fixes...")
+            print(f"\n:e-mail_symbol: Applying {len(fixable)} fixes...")
             for r in fixable:
                 db_path = get_db_path(r.database)
                 logger.info(f"Applying: {r.fix_sql}")
                 if apply_fix(db_path, r.fix_sql):
                     r.fixed = True
-                    print(f"  ✓ Fixed: {r.description}")
+                    print(f"  :check: Fixed: {r.description}")
                 else:
-                    print(f"  ✗ Failed: {r.description}")
+                    print(f"  :cross: Failed: {r.description}")
             
             fixed_count = sum(1 for r in fixable if r.fixed)
             print(f"\nFixed {fixed_count}/{len(fixable)} issues")
@@ -561,13 +561,13 @@ def main(argv: Optional[List[str]] = None) -> int:
     # Summary
     print("\n" + "-" * 60)
     if errors:
-        print(f"❌ {len(errors)} errors require manual intervention")
+        print(f":cross: {len(errors)} errors require manual intervention")
         return 1
     elif warnings:
-        print(f"⚠️  {len(warnings)} warnings detected" + (" (use --fix to repair)" if not args.fix else ""))
+        print(f":warning:  {len(warnings)} warnings detected" + (" (use --fix to repair)" if not args.fix else ""))
         return 0
     else:
-        print("✅ All databases healthy")
+        print(":check: All databases healthy")
         return 0
 
 

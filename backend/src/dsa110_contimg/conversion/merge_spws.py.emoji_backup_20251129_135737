@@ -290,7 +290,7 @@ def merge_fields(
             print(f"Input MS has {nfields} fields")
             if nfields > 1:
                 print(
-                    f"✓ Validated: all {nfields} fields share the same phase center (max separation: {max_separation_arcsec:.3f} arcsec)"
+                    f":check: Validated: all {nfields} fields share the same phase center (max separation: {max_separation_arcsec:.3f} arcsec)"
                 )
             print(f"Using phase center from field 0: {ref_name}")
 
@@ -330,7 +330,7 @@ def merge_fields(
             if "NAME" in field_out.colnames():
                 field_out.putcol("NAME", [ref_name + "_merged"], startrow=0)
 
-        print(f"✓ Successfully merged {nfields} fields into 1 field")
+        print(f":check: Successfully merged {nfields} fields into 1 field")
 
         # Verify the result
         with table(ms_out + "/FIELD", nomodify=True) as field_check:
@@ -404,6 +404,6 @@ if __name__ == "__main__":
     if n_spw_out:
         print(f"Output SPWs: {n_spw_out}")
         if n_spw_out == 1:
-            print("✓ Successfully merged SPWs into single SPW")
+            print(":check: Successfully merged SPWs into single SPW")
         else:
-            print(f"⚠ Warning: Expected 1 SPW, got {n_spw_out}")
+            print(f":warning: Warning: Expected 1 SPW, got {n_spw_out}")

@@ -3,9 +3,9 @@
 This module provides functions to automatically organize CASA Measurement Set (MS) files
 into date-based subdirectories according to the pipeline's directory architecture:
 
-- Calibrator MS → ms/calibrators/YYYY-MM-DD/<timestamp>.ms/
-- Science MS → ms/science/YYYY-MM-DD/<timestamp>.ms/
-- Failed MS → ms/failed/YYYY-MM-DD/<timestamp>.ms/
+- Calibrator MS :arrow_right: ms/calibrators/YYYY-MM-DD/<timestamp>.ms/
+- Science MS :arrow_right: ms/science/YYYY-MM-DD/<timestamp>.ms/
+- Failed MS :arrow_right: ms/failed/YYYY-MM-DD/<timestamp>.ms/
 
 Organization happens automatically after conversion and updates the products database
 to reflect the new file locations.
@@ -46,9 +46,9 @@ def get_organized_ms_path(
     """Get organized path for MS file based on type and date.
 
     Organizes MS files into hierarchical structure:
-    - Calibrator MS → ms/calibrators/YYYY-MM-DD/<timestamp>.ms/
-    - Science MS → ms/science/YYYY-MM-DD/<timestamp>.ms/
-    - Failed MS → ms/failed/YYYY-MM-DD/<timestamp>.ms/
+    - Calibrator MS :arrow_right: ms/calibrators/YYYY-MM-DD/<timestamp>.ms/
+    - Science MS :arrow_right: ms/science/YYYY-MM-DD/<timestamp>.ms/
+    - Failed MS :arrow_right: ms/failed/YYYY-MM-DD/<timestamp>.ms/
 
     Args:
         ms_path: Current MS file path
@@ -89,9 +89,9 @@ def organize_ms_file(
     """Move MS file to organized directory structure and update database.
 
     Organizes MS files into date-based subdirectories:
-    - Calibrator MS → ms/calibrators/YYYY-MM-DD/
-    - Science MS → ms/science/YYYY-MM-DD/
-    - Failed MS → ms/failed/YYYY-MM-DD/
+    - Calibrator MS :arrow_right: ms/calibrators/YYYY-MM-DD/
+    - Science MS :arrow_right: ms/science/YYYY-MM-DD/
+    - Failed MS :arrow_right: ms/failed/YYYY-MM-DD/
 
     After moving, updates the ms_index table in products.sqlite3 with the new path.
     This ensures the registry always reflects the current file location.
@@ -168,7 +168,7 @@ def organize_ms_file(
                             # Remove old path entry
                             conn.execute("DELETE FROM ms_index WHERE path = ?", (str(ms_path),))
                             conn.commit()
-                            logger.debug(f"Updated database path: {ms_path} → {organized_path}")
+                            logger.debug(f"Updated database path: {ms_path} :arrow_right: {organized_path}")
                         else:
                             # No existing entry, just register new path
                             ms_index_upsert(conn, str(organized_path))

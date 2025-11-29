@@ -239,20 +239,20 @@ const mutation = useMutation({
 
 **Routes defined in `App.tsx`:**
 
-- `/` → Redirects to `/dashboard`
-- `/dashboard` → DashboardPage
-- `/control` → ControlPage
-- `/mosaics` → MosaicGalleryPage
-- `/mosaics/:mosaicId` → MosaicViewPage
-- `/sources` → SourceMonitoringPage
-- `/sources/:sourceId` → SourceDetailPage
-- `/images/:imageId` → ImageDetailPage
-- `/sky` → SkyViewPage
-- `/streaming` → StreamingPage
-- `/data` → DataBrowserPage
-- `/data/:type/:id` → DataDetailPage
-- `/qa` → QAVisualizationPage
-- `/qa/carta` → QACartaPage
+- `/` :arrow_right: Redirects to `/dashboard`
+- `/dashboard` :arrow_right: DashboardPage
+- `/control` :arrow_right: ControlPage
+- `/mosaics` :arrow_right: MosaicGalleryPage
+- `/mosaics/:mosaicId` :arrow_right: MosaicViewPage
+- `/sources` :arrow_right: SourceMonitoringPage
+- `/sources/:sourceId` :arrow_right: SourceDetailPage
+- `/images/:imageId` :arrow_right: ImageDetailPage
+- `/sky` :arrow_right: SkyViewPage
+- `/streaming` :arrow_right: StreamingPage
+- `/data` :arrow_right: DataBrowserPage
+- `/data/:type/:id` :arrow_right: DataDetailPage
+- `/qa` :arrow_right: QAVisualizationPage
+- `/qa/carta` :arrow_right: QACartaPage
 
 ### Navigation Component
 

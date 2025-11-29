@@ -1,13 +1,13 @@
 # Remaining Tasks
 
-## Completed ✓
+## Completed :check:
 
-1. ✓ Fixed TIME conversion bug in `_fix_field_phase_centers_from_times()`
-2. ✓ Fixed TIME conversion in `api/routes.py` and `test_utils.py`
-3. ✓ Fixed phase centers in MS file (RA corrected from ~170° to ~128°)
-4. ✓ Created Docker environment for CubiCal experimentation
-5. ✓ Built Docker image with Python 3.11.13
-6. ✓ Verified Docker environment works
+1. :check: Fixed TIME conversion bug in `_fix_field_phase_centers_from_times()`
+2. :check: Fixed TIME conversion in `api/routes.py` and `test_utils.py`
+3. :check: Fixed phase centers in MS file (RA corrected from ~170° to ~128°)
+4. :check: Created Docker environment for CubiCal experimentation
+5. :check: Built Docker image with Python 3.11.13
+6. :check: Verified Docker environment works
 
 ## Still To Do
 

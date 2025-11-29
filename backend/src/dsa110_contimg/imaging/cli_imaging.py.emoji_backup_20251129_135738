@@ -587,10 +587,10 @@ def image_ms(
 
     # Apply quality tier settings
     if quality_tier == "development":
-        # ⚠️  NON-SCIENCE QUALITY - For code testing only
+        # :warning:  NON-SCIENCE QUALITY - For code testing only
         LOG.warning(
             "=" * 80 + "\n"
-            "⚠️  DEVELOPMENT TIER: NON-SCIENCE QUALITY\n"
+            ":warning:  DEVELOPMENT TIER: NON-SCIENCE QUALITY\n"
             "   This tier uses coarser resolution and fewer iterations.\n"
             "   NEVER use for actual science observations or ESE detection.\n"
             "   Results will have reduced angular resolution and deconvolution quality.\n"

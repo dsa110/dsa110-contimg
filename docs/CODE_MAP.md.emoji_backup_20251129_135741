@@ -7,11 +7,11 @@ corresponding documentation and status. Use this to navigate the codebase.
 
 ---
 
-## 🗺️ System Map
+## :world_map::variation_selector-16: System Map
 
 ### 1. Core Pipeline Infrastructure
 
-**Code Location:** `backend/src/dsa110_contimg/pipeline/` **Status:** 🟢
+**Code Location:** `backend/src/dsa110_contimg/pipeline/` **Status:** :green_circle:
 **Production**
 
 | Component         | Code File        | Documentation                                                              |
@@ -24,7 +24,7 @@ corresponding documentation and status. Use this to navigate the codebase.
 ### 2. Workflow Management ("Absurd")
 
 **Code Location:** `backend/src/dsa110_contimg/absurd/` & `ops/scripts/absurd/`
-**Status:** 🟢 **Active Integration**
+**Status:** :green_circle: **Active Integration**
 
 | Component        | Code File                               | Documentation                                    |
 | :--------------- | :-------------------------------------- | :----------------------------------------------- |
@@ -33,7 +33,7 @@ corresponding documentation and status. Use this to navigate the codebase.
 
 ### 3. Quality Assurance (QA)
 
-**Code Location:** `backend/src/dsa110_contimg/qa/` **Status:** 🟡 **In
+**Code Location:** `backend/src/dsa110_contimg/qa/` **Status:** :yellow_circle: **In
 Development**
 
 | Component              | Code File               | Documentation                               |
@@ -44,7 +44,7 @@ Development**
 ### 4. Imaging & Calibration
 
 **Code Location:** `backend/src/dsa110_contimg/imaging/` &
-`backend/src/dsa110_contimg/calibration/` **Status:** 🟢 **Production**
+`backend/src/dsa110_contimg/calibration/` **Status:** :green_circle: **Production**
 
 | Component           | Code File                | Documentation                                                  |
 | :------------------ | :----------------------- | :------------------------------------------------------------- |
@@ -53,7 +53,7 @@ Development**
 
 ### 5. Frontend Dashboard
 
-**Code Location:** `frontend/src/` **Status:** 🟢 **Production (Phase 3)**
+**Code Location:** `frontend/src/` **Status:** :green_circle: **Production (Phase 3)**
 
 | Component           | Code File                  | Documentation                                                              |
 | :------------------ | :------------------------- | :------------------------------------------------------------------------- |
@@ -63,7 +63,7 @@ Development**
 
 ---
 
-## ⚠️ Deprecation Warnings
+## :warning: Deprecation Warnings
 
 The following documentation may be out of sync with the codebase:
 

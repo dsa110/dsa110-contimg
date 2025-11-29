@@ -14,7 +14,7 @@
 
     // Convert Unicode characters to ASCII equivalents for Mermaid compatibility
     const unicodeMap = {
-      "→": "to",
+      ":arrow_right:": "to",
       "≤": "<=",
       "≥": ">=",
       "≠": "!=",
@@ -222,10 +222,10 @@
       console.log(
         "  - Status:",
         visibleCount === elementsToProcess.length
-          ? "✅ ALL VISIBLE"
+          ? ":check: ALL VISIBLE"
           : visibleCount > 0
-            ? `⚠️  PARTIAL: ${visibleCount}/${elementsToProcess.length}`
-            : "❌ NONE VISIBLE"
+            ? `:warning:  PARTIAL: ${visibleCount}/${elementsToProcess.length}`
+            : ":cross: NONE VISIBLE"
       );
     }
 

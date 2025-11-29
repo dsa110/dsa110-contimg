@@ -1,6 +1,6 @@
 # Next Steps - DSA-110 Continuum Imaging Pipeline
 
-## Status: Full Stack Complete ✅ (Updated 2025-11-29)
+## Status: Full Stack Complete :check: (Updated 2025-11-29)
 
 The API backend is fully operational with real data, monitoring, and caching.
 
@@ -8,65 +8,65 @@ The API backend is fully operational with real data, monitoring, and caching.
 
 | Component          | Status         | Details                      |
 | ------------------ | -------------- | ---------------------------- |
-| API Server         | ✅ Running     | Port 8000, systemd enabled   |
-| MS Records         | ✅ 12 records  | Real measurement sets        |
-| Images             | ✅ 4 records   | FITS files registered        |
-| Photometry         | ✅ 21 records  | 5 unique sources             |
-| Cal Tables         | ✅ 3 records   | Linked to source MS          |
-| Batch Jobs         | ✅ 7 jobs      | Provenance tracking          |
-| Lightcurve         | ✅ Implemented | Returns real flux data       |
-| Nginx              | ✅ Configured  | Reverse proxy on port 80     |
-| Prometheus Metrics | ✅ Enabled     | Metrics at /metrics          |
-| Prometheus Server  | ✅ Running     | Scraping API on port 9090    |
-| Redis Cache        | ✅ Connected   | TTL-based caching enabled    |
-| Stats API          | ✅ Implemented | Summary counts at /api/stats |
-| IP Security        | ✅ Active      | Localhost + private networks |
-| Grafana            | ✅ Running     | Dashboard on port 3030       |
-| Scientific Metrics | ✅ Enabled     | MS, images, sources gauges   |
+| API Server         | :check: Running     | Port 8000, systemd enabled   |
+| MS Records         | :check: 12 records  | Real measurement sets        |
+| Images             | :check: 4 records   | FITS files registered        |
+| Photometry         | :check: 21 records  | 5 unique sources             |
+| Cal Tables         | :check: 3 records   | Linked to source MS          |
+| Batch Jobs         | :check: 7 jobs      | Provenance tracking          |
+| Lightcurve         | :check: Implemented | Returns real flux data       |
+| Nginx              | :check: Configured  | Reverse proxy on port 80     |
+| Prometheus Metrics | :check: Enabled     | Metrics at /metrics          |
+| Prometheus Server  | :check: Running     | Scraping API on port 9090    |
+| Redis Cache        | :check: Connected   | TTL-based caching enabled    |
+| Stats API          | :check: Implemented | Summary counts at /api/stats |
+| IP Security        | :check: Active      | Localhost + private networks |
+| Grafana            | :check: Running     | Dashboard on port 3030       |
+| Scientific Metrics | :check: Enabled     | MS, images, sources gauges   |
 
 ---
 
-## Completed Tasks ✅
+## Completed Tasks :check:
 
-### 1. API Server & Endpoints ✅
+### 1. API Server & Endpoints :check:
 
 - All 14 test endpoints pass
 - Health check, images, sources, MS, calibration, jobs, QA endpoints working
 - Lightcurve endpoint returns real photometry data
 
-### 2. Image Database ✅
+### 2. Image Database :check:
 
 - Registered 4 FITS images from `/stage/dsa110-contimg/`
 - Images linked to MS records with proper metadata
 
-### 3. Calibration Table Linking ✅
+### 3. Calibration Table Linking :check:
 
 - All 3 cal tables have `source_ms_path` set
 - Cal table detail endpoint returns source MS info
 
-### 4. Source Photometry ✅
+### 4. Source Photometry :check:
 
 - 21 photometry records for 5 unique sources
 - Lightcurve endpoint returns flux measurements
 
-### 5. Pipeline Job Records ✅
+### 5. Pipeline Job Records :check:
 
 - 7 batch jobs with 23 job items
 - Imaging, calibration, and conversion jobs tracked
 
-### 6. Systemd Service ✅
+### 6. Systemd Service :check:
 
 - Service file at `/etc/systemd/system/dsa110-api.service`
 - Enabled for auto-start on boot
 
-### 7. IP-Based Access Control ✅
+### 7. IP-Based Access Control :check:
 
 - Restricts API access to localhost and private networks (10.x, 172.16.x,
   192.168.x)
 - Health endpoint always accessible for monitoring
 - Custom IPs via `DSA110_ALLOWED_IPS` environment variable
 
-### 8. Nginx Reverse Proxy ✅
+### 8. Nginx Reverse Proxy :check:
 
 - Config at `/etc/nginx/sites-available/dsa110-contimg`
 - Serves frontend from `/data/dsa110-contimg/frontend/dist`
@@ -75,21 +75,21 @@ The API backend is fully operational with real data, monitoring, and caching.
 - Security headers (X-Frame-Options, X-Content-Type-Options)
 - Gzip compression enabled
 
-### 9. Prometheus Monitoring ✅
+### 9. Prometheus Monitoring :check:
 
 - Metrics endpoint at `/metrics`
 - Collects request latency, count, and status codes
 - Python GC and process metrics included
 - Access via `curl http://localhost:8000/metrics`
 
-### 10. Stats Endpoint ✅
+### 10. Stats Endpoint :check:
 
 - Summary statistics at `/api/stats`
 - Returns counts for MS, images, photometry, sources, jobs
 - Includes job status breakdown and recent images
 - Cache hint for clients (30s recommended refresh)
 
-### 11. Prometheus Server ✅
+### 11. Prometheus Server :check:
 
 - Prometheus server running on port 9090
 - Scraping DSA-110 API every 15 seconds
@@ -97,7 +97,7 @@ The API backend is fully operational with real data, monitoring, and caching.
 - Config at `/etc/prometheus/prometheus.yml`
 - Access UI: `http://localhost:9090`
 
-### 12. Redis Caching ✅
+### 12. Redis Caching :check:
 
 - Redis connected and caching enabled
 - TTL-based expiration (no event-driven invalidation needed)
@@ -118,9 +118,9 @@ calibrator catalog | | `jobs:list` | 1 min | Changes during pipeline runs |
 
 ---
 
-## Completed Tasks ✅
+## Completed Tasks :check:
 
-### 13. Grafana Dashboard ✅
+### 13. Grafana Dashboard :check:
 
 - Grafana running on port 3030 (3000 used by frontend dev server)
 - Prometheus datasource configured
@@ -131,7 +131,7 @@ calibrator catalog | | `jobs:list` | 1 min | Changes during pipeline runs |
 - Access: `http://localhost:3030` (admin/admin)
 - Dashboard path: `/d/dsa110-pipeline/dsa-110-continuum-imaging-pipeline`
 
-### 14. Custom Scientific Metrics ✅
+### 14. Custom Scientific Metrics :check:
 
 - `dsa110_ms_count{stage}` - Measurement sets discovered
 - `dsa110_images_count{type}` - Images by type (image/mosaic)

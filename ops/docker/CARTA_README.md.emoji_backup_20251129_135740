@@ -11,8 +11,8 @@ monitoring.
 - **Port**: 9002 (both frontend and backend)
 - **Frontend URL**: http://localhost:9002
 - **Data Volumes**:
-  - `/data/dsa110-contimg` → `/images/data` (read-only)
-  - `/stage/dsa110-contimg` → `/images/stage` (read-only)
+  - `/data/dsa110-contimg` :arrow_right: `/images/data` (read-only)
+  - `/stage/dsa110-contimg` :arrow_right: `/images/stage` (read-only)
 
 ## Management Commands
 

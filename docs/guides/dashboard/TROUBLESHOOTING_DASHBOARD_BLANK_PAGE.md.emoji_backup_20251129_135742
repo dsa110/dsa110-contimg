@@ -23,10 +23,10 @@ imports must use `import type`.
 **Fix:**
 
 ```typescript
-// ❌ Wrong - causes runtime error
+// :cross: Wrong - causes runtime error
 import { BreadcrumbItem, WorkflowType } from "../types/workflow";
 
-// ✅ Correct - separates type and value imports
+// :check: Correct - separates type and value imports
 import type { BreadcrumbItem, WorkflowType } from "../types/workflow";
 import { NAVIGATION_RULES } from "../types/workflow";
 ```
@@ -43,11 +43,11 @@ interfaces.
 **Fix:**
 
 ```typescript
-// ❌ Wrong
+// :cross: Wrong
 import { Slide, SlideProps } from "@mui/material";
 function SlideTransition(props: SlideProps) { ... }
 
-// ✅ Correct
+// :check: Correct
 import { Slide } from "@mui/material";
 import type { ComponentProps } from "react";
 function SlideTransition(props: ComponentProps<typeof Slide>) { ... }
@@ -70,7 +70,7 @@ test: {
     "**/dist/**",
     "**/e2e/**",
     "**/tests/e2e/**",
-    "**/tests/playwright/**",  // ← Add this
+    "**/tests/playwright/**",  // :arrow_left: Add this
     // ... other excludes ...
   ],
   // Fix worker timeout issues on FUSE filesystems
@@ -174,7 +174,7 @@ type SlideProps = ComponentProps<typeof Slide>;
 // Declare interfaces before they're used
 export interface BreadcrumbItem { ... }
 export interface WorkflowContext {
-  breadcrumbs: BreadcrumbItem[];  // ✅ BreadcrumbItem already defined
+  breadcrumbs: BreadcrumbItem[];  // :check: BreadcrumbItem already defined
 }
 ```
 

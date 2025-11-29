@@ -164,9 +164,9 @@ def main() -> int:
 
     # Validate scratch structure
     if validate_scratch_structure(scratch_dir):
-        print(f"✓ Scratch directory structure validated at {scratch_dir}")
+        print(f":check: Scratch directory structure validated at {scratch_dir}")
     else:
-        print(f"⚠ Warning: Scratch directory structure incomplete at {scratch_dir}")
+        print(f":warning: Warning: Scratch directory structure incomplete at {scratch_dir}")
 
     # Clean up scratch tmp directory
     n_tmp = cleanup_scratch_tmp(scratch_dir, older_than=args.temp_age)

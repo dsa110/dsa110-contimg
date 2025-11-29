@@ -69,7 +69,7 @@ flowchart TD
     MSChecker --> MSDecision{MS Files<br/>Available?}
     
     MSDecision -->|>= 3 files| MSList[MS Paths List]
-    MSDecision -->|< 3 files| HDF5Converter[HDF5→MS Converter<br/>convert_subband_groups_to_ms<br/>Trigger conversion]
+    MSDecision -->|< 3 files| HDF5Converter[HDF5:arrow_right:MS Converter<br/>convert_subband_groups_to_ms<br/>Trigger conversion]
     
     HDF5Converter --> MSList
     
@@ -111,7 +111,7 @@ flowchart TD
     
     Images --> MosaicBuild[STAGE 5: Mosaic Creation<br/>create_mosaic<br/>_build_weighted_mosaic<br/>Method: pbweighted]
     
-    MosaicBuild --> Combine[Combine Tiles<br/>PB Weighting<br/>Tile_0 to Tile_n → Mosaic]
+    MosaicBuild --> Combine[Combine Tiles<br/>PB Weighting<br/>Tile_0 to Tile_n :arrow_right: Mosaic]
     
     Combine --> MosaicFITS[Mosaic FITS File]
     

@@ -33,17 +33,17 @@
 
 ```
 Network Error
-    ↓
+    :arrow_down:
 API Client Interceptor
-    ↓
+    :arrow_down:
 Error Classification
-    ↓
+    :arrow_down:
 Retry Logic (if retryable)
-    ↓
+    :arrow_down:
 Circuit Breaker Check
-    ↓
+    :arrow_down:
 React Query Error Handler
-    ↓
+    :arrow_down:
 Component Error Display
 ```
 

@@ -50,10 +50,10 @@ A **tile** is:
 
 ```
 Measurement Set (MS)
-  → Calibration (apply calibration tables)
-  → Imaging (tclean with deconvolution)
-  → Primary Beam Correction
-  → Tile Image (.pbcor)
+  :arrow_right: Calibration (apply calibration tables)
+  :arrow_right: Imaging (tclean with deconvolution)
+  :arrow_right: Primary Beam Correction
+  :arrow_right: Tile Image (.pbcor)
 ```
 
 **Typical Workflow:**
@@ -84,7 +84,7 @@ Measurement Set (MS)
 ```
 Tile 1 (5 min, pointing A) ──┐
 Tile 2 (5 min, pointing B) ──┤
-Tile 3 (5 min, pointing C) ──┼──→ Mosaic (15 min total, wider FoV)
+Tile 3 (5 min, pointing C) ──┼──:arrow_right: Mosaic (15 min total, wider FoV)
 Tile 4 (5 min, pointing D) ──┘
 ```
 

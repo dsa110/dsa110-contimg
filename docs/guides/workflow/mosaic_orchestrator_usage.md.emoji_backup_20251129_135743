@@ -60,9 +60,9 @@ This displays a table showing:
 Example output:
 
 ```
-📋 Listing available transits for 0834+555...
+:clipboard: Listing available transits for 0834+555...
 
-✓ Found 5 transit(s):
+:check: Found 5 transit(s):
 
 Index    Transit Time            PB Resp    MS Count   Days Ago
 ---------------------------------------------------------------------------
@@ -194,21 +194,21 @@ This processes all transits that meet the quality criteria.
 Batch processing provides a summary at the end:
 
 ```
-📊 Batch processing mosaics for 0834+555
+:chart: Batch processing mosaics for 0834+555
 
 ============================================================
 Processing transit 1/5: 2025-01-15T10:30:00
 ============================================================
-✓ Successfully created mosaic: /stage/.../mosaic_1.fits
+:check: Successfully created mosaic: /stage/.../mosaic_1.fits
 
 ============================================================
 Processing transit 2/5: 2025-01-14T10:30:00
 ============================================================
-✓ Successfully created mosaic: /stage/.../mosaic_2.fits
+:check: Successfully created mosaic: /stage/.../mosaic_2.fits
 
 ...
 
-✓ Batch processing complete: 5/5 successful
+:check: Batch processing complete: 5/5 successful
 ```
 
 ## Existing Mosaic Handling
@@ -292,9 +292,9 @@ Mosaic plan:
 ============================================================
 VALIDATION WARNINGS (may cause issues):
 ============================================================
-  ⚠ Only 3 MS files available, would create asymmetric mosaic.
+  :warning: Only 3 MS files available, would create asymmetric mosaic.
 
-✓ Validation complete. Ready to build.
+:check: Validation complete. Ready to build.
 Run with dry_run=False to create the mosaic.
 ```
 
@@ -413,9 +413,9 @@ print(f"Successfully created {success_count}/{len(results)} mosaics")
 
 for result in results:
     if result["status"] == "success":
-        print(f"  ✓ {result['transit_time']}: {result['path']}")
+        print(f"  :check: {result['transit_time']}: {result['path']}")
     else:
-        print(f"  ✗ {result['transit_time']}: {result.get('error', 'Unknown error')}")
+        print(f"  :cross: {result['transit_time']}: {result.get('error', 'Unknown error')}")
 ```
 
 ## Command-Line Reference

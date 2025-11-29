@@ -78,11 +78,11 @@ def main(argv: list[str] | None = None) -> int:
             cache_dir=args.cache_dir,
         )
 
-        print(f"\n✓ ATNF SQLite database created: {output_path}")
+        print(f"\n:check: ATNF SQLite database created: {output_path}")
         return 0
 
     except Exception as e:
-        print(f"\n✗ Error building ATNF database: {e}")
+        print(f"\n:cross: Error building ATNF database: {e}")
         import traceback
 
         traceback.print_exc()

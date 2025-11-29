@@ -117,10 +117,10 @@ RUN /scripts/preflight-check.sh /app
 
 All scripts tested from multiple locations:
 
-- ✅ From `/tmp` - Passed
-- ✅ From `/home/ubuntu` - Passed
-- ✅ From project root - Passed
-- ✅ With explicit parameter - Passed
+- :check: From `/tmp` - Passed
+- :check: From `/home/ubuntu` - Passed
+- :check: From project root - Passed
+- :check: With explicit parameter - Passed
 
 ## Benefits
 

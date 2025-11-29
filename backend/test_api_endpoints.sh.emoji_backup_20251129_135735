@@ -2,8 +2,8 @@
 # Test script for DSA-110 Continuum Imaging Pipeline API
 
 BASE_URL="http://localhost:8000/api"
-PASS="\033[0;32m✓ PASS\033[0m"
-FAIL="\033[0;31m✗ FAIL\033[0m"
+PASS="\033[0;32m:check: PASS\033[0m"
+FAIL="\033[0;31m:cross: FAIL\033[0m"
 
 echo "========================================="
 echo "Testing DSA-110 Continuum Imaging API"

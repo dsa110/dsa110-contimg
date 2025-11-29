@@ -350,7 +350,7 @@
 └───────────────────────────┬─────────────────────────────────┘
                             │
 ┌───────────────────────────▼─────────────────────────────────┐
-│  2. HDF5 → MS Conversion                                    │
+│  2. HDF5 :arrow_right: MS Conversion                                    │
 │     Input: 16 subband HDF5 files                            │
 │     Output: Single Measurement Set                          │
 │     Register: ms_index (stage="converted")                 │
@@ -409,13 +409,13 @@
 ### Dashboard Data Flow
 
 ```
-User Action → Frontend Component → API Request → Backend Handler → Database Query → Response → Frontend Update
+User Action :arrow_right: Frontend Component :arrow_right: API Request :arrow_right: Backend Handler :arrow_right: Database Query :arrow_right: Response :arrow_right: Frontend Update
 
 Real-Time Flow:
-Backend Event → WebSocket Broadcast → Frontend WebSocket Client → React Query Cache Update → UI Re-render
+Backend Event :arrow_right: WebSocket Broadcast :arrow_right: Frontend WebSocket Client :arrow_right: React Query Cache Update :arrow_right: UI Re-render
 
 Polling Fallback:
-Frontend Polling Timer → API Request → Backend Handler → Database Query → Response → React Query Cache Update → UI Re-render
+Frontend Polling Timer :arrow_right: API Request :arrow_right: Backend Handler :arrow_right: Database Query :arrow_right: Response :arrow_right: React Query Cache Update :arrow_right: UI Re-render
 ```
 
 ### Database Architecture

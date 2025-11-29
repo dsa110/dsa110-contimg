@@ -1,7 +1,7 @@
 # Using the Conversion Orchestrator CLI
 
 **Purpose**: This document explains how to use the unified orchestrator CLI for
-UVH5 → MS conversion. The orchestrator CLI is the **single, canonical pathway**
+UVH5 :arrow_right: MS conversion. The orchestrator CLI is the **single, canonical pathway**
 for all conversion workflows, with flags enabling different modes.
 
 **Location**: `docs/how-to/USING_ORCHESTRATOR_CLI.md`  
@@ -197,7 +197,7 @@ enabled by flags.
 
 The orchestrator CLI is designed to work with other pipeline stages:
 
-1. **Conversion** (this tool): UVH5 → MS
+1. **Conversion** (this tool): UVH5 :arrow_right: MS
 2. **Calibration**: `python -m dsa110_contimg.calibration.cli`
 3. **Imaging**: `python -m dsa110_contimg.imaging.cli`
 

@@ -337,6 +337,6 @@ Returns pointing entries in MJD range.
 
 ---
 
-**Status**: ✅ Production Ready  
+**Status**: :check: Production Ready  
 **Version**: 1.0.0  
 **Last Updated**: 2025-11-07

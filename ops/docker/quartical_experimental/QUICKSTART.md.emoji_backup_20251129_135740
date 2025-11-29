@@ -48,6 +48,6 @@ python -m cubical_experimental.cubical_cli \
 
 ## Benefits
 
-✓ Isolated from Ubuntu 18.x compatibility issues ✓ Clean Ubuntu 20.04
-environment ✓ GPU access via NVIDIA runtime ✓ No conflicts with existing CASA
-installation ✓ Easy to remove if not needed
+:check: Isolated from Ubuntu 18.x compatibility issues :check: Clean Ubuntu 20.04
+environment :check: GPU access via NVIDIA runtime :check: No conflicts with existing CASA
+installation :check: Easy to remove if not needed
