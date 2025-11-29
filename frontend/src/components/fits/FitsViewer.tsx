@@ -170,6 +170,16 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
       window.JS9.SetScale(controls.scale, { display: displayId });
       window.JS9.SetParam("contrast", controls.contrast, { display: displayId });
       window.JS9.SetParam("bias", controls.bias, { display: displayId });
+      
+      // Toggle regions visibility
+      if (controls.showRegions) {
+        window.JS9.DisplayRegions({ display: displayId });
+      } else {
+        window.JS9.RemoveRegions("all", { display: displayId });
+      }
+      
+      // Toggle crosshair
+      window.JS9.SetParam("crosshair", controls.showCrosshair, { display: displayId });
     } catch (err) {
       console.warn("Failed to apply JS9 settings:", err);
     }

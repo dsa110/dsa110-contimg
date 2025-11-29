@@ -26,12 +26,13 @@ const FitsViewerGrid: React.FC<FitsViewerGridProps> = ({
   fitsUrls,
   columns = 2,
   viewerSize = 300,
-  syncViews = true,
+  syncViews: initialSyncViews = true,
   labels,
   onCoordinateClick,
   className = "",
 }) => {
   const [loadedCount, setLoadedCount] = useState(0);
+  const [syncEnabled, setSyncEnabled] = useState(initialSyncViews);
   const [syncState, setSyncState] = useState<{
     zoom?: number;
     pan?: { x: number; y: number };
@@ -39,7 +40,7 @@ const FitsViewerGrid: React.FC<FitsViewerGridProps> = ({
 
   // Handle sync across viewers
   const handleSync = useCallback(() => {
-    if (!syncViews || !window.JS9) return;
+    if (!syncEnabled || !window.JS9) return;
 
     // Get state from first viewer
     const firstDisplayId = `JS9Grid_0`;
@@ -62,7 +63,7 @@ const FitsViewerGrid: React.FC<FitsViewerGridProps> = ({
 
   // Set up sync event listeners
   useEffect(() => {
-    if (!syncViews || loadedCount < fitsUrls.length) return;
+    if (!syncEnabled || loadedCount < fitsUrls.length) return;
 
     const handleChange = () => {
       handleSync();
@@ -115,10 +116,9 @@ const FitsViewerGrid: React.FC<FitsViewerGridProps> = ({
         <label className="flex items-center gap-2 text-sm cursor-pointer">
           <input
             type="checkbox"
-            checked={syncViews}
-            onChange={() => {}}
-            className="w-4 h-4 rounded"
-            disabled // For now, sync is controlled by prop
+            checked={syncEnabled}
+            onChange={(e) => setSyncEnabled(e.target.checked)}
+            className="w-4 h-4 rounded accent-primary"
           />
           <span>Sync views</span>
         </label>
