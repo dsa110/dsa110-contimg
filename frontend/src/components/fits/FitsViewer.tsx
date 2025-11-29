@@ -186,7 +186,7 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
 
               setCursorWCS({ ra: raStr, dec: decStr });
             }
-          } catch (_e) {
+          } catch {
             // WCS may not be available
           }
         },
