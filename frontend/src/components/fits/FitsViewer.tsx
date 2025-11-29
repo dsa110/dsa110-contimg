@@ -116,7 +116,7 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
     try {
       window.JS9.Load(fitsUrl, {
         display: displayId,
-        onload: (im: any) => {
+        onload: (_im: any) => {
           setIsLoading(false);
 
           // Apply initial settings
@@ -186,7 +186,7 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
 
               setCursorWCS({ ra: raStr, dec: decStr });
             }
-          } catch (e) {
+          } catch (_e) {
             // WCS may not be available
           }
         },

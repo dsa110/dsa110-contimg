@@ -195,7 +195,7 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
     overlayLayersRef.current.forEach((layer) => {
       try {
         aladinRef.current.removeLayer(layer);
-      } catch (e) {
+      } catch (_e) {
         // Layer may already be removed
       }
     });
@@ -209,7 +209,7 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
         try {
           aladinRef.current.removeLayer(layer);
           overlayLayersRef.current.delete(catalogId);
-        } catch (e) {
+        } catch (_e) {
           // Layer may already be removed
         }
       }

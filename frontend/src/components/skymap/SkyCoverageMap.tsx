@@ -128,7 +128,6 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
   // Get D3 projection
   const getProjection = useCallback(() => {
     const scale = Math.min(width, height * 2) / 6;
-    const center: [number, number] = [0, 0];
 
     switch (selectedProjection) {
       case "mollweide":
@@ -277,6 +276,57 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
         .attr("stroke-width", 1.5)
         .attr("stroke-dasharray", "3,3")
         .attr("opacity", 0.7);
+    }
+
+    // Constellation labels (simplified - major constellations at approximate centers)
+    if (showConstellations) {
+      const constellations = [
+        { name: "UMa", ra: 165, dec: 55 }, // Ursa Major
+        { name: "UMi", ra: 225, dec: 75 }, // Ursa Minor
+        { name: "Cas", ra: 15, dec: 60 }, // Cassiopeia
+        { name: "Cyg", ra: 310, dec: 42 }, // Cygnus
+        { name: "Lyr", ra: 285, dec: 35 }, // Lyra
+        { name: "Aql", ra: 295, dec: 5 }, // Aquila
+        { name: "Ori", ra: 85, dec: 5 }, // Orion
+        { name: "CMa", ra: 105, dec: -20 }, // Canis Major
+        { name: "Sgr", ra: 285, dec: -30 }, // Sagittarius
+        { name: "Sco", ra: 255, dec: -30 }, // Scorpius
+        { name: "Leo", ra: 165, dec: 15 }, // Leo
+        { name: "Vir", ra: 200, dec: -5 }, // Virgo
+        { name: "Cen", ra: 200, dec: -45 }, // Centaurus
+        { name: "Cru", ra: 190, dec: -60 }, // Crux
+        { name: "Car", ra: 130, dec: -60 }, // Carina
+        { name: "Peg", ra: 345, dec: 20 }, // Pegasus
+        { name: "And", ra: 10, dec: 38 }, // Andromeda
+        { name: "Per", ra: 55, dec: 45 }, // Perseus
+        { name: "Tau", ra: 65, dec: 18 }, // Taurus
+        { name: "Gem", ra: 110, dec: 25 }, // Gemini
+      ];
+
+      const constGroup = svg.append("g").attr("class", "constellations");
+
+      constellations.forEach(({ name, ra, dec }) => {
+        const coords = proj([ra, dec]);
+        if (
+          coords &&
+          coords[0] > 20 &&
+          coords[0] < width - 20 &&
+          coords[1] > 20 &&
+          coords[1] < height - 20
+        ) {
+          constGroup
+            .append("text")
+            .attr("x", coords[0])
+            .attr("y", coords[1])
+            .attr("text-anchor", "middle")
+            .attr("dominant-baseline", "middle")
+            .attr("fill", "#666")
+            .attr("font-size", 9)
+            .attr("font-style", "italic")
+            .attr("opacity", 0.6)
+            .text(name);
+        }
+      });
     }
 
     // RA/Dec labels
@@ -453,9 +503,7 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
     }
 
     // Add zoom and pan behavior
-    const contentGroup = svg.select("g.map-content");
-    // Wrap all content except legend in a group for zooming if not already
-    const allContent = svg.selectAll("*:not(.legend-group)");
+    // Note: Zoom transforms are applied directly to selectable elements
 
     const zoom = d3
       .zoom<SVGSVGElement, unknown>()
@@ -479,6 +527,7 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
     height,
     showGalacticPlane,
     showEcliptic,
+    showConstellations,
     colorScheme,
     defaultRadius,
     getProjection,

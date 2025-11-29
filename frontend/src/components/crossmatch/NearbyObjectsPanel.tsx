@@ -56,14 +56,16 @@ const NearbyObjectsPanel: React.FC<NearbyObjectsPanelProps> = ({
 
     try {
       const objects = await onSearch(raDeg, decDeg, radius);
-      setResults(objects);
+      // Filter out the current source if excludeId is provided
+      const filteredObjects = excludeId ? objects.filter((obj) => obj.id !== excludeId) : objects;
+      setResults(filteredObjects);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Search failed");
       setResults([]);
     } finally {
       setIsLoading(false);
     }
-  }, [raDeg, decDeg, radius, onSearch]);
+  }, [raDeg, decDeg, radius, onSearch, excludeId]);
 
   // Auto-search on mount
   useEffect(() => {
@@ -130,11 +132,7 @@ const NearbyObjectsPanel: React.FC<NearbyObjectsPanelProps> = ({
   const SortArrow: React.FC<{ column: SortKey }> = ({ column }) => {
     if (sortKey !== column) {
       return (
-        <svg
-          className="w-3 h-3 text-gray-300 ml-1"
-          viewBox="0 0 10 10"
-          aria-hidden="true"
-        >
+        <svg className="w-3 h-3 text-gray-300 ml-1" viewBox="0 0 10 10" aria-hidden="true">
           <path d="M5 2l2 2H3z" fill="currentColor" />
           <path d="M5 8L3 6h4z" fill="currentColor" />
         </svg>
@@ -142,11 +140,7 @@ const NearbyObjectsPanel: React.FC<NearbyObjectsPanelProps> = ({
     }
     if (sortDir === "asc") {
       return (
-        <svg
-          className="w-3 h-3 text-gray-500 ml-1"
-          viewBox="0 0 10 10"
-          aria-hidden="true"
-        >
+        <svg className="w-3 h-3 text-gray-500 ml-1" viewBox="0 0 10 10" aria-hidden="true">
           <path d="M5 2l3 4H2z" fill="currentColor" />
         </svg>
       );

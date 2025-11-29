@@ -49,7 +49,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
   className = "",
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
-  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
+  // Note: For grouped/sectioned filters, use AdvancedFilterPanel instead
 
   const handleFilterChange = useCallback(
     (filterId: string, value: FilterValues[string]) => {
@@ -74,13 +74,6 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
     });
     onChange(resetValues);
   }, [filters, onChange]);
-
-  const toggleSection = useCallback((sectionId: string) => {
-    setExpandedSections((prev) => ({
-      ...prev,
-      [sectionId]: !prev[sectionId],
-    }));
-  }, []);
 
   const activeFilterCount = useMemo(() => {
     return Object.entries(values).filter(([key, value]) => {
@@ -192,12 +185,7 @@ const FilterPanel: React.FC<FilterPanelProps> = ({
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
             </svg>
           )}
           <h3 className="text-sm font-medium text-gray-900">{title}</h3>

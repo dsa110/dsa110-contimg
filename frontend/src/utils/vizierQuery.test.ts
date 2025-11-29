@@ -17,27 +17,34 @@ describe("vizierQuery", () => {
     vi.restoreAllMocks();
   });
 
+  // Mock catalog matching production CatalogDefinition interface
   const mockCatalog: CatalogDefinition = {
     id: "test-catalog",
     name: "Test Catalog",
     vizierTable: "I/test",
     description: "A test catalog",
-    raColumn: "ra",
-    decColumn: "dec",
+    raColumn: "RAJ2000",
+    decColumn: "DEJ2000",
+    color: "#ff0000",
+    symbol: "circle",
+    defaultEnabled: false,
   };
 
   describe("queryCatalog", () => {
-    it("should make a TAP request to VizieR", async () => {
-      // Mock VOTable XML response
+    it("should make a TAP request to VizieR and parse results", async () => {
+      // Mock VOTable XML response matching what VizieR actually returns
+      // The ADQL query aliases columns as "ra" and "dec" (lowercase)
       const votableXml = `<?xml version="1.0" encoding="UTF-8"?>
-<VOTABLE version="1.4">
+<VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">
   <RESOURCE type="results">
     <TABLE>
-      <FIELD name="ra" datatype="double"/>
-      <FIELD name="dec" datatype="double"/>
+      <FIELD name="ra" datatype="double" unit="deg"/>
+      <FIELD name="dec" datatype="double" unit="deg"/>
+      <FIELD name="RAJ2000" datatype="double" unit="deg"/>
+      <FIELD name="DEJ2000" datatype="double" unit="deg"/>
       <DATA>
         <TABLEDATA>
-          <TR><TD>180.0</TD><TD>45.0</TD></TR>
+          <TR><TD>180.0</TD><TD>45.0</TD><TD>180.0</TD><TD>45.0</TD></TR>
         </TABLEDATA>
       </DATA>
     </TABLE>
@@ -55,15 +62,24 @@ describe("vizierQuery", () => {
       const [url] = mockFetch.mock.calls[0];
       expect(url).toContain("tapvizier.cds.unistra.fr");
       expect(url).toContain("ADQL");
+
+      // Verify the source was parsed correctly
+      expect(result.sources).toHaveLength(1);
+      expect(result.sources[0].ra).toBe(180.0);
+      expect(result.sources[0].dec).toBe(45.0);
+      expect(result.sources[0].catalog).toBe("test-catalog");
+      expect(result.count).toBe(1);
+      expect(result.truncated).toBe(false);
     });
 
     it("should handle empty results", async () => {
+      // Empty VOTable with proper structure but no data rows
       const emptyVotable = `<?xml version="1.0" encoding="UTF-8"?>
-<VOTABLE version="1.4">
+<VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">
   <RESOURCE type="results">
     <TABLE>
-      <FIELD name="ra" datatype="double"/>
-      <FIELD name="dec" datatype="double"/>
+      <FIELD name="ra" datatype="double" unit="deg"/>
+      <FIELD name="dec" datatype="double" unit="deg"/>
       <DATA>
         <TABLEDATA>
         </TABLEDATA>
@@ -82,6 +98,7 @@ describe("vizierQuery", () => {
       expect(result.sources).toHaveLength(0);
       expect(result.count).toBe(0);
       expect(result.truncated).toBe(false);
+      expect(result.error).toBeUndefined();
     });
 
     it("should handle network errors", async () => {
@@ -110,14 +127,14 @@ describe("vizierQuery", () => {
 
   describe("queryMultipleCatalogs", () => {
     it("should return results for each catalog as a Map", async () => {
-      // Mock VOTable XML response with proper FIELD definitions
-      // VizieR returns FIELD elements that define the column structure
-      const emptyVotable = `<?xml version="1.0"?>
-<VOTABLE version="1.4">
+      // Mock VOTable XML response matching VizieR production format
+      // Includes FIELD definitions with aliased column names from ADQL query
+      const emptyVotable = `<?xml version="1.0" encoding="UTF-8"?>
+<VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.3">
   <RESOURCE type="results">
     <TABLE>
-      <FIELD name="ra" datatype="double"/>
-      <FIELD name="dec" datatype="double"/>
+      <FIELD name="ra" datatype="double" unit="deg"/>
+      <FIELD name="dec" datatype="double" unit="deg"/>
       <DATA>
         <TABLEDATA></TABLEDATA>
       </DATA>
@@ -125,7 +142,7 @@ describe("vizierQuery", () => {
   </RESOURCE>
 </VOTABLE>`;
 
-      // Mock enough responses for potential retries
+      // Mock enough responses for both catalogs
       for (let i = 0; i < 4; i++) {
         mockFetch.mockResolvedValueOnce({
           ok: true,
@@ -133,7 +150,7 @@ describe("vizierQuery", () => {
         });
       }
 
-      const catalogs = [
+      const catalogs: CatalogDefinition[] = [
         { ...mockCatalog, id: "cat1" },
         { ...mockCatalog, id: "cat2" },
       ];
@@ -145,6 +162,12 @@ describe("vizierQuery", () => {
       expect(results.size).toBe(2);
       expect(results.has("cat1")).toBe(true);
       expect(results.has("cat2")).toBe(true);
+
+      // Verify each result has the expected structure
+      const cat1Result = results.get("cat1");
+      expect(cat1Result?.catalogId).toBe("cat1");
+      expect(cat1Result?.sources).toHaveLength(0);
+      expect(cat1Result?.error).toBeUndefined();
     });
   });
 });

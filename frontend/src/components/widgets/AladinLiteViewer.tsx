@@ -21,20 +21,6 @@ export interface AladinLiteViewerProps {
   showFullscreen?: boolean;
 }
 
-interface AladinOptions {
-  target: string;
-  fov: number;
-  survey?: string;
-  showReticle?: boolean;
-  showZoomControl?: boolean;
-  showFullscreenControl?: boolean;
-  showLayersControl?: boolean;
-  showGotoControl?: boolean;
-  showShareControl?: boolean;
-  showCatalog?: boolean;
-  showFrame?: boolean;
-}
-
 interface AladinInstance {
   gotoRaDec: (ra: number, dec: number) => void;
   setFoV: (fov: number) => void;
@@ -103,6 +89,13 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
           showCatalog: true,
           showFrame: true,
         });
+
+        // Add source marker if sourceName is provided
+        if (sourceName) {
+          const catalog = A.catalog({ name: "Source", sourceSize: 18, color: "#ff6b6b" });
+          aladinRef.current.addCatalog(catalog);
+          catalog.addSources([A.source(raDeg, decDeg, { name: sourceName })]);
+        }
         setIsLoading(false);
       } catch (err) {
         if (!cancelled) {

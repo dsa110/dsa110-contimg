@@ -58,6 +58,8 @@ const FitsViewerGrid: React.FC<FitsViewerGridProps> = ({
       const pan = window.JS9.GetPan({ display: firstDisplayId });
 
       if (zoom && pan) {
+        // Update sync state for UI feedback
+        setSyncState({ zoom, pan });
         // Apply to all other viewers
         for (let i = 1; i < fitsUrls.length; i++) {
           const displayId = `JS9Grid_${i}`;
@@ -119,9 +121,14 @@ const FitsViewerGrid: React.FC<FitsViewerGridProps> = ({
     <div className={className}>
       {/* Header with sync toggle */}
       <div className="flex items-center justify-between mb-3">
-        <span className="text-sm text-gray-600">
-          {loadedCount}/{fitsUrls.length} images loaded
-        </span>
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-gray-600">
+            {loadedCount}/{fitsUrls.length} images loaded
+          </span>
+          {syncEnabled && syncState.zoom && (
+            <span className="text-xs text-gray-500">Zoom: {syncState.zoom.toFixed(2)}x</span>
+          )}
+        </div>
         <label className="flex items-center gap-2 text-sm cursor-pointer">
           <input
             type="checkbox"
