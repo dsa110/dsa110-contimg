@@ -7,31 +7,35 @@ Pipeline services, monitoring stack, and development tools.
 
 ## Robust Port Reservation
 
-All production services are configured with **robust port reservation**. This means:
+All production services are configured with **robust port reservation**. This
+means:
 
-1. **Exclusive Port Ownership**: Each service is assigned a specific port that it owns exclusively
-2. **Automatic Conflict Resolution**: Before starting, each service runs `/usr/local/bin/claim-port.sh` which:
+1. **Exclusive Port Ownership**: Each service is assigned a specific port that
+   it owns exclusively
+2. **Automatic Conflict Resolution**: Before starting, each service runs
+   `/usr/local/bin/claim-port.sh` which:
    - Checks if the assigned port is in use
    - Sends SIGTERM to any occupying process (graceful shutdown)
    - Waits up to 5 seconds for graceful termination
    - Sends SIGKILL if the process doesn't exit
    - Only then starts the service
-3. **No Fallback Ports**: Services will NOT move to alternative ports - they will claim their assigned port
+3. **No Fallback Ports**: Services will NOT move to alternative ports - they
+   will claim their assigned port
 
 This is implemented via `ExecStartPre` in systemd service files.
 
 ## Quick Reference
 
-| Port | Service            | Protocol | Access           | Configurable          | Robust? |
-| ---- | ------------------ | -------- | ---------------- | --------------------- | ------- |
-| 80   | Nginx              | HTTP     | Public           | No                    | No†     |
-| 3000 | Vite Dev Server    | HTTP     | Dev only         | No (hardcoded)        | No      |
-| 3030 | Grafana            | HTTP     | Localhost        | grafana.ini           | **Yes** |
-| 5173 | Vite Dev (default) | HTTP     | Dev only         | No (hardcoded)        | No      |
-| 6379 | Redis              | TCP      | Localhost        | REDIS_PORT            | **Yes** |
-| 8000 | FastAPI            | HTTP     | Private networks | CONTIMG_API_PORT      | **Yes** |
-| 8001 | MkDocs             | HTTP     | Dev only         | CONTIMG_DOCS_PORT     | No      |
-| 9090 | Prometheus         | HTTP     | Localhost        | prometheus.yml        | **Yes** |
+| Port | Service            | Protocol | Access           | Configurable      | Robust? |
+| ---- | ------------------ | -------- | ---------------- | ----------------- | ------- |
+| 80   | Nginx              | HTTP     | Public           | No                | No†     |
+| 3000 | Vite Dev Server    | HTTP     | Dev only         | No (hardcoded)    | No      |
+| 3030 | Grafana            | HTTP     | Localhost        | grafana.ini       | **Yes** |
+| 5173 | Vite Dev (default) | HTTP     | Dev only         | No (hardcoded)    | No      |
+| 6379 | Redis              | TCP      | Localhost        | REDIS_PORT        | **Yes** |
+| 8000 | FastAPI            | HTTP     | Private networks | CONTIMG_API_PORT  | **Yes** |
+| 8001 | MkDocs             | HTTP     | Dev only         | CONTIMG_DOCS_PORT | No      |
+| 9090 | Prometheus         | HTTP     | Localhost        | prometheus.yml    | **Yes** |
 
 †Nginx doesn't need robust reservation as port 80 typically has no conflicts.
 
@@ -113,7 +117,9 @@ This is implemented via `ExecStartPre` in systemd service files.
 
 ## Port Claim Utility
 
-The `/usr/local/bin/claim-port.sh` script provides robust port reservation. It is automatically invoked by systemd before starting services, but can also be used manually.
+The `/usr/local/bin/claim-port.sh` script provides robust port reservation. It
+is automatically invoked by systemd before starting services, but can also be
+used manually.
 
 ### Usage
 
@@ -149,12 +155,12 @@ ExecStartPre=+/usr/local/bin/claim-port.sh <port>
 
 ### Configured Services
 
-| Service                | Port | Configuration Location                                   |
-| ---------------------- | ---- | -------------------------------------------------------- |
-| dsa110-api             | 8000 | `/etc/systemd/system/dsa110-api.service`                 |
-| prometheus             | 9090 | `/etc/systemd/system/prometheus.service.d/claim-port.conf` |
-| redis-server           | 6379 | `/etc/systemd/system/redis-server.service.d/claim-port.conf` |
-| grafana-simple         | 3030 | `/etc/systemd/system/grafana-simple.service`             |
+| Service        | Port | Configuration Location                                       |
+| -------------- | ---- | ------------------------------------------------------------ |
+| dsa110-api     | 8000 | `/etc/systemd/system/dsa110-api.service`                     |
+| prometheus     | 9090 | `/etc/systemd/system/prometheus.service.d/claim-port.conf`   |
+| redis-server   | 6379 | `/etc/systemd/system/redis-server.service.d/claim-port.conf` |
+| grafana-simple | 3030 | `/etc/systemd/system/grafana-simple.service`                 |
 
 ## Common Commands
 
@@ -199,11 +205,11 @@ sudo kill -9 $(lsof -ti :<port>)
 
 ### Common Conflicts
 
-| Conflict              | Resolution                                       |
-| --------------------- | ------------------------------------------------ |
-| Grafana vs Vite       | Grafana moved to 3030                            |
-| Multiple uvicorn      | `pkill -f "dsa110_contimg.api"`                  |
-| Port 80 in use        | Stop other web server or change nginx port       |
+| Conflict         | Resolution                                 |
+| ---------------- | ------------------------------------------ |
+| Grafana vs Vite  | Grafana moved to 3030                      |
+| Multiple uvicorn | `pkill -f "dsa110_contimg.api"`            |
+| Port 80 in use   | Stop other web server or change nginx port |
 
 ## Firewall Configuration
 

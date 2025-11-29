@@ -1,16 +1,6 @@
 #!/bin/bash
 # claim-port.sh - Forcefully free a port before service startup
 # Usage: ./claim-port.sh <port> [--dry-run]
-# 
-# This script will:
-# 1. Check if a port has a LISTENER (not just connections to it)
-# 2. Identify the process listening on that port
-# 3. Kill that process (gracefully first, then forcefully)
-# 4. Wait for the port to be free
-#
-# Designed to be called from systemd ExecStartPre
-
-set -e
 
 PORT="${1:-}"
 DRY_RUN="${2:-}"
@@ -27,8 +17,7 @@ fi
 
 # Check if port has a listener (not just connections)
 check_listener() {
-    # -sTCP:LISTEN only shows listening sockets
-    lsof -i ":$PORT" -sTCP:LISTEN -t 2>/dev/null
+    lsof -i ":$PORT" -sTCP:LISTEN -t 2>/dev/null || true
 }
 
 # Get process info for logging
@@ -73,20 +62,22 @@ for i in {1..10}; do
 done
 
 # Force kill remaining processes
-echo "Graceful shutdown failed, using SIGKILL..."
+echo "Graceful shutdown incomplete, using SIGKILL..."
 PIDS=$(check_listener)
-for pid in $PIDS; do
-    if kill -0 "$pid" 2>/dev/null; then
-        echo "  Sending SIGKILL to $pid"
-        kill -9 "$pid" 2>/dev/null || true
-    fi
-done
+if [ -n "$PIDS" ]; then
+    for pid in $PIDS; do
+        if kill -0 "$pid" 2>/dev/null; then
+            echo "  Sending SIGKILL to $pid"
+            kill -9 "$pid" 2>/dev/null || true
+        fi
+    done
+fi
 
 # Final wait
 sleep 1
 PIDS=$(check_listener)
 if [ -z "$PIDS" ]; then
-    echo "Port $PORT freed forcefully"
+    echo "Port $PORT freed"
     exit 0
 else
     echo "ERROR: Failed to free port $PORT"
