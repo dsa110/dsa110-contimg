@@ -67,13 +67,13 @@ log() {
 
 # Check if port has a TCP listener
 check_listener() {
-    lsof -i ":$PORT" -sTCP:LISTEN -t 2>/dev/null  # Exception: port check may return empty || true
+    lsof -i ":$PORT" -sTCP:LISTEN -t 2>/dev/null  # Exception: port check may return empty  # Exception: port check may return empty || true
 }
 
 # Get process info for logging
 get_process_info() {
     local pid="$1"
-    ps -p "$pid" -o pid=,comm=,user=,args= 2>/dev/null | head -1 || echo "$pid (exited)"
+    ps -p "$pid" -o pid=,comm=,user=,args= 2>/dev/null  # Exception: process may have exited | head -1 || echo "$pid (exited)"
 }
 
 # Check if a PID is protected (should not be killed)
@@ -87,7 +87,7 @@ is_protected() {
     fi
     
     # Never kill critical system processes
-    comm=$(ps -p "$pid" -o comm= 2>/dev/null || true)
+    comm=$(ps -p "$pid" -o comm= 2>/dev/null # Exception: process may have exited || true)
     case "$comm" in
         systemd|systemd-*|journald|sshd|init|dbus-daemon)
             return 0
@@ -102,8 +102,8 @@ kill_process() {
     local pid="$1"
     local signal="$2"
     
-    if kill -0 "$pid" 2>/dev/null; then
-        kill "-$signal" "$pid" 2>/dev/null || true
+    if kill -0 "$pid" 2>/dev/null  # Exception: process existence check; then
+        kill "-$signal" "$pid" 2>/dev/null  # Exception: process may have exited || true
         return 0
     fi
     return 1
