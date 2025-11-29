@@ -80,3 +80,17 @@ jobs:
         run: |
           npx prettier --check "src/**/*.{js,jsx,ts,tsx,json,css,scss,less,html,md}" || true
           npm run lint || true
+
+      - name: Check husky hooks for deprecated patterns
+        run: |
+          # Check for deprecated husky.sh sourcing pattern in hook files
+          if grep -r "^\. .*husky\.sh" .husky/ 2>/dev/null | grep -v "_/husky.sh"; then
+            echo "ERROR: Deprecated husky.sh sourcing pattern found in hooks"
+            exit 1
+          fi
+          # Check for deprecated shebang in hook files (not in _ directory)
+          if find .husky -maxdepth 1 -type f -exec grep -l '^#!/usr/bin/env sh$' {} \; 2>/dev/null | head -1 | grep -q .; then
+            echo "ERROR: Deprecated shebang pattern found in husky hooks"
+            exit 1
+          fi
+          echo "✓ No deprecated husky patterns found"
