@@ -891,7 +891,7 @@ async function monitorService() {
 ### React Hook Example
 
 ```typescript
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from "react";
 
 interface UseStreamingServiceReturn {
   status: StreamingStatus | null;
@@ -930,7 +930,7 @@ export function useStreamingService(
       setMetrics(newMetrics);
     } catch (err: any) {
       // Metrics failure is not critical
-      console.warn('Failed to fetch metrics:', err);
+      console.warn("Failed to fetch metrics:", err);
     }
   }, []);
 
@@ -940,18 +940,21 @@ export function useStreamingService(
     setLoading(false);
   }, [fetchStatus, fetchMetrics]);
 
-  const start = useCallback(async (config?: StreamingConfig) => {
-    try {
-      setLoading(true);
-      await client.start(config);
-      await refresh();
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [refresh]);
+  const start = useCallback(
+    async (config?: StreamingConfig) => {
+      try {
+        setLoading(true);
+        await client.start(config);
+        await refresh();
+      } catch (err: any) {
+        setError(err.message);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [refresh]
+  );
 
   const stop = useCallback(async () => {
     try {
@@ -966,18 +969,21 @@ export function useStreamingService(
     }
   }, [refresh]);
 
-  const restart = useCallback(async (config?: StreamingConfig) => {
-    try {
-      setLoading(true);
-      await client.restart(config);
-      await refresh();
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [refresh]);
+  const restart = useCallback(
+    async (config?: StreamingConfig) => {
+      try {
+        setLoading(true);
+        await client.restart(config);
+        await refresh();
+      } catch (err: any) {
+        setError(err.message);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [refresh]
+  );
 
   useEffect(() => {
     refresh();
@@ -999,7 +1005,8 @@ export function useStreamingService(
 
 // Usage in React component
 function StreamingControl() {
-  const { status, metrics, loading, error, start, stop, restart } = useStreamingService();
+  const { status, metrics, loading, error, start, stop, restart } =
+    useStreamingService();
 
   if (loading && !status) {
     return <div>Loading...</div>;
@@ -1011,20 +1018,20 @@ function StreamingControl() {
 
   return (
     <div>
-      <p>Status: {status?.running ? 'Running' : 'Stopped'}</p>
+      <p>Status: {status?.running ? "Running" : "Stopped"}</p>
       {status?.running && (
         <>
           <p>CPU: {status.cpu_percent?.toFixed(1)}%</p>
           <p>Memory: {status.memory_mb?.toFixed(0)} MB</p>
-          <p>Processing Rate: {metrics?.processing_rate_per_hour} groups/hour</p>
+          <p>
+            Processing Rate: {metrics?.processing_rate_per_hour} groups/hour
+          </p>
         </>
       )}
-      <button onClick={() => status?.running ? stop() : start()}>
-        {status?.running ? 'Stop' : 'Start'}
+      <button onClick={() => (status?.running ? stop() : start())}>
+        {status?.running ? "Stop" : "Start"}
       </button>
-      {status?.running && (
-        <button onClick={() => restart()}>Restart</button>
-      )}
+      {status?.running && <button onClick={() => restart()}>Restart</button>}
     </div>
   );
 }

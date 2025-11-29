@@ -326,4 +326,5 @@ describes the architecture, design decisions, and component interactions.
 
 - [Streaming Guide](../../guides/streaming/index.md) - User guide
 - [Streaming API Reference](../../guides/streaming/api.md) - API documentation
-- [Streaming Troubleshooting](../../guides/streaming/troubleshooting.md) - Common issues
+- [Streaming Troubleshooting](../../guides/streaming/troubleshooting.md) -
+  Common issues
