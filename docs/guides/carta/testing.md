@@ -45,6 +45,7 @@ open http://localhost:9002
 4. Check browser console for connection logs
 
 **Expected:**
+
 - Status bar shows "CARTA: Connected"
 - Connection indicator is green
 - No error messages in console
@@ -56,6 +57,7 @@ open http://localhost:9002
 3. Verify file opens successfully
 
 **Expected:**
+
 - File info displays in accordion
 - Status shows "File loaded"
 - File ID appears in status bar
@@ -67,6 +69,7 @@ open http://localhost:9002
 3. Verify image is visible on canvas
 
 **Expected:**
+
 - Image appears on canvas
 - Tiles load progressively
 - Image matches expected content
@@ -78,6 +81,7 @@ open http://localhost:9002
 3. Test zoom controls in toolbar
 
 **Expected:**
+
 - Smooth zooming and panning
 - Image stays in bounds
 - Controls respond correctly
@@ -89,6 +93,7 @@ open http://localhost:9002
 3. Adjust brightness/contrast
 
 **Expected:**
+
 - Color map changes immediately
 - Brightness/contrast adjustable
 - Image updates in real-time
@@ -100,6 +105,7 @@ open http://localhost:9002
 3. Check spectral profile tab
 
 **Expected:**
+
 - Profiles display correctly
 - Charts are interactive
 - Data matches cursor position
@@ -111,6 +117,7 @@ open http://localhost:9002
 3. Check statistics
 
 **Expected:**
+
 - Histogram renders correctly
 - Statistics are accurate
 - Updates with region selection
@@ -122,6 +129,7 @@ open http://localhost:9002
 3. Verify region statistics
 
 **Expected:**
+
 - Region draws correctly
 - Statistics update
 - Region can be modified
@@ -137,6 +145,7 @@ open http://localhost:9002
 3. Check that file browser works
 
 **Expected:**
+
 - Iframe loads CARTA frontend
 - No CORS errors
 - File navigation works
@@ -147,6 +156,7 @@ open http://localhost:9002
 2. Verify file is auto-loaded
 
 **Expected:**
+
 - File loads automatically
 - Image displays correctly
 
@@ -214,17 +224,17 @@ docker logs carta-backend
 
 ## Verification Checklist
 
-| Test | Status |
-|------|--------|
-| Backend running | ☐ |
-| Frontend environment configured | ☐ |
-| WebSocket connection | ☐ |
-| Iframe mode | ☐ |
-| File opening | ☐ |
-| Image rendering | ☐ |
-| Zoom/pan | ☐ |
-| Color maps | ☐ |
-| Profiles | ☐ |
-| Histogram | ☐ |
-| Regions | ☐ |
-| File pre-loading | ☐ |
+| Test                            | Status |
+| ------------------------------- | ------ |
+| Backend running                 | ☐      |
+| Frontend environment configured | ☐      |
+| WebSocket connection            | ☐      |
+| Iframe mode                     | ☐      |
+| File opening                    | ☐      |
+| Image rendering                 | ☐      |
+| Zoom/pan                        | ☐      |
+| Color maps                      | ☐      |
+| Profiles                        | ☐      |
+| Histogram                       | ☐      |
+| Regions                         | ☐      |
+| File pre-loading                | ☐      |

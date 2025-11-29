@@ -11,11 +11,11 @@ covers all aspects of CARTA integration with the DSA-110 Dashboard.
 
 ## Quick Links
 
-| Document | Description |
-|----------|-------------|
-| [Quick Start](quickstart.md) | Get started in 5 minutes |
-| [Deployment](deployment.md) | Docker deployment and configuration |
-| [Testing](testing.md) | Testing guide and verification |
+| Document                            | Description                              |
+| ----------------------------------- | ---------------------------------------- |
+| [Quick Start](quickstart.md)        | Get started in 5 minutes                 |
+| [Deployment](deployment.md)         | Docker deployment and configuration      |
+| [Testing](testing.md)               | Testing guide and verification           |
 | [Technical Reference](technical.md) | WebSocket enhancements, Protocol Buffers |
 
 ---
@@ -24,17 +24,19 @@ covers all aspects of CARTA integration with the DSA-110 Dashboard.
 
 CARTA integration is available in two modes:
 
-1. **Iframe Mode** (default) - Embeds CARTA frontend via iframe, full functionality
-2. **WebSocket Mode** - Native React integration with direct WebSocket connection
+1. **Iframe Mode** (default) - Embeds CARTA frontend via iframe, full
+   functionality
+2. **WebSocket Mode** - Native React integration with direct WebSocket
+   connection
 
 ### Current Deployment Status
 
-| Component | Status | URL |
-|-----------|--------|-----|
-| CARTA Container | ✅ Running | `carta-backend` |
-| CARTA Version | 5.0.3 | - |
-| Backend Port | 9002 | http://localhost:9002/ |
-| Dashboard Integration | ✅ Active | http://localhost:3210/carta |
+| Component             | Status     | URL                         |
+| --------------------- | ---------- | --------------------------- |
+| CARTA Container       | ✅ Running | `carta-backend`             |
+| CARTA Version         | 5.0.3      | -                           |
+| Backend Port          | 9002       | http://localhost:9002/      |
+| Dashboard Integration | ✅ Active  | http://localhost:3210/carta |
 
 ---
 
@@ -66,10 +68,10 @@ CARTA integration is available in two modes:
 
 ## Port Allocation
 
-| Port | Service | Range | Notes |
-|------|---------|-------|-------|
+| Port     | Service       | Range                | Notes                |
+| -------- | ------------- | -------------------- | -------------------- |
 | **9002** | CARTA Backend | 9000-9099 (External) | WebSocket + Frontend |
-| **9003** | Reserved | 9000-9099 (External) | Not currently used |
+| **9003** | Reserved      | 9000-9099 (External) | Not currently used   |
 
 Environment variables:
 

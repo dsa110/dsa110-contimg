@@ -62,10 +62,12 @@ VITE_CARTA_FRONTEND_URL=http://localhost:9002
 ### Option 1: Iframe (Recommended)
 
 **Pros:**
+
 - Minimal setup, full CARTA functionality
 - Isolated from dashboard code
 
 **Cons:**
+
 - Limited integration, separate authentication
 
 **Setup:** Just deploy CARTA backend and set environment variables.
@@ -73,10 +75,12 @@ VITE_CARTA_FRONTEND_URL=http://localhost:9002
 ### Option 2: WebSocket
 
 **Pros:**
+
 - Full dashboard integration, shared state
 - Native React components, Material-UI design
 
 **Cons:**
+
 - More complex, requires Protocol Buffer support
 
 **Setup:** Same as iframe, but select "WebSocket" mode in CARTA page.
@@ -94,7 +98,7 @@ import { CARTAIframe } from "../components/CARTA";
   cartaBackendUrl="http://localhost:9002"
   fitsFilePath="/stage/dsa110-contimg/images/file.fits"
   height="800px"
-/>
+/>;
 ```
 
 ### Using CARTAViewer Component
@@ -107,7 +111,7 @@ import { CARTAViewer } from "../components/CARTA";
   fitsFilePath="/stage/dsa110-contimg/images/file.fits"
   height="800px"
   showStatus={true}
-/>
+/>;
 ```
 
 ### Using CARTA Client Directly
@@ -131,12 +135,12 @@ client.onMessage("FILE_INFO", (message) => {
 
 ## Quick Troubleshooting
 
-| Issue | Solution |
-|-------|----------|
-| Backend not connecting | Check: `curl http://localhost:9002/health` |
-| Iframe not loading | Verify `VITE_CARTA_FRONTEND_URL` in `.env` |
-| WebSocket fails | Use `ws://` not `http://` for WebSocket URL |
-| Files not visible | Ensure FITS files are in mounted directories |
+| Issue                  | Solution                                     |
+| ---------------------- | -------------------------------------------- |
+| Backend not connecting | Check: `curl http://localhost:9002/health`   |
+| Iframe not loading     | Verify `VITE_CARTA_FRONTEND_URL` in `.env`   |
+| WebSocket fails        | Use `ws://` not `http://` for WebSocket URL  |
+| Files not visible      | Ensure FITS files are in mounted directories |
 
 See [Testing Guide](testing.md) for detailed troubleshooting.
 

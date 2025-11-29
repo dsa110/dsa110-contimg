@@ -33,6 +33,7 @@ docker run -d \
 ### Persistence
 
 The container is configured with `--restart unless-stopped`:
+
 - ✅ Survives system reboots
 - ✅ Restarts automatically if it crashes
 - ✅ Stays stopped only if manually stopped
@@ -114,12 +115,12 @@ pkill -f "serve-dashboard-production"
 
 The dashboard backend provides CARTA control endpoints:
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/visualization/carta/status` | GET | Check CARTA status |
-| `/api/visualization/carta/start` | POST | Start CARTA services |
-| `/api/visualization/carta/stop` | POST | Stop CARTA services |
-| `/api/visualization/carta/restart` | POST | Restart CARTA services |
+| Endpoint                           | Method | Description            |
+| ---------------------------------- | ------ | ---------------------- |
+| `/api/visualization/carta/status`  | GET    | Check CARTA status     |
+| `/api/visualization/carta/start`   | POST   | Start CARTA services   |
+| `/api/visualization/carta/stop`    | POST   | Stop CARTA services    |
+| `/api/visualization/carta/restart` | POST   | Restart CARTA services |
 
 ---
 
@@ -174,11 +175,13 @@ docker logs carta-backend | grep "Version"
 ## Security Considerations
 
 ### Data Access
+
 - CARTA container has **read-only** access to data directories
 - Container runs as non-root user (`cartauser`)
 - No write access to pipeline data
 
 ### Network Exposure
+
 - Default: exposed on all interfaces (0.0.0.0:9002)
 - Production: use `127.0.0.1:9002` for localhost only
 - Remote access: use SSH tunneling or reverse proxy
