@@ -7,18 +7,19 @@ test.describe("DSA-110 Pipeline UI", () => {
     // Check the main heading is visible
     await expect(page.getByRole("heading", { name: /DSA-110/i })).toBeVisible();
 
-    // Check navigation links exist
-    await expect(page.getByRole("link", { name: "Home" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Images" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Sources" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Jobs" })).toBeVisible();
+    // Check navigation bar links exist (using the nav element to be specific)
+    const nav = page.locator("nav");
+    await expect(nav.getByRole("link", { name: "Home" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "Images" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "Sources" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "Jobs" })).toBeVisible();
   });
 
   test("can navigate to Images page", async ({ page }) => {
     await page.goto("/");
 
-    // Click on Images link
-    await page.getByRole("link", { name: "Images" }).click();
+    // Click on Images link in navigation bar
+    await page.locator("nav").getByRole("link", { name: "Images" }).click();
 
     // Should be on images page
     await expect(page).toHaveURL(/\/images/);
@@ -28,8 +29,8 @@ test.describe("DSA-110 Pipeline UI", () => {
   test("can navigate to Sources page", async ({ page }) => {
     await page.goto("/");
 
-    // Click on Sources link
-    await page.getByRole("link", { name: "Sources" }).click();
+    // Click on Sources link in navigation bar
+    await page.locator("nav").getByRole("link", { name: "Sources" }).click();
 
     // Should be on sources page
     await expect(page).toHaveURL(/\/sources/);
@@ -39,8 +40,8 @@ test.describe("DSA-110 Pipeline UI", () => {
   test("can navigate to Jobs page", async ({ page }) => {
     await page.goto("/");
 
-    // Click on Jobs link
-    await page.getByRole("link", { name: "Jobs" }).click();
+    // Click on Jobs link in navigation bar
+    await page.locator("nav").getByRole("link", { name: "Jobs" }).click();
 
     // Should be on jobs page
     await expect(page).toHaveURL(/\/jobs/);
