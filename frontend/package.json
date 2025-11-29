@@ -21,7 +21,7 @@
   "dependencies": {
     "@tanstack/react-query": "^5.17.0",
     "@tanstack/react-query-devtools": "^5.91.1",
-    "aladin-lite": "file:aladin-lite-3.7.3-beta.tgz",
+    "aladin-lite": "file:vendor/aladin-lite-3.7.3-beta.tgz",
     "axios": "^1.6.0",
     "d3": "^7.9.0",
     "d3-geo-projection": "^4.0.0",
