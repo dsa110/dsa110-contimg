@@ -324,8 +324,6 @@ describes the architecture, design decisions, and component interactions.
 
 ## See Also
 
-- [Streaming Control Guide](../../guides/workflow/streaming.md) - User guide
-- [Streaming API Reference](../../reference/streaming-api.md) - API documentation
-- [Docker Client Reference](../../reference/streaming-api.md) - Docker integration
-- [Streaming Converter Guide](../../guides/workflow/streaming_converter_guide.md) -
-  Converter details
+- [Streaming Guide](../../guides/streaming/index.md) - User guide
+- [Streaming API Reference](../../guides/streaming/api.md) - API documentation
+- [Streaming Troubleshooting](../../guides/streaming/troubleshooting.md) - Common issues

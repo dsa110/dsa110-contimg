@@ -38,7 +38,8 @@ Practical how-to guides for common tasks.
   and API usage
 - **[Dashboard Quickstart](guides/dashboard/dashboard-quickstart.md)**: Web
   interface guide
-- **[Streaming Guide](guides/workflow/streaming.md)**: Real-time data processing
+- **[Streaming Guide](guides/streaming/index.md)**: Real-time data processing
+- **[CARTA Guide](guides/carta/index.md)**: CARTA visualization integration
 
 ### 📖 Reference
 

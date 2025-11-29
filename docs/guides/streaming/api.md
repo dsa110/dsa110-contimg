@@ -1097,8 +1097,7 @@ async function safeRestart() {
 
 ## See Also
 
-- [Streaming Control Guide](../guides/workflow/streaming.md) - User guide for
-  dashboard control
-- [Streaming Architecture](../architecture/pipeline/streaming-architecture.md) -
+- [Streaming Guide](index.md) - User guide for dashboard control
+- [Streaming Troubleshooting](troubleshooting.md) - Common issues and solutions
+- [Streaming Architecture](../../architecture/pipeline/streaming-architecture.md) -
   System architecture
-- [Docker Client Reference](streaming-api.md) - Docker integration details

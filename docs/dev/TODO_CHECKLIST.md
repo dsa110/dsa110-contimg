@@ -380,10 +380,10 @@ Update this section as tasks are completed.
 # Edit this file and change [ ] to [x]
 
 # View roadmap details
-cat docs/dev-notes/TODO_ROADMAP.md
+cat docs/dev/TODO_ROADMAP.md
 
 # View investigation report
-cat docs/dev-notes/TODO_INVESTIGATION_REPORT.md
+cat docs/dev/TODO_INVESTIGATION_REPORT.md
 
 # Run test coverage check
 pytest backend/tests/unit/api/ --cov=backend/src/dsa110_contimg/api
