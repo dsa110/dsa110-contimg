@@ -73,9 +73,25 @@ def pytest_sessionfinish(session, exitstatus):
     # Clean up CASA modules
     _cleanup_casa()
     
-    # Install abort handler for any remaining CASA C++ cleanup issues
-    # This must be done AFTER cleanup to only catch genuine shutdown issues
-    _suppress_casa_abort()
+    # If CASA modules were imported, we need to use os._exit() to avoid
+    # the C++ runtime error during Python's normal shutdown sequence.
+    # Only do this if exitstatus indicates success (0) to preserve error reporting.
+    if exitstatus == 0:
+        # Check if any CASA code was loaded (C++ extension still in memory)
+        # Look for casatools artifacts that indicate C++ code is loaded
+        casa_artifacts = any(
+            'casatools' in str(getattr(sys.modules.get(m), '__file__', ''))
+            for m in list(sys.modules.keys())
+            if hasattr(sys.modules.get(m), '__file__')
+        )
+        
+        # Also check if __casac__ modules were ever loaded (they have C++ components)
+        casac_loaded = any('__casac__' in m for m in list(sys.modules.keys()))
+        
+        if casa_artifacts or casac_loaded:
+            # CASA C++ code was loaded - use os._exit to avoid C++ destructor issues
+            import os
+            os._exit(0)
 
 
 @pytest.fixture(scope="session")

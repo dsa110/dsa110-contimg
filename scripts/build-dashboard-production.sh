@@ -18,4 +18,4 @@ export NODE_OPTIONS="--max-old-space-size=4096"
 echo "Building frontend for production..."
 npm run build:no-check
 
-echo "Build complete: $(ls -la dist/index.html 2>/dev/null || echo 'dist not found')"
+echo "Build complete: $(ls -la dist/index.html 2>/dev/null  # Exception: optional file check || echo 'dist not found')"
