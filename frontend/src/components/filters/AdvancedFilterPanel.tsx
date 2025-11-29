@@ -135,7 +135,9 @@ const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
             unit={filter.unit}
             minValue={rangeValue?.min}
             maxValue={rangeValue?.max}
-            onChange={(minVal, maxVal) => handleFilterChange(filter.id, { min: minVal, max: maxVal })}
+            onChange={(minVal, maxVal) =>
+              handleFilterChange(filter.id, { min: minVal, max: maxVal })
+            }
             histogram={filter.histogram}
           />
         );
