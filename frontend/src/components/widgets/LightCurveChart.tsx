@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
+import * as echarts from "echarts";
 
 export interface LightCurveDataPoint {
   /** Timestamp in ISO format or Unix milliseconds */
@@ -36,76 +37,9 @@ export interface LightCurveChartProps {
   isLoading?: boolean;
 }
 
-declare global {
-  interface Window {
-    echarts?: {
-      init: (element: HTMLElement, theme?: string) => EChartsInstance;
-      getInstanceByDom: (element: HTMLElement) => EChartsInstance | undefined;
-    };
-  }
-}
-
-interface EChartsInstance {
-  setOption: (option: EChartsOption) => void;
-  resize: () => void;
-  dispose: () => void;
-  on: (eventName: string, handler: (params: EChartsEventParams) => void) => void;
-  off: (eventName: string) => void;
-  dispatchAction: (action: { type: string; dataZoomIndex?: number; start?: number; end?: number }) => void;
-}
-
-interface EChartsEventParams {
-  dataIndex: number;
-  data: [number, number];
-}
-
-interface EChartsOption {
-  title?: { text?: string; left?: string; textStyle?: { fontSize?: number; fontWeight?: string } };
-  tooltip?: {
-    trigger?: string;
-    formatter?: (params: EChartsTooltipParams) => string;
-    axisPointer?: { type?: string };
-  };
-  xAxis?: {
-    type?: string;
-    name?: string;
-    nameLocation?: string;
-    axisLabel?: { formatter?: (value: number) => string };
-  };
-  yAxis?: {
-    type?: string;
-    name?: string;
-    nameLocation?: string;
-    axisLabel?: { formatter?: (value: number) => string };
-  };
-  series?: EChartsSeries[];
-  dataZoom?: { type?: string; start?: number; end?: number; xAxisIndex?: number }[];
-  grid?: { left?: string; right?: string; bottom?: string; top?: string; containLabel?: boolean };
-  toolbox?: {
-    feature?: {
-      dataZoom?: { yAxisIndex?: string; title?: { zoom?: string; back?: string } };
-      restore?: { title?: string };
-      saveAsImage?: { title?: string };
-    };
-  };
-}
-
-interface EChartsSeries {
-  type: string;
-  data: [number, number][];
-  symbolSize?: number;
-  itemStyle?: { color?: string };
-  lineStyle?: { width?: number };
-  showSymbol?: boolean;
-  emphasis?: { focus?: string; itemStyle?: { shadowBlur?: number; shadowColor?: string } };
-}
-
-interface EChartsTooltipParams {
-  data: [number, number];
-  dataIndex: number;
-}
-
-const ECHARTS_URL = "https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js";
+type EChartsInstance = echarts.ECharts;
+type EChartsEventParams = echarts.ECElementEvent;
+type EChartsOption = echarts.EChartsOption;
 
 /**
  * Zoomable time-series light curve chart using ECharts 5.5.
