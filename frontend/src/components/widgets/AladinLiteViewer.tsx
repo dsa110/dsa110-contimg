@@ -1,4 +1,8 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
+// Treat aladin-lite as an emitted asset so it does not bloat the main bundle
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import aladinScriptUrl from "aladin-lite/dist/aladin.js?url";
 
 export interface AladinLiteViewerProps {
   /** Right Ascension in degrees */
@@ -43,6 +47,14 @@ interface AladinInstance {
   toggleFullscreen: () => void;
 }
 
+declare global {
+  interface Window {
+    A?: {
+      aladin: (element: HTMLElement, options: AladinOptions) => AladinInstance;
+    };
+  }
+}
+
 /**
  * Interactive sky viewer using Aladin Lite v3.
  * Displays an interactive sky map centered on the specified coordinates.
@@ -62,7 +74,6 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentFov, setCurrentFov] = useState(fov);
-  const aladinLibRef = useRef<{ aladin: (el: HTMLElement, opts: AladinOptions) => AladinInstance }>();
   const destroyInstance = useCallback(() => {
     if (aladinRef.current && typeof (aladinRef.current as any).destroy === "function") {
       (aladinRef.current as any).destroy();
@@ -82,16 +93,32 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
         setIsLoading(true);
         destroyInstance();
 
-        // Lazy-load aladin-lite to keep the main bundle small
-        const mod = await import("aladin-lite");
-        const aladinLib = (mod as any).default?.aladin ? (mod as any).default : (mod as any);
-        if (!aladinLib?.aladin) {
+        // Load Aladin from the emitted asset if not already present
+        if (!window.A) {
+          await new Promise<void>((resolve, reject) => {
+            let script = document.querySelector<HTMLScriptElement>('script[data-aladin-lite="true"]');
+            if (script) {
+              script.onload = () => resolve();
+              script.onerror = () => reject(new Error("Failed to load Aladin Lite"));
+              return;
+            }
+
+            script = document.createElement("script");
+            script.src = aladinScriptUrl;
+            script.async = true;
+            script.dataset.aladinLite = "true";
+            script.onload = () => resolve();
+            script.onerror = () => reject(new Error("Failed to load Aladin Lite"));
+            document.head.appendChild(script);
+          });
+        }
+
+        if (cancelled) return;
+        if (!window.A?.aladin) {
           throw new Error("Aladin Lite library unavailable");
         }
-        if (cancelled) return;
-        aladinLibRef.current = aladinLib;
 
-        aladinRef.current = aladinLib.aladin(containerRef.current, {
+        aladinRef.current = window.A.aladin(containerRef.current, {
           target,
           fov: currentFov,
           survey,
