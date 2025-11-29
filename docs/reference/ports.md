@@ -5,18 +5,35 @@ Pipeline services, monitoring stack, and development tools.
 
 **Last Updated:** 2025-11-29
 
+## Robust Port Reservation
+
+All production services are configured with **robust port reservation**. This means:
+
+1. **Exclusive Port Ownership**: Each service is assigned a specific port that it owns exclusively
+2. **Automatic Conflict Resolution**: Before starting, each service runs `/usr/local/bin/claim-port.sh` which:
+   - Checks if the assigned port is in use
+   - Sends SIGTERM to any occupying process (graceful shutdown)
+   - Waits up to 5 seconds for graceful termination
+   - Sends SIGKILL if the process doesn't exit
+   - Only then starts the service
+3. **No Fallback Ports**: Services will NOT move to alternative ports - they will claim their assigned port
+
+This is implemented via `ExecStartPre` in systemd service files.
+
 ## Quick Reference
 
-| Port | Service            | Protocol | Access           | Configurable          |
-| ---- | ------------------ | -------- | ---------------- | --------------------- |
-| 80   | Nginx              | HTTP     | Public           | No                    |
-| 3000 | Vite Dev Server    | HTTP     | Dev only         | No (hardcoded)        |
-| 3030 | Grafana            | HTTP     | Localhost        | grafana.ini           |
-| 5173 | Vite Dev (default) | HTTP     | Dev only         | No (hardcoded)        |
-| 6379 | Redis              | TCP      | Localhost        | REDIS_PORT            |
-| 8000 | FastAPI            | HTTP     | Private networks | CONTIMG_API_PORT      |
-| 8001 | MkDocs             | HTTP     | Dev only         | CONTIMG_DOCS_PORT     |
-| 9090 | Prometheus         | HTTP     | Localhost        | prometheus.yml        |
+| Port | Service            | Protocol | Access           | Configurable          | Robust? |
+| ---- | ------------------ | -------- | ---------------- | --------------------- | ------- |
+| 80   | Nginx              | HTTP     | Public           | No                    | No†     |
+| 3000 | Vite Dev Server    | HTTP     | Dev only         | No (hardcoded)        | No      |
+| 3030 | Grafana            | HTTP     | Localhost        | grafana.ini           | **Yes** |
+| 5173 | Vite Dev (default) | HTTP     | Dev only         | No (hardcoded)        | No      |
+| 6379 | Redis              | TCP      | Localhost        | REDIS_PORT            | **Yes** |
+| 8000 | FastAPI            | HTTP     | Private networks | CONTIMG_API_PORT      | **Yes** |
+| 8001 | MkDocs             | HTTP     | Dev only         | CONTIMG_DOCS_PORT     | No      |
+| 9090 | Prometheus         | HTTP     | Localhost        | prometheus.yml        | **Yes** |
+
+†Nginx doesn't need robust reservation as port 80 typically has no conflicts.
 
 ## Production Services
 
@@ -93,6 +110,51 @@ Pipeline services, monitoring stack, and development tools.
 
 - **3210-3220**: Dashboard fallback ports (auto-selected if 3210 busy)
 - **8010**: Alternative API port (if needed)
+
+## Port Claim Utility
+
+The `/usr/local/bin/claim-port.sh` script provides robust port reservation. It is automatically invoked by systemd before starting services, but can also be used manually.
+
+### Usage
+
+```bash
+# Check if port would be freed (dry run)
+/usr/local/bin/claim-port.sh 8000 --dry-run
+
+# Actually free the port
+sudo /usr/local/bin/claim-port.sh 8000
+```
+
+### How It Works
+
+1. Checks if the port is in use with `lsof`
+2. If free, exits successfully
+3. If occupied:
+   - Sends SIGTERM to occupying processes
+   - Waits up to 5 seconds for graceful shutdown
+   - Sends SIGKILL to any remaining processes
+   - Verifies port is now free
+
+### Systemd Integration
+
+Services use `ExecStartPre` to invoke this script:
+
+```ini
+# In service file
+ExecStartPre=/usr/local/bin/claim-port.sh <port>
+
+# For services running as non-root, use + prefix to run as root
+ExecStartPre=+/usr/local/bin/claim-port.sh <port>
+```
+
+### Configured Services
+
+| Service                | Port | Configuration Location                                   |
+| ---------------------- | ---- | -------------------------------------------------------- |
+| dsa110-api             | 8000 | `/etc/systemd/system/dsa110-api.service`                 |
+| prometheus             | 9090 | `/etc/systemd/system/prometheus.service.d/claim-port.conf` |
+| redis-server           | 6379 | `/etc/systemd/system/redis-server.service.d/claim-port.conf` |
+| grafana-simple         | 3030 | `/etc/systemd/system/grafana-simple.service`             |
 
 ## Common Commands
 

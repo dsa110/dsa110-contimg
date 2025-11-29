@@ -13,41 +13,32 @@ from dsa110_contimg.api.app import create_app
 
 
 def _cleanup_casa():
-    """Clean up CASA to prevent C++ runtime errors on shutdown.
+    """Clean up CASA modules to prevent C++ runtime errors on shutdown.
     
     CASA's C++ backend throws 'casatools::get_state() called after 
-    shutdown initiated' if the internal gRPC service is still running
-    when Python exits. We must remove the service before exit.
-    """
-    # Only clean up if casatools was actually imported
-    if 'casatools' not in sys.modules:
-        return
-        
-    try:
-        casatools = sys.modules['casatools']
-        # Remove the CASA gRPC service - this is the key fix
-        reg = casatools.ctsys.registry()
-        if reg and 'uri' in reg:
-            casatools.ctsys.remove_service(reg['uri'])
-    except Exception:
-        pass
+    shutdown initiated' if casatools tries to access state during 
+    Python's atexit shutdown sequence. The fix is to remove all CASA
+    modules from sys.modules BEFORE Python's shutdown begins.
     
-    # Force garbage collection to release CASA object references
+    IMPORTANT: Do NOT call casatools.ctsys.shutdown() - that triggers
+    the error immediately if any CASA code runs afterward.
+    """
+    # Force garbage collection first to release object references
     gc.collect()
     
-    # Remove CASA modules from sys.modules
+    # Get all CASA-related modules
     casa_modules = [m for m in list(sys.modules.keys()) if 'casa' in m.lower()]
+    if not casa_modules:
+        return
+    
+    # Clear all CASA modules from sys.modules
+    # Sort reversed so nested modules are removed before parent modules
     for mod_name in reversed(sorted(casa_modules)):
-        try:
-            mod = sys.modules.get(mod_name)
-            if mod is not None and hasattr(mod, '__dict__'):
-                try:
-                    mod.__dict__.clear()
-                except (TypeError, RuntimeError):
-                    pass
-            del sys.modules[mod_name]
-        except (KeyError, AttributeError, TypeError):
-            pass
+        if mod_name in sys.modules:
+            try:
+                del sys.modules[mod_name]
+            except (KeyError, TypeError):
+                pass
     
     gc.collect()
 
