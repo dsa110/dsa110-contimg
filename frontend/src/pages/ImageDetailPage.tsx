@@ -11,6 +11,7 @@ import {
 } from "../components/common";
 import { AladinLiteViewer, GifPlayer } from "../components/widgets";
 import { FitsViewer } from "../components/fits";
+import { RatingCard, RatingTag } from "../components/rating";
 import { mapProvenanceFromImageDetail, ImageDetailResponse } from "../utils/provenanceMappers";
 import { relativeTime } from "../utils/relativeTime";
 import type { ErrorResponse } from "../types/errors";
@@ -27,6 +28,31 @@ const ImageDetailPage: React.FC = () => {
   const addRecentImage = usePreferencesStore((state) => state.addRecentImage);
   const [showSkyViewer, setShowSkyViewer] = useState(true);
   const [showFitsViewer, setShowFitsViewer] = useState(false);
+  const [showRatingCard, setShowRatingCard] = useState(false);
+
+  // Rating tags for QA assessment
+  const ratingTags: RatingTag[] = [
+    { id: "artifact", name: "Artifact", color: "#EF4444", description: "Image contains artifacts" },
+    { id: "good", name: "Good Quality", color: "#22C55E", description: "Image passes QA" },
+    { id: "marginal", name: "Marginal", color: "#F59E0B", description: "Borderline quality" },
+    { id: "rfi", name: "RFI", color: "#8B5CF6", description: "Radio frequency interference" },
+  ];
+
+  const handleRatingSubmit = async (rating: {
+    itemId: string;
+    confidence: "true" | "false" | "unsure";
+    tagId: string;
+    notes: string;
+  }) => {
+    const baseUrl = import.meta.env.VITE_API_URL || "/api";
+    await fetch(`${baseUrl}/images/${rating.itemId}/rating`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(rating),
+    });
+    // Refresh image data
+    refetch();
+  };
 
   // Track in recent items when image loads
   React.useEffect(() => {
@@ -105,6 +131,13 @@ const ImageDetailPage: React.FC = () => {
               >
                 {showFitsViewer ? "Hide" : "Show"} FITS Viewer
               </button>
+              <button
+                type="button"
+                className={`btn ${showRatingCard ? "btn-primary" : "btn-secondary"}`}
+                onClick={() => setShowRatingCard(!showRatingCard)}
+              >
+                {showRatingCard ? "Hide" : "Show"} Rating
+              </button>
               {imageData.qa_grade && (
                 <Link to={`/qa/image/${imageId}`} className="btn btn-secondary text-center">
                   View QA Report
@@ -130,6 +163,43 @@ const ImageDetailPage: React.FC = () => {
                     ? { ra: imageData.pointing_ra_deg, dec: imageData.pointing_dec_deg }
                     : undefined
                 }
+              />
+            </Card>
+          )}
+
+          {/* Rating Card */}
+          {showRatingCard && (
+            <Card title="Image Rating">
+              <RatingCard
+                itemId={imageId || ""}
+                itemName={filename}
+                tags={ratingTags}
+                previousRating={
+                  imageData.qa_grade
+                    ? {
+                        id: `rating-${imageId}`,
+                        confidence:
+                          imageData.qa_grade === "good"
+                            ? "true"
+                            : imageData.qa_grade === "fail"
+                            ? "false"
+                            : "unsure",
+                        tag:
+                          ratingTags.find(
+                            (t) =>
+                              t.id ===
+                              (imageData.qa_grade === "good"
+                                ? "good"
+                                : imageData.qa_grade === "fail"
+                                ? "artifact"
+                                : "marginal")
+                          ) || ratingTags[0],
+                        user: "system",
+                        date: imageData.created_at || new Date().toISOString(),
+                      }
+                    : undefined
+                }
+                onSubmit={handleRatingSubmit}
               />
             </Card>
           )}

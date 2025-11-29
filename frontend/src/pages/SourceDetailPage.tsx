@@ -5,6 +5,7 @@ import ErrorDisplay from "../components/errors/ErrorDisplay";
 import { Card, CoordinateDisplay, LoadingSpinner, QAMetrics } from "../components/common";
 import { AladinLiteViewer, LightCurveChart } from "../components/widgets";
 import { CatalogOverlayPanel } from "../components/catalogs";
+import { NearbyObjectsPanel, NearbyObject } from "../components/crossmatch";
 import type { LightCurveDataPoint } from "../components/widgets";
 import { mapProvenanceFromSourceDetail, SourceDetailResponse } from "../utils/provenanceMappers";
 import { relativeTime } from "../utils/relativeTime";
@@ -35,6 +36,56 @@ const SourceDetailPage: React.FC = () => {
   const addRecentSource = usePreferencesStore((state) => state.addRecentSource);
   const [selectedImageId, setSelectedImageId] = useState<string | undefined>(undefined);
   const [showSkyViewer, setShowSkyViewer] = useState(true);
+  const [showNearbyPanel, setShowNearbyPanel] = useState(false);
+
+  // Search for nearby objects in external catalogs
+  const handleNearbySearch = async (
+    raDeg: number,
+    decDeg: number,
+    radiusArcmin: number
+  ): Promise<NearbyObject[]> => {
+    const results: NearbyObject[] = [];
+
+    // Query SIMBAD via TAP
+    try {
+      const simbadQuery = `SELECT TOP 20 main_id, ra, dec, otype_longname
+        FROM basic
+        WHERE CONTAINS(POINT('ICRS', ra, dec), CIRCLE('ICRS', ${raDeg}, ${decDeg}, ${
+        radiusArcmin / 60
+      })) = 1`;
+      const simbadRes = await fetch(
+        `https://simbad.u-strasbg.fr/simbad/sim-tap/sync?REQUEST=doQuery&LANG=ADQL&FORMAT=json&QUERY=${encodeURIComponent(
+          simbadQuery
+        )}`
+      );
+      if (simbadRes.ok) {
+        const simbadData = await simbadRes.json();
+        const rows = simbadData.data || [];
+        for (const row of rows) {
+          const objRa = parseFloat(row[1]);
+          const objDec = parseFloat(row[2]);
+          const sep =
+            Math.sqrt(
+              Math.pow((raDeg - objRa) * Math.cos((decDeg * Math.PI) / 180), 2) +
+                Math.pow(decDeg - objDec, 2)
+            ) * 3600;
+          results.push({
+            name: row[0],
+            ra: objRa.toFixed(6),
+            dec: objDec.toFixed(6),
+            separation: sep,
+            database: "SIMBAD",
+            type: row[3] || undefined,
+            url: `https://simbad.u-strasbg.fr/simbad/sim-id?Ident=${encodeURIComponent(row[0])}`,
+          });
+        }
+      }
+    } catch (e) {
+      console.warn("SIMBAD query failed:", e);
+    }
+
+    return results;
+  };
 
   // Track in recent items when source loads
   useEffect(() => {
@@ -251,6 +302,35 @@ const SourceDetailPage: React.FC = () => {
               centerDec={sourceData.dec_deg}
               defaultRadius={2}
             />
+          </Card>
+
+          {/* Nearby Objects from SIMBAD/NED */}
+          <Card
+            title="Nearby Objects"
+            subtitle={
+              <button
+                type="button"
+                onClick={() => setShowNearbyPanel(!showNearbyPanel)}
+                className="text-xs text-blue-600 hover:text-blue-800"
+              >
+                {showNearbyPanel ? "Hide" : "Search SIMBAD"}
+              </button>
+            }
+          >
+            {showNearbyPanel && (
+              <NearbyObjectsPanel
+                raDeg={sourceData.ra_deg}
+                decDeg={sourceData.dec_deg}
+                initialRadius={2}
+                maxRadius={30}
+                onSearch={handleNearbySearch}
+              />
+            )}
+            {!showNearbyPanel && (
+              <p className="text-sm text-gray-500">
+                Click "Search SIMBAD" to find nearby objects in external catalogs.
+              </p>
+            )}
           </Card>
 
           {/* Light Curve Chart */}
