@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef } from "react";
 
 export interface SesameResolverProps {
   /** Callback when coordinates are resolved */
@@ -16,6 +16,9 @@ interface ResolveResult {
   service: string;
 }
 
+// Simple in-memory cache for resolved objects
+const resolveCache = new Map<string, ResolveResult>();
+
 /**
  * Sesame name resolver component.
  * Resolves astronomical object names to coordinates using CDS Sesame service.
@@ -26,12 +29,32 @@ const SesameResolver: React.FC<SesameResolverProps> = ({ onResolved, className =
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ResolveResult | null>(null);
+  
+  // AbortController for request cancellation
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const resolveObject = useCallback(async () => {
-    if (!objectName.trim()) {
+    const trimmedName = objectName.trim();
+    if (!trimmedName) {
       setError("Please enter an object name");
       return;
     }
+
+    // Check cache first
+    const cacheKey = `${service}:${trimmedName.toLowerCase()}`;
+    const cached = resolveCache.get(cacheKey);
+    if (cached) {
+      setResult(cached);
+      setError(null);
+      onResolved(cached.ra, cached.dec, cached.objectName);
+      return;
+    }
+
+    // Cancel any pending request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
 
     setIsLoading(true);
     setError(null);
@@ -42,10 +65,17 @@ const SesameResolver: React.FC<SesameResolverProps> = ({ onResolved, className =
       // Format: https://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/-oI/A?object_name
       const serviceCode = service === "all" ? "A" : service.charAt(0).toUpperCase();
       const url = `https://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/-oI/${serviceCode}?${encodeURIComponent(
-        objectName.trim()
+        trimmedName
       )}`;
 
-      const response = await fetch(url);
+      const response = await fetch(url, {
+        signal: abortControllerRef.current.signal,
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error: ${response.status}`);
+      }
+      
       const text = await response.text();
 
       // Parse the Sesame response
@@ -68,14 +98,27 @@ const SesameResolver: React.FC<SesameResolverProps> = ({ onResolved, className =
       const resolved: ResolveResult = {
         ra,
         dec,
-        objectName: objectName.trim(),
+        objectName: trimmedName,
         service,
       };
 
+      // Cache the result
+      resolveCache.set(cacheKey, resolved);
+
       setResult(resolved);
-      onResolved(ra, dec, objectName.trim());
+      onResolved(ra, dec, trimmedName);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Resolution failed");
+      // Don't show error for aborted requests
+      if (err instanceof Error && err.name === "AbortError") {
+        return;
+      }
+      const message = err instanceof Error ? err.message : "Resolution failed";
+      // Distinguish network errors
+      if (message.includes("fetch") || message.includes("network")) {
+        setError("Network error. CORS may be blocking the request. Try using a backend proxy.");
+      } else {
+        setError(message);
+      }
     } finally {
       setIsLoading(false);
     }

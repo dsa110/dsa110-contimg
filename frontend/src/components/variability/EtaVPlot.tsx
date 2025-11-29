@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import * as echarts from "echarts";
 import VariabilityControls, { VariabilityControlsValues } from "./VariabilityControls";
 import SourcePreview from "./SourcePreview";
@@ -83,14 +83,33 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
     };
   }, [sources, controls]);
 
-  // Filter sources by min data points
-  const filteredSources = sources.filter((s) => (s.nMeasurements ?? 10) >= controls.minDataPoints);
+  // Filter sources by min data points and ensure positive values for log scale
+  const filteredSources = useMemo(
+    () =>
+      sources.filter(
+        (s) => (s.nMeasurements ?? 10) >= controls.minDataPoints && s.eta > 0 && s.v > 0 // Filter out non-positive values for log scale
+      ),
+    [sources, controls.minDataPoints]
+  );
 
   // Identify candidates (above both thresholds)
   const { etaLine, vLine } = calculateThresholds();
-  const candidates = filteredSources.filter((s) => s.eta > etaLine && s.v > vLine);
+  const candidates = useMemo(
+    () => filteredSources.filter((s) => s.eta > etaLine && s.v > vLine),
+    [filteredSources, etaLine, vLine]
+  );
 
-  // Color mapping function
+  // Pre-compute max values once to avoid O(n²) in color mapping
+  const colorMaxValues = useMemo(() => {
+    if (filteredSources.length === 0) return { variability: 1, flux: 1, measurements: 1 };
+    return {
+      variability: Math.max(...filteredSources.map((s) => s.eta * s.v), 1),
+      flux: Math.max(...filteredSources.map((s) => s.peakFlux ?? 0), 1),
+      measurements: Math.max(...filteredSources.map((s) => s.nMeasurements ?? 0), 1),
+    };
+  }, [filteredSources]);
+
+  // Color mapping function - now O(1) per point
   const getPointColor = useCallback(
     (source: SourcePoint, isCandidate: boolean) => {
       if (isCandidate) return "#ff0000";
@@ -102,15 +121,15 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
       switch (controls.colorBy) {
         case "variability":
           value = source.eta * source.v;
-          max = Math.max(...filteredSources.map((s) => s.eta * s.v));
+          max = colorMaxValues.variability;
           break;
         case "flux":
           value = source.peakFlux ?? 0;
-          max = Math.max(...filteredSources.map((s) => s.peakFlux ?? 0));
+          max = colorMaxValues.flux;
           break;
         case "measurements":
           value = source.nMeasurements ?? 0;
-          max = Math.max(...filteredSources.map((s) => s.nMeasurements ?? 0));
+          max = colorMaxValues.measurements;
           break;
       }
 
@@ -121,7 +140,7 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
       const b = Math.round(161 - ratio * (161 - 116));
       return `rgba(${r}, ${g}, ${b}, 0.7)`;
     },
-    [controls.colorBy, filteredSources]
+    [controls.colorBy, colorMaxValues]
   );
 
   // Initialize chart
@@ -247,10 +266,16 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
       ],
     };
 
-    chartInstance.current.setOption(option);
+    chartInstance.current.setOption(option, { notMerge: false });
+
+    // Clean up previous event handlers before adding new ones
+    const chart = chartInstance.current;
+    chart.off("mouseover");
+    chart.off("mouseout");
+    chart.off("click");
 
     // Event handlers
-    chartInstance.current.on("mouseover", (params: any) => {
+    chart.on("mouseover", (params: any) => {
       if (params.componentType === "series" && params.data?.source) {
         const event = params.event?.event;
         setHoverSource(params.data.source);
@@ -260,11 +285,11 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
       }
     });
 
-    chartInstance.current.on("mouseout", () => {
+    chart.on("mouseout", () => {
       setHoverSource(null);
     });
 
-    chartInstance.current.on("click", (params: any) => {
+    chart.on("click", (params: any) => {
       if (params.componentType === "series" && params.data?.source) {
         setSelectedSource(params.data.source);
         setHoverSource(null);

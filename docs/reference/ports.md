@@ -246,3 +246,49 @@ sudo ufw status
 - [Security](security.md) - IP-based access control
 - [Monitoring](monitoring.md) - Prometheus metrics
 - [Nginx Configuration](nginx.md) - Reverse proxy setup
+
+### Testing & Health Checks
+
+#### Self-Test
+
+The script includes built-in self-tests:
+
+```bash
+# Run self-tests
+/usr/local/bin/claim-port.sh --test
+```
+
+This validates:
+- Argument parsing
+- Port range validation  
+- Timeout validation
+- Error handling
+
+#### Health Check Script
+
+A comprehensive health check is available:
+
+```bash
+# Run port reservation health check
+/data/dsa110-contimg/scripts/ops/port-health-check.sh
+```
+
+This checks:
+- Script availability and dependencies
+- Systemd configuration for all services
+- Port status (listening vs not)
+- Conflict detection
+
+Exit codes:
+- `0`: All checks passed
+- `1`: Errors found (critical issues)
+- `2`: Warnings only (non-critical)
+
+#### Monitoring via Cron
+
+Add to crontab for periodic health checks:
+
+```bash
+# Check port health every 5 minutes
+*/5 * * * * /data/dsa110-contimg/scripts/ops/port-health-check.sh >> /var/log/port-health.log 2>&1
+```

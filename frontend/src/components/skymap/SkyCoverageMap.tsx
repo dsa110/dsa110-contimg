@@ -39,23 +39,68 @@ export interface SkyCoverageMapProps {
   className?: string;
 }
 
-// Galactic plane coordinates (approximate)
-const GALACTIC_PLANE_COORDS = Array.from({ length: 361 }, (_, i) => {
-  const l = i; // galactic longitude
-  // Convert galactic to equatorial (simplified approximation)
+/**
+ * Convert galactic coordinates (l, b) to equatorial (RA, Dec) in degrees.
+ * Uses the standard IAU transformation.
+ */
+function galacticToEquatorial(l: number, b: number): [number, number] {
   const lRad = (l * Math.PI) / 180;
-  const ra = (192.85 + l) % 360;
-  const dec = 27.13 * Math.sin(lRad - (33 * Math.PI) / 180);
+  const bRad = (b * Math.PI) / 180;
+  
+  // North Galactic Pole (J2000): RA = 192.85948°, Dec = +27.12825°
+  const raGP = (192.85948 * Math.PI) / 180;
+  const decGP = (27.12825 * Math.PI) / 180;
+  // Galactic longitude of ascending node: 32.93192°
+  const lAscend = (32.93192 * Math.PI) / 180;
+  
+  const sinDec = Math.sin(bRad) * Math.sin(decGP) + 
+                 Math.cos(bRad) * Math.cos(decGP) * Math.sin(lRad - lAscend);
+  const dec = Math.asin(sinDec);
+  
+  const y = Math.cos(bRad) * Math.cos(lRad - lAscend);
+  const x = Math.sin(bRad) * Math.cos(decGP) - 
+            Math.cos(bRad) * Math.sin(decGP) * Math.sin(lRad - lAscend);
+  
+  let ra = raGP + Math.atan2(y, x);
+  
+  // Normalize RA to [0, 360)
+  ra = ((ra * 180 / Math.PI) % 360 + 360) % 360;
+  const decDeg = (dec * 180) / Math.PI;
+  
+  return [ra, decDeg];
+}
+
+/**
+ * Calculate ecliptic coordinates as equatorial (RA, Dec).
+ * The ecliptic is the Sun's apparent path through the sky.
+ */
+function eclipticToEquatorial(eclipticLon: number): [number, number] {
+  const obliquity = 23.4392911; // Earth's axial tilt in degrees (J2000)
+  const oblRad = (obliquity * Math.PI) / 180;
+  const lonRad = (eclipticLon * Math.PI) / 180;
+  
+  // Convert from ecliptic to equatorial
+  const sinDec = Math.sin(lonRad) * Math.sin(oblRad);
+  const dec = Math.asin(sinDec) * 180 / Math.PI;
+  
+  const y = Math.sin(lonRad) * Math.cos(oblRad);
+  const x = Math.cos(lonRad);
+  let ra = Math.atan2(y, x) * 180 / Math.PI;
+  
+  // Normalize RA to [0, 360)
+  ra = (ra % 360 + 360) % 360;
+  
   return [ra, dec];
+}
+
+// Galactic plane coordinates (b=0 for all galactic longitudes)
+const GALACTIC_PLANE_COORDS = Array.from({ length: 361 }, (_, i) => {
+  return galacticToEquatorial(i, 0);
 });
 
 // Ecliptic coordinates
 const ECLIPTIC_COORDS = Array.from({ length: 361 }, (_, i) => {
-  const lon = i;
-  const obliquity = 23.44; // Earth's axial tilt
-  const ra = lon;
-  const dec = obliquity * Math.sin((lon * Math.PI) / 180);
-  return [ra, dec];
+  return eclipticToEquatorial(i);
 });
 
 /**
