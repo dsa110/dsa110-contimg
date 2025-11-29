@@ -108,10 +108,7 @@ const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
 
       if (filter.type === "range") {
         const rangeVal = value as { min: number; max: number };
-        if (
-          rangeVal &&
-          (rangeVal.min !== filter.min || rangeVal.max !== filter.max)
-        ) {
+        if (rangeVal && (rangeVal.min !== filter.min || rangeVal.max !== filter.max)) {
           count++;
         }
       } else if (filter.type === "checkbox") {
@@ -165,9 +162,7 @@ const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
               <label key={opt.value} className="flex items-center gap-2 text-sm">
                 <input
                   type="checkbox"
-                  checked={(
-                    (values[filter.id] as string[]) || []
-                  ).includes(opt.value)}
+                  checked={((values[filter.id] as string[]) || []).includes(opt.value)}
                   onChange={(e) => {
                     const current = (values[filter.id] as string[]) || [];
                     const next = e.target.checked
@@ -178,9 +173,7 @@ const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
                   className="w-4 h-4 text-vast-green rounded border-gray-300 focus:ring-vast-green"
                 />
                 <span>{opt.label}</span>
-                {opt.count !== undefined && (
-                  <span className="text-gray-400">({opt.count})</span>
-                )}
+                {opt.count !== undefined && <span className="text-gray-400">({opt.count})</span>}
               </label>
             ))}
           </div>
@@ -267,14 +260,9 @@ const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
       <div className="card-header flex items-center justify-between">
         <h4 className="text-lg font-semibold flex items-center gap-2">
           Filters
-          {activeCount > 0 && (
-            <span className="badge badge-primary">{activeCount} active</span>
-          )}
+          {activeCount > 0 && <span className="badge badge-primary">{activeCount} active</span>}
         </h4>
-        <button
-          onClick={onReset}
-          className="text-sm text-gray-500 hover:text-red-500"
-        >
+        <button onClick={onReset} className="text-sm text-gray-500 hover:text-red-500">
           Reset all
         </button>
       </div>

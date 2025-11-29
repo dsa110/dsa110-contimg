@@ -15,7 +15,10 @@ interface ImageItem {
  */
 const ImagesListPage: React.FC = () => {
   const { data: images, isLoading, error } = useImages();
-  const { sortKey, sortDirection, handleSort, sortItems } = useTableSort<ImageItem>("created_at", "desc");
+  const { sortKey, sortDirection, handleSort, sortItems } = useTableSort<ImageItem>(
+    "created_at",
+    "desc"
+  );
 
   const sortedImages = useMemo(() => {
     if (!images) return [];
@@ -95,9 +98,7 @@ const ImagesListPage: React.FC = () => {
                     )}
                   </td>
                   <td className="text-right text-gray-500">
-                    {image.created_at
-                      ? new Date(image.created_at).toLocaleDateString()
-                      : "—"}
+                    {image.created_at ? new Date(image.created_at).toLocaleDateString() : "—"}
                   </td>
                 </tr>
               ))}

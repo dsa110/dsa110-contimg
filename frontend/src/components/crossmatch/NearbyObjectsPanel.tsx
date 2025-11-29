@@ -119,7 +119,9 @@ const NearbyObjectsPanel: React.FC<NearbyObjectsPanelProps> = ({
       case "NED":
         return `https://ned.ipac.caltech.edu/byname?objname=${encodeURIComponent(obj.name)}`;
       case "ATNF":
-        return `https://www.atnf.csiro.au/research/pulsar/psrcat/proc_form.php?pulsar_names=${encodeURIComponent(obj.name)}`;
+        return `https://www.atnf.csiro.au/research/pulsar/psrcat/proc_form.php?pulsar_names=${encodeURIComponent(
+          obj.name
+        )}`;
       default:
         return undefined;
     }
@@ -139,9 +141,7 @@ const NearbyObjectsPanel: React.FC<NearbyObjectsPanelProps> = ({
       <div className="card-body">
         {/* Search Controls */}
         <div className="flex items-center gap-3 mb-4">
-          <label className="text-sm text-gray-600 whitespace-nowrap">
-            Search within
-          </label>
+          <label className="text-sm text-gray-600 whitespace-nowrap">Search within</label>
           <input
             type="number"
             value={radius}
@@ -152,11 +152,7 @@ const NearbyObjectsPanel: React.FC<NearbyObjectsPanelProps> = ({
             className="form-control w-20"
           />
           <span className="text-sm text-gray-600">arcmin</span>
-          <button
-            onClick={performSearch}
-            disabled={isLoading}
-            className="btn btn-primary btn-sm"
-          >
+          <button onClick={performSearch} disabled={isLoading} className="btn btn-primary btn-sm">
             {isLoading ? (
               <span className="flex items-center gap-1">
                 <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -232,21 +228,14 @@ const NearbyObjectsPanel: React.FC<NearbyObjectsPanelProps> = ({
                     <tr key={`${obj.database}-${obj.name}-${idx}`}>
                       <td>
                         {url ? (
-                          <a
-                            href={url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="link"
-                          >
+                          <a href={url} target="_blank" rel="noreferrer" className="link">
                             {obj.name}
                           </a>
                         ) : (
                           obj.name
                         )}
                         {obj.type && (
-                          <span className="text-xs text-gray-500 ml-1">
-                            ({obj.type})
-                          </span>
+                          <span className="text-xs text-gray-500 ml-1">({obj.type})</span>
                         )}
                       </td>
                       <td>
@@ -256,9 +245,7 @@ const NearbyObjectsPanel: React.FC<NearbyObjectsPanelProps> = ({
                       </td>
                       <td className="text-center font-mono text-xs">{obj.ra}</td>
                       <td className="text-center font-mono text-xs">{obj.dec}</td>
-                      <td className="text-right font-mono">
-                        {obj.separation.toFixed(2)}
-                      </td>
+                      <td className="text-right font-mono">{obj.separation.toFixed(2)}</td>
                     </tr>
                   );
                 })}
@@ -274,10 +261,10 @@ const NearbyObjectsPanel: React.FC<NearbyObjectsPanelProps> = ({
               {results.length} object{results.length !== 1 ? "s" : ""} found
             </span>
             <span>
-              SIMBAD: {results.filter((r) => r.database === "SIMBAD").length} |
-              NED: {results.filter((r) => r.database === "NED").length} |
-              ATNF: {results.filter((r) => r.database === "ATNF").length} |
-              Local: {results.filter((r) => r.database === "Local").length}
+              SIMBAD: {results.filter((r) => r.database === "SIMBAD").length} | NED:{" "}
+              {results.filter((r) => r.database === "NED").length} | ATNF:{" "}
+              {results.filter((r) => r.database === "ATNF").length} | Local:{" "}
+              {results.filter((r) => r.database === "Local").length}
             </span>
           </div>
         )}

@@ -285,9 +285,8 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({
     const totalUnsure = byTag.reduce((sum, t) => sum + t.unsureCount, 0);
     const totalRated = totalTrue + totalFalse + totalUnsure;
     const unrated = totalCandidates - ratedCandidates;
-    const progressPercent = totalCandidates > 0 
-      ? Math.round((ratedCandidates / totalCandidates) * 100) 
-      : 0;
+    const progressPercent =
+      totalCandidates > 0 ? Math.round((ratedCandidates / totalCandidates) * 100) : 0;
 
     return {
       totalTrue,
@@ -334,7 +333,9 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({
       <div className="card p-4">
         <div className="flex justify-between mb-2 text-sm">
           <span>Rating Progress</span>
-          <span>{ratedCandidates} / {totalCandidates}</span>
+          <span>
+            {ratedCandidates} / {totalCandidates}
+          </span>
         </div>
         <div className="h-4 bg-gray-200 rounded-full overflow-hidden">
           <div

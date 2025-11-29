@@ -285,11 +285,7 @@ const RatingCard: React.FC<RatingCardProps> = ({
             </button>
 
             {onNextUnrated && (
-              <button
-                type="button"
-                onClick={onNextUnrated}
-                className="btn btn-success w-full"
-              >
+              <button type="button" onClick={onNextUnrated} className="btn btn-success w-full">
                 Next Unrated Candidate →
               </button>
             )}

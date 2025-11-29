@@ -143,24 +143,16 @@ const BulkDownloadPanel: React.FC<BulkDownloadPanelProps> = ({
               {selectedIds.slice(0, 10).map((id) => {
                 const item = items.find((i) => i.id === id);
                 return (
-                  <span
-                    key={id}
-                    className="badge badge-secondary flex items-center gap-1"
-                  >
+                  <span key={id} className="badge badge-secondary flex items-center gap-1">
                     {item?.name || id}
-                    <button
-                      onClick={() => handleToggleItem(id)}
-                      className="hover:text-red-500"
-                    >
+                    <button onClick={() => handleToggleItem(id)} className="hover:text-red-500">
                       ×
                     </button>
                   </span>
                 );
               })}
               {selectedIds.length > 10 && (
-                <span className="badge badge-info">
-                  +{selectedIds.length - 10} more
-                </span>
+                <span className="badge badge-info">+{selectedIds.length - 10} more</span>
               )}
             </div>
           </div>
