@@ -1,6 +1,6 @@
 # DSA-110 Dashboard: Backend API & Integration
 
-> **:warning: Migration Status:** This documentation references the `legacy.backend`
+> **⚠️ Migration Status:** This documentation references the `legacy.backend`
 > API implementation. The new `backend` is being developed with a cleaner
 > architecture. These endpoints serve as the specification for what the new
 > backend will implement.
@@ -19,11 +19,11 @@ generated from the code and is the single source of truth.
 
 | Endpoint Category | Legacy Backend | New Backend |
 | ----------------- | -------------- | ----------- |
-| Core Health       | :check: Implemented | :refresh: Planned  |
-| WebSocket/SSE     | :check: Implemented | :refresh: Planned  |
-| Jobs API          | :check: Implemented | :refresh: Planned  |
-| Pipeline API      | :check: Implemented | :refresh: Planned  |
-| Streaming API     | :check: Implemented | :refresh: Planned  |
+| Core Health       | ✅ Implemented | 🔄 Planned  |
+| WebSocket/SSE     | ✅ Implemented | 🔄 Planned  |
+| Jobs API          | ✅ Implemented | 🔄 Planned  |
+| Pipeline API      | ✅ Implemented | 🔄 Planned  |
+| Streaming API     | ✅ Implemented | 🔄 Planned  |
 
 ## Reference Implementation
 

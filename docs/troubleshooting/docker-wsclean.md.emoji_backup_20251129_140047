@@ -2,7 +2,7 @@
 
 **Date:** November 2025  
 **Severity:** HIGH  
-**Status:** :red_circle: Open (Workaround Available)  
+**Status:** 🔴 Open (Workaround Available)  
 **Affects:** NVSS seeding, Docker-based WSClean `-predict` operations
 
 ---
@@ -101,12 +101,12 @@ config = SelfCalConfig(
 
 | Feature                 | Without NVSS Seeding | With NVSS Seeding (Broken) |
 | ----------------------- | -------------------- | -------------------------- |
-| Self-cal works          | :check: Yes               | :cross: Hangs                   |
-| SNR improvement         | :check: Yes               | N/A                        |
-| Multi-source sky model  | :cross: No                | :check: Yes (if worked)         |
-| Masked cleaning speedup | :cross: No                | :check: Yes (if worked)         |
+| Self-cal works          | ✅ Yes               | ❌ Hangs                   |
+| SNR improvement         | ✅ Yes               | N/A                        |
+| Multi-source sky model  | ❌ No                | ✅ Yes (if worked)         |
+| Masked cleaning speedup | ❌ No                | ✅ Yes (if worked)         |
 | Execution time          | ~10-15 min           | N/A (hangs)                |
-| Production readiness    | :check: Ready             | :cross: Not ready               |
+| Production readiness    | ✅ Ready             | ❌ Not ready               |
 
 ---
 
@@ -257,20 +257,20 @@ seed_nvss_model=False,    # Skip MODEL_DATA seeding
 
 | Test Configuration                    | Result      | Notes              |
 | ------------------------------------- | ----------- | ------------------ |
-| Self-cal without NVSS seeding         | :check: Works    | Production-ready   |
-| Self-cal with calibrator model only   | :check: Works    | Production-ready   |
-| NVSS catalog query (standalone)       | :check: Works    | Not the issue      |
-| NVSS mask creation (standalone)       | :check: Works    | Not the issue      |
-| NVSS MODEL_DATA seeding via Docker    | :cross: Hangs    | Known issue        |
-| NVSS MODEL_DATA seeding via native WS | :warning: Untested | Potential solution |
+| Self-cal without NVSS seeding         | ✅ Works    | Production-ready   |
+| Self-cal with calibrator model only   | ✅ Works    | Production-ready   |
+| NVSS catalog query (standalone)       | ✅ Works    | Not the issue      |
+| NVSS mask creation (standalone)       | ✅ Works    | Not the issue      |
+| NVSS MODEL_DATA seeding via Docker    | ❌ Hangs    | Known issue        |
+| NVSS MODEL_DATA seeding via native WS | ⚠️ Untested | Potential solution |
 
 ### Attempted Fixes (All Failed)
 
-1. :check: Fixed MODEL_DATA conflict - Disabled dual seeding (calibrator + NVSS)
-2. :check: Disabled model export - Removed CASA incompatibility
-3. :cross: Added subprocess timeouts - Process interrupted before timeout
-4. :cross: Permission fixes - Already implemented, didn't help
-5. :cross: Different Docker flags - Still hangs
+1. ✅ Fixed MODEL_DATA conflict - Disabled dual seeding (calibrator + NVSS)
+2. ✅ Disabled model export - Removed CASA incompatibility
+3. ❌ Added subprocess timeouts - Process interrupted before timeout
+4. ❌ Permission fixes - Already implemented, didn't help
+5. ❌ Different Docker flags - Still hangs
 
 ---
 

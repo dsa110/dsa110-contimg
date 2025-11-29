@@ -40,7 +40,7 @@ key:
 
 1. Open http://localhost:9080 in your browser
 2. Register or log in
-3. Go to **Settings** :arrow_right: **API Keys**
+3. Go to **Settings** → **API Keys**
 4. Create a new API key
 5. Export the key:
 

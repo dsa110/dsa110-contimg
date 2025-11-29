@@ -503,12 +503,12 @@ def main():
     # Print summary
     logger.info("\n" + "=" * 60)
     logger.info(f"E2E Test: {result.scenario_name}")
-    logger.info(f"Status: {':check: PASSED' if result.success else ':cross: FAILED'}")
+    logger.info(f"Status: {'✅ PASSED' if result.success else '❌ FAILED'}")
     logger.info(f"Total Duration: {result.total_duration:.2f}s")
     logger.info("=" * 60)
     logger.info("\nStage Summary:")
     for stage_name, stage_data in result.stages.items():
-        status = ":check:" if stage_data["success"] else ":cross:"
+        status = "✅" if stage_data["success"] else "❌"
         logger.info(f"  {status} {stage_name}: {stage_data['duration']:.2f}s")
 
     if result.error_message:

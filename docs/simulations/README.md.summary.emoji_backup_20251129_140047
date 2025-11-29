@@ -7,5 +7,5 @@ See [simulations/README.md](simulations/README.md) for complete documentation.
 **Active Notebooks:**
 - `02_forced_photometry_validation.ipynb` - Validates forced photometry accuracy
 
-**Status:** :check: Structure created, first notebook migrated (2025-01-XX)
+**Status:** ✅ Structure created, first notebook migrated (2025-01-XX)
 

@@ -5,11 +5,11 @@ changes.
 
 ## Current Status
 
-- :check: API is working correctly on port 8010
-- :check: `.env.development` updated to `VITE_API_URL=http://localhost:8010`
-- :check: Frontend code updated to auto-scan MS files
-- :warning: Frontend dev server still running with old configuration
-- :warning: Vite proxy returning 500 errors
+- ✅ API is working correctly on port 8010
+- ✅ `.env.development` updated to `VITE_API_URL=http://localhost:8010`
+- ✅ Frontend code updated to auto-scan MS files
+- ⚠️ Frontend dev server still running with old configuration
+- ⚠️ Vite proxy returning 500 errors
 
 ## Restart Steps
 

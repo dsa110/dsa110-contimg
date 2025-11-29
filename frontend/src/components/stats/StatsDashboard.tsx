@@ -123,7 +123,7 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({
       };
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+     
     init();
   }, [byUser, chartsReady]);
 
@@ -200,7 +200,7 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({
       };
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+     
     init();
   }, [byTag, chartsReady]);
 
@@ -257,7 +257,7 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({
       };
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+     
     init();
   }, [tagDistribution, chartsReady]);
 

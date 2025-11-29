@@ -75,9 +75,9 @@ python -m dsa110_contimg.calibration.cli calibrate \
 
 By default, the calibration CLI performs:
 
-- :check: Bandpass calibration
-- :check: Gain calibration
-- :cross: K-calibration (skipped)
+- ✓ Bandpass calibration
+- ✓ Gain calibration
+- ✗ K-calibration (skipped)
 
 This matches VLA/ALMA practice for connected-element arrays. For bandpass, no
 implicit UV range cut is applied; provide `--uvrange` explicitly or set a
@@ -113,9 +113,9 @@ site-wide default via `CONTIMG_CAL_BP_UVRANGE`.
 **Connected-Element Array Characteristics**:
 
 - Shared frequency reference (no clock drift delays)
-- Short baselines (< 100 km) :arrow_right: atmospheric delays partially cancel
+- Short baselines (< 100 km) → atmospheric delays partially cancel
 - Known instrumental delays incorporated into correlator model
-- Residual delays < 0.5 ns :arrow_right: absorbed into complex gain calibration
+- Residual delays < 0.5 ns → absorbed into complex gain calibration
 
 **VLBI vs Connected Arrays**:
 

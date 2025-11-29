@@ -3,11 +3,11 @@
 **Date:** 2025-11-16  
 **Purpose:** Standardized guidelines and templates for AI agents to create,
 update, and maintain documentation  
-**Status:** :check: Current
+**Status:** ✅ Current
 
 ---
 
-## :target: Purpose
+## 🎯 Purpose
 
 This document provides AI agents with standardized templates, formats, and
 guidelines for creating and maintaining documentation in a consistent,
@@ -17,7 +17,7 @@ searchable, and maintainable format.
 
 ---
 
-## :clipboard: Standard Document Template
+## 📋 Standard Document Template
 
 ### Basic Template
 
@@ -25,8 +25,8 @@ searchable, and maintainable format.
 # Document Title
 
 **Date:** YYYY-MM-DD **Type:** [Implementation Guide | Troubleshooting |
-Analysis | Status Report | Reference] **Status:** [:check: Current | :check: Complete | :refresh:
-In Progress | :clipboard: Planned] **Related:** [Optional: Links to related documents or
+Analysis | Status Report | Reference] **Status:** [✅ Current | ✅ Complete | 🔄
+In Progress | 📋 Planned] **Related:** [Optional: Links to related documents or
 features]
 
 ---
@@ -59,7 +59,7 @@ responsible]
 
 ---
 
-## :memo: Document Type Guidelines
+## 📝 Document Type Guidelines
 
 ### 1. Implementation Guide
 
@@ -78,7 +78,7 @@ responsible]
 ```markdown
 # Feature Implementation: [Feature Name]
 
-**Date:** 2025-11-16 **Type:** Implementation Guide **Status:** :check: Complete
+**Date:** 2025-11-16 **Type:** Implementation Guide **Status:** ✅ Complete
 **Related:** [Component Name] | [API Endpoint]
 
 ## Overview
@@ -131,7 +131,7 @@ How to test the implementation...
 ```markdown
 # Issue: [Issue Name]
 
-**Date:** 2025-11-16 **Type:** Troubleshooting **Status:** :check: Complete
+**Date:** 2025-11-16 **Type:** Troubleshooting **Status:** ✅ Complete
 **Related:** [Related Component] | [Related Issue]
 
 ## Issue Description
@@ -174,7 +174,7 @@ Links to similar issues or related documentation...
 ```markdown
 # Analysis: [Topic]
 
-**Date:** 2025-11-16 **Type:** Analysis **Status:** :check: Complete
+**Date:** 2025-11-16 **Type:** Analysis **Status:** ✅ Complete
 
 ## Summary
 
@@ -224,7 +224,7 @@ Other options explored...
 ```markdown
 # Status Report: [Topic]
 
-**Date:** 2025-11-16 **Type:** Status Report **Status:** :check: Complete
+**Date:** 2025-11-16 **Type:** Status Report **Status:** ✅ Complete
 
 ## Overview
 
@@ -232,9 +232,9 @@ What this report covers...
 
 ## Status Summary
 
-- :check: Completed items
-- :refresh: In progress items
-- :clipboard: Planned items
+- ✅ Completed items
+- 🔄 In progress items
+- 📋 Planned items
 
 ## Details
 
@@ -251,7 +251,7 @@ Quantitative summary...
 
 ---
 
-## :refresh: Updating Documentation
+## 🔄 Updating Documentation
 
 ### When to Update a Document
 
@@ -264,7 +264,7 @@ Quantitative summary...
 
 1. **Update Content**: Make necessary changes
 2. **Update Date**: Change `**Date:**` field if significant
-3. **Update Status**: Change if needed (Current :arrow_right: Complete, etc.)
+3. **Update Status**: Change if needed (Current → Complete, etc.)
 4. **Update INDEX.md**: Update entry in INDEX.md
 5. **Update Last Updated**: At end of document
 
@@ -273,19 +273,19 @@ Quantitative summary...
 ```markdown
 # Existing Document
 
-**Date:** 2025-11-14 :arrow_left: Update if significant changes **Status:** :refresh: In Progress
-:arrow_left: Change to :check: Complete when done
+**Date:** 2025-11-14 ← Update if significant changes **Status:** 🔄 In Progress
+← Change to ✅ Complete when done
 
 [Content updates here...]
 
 ---
 
-**Last Updated:** 2025-11-16 :arrow_left: Always update this
+**Last Updated:** 2025-11-16 ← Always update this
 ```
 
 ---
 
-## :folder_open: Adding New Documentation
+## 📂 Adding New Documentation
 
 ### Step-by-Step Process
 
@@ -324,40 +324,40 @@ touch docs/NEW_FEATURE_IMPLEMENTATION.md
 
 # 3. Update INDEX.md - add to "Implementation Guides" section:
 
-| [NEW_FEATURE_IMPLEMENTATION.md](./NEW_FEATURE_IMPLEMENTATION.md) | 2025-11-16 | New feature implementation details | :check: Complete |
+| [NEW_FEATURE_IMPLEMENTATION.md](./NEW_FEATURE_IMPLEMENTATION.md) | 2025-11-16 | New feature implementation details | ✅ Complete |
 
 # 4. Update INDEX.md Last Updated date
 ```
 
 ---
 
-## :label::variation_selector-16: Status Values
+## 🏷️ Status Values
 
 ### When to Use Each Status
 
-- **:check: Current**: Document is actively maintained and accurate
+- **✅ Current**: Document is actively maintained and accurate
   - Use for: Living documentation, actively used guides
   - Update regularly to keep date recent
 
-- **:check: Complete**: Work is finished, document is final
+- **✅ Complete**: Work is finished, document is final
   - Use for: Completed implementations, resolved issues
   - No further updates expected
 
-- **:refresh: In Progress**: Work is ongoing
+- **🔄 In Progress**: Work is ongoing
   - Use for: Features under development, ongoing analysis
   - Update regularly as work progresses
 
-- **:clipboard: Planned**: Documented but not yet implemented
+- **📋 Planned**: Documented but not yet implemented
   - Use for: Planned features, future work
-  - Update when work begins (:arrow_right: In Progress)
+  - Update when work begins (→ In Progress)
 
-- **:warning: Deprecated**: Documented approach is outdated
+- **⚠️ Deprecated**: Documented approach is outdated
   - Use for: Old approaches being replaced
   - Should link to replacement document
 
 ---
 
-## :link_symbol: Linking Best Practices
+## 🔗 Linking Best Practices
 
 ### Internal Links
 
@@ -405,7 +405,7 @@ Implementation: `frontend/src/components/<Feature>/<FeatureComponent>.tsx`
 
 ---
 
-## :chart: Metadata Standards
+## 📊 Metadata Standards
 
 ### Required Metadata
 
@@ -414,7 +414,7 @@ Every document must have:
 - **Date:** YYYY-MM-DD format
 - **Type:** One of: Implementation Guide | Troubleshooting | Analysis | Status
   Report | Reference
-- **Status:** One of: :check: Current | :check: Complete | :refresh: In Progress | :clipboard: Planned
+- **Status:** One of: ✅ Current | ✅ Complete | 🔄 In Progress | 📋 Planned
 
 ### Optional Metadata
 
@@ -425,13 +425,13 @@ Every document must have:
 ### Metadata Format
 
 ```markdown
-**Date:** 2025-11-16 **Type:** Implementation Guide **Status:** :check: Complete
+**Date:** 2025-11-16 **Type:** Implementation Guide **Status:** ✅ Complete
 **Related:** [Component Name] | [Feature Name]
 ```
 
 ---
 
-## :search: Search Optimization
+## 🔍 Search Optimization
 
 ### For AI Agents to Find Documents Easily
 
@@ -446,7 +446,7 @@ Every document must have:
 ```markdown
 # Feature Implementation: Interactive Sky Map Component
 
-**Date:** 2025-11-16 **Type:** Implementation Guide **Status:** :check: Complete
+**Date:** 2025-11-16 **Type:** Implementation Guide **Status:** ✅ Complete
 **Related:** SkyView | SkyMap | SKYMAP_IMPLEMENTATION.md
 
 ## Overview
@@ -458,7 +458,7 @@ Implementation of interactive sky map using CARTA integration...
 
 ---
 
-## :check: Quality Checklist
+## ✅ Quality Checklist
 
 Before finalizing a document, verify:
 
@@ -475,7 +475,7 @@ Before finalizing a document, verify:
 
 ---
 
-## :books: Quick Reference
+## 📚 Quick Reference
 
 ### File Naming Convention
 
@@ -505,12 +505,12 @@ docs/
 ### Update INDEX.md Format
 
 ```markdown
-| [Document Name](./FILENAME.md) | YYYY-MM-DD | Brief description | :check: Current |
+| [Document Name](./FILENAME.md) | YYYY-MM-DD | Brief description | ✅ Current |
 ```
 
 ---
 
-## :rocket: Quick Start for AI Agents
+## 🚀 Quick Start for AI Agents
 
 ### Creating New Documentation (5 Steps)
 
@@ -528,7 +528,7 @@ docs/
 
 ---
 
-## :telephone_receiver: Questions or Issues?
+## 📞 Questions or Issues?
 
 - Check INDEX.md for document location
 - Review existing documents for format examples
@@ -538,5 +538,5 @@ docs/
 ---
 
 **Last Updated:** 2025-11-16  
-**Status:** :check: Current  
+**Status:** ✅ Current  
 **For:** AI Agents and Contributors

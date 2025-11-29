@@ -1,6 +1,6 @@
 # CASA C++ Shutdown Error in pytest
 
-**Status:** :check: Resolved  
+**Status:** ✅ Resolved  
 **Date Fixed:** November 29, 2025  
 **Affects:** Unit tests that import CASA modules (casatools, casacore)
 

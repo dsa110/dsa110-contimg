@@ -217,7 +217,7 @@ const LightCurveChart: React.FC<LightCurveChartProps> = ({
       }
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+     
     renderChart();
 
     return () => {

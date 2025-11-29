@@ -101,28 +101,28 @@ npx playwright test
 
 ### Pages Tested
 
-- :check: Navigation Component
-- :check: Dashboard Page
-- :check: Control Page (Convert, Calibrate, Apply, Image tabs)
-- :check: Data Browser Page
-- :check: Data Detail Page
-- :check: Streaming Page
-- :check: Mosaic Gallery Page
-- :check: Source Monitoring Page
-- :check: Sky View Page
+- ✅ Navigation Component
+- ✅ Dashboard Page
+- ✅ Control Page (Convert, Calibrate, Apply, Image tabs)
+- ✅ Data Browser Page
+- ✅ Data Detail Page
+- ✅ Streaming Page
+- ✅ Mosaic Gallery Page
+- ✅ Source Monitoring Page
+- ✅ Sky View Page
 
 ### Feature Categories
 
-- :check: Navigation and Routing
-- :check: Form Interactions
-- :check: Button Actions
-- :check: Table/List Interactions
-- :check: Modal/Dialog Interactions
-- :check: Tab Navigation
-- :check: API Integration
-- :check: Error Handling
-- :check: Accessibility
-- :check: Performance
+- ✅ Navigation and Routing
+- ✅ Form Interactions
+- ✅ Button Actions
+- ✅ Table/List Interactions
+- ✅ Modal/Dialog Interactions
+- ✅ Tab Navigation
+- ✅ API Integration
+- ✅ Error Handling
+- ✅ Accessibility
+- ✅ Performance
 
 ## Test Statistics
 
