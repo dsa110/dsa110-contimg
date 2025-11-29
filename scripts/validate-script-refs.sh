@@ -4,21 +4,17 @@
 
 set -e
 
-# Auto-detect project root
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PROJECT_ROOT="${1:-$(dirname "$SCRIPT_DIR")}"
-
+REPO_ROOT="${1:-/data/dsa110-contimg}"
 ERRORS=0
 
 echo "Validating script references..."
-echo "Project root: $PROJECT_ROOT"
 
 # Check package.json script references
 echo "--- Checking frontend/package.json ---"
-cd "$PROJECT_ROOT/frontend"
+cd "$REPO_ROOT/frontend"
 
 # Extract bash script paths from package.json
-scripts=$(grep -oE 'bash [^"]+\.sh' package.json 2>/dev/null  # Exception: grep may find no matches | sed 's/bash //' || true)
+scripts=$(grep -oE 'bash [^"]+\.sh' package.json 2>/dev/null | sed 's/bash //' || true)  # suppress-output-check
 
 for script in $scripts; do
     if [ ! -f "$script" ]; then
@@ -31,11 +27,11 @@ done
 
 # Check systemd service references
 echo "--- Checking systemd services ---"
-cd "$PROJECT_ROOT/ops/systemd"
+cd "$REPO_ROOT/ops/systemd"
 
 for service in *.service; do
     # Extract ExecStart and ExecStartPre paths
-    scripts=$(grep -E '^Exec(Start|StartPre)=' "$service" 2>/dev/null  # Exception: grep may find no matches | grep -oE '/[^ ]+\.sh' || true)
+    scripts=$(grep -E '^Exec(Start|StartPre)=' "$service" 2>/dev/null | grep -oE '/[^ ]+\.sh' || true)  # suppress-output-check
     
     for script in $scripts; do
         if [ ! -f "$script" ]; then

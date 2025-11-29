@@ -53,7 +53,7 @@ for i in 0 1 2; do
             2>&1 | tail -5
         
         # Find the created MS
-        MS_PATH=$(ls -d "$MS_DIR"/*.ms 2>/dev/null  # Exception: glob may match nothing | grep "$TS" | head -1 || echo "")
+        MS_PATH=$(ls -d "$MS_DIR"/*.ms 2>/dev/null | grep "$TS" | head -1 || echo "")  # suppress-output-check
     fi
     
     if [ ! -d "$MS_PATH" ]; then
@@ -85,9 +85,9 @@ for i in 0 1 2; do
         2>&1 | tail -5
     
     # Find FITS file
-    FITS=$(ls "$IMG_PATH"*.pbcor.fits 2>/dev/null  # Exception: glob may match nothing | head -1 || echo "")
+    FITS=$(ls "$IMG_PATH"*.pbcor.fits 2>/dev/null | head -1 || echo "")  # suppress-output-check
     if [ -z "$FITS" ]; then
-        FITS=$(ls "$IMG_PATH"*image*.fits 2>/dev/null  # Exception: glob may match nothing | head -1 || echo "")
+        FITS=$(ls "$IMG_PATH"*image*.fits 2>/dev/null | head -1 || echo "")  # suppress-output-check
     fi
     
     if [ -n "$FITS" ] && [ -f "$FITS" ]; then
