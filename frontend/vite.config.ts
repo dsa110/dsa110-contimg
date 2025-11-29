@@ -31,8 +31,6 @@ export default defineConfig({
         },
       },
     },
-    // Increase warning threshold to account for heavy visualization libraries split into vendor chunks
-    chunkSizeWarningLimit: 2500,
   },
   resolve: {
     alias: {
