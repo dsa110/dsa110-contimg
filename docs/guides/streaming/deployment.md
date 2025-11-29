@@ -24,9 +24,9 @@ Detailed deployment options for the streaming service.
 
 1. Copy environment template:
 
-```bash
-cp ops/docker/.env.example ops/docker/.env
-```
+   ```bash
+   cp ops/docker/.env.example ops/docker/.env
+   ```
 
 2. Edit `ops/docker/.env`:
 
@@ -81,7 +81,7 @@ curl http://localhost:8010/api/streaming/status
 
 ## systemd Deployment
 
-### Prerequisites
+### systemd Prerequisites
 
 - CASA6 environment installed
 - Repository at `/data/dsa110-contimg`
@@ -91,17 +91,17 @@ curl http://localhost:8010/api/streaming/status
 
 1. Create directories:
 
-```bash
-sudo mkdir -p /data/dsa110-contimg/state/logs
-sudo chown -R $USER:$USER /data/dsa110-contimg/state
-```
+   ```bash
+   sudo mkdir -p /data/dsa110-contimg/state/logs
+   sudo chown -R $USER:$USER /data/dsa110-contimg/state
+   ```
 
 2. Install service units:
 
-```bash
-sudo cp ops/systemd/*.service /etc/systemd/system/
-sudo systemctl daemon-reload
-```
+   ```bash
+   sudo cp ops/systemd/*.service /etc/systemd/system/
+   sudo systemctl daemon-reload
+   ```
 
 3. Enable and start services:
 
@@ -178,7 +178,7 @@ chown -R $USER:$USER /data/incoming /stage/dsa110-contimg
 
 ### Directory Structure
 
-```
+```text
 /data/incoming/                    # UVH5 input files
 /stage/dsa110-contimg/
 ├── ms/                            # Output Measurement Sets

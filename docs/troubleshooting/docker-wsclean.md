@@ -35,7 +35,7 @@ Docker/kernel level, not the Python layer.
 
 ## Symptoms
 
-```
+```text
 Writing changed model back to /data_ms/2025-10-19T14:31:45.ms:
  0%....10%....20%....30%....40%....50%....60%....70%....80%....90%....100%
 Cleaning up temporary files...
@@ -59,7 +59,7 @@ Cleaning up temporary files...
 
 ## Root Cause Analysis
 
-**Suspected cause: Docker volume unmounting after container completion**
+### Suspected Cause: Docker Volume Unmounting
 
 1. WSClean completes successfully and begins cleanup
 2. Docker attempts to unmount volumes (`/data_ms`, `/data_txt`) with `--rm` flag

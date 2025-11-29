@@ -31,12 +31,12 @@ CARTA integration is available in two modes:
 
 ### Current Deployment Status
 
-| Component             | Status     | URL                         |
-| --------------------- | ---------- | --------------------------- |
-| CARTA Container       | ✅ Running | `carta-backend`             |
-| CARTA Version         | 5.0.3      | -                           |
-| Backend Port          | 9002       | http://localhost:9002/      |
-| Dashboard Integration | ✅ Active  | http://localhost:3210/carta |
+| Component             | Status     | URL                           |
+| --------------------- | ---------- | ----------------------------- |
+| CARTA Container       | ✅ Running | `carta-backend`               |
+| CARTA Version         | 5.0.3      | -                             |
+| Backend Port          | 9002       | `http://localhost:9002/`      |
+| Dashboard Integration | ✅ Active  | `http://localhost:3210/carta` |
 
 ---
 

@@ -668,7 +668,7 @@ class TestStreamingService:
 
 ## JavaScript/TypeScript Examples
 
-### Basic Usage
+### TypeScript Basic Usage
 
 ```typescript
 const BASE_URL = "http://localhost:8010/api/streaming";

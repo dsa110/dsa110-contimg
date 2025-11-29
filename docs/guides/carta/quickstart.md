@@ -49,7 +49,7 @@ VITE_CARTA_FRONTEND_URL=http://localhost:9002
 
 ## Step 3: Access CARTA
 
-1. Navigate to the dashboard: http://localhost:3210
+1. Navigate to the dashboard: `http://localhost:3210`
 2. Click "CARTA" in the navigation menu
 3. Select integration mode (Iframe recommended)
 4. Use File Browser to select a FITS file

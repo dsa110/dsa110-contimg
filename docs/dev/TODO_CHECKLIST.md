@@ -5,14 +5,11 @@ Quick reference checklist for tracking TODO completion progress.
 **Last Updated**: 2025-11-27  
 **Related**: TODO_ROADMAP.md, TODO_INVESTIGATION_REPORT.md
 
-> Pending host actions (Ops required):
+> **Pending host actions (Ops required):**
 >
-> - `sudo systemctl daemon-reload && sudo systemctl restart contimg-stream.service contimg-api.service`
->   (pick up DB/env changes)
-> - `sudo systemctl enable --now data-retention-cleanup.timer` (retention
->   cleanup)
-> - After editing Slack/email secrets in `ops/systemd/contimg.env`, rerun
->   daemon-reload + service restarts
+> - `sudo systemctl daemon-reload && sudo systemctl restart contimg-stream.service contimg-api.service` (pick up DB/env changes)
+> - `sudo systemctl enable --now data-retention-cleanup.timer` (retention cleanup)
+> - After editing Slack/email secrets in `ops/systemd/contimg.env`, rerun daemon-reload + service restarts
 
 ---
 

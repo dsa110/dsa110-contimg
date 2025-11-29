@@ -73,7 +73,7 @@ scripts/run_conversion.sh /path/to/uvh5_dir /stage/dsa110-contimg/ms \
 
 ## Output Organization
 
-```
+```text
 /stage/dsa110-contimg/ms/
 ├── science/           # Science observations
 │   └── YYYY-MM-DD/

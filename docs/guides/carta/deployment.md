@@ -206,7 +206,7 @@ docker exec carta-backend cat /home/cartauser/.carta/log/carta.log
 
 ## Architecture
 
-```
+```text
 carta-backend container
 ├── Backend WebSocket Server (port 3002 -> host 9002)
 ├── Frontend Static Files (/usr/share/carta/frontend)

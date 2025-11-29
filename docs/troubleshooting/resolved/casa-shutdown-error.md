@@ -91,7 +91,7 @@ def pytest_sessionfinish(session, exitstatus):
 def pytest_unconfigure(config):
     """Called after all pytest activities complete."""
     global _casa_cpp_loaded, _pytest_exit_status
-    
+
     if _pytest_exit_status == 0 and _casa_cpp_loaded:
         sys.stdout.flush()
         sys.stderr.flush()
@@ -102,8 +102,9 @@ def pytest_unconfigure(config):
 
 - `os._exit(0)` terminates the process immediately without running atexit
   handlers or C++ destructors
-- **Key improvement**: Using `pytest_unconfigure` instead of `pytest_sessionfinish`
-  ensures the terminal summary (test count, coverage report) prints first
+- **Key improvement**: Using `pytest_unconfigure` instead of
+  `pytest_sessionfinish` ensures the terminal summary (test count, coverage
+  report) prints first
 - Only used when tests pass (exitstatus == 0) so failures are properly reported
 - Only used when CASA was actually imported during the test session
 - Tests that don't use CASA show full pytest output normally

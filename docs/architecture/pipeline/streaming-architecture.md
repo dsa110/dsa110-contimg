@@ -8,7 +8,7 @@ describes the architecture, design decisions, and component interactions.
 
 ## System Architecture
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────┐
 │                    Dashboard (Frontend)                      │
 │  ┌──────────────────────────────────────────────────────┐   │
@@ -219,7 +219,7 @@ describes the architecture, design decisions, and component interactions.
 
 ### Starting the Service
 
-```
+```text
 1. User clicks "Start" in dashboard
 2. Frontend sends POST /api/streaming/start
 3. StreamingServiceManager.start() called
@@ -233,7 +233,7 @@ describes the architecture, design decisions, and component interactions.
 
 ### Status Monitoring
 
-```
+```text
 1. Frontend polls /api/streaming/status every 5s
 2. StreamingServiceManager.get_status() called
 3. Checks Docker environment
@@ -246,7 +246,7 @@ describes the architecture, design decisions, and component interactions.
 
 ### Configuration Update
 
-```
+```text
 1. User edits config in dashboard
 2. Frontend sends POST /api/streaming/config
 3. StreamingServiceManager.update_config() called
