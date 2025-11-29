@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 // Treat aladin-lite as an emitted asset so it does not bloat the main bundle
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import aladinScriptUrl from "aladin-lite/dist/aladin.js?url";
+import aladinScriptUrl from "aladin-lite?url";
 
 export interface AladinLiteViewerProps {
   /** Right Ascension in degrees */
