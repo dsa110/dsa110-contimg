@@ -72,42 +72,53 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
 
   // Initialize Aladin viewer
   useEffect(() => {
-    if (error || !containerRef.current) return;
+    let cancelled = false;
+    const init = async () => {
+      if (error || !containerRef.current) return;
 
-    const target = `${raDeg.toFixed(6)} ${decDeg >= 0 ? "+" : ""}${decDeg.toFixed(6)}`;
+      const target = `${raDeg.toFixed(6)} ${decDeg >= 0 ? "+" : ""}${decDeg.toFixed(6)}`;
 
-    try {
-      setIsLoading(true);
-      destroyInstance();
+      try {
+        setIsLoading(true);
+        destroyInstance();
 
-      // Lazy-load aladin-lite to keep the main bundle small
-      const mod = await import("aladin-lite");
-      const aladinLib = (mod as any).default?.aladin ? (mod as any).default : (mod as any);
-      if (!aladinLib?.aladin) {
-        throw new Error("Aladin Lite library unavailable");
+        // Lazy-load aladin-lite to keep the main bundle small
+        const mod = await import("aladin-lite");
+        const aladinLib = (mod as any).default?.aladin ? (mod as any).default : (mod as any);
+        if (!aladinLib?.aladin) {
+          throw new Error("Aladin Lite library unavailable");
+        }
+        if (cancelled) return;
+        aladinLibRef.current = aladinLib;
+
+        aladinRef.current = aladinLib.aladin(containerRef.current, {
+          target,
+          fov: currentFov,
+          survey,
+          showReticle: true,
+          showZoomControl: true,
+          showFullscreenControl: showFullscreen,
+          showLayersControl: true,
+          showGotoControl: false,
+          showShareControl: false,
+          showCatalog: true,
+          showFrame: true,
+        });
+        setIsLoading(false);
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Failed to load sky viewer");
+          setIsLoading(false);
+        }
       }
-      aladinLibRef.current = aladinLib;
+    };
 
-      aladinRef.current = aladinLib.aladin(containerRef.current, {
-        target,
-        fov: currentFov,
-        survey,
-        showReticle: true,
-        showZoomControl: true,
-        showFullscreenControl: showFullscreen,
-        showLayersControl: true,
-        showGotoControl: false,
-        showShareControl: false,
-        showCatalog: true,
-        showFrame: true,
-      });
-      setIsLoading(false);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load sky viewer");
-      setIsLoading(false);
-    }
+    init();
 
-    return destroyInstance;
+    return () => {
+      cancelled = true;
+      destroyInstance();
+    };
   }, [destroyInstance, error, raDeg, decDeg, survey, showFullscreen]);
 
   // Update position when coordinates change
