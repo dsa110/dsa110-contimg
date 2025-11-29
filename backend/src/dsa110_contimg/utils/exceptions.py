@@ -740,11 +740,20 @@ def wrap_exception(
         except OSError as e:
             raise wrap_exception(e, UVH5ReadError, file_path=path)
     """
-    return wrapper_class(
-        message=message or str(exc),
-        original_exception=exc,
-        **context,
-    )
+    # Use the base PipelineError if wrapper has incompatible signature
+    try:
+        return wrapper_class(
+            message or str(exc),
+            original_exception=exc,
+            **context,
+        )
+    except TypeError:
+        # Fall back to base PipelineError for incompatible signatures
+        return PipelineError(
+            message or str(exc),
+            original_exception=exc,
+            **context,
+        )
 
 
 def is_recoverable(exc: BaseException) -> bool:

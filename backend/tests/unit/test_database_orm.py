@@ -177,16 +177,28 @@ class TestImageModel:
             assert result.beam_major_arcsec == 5.0
     
     def test_image_defaults(self):
-        """Test Image default values."""
-        image = Image(
-            path="/test/image.fits",
-            ms_path="/test/test.ms",
-            created_at=time.time(),
-            type="clean",
-        )
+        """Test Image default values are applied after INSERT.
         
-        assert image.pbcor == 0
-        assert image.format == "fits"
+        Note: SQLAlchemy Column(default=...) is only applied during INSERT,
+        not during object instantiation. Must insert and refresh to see defaults.
+        """
+        engine = get_engine("products", in_memory=True)
+        ProductsBase.metadata.create_all(engine)
+        
+        with get_session("products", in_memory=True) as session:
+            image = Image(
+                path="/test/image.fits",
+                ms_path="/test/test.ms",
+                created_at=time.time(),
+                type="clean",
+            )
+            session.add(image)
+            session.commit()
+            session.refresh(image)
+            
+            # Defaults applied after INSERT
+            assert image.pbcor == 0
+            assert image.format == "fits"
 
 
 class TestPhotometryModel:

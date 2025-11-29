@@ -442,15 +442,26 @@ def log_exception(
     """
     from dsa110_contimg.utils.exceptions import PipelineError
     
+    # Reserved LogRecord attribute names that cannot be used in extra
+    RESERVED_KEYS = {
+        "name", "msg", "args", "created", "filename", "funcName",
+        "levelname", "levelno", "lineno", "module", "pathname",
+        "process", "processName", "thread", "threadName",
+        "exc_info", "exc_text", "stack_info", "message",
+    }
+    
     # Build context from exception if it's a PipelineError
     if isinstance(exc, PipelineError):
-        context = {**exc.context, **extra_context}
+        raw_context = {**exc.context, **extra_context}
     else:
-        context = {
+        raw_context = {
             "error_type": type(exc).__name__,
             "error_message": str(exc),
             **extra_context,
         }
+    
+    # Filter out reserved keys to avoid LogRecord conflicts
+    context = {k: v for k, v in raw_context.items() if k not in RESERVED_KEYS}
     
     # Log with exception info
     logger.log(

@@ -71,8 +71,8 @@ class MSIndex(ProductsBase):
     pointing_ra_deg = Column(Float, doc="Pointing RA in degrees")
     pointing_dec_deg = Column(Float, doc="Pointing Dec in degrees")
     
-    # Relationships
-    images = relationship("Image", back_populates="measurement_set", foreign_keys="Image.ms_path")
+    # Note: relationship to Image removed - no FK constraint in actual database
+    # Use manual queries to join if needed
     
     __table_args__ = (
         Index("idx_ms_index_stage_path", "stage", "path"),
@@ -89,12 +89,16 @@ class Image(ProductsBase):
     
     Stores information about generated FITS images including beam properties,
     noise measurements, and coordinate information.
+    
+    Note: ms_path references ms_index.path but the database does not enforce
+    a foreign key constraint for backward compatibility with existing data.
     """
     __tablename__ = "images"
     
     id = Column(Integer, primary_key=True, autoincrement=True)
     path = Column(String, nullable=False, doc="Full path to image file")
-    ms_path = Column(String, ForeignKey("ms_index.path"), nullable=False, doc="Source MS path")
+    # No FK constraint - matches actual database schema for backward compatibility
+    ms_path = Column(String, nullable=False, doc="Source MS path (references ms_index.path)")
     created_at = Column(Float, nullable=False, doc="Unix timestamp when image was created")
     type = Column(String, nullable=False, doc="Image type (e.g., 'dirty', 'clean', 'residual')")
     beam_major_arcsec = Column(Float, doc="Beam major axis in arcseconds")
@@ -114,10 +118,10 @@ class Image(ProductsBase):
     bandwidth_mhz = Column(Float, doc="Bandwidth in MHz")
     integration_sec = Column(Float, doc="Total integration time in seconds")
     
-    # Relationships
-    measurement_set = relationship("MSIndex", back_populates="images")
-    # Note: photometry_entries relationship removed - photometry.image_path is just a string
-    # column without FK constraint for backward compatibility
+    # Relationships - note: ms_path is just a string column without FK constraint
+    # Use primaryjoin to define the relationship explicitly
+    # Note: relationship removed for backward compatibility with existing data
+    # that may have images without corresponding MS records
     
     __table_args__ = (
         Index("idx_images_ms_path", "ms_path"),
