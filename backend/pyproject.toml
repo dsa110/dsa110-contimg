@@ -18,6 +18,8 @@ pyuvsim = "*"
 fastapi = "^0.109.0"
 pydantic = "^2.5.0"
 uvicorn = "^0.27.0"
+sqlalchemy = "^2.0.0"
+alembic = "^1.16.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "*"

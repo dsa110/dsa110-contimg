@@ -41,8 +41,8 @@ The project is organized into several modules, each serving a specific purpose:
 ## API Server
 
 The pipeline includes a REST API for accessing measurement sets, images,
-sources, and pipeline job status. See [docs/api.md](docs/api.md) for full
-documentation.
+sources, and pipeline job status. See [API Reference](../docs/reference/api.md) 
+for full documentation.
 
 ### Running the API
 
@@ -59,7 +59,7 @@ sudo systemctl start dsa110-api.service
 The API includes IP-based access control. By default, only requests from
 localhost and private networks (10.x, 172.16.x, 192.168.x) are allowed.
 
-See [docs/security.md](docs/security.md) for configuration details.
+See [Security Guide](../docs/reference/security.md) for configuration details.
 
 ## Installation
 

@@ -1,14 +1,14 @@
 # DSA-110 Backend Documentation
 
-This directory contains documentation for the DSA-110 Continuum Imaging Pipeline
-backend.
+Documentation for the DSA-110 Continuum Imaging Pipeline backend is maintained
+in the main project documentation at `/data/dsa110-contimg/docs/`.
 
-## Contents
+## Documentation Links
 
-| Document                   | Description                           |
-| -------------------------- | ------------------------------------- |
-| [api.md](api.md)           | REST API endpoint reference           |
-| [security.md](security.md) | IP-based access control configuration |
+| Document | Description |
+|----------|-------------|
+| [API Reference](../../docs/reference/api.md) | REST API endpoint reference |
+| [Security](../../docs/reference/security.md) | IP-based access control configuration |
 
 ## Quick Links
 
