@@ -60,7 +60,7 @@ const SourceDetailPage: React.FC = () => {
       .map((img) => ({
         time: img.created_at!,
         flux: img.flux_jy!,
-        fluxError: img.flux_error_jy,
+        fluxError: (img as { flux_error_jy?: number }).flux_error_jy,
         label: img.path?.split("/").pop() || img.image_id,
       }))
       .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());

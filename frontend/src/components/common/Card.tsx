@@ -3,8 +3,8 @@ import React from "react";
 export interface CardProps {
   /** Card title */
   title?: string;
-  /** Card subtitle or description */
-  subtitle?: string;
+  /** Card subtitle or description (can be string or ReactNode for action buttons) */
+  subtitle?: React.ReactNode;
   /** Card content */
   children: React.ReactNode;
   /** Additional CSS classes */

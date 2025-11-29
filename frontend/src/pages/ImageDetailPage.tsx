@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import ProvenanceStrip from "../components/provenance/ProvenanceStrip";
 import ErrorDisplay from "../components/errors/ErrorDisplay";
@@ -9,6 +9,7 @@ import {
   LoadingSpinner,
   QAMetrics,
 } from "../components/common";
+import { AladinLiteViewer, GifPlayer } from "../components/widgets";
 import { mapProvenanceFromImageDetail, ImageDetailResponse } from "../utils/provenanceMappers";
 import { relativeTime } from "../utils/relativeTime";
 import type { ErrorResponse } from "../types/errors";
@@ -23,6 +24,7 @@ const ImageDetailPage: React.FC = () => {
   const { imageId } = useParams<{ imageId: string }>();
   const { data: image, isLoading, error, refetch } = useImage(imageId);
   const addRecentImage = usePreferencesStore((state) => state.addRecentImage);
+  const [showSkyViewer, setShowSkyViewer] = useState(true);
 
   // Track in recent items when image loads
   React.useEffect(() => {
@@ -128,14 +130,36 @@ const ImageDetailPage: React.FC = () => {
           )}
 
           {/* Coordinates */}
-          {imageData.pointing_ra_deg !== undefined && imageData.pointing_dec_deg !== undefined && (
-            <Card title="Pointing">
+          {imageData.pointing_ra_deg != null && imageData.pointing_dec_deg != null && (
+            <Card
+              title="Pointing"
+              subtitle={
+                <button
+                  type="button"
+                  onClick={() => setShowSkyViewer(!showSkyViewer)}
+                  className="text-xs text-blue-600 hover:text-blue-800"
+                >
+                  {showSkyViewer ? "Hide Sky View" : "Show Sky View"}
+                </button>
+              }
+            >
               <CoordinateDisplay
                 raDeg={imageData.pointing_ra_deg}
                 decDeg={imageData.pointing_dec_deg}
                 showDecimal
                 allowFormatToggle
               />
+              {showSkyViewer && (
+                <div className="mt-4">
+                  <AladinLiteViewer
+                    raDeg={imageData.pointing_ra_deg}
+                    decDeg={imageData.pointing_dec_deg}
+                    fov={0.5}
+                    height={250}
+                    className="rounded-lg overflow-hidden"
+                  />
+                </div>
+              )}
             </Card>
           )}
 
