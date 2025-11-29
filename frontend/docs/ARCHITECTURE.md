@@ -1,379 +1,351 @@
 # DSA-110 Continuum Imaging Frontend Architecture
 
-## System Overview
+> **Legend**: Solid lines = data flow | Dotted lines = external requests | Thick
+> lines = primary path
 
-```mermaid
-flowchart TB
-    subgraph Browser["🌐 Browser (User)"]
-        subgraph Frontend["React Frontend :3000"]
-            Router[React Router]
-            
-            subgraph Pages["📄 Pages"]
-                HP["/  HomePage"]
-                ILP["/images  ImagesListPage"]
-                IDP["/images/:id  ImageDetailPage"]
-                SLP["/sources  SourcesListPage"]
-                SDP["/sources/:id  SourceDetailPage"]
-                JLP["/jobs  JobsListPage"]
-                JDP["/jobs/:id  JobDetailPage"]
-                MDP["/ms/*  MSDetailPage"]
-            end
-            
-            subgraph State["🗄️ State Management"]
-                RQ["@tanstack/react-query<br/>Query Cache"]
-                ZS["Zustand Stores<br/>• useUIStore<br/>• usePreferencesStore<br/>• useSelectionStore"]
-            end
-            
-            subgraph Components["🧩 Key Components"]
-                FV["FitsViewer<br/>(JS9 CDN)"]
-                CO["CatalogOverlayPanel<br/>(VizieR)"]
-                NO["NearbyObjectsPanel<br/>(SIMBAD)"]
-                SC["SkyCoverageMap<br/>(D3.js)"]
-                EV["EtaVPlot<br/>(ECharts)"]
-                SD["StatsDashboard<br/>(ECharts)"]
-            end
-        end
-    end
-    
-    subgraph External["☁️ External Services"]
-        JS9["JS9 CDN<br/>js9.si.edu"]
-        VZ["VizieR TAP<br/>tapvizier.cds.unistra.fr"]
-        SB["SIMBAD TAP<br/>simbad.u-strasbg.fr"]
-    end
-    
-    subgraph Server["🖥️ Server (lxd110h17)"]
-        subgraph API["FastAPI Backend :8000"]
-            Routes["API Routes<br/>/api/*"]
-            Repos["Repositories<br/>• ImageRepository<br/>• SourceRepository<br/>• MSRepository<br/>• JobRepository"]
-            Cache["Redis Cache<br/>:6379"]
-        end
-        
-        subgraph Data["💾 Data Storage"]
-            SQLite["SQLite DBs<br/>• images.db<br/>• sources.db<br/>• jobs.db"]
-            FITS["FITS Files<br/>/data/dsa110-contimg/products/"]
-            MS["Measurement Sets<br/>/data/dsa110-contimg/state/"]
-        end
-        
-        subgraph Monitor["📊 Monitoring"]
-            Prom["Prometheus<br/>:9090"]
-            Graf["Grafana<br/>:3030"]
-        end
-        
-        NGINX["Nginx<br/>:80<br/>Reverse Proxy"]
-    end
-    
-    %% Frontend connections
-    Router --> Pages
-    Pages --> RQ
-    Pages --> ZS
-    Pages --> Components
-    
-    %% External service connections
-    FV -.->|"Load FITS lib"| JS9
-    CO -.->|"TAP Query"| VZ
-    NO -.->|"TAP Query"| SB
-    
-    %% API connections  
-    RQ -->|"HTTP :8000"| Routes
-    Routes --> Repos
-    Repos --> SQLite
-    Repos --> FITS
-    Repos --> MS
-    Routes --> Cache
-    
-    %% Monitoring
-    Routes -->|"/metrics"| Prom
-    Prom --> Graf
-    
-    %% Production proxy
-    NGINX -->|"proxy /api/"| Routes
-    NGINX -->|"static files"| Frontend
-```
+---
 
-## Page → API Endpoint Mapping
+## 1. Deployment Topology
+
+Shows the physical layout of services and ports.
 
 ```mermaid
 flowchart LR
-    subgraph Pages["Frontend Pages"]
-        HP["/ HomePage"]
-        ILP["/images"]
-        IDP["/images/:id"]
-        SLP["/sources"]  
-        SDP["/sources/:id"]
-        JLP["/jobs"]
-        JDP["/jobs/:runId"]
-        MDP["/ms/*"]
+    subgraph Client["Client Machine"]
+        Browser["Browser"]
     end
-    
-    subgraph Hooks["React Query Hooks"]
-        uI["useImages()"]
-        uImg["useImage(id)"]
-        uS["useSources()"]
-        uSrc["useSource(id)"]
-        uJ["useJobs()"]
-        uJob["useJob(runId)"]
-        uMS["useMS(path)"]
-        uStat["useStats()"]
+
+    subgraph Server["lxd110h17"]
+        Nginx["Nginx :80"]
+        Vite["Vite Dev :3000"]
+        API["FastAPI :8000"]
+        Redis["Redis :6379"]
+        Prom["Prometheus :9090"]
+        Graf["Grafana :3030"]
     end
-    
-    subgraph API["Backend API :8000"]
-        EI["GET /api/images"]
-        EID["GET /api/images/:id"]
-        EIDP["GET /api/images/:id/provenance"]
-        EIDF["GET /api/images/:id/fits"]
-        ES["GET /api/sources"]
-        ESD["GET /api/sources/:id"]
-        ESDL["GET /api/sources/:id/lightcurve"]
-        ESDV["GET /api/sources/:id/variability"]
-        EJ["GET /api/jobs"]
-        EJD["GET /api/jobs/:runId/provenance"]
-        EJL["GET /api/jobs/:runId/logs"]
-        EM["GET /api/ms/:path/metadata"]
-        EST["GET /api/stats"]
-        EQ["GET /api/qa/*"]
-        EC["GET /api/cal/*"]
-    end
-    
-    HP --> uI & uS & uJ & uStat
-    ILP --> uI
-    IDP --> uImg
-    SLP --> uS
-    SDP --> uSrc
-    JLP --> uJ
-    JDP --> uJob
-    MDP --> uMS
-    
-    uI --> EI
-    uImg --> EID & EIDP & EIDF
-    uS --> ES
-    uSrc --> ESD & ESDL & ESDV
-    uJ --> EJ
-    uJob --> EJD & EJL
-    uMS --> EM
-    uStat --> EST
+
+    Browser -->|":80 prod"| Nginx
+    Browser -->|":3000 dev"| Vite
+    Nginx -->|"proxy /api/"| API
+    Nginx -->|"static /"| Static["/frontend/dist"]
+    Vite -->|"proxy /api/"| API
+    API --> Redis
+    API -->|"/metrics"| Prom
+    Prom --> Graf
 ```
 
-## Port Reference
+---
 
-| Port | Service | Protocol | Purpose |
-|------|---------|----------|---------|
-| **80** | Nginx | HTTP | Production reverse proxy |
-| **3000** | Vite Dev | HTTP | Frontend dev server |
-| **8000** | FastAPI | HTTP | Backend REST API |
-| **6379** | Redis | TCP | API response caching |
-| **9090** | Prometheus | HTTP | Metrics collection |
-| **3030** | Grafana | HTTP | Metrics dashboards |
+## 2. Frontend Application Structure
 
-## Data Flow: Image Detail View
+Shows React component and data flow architecture.
+
+```mermaid
+flowchart TB
+    subgraph App["main.tsx"]
+        QCP["QueryClientProvider"]
+        RP["RouterProvider"]
+    end
+
+    subgraph Router["router.tsx"]
+        AL["AppLayout"]
+    end
+
+    subgraph Pages["Page Components"]
+        HP["HomePage"]
+        ILP["ImagesListPage"]
+        IDP["ImageDetailPage"]
+        SLP["SourcesListPage"]
+        SDP["SourceDetailPage"]
+        JLP["JobsListPage"]
+        JDP["JobDetailPage"]
+        MDP["MSDetailPage"]
+    end
+
+    subgraph Hooks["hooks/useQueries.ts"]
+        uI["useImages"]
+        uImg["useImage"]
+        uS["useSources"]
+        uSrc["useSource"]
+        uJ["useJobs"]
+        uMS["useMS"]
+    end
+
+    subgraph ApiClient["api/client.ts"]
+        Axios["axios instance"]
+    end
+
+    App --> Router --> Pages
+    Pages --> Hooks
+    Hooks --> ApiClient
+    ApiClient -->|"HTTP"| Backend["FastAPI :8000"]
+```
+
+---
+
+## 3. Page to API Mapping
+
+Which page calls which endpoints.
+
+```mermaid
+flowchart LR
+    subgraph FrontendPages["Frontend Routes"]
+        P1["/ Home"]
+        P2["/images"]
+        P3["/images/:id"]
+        P4["/sources"]
+        P5["/sources/:id"]
+        P6["/jobs"]
+        P7["/jobs/:runId"]
+        P8["/ms/*"]
+    end
+
+    subgraph APIEndpoints["API Endpoints"]
+        E2["GET /api/images"]
+        E3["GET /api/images/:id"]
+        E4["GET /api/images/:id/fits"]
+        E5["GET /api/sources"]
+        E6["GET /api/sources/:id"]
+        E7["GET /api/sources/:id/lightcurve"]
+        E8["GET /api/jobs"]
+        E9["GET /api/jobs/:runId/provenance"]
+        E10["GET /api/ms/:path/metadata"]
+    end
+
+    P1 --> E2 & E5 & E8
+    P2 --> E2
+    P3 --> E3 & E4
+    P4 --> E5
+    P5 --> E6 & E7
+    P6 --> E8
+    P7 --> E9
+    P8 --> E10
+```
+
+---
+
+## 4. Backend Data Layer
+
+Shows actual SQLite databases and file storage.
+
+```mermaid
+flowchart TB
+    subgraph API["FastAPI :8000"]
+        Routes["API Routes"]
+        Repos["Repositories"]
+    end
+
+    subgraph Cache["Cache Layer"]
+        Redis["Redis :6379"]
+    end
+
+    subgraph SQLite["SQLite Databases in /state/db/"]
+        DB1["products.sqlite3<br/>images and QA"]
+        DB2["master_sources.sqlite3<br/>113 MB sources"]
+        DB3["calibrators.sqlite3<br/>cal tables"]
+        DB4["hdf5.sqlite3<br/>raw data index"]
+        DB5["ingest.sqlite3<br/>pipeline state"]
+    end
+
+    subgraph Files["File Storage"]
+        FITS["FITS Images<br/>/products/*.fits"]
+        MS["Measurement Sets<br/>/state/ms/"]
+        CAL["Cal Tables<br/>/state/caltables/"]
+    end
+
+    Routes --> Repos
+    Routes <--> Redis
+    Repos --> SQLite
+    Repos --> Files
+```
+
+---
+
+## 5. External Service Integration
+
+Frontend-initiated requests to astronomical services.
+
+```mermaid
+flowchart LR
+    subgraph Frontend["Frontend Components"]
+        FV["FitsViewer"]
+        COP["CatalogOverlayPanel"]
+        NOP["NearbyObjectsPanel"]
+    end
+
+    subgraph CDS["CDS Strasbourg"]
+        VZ["VizieR TAP"]
+        SB["SIMBAD TAP"]
+    end
+
+    subgraph SAO["SAO Harvard"]
+        JS9["JS9 CDN"]
+    end
+
+    FV -.->|"Load library"| JS9
+    COP -.->|"ADQL query"| VZ
+    NOP -.->|"ADQL query"| SB
+
+    JS9 -.->|"js9.min.js"| FV
+    VZ -.->|"VOTable XML"| COP
+    SB -.->|"JSON"| NOP
+```
+
+**External URLs:**
+
+- JS9: `https://js9.si.edu/js9/js9-allinone.js`
+- VizieR: `https://tapvizier.cds.unistra.fr/TAPVizieR/tap/sync`
+- SIMBAD: `https://simbad.u-strasbg.fr/simbad/sim-tap/sync`
+
+---
+
+## 6. Image Detail Data Flow
+
+Complete flow when viewing an image with FITS viewer.
 
 ```mermaid
 sequenceDiagram
-    participant U as User
-    participant F as Frontend :3000
-    participant A as FastAPI :8000
-    participant R as Redis :6379
-    participant DB as SQLite
+    actor User
+    participant FE as Frontend
+    participant API as FastAPI :8000
+    participant Redis as Redis :6379
+    participant DB as products.sqlite3
     participant FS as FITS Files
-    participant J as JS9 CDN
-    
-    U->>F: Navigate to /images/IMG001
-    F->>A: GET /api/images/IMG001
-    A->>R: Check cache
-    alt Cache hit
-        R-->>A: Return cached
-    else Cache miss
-        A->>DB: Query image metadata
-        DB-->>A: Return record
-        A->>R: Store in cache
+    participant CDN as JS9 CDN
+
+    User->>FE: Navigate to /images/IMG001
+
+    FE->>API: GET /api/images/IMG001
+    API->>Redis: Check cache
+    alt Cache Miss
+        API->>DB: SELECT FROM images WHERE id=IMG001
+        DB-->>API: Row data
+        API->>Redis: SET cache
     end
-    A-->>F: ImageDetail JSON
-    
-    F->>J: Load JS9 library (first time)
-    J-->>F: JS9.min.js
-    
-    F->>A: GET /api/images/IMG001/fits
-    A->>FS: Read FITS file
-    FS-->>A: Binary data
-    A-->>F: FITS file
-    
-    F->>F: JS9.Load(fits_data)
-    F-->>U: Display interactive FITS viewer
+    API-->>FE: JSON metadata
+
+    opt First FITS load
+        FE->>CDN: GET js9-allinone.js
+        CDN-->>FE: JavaScript library
+    end
+
+    User->>FE: Click Show FITS Viewer
+    FE->>API: GET /api/images/IMG001/fits
+    API->>FS: Read /products/IMG001.fits
+    FS-->>API: Binary FITS data
+    API-->>FE: application/fits
+
+    FE->>FE: JS9.Load data
+    FE-->>User: Interactive FITS display
 ```
 
-## External Service Integration
+---
+
+## 7. State Management
+
+How client-side state is managed.
+
+```mermaid
+flowchart TB
+    subgraph ReactQuery["React Query - Server State"]
+        IQ["images query"]
+        SQ["sources query"]
+        JQ["jobs query"]
+    end
+
+    subgraph Zustand["Zustand - Client State"]
+        UI["useUIStore<br/>sidebarOpen, theme"]
+        Pref["usePreferencesStore<br/>colorMap, scale"]
+        Sel["useSelectionStore<br/>selectedImages, selectedSources, selectedJobs"]
+    end
+
+    subgraph Pages["List Pages"]
+        ILP["ImagesListPage"]
+        SLP["SourcesListPage"]
+        JLP["JobsListPage"]
+    end
+
+    ILP --> IQ
+    SLP --> SQ
+    JLP --> JQ
+
+    ILP --> Sel
+    SLP --> Sel
+    JLP --> Sel
+
+    Pages --> UI
+    Pages --> Pref
+```
+
+---
+
+## 8. Error Handling Flow
+
+How errors propagate from API to user.
 
 ```mermaid
 flowchart LR
-    subgraph Frontend
-        COP["CatalogOverlayPanel"]
-        NOP["NearbyObjectsPanel"]
-        FV["FitsViewer"]
+    subgraph API["Backend"]
+        Err["ErrorEnvelope<br/>code, http_status,<br/>user_message, action"]
     end
-    
-    subgraph CDS["CDS Services (Strasbourg)"]
-        VZ["VizieR TAP<br/>tapvizier.cds.unistra.fr"]
-        SB["SIMBAD TAP<br/>simbad.u-strasbg.fr"]
+
+    subgraph Frontend["Frontend"]
+        Int["axios interceptor<br/>api/client.ts"]
+        Hook["useErrorHandler<br/>useErrorMapping"]
+        Map["errorMappings.ts"]
+        ED["ErrorDisplay<br/>component"]
     end
-    
-    subgraph SAO["SAO (Harvard)"]
-        JS9["JS9 CDN<br/>js9.si.edu"]
-    end
-    
-    COP -->|"ADQL Cone Search<br/>NVSS, FIRST, VLASS"| VZ
-    NOP -->|"ADQL Cone Search<br/>Nearby objects"| SB
-    FV -->|"Load JS9.min.js<br/>+ CSS"| JS9
-    
-    VZ -->|"VOTable XML"| COP
-    SB -->|"JSON"| NOP
-    JS9 -->|"JS library"| FV
+
+    API -->|"JSON error"| Int
+    Int -->|"normalized"| Hook
+    Hook --> Map
+    Map -->|"user-friendly"| ED
+    ED -->|"display"| User["User sees<br/>message and action"]
 ```
 
-## Component Hierarchy
+---
 
-```mermaid
-flowchart TB
-    subgraph App["App (main.tsx)"]
-        QP["QueryClientProvider"]
-        RP["RouterProvider"]
-    end
-    
-    subgraph Layout["AppLayout"]
-        Nav["Navigation Sidebar"]
-        Main["Main Content Area"]
-    end
-    
-    subgraph HomePage
-        SCG["StatCardGrid"]
-        SCM["SkyCoverageMap"]
-        SDB["StatsDashboard"]
-    end
-    
-    subgraph ImagesListPage
-        FP1["FilterPanel"]
-        IT["Image Table"]
-        FVG["FitsViewerGrid"]
-        BDP["BulkDownloadPanel"]
-    end
-    
-    subgraph ImageDetailPage
-        IC["Image Card"]
-        FV2["FitsViewer"]
-        RC["RatingCard"]
-        PS["ProvenanceStrip"]
-    end
-    
-    subgraph SourcesListPage
-        AQP["AdvancedQueryPanel"]
-        AFP["AdvancedFilterPanel"]
-        ST["Sources Table"]
-        EVP["EtaVPlot"]
-    end
-    
-    subgraph SourceDetailPage
-        SCard["Source Card"]
-        COP2["CatalogOverlayPanel"]
-        NOP2["NearbyObjectsPanel"]
-        PS2["ProvenanceStrip"]
-    end
-    
-    subgraph JobsListPage
-        JT["Jobs Table"]
-        Sel["Selection Actions"]
-    end
-    
-    subgraph JobDetailPage
-        JCard["Job Card"]
-        Logs["Log Viewer"]
-        PS3["ProvenanceStrip"]
-    end
-    
-    App --> Layout
-    Layout --> Main
-    Main --> HomePage & ImagesListPage & ImageDetailPage & SourcesListPage & SourceDetailPage & JobsListPage & JobDetailPage
-```
+## Port Reference
 
-## State Management
+| Port | Service    | Purpose                  | Config                                      |
+| ---- | ---------- | ------------------------ | ------------------------------------------- |
+| 80   | Nginx      | Production reverse proxy | `/etc/nginx/sites-available/dsa110-contimg` |
+| 3000 | Vite       | Dev server               | `vite.config.ts`                            |
+| 8000 | FastAPI    | Backend API              | `CONTIMG_API_PORT` env var                  |
+| 6379 | Redis      | Response caching         | `REDIS_PORT` env var                        |
+| 9090 | Prometheus | Metrics scraping         | `/etc/prometheus/prometheus.yml`            |
+| 3030 | Grafana    | Dashboards               | `/etc/grafana/grafana.ini`                  |
 
-```mermaid
-flowchart TB
-    subgraph Zustand["Zustand Stores (appStore.ts)"]
-        UI["useUIStore<br/>• sidebarOpen<br/>• theme"]
-        Pref["usePreferencesStore<br/>• defaultColorMap<br/>• defaultScale"]
-        Sel["useSelectionStore<br/>• selectedImages: Set<br/>• selectedSources: Set<br/>• selectedJobs: Set"]
-    end
-    
-    subgraph RQ["React Query Cache"]
-        IC2["images cache"]
-        SC2["sources cache"]
-        JC["jobs cache"]
-        MC["ms cache"]
-    end
-    
-    subgraph Pages
-        ILP2["ImagesListPage"]
-        SLP2["SourcesListPage"]
-        JLP2["JobsListPage"]
-    end
-    
-    Pages --> Zustand
-    Pages --> RQ
-    
-    ILP2 -->|"toggle selection"| Sel
-    SLP2 -->|"toggle selection"| Sel
-    JLP2 -->|"toggle selection"| Sel
-    
-    ILP2 -->|"fetch data"| IC2
-    SLP2 -->|"fetch data"| SC2
-    JLP2 -->|"fetch data"| JC
-```
-
-## Development vs Production
-
-```mermaid
-flowchart TB
-    subgraph Dev["Development Mode"]
-        VD["Vite Dev Server<br/>:3000"]
-        API1["FastAPI<br/>:8000"]
-        VD -->|"proxy /api"| API1
-    end
-    
-    subgraph Prod["Production Mode"]
-        NG["Nginx<br/>:80"]
-        Static["Static Files<br/>/frontend/dist"]
-        API2["FastAPI<br/>:8000"]
-        NG -->|"/ serves"| Static
-        NG -->|"/api/ proxy"| API2
-    end
-```
+---
 
 ## Quick Reference
 
-### Frontend URLs (Development)
-- **Dashboard**: http://localhost:3000/
-- **Images List**: http://localhost:3000/images
-- **Image Detail**: http://localhost:3000/images/:id
-- **Sources List**: http://localhost:3000/sources
-- **Source Detail**: http://localhost:3000/sources/:id
-- **Jobs List**: http://localhost:3000/jobs
-- **Job Detail**: http://localhost:3000/jobs/:runId
+### URLs in Development
 
-### Backend URLs
-- **API Base**: http://localhost:8000/api/
-- **API Docs**: http://localhost:8000/api/docs
-- **Health Check**: http://localhost:8000/api/health
-- **Metrics**: http://localhost:8000/metrics
+| Resource | URL                              |
+| -------- | -------------------------------- |
+| Frontend | http://localhost:3000            |
+| API Docs | http://localhost:8000/api/docs   |
+| Health   | http://localhost:8000/api/health |
+| Grafana  | http://localhost:3030            |
 
-### External Services
-- **JS9 CDN**: https://js9.si.edu/
-- **VizieR TAP**: https://tapvizier.cds.unistra.fr/TAPVizieR/tap/sync
-- **SIMBAD TAP**: https://simbad.u-strasbg.fr/simbad/sim-tap/sync
+### Environment
 
-### Environment Variables
 ```bash
-# Frontend (.env)
+# Frontend .env
 VITE_API_URL=http://localhost:8000
 
-# Backend
+# Backend systemd or shell
 CONTIMG_API_PORT=8000
 REDIS_PORT=6379
 ```
+
+### Key Files
+
+| Purpose        | Path                             |
+| -------------- | -------------------------------- |
+| API client     | `src/api/client.ts`              |
+| Query hooks    | `src/hooks/useQueries.ts`        |
+| Router         | `src/router.tsx`                 |
+| State stores   | `src/stores/appStore.ts`         |
+| Error mappings | `src/constants/errorMappings.ts` |
