@@ -1,85 +1,157 @@
 #!/bin/bash
 # claim-port.sh - Forcefully free a port before service startup
-# Usage: ./claim-port.sh <port> [--dry-run]
+# Usage: ./claim-port.sh <port> [--dry-run] [--timeout=<seconds>]
+#
+# Designed for systemd ExecStartPre to ensure exclusive port ownership.
+# Only kills LISTENING processes, not client connections.
 
-PORT="${1:-}"
-DRY_RUN="${2:-}"
+set -o pipefail
+
+PORT=""
+DRY_RUN=false
+TIMEOUT=5
+PROTECTED_PIDS="1"  # Never kill init
+
+# Parse arguments
+for arg in "$@"; do
+    case "$arg" in
+        --dry-run)
+            DRY_RUN=true
+            ;;
+        --timeout=*)
+            TIMEOUT="${arg#*=}"
+            ;;
+        *)
+            if [[ "$arg" =~ ^[0-9]+$ ]]; then
+                PORT="$arg"
+            else
+                echo "Error: Unknown argument: $arg" >&2
+                exit 1
+            fi
+            ;;
+    esac
+done
 
 if [ -z "$PORT" ]; then
-    echo "Usage: $0 <port> [--dry-run]"
+    echo "Usage: $0 <port> [--dry-run] [--timeout=<seconds>]" >&2
     exit 1
 fi
 
-if ! [[ "$PORT" =~ ^[0-9]+$ ]]; then
-    echo "Error: Port must be a number"
+if [ "$PORT" -lt 1 ] || [ "$PORT" -gt 65535 ]; then
+    echo "Error: Port must be between 1 and 65535" >&2
     exit 1
 fi
 
-# Check if port has a listener (not just connections)
+log() {
+    echo "[claim-port:$PORT] $*"
+}
+
+# Check if port has a TCP listener
 check_listener() {
-    lsof -i ":$PORT" -sTCP:LISTEN -t 2>/dev/null  # Exception: port check may fail if no listener || true
+    lsof -i ":$PORT" -sTCP:LISTEN -t 2>/dev/null || true
 }
 
 # Get process info for logging
 get_process_info() {
     local pid="$1"
-    ps -p "$pid" -o pid=,comm=,user= 2>/dev/null  # Exception: process may have exited || echo "$pid unknown unknown"
+    ps -p "$pid" -o pid=,comm=,user=,args= 2>/dev/null | head -1 || echo "$pid (exited)"
+}
+
+# Check if a PID is protected (should not be killed)
+is_protected() {
+    local pid="$1"
+    local comm
+    
+    # Never kill PID 1 or kernel threads
+    if [ "$pid" -le 2 ]; then
+        return 0
+    fi
+    
+    # Never kill systemd or journald
+    comm=$(ps -p "$pid" -o comm= 2>/dev/null || true)
+    case "$comm" in
+        systemd|journald|sshd|init)
+            return 0
+            ;;
+    esac
+    
+    return 1
 }
 
 PIDS=$(check_listener)
 
 if [ -z "$PIDS" ]; then
-    echo "Port $PORT is free (no listeners)"
+    log "Port is free (no listeners)"
     exit 0
 fi
 
-echo "Port $PORT has listeners:"
+log "Found listeners on port:"
 for pid in $PIDS; do
-    get_process_info "$pid"
+    log "  $(get_process_info "$pid")"
 done
 
-if [ "$DRY_RUN" = "--dry-run" ]; then
-    echo "[DRY RUN] Would kill listener processes and free port $PORT"
+if $DRY_RUN; then
+    log "[DRY RUN] Would kill listener processes"
     exit 0
 fi
 
-echo "Attempting graceful shutdown (SIGTERM)..."
+# Filter out protected PIDs
+KILLABLE_PIDS=""
 for pid in $PIDS; do
-    if kill -0 "$pid" 2>/dev/null  # Exception: process existence check; then
-        echo "  Sending SIGTERM to $pid"
-        kill -TERM "$pid" 2>/dev/null  # Exception: process may have exited || true
+    if is_protected "$pid"; then
+        log "WARNING: Skipping protected process $pid"
+    else
+        KILLABLE_PIDS="$KILLABLE_PIDS $pid"
     fi
 done
 
-# Wait up to 5 seconds for graceful shutdown
-for i in {1..10}; do
+if [ -z "$KILLABLE_PIDS" ]; then
+    log "ERROR: All listeners are protected processes"
+    exit 1
+fi
+
+# Graceful shutdown
+log "Sending SIGTERM..."
+for pid in $KILLABLE_PIDS; do
+    if kill -0 "$pid" 2>/dev/null; then
+        kill -TERM "$pid" 2>/dev/null || true
+    fi
+done
+
+# Wait for graceful shutdown
+iterations=$((TIMEOUT * 2))
+for ((i=1; i<=iterations; i++)); do
     sleep 0.5
     PIDS=$(check_listener)
     if [ -z "$PIDS" ]; then
-        echo "Port $PORT freed gracefully"
+        log "Port freed gracefully"
         exit 0
     fi
 done
 
-# Force kill remaining processes
-echo "Graceful shutdown incomplete, using SIGKILL..."
+# Force kill
+log "Graceful shutdown timed out, sending SIGKILL..."
 PIDS=$(check_listener)
-if [ -n "$PIDS" ]; then
-    for pid in $PIDS; do
-        if kill -0 "$pid" 2>/dev/null  # Exception: process existence check; then
-            echo "  Sending SIGKILL to $pid"
-            kill -9 "$pid" 2>/dev/null  # Exception: process may have exited || true
-        fi
-    done
-fi
+for pid in $PIDS; do
+    if is_protected "$pid"; then
+        continue
+    fi
+    if kill -0 "$pid" 2>/dev/null; then
+        log "  SIGKILL -> $pid"
+        kill -9 "$pid" 2>/dev/null || true
+    fi
+done
 
-# Final wait
+# Final check
 sleep 1
 PIDS=$(check_listener)
 if [ -z "$PIDS" ]; then
-    echo "Port $PORT freed"
+    log "Port freed (forced)"
     exit 0
 else
-    echo "ERROR: Failed to free port $PORT"
+    log "ERROR: Failed to free port. Remaining listeners:"
+    for pid in $PIDS; do
+        log "  $(get_process_info "$pid")"
+    done
     exit 1
 fi
