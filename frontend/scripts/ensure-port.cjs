@@ -146,8 +146,11 @@ async function ensurePortAvailable() {
     }
 
     // Also try pkill for any node processes that might be hanging
+    // NOTE: Be very specific to avoid killing unrelated processes
     try {
-      execSync(`pkill -9 -f "vite.*${PORT}" 2>/dev/null || true`, { encoding: "utf8" });
+      execSync(`pkill -9 -f "node.*vite.*--port.*${PORT}" 2>/dev/null || true`, {
+        encoding: "utf8",
+      });
     } catch {}
 
     // Wait for kills to take effect

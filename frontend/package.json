@@ -6,8 +6,6 @@
   "main": "src/index.tsx",
   "scripts": {
     "ensure-port": "node scripts/ensure-port.cjs",
-    "predev": "npm run ensure-port",
-    "prestart": "npm run ensure-port",
     "dev": "vite",
     "start": "vite",
     "build": "vite build",
