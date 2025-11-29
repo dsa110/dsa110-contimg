@@ -7,6 +7,7 @@ import {
   CoordinateDisplay,
   ImageThumbnail,
   LoadingSpinner,
+  Modal,
   QAMetrics,
 } from "../components/common";
 import { AladinLiteViewer, GifPlayer } from "../components/widgets";
@@ -30,6 +31,17 @@ const ImageDetailPage: React.FC = () => {
   const [showFitsViewer, setShowFitsViewer] = useState(false);
   const encodedImageId = imageId ? encodeURIComponent(imageId) : "";
   const [showRatingCard, setShowRatingCard] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const handleDeleteImage = async () => {
+    const baseUrl = import.meta.env.VITE_API_URL || "/api";
+    try {
+      await fetch(`${baseUrl}/images/${encodedImageId}`, { method: "DELETE" });
+      window.location.href = "/images";
+    } catch (e) {
+      console.error("Failed to delete image:", e);
+    }
+  };
 
   // Rating tags for QA assessment
   const ratingTags: RatingTag[] = [
@@ -144,8 +156,44 @@ const ImageDetailPage: React.FC = () => {
                   View QA Report
                 </Link>
               )}
+              <button
+                type="button"
+                className="btn bg-red-100 text-red-700 hover:bg-red-200"
+                onClick={() => setShowDeleteModal(true)}
+              >
+                Delete Image
+              </button>
             </div>
           </Card>
+
+          {/* Delete Confirmation Modal */}
+          <Modal
+            isOpen={showDeleteModal}
+            onClose={() => setShowDeleteModal(false)}
+            title="Delete Image"
+            size="sm"
+            footer={
+              <div className="flex justify-end gap-2">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded hover:bg-gray-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteImage}
+                  className="px-4 py-2 text-sm text-white bg-red-600 rounded hover:bg-red-700"
+                >
+                  Delete
+                </button>
+              </div>
+            }
+          >
+            <p className="text-gray-600">
+              Are you sure you want to delete <strong>{filename}</strong>? This action cannot be
+              undone.
+            </p>
+          </Modal>
         </div>
 
         {/* Right column - Details */}

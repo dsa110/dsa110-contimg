@@ -1,9 +1,14 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useSources } from "../hooks/useQueries";
-import { LoadingSpinner, SortableTableHeader, useTableSort } from "../components/common";
+import { LoadingSpinner, SortableTableHeader, useTableSort, Modal } from "../components/common";
 import { AdvancedQueryPanel, SourceQueryParams } from "../components/query";
 import { EtaVPlot, SourcePoint } from "../components/variability";
+import {
+  AdvancedFilterPanel,
+  FilterDefinition,
+  FilterValues as AdvFilterValues,
+} from "../components/filters";
 import { useSelectionStore } from "../stores/appStore";
 
 interface Source {
@@ -24,6 +29,50 @@ const SourcesListPage: React.FC = () => {
   const { data: sources, isLoading, error } = useSources();
   const [activeTab, setActiveTab] = useState<"list" | "variability">("list");
   const [queryParams, setQueryParams] = useState<SourceQueryParams>({});
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
+  const [advFilterValues, setAdvFilterValues] = useState<AdvFilterValues>({});
+  const [showExportModal, setShowExportModal] = useState(false);
+
+  // Advanced filter definitions
+  const advFilterDefs: FilterDefinition[] = [
+    {
+      id: "name",
+      label: "Name Search",
+      type: "text",
+      group: "Basic",
+      placeholder: "Search by name...",
+    },
+    {
+      id: "minFlux",
+      label: "Min Flux (Jy)",
+      type: "range",
+      group: "Flux",
+      min: 0,
+      max: 1,
+      step: 0.001,
+      unit: "Jy",
+    },
+    {
+      id: "maxFlux",
+      label: "Max Flux (Jy)",
+      type: "range",
+      group: "Flux",
+      min: 0,
+      max: 1,
+      step: 0.001,
+      unit: "Jy",
+    },
+    {
+      id: "minImages",
+      label: "Min Detections",
+      type: "range",
+      group: "Variability",
+      min: 1,
+      max: 100,
+      step: 1,
+    },
+    { id: "variable", label: "Variable Only", type: "checkbox", group: "Variability" },
+  ];
 
   // Multi-select state
   const selectedSources = useSelectionStore((s) => s.selectedSources);
@@ -35,11 +84,16 @@ const SourcesListPage: React.FC = () => {
 
   const handleExportSelected = useCallback(() => {
     if (selectedIds.length === 0) return;
-    const baseUrl = import.meta.env.VITE_API_URL || "/api";
-    window.open(`${baseUrl}/sources/export?ids=${selectedIds.join(",")}`, "_blank");
+    setShowExportModal(true);
   }, [selectedIds]);
 
-  // Filter sources based on query params
+  const confirmExport = useCallback(() => {
+    const baseUrl = import.meta.env.VITE_API_URL || "/api";
+    window.open(`${baseUrl}/sources/export?ids=${selectedIds.join(",")}`, "_blank");
+    setShowExportModal(false);
+  }, [selectedIds]);
+
+  // Filter sources based on query params and advanced filters
   const filteredSources = useMemo(() => {
     if (!sources) return [];
     let result = sources as Source[];
@@ -57,7 +111,7 @@ const SourcesListPage: React.FC = () => {
       });
     }
 
-    // Apply flux filter
+    // Apply flux filter from queryParams
     if (queryParams.minFlux !== undefined) {
       result = result.filter((s) => (s.peak_flux_jy ?? 0) >= (queryParams.minFlux ?? 0));
     }
@@ -67,8 +121,24 @@ const SourcesListPage: React.FC = () => {
       );
     }
 
+    // Apply advanced filters
+    if (advFilterValues.name && typeof advFilterValues.name === "string") {
+      const term = advFilterValues.name.toLowerCase();
+      result = result.filter(
+        (s) => s.name?.toLowerCase().includes(term) || s.id.toLowerCase().includes(term)
+      );
+    }
+    if (advFilterValues.minImages && typeof advFilterValues.minImages === "number") {
+      result = result.filter((s) => (s.num_images ?? 0) >= (advFilterValues.minImages as number));
+    }
+    if (advFilterValues.variable === true) {
+      result = result.filter(
+        (s) => s.eta !== undefined && s.v !== undefined && (s.eta > 2 || s.v > 0.1)
+      );
+    }
+
     return result;
-  }, [sources, queryParams]);
+  }, [sources, queryParams, advFilterValues]);
 
   const { sortColumn, sortDirection, handleSort, sortedData } =
     useTableSort<Source>(filteredSources);
@@ -153,6 +223,54 @@ const SourcesListPage: React.FC = () => {
       <div className="mb-6">
         <AdvancedQueryPanel onQueryChange={setQueryParams} />
       </div>
+
+      {/* Advanced Filter Panel (collapsible) */}
+      <div className="mb-6">
+        <button
+          onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+          className="text-sm text-blue-600 hover:text-blue-800 mb-2"
+        >
+          {showAdvancedFilters ? "Hide Advanced Filters" : "Show Advanced Filters"}
+        </button>
+        {showAdvancedFilters && (
+          <AdvancedFilterPanel
+            filters={advFilterDefs}
+            values={advFilterValues}
+            onChange={setAdvFilterValues}
+            onApply={() => {}}
+            onReset={() => setAdvFilterValues({})}
+          />
+        )}
+      </div>
+
+      {/* Export Confirmation Modal */}
+      <Modal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        title="Export Sources"
+        size="sm"
+        footer={
+          <div className="flex justify-end gap-2">
+            <button
+              onClick={() => setShowExportModal(false)}
+              className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded hover:bg-gray-200"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmExport}
+              className="px-4 py-2 text-sm text-white bg-green-600 rounded hover:bg-green-700"
+            >
+              Export {selectedIds.length} Sources
+            </button>
+          </div>
+        }
+      >
+        <p className="text-gray-600">
+          You are about to export <strong>{selectedIds.length}</strong> selected sources. This will
+          download a CSV file with all source data.
+        </p>
+      </Modal>
 
       {activeTab === "variability" ? (
         /* Variability Plot Tab */

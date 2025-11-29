@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { StatCardGrid } from "../components/summary";
 import { SkyCoverageMap } from "../components/skymap";
+import { StatsDashboard } from "../components/stats";
 import { useImages, useSources, useJobs } from "../hooks/useQueries";
 
 /**
@@ -12,6 +13,58 @@ const HomePage: React.FC = () => {
   const { data: images, isLoading: imagesLoading } = useImages();
   const { data: sources, isLoading: sourcesLoading } = useSources();
   const { data: jobs, isLoading: jobsLoading } = useJobs();
+  const [showStatsDashboard, setShowStatsDashboard] = useState(false);
+
+  // Build rating stats for StatsDashboard from image QA grades
+  const ratingStats = React.useMemo(() => {
+    if (!images) return { byUser: [], byTag: [], tagDistribution: [], total: 0, rated: 0 };
+
+    const imgArr = images as Array<{ qa_grade?: string; run_id?: string }>;
+    const gradeCount = { good: 0, warn: 0, fail: 0 };
+    imgArr.forEach((img) => {
+      if (img.qa_grade === "good") gradeCount.good++;
+      else if (img.qa_grade === "warn") gradeCount.warn++;
+      else if (img.qa_grade === "fail") gradeCount.fail++;
+    });
+
+    const rated = gradeCount.good + gradeCount.warn + gradeCount.fail;
+    const total = imgArr.length;
+
+    return {
+      byUser: [
+        {
+          label: "Pipeline",
+          trueCount: gradeCount.good,
+          falseCount: gradeCount.fail,
+          unsureCount: gradeCount.warn,
+        },
+      ],
+      byTag: [
+        { label: "Good", trueCount: gradeCount.good, falseCount: 0, unsureCount: 0 },
+        { label: "Warning", trueCount: 0, falseCount: 0, unsureCount: gradeCount.warn },
+        { label: "Fail", trueCount: 0, falseCount: gradeCount.fail, unsureCount: 0 },
+      ],
+      tagDistribution: [
+        {
+          tag: "Good",
+          count: gradeCount.good,
+          percentage: total > 0 ? (gradeCount.good / total) * 100 : 0,
+        },
+        {
+          tag: "Warning",
+          count: gradeCount.warn,
+          percentage: total > 0 ? (gradeCount.warn / total) * 100 : 0,
+        },
+        {
+          tag: "Fail",
+          count: gradeCount.fail,
+          percentage: total > 0 ? (gradeCount.fail / total) * 100 : 0,
+        },
+      ],
+      total,
+      rated,
+    };
+  }, [images]);
 
   // Build stats for StatCardGrid
   const stats = [
@@ -63,9 +116,34 @@ const HomePage: React.FC = () => {
 
       {/* Stats overview */}
       <section className="mb-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Pipeline Overview</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-gray-900">Pipeline Overview</h2>
+          <button
+            onClick={() => setShowStatsDashboard(!showStatsDashboard)}
+            className="text-sm text-blue-600 hover:text-blue-800"
+          >
+            {showStatsDashboard ? "Hide Details" : "Show Detailed Stats"}
+          </button>
+        </div>
         <StatCardGrid cards={stats} isLoading={imagesLoading || sourcesLoading || jobsLoading} />
       </section>
+
+      {/* Detailed Stats Dashboard */}
+      {showStatsDashboard && (
+        <section className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">QA Rating Statistics</h2>
+          <div className="card p-4">
+            <StatsDashboard
+              byUser={ratingStats.byUser}
+              byTag={ratingStats.byTag}
+              tagDistribution={ratingStats.tagDistribution}
+              totalCandidates={ratingStats.total}
+              ratedCandidates={ratingStats.rated}
+              isLoading={imagesLoading}
+            />
+          </div>
+        </section>
+      )}
 
       {/* Sky Coverage Map */}
       {pointings.length > 0 && (
