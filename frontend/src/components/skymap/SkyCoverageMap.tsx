@@ -237,7 +237,7 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
           const p = proj(d);
           return p !== null;
         })
-        .curve(d3.curveCardinal);
+        .curve(d3.curveLinear); // Use linear interpolation for coordinate lines
 
       svg
         .append("path")
@@ -266,7 +266,7 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
           const p = proj(d);
           return p !== null;
         })
-        .curve(d3.curveCardinal);
+        .curve(d3.curveLinear); // Use linear interpolation for coordinate lines
 
       svg
         .append("path")

@@ -57,6 +57,19 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
   const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
   const [selectedSource, setSelectedSource] = useState<SourcePoint | null>(null);
 
+  // Escape key handler for modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && selectedSource) {
+        setSelectedSource(null);
+      }
+    };
+    if (selectedSource) {
+      window.addEventListener("keydown", handleKeyDown);
+      return () => window.removeEventListener("keydown", handleKeyDown);
+    }
+  }, [selectedSource]);
+
   // Calculate dynamic thresholds
   const calculateThresholds = useCallback(() => {
     if (!controls.useSigmaThreshold || sources.length === 0) {
@@ -179,10 +192,22 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
       source,
     }));
 
+    // Compute data bounds for threshold lines (log scale doesn't support "min"/"max")
+    const etaValues = filteredSources.map((s) => s.eta);
+    const vValues = filteredSources.map((s) => s.v);
+    const etaMin = Math.min(...etaValues) * 0.5;
+    const etaMax = Math.max(...etaValues) * 2;
+    const vMin = Math.min(...vValues) * 0.5;
+    const vMax = Math.max(...vValues) * 2;
+
+    // Build subtitle with excluded count info
+    const excludedInfo = excludedCount > 0 ? ` (${excludedCount} excluded: η≤0 or v≤0)` : "";
+    const subtext = `${filteredSources.length} sources, ${candidates.length} candidates${excludedInfo}`;
+
     const option: echarts.EChartsOption = {
       title: {
         text: "η-V Variability Plot",
-        subtext: `${filteredSources.length} sources, ${candidates.length} candidates`,
+        subtext,
         left: "center",
         textStyle: { color: "#324960", fontSize: 16 },
         subtextStyle: { color: "#666" },
@@ -216,7 +241,7 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
             },
           },
         },
-        // η threshold line
+        // η threshold line - use computed bounds for log scale
         {
           type: "line",
           markLine: {
@@ -225,8 +250,8 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
             lineStyle: { color: "#ff6b6b", type: "dashed", width: 2 },
             data: [
               [
-                { xAxis: etaLine, yAxis: "min" },
-                { xAxis: etaLine, yAxis: "max" },
+                { xAxis: etaLine, yAxis: vMin },
+                { xAxis: etaLine, yAxis: vMax },
               ],
             ],
             label: {
@@ -235,7 +260,7 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
             },
           },
         },
-        // V threshold line
+        // V threshold line - use computed bounds for log scale
         {
           type: "line",
           markLine: {
@@ -244,8 +269,8 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
             lineStyle: { color: "#ff6b6b", type: "dashed", width: 2 },
             data: [
               [
-                { xAxis: "min", yAxis: vLine },
-                { xAxis: "max", yAxis: vLine },
+                { xAxis: etaMin, yAxis: vLine },
+                { xAxis: etaMax, yAxis: vLine },
               ],
             ],
             label: {

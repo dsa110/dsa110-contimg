@@ -52,16 +52,23 @@ const ICON_CLASSES: Record<StatCardVariant, string> = {
 
 /**
  * Format a number compactly (1.2K, 3.4M, etc.)
+ * Preserves one decimal place for clarity (e.g., 1000 -> "1.0K" not "1K")
  */
 function formatCompact(value: number): string {
+  const formatWithSuffix = (num: number, suffix: string): string => {
+    // Always show one decimal place for consistency
+    const formatted = num.toFixed(1);
+    return `${formatted}${suffix}`;
+  };
+
   if (value >= 1_000_000_000) {
-    return `${(value / 1_000_000_000).toFixed(1)}B`;
+    return formatWithSuffix(value / 1_000_000_000, "B");
   }
   if (value >= 1_000_000) {
-    return `${(value / 1_000_000).toFixed(1)}M`;
+    return formatWithSuffix(value / 1_000_000, "M");
   }
   if (value >= 1_000) {
-    return `${(value / 1_000).toFixed(1)}K`;
+    return formatWithSuffix(value / 1_000, "K");
   }
   return value.toString();
 }
@@ -141,7 +148,11 @@ const StatCard: React.FC<StatCardProps> = ({
             {label}
           </p>
           {isLoading ? (
-            <div className="h-7 w-20 bg-gray-200 animate-pulse rounded" aria-label="Loading..." />
+            <div
+              className="h-7 w-20 bg-gray-200 animate-pulse rounded"
+              role="status"
+              aria-label="Loading..."
+            />
           ) : error ? (
             <p className="text-xl font-bold text-red-500" title={error}>
               —
