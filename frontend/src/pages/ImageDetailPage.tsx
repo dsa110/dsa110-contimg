@@ -10,6 +10,7 @@ import {
   QAMetrics,
 } from "../components/common";
 import { AladinLiteViewer, GifPlayer } from "../components/widgets";
+import { FitsViewer } from "../components/fits";
 import { mapProvenanceFromImageDetail, ImageDetailResponse } from "../utils/provenanceMappers";
 import { relativeTime } from "../utils/relativeTime";
 import type { ErrorResponse } from "../types/errors";
@@ -25,6 +26,7 @@ const ImageDetailPage: React.FC = () => {
   const { data: image, isLoading, error, refetch } = useImage(imageId);
   const addRecentImage = usePreferencesStore((state) => state.addRecentImage);
   const [showSkyViewer, setShowSkyViewer] = useState(true);
+  const [showFitsViewer, setShowFitsViewer] = useState(false);
 
   // Track in recent items when image loads
   React.useEffect(() => {
@@ -98,10 +100,10 @@ const ImageDetailPage: React.FC = () => {
               </a>
               <button
                 type="button"
-                className="btn btn-secondary"
-                onClick={() => window.open(`/viewer/js9?image=${imageId}`, "_blank")}
+                className={`btn ${showFitsViewer ? "btn-primary" : "btn-secondary"}`}
+                onClick={() => setShowFitsViewer(!showFitsViewer)}
               >
-                🔭 Open in JS9
+                🔭 {showFitsViewer ? "Hide" : "Show"} FITS Viewer
               </button>
               {imageData.qa_grade && (
                 <Link to={`/qa/image/${imageId}`} className="btn btn-secondary text-center">
@@ -114,6 +116,24 @@ const ImageDetailPage: React.FC = () => {
 
         {/* Right column - Details */}
         <div className="lg:col-span-2 space-y-6">
+          {/* Interactive FITS Viewer */}
+          {showFitsViewer && (
+            <Card title="FITS Viewer">
+              <FitsViewer
+                fitsUrl={`${import.meta.env.VITE_API_URL || "/api"}/images/${imageId}/fits`}
+                displayId={`fits-${imageId}`}
+                width={600}
+                height={500}
+                showControls
+                initialCenter={
+                  imageData.pointing_ra_deg != null && imageData.pointing_dec_deg != null
+                    ? { ra: imageData.pointing_ra_deg, dec: imageData.pointing_dec_deg }
+                    : undefined
+                }
+              />
+            </Card>
+          )}
+
           {/* QA Metrics */}
           {(imageData.qa_grade || imageData.noise_jy || imageData.dynamic_range) && (
             <Card title="Quality Assessment">

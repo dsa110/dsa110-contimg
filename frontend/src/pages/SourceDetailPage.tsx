@@ -4,6 +4,7 @@ import ProvenanceStrip from "../components/provenance/ProvenanceStrip";
 import ErrorDisplay from "../components/errors/ErrorDisplay";
 import { Card, CoordinateDisplay, LoadingSpinner, QAMetrics } from "../components/common";
 import { AladinLiteViewer, LightCurveChart } from "../components/widgets";
+import { CatalogOverlayPanel } from "../components/catalogs";
 import type { LightCurveDataPoint } from "../components/widgets";
 import { mapProvenanceFromSourceDetail, SourceDetailResponse } from "../utils/provenanceMappers";
 import { relativeTime } from "../utils/relativeTime";
