@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import * as echarts from "echarts";
+import { loadEcharts } from "../../lib/loadEcharts";
 
 export interface LightCurveDataPoint {
   /** Timestamp in ISO format or Unix milliseconds */
@@ -35,16 +35,27 @@ export interface LightCurveChartProps {
   onPointClick?: (point: LightCurveDataPoint, index: number) => void;
   /** Loading state */
   isLoading?: boolean;
+  /** Automatically load chart library on mount (default: false) */
+  autoLoad?: boolean;
 }
 
-type EChartsInstance = echarts.ECharts;
-type EChartsEventParams = echarts.ECElementEvent;
-type EChartsOption = echarts.EChartsOption;
+type EChartsInstance = import("echarts").ECharts;
+type EChartsEventParams = import("echarts").ECElementEvent;
+type EChartsOption = import("echarts").EChartsOption;
 
 /**
  * Zoomable time-series light curve chart using ECharts 5.5.
  * Displays flux measurements over time with optional error bars.
  */
+export const escapeHtml = (value: string): string => {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+};
+
 const LightCurveChart: React.FC<LightCurveChartProps> = ({
   data,
   title,
@@ -56,22 +67,30 @@ const LightCurveChart: React.FC<LightCurveChartProps> = ({
   className = "",
   onPointClick,
   isLoading = false,
+  autoLoad = false,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<EChartsInstance | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const escapeHtml = useCallback((value: string) => {
-    return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
-  }, []);
+  const [libraryLoaded, setLibraryLoaded] = useState(autoLoad);
 
   // Initialize and update chart
   useEffect(() => {
-    if (error || !containerRef.current || isLoading) return;
+    if (!libraryLoaded || error || !containerRef.current || isLoading) return;
 
     // Initialize or get existing instance
     if (!chartRef.current) {
       try {
-        chartRef.current = echarts.init(containerRef.current);
+        // eslint-disable-next-line @typescript-eslint/no-floating-promises
+        loadEcharts()
+          .then((echarts) => {
+            if (!containerRef.current) return;
+            chartRef.current = echarts.init(containerRef.current);
+            setError(null);
+          })
+          .catch((err) => {
+            setError(err instanceof Error ? err.message : "Failed to initialize chart");
+          });
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to initialize chart");
         return;
