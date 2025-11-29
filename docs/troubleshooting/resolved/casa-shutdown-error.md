@@ -75,17 +75,26 @@ def pytest_runtest_teardown(item, nextitem):
         _casa_cpp_loaded = True
 ```
 
-### 2. Use `os._exit(0)` for Clean Shutdown
+### 2. Defer `os._exit(0)` to `pytest_unconfigure`
 
 ```python
+_pytest_exit_status = None
+
+@pytest.hookimpl(trylast=True)
 def pytest_sessionfinish(session, exitstatus):
-    """Skip Python's normal shutdown if CASA was loaded."""
-    global _casa_cpp_loaded
+    """Record exit status and clean up CASA modules."""
+    global _pytest_exit_status
+    _pytest_exit_status = exitstatus
+    _cleanup_casa()
 
-    _cleanup_casa()  # Clear modules from sys.modules
-
-    if exitstatus == 0 and _casa_cpp_loaded:
-        # Skip Python's normal shutdown to avoid C++ destructor issues
+@pytest.hookimpl(trylast=True)
+def pytest_unconfigure(config):
+    """Called after all pytest activities complete."""
+    global _casa_cpp_loaded, _pytest_exit_status
+    
+    if _pytest_exit_status == 0 and _casa_cpp_loaded:
+        sys.stdout.flush()
+        sys.stderr.flush()
         os._exit(0)
 ```
 
@@ -93,9 +102,11 @@ def pytest_sessionfinish(session, exitstatus):
 
 - `os._exit(0)` terminates the process immediately without running atexit
   handlers or C++ destructors
+- **Key improvement**: Using `pytest_unconfigure` instead of `pytest_sessionfinish`
+  ensures the terminal summary (test count, coverage report) prints first
 - Only used when tests pass (exitstatus == 0) so failures are properly reported
 - Only used when CASA was actually imported during the test session
-- Tests that don't use CASA show full pytest output ("X passed in Y.Zs")
+- Tests that don't use CASA show full pytest output normally
 
 ---
 
