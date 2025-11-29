@@ -11,7 +11,7 @@ export default defineConfig({
     process.env.GITHUB_ACTIONS && !process.env.VITE_E2E_TEST ? "/dsa110-contimg/dashboard/" : "/",
   server: {
     port: 3000,
-    strictPort: false, // Allow fallback to another port if 3000 is busy
+    strictPort: true, // Fail if port 3000 is occupied
     open: false, // Disabled to prevent SSH disconnection issues
     host: "127.0.0.1", // Bind only to localhost
     allowedHosts: ["localhost", ".trycloudflare.com", ".ngrok-free.app", ".ngrok-free.dev"],
