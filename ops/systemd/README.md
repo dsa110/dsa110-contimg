@@ -75,6 +75,6 @@ sudo journalctl -u contimg-pointing-monitor.service -f
 
 This system runs **systemd v237**, which has some limitations:
 
-- ❌ `StandardOutput=append:` syntax not supported (requires v240+)
-- ✅ Use journalctl for logs instead of file redirection
-- ✅ All logs available via `journalctl -u service-name`
+- :cross: `StandardOutput=append:` syntax not supported (requires v240+)
+- :check: Use journalctl for logs instead of file redirection
+- :check: All logs available via `journalctl -u service-name`

@@ -751,10 +751,10 @@ catalog_flux_corrected = catalog_flux_3ghz * (1.4 / 3.0)**alpha
 2. Query multi-wavelength catalogs (Gaia, SIMBAD, NED, ATNF)
 3. Check for matches within search radius (typically 5-15")
 4. Classify based on nearest match:
-   - Gaia match → likely stellar contamination
-   - SIMBAD "QSO" → quasar
-   - NED match with z > 0 → extragalactic
-   - ATNF match → pulsar
+   - Gaia match :arrow_right: likely stellar contamination
+   - SIMBAD "QSO" :arrow_right: quasar
+   - NED match with z > 0 :arrow_right: extragalactic
+   - ATNF match :arrow_right: pulsar
 5. Store classification in source database
 
 **Example**:

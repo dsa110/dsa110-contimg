@@ -16,7 +16,7 @@ flowchart TD
     
     WindowFinder --> MSManager{MS Files<br/>Available?}
     MSManager -->|>= 3 files| MSList[MS Paths List]
-    MSManager -->|< 3 files| HDF5Converter[Convert HDF5→MS<br/>convert_subband_groups_to_ms]
+    MSManager -->|< 3 files| HDF5Converter[Convert HDF5:arrow_right:MS<br/>convert_subband_groups_to_ms]
     HDF5Converter --> MSList
     
     MSList --> DryRunSwitch{dry_run?}

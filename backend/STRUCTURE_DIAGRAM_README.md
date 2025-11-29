@@ -41,10 +41,10 @@ python generate_structure_diagram.py /data/dsa110-contimg/scripts scripts_struct
   - Identifies logical relationships
 
 - **Relationship Detection**: Automatically detects common pipeline relationships:
-  - `conversion → calibration → imaging → photometry → catalog`
-  - `api → database`, `api → conversion`
-  - `pipeline → conversion/calibration/imaging`
-  - `utils → conversion/calibration/imaging`
+  - `conversion :arrow_right: calibration :arrow_right: imaging :arrow_right: photometry :arrow_right: catalog`
+  - `api :arrow_right: database`, `api :arrow_right: conversion`
+  - `pipeline :arrow_right: conversion/calibration/imaging`
+  - `utils :arrow_right: conversion/calibration/imaging`
 
 - **Color Coding**: Different modules get different colors for easy identification
 

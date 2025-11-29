@@ -7,13 +7,13 @@ Pipeline.
 
 ---
 
-## 📅 2025 Timeline
+## :calendar: 2025 Timeline
 
-### ✅ Completed Milestones
+### :check: Completed Milestones
 
 #### **November 2025: Browser Testing & Reliability**
 
-- **Status:** ✅ Complete
+- **Status:** :check: Complete
 - **Focus:** End-to-End Browser Testing, Health Checks, Timeout Handling.
 - **Key Deliverables:**
   - Playwright Test Suite (`scripts/tests/test_operations_page_playwright.js`)
@@ -22,7 +22,7 @@ Pipeline.
 
 #### **January 2025: Advanced Monitoring & Dashboard**
 
-- **Status:** ✅ Complete
+- **Status:** :check: Complete
 - **Focus:** Event Bus, Cache Statistics, Pipeline Stage Monitoring.
 - **Key Deliverables:**
   - Event Bus Monitor (`/api/events`)
@@ -33,7 +33,7 @@ Pipeline.
 
 ---
 
-## 🚧 Active Development (Q4 2025)
+## :construction_sign: Active Development (Q4 2025)
 
 ### **1. "Absurd" Workflow Integration**
 
@@ -52,7 +52,7 @@ Pipeline.
 
 ---
 
-## 🔮 Future Roadmap
+## :crystal_ball: Future Roadmap
 
 1.  **Full Production Deployment:** Move all components to
     `/data/dsa110-contimg/` (Done) and finalize `/stage/` directory structure.

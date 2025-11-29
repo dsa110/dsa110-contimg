@@ -19,16 +19,16 @@ enhancements, operational improvements, and future features.
 
 ## Priority Legend
 
-- 🔴 **CRITICAL** - Blocks production or causes failures
+- :red_circle: **CRITICAL** - Blocks production or causes failures
 - 🟠 **HIGH** - Important for operations or user experience
-- 🟡 **MEDIUM** - Nice to have, improves efficiency
-- 🟢 **LOW** - Future enhancement, optional
+- :yellow_circle: **MEDIUM** - Nice to have, improves efficiency
+- :green_circle: **LOW** - Future enhancement, optional
 
 ---
 
 ## Phase 1: Critical Fixes (Complete in 1-2 days)
 
-### 1.1 CI/CD Workflow Cleanup 🔴
+### 1.1 CI/CD Workflow Cleanup :red_circle:
 
 **Issue**: Placeholder step in GitHub Actions workflow  
 **Location**: `.github/workflows/validation-tests.yml:112`  
@@ -56,7 +56,7 @@ enhancements, operational improvements, and future features.
 # Option A: Create test script
 scripts/ops/tests/test_enhanced_pipeline_production.sh
 - Spawn synthetic observation (16 subbands)
-- Run conversion → calibration → imaging
+- Run conversion :arrow_right: calibration :arrow_right: imaging
 - Validate outputs and performance metrics
 - Clean up test artifacts
 
@@ -90,7 +90,7 @@ Update step comments
 ```markdown
 ## Completion Status (Updated: 2025-11-27)
 
-✅ **COMPLETED** - All major code quality improvements implemented
+:check: **COMPLETED** - All major code quality improvements implemented
 
 - Logging Consistency: 2/3 complete (67%)
 - Error Handling: 2/2 complete (100%)
@@ -156,14 +156,14 @@ Replace TODO with:
 
 ---
 
-### 2.2 Database Location Consolidation 🟡
+### 2.2 Database Location Consolidation :yellow_circle:
 
 **Issue**: Some databases in `/stage/`, should be in `/data/`  
 **Location**: Multiple (see analysis)  
 **Current State**:
 
-- Operational DBs: `/data/dsa110-contimg/state/` ✅
-- Catalog DBs: `/stage/dsa110-contimg/state/` ❌
+- Operational DBs: `/data/dsa110-contimg/state/` :check:
+- Catalog DBs: `/stage/dsa110-contimg/state/` :cross:
 
 **Tasks**:
 
@@ -211,7 +211,7 @@ sudo systemctl start dsa110-*.service
 
 ---
 
-### 2.3 Data Retention Policy Implementation 🟡
+### 2.3 Data Retention Policy Implementation :yellow_circle:
 
 **Issue**: No automatic cleanup of old data  
 **Location**: `docs/architecture/architecture/DIRECTORY_ARCHITECTURE.md:445`  
@@ -302,7 +302,7 @@ WantedBy=timers.target
 
 ---
 
-### 2.4 Archive Mechanism for Cold Storage 🟡
+### 2.4 Archive Mechanism for Cold Storage :yellow_circle:
 
 **Issue**: No workflow for archiving to tape/cold storage  
 **Location**: `docs/architecture/architecture/DIRECTORY_ARCHITECTURE.md:449`  
@@ -379,7 +379,7 @@ EOF
 
 ## Phase 3: Test Coverage & Quality (1 week)
 
-### 3.1 Implement Empty API Test Stubs 🟢
+### 3.1 Implement Empty API Test Stubs :green_circle:
 
 **Issue**: Placeholder test files with no implementation  
 **Location**:
@@ -444,7 +444,7 @@ def test_hook_success_validates_input(client):
 
 ---
 
-### 3.2 Logging Consistency Audit (Remaining Files) 🟢
+### 3.2 Logging Consistency Audit (Remaining Files) :green_circle:
 
 **Issue**: 27 files need logging consistency check  
 **Location**: Various modules  
@@ -476,14 +476,14 @@ def test_hook_success_validates_input(client):
 echo "Files without logger instance:"
 find backend/src/dsa110_contimg -name "*.py" -type f | while read file; do
   if ! grep -q "logger = \|logger=" "$file"; then
-    echo "❌ $file"
+    echo ":cross: $file"
   fi
 done
 
 echo -e "\nFiles with print statements:"
 find backend/src/dsa110_contimg -name "*.py" -type f | while read file; do
   if grep -q "print(" "$file"; then
-    echo "⚠️  $file"
+    echo ":warning:  $file"
     grep -n "print(" "$file"
   fi
 done
@@ -592,22 +592,22 @@ async def websocket_endpoint(websocket: WebSocket):
 **Tech Stack Decision Matrix**:
 
 ```
-Frontend Framework: React 18 + TypeScript ✅
+Frontend Framework: React 18 + TypeScript :check:
   - Already used in main dashboard
   - Good TypeScript support
   - Large ecosystem
 
-State Management: Zustand ✅
+State Management: Zustand :check:
   - Simpler than Redux for small app
   - Better TypeScript inference
   - Minimal boilerplate
 
-Charts: Recharts ✅
+Charts: Recharts :check:
   - React-native charting
   - Good documentation
   - Responsive
 
-WebSocket: Native WebSocket API ✅
+WebSocket: Native WebSocket API :check:
   - No extra dependencies
   - Built into browsers
   - FastAPI has native support
@@ -615,7 +615,7 @@ WebSocket: Native WebSocket API ✅
 
 ---
 
-### 4.2 Distributed Mosaic Executor (Phase D2) 🟡
+### 4.2 Distributed Mosaic Executor (Phase D2) :yellow_circle:
 
 **Goal**: Parallelize mosaic creation across workers  
 **Estimated Total Effort**: 16-20 hours
@@ -709,7 +709,7 @@ class MosaicTaskAdapter(TaskAdapter):
 
 ---
 
-### 4.3 Advanced Workflow Features (Phase D3) 🟢
+### 4.3 Advanced Workflow Features (Phase D3) :green_circle:
 
 **Goal**: Enterprise-grade workflow orchestration  
 **Estimated Total Effort**: 60-80 hours (HIGH complexity)
@@ -863,7 +863,7 @@ async def submit_task(
 
 ## Phase 5: Documentation & Polish (1 week)
 
-### 5.1 Complete Absurd Documentation 🟢
+### 5.1 Complete Absurd Documentation :green_circle:
 
 **Missing Documentation**:
 
@@ -883,7 +883,7 @@ async def submit_task(
 
 ---
 
-### 5.2 Update System Architecture Diagrams 🟢
+### 5.2 Update System Architecture Diagrams :green_circle:
 
 - [ ] Update DIRECTORY_ARCHITECTURE.md with current state
 - [ ] Create data flow diagrams for new features
@@ -928,28 +928,28 @@ async def submit_task(
 
 ### Phase 1 Success Criteria
 
-- ✅ CI workflow has no placeholder steps
-- ✅ All archived docs have completion status
+- :check: CI workflow has no placeholder steps
+- :check: All archived docs have completion status
 
 ### Phase 2 Success Criteria
 
-- ✅ Alerts are delivered reliably (test with mock failure)
-- ✅ All databases in `/data/dsa110-contimg/state/`
-- ✅ Old data automatically cleaned up (verify logs)
-- ✅ Archive mechanism tested with sample data
+- :check: Alerts are delivered reliably (test with mock failure)
+- :check: All databases in `/data/dsa110-contimg/state/`
+- :check: Old data automatically cleaned up (verify logs)
+- :check: Archive mechanism tested with sample data
 
 ### Phase 3 Success Criteria
 
-- ✅ Test coverage > 80% for API module
-- ✅ All source files have proper logging
-- ✅ CI passes all unit tests
+- :check: Test coverage > 80% for API module
+- :check: All source files have proper logging
+- :check: CI passes all unit tests
 
 ### Phase 4 Success Criteria
 
-- ✅ Dashboard shows real-time task updates
-- ✅ Multiple mosaics process in parallel
-- ✅ DAG workflows execute correctly
-- ✅ Performance meets benchmarks
+- :check: Dashboard shows real-time task updates
+- :check: Multiple mosaics process in parallel
+- :check: DAG workflows execute correctly
+- :check: Performance meets benchmarks
 
 ---
 

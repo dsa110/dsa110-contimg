@@ -13,7 +13,7 @@ breakdowns, see
 flowchart TB
   Ingest["Ingest<br/>watcher"] --> Group["Group<br/>subbands"]
   Group --> Catalog["Catalog<br/>NVSS prep"]
-  Catalog --> Convert["Convert<br/>UVH5→MS"]
+  Catalog --> Convert["Convert<br/>UVH5:arrow_right:MS"]
   Convert --> CalSolve["Solve<br/>K/BP/G"]
   CalSolve --> Reg["Register<br/>caltables"]
   Reg --> Apply["Apply<br/>calibration"]
@@ -58,7 +58,7 @@ Notes:
 - Calibration supports quality tiers with explicit trade-offs for different use
   cases.
 - Imaging supports quality tiers: "standard" (recommended for science),
-  "development" (⚠️ NON-SCIENCE), "high_precision" (enhanced quality).
+  "development" (:warning: NON-SCIENCE), "high_precision" (enhanced quality).
 - Optional stages (organization, validation, cross-match, adaptive photometry)
   can be enabled via configuration.
 - **Organization Stage**: Organizes MS files into date-based directory structure

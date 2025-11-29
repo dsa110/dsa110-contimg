@@ -69,7 +69,7 @@ CREATE INDEX IF NOT EXISTS idx_ingest_received ON ingest_queue(received_at);
 
 **Pipeline States:**
 
-- `collecting` → `pending` → `in_progress` → `processing_fresh` → `completed`
+- `collecting` :arrow_right: `pending` :arrow_right: `in_progress` :arrow_right: `processing_fresh` :arrow_right: `completed`
 - `failed` - Error state with retry capability
 
 ---
@@ -158,7 +158,7 @@ CREATE INDEX IF NOT EXISTS idx_ms_index_field ON ms_index(field_name);
 
 **MS Processing Stages:**
 
-- `converted` → `calibrated` → `imaged` → `photometry_complete`
+- `converted` :arrow_right: `calibrated` :arrow_right: `imaged` :arrow_right: `photometry_complete`
 
 ---
 
@@ -373,7 +373,7 @@ CREATE TABLE IF NOT EXISTS sources (
     s_nvss REAL,                           -- NVSS flux (Jy)
     snr_nvss REAL,                         -- NVSS S/N
     s_vlass REAL,                          -- VLASS flux (Jy)
-    alpha REAL,                            -- Spectral index (NVSS→VLASS)
+    alpha REAL,                            -- Spectral index (NVSS:arrow_right:VLASS)
     resolved_flag INTEGER DEFAULT 0,       -- From FIRST deconvolved size
     confusion_flag INTEGER DEFAULT 0,      -- Multiple matches within radius
     first_size_maj_arcsec REAL,           -- FIRST major axis

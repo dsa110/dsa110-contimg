@@ -15,7 +15,7 @@
 
 **Command:** `./scripts/build-dashboard-production.sh`
 
-**Status:** ✓ PASSED
+**Status:** :check: PASSED
 
 **Results:**
 
@@ -40,7 +40,7 @@
 
 **Command:** `curl http://localhost:8000/health`
 
-**Status:** ✓ PASSED
+**Status:** :check: PASSED
 
 **Response:**
 
@@ -74,7 +74,7 @@
 
 ## Test 4: Build Output Verification
 
-**Status:** ✓ PASSED
+**Status:** :check: PASSED
 
 **Verified:**
 
@@ -113,13 +113,13 @@
 
 **Requirements Met:**
 
-- ✓ Production build script works
-- ✓ Build output is valid
-- ✓ Health check endpoint exists
-- ✓ Health check scripts are functional
-- ✓ Systemd service files are updated
-- ✓ Resource limits configured
-- ✓ Security hardening applied
+- :check: Production build script works
+- :check: Build output is valid
+- :check: Health check endpoint exists
+- :check: Health check scripts are functional
+- :check: Systemd service files are updated
+- :check: Resource limits configured
+- :check: Security hardening applied
 
 **Pending:**
 

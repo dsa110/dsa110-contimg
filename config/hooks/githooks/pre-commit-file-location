@@ -20,7 +20,7 @@ for file in $STAGED_FILES; do
     
     # Check for markdown files in root
     if [[ "$file" =~ ^[^/]+\.md$ ]] && [[ "$file" != "README.md" ]] && [[ "$file" != "CHANGELOG.md" ]]; then
-        echo "❌ ERROR: Markdown file in root directory: $file" >&2
+        echo ":cross: ERROR: Markdown file in root directory: $file" >&2
         echo "   Documentation files should be in docs/ structure" >&2
         echo "   See: docs/DOCUMENTATION_QUICK_REFERENCE.md" >&2
         ERRORS=$((ERRORS + 1))
@@ -28,7 +28,7 @@ for file in $STAGED_FILES; do
     
     # Check for test files in root
     if [[ "$file" =~ ^test_.*\.py$ ]] && [[ ! "$file" =~ ^tests/ ]]; then
-        echo "❌ ERROR: Test file in root directory: $file" >&2
+        echo ":cross: ERROR: Test file in root directory: $file" >&2
         echo "   Test files should be in tests/ structure" >&2
         echo "   See: docs/concepts/TEST_ORGANIZATION.md" >&2
         ERRORS=$((ERRORS + 1))

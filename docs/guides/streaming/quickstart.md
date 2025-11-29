@@ -60,7 +60,7 @@ curl http://localhost:8000/api/status
 
 ## Dashboard Control
 
-1. Navigate to Dashboard → Streaming (`/streaming`)
+1. Navigate to Dashboard :arrow_right: Streaming (`/streaming`)
 2. Click **Start** to begin the service
 3. Monitor status, metrics, and queue
 4. Use **Stop** or **Restart** as needed

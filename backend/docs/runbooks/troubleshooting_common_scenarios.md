@@ -230,8 +230,8 @@ with fits.open('image.fits') as hdu:
 - Check for deprecated parameter names
 - Update configuration files to new schema
 - Common renames:
-  - `spw` → `spectral_windows`
-  - `refant` → `reference_antenna`
+  - `spw` :arrow_right: `spectral_windows`
+  - `refant` :arrow_right: `reference_antenna`
 
 ## Parallel Processing Issues
 

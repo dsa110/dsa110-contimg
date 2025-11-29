@@ -22,8 +22,8 @@ sudo cp "${SOURCE_FILE}" "${TARGET_FILE}"
 # Reload systemd
 sudo systemctl daemon-reload
 
-echo "✓ Service file deployed successfully"
-echo "✓ Systemd configuration reloaded"
+echo ":check: Service file deployed successfully"
+echo ":check: Systemd configuration reloaded"
 echo ""
 echo "To restart the service, run:"
 echo "  sudo systemctl restart ${SERVICE_NAME}"

@@ -94,7 +94,7 @@ dsa110-benchmark info
 
 ### Conversion (`bench_conversion.py`)
 
-Measures HDF5 → Measurement Set conversion performance.
+Measures HDF5 :arrow_right: Measurement Set conversion performance.
 
 | Benchmark                    | Typical Time | Description                              |
 | ---------------------------- | ------------ | ---------------------------------------- |
@@ -219,7 +219,7 @@ benchmarks/
 ├── README.md               # This file
 │
 ├── bench_calibration.py    # Calibration benchmarks
-├── bench_conversion.py     # HDF5 → MS conversion benchmarks
+├── bench_conversion.py     # HDF5 :arrow_right: MS conversion benchmarks
 ├── bench_flagging.py       # RFI flagging benchmarks
 ├── bench_imaging.py        # WSClean imaging benchmarks (disabled)
 ├── bench_memory.py         # Memory usage benchmarks (peakmem_*)

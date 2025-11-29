@@ -226,15 +226,15 @@ docker logs carta-backend
 
 | Test                            | Status |
 | ------------------------------- | ------ |
-| Backend running                 | ☐      |
-| Frontend environment configured | ☐      |
-| WebSocket connection            | ☐      |
-| Iframe mode                     | ☐      |
-| File opening                    | ☐      |
-| Image rendering                 | ☐      |
-| Zoom/pan                        | ☐      |
-| Color maps                      | ☐      |
-| Profiles                        | ☐      |
-| Histogram                       | ☐      |
-| Regions                         | ☐      |
-| File pre-loading                | ☐      |
+| Backend running                 | :ballot_box:      |
+| Frontend environment configured | :ballot_box:      |
+| WebSocket connection            | :ballot_box:      |
+| Iframe mode                     | :ballot_box:      |
+| File opening                    | :ballot_box:      |
+| Image rendering                 | :ballot_box:      |
+| Zoom/pan                        | :ballot_box:      |
+| Color maps                      | :ballot_box:      |
+| Profiles                        | :ballot_box:      |
+| Histogram                       | :ballot_box:      |
+| Regions                         | :ballot_box:      |
+| File pre-loading                | :ballot_box:      |

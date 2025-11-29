@@ -1,5 +1,5 @@
 """
-DSA-110 HDF5 → MS Conversion Benchmarks
+DSA-110 HDF5 :arrow_right: MS Conversion Benchmarks
 
 Benchmarks for the UVH5 to Measurement Set conversion pipeline.
 Following the actual pipeline workflow:
@@ -98,7 +98,7 @@ class TimeUVDataLoad:
 
 
 class TimeFullConversion:
-    """Benchmark complete HDF5 → MS conversion from SSD.
+    """Benchmark complete HDF5 :arrow_right: MS conversion from SSD.
     
     Uses the pipeline's actual conversion functions with files staged to SSD.
     """

@@ -313,7 +313,7 @@ def _calculate_manual_model_data(
         logger.debug(f"MODEL_DATA written to disk in {write_time:.2f}s")
 
         total_time = time.time() - start_time
-        logger.info(f"✓ MODEL_DATA populated for {ms_path} (total: {total_time:.2f}s)")
+        logger.info(f":check: MODEL_DATA populated for {ms_path} (total: {total_time:.2f}s)")
 
     _initialize_corrected_from_data(ms_path)
 
@@ -581,7 +581,7 @@ def export_model_as_fits(
         LOG.info(f"Exporting model image to {fits_path}...")
         exportfits(imagename=f"{image_name}.image", fitsimage=fits_path, overwrite=True)
 
-        LOG.info(f"✓ Model image exported to {fits_path}")
+        LOG.info(f":check: Model image exported to {fits_path}")
 
     except Exception as e:
         LOG.error(f"Failed to export model image: {e}")
@@ -749,7 +749,7 @@ def populate_model_from_catalog(
         field=field,
         use_manual=True,  # Critical: bypasses ft() phase center bugs
     )
-    logger.info(f"✓ MODEL_DATA populated for {name}")
+    logger.info(f":check: MODEL_DATA populated for {name}")
 
 
 def populate_model_from_image(
@@ -777,4 +777,4 @@ def populate_model_from_image(
 
     logger.info(f"Populating MODEL_DATA from image: {model_image}")
     write_image_model_with_ft(ms_path, model_image)
-    logger.info("✓ MODEL_DATA populated from image")
+    logger.info(":check: MODEL_DATA populated from image")

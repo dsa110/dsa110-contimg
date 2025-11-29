@@ -33,8 +33,8 @@ enables:
 ### Data Flow
 
 ```
-UVH5 Files (*_sb00.hdf5) → File Watcher → Pointing Extraction → SQLite Database
-                                                      ↓
+UVH5 Files (*_sb00.hdf5) :arrow_right: File Watcher :arrow_right: Pointing Extraction :arrow_right: SQLite Database
+                                                      :arrow_down:
                                             Status JSON File
 ```
 

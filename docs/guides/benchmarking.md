@@ -68,14 +68,14 @@ Performance benchmarks provide:
 
 **File**: `benchmarks/bench_conversion.py`
 
-Measures HDF5 → Measurement Set conversion performance. These benchmarks stage
+Measures HDF5 :arrow_right: Measurement Set conversion performance. These benchmarks stage
 data from HDD to SSD to match production pipeline behavior.
 
 | Benchmark                    | Description                                        | Typical Time |
 | ---------------------------- | -------------------------------------------------- | ------------ |
 | `time_load_single_subband`   | Load one HDF5 file via pyuvdata                    | ~5s          |
 | `time_load_four_subbands`    | Batched load of 4 subbands (merge included)        | ~70s         |
-| `time_convert_subband_group` | Full 16-subband pipeline (load → merge → write MS) | ~4min        |
+| `time_convert_subband_group` | Full 16-subband pipeline (load :arrow_right: merge :arrow_right: write MS) | ~4min        |
 
 **Key Implementation Detail**: Conversion benchmarks copy HDF5 files from
 `/data/incoming/` (HDD) to `/scratch/` (SSD) before timing, matching how the
@@ -481,7 +481,7 @@ Baseline captured November 27, 2025 at commit `3e5d1b3b`.
 
 ### Performance Insights
 
-- **Conversion dominates**: At 4.4 minutes, HDF5→MS conversion is the largest
+- **Conversion dominates**: At 4.4 minutes, HDF5:arrow_right:MS conversion is the largest
   time sink. Potential optimizations include parallel subband loading.
 - **Calibration is efficient**: CASA solvers (bandpass, gaincal) perform well
   for 1.8M visibility datasets.

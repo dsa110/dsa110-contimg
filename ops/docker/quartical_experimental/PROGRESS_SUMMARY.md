@@ -2,7 +2,7 @@
 
 ## Immediate Steps - Status
 
-### 1. CASA Calibration Check ✓ COMPLETE
+### 1. CASA Calibration Check :check: COMPLETE
 
 - **Result**: Calibration did not complete (no tables found)
 - **Status**: Documented in CASA_CALIBRATION_STATUS.md

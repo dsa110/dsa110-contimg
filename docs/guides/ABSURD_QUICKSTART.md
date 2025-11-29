@@ -22,7 +22,7 @@ Absurd provides durable, fault-tolerant task execution with:
 
 ## Setup
 
-### 1. Database Setup ✅ (Complete)
+### 1. Database Setup :check: (Complete)
 
 The `dsa110_absurd` PostgreSQL database is already set up with:
 
@@ -38,7 +38,7 @@ The `dsa110_absurd` PostgreSQL database is already set up with:
 docker exec langwatch_db psql -U user -d dsa110_absurd -c "SELECT COUNT(*) FROM absurd.tasks;"
 ```
 
-### 2. Environment Configuration ✅ (Complete)
+### 2. Environment Configuration :check: (Complete)
 
 Configuration in `/data/dsa110-contimg/ops/systemd/contimg.env`:
 
@@ -53,7 +53,7 @@ ABSURD_TASK_TIMEOUT_SEC=3600
 ABSURD_MAX_RETRIES=3
 ```
 
-### 3. Backend API ✅ (Complete)
+### 3. Backend API :check: (Complete)
 
 The backend API includes:
 
@@ -72,7 +72,7 @@ cd /data/dsa110-contimg
 docker compose up -d api
 ```
 
-### 4. Frontend Dashboard ✅ (Complete)
+### 4. Frontend Dashboard :check: (Complete)
 
 The frontend includes:
 
@@ -98,7 +98,7 @@ npm run preview  # Serves on http://localhost:4173
 # Then configure your server to serve from that directory
 ```
 
-### 5. Test Workflow ✅ (Verified)
+### 5. Test Workflow :check: (Verified)
 
 Complete end-to-end workflow tested:
 
@@ -115,7 +115,7 @@ async def test():
     client = AbsurdClient('postgresql://user:password@localhost:5432/dsa110_absurd')
     await client.connect()
 
-    # Spawn → Claim → Complete workflow
+    # Spawn :arrow_right: Claim :arrow_right: Complete workflow
     task_id = await client.spawn_task('test-queue', 'test-task', {}, 10)
     claimed = await client.claim_task('test-queue', 'worker-1')
     await client.complete_task(task_id, {'result': 'success'})
@@ -217,10 +217,10 @@ async def submit_conversion():
             await asyncio.sleep(5)
 
         if status == "completed":
-            print(f"✓ Conversion successful")
+            print(f":check: Conversion successful")
             print(f"Result: {task['result']}")
         else:
-            print(f"✗ Task {status}: {task.get('error')}")
+            print(f":cross: Task {status}: {task.get('error')}")
 
 # Run
 asyncio.run(submit_conversion())
@@ -230,7 +230,7 @@ asyncio.run(submit_conversion())
 
 ```python
 async def run_full_pipeline(ms_path: str):
-    """Execute: Calibration Solve → Apply → Imaging"""
+    """Execute: Calibration Solve :arrow_right: Apply :arrow_right: Imaging"""
     config = AbsurdConfig.from_env()
 
     async with AbsurdClient(config.database_url) as client:
@@ -249,11 +249,11 @@ async def run_full_pipeline(ms_path: str):
         solve_task = await wait_for_task(client, solve_task_id)
 
         if solve_task["status"] != "completed":
-            print(f"✗ Calibration solve failed: {solve_task['error']}")
+            print(f":cross: Calibration solve failed: {solve_task['error']}")
             return
 
         cal_tables = solve_task["result"]["outputs"]["calibration_tables"]
-        print(f"✓ Calibration tables: {list(cal_tables.keys())}")
+        print(f":check: Calibration tables: {list(cal_tables.keys())}")
 
         # Step 2: Apply calibration
         apply_task_id = await client.spawn_task(
@@ -273,10 +273,10 @@ async def run_full_pipeline(ms_path: str):
         apply_task = await wait_for_task(client, apply_task_id)
 
         if apply_task["status"] != "completed":
-            print(f"✗ Calibration apply failed: {apply_task['error']}")
+            print(f":cross: Calibration apply failed: {apply_task['error']}")
             return
 
-        print(f"✓ Calibration applied")
+        print(f":check: Calibration applied")
 
         # Step 3: Image
         image_task_id = await client.spawn_task(
@@ -293,11 +293,11 @@ async def run_full_pipeline(ms_path: str):
         image_task = await wait_for_task(client, image_task_id)
 
         if image_task["status"] != "completed":
-            print(f"✗ Imaging failed: {image_task['error']}")
+            print(f":cross: Imaging failed: {image_task['error']}")
             return
 
         image_path = image_task["result"]["outputs"]["image_path"]
-        print(f"✓ Pipeline complete: {image_path}")
+        print(f":check: Pipeline complete: {image_path}")
 
 
 async def wait_for_task(client, task_id):
@@ -373,7 +373,7 @@ curl http://localhost:8000/api/absurd/queues/dsa110-pipeline/stats
 
 | Task Name            | Description        | Required Params                                             |
 | -------------------- | ------------------ | ----------------------------------------------------------- |
-| `convert-uvh5-to-ms` | Convert UVH5 → MS  | `inputs.input_path`, `inputs.start_time`, `inputs.end_time` |
+| `convert-uvh5-to-ms` | Convert UVH5 :arrow_right: MS  | `inputs.input_path`, `inputs.start_time`, `inputs.end_time` |
 | `calibration-solve`  | Solve calibration  | `outputs.ms_path`                                           |
 | `calibration-apply`  | Apply calibration  | `outputs.ms_path`, `outputs.calibration_tables`             |
 | `imaging`            | Create images      | `outputs.ms_path`                                           |
@@ -595,10 +595,10 @@ from dsa110_contimg.absurd import (
 )
 
 # Pre-defined chains:
-# - STANDARD_PIPELINE_CHAIN: conversion → calibration-solve → calibration-apply → imaging → validation → photometry → crossmatch
-# - QUICK_IMAGING_CHAIN: conversion → calibration-apply → imaging
-# - CALIBRATOR_CHAIN: conversion → calibration-solve → imaging → validation
-# - TARGET_CHAIN: conversion → calibration-apply → imaging → photometry → crossmatch
+# - STANDARD_PIPELINE_CHAIN: conversion :arrow_right: calibration-solve :arrow_right: calibration-apply :arrow_right: imaging :arrow_right: validation :arrow_right: photometry :arrow_right: crossmatch
+# - QUICK_IMAGING_CHAIN: conversion :arrow_right: calibration-apply :arrow_right: imaging
+# - CALIBRATOR_CHAIN: conversion :arrow_right: calibration-solve :arrow_right: imaging :arrow_right: validation
+# - TARGET_CHAIN: conversion :arrow_right: calibration-apply :arrow_right: imaging :arrow_right: photometry :arrow_right: crossmatch
 
 # Execute a task with automatic follow-up spawning
 result = await execute_chained_task(

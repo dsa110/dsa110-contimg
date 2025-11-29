@@ -11,9 +11,9 @@ issues:
 
 ## Attempted Solutions
 
-1. ✓ Direct installation (with/without Montblanc) - Failed
-2. ✓ Installing sharedarray separately - Failed
-3. ✓ Fixing sharedarray setup.py - Broke syntax
+1. :check: Direct installation (with/without Montblanc) - Failed
+2. :check: Installing sharedarray separately - Failed
+3. :check: Fixing sharedarray setup.py - Broke syntax
 
 ## Alternative Approaches
 
@@ -57,7 +57,7 @@ CubiCal.
 
 ## Current Status
 
-- ✓ Docker environment ready
-- ✓ All core packages working
-- ✗ CubiCal installation blocked
-- ⏸️ Waiting for resolution or alternative approach
+- :check: Docker environment ready
+- :check: All core packages working
+- :cross: CubiCal installation blocked
+- ⏸:variation_selector-16: Waiting for resolution or alternative approach

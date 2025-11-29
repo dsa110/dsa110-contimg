@@ -4,29 +4,29 @@
 
 ## Current Status
 
-- ✅ **forced_photometry_simulation.ipynb**: Migrated to
+- :check: **forced_photometry_simulation.ipynb**: Migrated to
   `simulations/notebooks/02_forced_photometry_validation.ipynb`
-- 🗄️ **debug_0834_calibration.ipynb**: Moved to `archive/working/` (ad-hoc
+- :file_cabinet::variation_selector-16: **debug_0834_calibration.ipynb**: Moved to `archive/working/` (ad-hoc
   debugging session)
-- 🗄️ **qa_qa.ipynb**: Moved to `archive/working/qa_qa_stub.ipynb` (incomplete
+- :file_cabinet::variation_selector-16: **qa_qa.ipynb**: Moved to `archive/working/qa_qa_stub.ipynb` (incomplete
   stub)
 
 ## Where to Find Notebooks
 
-**Active Simulations**: → `simulations/notebooks/`
+**Active Simulations**: :arrow_right: `simulations/notebooks/`
 
 - Organized testing and validation notebooks
 - Use pipeline code for consistency checks
 - See [simulations/README.md](../simulations/README.md)
 
-**QA/Monitoring Examples**: → Coming soon (expand
+**QA/Monitoring Examples**: :arrow_right: Coming soon (expand
 `simulations/notebooks/03_qa_demo.ipynb`)
 
 - Interactive QA visualization demos
 - Calibration quality inspection
 - Image quality metrics
 
-**Ad-hoc Work**: → `archive/working/`
+**Ad-hoc Work**: :arrow_right: `archive/working/`
 
 - One-off debugging sessions
 - Exploratory analysis
@@ -53,6 +53,6 @@
 
 This directory intentionally kept minimal. Organized notebooks live elsewhere:
 
-- Simulations → `simulations/notebooks/`
-- Examples → `docs/examples/`
-- Archived work → `archive/working/`
+- Simulations :arrow_right: `simulations/notebooks/`
+- Examples :arrow_right: `docs/examples/`
+- Archived work :arrow_right: `archive/working/`

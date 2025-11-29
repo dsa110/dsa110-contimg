@@ -1,6 +1,6 @@
 # Cleanup Status
 
-## Temporary Files: ✓ CLEANED
+## Temporary Files: :check: CLEANED
 
 Removed temporary files from `/tmp/`:
 
@@ -8,26 +8,26 @@ Removed temporary files from `/tmp/`:
 - Temporary markdown documentation files
 - Test assessment files
 
-## Docker Setup: ✓ ORGANIZED
+## Docker Setup: :check: ORGANIZED
 
 ### Files in `docker/cubical_experimental/`:
 
-- ✓ Dockerfile (maintained)
-- ✓ docker-compose.yml (maintained)
-- ✓ README.md (documentation)
-- ✓ QUICKSTART.md (quick reference)
-- ✓ VALIDATION_REPORT.md (test results)
-- ✓ BUILD_STATUS.md (build notes)
-- ✓ run_cubical.sh (convenience script)
-- ✓ .dockerignore (build optimization)
-- ✓ .gitignore (version control)
+- :check: Dockerfile (maintained)
+- :check: docker-compose.yml (maintained)
+- :check: README.md (documentation)
+- :check: QUICKSTART.md (quick reference)
+- :check: VALIDATION_REPORT.md (test results)
+- :check: BUILD_STATUS.md (build notes)
+- :check: run_cubical.sh (convenience script)
+- :check: .dockerignore (build optimization)
+- :check: .gitignore (version control)
 
 ### Docker Images:
 
-- ✓ `dsa110-cubical:experimental` - Main image (7.05 GB)
-- ⚠️ Dangling images (`<none>` tags) - Can be cleaned with `docker image prune`
+- :check: `dsa110-cubical:experimental` - Main image (7.05 GB)
+- :warning: Dangling images (`<none>` tags) - Can be cleaned with `docker image prune`
 
-## Repository Structure: ✓ CLEAN
+## Repository Structure: :check: CLEAN
 
 All files are properly organized:
 
@@ -45,4 +45,4 @@ docker image prune -f
 docker builder prune -f
 ```
 
-## Status: ✓ CLEAN
+## Status: :check: CLEAN

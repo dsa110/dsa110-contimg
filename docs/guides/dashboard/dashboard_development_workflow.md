@@ -279,7 +279,7 @@ wsClient.on("message", (data) => {
 
 **Check API Calls:**
 
-- Open browser DevTools → Network tab
+- Open browser DevTools :arrow_right: Network tab
 - Filter by "Fetch/XHR"
 - Inspect request/response
 - Check for errors (4xx, 5xx)

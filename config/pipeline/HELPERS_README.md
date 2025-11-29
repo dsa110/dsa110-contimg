@@ -46,11 +46,11 @@ ra, dec = load_ra_dec(name, catalogs, vla_db=vla_db)
 
 ## Files Updated
 
-1. ✅ `build_central_calibrator_group.py` - Updated to use shared helpers
-2. ✅ `build_calibrator_transit_offsets.py` - Updated to use shared helpers
-3. ✅ `image_groups_in_timerange.py` - Updated to use shared helpers
-4. ✅ `curate_transit.py` - Updated to use shared helpers
-5. ✅ `run_next_field_after_central.py` - Updated to use shared helpers
+1. :check: `build_central_calibrator_group.py` - Updated to use shared helpers
+2. :check: `build_calibrator_transit_offsets.py` - Updated to use shared helpers
+3. :check: `image_groups_in_timerange.py` - Updated to use shared helpers
+4. :check: `curate_transit.py` - Updated to use shared helpers
+5. :check: `run_next_field_after_central.py` - Updated to use shared helpers
 
 **All ops pipeline scripts now use shared helpers!**
 

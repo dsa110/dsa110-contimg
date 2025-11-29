@@ -405,7 +405,7 @@ class DirectSubbandWriter(MSWriter):
 
                     n_spw_after = get_spw_count(str(ms_stage_path))
                     if n_spw_after == 1:
-                        logger.info(f"Successfully merged SPWs: {n_spw_before} → 1")
+                        logger.info(f"Successfully merged SPWs: {n_spw_before} :arrow_right: 1")
                     else:
                         logger.warning(f"Expected 1 SPW after merge, got {n_spw_after}")
             except Exception as merge_err:

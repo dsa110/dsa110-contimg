@@ -124,7 +124,7 @@ if [[ ! -x "$CASA6_PYTHON_BIN" ]]; then
   exit 1
 fi
 
-echo "✓ CASA6 Python found: $CASA6_PYTHON"
+echo ":check: CASA6 Python found: $CASA6_PYTHON"
 
 # Change to docker directory
 cd "$DOCKER_DIR"
@@ -172,7 +172,7 @@ RETRY_COUNT=0
 
 while [[ $RETRY_COUNT -lt $MAX_RETRIES ]]; do
   if curl -sf "${API_URL}/api/status" > /dev/null 2>&1; then
-    echo "✓ API is healthy"
+    echo ":check: API is healthy"
     break
   fi
   RETRY_COUNT=$((RETRY_COUNT + 1))
@@ -180,7 +180,7 @@ while [[ $RETRY_COUNT -lt $MAX_RETRIES ]]; do
 done
 
 if [[ $RETRY_COUNT -eq $MAX_RETRIES ]]; then
-  echo "✗ API health check failed after ${MAX_RETRIES} retries"
+  echo ":cross: API health check failed after ${MAX_RETRIES} retries"
   echo "  Check logs with: docker-compose logs api"
   exit 1
 fi
@@ -191,7 +191,7 @@ RETRY_COUNT=0
 
 while [[ $RETRY_COUNT -lt $MAX_RETRIES ]]; do
   if curl -sf "${FRONTEND_URL}" > /dev/null 2>&1; then
-    echo "✓ Frontend is healthy"
+    echo ":check: Frontend is healthy"
     break
   fi
   RETRY_COUNT=$((RETRY_COUNT + 1))
@@ -199,7 +199,7 @@ while [[ $RETRY_COUNT -lt $MAX_RETRIES ]]; do
 done
 
 if [[ $RETRY_COUNT -eq $MAX_RETRIES ]]; then
-  echo "✗ Frontend health check failed after ${MAX_RETRIES} retries"
+  echo ":cross: Frontend health check failed after ${MAX_RETRIES} retries"
   echo "  Check logs with: docker-compose logs frontend"
   exit 1
 fi
@@ -211,9 +211,9 @@ if [[ "$MODE" == "streaming" ]] || [[ "$MODE" == "both" ]]; then
   
   # Check if streaming container is running
   if docker-compose ps stream | grep -q "Up"; then
-    echo "✓ Streaming service container is running"
+    echo ":check: Streaming service container is running"
   else
-    echo "✗ Streaming service container is not running"
+    echo ":cross: Streaming service container is not running"
     echo "  Check logs with: docker-compose logs stream"
   fi
 fi

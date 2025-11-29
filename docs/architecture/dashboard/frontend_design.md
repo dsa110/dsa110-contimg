@@ -68,10 +68,10 @@ GET  /api/metrics/system/history     # Historical system metrics
 
 ### 1.3 Data Model Highlights
 
-**Pipeline States**: `collecting` → `pending` → `in_progress` →
-`processing_fresh` → `completed`
+**Pipeline States**: `collecting` :arrow_right: `pending` :arrow_right: `in_progress` :arrow_right:
+`processing_fresh` :arrow_right: `completed`
 
-**MS Processing Stages**: `converted` → `calibrated` → `imaged` →
+**MS Processing Stages**: `converted` :arrow_right: `calibrated` :arrow_right: `imaged` :arrow_right:
 `photometry_complete`
 
 **Photometry Schema**:
@@ -122,7 +122,7 @@ observatories
 - **Sparklines**: Inline flux trends without taking full-figure space
 - **Color coding**: Quick visual status (green=healthy, yellow=warning,
   red=critical)
-- **Drill-down**: Summary → Detail → Deep Dive on demand
+- **Drill-down**: Summary :arrow_right: Detail :arrow_right: Deep Dive on demand
 - **Live updates**: WebSocket or polling for real-time status changes
 
 ---
@@ -152,8 +152,8 @@ observatories
 ┌──────────────────────────────────────────────────────────────────┐
 │  Recent Observations (last 24h)                                  │
 │  [Time] [Field] [Dec] [Cal?] [Sources] [Quality] [Quicklook]   │
-│  13:28  J1234  +42.3   ✓     1,247     0.92 Jy   [Image]        │
-│  12:56  J1142  +38.7   ✓     1,103     0.88 Jy   [Image]        │
+│  13:28  J1234  +42.3   :check:     1,247     0.92 Jy   [Image]        │
+│  12:56  J1142  +38.7   :check:     1,103     0.88 Jy   [Image]        │
 │  ...                                                             │
 └──────────────────────────────────────────────────────────────────┘
 
@@ -167,26 +167,26 @@ observatories
 │  ESE CANDIDATES & ACTIVE ALERTS                    [Live Update] │
 │  ───────────────────────────────────                             │
 │                                                                  │
-│  🔴 HIGH PRIORITY (3) - Auto-flagged >5σ variability             │
+│  :red_circle: HIGH PRIORITY (3) - Auto-flagged >5σ variability             │
 │                                                                  │
-│  • NVSS J123456.7+420312  |  6.2σ  |  +36% flux  |  3h ago      │
-│    [View Source] [Dismiss] [Slack: Sent ✓]                      │
+│  :bullet: NVSS J123456.7+420312  |  6.2σ  |  +36% flux  |  3h ago      │
+│    [View Source] [Dismiss] [Slack: Sent :check:]                      │
 │                                                                  │
-│  • NVSS J092334.5+315609  |  8.9σ  |  -60% flux  |  5h ago      │
-│    [View Source] [Dismiss] [Slack: Sent ✓]                      │
+│  :bullet: NVSS J092334.5+315609  |  8.9σ  |  -60% flux  |  5h ago      │
+│    [View Source] [Dismiss] [Slack: Sent :check:]                      │
 │                                                                  │
-│  • NVSS J145623.2+442156  |  5.4σ  |  Rapid var  |  8h ago      │
-│    [View Source] [Dismiss] [Slack: Sent ✓]                      │
+│  :bullet: NVSS J145623.2+442156  |  5.4σ  |  Rapid var  |  8h ago      │
+│    [View Source] [Dismiss] [Slack: Sent :check:]                      │
 │                                                                  │
-│  🟡 MEDIUM PRIORITY (1) - System warnings                        │
+│  :yellow_circle: MEDIUM PRIORITY (1) - System warnings                        │
 │                                                                  │
-│  • Calibrator 3C286 not detected in last 2h                     │
+│  :bullet: Calibrator 3C286 not detected in last 2h                     │
 │    Possible pointing drift or weather issue                      │
 │    [Check Telescope Status]                                      │
 │                                                                  │
-│  🟢 NO CRITICAL ISSUES                                           │
-│  • All systems operational                                       │
-│  • No failed observations in 24h                                 │
+│  :green_circle: NO CRITICAL ISSUES                                           │
+│  :bullet: All systems operational                                       │
+│  :bullet: No failed observations in 24h                                 │
 │                                                                  │
 └──────────────────────────────────────────────────────────────────┘
 ```
@@ -248,7 +248,7 @@ observatories
 │                                                             │
 │  [Grid of thumbnails, 4-6 per row]                         │
 │  Each with: timestamp, field ID, noise level, # sources    │
-│  Click → full-res image + metadata + NVSS overlay          │
+│  Click :arrow_right: full-res image + metadata + NVSS overlay          │
 │                                                             │
 └────────────────────────────────────────────────────────────┘
 ```
@@ -311,7 +311,7 @@ observatories
 │  Source ID          │ RA/Dec    │ NVSS  │ Latest │ Variability │ Trend      │
 │  (NVSS catalog)     │           │ (mJy) │ (mJy)  │ σ / χ²     │            │
 ├─────────────────────┼───────────┼───────┼────────┼─────────────┼────────────┤
-│ NVSS J123456+420312 │ 12:34:56  │ 145   │ 198    │ 6.2σ / 8.3 │ ╱━━━━ [↗]  │
+│ NVSS J123456+420312 │ 12:34:56  │ 145   │ 198    │ 6.2σ / 8.3 │ ╱━━━━ [:arrow_up_right:]  │
 │                     │ +42:03:12 │       │        │            │            │
 │ NVSS J114233+384709 │ 11:42:33  │ 89    │ 87     │ 0.8σ / 1.1 │ ━━━━━ [─] │
 │                     │ +38:47:09 │       │        │            │            │
@@ -398,7 +398,7 @@ Column descriptions:
 - Sky map showing pointing centers over last 24h/7d/30d
 - Color-coded by time
 - Declination strip coverage overlay
-- Interactive: click pointing → show observation details
+- Interactive: click pointing :arrow_right: show observation details
 
 **Calibrator Plan**:
 
@@ -466,10 +466,10 @@ Column descriptions:
 
 **Performance Metrics**:
 
-- Conversion time (UVH5 → MS): mean, p50, p95
+- Conversion time (UVH5 :arrow_right: MS): mean, p50, p95
 - Calibration time (K+BP+G): mean, p50, p95
 - Imaging time (tclean): mean, p50, p95
-- End-to-end latency (data arrival → final image)
+- End-to-end latency (data arrival :arrow_right: final image)
 - Throughput: images/hour, sources measured/hour
 
 ---
@@ -625,7 +625,7 @@ Interactive brushing to select candidates
 
 **Must-Have** (Phase 1):
 
-- Click-to-drill-down (table row → detail view)
+- Click-to-drill-down (table row :arrow_right: detail view)
 - Hover tooltips on all plots
 - Time range selection for mosaics (MJD or UTC)
 - Real-time status updates (polling every 10s)
@@ -634,7 +634,7 @@ Interactive brushing to select candidates
 **Should-Have** (Phase 2):
 
 - Zoom/pan on sky maps and images
-- Cross-filtering (select sources in plot → highlight in table)
+- Cross-filtering (select sources in plot :arrow_right: highlight in table)
 - Export data/plots (CSV, PNG, PDF)
 - Mosaic generation by time range
 - Slack webhook integration for alerts
@@ -712,7 +712,7 @@ Interactive brushing to select candidates
 **Technical Focus**:
 
 - Real-time data streaming
-- Sky coordinate projections (RA/Dec → pixel)
+- Sky coordinate projections (RA/Dec :arrow_right: pixel)
 - FITS file handling in browser
 - **VOTable generation for VO compliance**
 
@@ -852,7 +852,7 @@ localStorage
 - Real-time visual alert panel on Dashboard
 - Color-coded severity: Red (>5σ), Yellow (3-5σ), Green (normal)
 - Continuously updating list of flagged sources
-- Click alert → navigate to source detail page
+- Click alert :arrow_right: navigate to source detail page
 
 **Slack Integration** (Phase 2):
 
@@ -866,7 +866,7 @@ alert_payload = {
         "fields": [
             {"title": "Source", "value": "NVSS J123456.7+420312", "short": True},
             {"title": "Significance", "value": "6.2σ", "short": True},
-            {"title": "Flux Change", "value": "+36% (145→198 mJy)", "short": True},
+            {"title": "Flux Change", "value": "+36% (145:arrow_right:198 mJy)", "short": True},
             {"title": "Last Obs", "value": "2025-10-24 13:28 UTC", "short": True}
         ],
         "actions": [{

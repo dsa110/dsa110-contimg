@@ -11,7 +11,7 @@ Imaging Pipeline.
 **Always** return a new context using `with_output()` or `with_outputs()`:
 
 ```python
-# ✓ GOOD: Return new context
+# :check: GOOD: Return new context
 def execute(self, context: PipelineContext) -> PipelineContext:
     result = process_data(context.inputs["input"])
     return context.with_output("output_key", result)
@@ -24,7 +24,7 @@ def execute(self, context: PipelineContext) -> PipelineContext:
 **Always** validate all required inputs and prerequisites in `validate()`:
 
 ```python
-# ✓ GOOD: Comprehensive validation
+# :check: GOOD: Comprehensive validation
 def validate(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
     # Check required inputs exist
     if "input_path" not in context.inputs:
@@ -50,7 +50,7 @@ execution.
 **Always** clean up temporary resources in `cleanup()`, especially on failure:
 
 ```python
-# ✓ GOOD: Cleanup temporary files
+# :check: GOOD: Cleanup temporary files
 def cleanup(self, context: PipelineContext) -> None:
     if "temp_file" in context.metadata:
         temp_path = Path(context.metadata["temp_file"])
@@ -67,7 +67,7 @@ clean state.
 **Validate** outputs after execution to catch errors early:
 
 ```python
-# ✓ GOOD: Validate outputs
+# :check: GOOD: Validate outputs
 def validate_outputs(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
     if "output_path" not in context.outputs:
         return False, "output_path missing from context.outputs"
@@ -92,7 +92,7 @@ data integrity.
 **Always** provide clear, actionable error messages:
 
 ```python
-# ✓ GOOD: Clear error message
+# :check: GOOD: Clear error message
 if "ms_path" not in context.outputs:
     return False, "ms_path required in context.outputs (from previous conversion stage)"
 ```
@@ -105,7 +105,7 @@ fixes.
 **Log** important events for observability:
 
 ```python
-# ✓ GOOD: Logging key events
+# :check: GOOD: Logging key events
 def execute(self, context: PipelineContext) -> PipelineContext:
     logger.info(f"Starting {self.get_name()} stage")
     logger.debug(f"Input: {context.inputs.get('input_path')}")
@@ -123,7 +123,7 @@ def execute(self, context: PipelineContext) -> PipelineContext:
 **Declare** dependencies explicitly in stage definitions:
 
 ```python
-# ✓ GOOD: Explicit dependencies
+# :check: GOOD: Explicit dependencies
 stages = [
     StageDefinition("conversion", ConversionStage(config), []),
     StageDefinition("calibration", CalibrationStage(config), ["conversion"]),
@@ -139,7 +139,7 @@ circular dependencies.
 **Use** configuration to control stage behavior:
 
 ```python
-# ✓ GOOD: Configuration-driven
+# :check: GOOD: Configuration-driven
 def validate(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
     if not self.config.my_stage.enabled:
         return False, "My stage is disabled in configuration"
@@ -156,7 +156,7 @@ supports testing.
 **Never** modify the input context directly:
 
 ```python
-# ✗ BAD: Mutating context
+# :cross: BAD: Mutating context
 def execute(self, context: PipelineContext) -> PipelineContext:
     context.outputs["key"] = value  # DON'T DO THIS
     return context
@@ -171,7 +171,7 @@ def execute(self, context: PipelineContext) -> PipelineContext:
 **Never** skip validation or assume inputs are valid:
 
 ```python
-# ✗ BAD: No validation
+# :cross: BAD: No validation
 def execute(self, context: PipelineContext) -> PipelineContext:
     input_path = context.inputs["input_path"]  # May not exist!
     result = process_file(input_path)  # Will fail if file doesn't exist
@@ -187,7 +187,7 @@ def execute(self, context: PipelineContext) -> PipelineContext:
 **Never** leave temporary files or resources unmanaged:
 
 ```python
-# ✗ BAD: No cleanup
+# :cross: BAD: No cleanup
 def execute(self, context: PipelineContext) -> PipelineContext:
     temp_file = create_temp_file()  # Never cleaned up!
     result = process_file(temp_file)
@@ -203,7 +203,7 @@ def execute(self, context: PipelineContext) -> PipelineContext:
 **Never** provide unhelpful error messages:
 
 ```python
-# ✗ BAD: Vague error
+# :cross: BAD: Vague error
 if "input_path" not in context.inputs:
     return False, "Error"  # Not helpful!
 ```
@@ -217,7 +217,7 @@ if "input_path" not in context.inputs:
 **Never** hard-code file paths or configuration values:
 
 ```python
-# ✗ BAD: Hard-coded path
+# :cross: BAD: Hard-coded path
 def execute(self, context: PipelineContext) -> PipelineContext:
     output_path = "/fixed/path/output.fits"  # DON'T DO THIS
     return context.with_output("output", output_path)
@@ -232,7 +232,7 @@ def execute(self, context: PipelineContext) -> PipelineContext:
 **Never** silently ignore errors:
 
 ```python
-# ✗ BAD: Silent failure
+# :cross: BAD: Silent failure
 def execute(self, context: PipelineContext) -> PipelineContext:
     try:
         result = risky_operation()
@@ -250,7 +250,7 @@ def execute(self, context: PipelineContext) -> PipelineContext:
 **Never** create circular dependencies between stages:
 
 ```python
-# ✗ BAD: Circular dependency
+# :cross: BAD: Circular dependency
 stages = [
     StageDefinition("stage1", Stage1(), ["stage2"]),  # Depends on stage2
     StageDefinition("stage2", Stage2(), ["stage1"]),  # Depends on stage1
@@ -266,7 +266,7 @@ stages = [
 **Never** mix multiple responsibilities in one stage:
 
 ```python
-# ✗ BAD: Multiple responsibilities
+# :cross: BAD: Multiple responsibilities
 def execute(self, context: PipelineContext) -> PipelineContext:
     # Converts data
     ms_path = convert_uvh5_to_ms(...)
@@ -289,7 +289,7 @@ ImagingStage, ValidationStage).
 **Never** ignore edge cases:
 
 ```python
-# ✗ BAD: No edge case handling
+# :cross: BAD: No edge case handling
 def execute(self, context: PipelineContext) -> PipelineContext:
     data = load_data(context.inputs["input_path"])
     result = process_data(data[0])  # Assumes data is not empty!
@@ -305,7 +305,7 @@ def execute(self, context: PipelineContext) -> PipelineContext:
 **Never** assume dependencies are always available:
 
 ```python
-# ✗ BAD: No dependency check
+# :cross: BAD: No dependency check
 def execute(self, context: PipelineContext) -> PipelineContext:
     ms_path = context.outputs["ms_path"]  # May not exist!
     result = process_ms(ms_path)

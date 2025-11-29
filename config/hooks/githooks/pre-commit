@@ -77,7 +77,7 @@ if [ -n "$STAGED_FILES" ]; then
         
         # Check for markdown files in root (should be in docs/)
         if [[ "$file" =~ ^[^/]+\.md$ ]] && [[ "$file" != "README.md" ]] && [[ "$file" != "CHANGELOG.md" ]] && [[ "$file" != "LICENSE.md" ]]; then
-            echo "❌ ERROR: Markdown file in root directory: $file" >&2
+            echo ":cross: ERROR: Markdown file in root directory: $file" >&2
             echo "   Documentation files should be in docs/ structure" >&2
             echo "   See: docs/DOCUMENTATION_QUICK_REFERENCE.md" >&2
             FILE_LOCATION_ERRORS=$((FILE_LOCATION_ERRORS + 1))
@@ -85,7 +85,7 @@ if [ -n "$STAGED_FILES" ]; then
         
         # Check for test files in root
         if [[ "$file" =~ ^test_.*\.py$ ]] && [[ ! "$file" =~ ^tests/ ]]; then
-            echo "❌ ERROR: Test file in root directory: $file" >&2
+            echo ":cross: ERROR: Test file in root directory: $file" >&2
             echo "   Test files should be in tests/ structure" >&2
             echo "   See: docs/concepts/TEST_ORGANIZATION.md" >&2
             FILE_LOCATION_ERRORS=$((FILE_LOCATION_ERRORS + 1))
@@ -136,7 +136,7 @@ if command -v npx >/dev/null 2>&1; then
       done < <(echo "$STAGED_FRONTEND_FILES")
       if [ "$PRETTIER_CHECK_FAILED" = "true" ]; then
         echo "" >&2
-        echo "❌ Prettier formatting check failed for frontend files!" >&2
+        echo ":cross: Prettier formatting check failed for frontend files!" >&2
         echo "Please run: cd frontend && npx prettier --write 'src/**/*.{js,jsx,ts,tsx,json,css,scss,less,html,md,graphql,vue}'" >&2
         exit 1
       fi
@@ -167,7 +167,7 @@ if command -v npx >/dev/null 2>&1; then
     done < <(echo "$STAGED_ROOT_FILES")
     if [ "$PRETTIER_CHECK_FAILED" = "true" ]; then
       echo "" >&2
-      echo "❌ Prettier formatting check failed for root files!" >&2
+      echo ":cross: Prettier formatting check failed for root files!" >&2
       echo "Please run: npx prettier --write '*.{js,json,yaml,yml,md}'" >&2
       exit 1
     fi

@@ -617,7 +617,7 @@ def register_and_verify_caltables(
                 raise RuntimeError(error_msg)
 
             logger.info(
-                "✓ Verified %d calibration tables are discoverable " "and exist on filesystem",
+                ":check: Verified %d calibration tables are discoverable " "and exist on filesystem",
                 len(discovered),
             )
 

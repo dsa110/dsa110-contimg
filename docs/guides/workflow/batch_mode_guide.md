@@ -24,16 +24,16 @@ files in a single operation. The pipeline supports batch processing through:
 
 | Stage         | CLI Support | API Support | Batch Jobs | Status |
 | ------------- | ----------- | ----------- | ---------- | ------ |
-| Conversion    | ✓           | ✓           | ✗          | 95%    |
-| Calibration   | ✓           | ✓           | ✓          | 100%   |
-| Imaging       | ✓           | ✓           | ✓          | 100%   |
-| Mosaic        | ✓           | Partial     | ✗          | 90%    |
-| Photometry    | ✓           | Partial     | ✗          | 85%    |
-| ESE Detection | ✗           | Partial     | ✗          | 60%    |
+| Conversion    | :check:           | :check:           | :cross:          | 95%    |
+| Calibration   | :check:           | :check:           | :check:          | 100%   |
+| Imaging       | :check:           | :check:           | :check:          | 100%   |
+| Mosaic        | :check:           | Partial     | :cross:          | 90%    |
+| Photometry    | :check:           | Partial     | :cross:          | 85%    |
+| ESE Detection | :cross:           | Partial     | :cross:          | 60%    |
 
 ## Method 1: CLI-Based Batch Processing
 
-### Conversion (UVH5 → MS)
+### Conversion (UVH5 :arrow_right: MS)
 
 Process multiple time windows using the orchestrator CLI:
 
