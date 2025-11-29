@@ -52,11 +52,18 @@ populated and all endpoints are returning real data.
 - Service file at `/etc/systemd/system/dsa110-api.service`
 - Enabled for auto-start on boot
 
+### 7. IP-Based Access Control ✅
+
+- Restricts API access to localhost and private networks (10.x, 172.16.x,
+  192.168.x)
+- Health endpoint always accessible for monitoring
+- Custom IPs via `DSA110_ALLOWED_IPS` environment variable
+
 ---
 
 ## Remaining Tasks
 
-### 7. Build and Deploy Frontend
+### 8. Build and Deploy Frontend
 
 **Goal:** Build production frontend and serve it
 
@@ -86,27 +93,6 @@ EOF
 
 sudo ln -s /etc/nginx/sites-available/dsa110-frontend /etc/nginx/sites-enabled/
 sudo nginx -t && sudo systemctl reload nginx
-```
-
-### 8. Add Authentication (Optional)
-
-**Goal:** Secure API with authentication
-
-**Simple API Key approach:**
-
-```python
-# In backend/src/dsa110_contimg/api/app.py
-from fastapi import Header, HTTPException, Depends
-
-API_KEY = os.getenv("DSA110_API_KEY", "your-secret-key")
-
-async def verify_api_key(x_api_key: str = Header(...)):
-    if x_api_key != API_KEY:
-        raise HTTPException(status_code=403, detail="Invalid API key")
-    return x_api_key
-
-# Add to endpoints:
-@app.get("/api/images/{id}", dependencies=[Depends(verify_api_key)])
 ```
 
 ### 9. Add Monitoring (Optional)

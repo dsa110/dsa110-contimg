@@ -5,16 +5,61 @@ This module creates and configures the FastAPI app, including:
 - API routers for all resource types
 - Error handling middleware
 - CORS configuration for frontend integration
+- IP-based access control
 - Static file serving for the UI
 """
 
 from __future__ import annotations
+
+import ipaddress
+import os
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
+
+
+# Allowed IP addresses/networks for API access
+# Can be overridden with DSA110_ALLOWED_IPS environment variable (comma-separated)
+DEFAULT_ALLOWED_IPS = [
+    "127.0.0.1",        # localhost
+    "::1",              # localhost IPv6
+    "10.0.0.0/8",       # Private network
+    "172.16.0.0/12",    # Private network
+    "192.168.0.0/16",   # Private network
+]
+
+
+def get_allowed_networks():
+    """Parse allowed IPs from environment or use defaults."""
+    env_ips = os.getenv("DSA110_ALLOWED_IPS")
+    if env_ips:
+        ip_list = [ip.strip() for ip in env_ips.split(",")]
+    else:
+        ip_list = DEFAULT_ALLOWED_IPS
+    
+    networks = []
+    for ip in ip_list:
+        try:
+            if "/" in ip:
+                networks.append(ipaddress.ip_network(ip, strict=False))
+            else:
+                # Single IP - treat as /32 or /128
+                networks.append(ipaddress.ip_network(ip))
+        except ValueError:
+            pass  # Skip invalid entries
+    return networks
+
+
+def is_ip_allowed(client_ip: str, allowed_networks: list) -> bool:
+    """Check if client IP is in allowed networks."""
+    try:
+        ip = ipaddress.ip_address(client_ip)
+        return any(ip in network for network in allowed_networks)
+    except ValueError:
+        return False
 
 from .errors import validation_failed, internal_error
 from .routes import (
@@ -96,11 +141,38 @@ def create_app() -> FastAPI:
             content=error.to_dict(),
         )
     
-    # Health check endpoint
+    # Health check endpoint (always allowed, before IP check)
     @app.get("/api/health")
     async def health_check():
         """Health check endpoint for monitoring."""
         return {"status": "healthy", "service": "dsa110-contimg-api"}
+    
+    # IP-based access control middleware
+    allowed_networks = get_allowed_networks()
+    
+    @app.middleware("http")
+    async def ip_filter_middleware(request: Request, call_next):
+        """Restrict API access to allowed IP addresses."""
+        # Always allow health checks (for external monitoring)
+        if request.url.path == "/api/health":
+            return await call_next(request)
+        
+        # Get client IP (handle proxies)
+        client_ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
+        if not client_ip:
+            client_ip = request.client.host if request.client else "0.0.0.0"
+        
+        if not is_ip_allowed(client_ip, allowed_networks):
+            return JSONResponse(
+                status_code=403,
+                content={
+                    "code": "FORBIDDEN",
+                    "message": f"Access denied from {client_ip}",
+                    "hint": "Contact administrator to whitelist your IP",
+                },
+            )
+        
+        return await call_next(request)
     
     return app
 
