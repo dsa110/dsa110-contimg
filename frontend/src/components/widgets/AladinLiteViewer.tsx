@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import Aladin from "aladin-lite";
 
 export interface AladinLiteViewerProps {
   /** Right Ascension in degrees */
@@ -63,6 +62,7 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentFov, setCurrentFov] = useState(fov);
+  const aladinLibRef = useRef<{ aladin: (el: HTMLElement, opts: AladinOptions) => AladinInstance }>();
   const destroyInstance = useCallback(() => {
     if (aladinRef.current && typeof (aladinRef.current as any).destroy === "function") {
       (aladinRef.current as any).destroy();
@@ -80,7 +80,15 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
       setIsLoading(true);
       destroyInstance();
 
-      aladinRef.current = Aladin.aladin(containerRef.current, {
+      // Lazy-load aladin-lite to keep the main bundle small
+      const mod = await import("aladin-lite");
+      const aladinLib = (mod as any).default?.aladin ? (mod as any).default : (mod as any);
+      if (!aladinLib?.aladin) {
+        throw new Error("Aladin Lite library unavailable");
+      }
+      aladinLibRef.current = aladinLib;
+
+      aladinRef.current = aladinLib.aladin(containerRef.current, {
         target,
         fov: currentFov,
         survey,
