@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useJobs } from "../hooks/useQueries";
 import { relativeTime } from "../utils/relativeTime";
