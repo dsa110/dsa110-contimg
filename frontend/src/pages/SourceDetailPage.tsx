@@ -212,7 +212,9 @@ const SourceDetailPage: React.FC = () => {
                 className="btn btn-primary"
                 onClick={() =>
                   window.open(
-                    `${import.meta.env.VITE_API_URL || "/api"}/sources/${encodedSourceId}/lightcurve`,
+                    `${
+                      import.meta.env.VITE_API_URL || "/api"
+                    }/sources/${encodedSourceId}/lightcurve`,
                     "_blank"
                   )
                 }
@@ -224,7 +226,9 @@ const SourceDetailPage: React.FC = () => {
                 className="btn btn-secondary"
                 onClick={() =>
                   window.open(
-                    `${import.meta.env.VITE_API_URL || "/api"}/sources/${encodedSourceId}/postage_stamps`,
+                    `${
+                      import.meta.env.VITE_API_URL || "/api"
+                    }/sources/${encodedSourceId}/postage_stamps`,
                     "_blank"
                   )
                 }
@@ -236,7 +240,9 @@ const SourceDetailPage: React.FC = () => {
                 className="btn btn-secondary"
                 onClick={() =>
                   window.open(
-                    `${import.meta.env.VITE_API_URL || "/api"}/sources/${encodedSourceId}/variability`,
+                    `${
+                      import.meta.env.VITE_API_URL || "/api"
+                    }/sources/${encodedSourceId}/variability`,
                     "_blank"
                   )
                 }
@@ -329,7 +335,7 @@ const SourceDetailPage: React.FC = () => {
             )}
             {!showNearbyPanel && (
               <p className="text-sm text-gray-500">
-                Click "Search SIMBAD" to find nearby objects in external catalogs.
+                Click &quot;Search SIMBAD&quot; to find nearby objects in external catalogs.
               </p>
             )}
           </Card>

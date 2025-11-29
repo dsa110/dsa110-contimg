@@ -59,7 +59,7 @@ const FitsViewerGrid: React.FC<FitsViewerGridProps> = ({
     } catch (err) {
       console.warn("Failed to sync views:", err);
     }
-  }, [syncViews, fitsUrls.length]);
+  }, [syncEnabled, fitsUrls.length]);
 
   // Set up sync event listeners
   useEffect(() => {

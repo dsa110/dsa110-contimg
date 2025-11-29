@@ -94,19 +94,7 @@ const ImagesListPage: React.FC = () => {
     sortedData: sortedImages,
   } = useTableSort<ImageItem>(filteredImages, "created_at", "desc");
 
-  if (isLoading) {
-    return <LoadingSpinner label="Loading images..." />;
-  }
-
-  if (error) {
-    return (
-      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-        Failed to load images: {error.message}
-      </div>
-    );
-  }
-
-  // Prepare items for bulk download panel
+  // Prepare items for bulk download panel - must be before early returns
   const downloadItems = useMemo(
     () =>
       sortedImages.map((img) => ({
@@ -117,7 +105,7 @@ const ImagesListPage: React.FC = () => {
     [sortedImages]
   );
 
-  // FITS URLs for selected images comparison
+  // FITS URLs for selected images comparison - must be before early returns
   const comparisonUrls = useMemo(() => {
     const baseUrl = import.meta.env.VITE_API_URL || "/api";
     return selectedIds.map((id) => `${baseUrl}/images/${id}/fits`);
@@ -129,6 +117,18 @@ const ImagesListPage: React.FC = () => {
       return img?.path?.split("/").pop() || id;
     });
   }, [selectedIds, sortedImages]);
+
+  if (isLoading) {
+    return <LoadingSpinner label="Loading images..." />;
+  }
+
+  if (error) {
+    return (
+      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+        Failed to load images: {error.message}
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-6xl mx-auto">

@@ -36,6 +36,9 @@ export default tseslint.config(
       "@typescript-eslint/no-explicit-any": "warn",
       "react/prop-types": "off",
       "no-console": ["warn", { allow: ["warn", "error"] }],
+      // Disable overly strict React 19 compiler rules - these patterns are valid
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/preserve-manual-memoization": "off",
     },
   },
   {

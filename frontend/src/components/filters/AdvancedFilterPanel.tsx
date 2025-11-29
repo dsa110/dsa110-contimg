@@ -195,7 +195,7 @@ const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
           />
         );
 
-      case "cone-search":
+      case "cone-search": {
         const coneValue = (values[filter.id] as ConeSearchValue) || {
           ra: "",
           dec: "",
@@ -254,6 +254,7 @@ const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
             </div>
           </div>
         );
+      }
 
       default:
         return null;
