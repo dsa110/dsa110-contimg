@@ -2,6 +2,7 @@ export interface ProvenanceStripProps {
   runId?: string; // job/pipeline execution id
   msPath?: string;
   calTable?: string;
+  calUrl?: string; // calibration table detail link
   pointingDecDeg?: number | null;
   pointingRaDeg?: number | null;
   qaGrade?: "good" | "warn" | "fail" | null;

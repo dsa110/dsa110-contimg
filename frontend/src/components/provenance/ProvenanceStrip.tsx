@@ -9,6 +9,7 @@ const ProvenanceStrip: React.FC<ProvenanceStripProps> = ({
   runId,
   msPath,
   calTable,
+  calUrl,
   pointingDecDeg,
   pointingRaDeg,
   qaGrade,
@@ -53,7 +54,7 @@ const ProvenanceStrip: React.FC<ProvenanceStripProps> = ({
     >
       {runId && renderLink("Run:", runId, logsUrl)}
       {msPath && renderLink("MS:", safeBasename(msPath) as string, msUrl)}
-      {calTable && renderLink("Cal:", safeBasename(calTable) as string, calTable)}
+      {calTable && renderLink("Cal:", safeBasename(calTable) as string, calUrl)}
       {imageUrl && renderLink("Image:", safeBasename(imageUrl) as string, imageUrl)}
       {hasPointing && (
         <span className="provenance-item">

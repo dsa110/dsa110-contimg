@@ -2,33 +2,76 @@ import { useEffect, useState } from "react";
 import { fetchProvenanceData } from "../api/client";
 import { ProvenanceStripProps } from "../types/provenance";
 
-const useProvenance = (runId?: string) => {
+interface UseProvenanceOptions {
+  /** Skip fetching if data is already available */
+  skip?: boolean;
+}
+
+interface UseProvenanceResult {
+  provenance: ProvenanceStripProps | null;
+  loading: boolean;
+  error: string | null;
+  refetch: () => void;
+}
+
+/**
+ * Hook to fetch provenance data for a pipeline run.
+ *
+ * @param runId - The pipeline run/job ID to fetch provenance for
+ * @param options - Optional configuration
+ * @returns Provenance data, loading state, error, and refetch function
+ *
+ * @example
+ * // Basic usage
+ * const { provenance, loading, error } = useProvenance(runId);
+ *
+ * @example
+ * // Skip fetching if you already have the data
+ * const { provenance } = useProvenance(runId, { skip: !runId });
+ */
+const useProvenance = (runId?: string, options: UseProvenanceOptions = {}): UseProvenanceResult => {
+  const { skip = false } = options;
   const [provenance, setProvenance] = useState<ProvenanceStripProps | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(!skip && !!runId);
   const [error, setError] = useState<string | null>(null);
 
+  const fetchData = async () => {
+    if (!runId) {
+      setError("Run ID is required to fetch provenance data.");
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const data = await fetchProvenanceData(runId);
+      setProvenance(data);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to fetch provenance data.";
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const getProvenanceData = async () => {
-      if (!runId) {
-        setError("Run ID is required to fetch provenance data.");
-        setLoading(false);
-        return;
-      }
+    if (skip || !runId) {
+      setLoading(false);
+      return;
+    }
 
-      try {
-        const data = await fetchProvenanceData(runId);
-        setProvenance(data);
-      } catch (err) {
-        setError("Failed to fetch provenance data.");
-      } finally {
-        setLoading(false);
-      }
-    };
+    fetchData();
+  }, [runId, skip]);
 
-    getProvenanceData();
-  }, [runId]);
+  const refetch = () => {
+    if (runId && !skip) {
+      fetchData();
+    }
+  };
 
-  return { provenance, loading, error };
+  return { provenance, loading, error, refetch };
 };
 
 export default useProvenance;

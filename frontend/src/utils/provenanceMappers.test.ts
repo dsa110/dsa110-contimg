@@ -28,6 +28,7 @@ describe("provenanceMappers", () => {
       expect(result.runId).toBe("job-456");
       expect(result.msPath).toBe("/data/ms/test.ms");
       expect(result.calTable).toBe("/data/cal/cal_table.tbl");
+      expect(result.calUrl).toBe("/cal/%2Fdata%2Fcal%2Fcal_table.tbl");
       expect(result.pointingRaDeg).toBe(123.456);
       expect(result.pointingDecDeg).toBe(-45.678);
       expect(result.qaGrade).toBe("good");
@@ -50,6 +51,7 @@ describe("provenanceMappers", () => {
       expect(result.runId).toBeUndefined();
       expect(result.msPath).toBeUndefined();
       expect(result.calTable).toBeUndefined();
+      expect(result.calUrl).toBeUndefined();
       expect(result.logsUrl).toBeUndefined();
       expect(result.msUrl).toBeUndefined();
       expect(result.imageUrl).toBe("/images/img-minimal");
@@ -76,6 +78,7 @@ describe("provenanceMappers", () => {
 
       expect(result.msPath).toBe("/data/ms/test.ms");
       expect(result.calTable).toBe("/data/cal/primary.tbl");
+      expect(result.calUrl).toBe("/cal/%2Fdata%2Fcal%2Fprimary.tbl");
       expect(result.pointingRaDeg).toBe(100.0);
       expect(result.pointingDecDeg).toBe(30.0);
       expect(result.qaGrade).toBe("warn");
@@ -90,6 +93,7 @@ describe("provenanceMappers", () => {
       const result = mapProvenanceFromMSDetail(ms);
 
       expect(result.calTable).toBeUndefined();
+      expect(result.calUrl).toBeUndefined();
     });
   });
 
