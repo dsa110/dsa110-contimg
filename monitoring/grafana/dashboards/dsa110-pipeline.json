@@ -22,15 +22,38 @@
       "fieldConfig": {
         "defaults": {
           "mappings": [
-            { "options": { "0": { "color": "red", "text": "DOWN" }, "1": { "color": "green", "text": "UP" } }, "type": "value" }
+            {
+              "options": {
+                "0": { "color": "red", "text": "DOWN" },
+                "1": { "color": "green", "text": "UP" }
+              },
+              "type": "value"
+            }
           ],
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 1 }] }
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 1 }
+            ]
+          }
         },
         "overrides": []
       },
       "gridPos": { "h": 4, "w": 3, "x": 0, "y": 1 },
       "id": 1,
-      "options": { "colorMode": "background", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
       "targets": [{ "expr": "up{job=\"dsa110-api\"}", "refId": "A" }],
       "title": "API Status",
       "type": "stat"
@@ -40,14 +63,33 @@
       "fieldConfig": {
         "defaults": {
           "unit": "reqps",
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
         },
         "overrides": []
       },
       "gridPos": { "h": 4, "w": 3, "x": 3, "y": 1 },
       "id": 2,
-      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
-      "targets": [{ "expr": "sum(rate(http_requests_total{job=\"dsa110-api\"}[5m]))", "refId": "A" }],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{job=\"dsa110-api\"}[5m]))",
+          "refId": "A"
+        }
+      ],
       "title": "Request Rate",
       "type": "stat"
     },
@@ -58,14 +100,37 @@
           "unit": "percentunit",
           "max": 1,
           "min": 0,
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.01 }, { "color": "red", "value": 0.05 }] }
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.01 },
+              { "color": "red", "value": 0.05 }
+            ]
+          }
         },
         "overrides": []
       },
       "gridPos": { "h": 4, "w": 3, "x": 6, "y": 1 },
       "id": 3,
-      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
-      "targets": [{ "expr": "sum(rate(http_requests_total{job=\"dsa110-api\",status=~\"5..\"}[5m])) / sum(rate(http_requests_total{job=\"dsa110-api\"}[5m]))", "refId": "A" }],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{job=\"dsa110-api\",status=~\"5..\"}[5m])) / sum(rate(http_requests_total{job=\"dsa110-api\"}[5m]))",
+          "refId": "A"
+        }
+      ],
       "title": "Error Rate",
       "type": "stat"
     },
@@ -74,14 +139,37 @@
       "fieldConfig": {
         "defaults": {
           "unit": "s",
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 0.5 }, { "color": "red", "value": 1 }] }
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 0.5 },
+              { "color": "red", "value": 1 }
+            ]
+          }
         },
         "overrides": []
       },
       "gridPos": { "h": 4, "w": 3, "x": 9, "y": 1 },
       "id": 4,
-      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
-      "targets": [{ "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"dsa110-api\"}[5m])) by (le))", "refId": "A" }],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"dsa110-api\"}[5m])) by (le))",
+          "refId": "A"
+        }
+      ],
       "title": "P95 Latency",
       "type": "stat"
     },
@@ -90,14 +178,37 @@
       "fieldConfig": {
         "defaults": {
           "unit": "bytes",
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }, { "color": "yellow", "value": 500000000 }, { "color": "red", "value": 1000000000 }] }
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "yellow", "value": 500000000 },
+              { "color": "red", "value": 1000000000 }
+            ]
+          }
         },
         "overrides": []
       },
       "gridPos": { "h": 4, "w": 3, "x": 12, "y": 1 },
       "id": 5,
-      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
-      "targets": [{ "expr": "process_resident_memory_bytes{job=\"dsa110-api\"}", "refId": "A" }],
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "targets": [
+        {
+          "expr": "process_resident_memory_bytes{job=\"dsa110-api\"}",
+          "refId": "A"
+        }
+      ],
       "title": "Memory Usage",
       "type": "stat"
     },
@@ -113,13 +224,27 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": {
         "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] }
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "blue", "value": null }]
+          }
         },
         "overrides": []
       },
       "gridPos": { "h": 4, "w": 3, "x": 0, "y": 6 },
       "id": 10,
-      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
       "targets": [{ "expr": "sum(dsa110_ms_count)", "refId": "A" }],
       "title": "Total MS",
       "type": "stat"
@@ -128,13 +253,27 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": {
         "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "purple", "value": null }] }
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "purple", "value": null }]
+          }
         },
         "overrides": []
       },
       "gridPos": { "h": 4, "w": 3, "x": 3, "y": 6 },
       "id": 11,
-      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
       "targets": [{ "expr": "sum(dsa110_images_count)", "refId": "A" }],
       "title": "Total Images",
       "type": "stat"
@@ -143,13 +282,27 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": {
         "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "orange", "value": null }] }
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "orange", "value": null }]
+          }
         },
         "overrides": []
       },
       "gridPos": { "h": 4, "w": 3, "x": 6, "y": 6 },
       "id": 12,
-      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
       "targets": [{ "expr": "dsa110_sources_count", "refId": "A" }],
       "title": "Unique Sources",
       "type": "stat"
@@ -158,13 +311,27 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": {
         "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "super-light-blue", "value": null }] }
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "super-light-blue", "value": null }]
+          }
         },
         "overrides": []
       },
       "gridPos": { "h": 4, "w": 3, "x": 9, "y": 6 },
       "id": 13,
-      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
       "targets": [{ "expr": "dsa110_photometry_count", "refId": "A" }],
       "title": "Photometry Records",
       "type": "stat"
@@ -173,13 +340,30 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": {
         "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "yellow", "value": null }, { "color": "red", "value": 5 }] }
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "yellow", "value": null },
+              { "color": "red", "value": 5 }
+            ]
+          }
         },
         "overrides": []
       },
       "gridPos": { "h": 4, "w": 3, "x": 12, "y": 6 },
       "id": 14,
-      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
       "targets": [{ "expr": "dsa110_pending_jobs", "refId": "A" }],
       "title": "Pending Jobs",
       "type": "stat"
@@ -188,13 +372,27 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": {
         "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": null }] }
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "green", "value": null }]
+          }
         },
         "overrides": []
       },
       "gridPos": { "h": 4, "w": 3, "x": 15, "y": 6 },
       "id": 15,
-      "options": { "colorMode": "value", "graphMode": "none", "justifyMode": "center", "orientation": "auto", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "textMode": "auto" },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
       "targets": [{ "expr": "dsa110_running_jobs", "refId": "A" }],
       "title": "Running Jobs",
       "type": "stat"
@@ -218,8 +416,20 @@
       },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 11 },
       "id": 20,
-      "options": { "legend": { "displayMode": "table", "placement": "right", "showLegend": true } },
-      "targets": [{ "expr": "sum(rate(http_requests_total{job=\"dsa110-api\"}[5m])) by (handler)", "legendFormat": "{{handler}}", "refId": "A" }],
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{job=\"dsa110-api\"}[5m])) by (handler)",
+          "legendFormat": "{{handler}}",
+          "refId": "A"
+        }
+      ],
       "title": "Request Rate by Endpoint",
       "type": "timeseries"
     },
@@ -234,11 +444,29 @@
       },
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 11 },
       "id": 21,
-      "options": { "legend": { "displayMode": "table", "placement": "right", "showLegend": true } },
+      "options": {
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "showLegend": true
+        }
+      },
       "targets": [
-        { "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{job=\"dsa110-api\"}[5m])) by (le))", "legendFormat": "p50", "refId": "A" },
-        { "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"dsa110-api\"}[5m])) by (le))", "legendFormat": "p95", "refId": "B" },
-        { "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job=\"dsa110-api\"}[5m])) by (le))", "legendFormat": "p99", "refId": "C" }
+        {
+          "expr": "histogram_quantile(0.50, sum(rate(http_request_duration_seconds_bucket{job=\"dsa110-api\"}[5m])) by (le))",
+          "legendFormat": "p50",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job=\"dsa110-api\"}[5m])) by (le))",
+          "legendFormat": "p95",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(http_request_duration_seconds_bucket{job=\"dsa110-api\"}[5m])) by (le))",
+          "legendFormat": "p99",
+          "refId": "C"
+        }
       ],
       "title": "Response Latency Percentiles",
       "type": "timeseries"
@@ -255,18 +483,56 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": {
         "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": null }] }
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "blue", "value": null }]
+          }
         },
         "overrides": [
-          { "matcher": { "id": "byName", "options": "ingested" }, "properties": [{ "id": "color", "value": { "fixedColor": "blue", "mode": "fixed" } }] },
-          { "matcher": { "id": "byName", "options": "calibrated" }, "properties": [{ "id": "color", "value": { "fixedColor": "yellow", "mode": "fixed" } }] },
-          { "matcher": { "id": "byName", "options": "imaged" }, "properties": [{ "id": "color", "value": { "fixedColor": "green", "mode": "fixed" } }] }
+          {
+            "matcher": { "id": "byName", "options": "ingested" },
+            "properties": [
+              {
+                "id": "color",
+                "value": { "fixedColor": "blue", "mode": "fixed" }
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "calibrated" },
+            "properties": [
+              {
+                "id": "color",
+                "value": { "fixedColor": "yellow", "mode": "fixed" }
+              }
+            ]
+          },
+          {
+            "matcher": { "id": "byName", "options": "imaged" },
+            "properties": [
+              {
+                "id": "color",
+                "value": { "fixedColor": "green", "mode": "fixed" }
+              }
+            ]
+          }
         ]
       },
       "gridPos": { "h": 6, "w": 12, "x": 0, "y": 20 },
       "id": 30,
-      "options": { "displayMode": "gradient", "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showUnfilled": true },
-      "targets": [{ "expr": "dsa110_ms_count", "legendFormat": "{{stage}}", "refId": "A" }],
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true
+      },
+      "targets": [
+        { "expr": "dsa110_ms_count", "legendFormat": "{{stage}}", "refId": "A" }
+      ],
       "title": "MS by Processing Stage",
       "type": "bargauge"
     },
@@ -274,14 +540,32 @@
       "datasource": { "type": "prometheus", "uid": "prometheus" },
       "fieldConfig": {
         "defaults": {
-          "thresholds": { "mode": "absolute", "steps": [{ "color": "purple", "value": null }] }
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [{ "color": "purple", "value": null }]
+          }
         },
         "overrides": []
       },
       "gridPos": { "h": 6, "w": 12, "x": 12, "y": 20 },
       "id": 31,
-      "options": { "displayMode": "gradient", "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false }, "showUnfilled": true },
-      "targets": [{ "expr": "dsa110_images_count", "legendFormat": "{{type}}", "refId": "A" }],
+      "options": {
+        "displayMode": "gradient",
+        "orientation": "horizontal",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "showUnfilled": true
+      },
+      "targets": [
+        {
+          "expr": "dsa110_images_count",
+          "legendFormat": "{{type}}",
+          "refId": "A"
+        }
+      ],
       "title": "Images by Type",
       "type": "bargauge"
     },
@@ -304,10 +588,24 @@
       },
       "gridPos": { "h": 6, "w": 8, "x": 0, "y": 27 },
       "id": 40,
-      "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true } },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      },
       "targets": [
-        { "expr": "process_resident_memory_bytes{job=\"dsa110-api\"}", "legendFormat": "RSS", "refId": "A" },
-        { "expr": "process_virtual_memory_bytes{job=\"dsa110-api\"}", "legendFormat": "Virtual", "refId": "B" }
+        {
+          "expr": "process_resident_memory_bytes{job=\"dsa110-api\"}",
+          "legendFormat": "RSS",
+          "refId": "A"
+        },
+        {
+          "expr": "process_virtual_memory_bytes{job=\"dsa110-api\"}",
+          "legendFormat": "Virtual",
+          "refId": "B"
+        }
       ],
       "title": "API Memory Usage",
       "type": "timeseries"
@@ -323,8 +621,20 @@
       },
       "gridPos": { "h": 6, "w": 8, "x": 8, "y": 27 },
       "id": 41,
-      "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true } },
-      "targets": [{ "expr": "rate(process_cpu_seconds_total{job=\"dsa110-api\"}[5m])", "legendFormat": "CPU", "refId": "A" }],
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      },
+      "targets": [
+        {
+          "expr": "rate(process_cpu_seconds_total{job=\"dsa110-api\"}[5m])",
+          "legendFormat": "CPU",
+          "refId": "A"
+        }
+      ],
       "title": "API CPU Usage",
       "type": "timeseries"
     },
@@ -339,10 +649,24 @@
       },
       "gridPos": { "h": 6, "w": 8, "x": 16, "y": 27 },
       "id": 42,
-      "options": { "legend": { "displayMode": "list", "placement": "bottom", "showLegend": true } },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        }
+      },
       "targets": [
-        { "expr": "process_open_fds{job=\"dsa110-api\"}", "legendFormat": "Open FDs", "refId": "A" },
-        { "expr": "process_max_fds{job=\"dsa110-api\"}", "legendFormat": "Max FDs", "refId": "B" }
+        {
+          "expr": "process_open_fds{job=\"dsa110-api\"}",
+          "legendFormat": "Open FDs",
+          "refId": "A"
+        },
+        {
+          "expr": "process_max_fds{job=\"dsa110-api\"}",
+          "legendFormat": "Max FDs",
+          "refId": "B"
+        }
       ],
       "title": "File Descriptors",
       "type": "timeseries"

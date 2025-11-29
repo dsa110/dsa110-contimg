@@ -9,12 +9,12 @@ troubleshooting guides in the DSA-110 Continuum Imaging Pipeline.
 
 ## Quick Reference
 
-| Issue | Status | Category | Guide |
-|-------|--------|----------|-------|
-| [Docker WSClean Hang](#docker-wsclean-hang) | 🔴 Open | Backend/Imaging | [docker-wsclean.md](docker-wsclean.md) |
-| [Image Metadata Not Populated](#image-metadata-not-populated) | 🔴 Open | Database | [known-issues/image-metadata-population.md](known-issues/image-metadata-population.md) |
-| [MS Permission Errors](#ms-permission-errors) | ✅ Resolved | Backend/CASA | [resolved/ms-permission-errors.md](resolved/ms-permission-errors.md) |
-| [Frontend Restart Required](#frontend-restart-required) | ✅ Resolved | Frontend | [resolved/frontend-restart-needed.md](resolved/frontend-restart-needed.md) |
+| Issue                                                         | Status      | Category        | Guide                                                                                  |
+| ------------------------------------------------------------- | ----------- | --------------- | -------------------------------------------------------------------------------------- |
+| [Docker WSClean Hang](#docker-wsclean-hang)                   | 🔴 Open     | Backend/Imaging | [docker-wsclean.md](docker-wsclean.md)                                                 |
+| [Image Metadata Not Populated](#image-metadata-not-populated) | 🔴 Open     | Database        | [known-issues/image-metadata-population.md](known-issues/image-metadata-population.md) |
+| [MS Permission Errors](#ms-permission-errors)                 | ✅ Resolved | Backend/CASA    | [resolved/ms-permission-errors.md](resolved/ms-permission-errors.md)                   |
+| [Frontend Restart Required](#frontend-restart-required)       | ✅ Resolved | Frontend        | [resolved/frontend-restart-needed.md](resolved/frontend-restart-needed.md)             |
 
 ---
 
@@ -46,10 +46,12 @@ Database images have `noise_jy`, `center_ra_deg`, `center_dec_deg` set to NULL,
 causing noise filtering to fail and declination filtering to be slow.
 
 **Impact:**
+
 - Noise filtering returns no results
 - Declination filtering requires reading FITS files (slow)
 
-**Full Documentation:** [known-issues/image-metadata-population.md](known-issues/image-metadata-population.md)
+**Full Documentation:**
+[known-issues/image-metadata-population.md](known-issues/image-metadata-population.md)
 
 ---
 
@@ -67,7 +69,8 @@ created with root ownership.
 **Solution:** Automated permission fixing integrated into `selfcal.py` and
 manual script available.
 
-**Full Documentation:** [resolved/ms-permission-errors.md](resolved/ms-permission-errors.md)
+**Full Documentation:**
+[resolved/ms-permission-errors.md](resolved/ms-permission-errors.md)
 
 ---
 
@@ -81,7 +84,8 @@ Frontend dev server needed restart to pick up `.env.development` changes.
 
 **Solution:** Restart frontend dev server or modify API client directly.
 
-**Full Documentation:** [resolved/frontend-restart-needed.md](resolved/frontend-restart-needed.md)
+**Full Documentation:**
+[resolved/frontend-restart-needed.md](resolved/frontend-restart-needed.md)
 
 ---
 
@@ -89,31 +93,37 @@ Frontend dev server needed restart to pick up `.env.development` changes.
 
 These documents provide audit results and analysis, not issue resolutions:
 
-- [frontend_api_audit_report.md](frontend_api_audit_report.md) - API prefix audit (all calls correct)
+- [frontend_api_audit_report.md](frontend_api_audit_report.md) - API prefix
+  audit (all calls correct)
 
 ---
 
 ## How to Add New Issues
 
 1. **Create issue document** in appropriate location:
+
    - Active issues: `troubleshooting/` or `troubleshooting/known-issues/`
    - Resolved issues: `troubleshooting/resolved/`
 
 2. **Use standard format:**
+
    ```markdown
    # Issue Title
-   
+
    **Date:** YYYY-MM-DD  
    **Severity:** HIGH | MEDIUM | LOW  
    **Status:** 🔴 Open | 🟡 In Progress | ✅ Resolved
-   
+
    ## Problem
+
    [Description]
-   
+
    ## Impact
+
    [What's affected]
-   
+
    ## Solution / Workaround
+
    [Resolution or mitigation]
    ```
 

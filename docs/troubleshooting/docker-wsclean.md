@@ -199,6 +199,7 @@ tail -100 /tmp/docker_wsclean_strace.txt
 ```
 
 Look for:
+
 - `umount()` - Volume unmount issues
 - `flock()` / `fcntl()` - File locking issues
 - `wait()` / `waitpid()` - Waiting for child process
@@ -299,5 +300,6 @@ config = SelfCalConfig(
 
 ## Related Documentation
 
-- [MS Permission Errors](resolved/ms-permission-errors.md) - Related permission fixes
+- [MS Permission Errors](resolved/ms-permission-errors.md) - Related permission
+  fixes
 - [Self-Calibration Guide](../how-to/self_calibration.md) - User guide
