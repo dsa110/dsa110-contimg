@@ -140,8 +140,11 @@ const SourcesListPage: React.FC = () => {
     return result;
   }, [sources, queryParams, advFilterValues]);
 
-  const { sortColumn, sortDirection, handleSort, sortedData } =
-    useTableSort<Source>(filteredSources);
+  const { sortColumn, sortDirection, handleSort, sortedData } = useTableSort<Source>(
+    filteredSources,
+    "id",
+    "asc"
+  );
 
   // Build EtaVPlot data from sources
   const variabilityData: SourcePoint[] = useMemo(() => {

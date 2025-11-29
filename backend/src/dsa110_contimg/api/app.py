@@ -295,6 +295,64 @@ except ImportError:
 # app.mount("/ui", StaticFiles(directory="../frontend/dist", html=True), name="ui")
 
 
+
+def ensure_port_available(port: int = 8000) -> None:
+    """
+    Ensure the given port is available by killing any blocking processes.
+    
+    Called automatically when running the app directly via `python -m ... app:app`.
+    """
+    import os
+    import signal
+    import subprocess
+    import sys
+    import time
+    
+    def get_pids_on_port(p: int) -> list[int]:
+        try:
+            result = subprocess.run(
+                ["lsof", "-ti", f":{p}"],
+                capture_output=True, text=True
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                return [int(pid) for pid in result.stdout.strip().split('\n') if pid]
+        except Exception:
+            pass
+        return []
+    
+    max_attempts = 5
+    for attempt in range(1, max_attempts + 1):
+        pids = get_pids_on_port(port)
+        if not pids:
+            if attempt > 1:
+                print(f"[ensure-port] OK Port {port} is now available")
+            return
+        
+        # Don't kill ourselves
+        my_pid = os.getpid()
+        pids = [p for p in pids if p != my_pid]
+        if not pids:
+            return
+        
+        print(f"[ensure-port] Found {len(pids)} process(es) blocking port {port}: {pids}")
+        
+        sig = signal.SIGKILL if attempt >= 3 else signal.SIGTERM
+        for pid in pids:
+            try:
+                os.kill(pid, sig)
+                print(f"[ensure-port] Sent {'SIGKILL' if attempt >= 3 else 'SIGTERM'} to PID {pid}")
+            except (ProcessLookupError, PermissionError):
+                pass
+        
+        time.sleep(0.5 * (2 ** (attempt - 1)))  # Exponential backoff
+    
+    # Final check
+    if get_pids_on_port(port):
+        print(f"[ensure-port] WARNING: Could not free port {port}", file=sys.stderr)
+
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    port = int(os.getenv("API_PORT", "8000"))
+    ensure_port_available(port)
+    uvicorn.run(app, host="0.0.0.0", port=port)
