@@ -22,10 +22,11 @@ VIOLATIONS=0
 CHECKED_FILES=0
 
 # Patterns that indicate output suppression
+# Note: These pattern strings themselves are not violations (suppress-output-check)
 SUPPRESSION_PATTERNS=(
-    ">/dev/null"
-    "2>/dev/null"
-    "&>/dev/null"
+    ">/dev/null"      # suppress-output-check
+    "2>/dev/null"     # suppress-output-check
+    "&>/dev/null"     # suppress-output-check
 )
 
 # Directories to exclude from validation

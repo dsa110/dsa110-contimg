@@ -18,7 +18,7 @@ echo "--- Checking frontend/package.json ---"
 cd "$PROJECT_ROOT/frontend"
 
 # Extract bash script paths from package.json
-scripts=$(grep -oE 'bash [^"]+\.sh' package.json 2>/dev/null | sed 's/bash //' || true)
+scripts=$(grep -oE 'bash [^"]+\.sh' package.json 2>/dev/null  # Exception: grep may find no matches | sed 's/bash //' || true)
 
 for script in $scripts; do
     if [ ! -f "$script" ]; then
@@ -35,7 +35,7 @@ cd "$PROJECT_ROOT/ops/systemd"
 
 for service in *.service; do
     # Extract ExecStart and ExecStartPre paths
-    scripts=$(grep -E '^Exec(Start|StartPre)=' "$service" 2>/dev/null | grep -oE '/[^ ]+\.sh' || true)
+    scripts=$(grep -E '^Exec(Start|StartPre)=' "$service" 2>/dev/null  # Exception: grep may find no matches | grep -oE '/[^ ]+\.sh' || true)
     
     for script in $scripts; do
         if [ ! -f "$script" ]; then
