@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from "react";
+import React, { useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useJobs } from "../hooks/useQueries";
 import { relativeTime } from "../utils/relativeTime";
@@ -42,10 +42,13 @@ const JobsListPage: React.FC = () => {
     [selectedIds]
   );
 
-  const sortedJobs = useMemo(() => {
-    if (!jobs) return [];
-    return sortItems(jobs, sortKey, sortDirection);
-  }, [jobs, sortKey, sortDirection, sortItems]);
+  // Apply sorting using the hook
+  const {
+    sortColumn,
+    sortDirection,
+    handleSort,
+    sortedData: sortedJobs,
+  } = useTableSort<JobItem>(jobs as JobItem[] | undefined, "started_at", "desc");
 
   if (isLoading) {
     return <LoadingSpinner label="Loading jobs..." />;
@@ -132,28 +135,31 @@ const JobsListPage: React.FC = () => {
                   />
                 </th>
                 <SortableTableHeader
-                  label="Run ID"
-                  sortKey="run_id"
-                  currentSortKey={sortKey}
-                  direction={sortDirection}
+                  columnKey="run_id"
+                  sortColumn={sortColumn}
+                  sortDirection={sortDirection}
                   onSort={handleSort}
-                />
+                >
+                  Run ID
+                </SortableTableHeader>
                 <SortableTableHeader
-                  label="Status"
-                  sortKey="status"
-                  currentSortKey={sortKey}
-                  direction={sortDirection}
+                  columnKey="status"
+                  sortColumn={sortColumn}
+                  sortDirection={sortDirection}
                   onSort={handleSort}
                   className="text-center"
-                />
+                >
+                  Status
+                </SortableTableHeader>
                 <SortableTableHeader
-                  label="Started"
-                  sortKey="started_at"
-                  currentSortKey={sortKey}
-                  direction={sortDirection}
+                  columnKey="started_at"
+                  sortColumn={sortColumn}
+                  sortDirection={sortDirection}
                   onSort={handleSort}
                   className="text-right"
-                />
+                >
+                  Started
+                </SortableTableHeader>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">

@@ -87,8 +87,12 @@ const ImagesListPage: React.FC = () => {
   }, [images, filterValues]);
 
   // Apply sorting using the hook with filtered data
-  const { sortColumn, sortDirection, handleSort, sortedData: sortedImages } =
-    useTableSort<ImageItem>(filteredImages, "created_at", "desc");
+  const {
+    sortColumn,
+    sortDirection,
+    handleSort,
+    sortedData: sortedImages,
+  } = useTableSort<ImageItem>(filteredImages, "created_at", "desc");
 
   if (isLoading) {
     return <LoadingSpinner label="Loading images..." />;
@@ -216,28 +220,31 @@ const ImagesListPage: React.FC = () => {
                   />
                 </th>
                 <SortableTableHeader
-                  label="Name"
-                  sortKey="path"
-                  currentSortKey={sortKey}
-                  direction={sortDirection}
+                  columnKey="path"
+                  sortColumn={sortColumn}
+                  sortDirection={sortDirection}
                   onSort={handleSort}
-                />
+                >
+                  Name
+                </SortableTableHeader>
                 <SortableTableHeader
-                  label="QA Grade"
-                  sortKey="qa_grade"
-                  currentSortKey={sortKey}
-                  direction={sortDirection}
+                  columnKey="qa_grade"
+                  sortColumn={sortColumn}
+                  sortDirection={sortDirection}
                   onSort={handleSort}
                   className="text-center"
-                />
+                >
+                  QA Grade
+                </SortableTableHeader>
                 <SortableTableHeader
-                  label="Created"
-                  sortKey="created_at"
-                  currentSortKey={sortKey}
-                  direction={sortDirection}
+                  columnKey="created_at"
+                  sortColumn={sortColumn}
+                  sortDirection={sortDirection}
                   onSort={handleSort}
                   className="text-right"
-                />
+                >
+                  Created
+                </SortableTableHeader>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
