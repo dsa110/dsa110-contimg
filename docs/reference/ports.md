@@ -129,6 +129,9 @@ used manually.
 
 # Actually free the port
 sudo /usr/local/bin/claim-port.sh 8000
+
+# Custom timeout (default 5 seconds)
+sudo /usr/local/bin/claim-port.sh 8000 --timeout=10
 ```
 
 ### How It Works
@@ -137,10 +140,20 @@ sudo /usr/local/bin/claim-port.sh 8000
    (ignores client connections to that port)
 2. If free, exits successfully
 3. If occupied by a listener:
+   - **Validates** the process is not protected (systemd, sshd, init, etc.)
    - Sends SIGTERM to the listening process
-   - Waits up to 5 seconds for graceful shutdown
+   - Waits up to 5 seconds (configurable) for graceful shutdown
    - Sends SIGKILL to any remaining listener
    - Verifies port is now free
+
+### Safety Features
+
+- **Protected Process Detection**: Will not kill systemd, journald, sshd, init,
+  or any process with PID ≤ 2
+- **Structured Logging**: All output prefixed with `[claim-port:<port>]` for
+  easy filtering in journalctl
+- **Port Validation**: Rejects invalid port numbers (must be 1-65535)
+- **Detailed Process Info**: Logs full command line of processes being killed
 
 ### Systemd Integration
 

@@ -81,9 +81,9 @@ def pytest_runtest_teardown(item, nextitem):
 def pytest_sessionfinish(session, exitstatus):
     """Skip Python's normal shutdown if CASA was loaded."""
     global _casa_cpp_loaded
-    
+
     _cleanup_casa()  # Clear modules from sys.modules
-    
+
     if exitstatus == 0 and _casa_cpp_loaded:
         # Skip Python's normal shutdown to avoid C++ destructor issues
         os._exit(0)
@@ -114,7 +114,7 @@ python -m pytest tests/unit/test_routes.py -q
 # Output: 14 passed in 0.60s (full output shown for non-CASA tests)
 
 # Failed tests still show proper exit code
-python -m pytest tests/unit/ -k "nonexistent" 
+python -m pytest tests/unit/ -k "nonexistent"
 # Exit code: 5 (no tests collected)
 ```
 
@@ -155,6 +155,7 @@ python -m pytest tests/unit/ --forked
 ```
 
 **Not recommended** because:
+
 - Significantly slower (subprocess per test)
 - Breaks fixtures that need shared state
 - Overkill for this specific issue

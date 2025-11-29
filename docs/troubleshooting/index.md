@@ -58,6 +58,29 @@ causing noise filtering to fail and declination filtering to be slow.
 
 ## Resolved Issues
 
+### CASA C++ Shutdown Error
+
+**Severity:** MEDIUM  
+**Status:** ✅ Resolved  
+**Resolution Date:** November 29, 2025
+
+pytest would crash after tests passed with:
+
+```
+casatools::get_state() called after shutdown initiated
+```
+
+**Root Cause:** CASA's C++ backend throws during Python's atexit sequence when
+its state is accessed after shutdown began.
+
+**Solution:** Track CASA imports during tests and use `os._exit(0)` to skip
+Python's normal shutdown when tests pass.
+
+**Full Documentation:**
+[resolved/casa-shutdown-error.md](resolved/casa-shutdown-error.md)
+
+---
+
 ### MS Permission Errors
 
 **Severity:** MEDIUM  

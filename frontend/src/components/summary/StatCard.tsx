@@ -57,10 +57,7 @@ const StatCard: React.FC<StatCardProps> = ({
   isLoading = false,
   className = "",
 }) => {
-  const formattedValue =
-    formatNumber && typeof value === "number"
-      ? value.toLocaleString()
-      : value;
+  const formattedValue = formatNumber && typeof value === "number" ? value.toLocaleString() : value;
 
   const cardContent = (
     <div
@@ -74,9 +71,7 @@ const StatCard: React.FC<StatCardProps> = ({
       <div className="flex items-center justify-between">
         <div className="flex-1">
           <p
-            className={`text-xs font-bold uppercase mb-1 ${
-              VARIANT_CLASSES[variant].split(" ")[1]
-            }`}
+            className={`text-xs font-bold uppercase mb-1 ${VARIANT_CLASSES[variant].split(" ")[1]}`}
           >
             {label}
           </p>
@@ -85,13 +80,9 @@ const StatCard: React.FC<StatCardProps> = ({
           ) : (
             <p className="text-xl font-bold text-gray-800">{formattedValue}</p>
           )}
-          {subtitle && (
-            <p className="text-xs text-gray-500 mt-1">{subtitle}</p>
-          )}
+          {subtitle && <p className="text-xs text-gray-500 mt-1">{subtitle}</p>}
         </div>
-        {icon && (
-          <div className={`text-3xl ${ICON_CLASSES[variant]}`}>{icon}</div>
-        )}
+        {icon && <div className={`text-3xl ${ICON_CLASSES[variant]}`}>{icon}</div>}
       </div>
     </div>
   );
@@ -100,12 +91,7 @@ const StatCard: React.FC<StatCardProps> = ({
     // Check if external link
     if (href.startsWith("http")) {
       return (
-        <a
-          href={href}
-          target="_blank"
-          rel="noreferrer"
-          className="block no-underline"
-        >
+        <a href={href} target="_blank" rel="noreferrer" className="block no-underline">
           {cardContent}
         </a>
       );
