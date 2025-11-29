@@ -29,5 +29,19 @@ httpx = "*"
 black = "*"
 flake8 = "*"
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+# Filter warnings from third-party packages we can't control
+filterwarnings = [
+    # Ignore pkg_resources deprecation warnings from casaconfig (CASA dependency)
+    # This is a known issue in CASA 6.x that will be fixed in a future release
+    "ignore:pkg_resources is deprecated as an API:UserWarning",
+    # Ignore setuptools deprecation warnings from any source
+    "ignore:.*pkg_resources.*:DeprecationWarning",
+]
+
 [tool.poetry.scripts]
 dsa110-cli = "dsa110_contimg.conversion.cli:main"
