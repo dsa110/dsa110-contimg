@@ -2,7 +2,13 @@ import React from "react";
 import { useParams, Link } from "react-router-dom";
 import ProvenanceStrip from "../components/provenance/ProvenanceStrip";
 import ErrorDisplay from "../components/errors/ErrorDisplay";
-import { Card, CoordinateDisplay, ImageThumbnail, QAMetrics } from "../components/common";
+import {
+  Card,
+  CoordinateDisplay,
+  ImageThumbnail,
+  LoadingSpinner,
+  QAMetrics,
+} from "../components/common";
 import { mapProvenanceFromImageDetail, ImageDetailResponse } from "../utils/provenanceMappers";
 import { relativeTime } from "../utils/relativeTime";
 import type { ErrorResponse } from "../types/errors";
@@ -26,11 +32,7 @@ const ImageDetailPage: React.FC = () => {
   }, [image, imageId, addRecentImage]);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-pulse text-gray-500">Loading image details...</div>
-      </div>
-    );
+    return <LoadingSpinner label="Loading image details..." />;
   }
 
   if (error) {
@@ -72,8 +74,8 @@ const ImageDetailPage: React.FC = () => {
 
       {/* Main content grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left column - Preview and actions */}
-        <div className="lg:col-span-1 space-y-6">
+        {/* Left column - Preview and actions (sticky on desktop) */}
+        <div className="lg:col-span-1 sticky-sidebar">
           {/* Image preview */}
           <Card title="Preview">
             <div className="flex justify-center">
@@ -132,6 +134,7 @@ const ImageDetailPage: React.FC = () => {
                 raDeg={imageData.pointing_ra_deg}
                 decDeg={imageData.pointing_dec_deg}
                 showDecimal
+                allowFormatToggle
               />
             </Card>
           )}
