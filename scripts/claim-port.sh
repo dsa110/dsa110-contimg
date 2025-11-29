@@ -56,7 +56,8 @@ if [ "$PORT" -lt 1 ] || [ "$PORT" -gt 65535 ]; then
 fi
 
 # Check dependencies
-if ! command -v lsof &>/dev/null  # Exception: check if command exists; then
+# Exception: checking if command exists
+if ! command -v lsof &>/dev/null; then
     echo "Error: lsof is required but not installed" >&2
     exit 1
 fi
@@ -67,7 +68,7 @@ log() {
 
 # Check if port has a TCP listener
 check_listener() {
-    lsof -i ":$PORT" -sTCP:LISTEN -t 2>/dev/null  # Exception: port check may return empty  # Exception: port check may return empty || true
+    lsof -i ":$PORT" -sTCP:LISTEN -t 2>/dev/null  # Exception: port check may return empty || true
 }
 
 # Get process info for logging
@@ -87,7 +88,7 @@ is_protected() {
     fi
     
     # Never kill critical system processes
-    comm=$(ps -p "$pid" -o comm= 2>/dev/null # Exception: process may have exited || true)
+    comm=$(ps -p "$pid" -o comm= 2>/dev/null  # Exception: process may exit || true)
     case "$comm" in
         systemd|systemd-*|journald|sshd|init|dbus-daemon)
             return 0
@@ -102,8 +103,9 @@ kill_process() {
     local pid="$1"
     local signal="$2"
     
-    if kill -0 "$pid" 2>/dev/null  # Exception: process existence check; then
-        kill "-$signal" "$pid" 2>/dev/null  # Exception: process may have exited || true
+    # Exception: checking if process exists
+    if kill -0 "$pid" 2>/dev/null; then
+        kill "-$signal" "$pid" 2>/dev/null  # Exception: process may exit || true
         return 0
     fi
     return 1
