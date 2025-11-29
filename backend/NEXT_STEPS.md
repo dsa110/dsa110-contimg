@@ -1,6 +1,6 @@
 # Next Steps - DSA-110 Continuum Imaging Pipeline
 
-## Status: Core Setup Complete ✅ (Updated 2025-11-28)
+## Status: Core Setup Complete ✅ (Updated 2025-11-29)
 
 The API backend is fully operational with real data. Database tables are
 populated and all endpoints are returning real data.
@@ -18,6 +18,7 @@ populated and all endpoints are returning real data.
 | Lightcurve  | ✅ Implemented | Returns real flux data       |
 | Nginx       | ✅ Configured  | Reverse proxy on port 80     |
 | Prometheus  | ✅ Enabled     | Metrics at /metrics          |
+| Stats API   | ✅ Implemented | Summary counts at /api/stats |
 | IP Security | ✅ Active      | Localhost + private networks |
 
 ---

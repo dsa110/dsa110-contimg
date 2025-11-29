@@ -37,8 +37,17 @@ from dsa110_contimg.database.registry import (  # noqa: E402
     get_active_applylist,
     register_set_from_prefix,
 )
-from dsa110_contimg.photometry.manager import PhotometryConfig, PhotometryManager  # noqa: E402
-from dsa110_contimg.photometry.worker import PhotometryBatchWorker  # noqa: E402
+
+# Photometry is optional - may have network-dependent imports
+try:
+    from dsa110_contimg.photometry.manager import PhotometryConfig, PhotometryManager
+    from dsa110_contimg.photometry.worker import PhotometryBatchWorker
+    HAVE_PHOTOMETRY = True
+except ImportError:  # pragma: no cover
+    HAVE_PHOTOMETRY = False
+    PhotometryConfig = None  # type: ignore
+    PhotometryManager = None  # type: ignore
+    PhotometryBatchWorker = None  # type: ignore
 
 try:
     from dsa110_contimg.utils.graphiti_logging import GraphitiRunLogger

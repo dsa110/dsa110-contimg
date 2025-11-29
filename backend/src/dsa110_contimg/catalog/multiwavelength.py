@@ -10,22 +10,56 @@ import logging
 import sys
 import urllib.parse
 import warnings
-from typing import Dict, List, Optional, Union
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 import numpy as np
-import psrqpy
-import pyvo as vo
-import requests
 from astropy import units as u
 from astropy.coordinates import EarthLocation, SkyCoord, get_body, solar_system_ephemeris
 from astropy.table import Column, Table
 from astropy.time import Time
-from astroquery.casda import Casda
-from astroquery.gaia import Gaia
-from astroquery.simbad import Simbad
-from astroquery.vizier import Vizier
 
 logger = logging.getLogger(__name__)
+
+# Lazy imports for network-dependent modules
+# These are imported on first use to avoid network calls at module load time
+_astroquery_loaded = False
+Casda = None
+Gaia = None
+Simbad = None
+Vizier = None
+psrqpy = None
+vo = None
+requests = None
+
+
+def _ensure_astroquery():
+    """Lazily load astroquery and related modules."""
+    global _astroquery_loaded, Casda, Gaia, Simbad, Vizier, psrqpy, vo, requests
+    if _astroquery_loaded:
+        return
+    
+    import requests as _requests
+    import psrqpy as _psrqpy
+    import pyvo as _vo
+    from astroquery.casda import Casda as _Casda
+    from astroquery.gaia import Gaia as _Gaia
+    from astroquery.simbad import Simbad as _Simbad
+    from astroquery.vizier import Vizier as _Vizier
+    
+    requests = _requests
+    psrqpy = _psrqpy
+    vo = _vo
+    Casda = _Casda
+    Gaia = _Gaia
+    Simbad = _Simbad
+    Vizier = _Vizier
+    
+    # Configure Gaia
+    Gaia.MAIN_GAIA_TABLE = GAIA_MAIN_TABLE
+    
+    # Configure Simbad (done below after constant definitions)
+    _astroquery_loaded = True
+
 
 # Constants
 GAIA_MAIN_TABLE = "gaiadr3.gaia_source"
@@ -33,11 +67,6 @@ PULSAR_SCRAPER_URL = "https://pulsar.cgca-hub.org/api"
 SIMBAD_URL = "https://simbad.u-strasbg.fr/simbad/sim-id"
 GAIA_URL = "https://gaia.ari.uni-heidelberg.de/singlesource.html"
 VIZIER_URL = "https://vizier.cds.unistra.fr/viz-bin/VizieR-5"
-
-# Configure Gaia
-Gaia.MAIN_GAIA_TABLE = GAIA_MAIN_TABLE
-
-# Configure Simbad
 cSimbad = Simbad()
 cSimbad.add_votable_fields("pmra", "pmdec")
 
