@@ -77,6 +77,7 @@ def _cleanup_casa():
     gc.collect()
 
 
+@pytest.hookimpl(trylast=True)
 def pytest_sessionfinish(session, exitstatus):
     """Called after all tests finish, before returning exit status.
     
@@ -84,25 +85,14 @@ def pytest_sessionfinish(session, exitstatus):
     use os._exit(0) to skip Python's normal shutdown sequence and avoid
     the C++ runtime error.
     
-    Note: We check for coverage plugin and ensure it finishes first.
+    Note: trylast=True ensures this runs after pytest-cov and other plugins
+    have completed their sessionfinish hooks.
     """
     global _casa_cpp_loaded
     
     _cleanup_casa()
     
     if exitstatus == 0 and _casa_cpp_loaded:
-        # Give coverage plugin time to write its data
-        # pytest-cov uses pytest_sessionfinish with trylast=True,
-        # so it should run before us. We add a small delay just in case.
-        try:
-            # Check if coverage is active and force a save
-            if hasattr(session.config, '_cov'):
-                cov = session.config._cov
-                if hasattr(cov, 'cov') and cov.cov:
-                    cov.cov.save()
-        except Exception:
-            pass  # Coverage not active or failed, continue anyway
-        
         # Skip Python's normal shutdown to avoid CASA C++ destructor issues
         os._exit(0)
 
