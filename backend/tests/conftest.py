@@ -28,6 +28,7 @@ def _cleanup_casa():
     
     # Get all CASA-related modules
     casa_modules = [m for m in list(sys.modules.keys()) if 'casa' in m.lower()]
+    print(f"Found {len(casa_modules)} CASA modules to clean up", file=sys.stderr)
     if not casa_modules:
         return
     
@@ -41,6 +42,10 @@ def _cleanup_casa():
                 pass
     
     gc.collect()
+    
+    # Verify cleanup
+    remaining = [m for m in sys.modules.keys() if 'casa' in m.lower()]
+    print(f"After cleanup: {len(remaining)} CASA modules remaining", file=sys.stderr)
 
 
 def pytest_sessionfinish(session, exitstatus):
