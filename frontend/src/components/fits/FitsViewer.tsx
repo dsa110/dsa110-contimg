@@ -171,11 +171,20 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
       window.JS9.SetParam("contrast", controls.contrast, { display: displayId });
       window.JS9.SetParam("bias", controls.bias, { display: displayId });
 
-      // Toggle regions visibility
-      if (controls.showRegions) {
-        window.JS9.DisplayRegions({ display: displayId });
-      } else {
-        window.JS9.RemoveRegions("all", { display: displayId });
+      // Toggle regions visibility (hide/show, don't delete)
+      // Use ChangeRegions to set visibility property
+      try {
+        const regions = window.JS9.GetRegions("all", { display: displayId });
+        if (regions && regions.length > 0) {
+          regions.forEach((region: any) => {
+            window.JS9.ChangeRegions(region.id, {
+              visibility: controls.showRegions,
+            }, { display: displayId });
+          });
+        }
+      } catch (regionErr) {
+        // Regions may not exist yet or API differs
+        console.debug("Region visibility toggle:", regionErr);
       }
 
       // Toggle crosshair

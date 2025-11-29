@@ -1,11 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import { CATALOG_DEFINITIONS, CatalogDefinition } from "../../constants/catalogDefinitions";
 import CatalogLegend from "./CatalogLegend";
-import {
-  queryCatalogCached,
-  CatalogQueryResult,
-  CatalogSource,
-} from "../../utils/vizierQuery";
+import { queryCatalogCached, CatalogQueryResult, CatalogSource } from "../../utils/vizierQuery";
 
 export interface CatalogOverlayPanelProps {
   /** Currently enabled catalog IDs */
@@ -44,7 +40,7 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
   const [radiusInput, setRadiusInput] = useState(searchRadius);
   const [queryResults, setQueryResults] = useState<Map<string, CatalogQueryResult>>(new Map());
   const [loadingCatalogs, setLoadingCatalogs] = useState<Set<string>>(new Set());
-  
+
   const abortControllerRef = useRef<AbortController | null>(null);
   const overlayLayersRef = useRef<Map<string, any>>(new Map());
 
@@ -80,13 +76,7 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
       if (!catalog) return;
 
       try {
-        const result = await queryCatalogCached(
-          catalog,
-          centerRa,
-          centerDec,
-          radiusInput,
-          signal
-        );
+        const result = await queryCatalogCached(catalog, centerRa, centerDec, radiusInput, signal);
 
         if (signal.aborted) return;
 
@@ -133,49 +123,57 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
   }, [queryResults, onSourcesLoaded]);
 
   // Render catalog overlay in Aladin Lite
-  const renderCatalogOverlay = useCallback((catalog: CatalogDefinition, sources: CatalogSource[]) => {
-    if (!aladinRef?.current) return;
+  const renderCatalogOverlay = useCallback(
+    (catalog: CatalogDefinition, sources: CatalogSource[]) => {
+      if (!aladinRef?.current) return;
 
-    const aladin = aladinRef.current;
-    
-    // Remove existing layer for this catalog
-    const existingLayer = overlayLayersRef.current.get(catalog.id);
-    if (existingLayer) {
-      aladin.removeLayer(existingLayer);
-    }
+      const aladin = aladinRef.current;
 
-    // Create new catalog layer
-    const catalogLayer = (window as any).A?.catalog({
-      name: catalog.name,
-      sourceSize: 12,
-      color: catalog.color,
-      shape: catalog.symbol === "circle" ? "circle" : 
-             catalog.symbol === "square" ? "square" : 
-             catalog.symbol === "diamond" ? "rhomb" : "circle",
-    });
-
-    if (!catalogLayer) return;
-
-    // Add sources to layer
-    sources.forEach((src) => {
-      const source = (window as any).A?.source(src.ra, src.dec, {
-        name: src.id,
-        catalog: catalog.name,
-      });
-      if (source) {
-        catalogLayer.addSources([source]);
+      // Remove existing layer for this catalog
+      const existingLayer = overlayLayersRef.current.get(catalog.id);
+      if (existingLayer) {
+        aladin.removeLayer(existingLayer);
       }
-    });
 
-    // Add layer to Aladin
-    aladin.addCatalog(catalogLayer);
-    overlayLayersRef.current.set(catalog.id, catalogLayer);
-  }, [aladinRef]);
+      // Create new catalog layer
+      const catalogLayer = (window as any).A?.catalog({
+        name: catalog.name,
+        sourceSize: 12,
+        color: catalog.color,
+        shape:
+          catalog.symbol === "circle"
+            ? "circle"
+            : catalog.symbol === "square"
+            ? "square"
+            : catalog.symbol === "diamond"
+            ? "rhomb"
+            : "circle",
+      });
+
+      if (!catalogLayer) return;
+
+      // Add sources to layer
+      sources.forEach((src) => {
+        const source = (window as any).A?.source(src.ra, src.dec, {
+          name: src.id,
+          catalog: catalog.name,
+        });
+        if (source) {
+          catalogLayer.addSources([source]);
+        }
+      });
+
+      // Add layer to Aladin
+      aladin.addCatalog(catalogLayer);
+      overlayLayersRef.current.set(catalog.id, catalogLayer);
+    },
+    [aladinRef]
+  );
 
   // Clear all overlays
   const clearAllOverlays = useCallback(() => {
     if (!aladinRef?.current) return;
-    
+
     overlayLayersRef.current.forEach((layer) => {
       try {
         aladinRef.current.removeLayer(layer);
@@ -269,9 +267,7 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
         {!isQuerying && resultCount && (
           <span
             className={`text-xs px-1.5 py-0.5 rounded ${
-              hasError
-                ? "bg-red-100 text-red-600"
-                : "bg-gray-100 text-gray-600"
+              hasError ? "bg-red-100 text-red-600" : "bg-gray-100 text-gray-600"
             }`}
           >
             {resultCount}
@@ -321,7 +317,9 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
               max={60}
               step={0.5}
               value={radiusInput}
-              onChange={(e) => setRadiusInput(Math.max(0.5, Math.min(60, parseFloat(e.target.value) || 5)))}
+              onChange={(e) =>
+                setRadiusInput(Math.max(0.5, Math.min(60, parseFloat(e.target.value) || 5)))
+              }
               className="w-16 px-2 py-1 text-sm border border-gray-300 rounded"
             />
             <span className="text-xs text-gray-500">arcmin</span>
@@ -368,8 +366,9 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
           {/* Summary */}
           {queryResults.size > 0 && (
             <div className="text-xs text-gray-500 pt-2 border-t border-gray-100">
-              {Array.from(queryResults.values()).reduce((sum, r) => sum + r.count, 0)} sources loaded
-              {Array.from(queryResults.values()).some(r => r.truncated) && " (some truncated)"}
+              {Array.from(queryResults.values()).reduce((sum, r) => sum + r.count, 0)} sources
+              loaded
+              {Array.from(queryResults.values()).some((r) => r.truncated) && " (some truncated)"}
             </div>
           )}
         </div>

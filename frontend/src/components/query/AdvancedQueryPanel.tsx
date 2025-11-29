@@ -85,30 +85,141 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(["cone", "filters"])
   );
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const debounceTimeoutRef = React.useRef<number | null>(null);
 
-  // Sync URL hash with params
-  useEffect(() => {
+  // Parse URL hash into params
+  const parseUrlHash = useCallback((): Partial<SourceQueryParams> => {
     const hash = window.location.hash.slice(1);
-    if (hash) {
-      const urlParams: Partial<SourceQueryParams> = {};
-      hash.split("&").forEach((param) => {
-        const [key, value] = param.split("=");
-        if (key && value) {
-          if (key === "new_source") {
-            urlParams.newSource = value === "true";
-          } else if (key === "no_siblings") {
-            urlParams.noSiblings = value === "true";
-          } else if (key === "run_name") {
-            urlParams.runName = decodeURIComponent(value);
+    if (!hash) return {};
+
+    const urlParams: Partial<SourceQueryParams> = {};
+    hash.split("&").forEach((param) => {
+      const [key, value] = param.split("=");
+      if (!key || !value) return;
+
+      const decoded = decodeURIComponent(value);
+      switch (key) {
+        case "ra":
+          urlParams.ra = parseFloat(decoded);
+          break;
+        case "dec":
+          urlParams.dec = parseFloat(decoded);
+          break;
+        case "radius":
+          urlParams.radius = parseFloat(decoded);
+          break;
+        case "radius_unit":
+          if (["arcsec", "arcmin", "deg"].includes(decoded)) {
+            urlParams.radiusUnit = decoded as "arcsec" | "arcmin" | "deg";
           }
-          // Add more URL param parsing as needed
-        }
-      });
-      if (Object.keys(urlParams).length > 0) {
-        setParams((prev) => ({ ...prev, ...urlParams }));
+          break;
+        case "coord_frame":
+          if (["icrs", "galactic"].includes(decoded)) {
+            urlParams.coordFrame = decoded as "icrs" | "galactic";
+          }
+          break;
+        case "new_source":
+          urlParams.newSource = decoded === "true";
+          break;
+        case "no_siblings":
+          urlParams.noSiblings = decoded === "true";
+          break;
+        case "run_name":
+          urlParams.runName = decoded;
+          break;
+        case "include_tags":
+          urlParams.includeTags = decoded.split(",").filter(Boolean);
+          break;
+        case "exclude_tags":
+          urlParams.excludeTags = decoded.split(",").filter(Boolean);
+          break;
       }
+    });
+    return urlParams;
+  }, []);
+
+  // Write params to URL hash
+  const writeUrlHash = useCallback((params: SourceQueryParams) => {
+    const parts: string[] = [];
+
+    if (params.ra != null) parts.push(`ra=${params.ra.toFixed(6)}`);
+    if (params.dec != null) parts.push(`dec=${params.dec.toFixed(6)}`);
+    if (params.radius != null) parts.push(`radius=${params.radius}`);
+    if (params.radiusUnit !== DEFAULT_PARAMS.radiusUnit) {
+      parts.push(`radius_unit=${params.radiusUnit}`);
+    }
+    if (params.coordFrame !== DEFAULT_PARAMS.coordFrame) {
+      parts.push(`coord_frame=${params.coordFrame}`);
+    }
+    if (params.newSource) parts.push("new_source=true");
+    if (params.noSiblings) parts.push("no_siblings=true");
+    if (params.runName) parts.push(`run_name=${encodeURIComponent(params.runName)}`);
+    if (params.includeTags.length > 0) {
+      parts.push(`include_tags=${params.includeTags.map(encodeURIComponent).join(",")}`);
+    }
+    if (params.excludeTags.length > 0) {
+      parts.push(`exclude_tags=${params.excludeTags.map(encodeURIComponent).join(",")}`);
+    }
+
+    const newHash = parts.length > 0 ? `#${parts.join("&")}` : "";
+    if (window.location.hash !== newHash) {
+      window.history.replaceState(null, "", newHash || window.location.pathname);
     }
   }, []);
+
+  // Validate params
+  const validateParams = useCallback((params: SourceQueryParams): Record<string, string> => {
+    const errors: Record<string, string> = {};
+
+    // Coordinate validation
+    if (params.ra != null && (params.ra < 0 || params.ra > 360)) {
+      errors.ra = "RA must be between 0 and 360 degrees";
+    }
+    if (params.dec != null && (params.dec < -90 || params.dec > 90)) {
+      errors.dec = "Dec must be between -90 and 90 degrees";
+    }
+    if (params.radius != null && params.radius < 0) {
+      errors.radius = "Radius must be non-negative";
+    }
+
+    // Cone search completeness
+    if (
+      (params.ra != null || params.dec != null || params.radius != null) &&
+      (params.ra == null || params.dec == null || params.radius == null)
+    ) {
+      if (params.ra == null) errors.ra = "RA required for cone search";
+      if (params.dec == null) errors.dec = "Dec required for cone search";
+      if (params.radius == null) errors.radius = "Radius required for cone search";
+    }
+
+    return errors;
+  }, []);
+
+  // Load from URL hash on mount
+  useEffect(() => {
+    const urlParams = parseUrlHash();
+    if (Object.keys(urlParams).length > 0) {
+      setParams((prev) => ({ ...prev, ...urlParams }));
+    }
+  }, [parseUrlHash]);
+
+  // Debounced URL sync when params change
+  useEffect(() => {
+    if (debounceTimeoutRef.current) {
+      window.clearTimeout(debounceTimeoutRef.current);
+    }
+    debounceTimeoutRef.current = window.setTimeout(() => {
+      writeUrlHash(params);
+      setValidationErrors(validateParams(params));
+    }, 500);
+
+    return () => {
+      if (debounceTimeoutRef.current) {
+        window.clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, [params, writeUrlHash, validateParams]);
 
   const toggleSection = useCallback((section: string) => {
     setExpandedSections((prev) => {
@@ -128,12 +239,18 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
 
   const handleReset = useCallback(() => {
     setParams({ ...DEFAULT_PARAMS });
+    setValidationErrors({});
+    window.history.replaceState(null, "", window.location.pathname);
     onReset?.();
   }, [onReset]);
 
   const handleSubmit = useCallback(() => {
-    onSubmit(params);
-  }, [params, onSubmit]);
+    const errors = validateParams(params);
+    setValidationErrors(errors);
+    if (Object.keys(errors).length === 0) {
+      onSubmit(params);
+    }
+  }, [params, onSubmit, validateParams]);
 
   // Count active filters for badge
   const activeFilterCount = useMemo(() => {
@@ -154,6 +271,8 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
     if (params.runName) count++;
     return count;
   }, [params]);
+
+  const hasValidationErrors = Object.keys(validationErrors).length > 0;
 
   const renderSection = (id: string, title: string, children: React.ReactNode) => {
     const isExpanded = expandedSections.has(id);
@@ -502,12 +621,27 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
         )}
       </div>
 
+      {/* Validation Errors */}
+      {hasValidationErrors && (
+        <div className="px-4 py-2 bg-red-50 border-t border-red-200">
+          <ul className="text-sm text-red-600 list-disc list-inside">
+            {Object.entries(validationErrors).map(([field, error]) => (
+              <li key={field}>{error}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {/* Action Buttons */}
       <div className="p-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-2">
         <button onClick={handleReset} className="btn btn-secondary">
           Reset
         </button>
-        <button onClick={handleSubmit} className="btn btn-primary">
+        <button
+          onClick={handleSubmit}
+          className={`btn btn-primary ${hasValidationErrors ? "opacity-75" : ""}`}
+          disabled={hasValidationErrors}
+        >
           Search
         </button>
       </div>
