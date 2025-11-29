@@ -218,6 +218,7 @@ class DirectSubbandWriter(MSWriter):
         # Collect results in order (idx 0, 1, 2, ..., 15) to maintain spectral order
         parts = [None] * len(futures)
         completed = 0
+        failed_subbands = []
         for future in as_completed([f for _, f in futures]):
             try:
                 result = future.result()
@@ -231,7 +232,23 @@ class DirectSubbandWriter(MSWriter):
                     msg = f"Per-subband writes completed: {completed}/{len(futures)}"
                     logger.info(msg)
             except Exception as e:
-                raise RuntimeError(f"A subband writer process failed: {e}")
+                # Track which subband failed for better error reporting
+                for orig_idx, orig_future in futures:
+                    if orig_future == future:
+                        failed_subbands.append((orig_idx, sorted_files[orig_idx], str(e)))
+                        logger.error(f"Subband {orig_idx} ({sorted_files[orig_idx]}) failed: {e}")
+                        break
+        
+        # Report all failures if any occurred
+        if failed_subbands:
+            failure_details = "; ".join(
+                f"sb{idx}({Path(f).name}): {err[:100]}" 
+                for idx, f, err in failed_subbands
+            )
+            raise RuntimeError(
+                f"{len(failed_subbands)}/{len(futures)} subband writer processes failed. "
+                f"Check logs for details. Failures: {failure_details}"
+            )
 
         # Remove None entries (shouldn't happen, but safety check)
         parts = [p for p in parts if p is not None]

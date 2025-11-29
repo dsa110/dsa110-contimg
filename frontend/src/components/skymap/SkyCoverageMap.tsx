@@ -367,13 +367,17 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
     // Legend
     const legend = svg.append("g").attr("transform", `translate(${width - 120}, 20)`);
 
+    // Calculate legend height based on content
+    let legendHeight = 10; // base padding
+    if (colorScheme === "status") legendHeight += 45; // 3 status items
+    if (showGalacticPlane) legendHeight += 18;
+    if (showEcliptic) legendHeight += 18;
+    legendHeight = Math.max(legendHeight, 30); // minimum height
+
     legend
       .append("rect")
       .attr("width", 110)
-      .attr(
-        "height",
-        showGalacticPlane && showEcliptic ? 90 : showGalacticPlane || showEcliptic ? 70 : 50
-      )
+      .attr("height", legendHeight)
       .attr("fill", "rgba(0,0,0,0.5)")
       .attr("rx", 4);
 
@@ -447,6 +451,27 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
         .attr("font-size", 10)
         .text("Ecliptic");
     }
+
+    // Add zoom and pan behavior
+    const contentGroup = svg.select("g.map-content");
+    // Wrap all content except legend in a group for zooming if not already
+    const allContent = svg.selectAll("*:not(.legend-group)");
+
+    const zoom = d3
+      .zoom<SVGSVGElement, unknown>()
+      .scaleExtent([0.5, 8])
+      .on("zoom", (event) => {
+        svg
+          .selectAll("path, circle, text:not(.legend-text), line:not(.legend-line)")
+          .attr("transform", event.transform);
+      });
+
+    svg.call(zoom);
+
+    // Add reset zoom on double-click
+    svg.on("dblclick.zoom", () => {
+      svg.transition().duration(500).call(zoom.transform, d3.zoomIdentity);
+    });
   }, [
     pointings,
     selectedProjection,

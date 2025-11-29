@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import ipaddress
 import os
+from datetime import datetime
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -147,9 +148,69 @@ def create_app() -> FastAPI:
     
     # Health check endpoint (always allowed, before IP check)
     @app.get("/api/health")
-    async def health_check():
-        """Health check endpoint for monitoring."""
-        return {"status": "healthy", "service": "dsa110-contimg-api"}
+    async def health_check(detailed: bool = False):
+        """Health check endpoint for monitoring.
+        
+        Args:
+            detailed: If True, include database and disk space checks
+        """
+        import shutil
+        from pathlib import Path
+        
+        response = {
+            "status": "healthy",
+            "service": "dsa110-contimg-api",
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+        }
+        
+        if detailed:
+            # Check database connectivity
+            db_status = {}
+            try:
+                from dsa110_contimg.database.session import get_db_path
+                for db_name in ["products", "cal_registry", "hdf5", "ingest"]:
+                    try:
+                        db_path = Path(get_db_path(db_name))
+                        if db_path.exists():
+                            import sqlite3
+                            conn = sqlite3.connect(str(db_path), timeout=2.0)
+                            conn.execute("SELECT 1")
+                            conn.close()
+                            db_status[db_name] = "ok"
+                        else:
+                            db_status[db_name] = "not_found"
+                    except Exception as e:
+                        db_status[db_name] = f"error: {str(e)[:50]}"
+            except Exception:
+                db_status["error"] = "Could not check databases"
+            response["databases"] = db_status
+            
+            # Check disk space
+            disk_status = {}
+            for path_str in ["/data/dsa110-contimg/state", "/stage/dsa110-contimg"]:
+                path = Path(path_str)
+                if path.exists():
+                    try:
+                        usage = shutil.disk_usage(path)
+                        free_gb = usage.free / (1024 ** 3)
+                        disk_status[path_str] = {
+                            "free_gb": round(free_gb, 2),
+                            "status": "ok" if free_gb > 5 else ("warning" if free_gb > 1 else "critical"),
+                        }
+                    except Exception:
+                        disk_status[path_str] = {"status": "error"}
+            response["disk"] = disk_status
+            
+            # Check if any component is unhealthy
+            has_errors = any(
+                v != "ok" for v in db_status.values() if isinstance(v, str)
+            ) or any(
+                d.get("status") == "critical" for d in disk_status.values() if isinstance(d, dict)
+            )
+            if has_errors:
+                response["status"] = "degraded"
+        
+        return response
     
     # IP-based access control middleware
     allowed_networks = get_allowed_networks()

@@ -201,7 +201,7 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
     const vMax = Math.max(...vValues) * 2;
 
     // Build subtitle with excluded count info
-    const excludedInfo = excludedCount > 0 ? ` (${excludedCount} excluded: η≤0 or v≤0)` : "";
+    const excludedInfo = filteredOutCount > 0 ? ` (${filteredOutCount} excluded: η≤0 or v≤0)` : "";
     const subtext = `${filteredSources.length} sources, ${candidates.length} candidates${excludedInfo}`;
 
     const option: echarts.EChartsOption = {
@@ -323,7 +323,16 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
         setHoverSource(null);
       }
     });
-  }, [filteredSources, candidates, controls, isLoading, etaLine, vLine, getPointColor]);
+  }, [
+    filteredSources,
+    filteredOutCount,
+    candidates,
+    controls,
+    isLoading,
+    etaLine,
+    vLine,
+    getPointColor,
+  ]);
 
   const handleControlChange = (values: Partial<VariabilityControlsValues>) => {
     setControls((prev) => ({ ...prev, ...values }));
