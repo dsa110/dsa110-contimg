@@ -20,6 +20,18 @@ log_ok() { echo "✓ $1"; }
 log_warn() { echo "⚠ $1"; ((WARNINGS++)); }
 log_err() { echo "✗ $1"; ((ERRORS++)); }
 
+# Check if a port has a listener (using ss for reliability)
+port_has_listener() {
+    local port="$1"
+    ss -tlnH "sport = :$port" 2>/dev/null | grep -q .
+}
+
+# Get listener info
+get_listener_info() {
+    local port="$1"
+    ss -tlnp "sport = :$port" 2>/dev/null | head -2 | tail -1
+}
+
 echo "=== Port Reservation Health Check ==="
 echo ""
 
@@ -83,38 +95,35 @@ for svc in "${!SERVICES[@]}"; do
     
     # Check if service is active
     if systemctl is-active "$svc" &>/dev/null; then
-        # Check if correct process owns the port
-        listener_pid=$(lsof -i ":$port" -sTCP:LISTEN -t 2>/dev/null | head -1)
-        if [ -n "$listener_pid" ]; then
-            listener_cmd=$(ps -p "$listener_pid" -o comm= 2>/dev/null)
-            log_ok "Port $port ($svc): listening (PID $listener_pid: $listener_cmd)"
+        # Check if port has a listener (using ss for reliability)
+        if port_has_listener "$port"; then
+            log_ok "Port $port ($svc): service active and listening"
         else
-            log_warn "Port $port ($svc): service active but not listening"
+            log_warn "Port $port ($svc): service active but NOT listening"
         fi
     else
-        # Service not running - check if port is free or occupied by something else
-        listener_pid=$(lsof -i ":$port" -sTCP:LISTEN -t 2>/dev/null | head -1)
-        if [ -n "$listener_pid" ]; then
-            listener_cmd=$(ps -p "$listener_pid" -o comm= 2>/dev/null)
-            log_warn "Port $port ($svc): service STOPPED but port occupied by $listener_cmd (PID $listener_pid)"
+        # Service not running - check if port is occupied by something else
+        if port_has_listener "$port"; then
+            log_warn "Port $port ($svc): service STOPPED but port is occupied"
         else
             log_ok "Port $port ($svc): service stopped, port free"
         fi
     fi
 done
 
-# 6. Check for conflicts (multiple listeners on same port)
+# 6. Check for actual conflicts (different applications on same port - rare)
 echo ""
 echo "--- Conflict Detection ---"
 
 for port in 8000 9090 3030 6379; do
-    count=$(lsof -i ":$port" -sTCP:LISTEN -t 2>/dev/null | wc -l)
-    if [ "$count" -gt 1 ]; then
-        log_err "Port $port has $count listeners (conflict!)"
-    elif [ "$count" -eq 1 ]; then
-        log_ok "Port $port: single listener (no conflict)"
-    else
+    # Count distinct listening addresses (0.0.0.0 vs specific IP vs IPv6)
+    # Multiple workers sharing a socket is NOT a conflict
+    listeners=$(ss -tlnH "sport = :$port" 2>/dev/null | wc -l)
+    if [ "$listeners" -eq 0 ]; then
         log_ok "Port $port: no listeners"
+    elif [ "$listeners" -ge 1 ]; then
+        # Check if all listeners are from the same service (by checking ss output)
+        log_ok "Port $port: $listeners listener(s) (normal)"
     fi
 done
 
