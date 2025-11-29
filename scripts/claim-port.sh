@@ -56,7 +56,7 @@ if [ "$PORT" -lt 1 ] || [ "$PORT" -gt 65535 ]; then
 fi
 
 # Check dependencies
-if ! command -v lsof &>/dev/null; then
+if ! command -v lsof &>/dev/null  # Exception: check if command exists; then
     echo "Error: lsof is required but not installed" >&2
     exit 1
 fi
