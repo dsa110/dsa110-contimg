@@ -49,7 +49,9 @@ def pytest_sessionfinish(session, exitstatus):
     This hook runs after all tests complete but before Python starts its
     shutdown sequence, making it the ideal place to clean up CASA.
     """
+    print("\n=== pytest_sessionfinish: Starting CASA cleanup ===", file=sys.stderr)
     _cleanup_casa()
+    print("=== pytest_sessionfinish: CASA cleanup complete ===", file=sys.stderr)
 
 
 @pytest.fixture(scope="session")
