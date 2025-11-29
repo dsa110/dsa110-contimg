@@ -93,6 +93,10 @@ def pytest_sessionfinish(session, exitstatus):
     _cleanup_casa()
     
     if exitstatus == 0 and _casa_cpp_loaded:
+        # Flush output streams before exiting to ensure all output is visible
+        sys.stdout.flush()
+        sys.stderr.flush()
+        
         # Skip Python's normal shutdown to avoid CASA C++ destructor issues
         os._exit(0)
 
