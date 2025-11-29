@@ -11,10 +11,7 @@ export interface CatalogLegendProps {
 /**
  * Color-coded legend for catalog overlays.
  */
-const CatalogLegend: React.FC<CatalogLegendProps> = ({
-  catalogs,
-  className = "",
-}) => {
+const CatalogLegend: React.FC<CatalogLegendProps> = ({ catalogs, className = "" }) => {
   if (catalogs.length === 0) return null;
 
   const renderSymbol = (catalog: CatalogDefinition) => {
@@ -31,7 +28,15 @@ const CatalogLegend: React.FC<CatalogLegendProps> = ({
       case "square":
         return (
           <svg width={size} height={size} viewBox="0 0 12 12">
-            <rect x="1" y="1" width="10" height="10" {...style} fillOpacity={0.3} strokeWidth={1.5} />
+            <rect
+              x="1"
+              y="1"
+              width="10"
+              height="10"
+              {...style}
+              fillOpacity={0.3}
+              strokeWidth={1.5}
+            />
           </svg>
         );
       case "diamond":
@@ -82,11 +87,7 @@ const CatalogLegend: React.FC<CatalogLegendProps> = ({
   return (
     <div className={`flex flex-wrap gap-3 text-xs ${className}`}>
       {catalogs.map((catalog) => (
-        <div
-          key={catalog.id}
-          className="flex items-center gap-1"
-          title={catalog.description}
-        >
+        <div key={catalog.id} className="flex items-center gap-1" title={catalog.description}>
           {renderSymbol(catalog)}
           <span style={{ color: catalog.color }}>{catalog.name}</span>
         </div>

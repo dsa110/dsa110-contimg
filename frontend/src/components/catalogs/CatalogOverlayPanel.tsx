@@ -1,8 +1,5 @@
 import React, { useState, useCallback } from "react";
-import {
-  CATALOG_DEFINITIONS,
-  CatalogDefinition,
-} from "../../constants/catalogDefinitions";
+import { CATALOG_DEFINITIONS, CatalogDefinition } from "../../constants/catalogDefinitions";
 import CatalogLegend from "./CatalogLegend";
 
 export interface CatalogOverlayPanelProps {
@@ -47,9 +44,7 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
     }
   }, [enabledCatalogs.length, onCatalogChange]);
 
-  const enabledCatalogDefs = CATALOG_DEFINITIONS.filter((c) =>
-    enabledCatalogs.includes(c.id)
-  );
+  const enabledCatalogDefs = CATALOG_DEFINITIONS.filter((c) => enabledCatalogs.includes(c.id));
 
   // Group catalogs by type
   const opticalCatalogs = CATALOG_DEFINITIONS.filter((c) =>
@@ -87,16 +82,12 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
       {/* Compact header with legend */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-sm text-gray-700">
-            VizieR Catalogues
-          </span>
+          <span className="font-semibold text-sm text-gray-700">VizieR Catalogues</span>
           {isLoading && (
             <span className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
           )}
           {enabledCatalogs.length > 0 && (
-            <span className="badge badge-secondary text-xs">
-              {enabledCatalogs.length}
-            </span>
+            <span className="badge badge-secondary text-xs">{enabledCatalogs.length}</span>
           )}
         </div>
         <button
@@ -117,10 +108,7 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
         <div className="border border-gray-200 rounded-lg p-3 bg-white space-y-3">
           {/* Quick actions */}
           <div className="flex justify-between items-center pb-2 border-b border-gray-100">
-            <button
-              onClick={handleSelectAll}
-              className="text-xs text-blue-600 hover:text-blue-800"
-            >
+            <button onClick={handleSelectAll} className="text-xs text-blue-600 hover:text-blue-800">
               {enabledCatalogs.length === CATALOG_DEFINITIONS.length
                 ? "Deselect all"
                 : "Select all"}
@@ -135,9 +123,7 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
 
           {/* Optical/IR catalogs */}
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase mb-1">
-              Optical / Infrared
-            </p>
+            <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Optical / Infrared</p>
             <div className="grid grid-cols-2 gap-1">
               {opticalCatalogs.map(renderCatalogCheckbox)}
             </div>
@@ -145,12 +131,8 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
 
           {/* Radio catalogs */}
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase mb-1">
-              Radio
-            </p>
-            <div className="grid grid-cols-2 gap-1">
-              {radioCatalogs.map(renderCatalogCheckbox)}
-            </div>
+            <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Radio</p>
+            <div className="grid grid-cols-2 gap-1">{radioCatalogs.map(renderCatalogCheckbox)}</div>
           </div>
         </div>
       )}
