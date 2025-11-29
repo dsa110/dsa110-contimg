@@ -1,0 +1,13 @@
+apiVersion: 1
+
+providers:
+  - name: 'DSA-110 Dashboards'
+    orgId: 1
+    folder: 'DSA-110'
+    folderUid: 'dsa110'
+    type: file
+    disableDeletion: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: true
+    options:
+      path: /data/dsa110-contimg/monitoring/grafana/dashboards

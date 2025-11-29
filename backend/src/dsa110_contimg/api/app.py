@@ -197,6 +197,37 @@ try:
 except ImportError:
     pass  # prometheus-fastapi-instrumentator not installed
 
+# Import custom scientific metrics (registers them with Prometheus)
+try:
+    from .metrics import sync_gauges_from_database
+    
+    # Sync gauges on startup
+    @app.on_event("startup")
+    async def startup_sync_metrics():
+        """Sync database gauges on startup."""
+        import asyncio
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        # Initial sync
+        sync_gauges_from_database()
+        logger.info("Initial metrics sync completed")
+        
+        # Background task to sync every 30 seconds
+        async def periodic_sync():
+            while True:
+                await asyncio.sleep(30)
+                try:
+                    sync_gauges_from_database()
+                except Exception as e:
+                    logger.warning(f"Periodic metrics sync failed: {e}")
+        
+        asyncio.create_task(periodic_sync())
+        logger.info("Periodic metrics sync task started (30s interval)")
+
+except ImportError:
+    pass  # metrics module not available
+
 
 # Optional: Mount static files for production (frontend build)
 # Uncomment when deploying with frontend dist
