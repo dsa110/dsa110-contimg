@@ -49,6 +49,7 @@ jobs_router = APIRouter(prefix="/jobs", tags=["jobs"])
 qa_router = APIRouter(prefix="/qa", tags=["qa"])
 cal_router = APIRouter(prefix="/cal", tags=["calibration"])
 logs_router = APIRouter(prefix="/logs", tags=["logs"])
+stats_router = APIRouter(prefix="/stats", tags=["statistics"])
 
 # Initialize repositories
 image_repo = ImageRepository()
@@ -625,4 +626,128 @@ async def get_cal_table_detail(encoded_path: str):
         raise HTTPException(
             status_code=500,
             detail=internal_error(f"Failed to retrieve cal table: {str(e)}").to_dict(),
+        )
+
+
+# =============================================================================
+# Statistics Endpoints
+# =============================================================================
+
+
+@stats_router.get("")
+async def get_stats():
+    """
+    Get summary statistics for the pipeline.
+    
+    Returns counts and status summaries in a single efficient query,
+    reducing the need for multiple API calls from the dashboard.
+    """
+    import sqlite3
+    from .repositories import get_db_connection, DEFAULT_DB_PATH, CAL_REGISTRY_DB_PATH
+    
+    try:
+        conn = get_db_connection(DEFAULT_DB_PATH)
+        
+        # Get all counts in one query
+        stats = {}
+        
+        # MS counts by stage
+        cursor = conn.execute("""
+            SELECT 
+                COUNT(*) as total,
+                SUM(CASE WHEN stage = 'imaged' THEN 1 ELSE 0 END) as imaged,
+                SUM(CASE WHEN stage = 'calibrated' THEN 1 ELSE 0 END) as calibrated,
+                SUM(CASE WHEN stage = 'ingested' THEN 1 ELSE 0 END) as ingested,
+                SUM(CASE WHEN stage IS NULL OR stage = '' THEN 1 ELSE 0 END) as pending
+            FROM ms_index
+        """)
+        row = cursor.fetchone()
+        stats["ms"] = {
+            "total": row["total"] or 0,
+            "by_stage": {
+                "imaged": row["imaged"] or 0,
+                "calibrated": row["calibrated"] or 0,
+                "ingested": row["ingested"] or 0,
+                "pending": row["pending"] or 0,
+            }
+        }
+        
+        # Image count
+        cursor = conn.execute("SELECT COUNT(*) as cnt FROM images")
+        stats["images"] = {"total": cursor.fetchone()["cnt"] or 0}
+        
+        # Photometry and source counts
+        cursor = conn.execute("""
+            SELECT 
+                COUNT(*) as total_photometry,
+                COUNT(DISTINCT source_id) as unique_sources
+            FROM photometry
+        """)
+        row = cursor.fetchone()
+        stats["photometry"] = {"total": row["total_photometry"] or 0}
+        stats["sources"] = {"total": row["unique_sources"] or 0}
+        
+        # Job counts by status
+        cursor = conn.execute("""
+            SELECT 
+                COUNT(*) as total,
+                SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
+                SUM(CASE WHEN status = 'running' THEN 1 ELSE 0 END) as running,
+                SUM(CASE WHEN status = 'pending' OR status IS NULL THEN 1 ELSE 0 END) as pending,
+                SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END) as failed
+            FROM batch_jobs
+        """)
+        row = cursor.fetchone()
+        stats["jobs"] = {
+            "total": row["total"] or 0,
+            "by_status": {
+                "completed": row["completed"] or 0,
+                "running": row["running"] or 0,
+                "pending": row["pending"] or 0,
+                "failed": row["failed"] or 0,
+            }
+        }
+        
+        # Recent activity (last 10 images)
+        cursor = conn.execute("""
+            SELECT path, created_at, type 
+            FROM images 
+            ORDER BY created_at DESC 
+            LIMIT 10
+        """)
+        stats["recent_images"] = [
+            {
+                "path": row["path"],
+                "created_at": datetime.fromtimestamp(row["created_at"]).isoformat() if row["created_at"] else None,
+                "type": row["type"],
+            }
+            for row in cursor.fetchall()
+        ]
+        
+        conn.close()
+        
+        # Cal table count (separate database)
+        try:
+            if os.path.exists(CAL_REGISTRY_DB_PATH):
+                cal_conn = get_db_connection(CAL_REGISTRY_DB_PATH)
+                cursor = cal_conn.execute("SELECT COUNT(*) as cnt FROM caltables")
+                stats["cal_tables"] = {"total": cursor.fetchone()["cnt"] or 0}
+                cal_conn.close()
+            else:
+                stats["cal_tables"] = {"total": 0}
+        except Exception:
+            stats["cal_tables"] = {"total": 0}
+        
+        # Add database timestamp for cache validation
+        stats["_meta"] = {
+            "generated_at": datetime.utcnow().isoformat() + "Z",
+            "cache_hint_seconds": 30,  # Suggest client-side caching
+        }
+        
+        return stats
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=internal_error(f"Failed to retrieve stats: {str(e)}").to_dict(),
         )
