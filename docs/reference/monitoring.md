@@ -14,35 +14,36 @@ and system health.
 
 ### HTTP Request Metrics
 
-| Metric                                      | Type      | Description                    |
-| ------------------------------------------- | --------- | ------------------------------ |
-| `http_requests_total`                       | Counter   | Total HTTP requests            |
-| `http_request_duration_seconds`             | Histogram | Request latency distribution   |
-| `http_requests_in_progress`                 | Gauge     | Current in-flight requests     |
+| Metric                          | Type      | Description                  |
+| ------------------------------- | --------- | ---------------------------- |
+| `http_requests_total`           | Counter   | Total HTTP requests          |
+| `http_request_duration_seconds` | Histogram | Request latency distribution |
+| `http_requests_in_progress`     | Gauge     | Current in-flight requests   |
 
 Labels:
+
 - `method`: HTTP method (GET, POST, etc.)
 - `handler`: Endpoint path
 - `status`: HTTP status code
 
 ### Python Runtime Metrics
 
-| Metric                              | Type    | Description                     |
-| ----------------------------------- | ------- | ------------------------------- |
-| `python_gc_objects_collected_total` | Counter | Objects collected by GC         |
-| `python_gc_objects_uncollectable_total` | Counter | Uncollectable objects       |
-| `python_gc_collections_total`       | Counter | GC collection counts            |
-| `python_info`                       | Gauge   | Python version info             |
+| Metric                                  | Type    | Description             |
+| --------------------------------------- | ------- | ----------------------- |
+| `python_gc_objects_collected_total`     | Counter | Objects collected by GC |
+| `python_gc_objects_uncollectable_total` | Counter | Uncollectable objects   |
+| `python_gc_collections_total`           | Counter | GC collection counts    |
+| `python_info`                           | Gauge   | Python version info     |
 
 ### Process Metrics
 
-| Metric                         | Type  | Description                        |
-| ------------------------------ | ----- | ---------------------------------- |
-| `process_virtual_memory_bytes` | Gauge | Virtual memory size                |
-| `process_resident_memory_bytes`| Gauge | Resident memory size (RSS)         |
-| `process_cpu_seconds_total`    | Counter | Total CPU time                   |
-| `process_open_fds`             | Gauge | Open file descriptors              |
-| `process_start_time_seconds`   | Gauge | Process start time (Unix epoch)    |
+| Metric                          | Type    | Description                     |
+| ------------------------------- | ------- | ------------------------------- |
+| `process_virtual_memory_bytes`  | Gauge   | Virtual memory size             |
+| `process_resident_memory_bytes` | Gauge   | Resident memory size (RSS)      |
+| `process_cpu_seconds_total`     | Counter | Total CPU time                  |
+| `process_open_fds`              | Gauge   | Open file descriptors           |
+| `process_start_time_seconds`    | Gauge   | Process start time (Unix epoch) |
 
 ## Querying Metrics
 
@@ -61,18 +62,21 @@ curl http://localhost/metrics
 ### Example Queries
 
 Request rate (last 5 minutes):
+
 ```promql
 rate(http_requests_total[5m])
 ```
 
 95th percentile latency:
+
 ```promql
 histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))
 ```
 
 Error rate:
+
 ```promql
-sum(rate(http_requests_total{status=~"5.."}[5m])) 
+sum(rate(http_requests_total{status=~"5.."}[5m]))
 / sum(rate(http_requests_total[5m]))
 ```
 
@@ -82,9 +86,9 @@ Add this scrape config to your Prometheus server:
 
 ```yaml
 scrape_configs:
-  - job_name: 'dsa110-api'
+  - job_name: "dsa110-api"
     static_configs:
-      - targets: ['dsa110-host:8000']
+      - targets: ["dsa110-host:8000"]
     metrics_path: /metrics
     scrape_interval: 15s
 ```
@@ -135,7 +139,7 @@ groups:
           severity: warning
         annotations:
           summary: "High error rate on DSA-110 API"
-          
+
       - alert: HighLatency
         expr: |
           histogram_quantile(0.95, 
@@ -146,7 +150,7 @@ groups:
           severity: warning
         annotations:
           summary: "High latency on DSA-110 API"
-          
+
       - alert: APIDown
         expr: up{job="dsa110-api"} == 0
         for: 1m
@@ -159,5 +163,6 @@ groups:
 ## Excluded Endpoints
 
 The following endpoints are excluded from metrics to reduce noise:
+
 - `/metrics` - Prometheus scrape endpoint
 - `/api/health` - Health check endpoint

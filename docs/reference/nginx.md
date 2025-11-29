@@ -25,18 +25,19 @@ Location: `/etc/nginx/sites-available/dsa110-contimg`
 
 ## URL Routing
 
-| Path        | Destination                               | Notes                     |
-| ----------- | ----------------------------------------- | ------------------------- |
-| `/`         | `/data/dsa110-contimg/frontend/dist`      | Vue.js SPA                |
-| `/api/*`    | `http://localhost:8000/api/*`             | FastAPI backend           |
-| `/metrics`  | `http://localhost:8000/metrics`           | Prometheus (localhost only) |
-| `/assets/*` | Static files with 1-year cache            | Immutable assets          |
+| Path        | Destination                          | Notes                       |
+| ----------- | ------------------------------------ | --------------------------- |
+| `/`         | `/data/dsa110-contimg/frontend/dist` | Vue.js SPA                  |
+| `/api/*`    | `http://localhost:8000/api/*`        | FastAPI backend             |
+| `/metrics`  | `http://localhost:8000/metrics`      | Prometheus (localhost only) |
+| `/assets/*` | Static files with 1-year cache       | Immutable assets            |
 
 ## Features
 
 ### Gzip Compression
 
 Enabled for text-based content types:
+
 - `text/plain`
 - `text/css`
 - `application/json`
@@ -46,15 +47,16 @@ Enabled for text-based content types:
 
 ### Security Headers
 
-| Header                   | Value       | Purpose                          |
-| ------------------------ | ----------- | -------------------------------- |
-| `X-Frame-Options`        | SAMEORIGIN  | Prevent clickjacking             |
-| `X-Content-Type-Options` | nosniff     | Prevent MIME type sniffing       |
-| `X-XSS-Protection`       | 1; mode=block | XSS filter                     |
+| Header                   | Value         | Purpose                    |
+| ------------------------ | ------------- | -------------------------- |
+| `X-Frame-Options`        | SAMEORIGIN    | Prevent clickjacking       |
+| `X-Content-Type-Options` | nosniff       | Prevent MIME type sniffing |
+| `X-XSS-Protection`       | 1; mode=block | XSS filter                 |
 
 ### Proxy Headers
 
 Headers forwarded to the FastAPI backend:
+
 - `Host`
 - `X-Real-IP`
 - `X-Forwarded-For`

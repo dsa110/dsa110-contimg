@@ -65,6 +65,15 @@ from dsa110_contimg.utils.constants import (
     OVRO_LOCATION,  # Legacy, use DSA110_LOCATION
 )
 
+# Import fast metadata utilities
+from dsa110_contimg.utils.fast_meta import (
+    FastMeta,
+    get_uvh5_times,
+    get_uvh5_mid_mjd,
+    get_uvh5_freqs,
+    get_uvh5_basic_info,
+)
+
 __all__ = [
     # Exceptions
     "PipelineError",
@@ -102,4 +111,10 @@ __all__ = [
     "DSA110_LON",
     "DSA110_ALT",
     "OVRO_LOCATION",
+    # Fast metadata
+    "FastMeta",
+    "get_uvh5_times",
+    "get_uvh5_mid_mjd",
+    "get_uvh5_freqs",
+    "get_uvh5_basic_info",
 ]

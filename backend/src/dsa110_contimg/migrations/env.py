@@ -60,11 +60,6 @@ target_metadata = DATABASE_METADATA[database_name]
 
 def get_url() -> str:
     """Get the database URL for the current database."""
-    # Check if URL is provided in config (for testing)
-    url = config.get_main_option("sqlalchemy.url")
-    if url and url != "sqlite:///%(database_path)s":
-        return url
-    
     # Get path from our database paths
     if database_name in DATABASE_PATHS:
         db_path = DATABASE_PATHS[database_name]
