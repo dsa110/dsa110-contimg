@@ -2,13 +2,13 @@ name: Frontend Integration Tests
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, master-dev]
     paths:
       - "frontend/src/**"
       - "frontend/tests/integration/**"
       - ".github/workflows/frontend-integration-tests.yml"
   pull_request:
-    branches: [main, develop]
+    branches: [main, develop, master-dev]
     paths:
       - "frontend/src/**"
       - "frontend/tests/integration/**"
