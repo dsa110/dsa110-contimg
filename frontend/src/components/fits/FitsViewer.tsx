@@ -1,0 +1,304 @@
+import React, { useEffect, useRef, useCallback, useState } from "react";
+import FitsViewerControls, {
+  FitsViewerControlsValues,
+} from "./FitsViewerControls";
+
+// Declare JS9 global from CDN
+declare global {
+  interface Window {
+    JS9: any;
+  }
+}
+
+export interface FitsViewerProps {
+  /** URL to FITS file */
+  fitsUrl: string;
+  /** Optional display ID for multiple viewers */
+  displayId?: string;
+  /** Width of the viewer */
+  width?: number;
+  /** Height of the viewer */
+  height?: number;
+  /** Whether to show controls panel */
+  showControls?: boolean;
+  /** Initial center coordinates (RA, Dec in degrees) */
+  initialCenter?: { ra: number; dec: number };
+  /** Initial field of view in arcminutes */
+  initialFov?: number;
+  /** Callback on coordinate click */
+  onCoordinateClick?: (ra: number, dec: number) => void;
+  /** Callback when image loads */
+  onLoad?: () => void;
+  /** Callback on error */
+  onError?: (error: string) => void;
+  /** Custom class name */
+  className?: string;
+}
+
+/**
+ * FITS image viewer using JS9 library.
+ * Provides pan, zoom, color map, and scale controls.
+ */
+const FitsViewer: React.FC<FitsViewerProps> = ({
+  fitsUrl,
+  displayId = "JS9",
+  width = 512,
+  height = 512,
+  showControls = true,
+  initialCenter,
+  initialFov,
+  onCoordinateClick,
+  onLoad,
+  onError,
+  className = "",
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isJS9Ready, setIsJS9Ready] = useState(false);
+
+  // Control state
+  const [controls, setControls] = useState<FitsViewerControlsValues>({
+    colorMap: "grey",
+    scale: "log",
+    contrast: 0.5,
+    bias: 0.5,
+    showRegions: true,
+    showCrosshair: false,
+  });
+
+  // Check if JS9 is loaded
+  useEffect(() => {
+    const checkJS9 = () => {
+      if (window.JS9 && window.JS9.Load) {
+        setIsJS9Ready(true);
+        return true;
+      }
+      return false;
+    };
+
+    if (checkJS9()) return;
+
+    // Poll for JS9 to load
+    const interval = setInterval(() => {
+      if (checkJS9()) {
+        clearInterval(interval);
+      }
+    }, 100);
+
+    // Timeout after 10 seconds
+    const timeout = setTimeout(() => {
+      clearInterval(interval);
+      if (!isJS9Ready) {
+        setError("JS9 library failed to load. Make sure JS9 CDN is included.");
+        setIsLoading(false);
+      }
+    }, 10000);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }, [isJS9Ready]);
+
+  // Load FITS image
+  useEffect(() => {
+    if (!isJS9Ready || !fitsUrl) return;
+
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      window.JS9.Load(fitsUrl, {
+        display: displayId,
+        onload: (im: any) => {
+          setIsLoading(false);
+
+          // Apply initial settings
+          if (initialCenter) {
+            window.JS9.SetPan(initialCenter.ra, initialCenter.dec, {
+              display: displayId,
+            });
+          }
+          if (initialFov) {
+            window.JS9.SetZoom("tofit", { display: displayId });
+          }
+
+          // Apply controls
+          window.JS9.SetColormap(controls.colorMap, { display: displayId });
+          window.JS9.SetScale(controls.scale, { display: displayId });
+
+          onLoad?.();
+        },
+        onerror: (msg: string) => {
+          setError(msg || "Failed to load FITS file");
+          setIsLoading(false);
+          onError?.(msg);
+        },
+      });
+
+      // Set up click handler
+      if (onCoordinateClick) {
+        window.JS9.SetCallback(
+          "onclick",
+          (im: any, xreg: any, evt: any) => {
+            const wcs = window.JS9.PixToWCS(evt.x, evt.y, { display: displayId });
+            if (wcs) {
+              onCoordinateClick(wcs.ra, wcs.dec);
+            }
+          },
+          { display: displayId }
+        );
+      }
+    } catch (err) {
+      setError(String(err));
+      setIsLoading(false);
+      onError?.(String(err));
+    }
+
+    return () => {
+      if (window.JS9?.CloseImage) {
+        window.JS9.CloseImage({ display: displayId });
+      }
+    };
+  }, [isJS9Ready, fitsUrl, displayId, initialCenter, initialFov, onLoad, onError]);
+
+  // Apply control changes
+  useEffect(() => {
+    if (!isJS9Ready || isLoading) return;
+
+    try {
+      window.JS9.SetColormap(controls.colorMap, { display: displayId });
+      window.JS9.SetScale(controls.scale, { display: displayId });
+      window.JS9.SetParam("contrast", controls.contrast, { display: displayId });
+      window.JS9.SetParam("bias", controls.bias, { display: displayId });
+    } catch (err) {
+      console.warn("Failed to apply JS9 settings:", err);
+    }
+  }, [controls, isJS9Ready, isLoading, displayId]);
+
+  const handleZoomIn = useCallback(() => {
+    if (window.JS9) {
+      window.JS9.SetZoom("in", { display: displayId });
+    }
+  }, [displayId]);
+
+  const handleZoomOut = useCallback(() => {
+    if (window.JS9) {
+      window.JS9.SetZoom("out", { display: displayId });
+    }
+  }, [displayId]);
+
+  const handleZoomFit = useCallback(() => {
+    if (window.JS9) {
+      window.JS9.SetZoom("tofit", { display: displayId });
+    }
+  }, [displayId]);
+
+  const handleExport = useCallback(
+    (format: "png" | "fits") => {
+      if (!window.JS9) return;
+
+      if (format === "png") {
+        window.JS9.SavePNG({ display: displayId });
+      } else {
+        window.JS9.SaveFITS({ display: displayId });
+      }
+    },
+    [displayId]
+  );
+
+  const handleControlChange = (values: Partial<FitsViewerControlsValues>) => {
+    setControls((prev) => ({ ...prev, ...values }));
+  };
+
+  return (
+    <div className={`flex gap-4 ${className}`}>
+      {/* Viewer area */}
+      <div className="flex-1">
+        <div
+          ref={containerRef}
+          className="relative bg-black rounded-lg overflow-hidden"
+          style={{ width, height }}
+        >
+          {/* JS9 display div */}
+          <div
+            className="JS9"
+            id={displayId}
+            style={{ width: "100%", height: "100%" }}
+          />
+
+          {/* Loading overlay */}
+          {isLoading && (
+            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+              <div className="text-center">
+                <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                <span className="text-white text-sm">Loading FITS...</span>
+              </div>
+            </div>
+          )}
+
+          {/* Error overlay */}
+          {error && (
+            <div className="absolute inset-0 bg-red-900/80 flex items-center justify-center p-4">
+              <div className="text-center">
+                <svg
+                  className="w-8 h-8 text-red-300 mx-auto mb-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <p className="text-red-100 text-sm">{error}</p>
+              </div>
+            </div>
+          )}
+
+          {/* JS9 not loaded warning */}
+          {!isJS9Ready && !isLoading && !error && (
+            <div className="absolute inset-0 bg-gray-800 flex items-center justify-center p-4">
+              <div className="text-center">
+                <p className="text-gray-300 text-sm">
+                  JS9 library not loaded. Add the following to your index.html:
+                </p>
+                <code className="text-xs text-gray-400 mt-2 block">
+                  {'<script src="https://js9.si.edu/js9/js9.min.js"></script>'}
+                </code>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Coordinate display bar */}
+        <div className="mt-2 flex justify-between text-xs text-gray-500">
+          <span>JS9 Display: {displayId}</span>
+          <span>
+            {fitsUrl.split("/").pop()?.substring(0, 30) || "No file loaded"}
+          </span>
+        </div>
+      </div>
+
+      {/* Controls panel */}
+      {showControls && (
+        <div className="w-48 flex-shrink-0">
+          <FitsViewerControls
+            {...controls}
+            onChange={handleControlChange}
+            onZoomIn={handleZoomIn}
+            onZoomOut={handleZoomOut}
+            onZoomFit={handleZoomFit}
+            onExport={handleExport}
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default FitsViewer;

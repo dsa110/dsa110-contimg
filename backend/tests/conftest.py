@@ -45,7 +45,6 @@ def pytest_runtest_call(item):
     global _casa_cpp_loaded
     if not _casa_cpp_loaded and _check_casa_loaded():
         _casa_cpp_loaded = True
-        print(f"\n[DEBUG] CASA loaded during: {item.name}", file=sys.stderr)
 
 
 def pytest_runtest_teardown(item, nextitem):
@@ -78,23 +77,34 @@ def _cleanup_casa():
     gc.collect()
 
 
+# Store exit status for use in pytest_unconfigure
+_pytest_exit_status = None
+
+
 @pytest.hookimpl(trylast=True)
 def pytest_sessionfinish(session, exitstatus):
     """Called after all tests finish, before returning exit status.
     
-    If CASA C++ code was loaded during any test and all tests passed,
+    Record exit status and clean up CASA modules. The actual os._exit()
+    call is deferred to pytest_unconfigure to allow terminal summary to print.
+    """
+    global _pytest_exit_status
+    _pytest_exit_status = exitstatus
+    _cleanup_casa()
+
+
+@pytest.hookimpl(trylast=True)
+def pytest_unconfigure(config):
+    """Called after all other pytest activities are complete.
+    
+    If CASA C++ code was loaded during tests and all tests passed,
     use os._exit(0) to skip Python's normal shutdown sequence and avoid
     the C++ runtime error.
-    
-    Note: trylast=True ensures this runs after pytest-cov and other plugins
-    have completed their sessionfinish hooks.
     """
-    global _casa_cpp_loaded
+    global _casa_cpp_loaded, _pytest_exit_status
     
-    _cleanup_casa()
-    
-    if exitstatus == 0 and _casa_cpp_loaded:
-        # Flush output streams before exiting to ensure all output is visible
+    if _pytest_exit_status == 0 and _casa_cpp_loaded:
+        # Flush output streams before exiting
         sys.stdout.flush()
         sys.stderr.flush()
         

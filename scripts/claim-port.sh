@@ -67,7 +67,7 @@ log() {
 
 # Check if port has a TCP listener
 check_listener() {
-    lsof -i ":$PORT" -sTCP:LISTEN -t 2>/dev/null || true
+    lsof -i ":$PORT" -sTCP:LISTEN -t 2>/dev/null  # Exception: port check may return empty || true
 }
 
 # Get process info for logging

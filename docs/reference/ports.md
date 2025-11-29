@@ -151,7 +151,7 @@ sudo /usr/local/bin/claim-port.sh 8000 --force
 
 ### Safety Features
 
-- **Protected Process Detection**: Will not kill systemd, systemd-*, journald,
+- **Protected Process Detection**: Will not kill systemd, systemd-\*, journald,
   sshd, init, dbus-daemon, or any process with PID ≤ 2
 - **Structured Logging**: All output prefixed with `[claim-port:<port>]` for
   easy filtering in journalctl
