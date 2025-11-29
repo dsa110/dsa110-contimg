@@ -7,52 +7,55 @@ import { Link } from "react-router-dom";
  */
 const HomePage: React.FC = () => {
   return (
-    <div className="home-page">
-      <h1 style={{ marginTop: 0 }}>DSA-110 Continuum Imaging Pipeline</h1>
+    <div className="max-w-6xl mx-auto">
+      <h1 className="text-3xl font-bold text-gray-900 mb-2">DSA-110 Continuum Imaging Pipeline</h1>
 
-      <p style={{ color: "#666", marginBottom: "24px" }}>
+      <p className="text-gray-600 mb-8">
         Monitor and manage the radio imaging pipeline for the Deep Synoptic Array.
       </p>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-          gap: "20px",
-          marginBottom: "32px",
-        }}
-      >
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
         <DashboardCard
           title="Images"
           description="Browse processed FITS images and view QA assessments."
           link="/images"
-          count={null}
+          icon="🖼️"
         />
         <DashboardCard
           title="Sources"
           description="Explore detected radio sources and lightcurves."
           link="/sources"
-          count={null}
+          icon="⭐"
         />
         <DashboardCard
           title="Jobs"
           description="Monitor pipeline jobs and view provenance."
           link="/jobs"
-          count={null}
+          icon="⚙️"
         />
       </div>
 
-      <section style={{ marginTop: "32px" }}>
-        <h2>Quick Links</h2>
-        <ul style={{ lineHeight: "1.8" }}>
+      <section className="card p-6">
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Links</h2>
+        <ul className="space-y-2">
           <li>
-            <a href="/docs/troubleshooting.md" target="_blank" rel="noreferrer">
-              Troubleshooting Guide
+            <a
+              href="/docs/troubleshooting.md"
+              target="_blank"
+              rel="noreferrer"
+              className="text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              📖 Troubleshooting Guide
             </a>
           </li>
           <li>
-            <a href="/api/health" target="_blank" rel="noreferrer">
-              API Health Check
+            <a
+              href="/api/health"
+              target="_blank"
+              rel="noreferrer"
+              className="text-blue-600 hover:text-blue-800 hover:underline"
+            >
+              🔧 API Health Check
             </a>
           </li>
         </ul>
@@ -65,28 +68,16 @@ interface DashboardCardProps {
   title: string;
   description: string;
   link: string;
-  count: number | null;
+  icon: string;
 }
 
-const DashboardCard: React.FC<DashboardCardProps> = ({ title, description, link, count }) => (
-  <Link
-    to={link}
-    style={{
-      display: "block",
-      backgroundColor: "white",
-      padding: "20px",
-      borderRadius: "8px",
-      boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-      textDecoration: "none",
-      color: "inherit",
-      transition: "box-shadow 0.2s",
-    }}
-  >
-    <h3 style={{ margin: "0 0 8px", color: "#1a1a2e" }}>{title}</h3>
-    <p style={{ margin: "0 0 12px", color: "#666", fontSize: "0.9rem" }}>{description}</p>
-    {count !== null && (
-      <span style={{ fontSize: "1.5rem", fontWeight: "bold", color: "#4fc3f7" }}>{count}</span>
-    )}
+const DashboardCard: React.FC<DashboardCardProps> = ({ title, description, link, icon }) => (
+  <Link to={link} className="card p-6 hover:shadow-lg transition-shadow group">
+    <div className="text-3xl mb-3">{icon}</div>
+    <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors mb-2">
+      {title}
+    </h3>
+    <p className="text-gray-600 text-sm">{description}</p>
   </Link>
 );
 

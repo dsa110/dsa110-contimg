@@ -29,7 +29,7 @@ const MSDetailPage: React.FC = () => {
   if (error) {
     return (
       <div className="page-error" style={{ padding: "20px" }}>
-        <ErrorDisplay error={error as ErrorResponse} onRetry={() => refetch()} />
+        <ErrorDisplay error={error as unknown as ErrorResponse} onRetry={() => refetch()} />
       </div>
     );
   }
@@ -43,15 +43,15 @@ const MSDetailPage: React.FC = () => {
     );
   }
 
-  // Cast for provenance mapper
-  const msForMapper: MSDetailResponse = {
+  // Map MS data to provenance format - MSDetailResponse uses snake_case from API
+  const provenance = mapProvenanceFromMSDetail({
     path: ms.path,
-    cal_table: ms.cal_table,
-    pointing_ra_deg: undefined, // Not in MSMetadata type, would need to extend
-    pointing_dec_deg: undefined,
-    created_at: undefined,
-  };
-  const provenance = mapProvenanceFromMSDetail(msForMapper);
+    pointing_ra_deg: ms.pointing_ra_deg,
+    pointing_dec_deg: ms.pointing_dec_deg,
+    created_at: ms.created_at,
+    qa_grade: ms.qa_grade,
+    calibrator_matches: ms.calibrator_matches,
+  });
 
   return (
     <div className="ms-detail-page" style={{ padding: "20px" }}>

@@ -133,3 +133,30 @@ class ProvenanceResponse(BaseModel):
     ms_url: Optional[str] = Field(None, description="URL to MS detail")
     image_url: Optional[str] = Field(None, description="URL to image detail")
     created_at: Optional[datetime] = Field(None, description="Job start time")
+
+
+class ImageListResponse(BaseModel):
+    """Response model for image list endpoint."""
+    id: str = Field(..., description="Unique image identifier")
+    path: str = Field(..., description="Full path to the image file")
+    qa_grade: Optional[Literal["good", "warn", "fail"]] = Field(None, description="QA assessment grade")
+    created_at: Optional[datetime] = Field(None, description="Image creation timestamp")
+    run_id: Optional[str] = Field(None, description="Pipeline run/job ID")
+
+
+class SourceListResponse(BaseModel):
+    """Response model for source list endpoint."""
+    id: str = Field(..., description="Unique source identifier")
+    name: Optional[str] = Field(None, description="Source name")
+    ra_deg: float = Field(..., description="Source RA in degrees")
+    dec_deg: float = Field(..., description="Source Dec in degrees")
+    num_images: int = Field(0, description="Number of contributing images")
+    image_id: Optional[str] = Field(None, description="Latest contributing image ID")
+
+
+class JobListResponse(BaseModel):
+    """Response model for job list endpoint."""
+    run_id: str = Field(..., description="Job/pipeline run ID")
+    status: Literal["pending", "running", "completed", "failed"] = Field(..., description="Job status")
+    started_at: Optional[datetime] = Field(None, description="Job start time")
+    finished_at: Optional[datetime] = Field(None, description="Job completion time")

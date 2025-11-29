@@ -50,6 +50,7 @@ export interface SourceSummary {
   ra_deg: number;
   dec_deg: number;
   image_id?: string;
+  num_images?: number; // count of contributing images
 }
 
 export interface SourceDetail extends SourceSummary {
@@ -65,6 +66,11 @@ export interface MSMetadata {
   scan_id?: string;
   num_channels?: number;
   integration_time_s?: number;
+  pointing_ra_deg?: number;
+  pointing_dec_deg?: number;
+  created_at?: string;
+  qa_grade?: "good" | "warn" | "fail" | null;
+  calibrator_matches?: Array<{ type: string; cal_table: string }>;
   provenance?: ProvenanceStripProps;
 }
 

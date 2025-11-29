@@ -6,6 +6,7 @@ import ErrorActionHint from "./ErrorActionHint";
 
 interface ErrorDisplayProps {
   error: ErrorResponse;
+  onRetry?: () => void;
 }
 
 const severityStyles: Record<string, React.CSSProperties> = {
@@ -19,7 +20,7 @@ const severityStyles: Record<string, React.CSSProperties> = {
  * Takes a raw ErrorResponse from the backend, maps it to user-friendly text,
  * and renders with severity-appropriate styling, expandable details, and action links.
  */
-const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ error }) => {
+const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ error, onRetry }) => {
   const mapped = mapErrorResponse(error);
 
   return (
@@ -39,6 +40,23 @@ const ErrorDisplay: React.FC<ErrorDisplayProps> = ({ error }) => {
         <ErrorDetailsExpander details={mapped.details} traceId={mapped.trace_id} />
       )}
       <ErrorActionHint refId={mapped.ref_id} docAnchor={mapped.doc_anchor} />
+      {onRetry && (
+        <button
+          type="button"
+          onClick={onRetry}
+          style={{
+            marginTop: "12px",
+            padding: "8px 16px",
+            backgroundColor: "#0066cc",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+          }}
+        >
+          Retry
+        </button>
+      )}
     </div>
   );
 };

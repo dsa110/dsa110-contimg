@@ -7,11 +7,14 @@ sources, and job provenance. All endpoints use standardized error responses.
 
 from __future__ import annotations
 
+import os
+from datetime import datetime
+from pathlib import Path
 from typing import Optional
-from urllib.parse import unquote
+from urllib.parse import unquote, quote
 
 from fastapi import APIRouter, HTTPException, Query
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 
 from .errors import (
     ErrorEnvelope,
@@ -19,12 +22,23 @@ from .errors import (
     ms_not_found,
     source_not_found,
     internal_error,
+    db_unavailable,
 )
 from .schemas import (
     ImageDetailResponse,
+    ImageListResponse,
     MSDetailResponse,
     SourceDetailResponse,
+    SourceListResponse,
     ProvenanceResponse,
+    ContributingImage,
+    JobListResponse,
+)
+from .repositories import (
+    ImageRepository,
+    MSRepository,
+    SourceRepository,
+    JobRepository,
 )
 
 # Create routers for different resource types
@@ -32,6 +46,15 @@ images_router = APIRouter(prefix="/images", tags=["images"])
 ms_router = APIRouter(prefix="/ms", tags=["measurement-sets"])
 sources_router = APIRouter(prefix="/sources", tags=["sources"])
 jobs_router = APIRouter(prefix="/jobs", tags=["jobs"])
+qa_router = APIRouter(prefix="/qa", tags=["qa"])
+cal_router = APIRouter(prefix="/cal", tags=["calibration"])
+logs_router = APIRouter(prefix="/logs", tags=["logs"])
+
+# Initialize repositories
+image_repo = ImageRepository()
+ms_repo = MSRepository()
+source_repo = SourceRepository()
+job_repo = JobRepository()
 
 
 def error_response(error: ErrorEnvelope) -> JSONResponse:
@@ -46,6 +69,37 @@ def error_response(error: ErrorEnvelope) -> JSONResponse:
 # Image Endpoints
 # =============================================================================
 
+
+@images_router.get("", response_model=list[ImageListResponse])
+async def list_images(
+    limit: int = Query(100, le=1000, description="Maximum number of results"),
+    offset: int = Query(0, ge=0, description="Offset for pagination"),
+):
+    """
+    List all images with summary info.
+    
+    Returns a paginated list of images with basic metadata.
+    """
+    try:
+        images = image_repo.list_all(limit=limit, offset=offset)
+        return [
+            ImageListResponse(
+                id=str(img.id),
+                path=img.path,
+                qa_grade=img.qa_grade,
+                created_at=datetime.fromtimestamp(img.created_at) if img.created_at else None,
+                run_id=img.run_id,
+            )
+            for img in images
+        ]
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=internal_error(f"Failed to list images: {str(e)}").to_dict(),
+        )
+
+
+
 @images_router.get("/{image_id}", response_model=ImageDetailResponse)
 async def get_image_detail(image_id: str):
     """
@@ -54,39 +108,67 @@ async def get_image_detail(image_id: str):
     Returns image metadata including path, source MS, calibration info,
     pointing coordinates, QA assessment, and provenance.
     """
-    # TODO: Replace with actual database lookup
-    # This is a stub implementation for development
-    
-    # Simulate not found
-    if image_id.startswith("notfound"):
-        raise HTTPException(
-            status_code=404,
-            detail=image_not_found(image_id).to_dict(),
+    try:
+        image = image_repo.get_by_id(image_id)
+        if not image:
+            raise HTTPException(
+                status_code=404,
+                detail=image_not_found(image_id).to_dict(),
+            )
+        
+        # Convert to response model
+        return ImageDetailResponse(
+            id=str(image.id),
+            path=image.path,
+            ms_path=image.ms_path,
+            cal_table=image.cal_table,
+            pointing_ra_deg=image.center_ra_deg,
+            pointing_dec_deg=image.center_dec_deg,
+            qa_grade=image.qa_grade,
+            qa_summary=image.qa_summary,
+            run_id=image.run_id,
+            created_at=datetime.fromtimestamp(image.created_at) if image.created_at else None,
         )
-    
-    # Return stub data
-    return ImageDetailResponse(
-        id=image_id,
-        path=f"/data/images/{image_id}.fits",
-        ms_path="/data/ms/example.ms",
-        cal_table="/data/cal/example.tbl",
-        pointing_ra_deg=180.0,
-        pointing_dec_deg=-30.0,
-        qa_grade="good",
-        qa_summary="RMS 0.35 mJy, DR 1200",
-        run_id=f"job-{image_id[:8]}",
-        created_at="2025-01-15T10:30:00Z",
-    )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=internal_error(f"Failed to retrieve image: {str(e)}").to_dict(),
+        )
 
 
 @images_router.get("/{image_id}/fits")
 async def download_image_fits(image_id: str):
     """Download the FITS file for an image."""
-    # TODO: Implement actual file streaming
-    raise HTTPException(
-        status_code=501,
-        detail=internal_error("FITS download not yet implemented").to_dict(),
-    )
+    try:
+        image = image_repo.get_by_id(image_id)
+        if not image:
+            raise HTTPException(
+                status_code=404,
+                detail=image_not_found(image_id).to_dict(),
+            )
+        
+        # Check if file exists
+        if not os.path.exists(image.path):
+            raise HTTPException(
+                status_code=404,
+                detail=internal_error(f"FITS file not found on disk: {image.path}").to_dict(),
+            )
+        
+        # Return the file
+        return FileResponse(
+            path=image.path,
+            media_type="application/fits",
+            filename=Path(image.path).name,
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=internal_error(f"Failed to download FITS: {str(e)}").to_dict(),
+        )
 
 
 # =============================================================================
@@ -103,27 +185,31 @@ async def get_ms_metadata(encoded_path: str):
     """
     ms_path = unquote(encoded_path)
     
-    # Simulate not found
-    if "notfound" in ms_path:
-        raise HTTPException(
-            status_code=404,
-            detail=ms_not_found(ms_path).to_dict(),
+    try:
+        ms_meta = ms_repo.get_metadata(ms_path)
+        if not ms_meta:
+            raise HTTPException(
+                status_code=404,
+                detail=ms_not_found(ms_path).to_dict(),
+            )
+        
+        return MSDetailResponse(
+            path=ms_meta.path,
+            pointing_ra_deg=ms_meta.pointing_ra_deg or ms_meta.ra_deg,
+            pointing_dec_deg=ms_meta.pointing_dec_deg or ms_meta.dec_deg,
+            calibrator_matches=ms_meta.calibrator_tables,
+            qa_grade=ms_meta.qa_grade,
+            qa_summary=ms_meta.qa_summary,
+            run_id=ms_meta.run_id,
+            created_at=ms_meta.created_at,
         )
-    
-    # Return stub data
-    return MSDetailResponse(
-        path=ms_path,
-        pointing_ra_deg=180.0,
-        pointing_dec_deg=-30.0,
-        calibrator_matches=[
-            {"cal_table": "/data/cal/flux.tbl", "type": "flux"},
-            {"cal_table": "/data/cal/phase.tbl", "type": "phase"},
-        ],
-        qa_grade="good",
-        qa_summary="Clean data",
-        run_id="job-ms-001",
-        created_at="2025-01-15T08:00:00Z",
-    )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=internal_error(f"Failed to retrieve MS metadata: {str(e)}").to_dict(),
+        )
 
 
 @ms_router.get("/{encoded_path:path}/calibrator-matches")
@@ -131,19 +217,62 @@ async def get_ms_calibrator_matches(encoded_path: str):
     """Get calibrator matches for a Measurement Set."""
     ms_path = unquote(encoded_path)
     
-    # TODO: Implement actual calibrator lookup
-    return {
-        "ms_path": ms_path,
-        "matches": [
-            {"cal_table": "/data/cal/flux.tbl", "type": "flux"},
-            {"cal_table": "/data/cal/phase.tbl", "type": "phase"},
-        ],
-    }
+    try:
+        ms_meta = ms_repo.get_metadata(ms_path)
+        if not ms_meta:
+            raise HTTPException(
+                status_code=404,
+                detail=ms_not_found(ms_path).to_dict(),
+            )
+        
+        return {
+            "ms_path": ms_path,
+            "matches": ms_meta.calibrator_tables or [],
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=internal_error(f"Failed to retrieve calibrator matches: {str(e)}").to_dict(),
+        )
 
 
 # =============================================================================
 # Source Endpoints
 # =============================================================================
+
+
+@sources_router.get("", response_model=list[SourceListResponse])
+async def list_sources(
+    limit: int = Query(100, le=1000, description="Maximum number of results"),
+    offset: int = Query(0, ge=0, description="Offset for pagination"),
+):
+    """
+    List all sources with summary info.
+    
+    Returns a paginated list of sources with basic metadata.
+    """
+    try:
+        sources = source_repo.list_all(limit=limit, offset=offset)
+        return [
+            SourceListResponse(
+                id=src.id,
+                name=src.name,
+                ra_deg=src.ra_deg,
+                dec_deg=src.dec_deg,
+                num_images=len(src.contributing_images) if src.contributing_images else 0,
+                image_id=src.latest_image_id,
+            )
+            for src in sources
+        ]
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=internal_error(f"Failed to list sources: {str(e)}").to_dict(),
+        )
+
+
 
 @sources_router.get("/{source_id}", response_model=SourceDetailResponse)
 async def get_source_detail(source_id: str):
@@ -152,37 +281,35 @@ async def get_source_detail(source_id: str):
     
     Returns source coordinates, contributing images, and detection history.
     """
-    # Simulate not found
-    if source_id.startswith("notfound"):
-        raise HTTPException(
-            status_code=404,
-            detail=source_not_found(source_id).to_dict(),
+    try:
+        source = source_repo.get_by_id(source_id)
+        if not source:
+            raise HTTPException(
+                status_code=404,
+                detail=source_not_found(source_id).to_dict(),
+            )
+        
+        # Convert contributing images to ContributingImage objects
+        contributing_images = []
+        if source.contributing_images:
+            for img_dict in source.contributing_images:
+                contributing_images.append(ContributingImage(**img_dict))
+        
+        return SourceDetailResponse(
+            id=source.id,
+            name=source.name,
+            ra_deg=source.ra_deg,
+            dec_deg=source.dec_deg,
+            contributing_images=contributing_images,
+            latest_image_id=source.latest_image_id,
         )
-    
-    # Return stub data
-    return SourceDetailResponse(
-        id=source_id,
-        name=f"DSA-110 J{source_id}",
-        ra_deg=180.0,
-        dec_deg=-30.0,
-        contributing_images=[
-            {
-                "image_id": "img-001",
-                "path": "/data/images/img-001.fits",
-                "ms_path": "/data/ms/obs-001.ms",
-                "qa_grade": "good",
-                "created_at": "2025-01-15T10:30:00Z",
-            },
-            {
-                "image_id": "img-002",
-                "path": "/data/images/img-002.fits",
-                "ms_path": "/data/ms/obs-002.ms",
-                "qa_grade": "warn",
-                "created_at": "2025-01-16T10:30:00Z",
-            },
-        ],
-        latest_image_id="img-002",
-    )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=internal_error(f"Failed to retrieve source: {str(e)}").to_dict(),
+        )
 
 
 @sources_router.get("/{source_id}/lightcurve")
@@ -192,11 +319,30 @@ async def get_source_lightcurve(
     end_date: Optional[str] = Query(None, description="End date (ISO format)"),
 ):
     """Get lightcurve data for a source."""
-    # TODO: Implement actual lightcurve retrieval
+    from astropy.time import Time
+    from .repositories import SourceRepository
+    
+    # Convert ISO dates to MJD if provided
+    start_mjd = None
+    end_mjd = None
+    if start_date:
+        try:
+            start_mjd = Time(start_date).mjd
+        except Exception:
+            pass
+    if end_date:
+        try:
+            end_mjd = Time(end_date).mjd
+        except Exception:
+            pass
+    
+    source_repo = SourceRepository()
+    decoded_source_id = unquote(source_id)
+    data_points = source_repo.get_lightcurve(decoded_source_id, start_mjd, end_mjd)
+    
     return {
-        "source_id": source_id,
-        "data_points": [],
-        "message": "Lightcurve endpoint stub",
+        "source_id": decoded_source_id,
+        "data_points": data_points,
     }
 
 
@@ -215,6 +361,35 @@ async def get_source_variability(source_id: str):
 # Job/Provenance Endpoints
 # =============================================================================
 
+
+@jobs_router.get("", response_model=list[JobListResponse])
+async def list_jobs(
+    limit: int = Query(100, le=1000, description="Maximum number of results"),
+    offset: int = Query(0, ge=0, description="Offset for pagination"),
+):
+    """
+    List all pipeline jobs with summary info.
+    
+    Returns a paginated list of jobs with basic metadata.
+    """
+    try:
+        jobs = job_repo.list_all(limit=limit, offset=offset)
+        return [
+            JobListResponse(
+                run_id=job.run_id,
+                status="completed" if job.qa_grade else "pending",
+                started_at=job.started_at,
+            )
+            for job in jobs
+        ]
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=internal_error(f"Failed to list jobs: {str(e)}").to_dict(),
+        )
+
+
+
 @jobs_router.get("/{run_id}/provenance", response_model=ProvenanceResponse)
 async def get_job_provenance(run_id: str):
     """
@@ -223,21 +398,35 @@ async def get_job_provenance(run_id: str):
     Returns all relevant context for the job including input data,
     calibration, pointing, QA, and links to related resources.
     """
-    # TODO: Implement actual job lookup
-    return ProvenanceResponse(
-        run_id=run_id,
-        ms_path="/data/ms/example.ms",
-        cal_table="/data/cal/example.tbl",
-        pointing_ra_deg=180.0,
-        pointing_dec_deg=-30.0,
-        qa_grade="good",
-        qa_summary="RMS 0.35 mJy",
-        logs_url=f"/logs/{run_id}",
-        qa_url=f"/qa/job/{run_id}",
-        ms_url="/ms/%2Fdata%2Fms%2Fexample.ms",
-        image_url="/images/img-001",
-        created_at="2025-01-15T10:00:00Z",
-    )
+    try:
+        job = job_repo.get_by_run_id(run_id)
+        if not job:
+            raise HTTPException(
+                status_code=404,
+                detail=internal_error(f"Job {run_id} not found").to_dict(),
+            )
+        
+        return ProvenanceResponse(
+            run_id=job.run_id,
+            ms_path=job.input_ms_path,
+            cal_table=job.cal_table_path,
+            pointing_ra_deg=job.phase_center_ra,
+            pointing_dec_deg=job.phase_center_dec,
+            qa_grade=job.qa_grade,
+            qa_summary=job.qa_summary,
+            logs_url=f"/api/logs/{run_id}",
+            qa_url=f"/api/qa/job/{run_id}",
+            ms_url=f"/api/ms/{quote(job.input_ms_path, safe='')}/metadata" if job.input_ms_path else None,
+            image_url=f"/api/images/{job.output_image_id}" if job.output_image_id else None,
+            created_at=job.started_at,
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=internal_error(f"Failed to retrieve job provenance: {str(e)}").to_dict(),
+        )
 
 
 @jobs_router.get("/{run_id}/logs")
@@ -246,9 +435,194 @@ async def get_job_logs(
     tail: int = Query(100, description="Number of lines from end"),
 ):
     """Get logs for a pipeline job."""
-    # TODO: Implement actual log retrieval
-    return {
-        "run_id": run_id,
-        "logs": [],
-        "message": "Logs endpoint stub",
-    }
+    log_path = Path(f"/data/dsa110-contimg/state/logs/{run_id}.log")
+    
+    # Try alternative log paths
+    if not log_path.exists():
+        log_path = Path(f"/data/dsa110-contimg/logs/{run_id}.log")
+    
+    if not log_path.exists():
+        return {
+            "run_id": run_id,
+            "logs": [],
+            "error": f"Log file not found: {log_path}",
+        }
+    
+    try:
+        with open(log_path) as f:
+            lines = f.readlines()
+            return {
+                "run_id": run_id,
+                "logs": lines[-tail:] if tail > 0 else lines,
+                "total_lines": len(lines),
+            }
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=internal_error(f"Failed to read log file: {str(e)}").to_dict(),
+        )
+
+
+# =============================================================================
+# Logs Endpoints (alternative path)
+# =============================================================================
+
+@logs_router.get("/{run_id}")
+async def get_logs(
+    run_id: str,
+    tail: int = Query(100, description="Number of lines from end"),
+):
+    """Get logs for a pipeline job (alternative endpoint)."""
+    return await get_job_logs(run_id, tail)
+
+
+# =============================================================================
+# QA Endpoints
+# =============================================================================
+
+@qa_router.get("/image/{image_id}")
+async def get_image_qa(image_id: str):
+    """Get QA report for an image."""
+    try:
+        image = image_repo.get_by_id(image_id)
+        if not image:
+            raise HTTPException(
+                status_code=404,
+                detail=image_not_found(image_id).to_dict(),
+            )
+        
+        # Check for QA data in database
+        # TODO: Implement detailed QA retrieval from image_qa table
+        return {
+            "image_id": image_id,
+            "qa_grade": image.qa_grade,
+            "qa_summary": image.qa_summary,
+            "metrics": {
+                "rms_noise": image.noise_jy,
+                "dynamic_range": image.dynamic_range,
+                "beam_major_arcsec": image.beam_major_arcsec,
+                "beam_minor_arcsec": image.beam_minor_arcsec,
+                "beam_pa_deg": image.beam_pa_deg,
+            },
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=internal_error(f"Failed to retrieve image QA: {str(e)}").to_dict(),
+        )
+
+
+@qa_router.get("/ms/{encoded_path:path}")
+async def get_ms_qa(encoded_path: str):
+    """Get QA report for a Measurement Set."""
+    ms_path = unquote(encoded_path)
+    
+    try:
+        ms_meta = ms_repo.get_metadata(ms_path)
+        if not ms_meta:
+            raise HTTPException(
+                status_code=404,
+                detail=ms_not_found(ms_path).to_dict(),
+            )
+        
+        # TODO: Implement detailed QA retrieval from calibration_qa table
+        return {
+            "ms_path": ms_path,
+            "qa_grade": ms_meta.qa_grade,
+            "qa_summary": ms_meta.qa_summary,
+            "stage": ms_meta.stage,
+            "status": ms_meta.status,
+            "cal_applied": bool(ms_meta.cal_applied),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=internal_error(f"Failed to retrieve MS QA: {str(e)}").to_dict(),
+        )
+
+
+@qa_router.get("/job/{run_id}")
+async def get_job_qa(run_id: str):
+    """Get QA summary for a pipeline job."""
+    try:
+        job = job_repo.get_by_run_id(run_id)
+        if not job:
+            raise HTTPException(
+                status_code=404,
+                detail=internal_error(f"Job {run_id} not found").to_dict(),
+            )
+        
+        return {
+            "run_id": run_id,
+            "qa_grade": job.qa_grade,
+            "qa_summary": job.qa_summary,
+            "ms_path": job.input_ms_path,
+            "cal_table": job.cal_table_path,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=internal_error(f"Failed to retrieve job QA: {str(e)}").to_dict(),
+        )
+
+
+# =============================================================================
+# Calibration Endpoints
+# =============================================================================
+
+@cal_router.get("/{encoded_path:path}")
+async def get_cal_table_detail(encoded_path: str):
+    """Get calibration table details."""
+    cal_path = unquote(encoded_path)
+    
+    try:
+        # Check if cal_registry database exists
+        cal_db_path = "/data/dsa110-contimg/state/cal_registry.sqlite3"
+        if not os.path.exists(cal_db_path):
+            raise HTTPException(
+                status_code=503,
+                detail=db_unavailable("cal_registry").to_dict(),
+            )
+        
+        # Query cal_registry
+        from .repositories import safe_row_get
+        import sqlite3
+        conn = sqlite3.connect(cal_db_path, timeout=30.0)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.execute(
+            "SELECT * FROM caltables WHERE path = ?",
+            (cal_path,)
+        )
+        row = cursor.fetchone()
+        conn.close()
+        
+        if not row:
+            raise HTTPException(
+                status_code=404,
+                detail=internal_error(f"Calibration table not found: {cal_path}").to_dict(),
+            )
+        
+        return {
+            "path": row["path"],
+            "table_type": row["table_type"],
+            "set_name": safe_row_get(row, "set_name"),
+            "cal_field": safe_row_get(row, "cal_field"),
+            "refant": safe_row_get(row, "refant"),
+            "created_at": datetime.fromtimestamp(row["created_at"]) if safe_row_get(row, "created_at") else None,
+            "source_ms_path": safe_row_get(row, "source_ms_path"),
+            "status": safe_row_get(row, "status"),
+            "notes": safe_row_get(row, "notes"),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=internal_error(f"Failed to retrieve cal table: {str(e)}").to_dict(),
+        )

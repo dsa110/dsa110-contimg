@@ -3,14 +3,24 @@ import { useParams, Link } from "react-router-dom";
 import { useJobProvenance } from "../hooks/useQueries";
 import ProvenanceStrip from "../components/provenance/ProvenanceStrip";
 import ErrorDisplay from "../components/errors/ErrorDisplay";
+import type { ErrorResponse } from "../types/errors";
 import { relativeTime } from "../utils/relativeTime";
+import { usePreferencesStore } from "../stores/appStore";
 
 /**
  * Job detail page showing provenance and job information.
  */
 const JobDetailPage: React.FC = () => {
   const { runId } = useParams<{ runId: string }>();
-  const { data: provenance, isLoading, error } = useJobProvenance(runId);
+  const { data: provenance, isLoading, error, refetch } = useJobProvenance(runId);
+  const addRecentJob = usePreferencesStore((state) => state.addRecentJob);
+
+  // Track in recent items when job loads
+  React.useEffect(() => {
+    if (provenance && runId) {
+      addRecentJob(runId);
+    }
+  }, [provenance, runId, addRecentJob]);
 
   if (isLoading) {
     return <div style={{ padding: "20px" }}>Loading job details...</div>;
@@ -19,13 +29,18 @@ const JobDetailPage: React.FC = () => {
   if (error) {
     return (
       <div style={{ padding: "20px" }}>
-        <ErrorDisplay error={error} />
+        <ErrorDisplay error={error as unknown as ErrorResponse} onRetry={() => refetch()} />
       </div>
     );
   }
 
   if (!provenance) {
-    return <div style={{ padding: "20px" }}>Job not found.</div>;
+    return (
+      <div style={{ padding: "20px" }}>
+        <p>Job not found.</p>
+        <Link to="/jobs">← Back to Jobs</Link>
+      </div>
+    );
   }
 
   return (
@@ -38,20 +53,7 @@ const JobDetailPage: React.FC = () => {
 
       <header style={{ marginBottom: "24px" }}>
         <h1 style={{ margin: "0 0 12px" }}>Job: {runId}</h1>
-        <ProvenanceStrip
-          runId={provenance.run_id}
-          msPath={provenance.ms_path}
-          calTable={provenance.cal_table}
-          pointingRaDeg={provenance.pointing_ra_deg}
-          pointingDecDeg={provenance.pointing_dec_deg}
-          qaGrade={provenance.qa_grade}
-          qaSummary={provenance.qa_summary}
-          logsUrl={provenance.logs_url}
-          qaUrl={provenance.qa_url}
-          msUrl={provenance.ms_url}
-          imageUrl={provenance.image_url}
-          createdAt={provenance.created_at}
-        />
+        <ProvenanceStrip {...provenance} />
       </header>
 
       <section className="job-details" style={{ marginBottom: "24px" }}>
@@ -78,32 +80,36 @@ const JobDetailPage: React.FC = () => {
                 Run ID
               </td>
               <td style={{ padding: "12px", borderBottom: "1px solid #eee" }}>
-                {provenance.run_id}
+                {provenance.runId || runId}
               </td>
             </tr>
-            {provenance.ms_path && (
+            {provenance.msPath && (
               <tr>
                 <td style={{ padding: "12px", borderBottom: "1px solid #eee", fontWeight: "bold" }}>
                   Input MS
                 </td>
                 <td style={{ padding: "12px", borderBottom: "1px solid #eee" }}>
-                  <Link to={`/ms/${encodeURIComponent(provenance.ms_path)}`}>
-                    {provenance.ms_path}
+                  <Link to={`/ms/${encodeURIComponent(provenance.msPath)}`}>
+                    {provenance.msPath}
                   </Link>
                 </td>
               </tr>
             )}
-            {provenance.cal_table && (
+            {provenance.calTable && (
               <tr>
                 <td style={{ padding: "12px", borderBottom: "1px solid #eee", fontWeight: "bold" }}>
                   Cal Table
                 </td>
                 <td style={{ padding: "12px", borderBottom: "1px solid #eee" }}>
-                  {provenance.cal_table}
+                  {provenance.calUrl ? (
+                    <a href={provenance.calUrl}>{provenance.calTable}</a>
+                  ) : (
+                    provenance.calTable
+                  )}
                 </td>
               </tr>
             )}
-            {provenance.qa_grade && (
+            {provenance.qaGrade && (
               <tr>
                 <td style={{ padding: "12px", borderBottom: "1px solid #eee", fontWeight: "bold" }}>
                   QA Grade
@@ -114,31 +120,29 @@ const JobDetailPage: React.FC = () => {
                       padding: "4px 8px",
                       borderRadius: "4px",
                       backgroundColor:
-                        provenance.qa_grade === "good"
+                        provenance.qaGrade === "good"
                           ? "#d4edda"
-                          : provenance.qa_grade === "warn"
-                            ? "#fff3cd"
-                            : "#f8d7da",
+                          : provenance.qaGrade === "warn"
+                          ? "#fff3cd"
+                          : "#f8d7da",
                     }}
                   >
-                    {provenance.qa_grade}
+                    {provenance.qaGrade}
                   </span>
-                  {provenance.qa_summary && (
-                    <span style={{ marginLeft: "8px", color: "#666" }}>
-                      {provenance.qa_summary}
-                    </span>
+                  {provenance.qaSummary && (
+                    <span style={{ marginLeft: "8px", color: "#666" }}>{provenance.qaSummary}</span>
                   )}
                 </td>
               </tr>
             )}
-            {provenance.created_at && (
+            {provenance.createdAt && (
               <tr>
                 <td style={{ padding: "12px", borderBottom: "1px solid #eee", fontWeight: "bold" }}>
                   Started
                 </td>
                 <td style={{ padding: "12px", borderBottom: "1px solid #eee" }}>
-                  {new Date(provenance.created_at).toLocaleString()} (
-                  {relativeTime(provenance.created_at)})
+                  {new Date(provenance.createdAt).toLocaleString()} (
+                  {relativeTime(provenance.createdAt)})
                 </td>
               </tr>
             )}
@@ -147,9 +151,9 @@ const JobDetailPage: React.FC = () => {
       </section>
 
       <section className="job-actions" style={{ display: "flex", gap: "12px" }}>
-        {provenance.logs_url && (
+        {provenance.logsUrl && (
           <a
-            href={provenance.logs_url}
+            href={provenance.logsUrl}
             target="_blank"
             rel="noreferrer"
             style={{
@@ -163,9 +167,9 @@ const JobDetailPage: React.FC = () => {
             View Logs
           </a>
         )}
-        {provenance.image_url && (
+        {provenance.imageUrl && (
           <Link
-            to={provenance.image_url}
+            to={provenance.imageUrl}
             style={{
               padding: "10px 16px",
               backgroundColor: "#0066cc",

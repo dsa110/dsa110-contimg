@@ -10,104 +10,74 @@ const JobsListPage: React.FC = () => {
   const { data: jobs, isLoading, error } = useJobs();
 
   if (isLoading) {
-    return <div style={{ padding: "20px" }}>Loading jobs...</div>;
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-gray-500">Loading jobs...</div>
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div style={{ padding: "20px", color: "#dc3545" }}>Failed to load jobs: {error.message}</div>
+      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+        Failed to load jobs: {error.message}
+      </div>
     );
   }
 
-  const getStatusColor = (status: string) => {
+  const getStatusBadgeClass = (status: string) => {
     switch (status) {
       case "completed":
-        return { bg: "#d4edda", text: "#155724" };
+        return "badge-success";
       case "running":
-        return { bg: "#cce5ff", text: "#004085" };
+        return "badge-info";
       case "failed":
-        return { bg: "#f8d7da", text: "#721c24" };
+        return "badge-error";
       case "pending":
-        return { bg: "#fff3cd", text: "#856404" };
+        return "badge-warning";
       default:
-        return { bg: "#e9ecef", text: "#495057" };
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   return (
-    <div className="jobs-list-page">
-      <h1 style={{ marginTop: 0 }}>Pipeline Jobs</h1>
+    <div className="max-w-6xl mx-auto">
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">Pipeline Jobs</h1>
 
       {jobs && jobs.length > 0 ? (
-        <table
-          style={{
-            width: "100%",
-            backgroundColor: "white",
-            borderCollapse: "collapse",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-          }}
-        >
-          <thead>
-            <tr style={{ backgroundColor: "#f8f9fa" }}>
-              <th style={{ padding: "12px", textAlign: "left", borderBottom: "2px solid #dee2e6" }}>
-                Run ID
-              </th>
-              <th style={{ padding: "12px", textAlign: "left", borderBottom: "2px solid #dee2e6" }}>
-                Type
-              </th>
-              <th
-                style={{ padding: "12px", textAlign: "center", borderBottom: "2px solid #dee2e6" }}
-              >
-                Status
-              </th>
-              <th style={{ padding: "12px", textAlign: "left", borderBottom: "2px solid #dee2e6" }}>
-                Input MS
-              </th>
-              <th
-                style={{ padding: "12px", textAlign: "right", borderBottom: "2px solid #dee2e6" }}
-              >
-                Started
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {jobs.map((job) => {
-              const statusStyle = getStatusColor(job.status);
-              return (
-                <tr key={job.id} style={{ borderBottom: "1px solid #dee2e6" }}>
-                  <td style={{ padding: "12px" }}>
-                    <Link to={`/jobs/${job.id}`} style={{ color: "#0066cc" }}>
-                      {job.id}
+        <div className="card overflow-hidden">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Run ID</th>
+                <th className="text-center">Status</th>
+                <th className="text-right">Started</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {jobs.map((job) => (
+                <tr key={job.run_id}>
+                  <td>
+                    <Link
+                      to={`/jobs/${job.run_id}`}
+                      className="text-blue-600 hover:text-blue-800 font-medium"
+                    >
+                      {job.run_id}
                     </Link>
                   </td>
-                  <td style={{ padding: "12px" }}>{job.job_type || "imaging"}</td>
-                  <td style={{ padding: "12px", textAlign: "center" }}>
-                    <span
-                      style={{
-                        display: "inline-block",
-                        padding: "4px 12px",
-                        borderRadius: "4px",
-                        backgroundColor: statusStyle.bg,
-                        color: statusStyle.text,
-                        fontSize: "0.85rem",
-                      }}
-                    >
-                      {job.status}
-                    </span>
+                  <td className="text-center">
+                    <span className={`badge ${getStatusBadgeClass(job.status)}`}>{job.status}</span>
                   </td>
-                  <td style={{ padding: "12px", fontSize: "0.9rem", color: "#666" }}>
-                    {job.ms_path?.split("/").pop() || "—"}
-                  </td>
-                  <td style={{ padding: "12px", textAlign: "right", color: "#666" }}>
-                    {job.created_at ? relativeTime(job.created_at) : "—"}
+                  <td className="text-right text-gray-500">
+                    {job.started_at ? relativeTime(job.started_at) : "—"}
                   </td>
                 </tr>
-              );
-            })}
-          </tbody>
-        </table>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : (
-        <p style={{ color: "#666" }}>No jobs found.</p>
+        <p className="text-gray-500">No jobs found.</p>
       )}
     </div>
   );

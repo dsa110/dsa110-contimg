@@ -34,7 +34,7 @@ const ImageDetailPage: React.FC = () => {
   if (error) {
     return (
       <div className="page-error" style={{ padding: "20px" }}>
-        <ErrorDisplay error={error as ErrorResponse} onRetry={() => refetch()} />
+        <ErrorDisplay error={error as unknown as ErrorResponse} onRetry={() => refetch()} />
       </div>
     );
   }

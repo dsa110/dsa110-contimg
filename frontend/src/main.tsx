@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
 import { router } from "./router";
 import { QueryProvider } from "./lib/queryClient";
+import "./index.css";
 
 /**
  * Main entry point for the DSA-110 Pipeline UI.

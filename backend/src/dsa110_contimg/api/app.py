@@ -17,7 +17,15 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
 
 from .errors import validation_failed, internal_error
-from .routes import images_router, ms_router, sources_router, jobs_router
+from .routes import (
+    images_router,
+    ms_router,
+    sources_router,
+    jobs_router,
+    qa_router,
+    cal_router,
+    logs_router,
+)
 
 
 def create_app() -> FastAPI:
@@ -40,6 +48,11 @@ def create_app() -> FastAPI:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[
+            "https://dsa110.github.io",  # GitHub Pages
+            "http://code.deepsynoptic.org",  # Custom domain
+            "https://code.deepsynoptic.org",  # Custom domain HTTPS
+            "*.ngrok-free.app",  # ngrok for development
+            "*.ngrok-free.dev",  # ngrok alt domain
             "http://localhost:3000",  # Vite dev server
             "http://127.0.0.1:3000",
         ],
@@ -53,6 +66,9 @@ def create_app() -> FastAPI:
     app.include_router(ms_router, prefix="/api")
     app.include_router(sources_router, prefix="/api")
     app.include_router(jobs_router, prefix="/api")
+    app.include_router(qa_router, prefix="/api")
+    app.include_router(cal_router, prefix="/api")
+    app.include_router(logs_router, prefix="/api")
     
     # Register exception handlers
     @app.exception_handler(ValidationError)

@@ -115,6 +115,14 @@ def get_db_connection(db_path: str = DEFAULT_DB_PATH) -> sqlite3.Connection:
     return conn
 
 
+def safe_row_get(row: sqlite3.Row, key: str, default=None):
+    """Safely get a value from a sqlite3.Row object."""
+    try:
+        return row[key]
+    except (KeyError, IndexError):
+        return default
+
+
 class ImageRepository:
     """Repository for querying image data."""
     
@@ -150,22 +158,22 @@ class ImageRepository:
                 ms_path=row["ms_path"],
                 created_at=row["created_at"],
                 type=row["type"],
-                beam_major_arcsec=row["beam_major_arcsec"],
-                noise_jy=row["noise_jy"],
-                pbcor=row["pbcor"],
-                format=row.get("format", "fits"),
-                beam_minor_arcsec=row.get("beam_minor_arcsec"),
-                beam_pa_deg=row.get("beam_pa_deg"),
-                dynamic_range=row.get("dynamic_range"),
-                field_name=row.get("field_name"),
-                center_ra_deg=row.get("center_ra_deg"),
-                center_dec_deg=row.get("center_dec_deg"),
-                imsize_x=row.get("imsize_x"),
-                imsize_y=row.get("imsize_y"),
-                cellsize_arcsec=row.get("cellsize_arcsec"),
-                freq_ghz=row.get("freq_ghz"),
-                bandwidth_mhz=row.get("bandwidth_mhz"),
-                integration_sec=row.get("integration_sec"),
+                beam_major_arcsec=safe_row_get(row, "beam_major_arcsec"),
+                noise_jy=safe_row_get(row, "noise_jy"),
+                pbcor=safe_row_get(row, "pbcor", 0),
+                format=safe_row_get(row, "format", "fits"),
+                beam_minor_arcsec=safe_row_get(row, "beam_minor_arcsec"),
+                beam_pa_deg=safe_row_get(row, "beam_pa_deg"),
+                dynamic_range=safe_row_get(row, "dynamic_range"),
+                field_name=safe_row_get(row, "field_name"),
+                center_ra_deg=safe_row_get(row, "center_ra_deg"),
+                center_dec_deg=safe_row_get(row, "center_dec_deg"),
+                imsize_x=safe_row_get(row, "imsize_x"),
+                imsize_y=safe_row_get(row, "imsize_y"),
+                cellsize_arcsec=safe_row_get(row, "cellsize_arcsec"),
+                freq_ghz=safe_row_get(row, "freq_ghz"),
+                bandwidth_mhz=safe_row_get(row, "bandwidth_mhz"),
+                integration_sec=safe_row_get(row, "integration_sec"),
             )
             
             # Try to get MS metadata for additional fields
@@ -238,6 +246,82 @@ class ImageRepository:
             return None
 
 
+
+    def list_all(self, limit: int = 100, offset: int = 0) -> list[ImageRecord]:
+        """Get all images with pagination."""
+        conn = get_db_connection(self.db_path)
+        try:
+            cursor = conn.execute(
+                "SELECT * FROM images ORDER BY created_at DESC LIMIT ? OFFSET ?",
+                (limit, offset)
+            )
+            records = []
+            for row in cursor.fetchall():
+                record = ImageRecord(
+                    id=row["id"],
+                    path=row["path"],
+                    ms_path=row["ms_path"],
+                    created_at=row["created_at"],
+                    type=row["type"],
+                    beam_major_arcsec=safe_row_get(row, "beam_major_arcsec"),
+                    noise_jy=safe_row_get(row, "noise_jy"),
+                    pbcor=safe_row_get(row, "pbcor", 0),
+                    format=safe_row_get(row, "format", "fits"),
+                )
+                # Generate run_id and qa_grade
+                record.run_id = self._generate_run_id(record.ms_path)
+                # Get QA grade from ms_index
+                ms_cursor = conn.execute(
+                    "SELECT stage, status FROM ms_index WHERE path = ?",
+                    (record.ms_path,)
+                )
+                ms_row = ms_cursor.fetchone()
+                if ms_row:
+                    record.qa_grade = self._stage_to_qa_grade(ms_row["stage"], ms_row["status"])
+                records.append(record)
+            return records
+        finally:
+            conn.close()
+
+
+
+    def list_all(self, limit: int = 100, offset: int = 0) -> list[ImageRecord]:
+        """Get all images with pagination."""
+        conn = get_db_connection(self.db_path)
+        try:
+            cursor = conn.execute(
+                "SELECT * FROM images ORDER BY created_at DESC LIMIT ? OFFSET ?",
+                (limit, offset)
+            )
+            records = []
+            for row in cursor.fetchall():
+                record = ImageRecord(
+                    id=row["id"],
+                    path=row["path"],
+                    ms_path=row["ms_path"],
+                    created_at=row["created_at"],
+                    type=row["type"],
+                    beam_major_arcsec=safe_row_get(row, "beam_major_arcsec"),
+                    noise_jy=safe_row_get(row, "noise_jy"),
+                    pbcor=safe_row_get(row, "pbcor", 0),
+                    format=safe_row_get(row, "format", "fits"),
+                )
+                # Generate run_id and qa_grade
+                record.run_id = self._generate_run_id(record.ms_path)
+                # Get QA grade from ms_index
+                ms_cursor = conn.execute(
+                    "SELECT stage, status FROM ms_index WHERE path = ?",
+                    (record.ms_path,)
+                )
+                ms_row = ms_cursor.fetchone()
+                if ms_row:
+                    record.qa_grade = self._stage_to_qa_grade(ms_row["stage"], ms_row["status"])
+                records.append(record)
+            return records
+        finally:
+            conn.close()
+
+
 class MSRepository:
     """Repository for querying Measurement Set data."""
     
@@ -258,20 +342,20 @@ class MSRepository:
             
             record = MSRecord(
                 path=row["path"],
-                start_mjd=row.get("start_mjd"),
-                end_mjd=row.get("end_mjd"),
-                mid_mjd=row.get("mid_mjd"),
-                processed_at=row.get("processed_at"),
-                status=row.get("status"),
-                stage=row.get("stage"),
-                stage_updated_at=row.get("stage_updated_at"),
-                cal_applied=row.get("cal_applied", 0),
-                imagename=row.get("imagename"),
-                ra_deg=row.get("ra_deg"),
-                dec_deg=row.get("dec_deg"),
-                field_name=row.get("field_name"),
-                pointing_ra_deg=row.get("pointing_ra_deg"),
-                pointing_dec_deg=row.get("pointing_dec_deg"),
+                start_mjd=safe_row_get(row, "start_mjd"),
+                end_mjd=safe_row_get(row, "end_mjd"),
+                mid_mjd=safe_row_get(row, "mid_mjd"),
+                processed_at=safe_row_get(row, "processed_at"),
+                status=safe_row_get(row, "status"),
+                stage=safe_row_get(row, "stage"),
+                stage_updated_at=safe_row_get(row, "stage_updated_at"),
+                cal_applied=safe_row_get(row, "cal_applied", 0),
+                imagename=safe_row_get(row, "imagename"),
+                ra_deg=safe_row_get(row, "ra_deg"),
+                dec_deg=safe_row_get(row, "dec_deg"),
+                field_name=safe_row_get(row, "field_name"),
+                pointing_ra_deg=safe_row_get(row, "pointing_ra_deg"),
+                pointing_dec_deg=safe_row_get(row, "pointing_dec_deg"),
             )
             
             # Get calibration tables
@@ -401,6 +485,71 @@ class SourceRepository:
             conn.close()
 
 
+
+    def list_all(self, limit: int = 100, offset: int = 0) -> list[SourceRecord]:
+        """Get all sources with pagination."""
+        conn = get_db_connection(self.db_path)
+        try:
+            cursor = conn.execute(
+                """
+                SELECT source_id, ra_deg, dec_deg, COUNT(*) as num_images
+                FROM photometry
+                GROUP BY source_id
+                ORDER BY source_id
+                LIMIT ? OFFSET ?
+                """,
+                (limit, offset)
+            )
+            records = []
+            for row in cursor.fetchall():
+                records.append(SourceRecord(
+                    id=row["source_id"],
+                    name=row["source_id"],
+                    ra_deg=row["ra_deg"],
+                    dec_deg=row["dec_deg"],
+                    contributing_images=[{}] * row["num_images"],  # Placeholder for count
+                    latest_image_id=None,
+                ))
+            return records
+        finally:
+            conn.close()
+
+    def get_lightcurve(self, source_id: str, start_mjd: Optional[float] = None, 
+                       end_mjd: Optional[float] = None) -> list[dict]:
+        """Get lightcurve data points for a source."""
+        conn = get_db_connection(self.db_path)
+        try:
+            query = """
+                SELECT mjd, flux_jy, flux_err_jy, peak_jyb, peak_err_jyb, snr, image_path
+                FROM photometry
+                WHERE source_id = ?
+            """
+            params = [source_id]
+            
+            if start_mjd is not None:
+                query += " AND mjd >= ?"
+                params.append(start_mjd)
+            if end_mjd is not None:
+                query += " AND mjd <= ?"
+                params.append(end_mjd)
+            
+            query += " ORDER BY mjd"
+            
+            cursor = conn.execute(query, params)
+            data_points = []
+            for row in cursor.fetchall():
+                data_points.append({
+                    "mjd": row["mjd"],
+                    "flux_jy": row["flux_jy"] or row["peak_jyb"],
+                    "flux_err_jy": row["flux_err_jy"] or row["peak_err_jyb"],
+                    "snr": row["snr"],
+                    "image_path": row["image_path"],
+                })
+            return data_points
+        finally:
+            conn.close()
+
+
 class JobRepository:
     """Repository for querying pipeline job data."""
     
@@ -450,12 +599,12 @@ class JobRepository:
                         run_id=run_id,
                         input_ms_path=row["path"],
                         cal_table_path=cal_table,
-                        phase_center_ra=row.get("pointing_ra_deg") or row.get("ra_deg"),
-                        phase_center_dec=row.get("pointing_dec_deg") or row.get("dec_deg"),
-                        qa_grade=self._stage_to_qa_grade(row.get("stage"), row.get("status")),
-                        qa_summary=f"Stage: {row.get('stage', 'unknown')}",
+                        phase_center_ra=safe_row_get(row, "pointing_ra_deg") or safe_row_get(row, "ra_deg"),
+                        phase_center_dec=safe_row_get(row, "pointing_dec_deg") or safe_row_get(row, "dec_deg"),
+                        qa_grade=self._stage_to_qa_grade(safe_row_get(row, "stage"), safe_row_get(row, "status")),
+                        qa_summary=f"Stage: {safe_row_get(row, 'stage', 'unknown')}",
                         output_image_id=img_row["id"] if img_row else None,
-                        started_at=datetime.fromtimestamp(row["processed_at"]) if row.get("processed_at") else None,
+                        started_at=datetime.fromtimestamp(row["processed_at"]) if safe_row_get(row, "processed_at") else None,
                     )
                     return record
             
@@ -472,3 +621,78 @@ class JobRepository:
         if stage in ["calibrated"]:
             return "warn"
         return "fail"
+    def list_all(self, limit: int = 100, offset: int = 0) -> list[JobRecord]:
+        """Get all jobs with pagination."""
+        conn = get_db_connection(self.db_path)
+        try:
+            cursor = conn.execute(
+                """
+                SELECT DISTINCT path, processed_at, stage, status, 
+                       pointing_ra_deg, pointing_dec_deg, ra_deg, dec_deg
+                FROM ms_index 
+                WHERE processed_at IS NOT NULL
+                ORDER BY processed_at DESC
+                LIMIT ? OFFSET ?
+                """,
+                (limit, offset)
+            )
+            records = []
+            for row in cursor.fetchall():
+                run_id = self._generate_run_id_from_path(row["path"])
+                records.append(JobRecord(
+                    run_id=run_id,
+                    input_ms_path=row["path"],
+                    phase_center_ra=safe_row_get(row, "pointing_ra_deg") or safe_row_get(row, "ra_deg"),
+                    phase_center_dec=safe_row_get(row, "pointing_dec_deg") or safe_row_get(row, "dec_deg"),
+                    qa_grade=self._stage_to_qa_grade(safe_row_get(row, "stage"), safe_row_get(row, "status")),
+                    started_at=datetime.fromtimestamp(row["processed_at"]) if safe_row_get(row, "processed_at") else None,
+                ))
+            return records
+        finally:
+            conn.close()
+    
+    def _generate_run_id_from_path(self, ms_path: str) -> str:
+        """Generate run ID from MS path."""
+        basename = Path(ms_path).stem
+        if "T" in basename:
+            timestamp_part = basename.split("T")[0] + "-" + basename.split("T")[1].replace(":", "").split(".")[0]
+            return f"job-{timestamp_part}"
+        return f"job-{basename}"
+    def list_all(self, limit: int = 100, offset: int = 0) -> list[JobRecord]:
+        """Get all jobs with pagination."""
+        conn = get_db_connection(self.db_path)
+        try:
+            cursor = conn.execute(
+                """
+                SELECT DISTINCT path, processed_at, stage, status, 
+                       pointing_ra_deg, pointing_dec_deg, ra_deg, dec_deg
+                FROM ms_index 
+                WHERE processed_at IS NOT NULL
+                ORDER BY processed_at DESC
+                LIMIT ? OFFSET ?
+                """,
+                (limit, offset)
+            )
+            records = []
+            for row in cursor.fetchall():
+                run_id = self._generate_run_id_from_path(row["path"])
+                records.append(JobRecord(
+                    run_id=run_id,
+                    input_ms_path=row["path"],
+                    phase_center_ra=safe_row_get(row, "pointing_ra_deg") or safe_row_get(row, "ra_deg"),
+                    phase_center_dec=safe_row_get(row, "pointing_dec_deg") or safe_row_get(row, "dec_deg"),
+                    qa_grade=self._stage_to_qa_grade(safe_row_get(row, "stage"), safe_row_get(row, "status")),
+                    started_at=datetime.fromtimestamp(row["processed_at"]) if safe_row_get(row, "processed_at") else None,
+                ))
+            return records
+        finally:
+            conn.close()
+    
+    def _generate_run_id_from_path(self, ms_path: str) -> str:
+        """Generate run ID from MS path."""
+        basename = Path(ms_path).stem
+        if "T" in basename:
+            timestamp_part = basename.split("T")[0] + "-" + basename.split("T")[1].replace(":", "").split(".")[0]
+            return f"job-{timestamp_part}"
+        return f"job-{basename}"
+

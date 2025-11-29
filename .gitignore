@@ -2,6 +2,14 @@
 *old*/
 archive/
 
+# Husky v9+ internal directory (auto-generated, not needed in repo)
+.husky/_/
+config/hooks/husky/_/
+
+# Prevent accidental directories from CLI mishaps (e.g., "cmd --version" creating dirs)
+--version/
+-v/
+
 # RAGFlow is a git repo itself; ignore its contents
 docs/ops/ragflow/
 

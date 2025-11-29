@@ -9,77 +9,59 @@ const SourcesListPage: React.FC = () => {
   const { data: sources, isLoading, error } = useSources();
 
   if (isLoading) {
-    return <div style={{ padding: "20px" }}>Loading sources...</div>;
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-gray-500">Loading sources...</div>
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div style={{ padding: "20px", color: "#dc3545" }}>
+      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
         Failed to load sources: {error.message}
       </div>
     );
   }
 
   return (
-    <div className="sources-list-page">
-      <h1 style={{ marginTop: 0 }}>Sources</h1>
+    <div className="max-w-6xl mx-auto">
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">Sources</h1>
 
       {sources && sources.length > 0 ? (
-        <table
-          style={{
-            width: "100%",
-            backgroundColor: "white",
-            borderCollapse: "collapse",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-          }}
-        >
-          <thead>
-            <tr style={{ backgroundColor: "#f8f9fa" }}>
-              <th style={{ padding: "12px", textAlign: "left", borderBottom: "2px solid #dee2e6" }}>
-                ID
-              </th>
-              <th style={{ padding: "12px", textAlign: "left", borderBottom: "2px solid #dee2e6" }}>
-                Name
-              </th>
-              <th
-                style={{ padding: "12px", textAlign: "right", borderBottom: "2px solid #dee2e6" }}
-              >
-                RA (deg)
-              </th>
-              <th
-                style={{ padding: "12px", textAlign: "right", borderBottom: "2px solid #dee2e6" }}
-              >
-                Dec (deg)
-              </th>
-              <th
-                style={{ padding: "12px", textAlign: "center", borderBottom: "2px solid #dee2e6" }}
-              >
-                Images
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {sources.map((source) => (
-              <tr key={source.id} style={{ borderBottom: "1px solid #dee2e6" }}>
-                <td style={{ padding: "12px" }}>
-                  <Link to={`/sources/${source.id}`} style={{ color: "#0066cc" }}>
-                    {source.id}
-                  </Link>
-                </td>
-                <td style={{ padding: "12px" }}>{source.name || "—"}</td>
-                <td style={{ padding: "12px", textAlign: "right" }}>{source.ra_deg?.toFixed(4)}</td>
-                <td style={{ padding: "12px", textAlign: "right" }}>
-                  {source.dec_deg?.toFixed(4)}
-                </td>
-                <td style={{ padding: "12px", textAlign: "center" }}>
-                  {source.contributing_images?.length ?? 0}
-                </td>
+        <div className="card overflow-hidden">
+          <table className="table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th className="text-right">RA (deg)</th>
+                <th className="text-right">Dec (deg)</th>
+                <th className="text-center">Images</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {sources.map((source) => (
+                <tr key={source.id}>
+                  <td>
+                    <Link
+                      to={`/sources/${source.id}`}
+                      className="text-blue-600 hover:text-blue-800 font-medium"
+                    >
+                      {source.id}
+                    </Link>
+                  </td>
+                  <td>{source.name || "—"}</td>
+                  <td className="text-right font-mono">{source.ra_deg?.toFixed(4)}</td>
+                  <td className="text-right font-mono">{source.dec_deg?.toFixed(4)}</td>
+                  <td className="text-center">{source.num_images ?? "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       ) : (
-        <p style={{ color: "#666" }}>No sources found.</p>
+        <p className="text-gray-500">No sources found.</p>
       )}
     </div>
   );

@@ -9,78 +9,61 @@ const ImagesListPage: React.FC = () => {
   const { data: images, isLoading, error } = useImages();
 
   if (isLoading) {
-    return <div style={{ padding: "20px" }}>Loading images...</div>;
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-gray-500">Loading images...</div>
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div style={{ padding: "20px", color: "#dc3545" }}>
+      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
         Failed to load images: {error.message}
       </div>
     );
   }
 
   return (
-    <div className="images-list-page">
-      <h1 style={{ marginTop: 0 }}>Images</h1>
+    <div className="max-w-6xl mx-auto">
+      <h1 className="text-2xl font-bold text-gray-900 mb-6">Images</h1>
 
       {images && images.length > 0 ? (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
-            gap: "16px",
-          }}
-        >
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {images.map((image) => (
             <Link
               key={image.id}
               to={`/images/${image.id}`}
-              style={{
-                display: "block",
-                backgroundColor: "white",
-                padding: "16px",
-                borderRadius: "8px",
-                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-                textDecoration: "none",
-                color: "inherit",
-              }}
+              className="card p-4 hover:shadow-lg transition-shadow"
             >
-              <h3 style={{ margin: "0 0 8px", fontSize: "1rem" }}>
+              <h3 className="font-medium text-gray-900 mb-2 truncate">
                 {image.path?.split("/").pop() || image.id}
               </h3>
-              <div style={{ fontSize: "0.85rem", color: "#666" }}>
+              <div className="flex items-center gap-2 text-sm">
                 {image.qa_grade && (
                   <span
-                    style={{
-                      display: "inline-block",
-                      padding: "2px 8px",
-                      borderRadius: "4px",
-                      backgroundColor:
-                        image.qa_grade === "good"
-                          ? "#d4edda"
-                          : image.qa_grade === "warn"
-                            ? "#fff3cd"
-                            : "#f8d7da",
-                      color:
-                        image.qa_grade === "good"
-                          ? "#155724"
-                          : image.qa_grade === "warn"
-                            ? "#856404"
-                            : "#721c24",
-                      marginRight: "8px",
-                    }}
+                    className={`badge ${
+                      image.qa_grade === "good"
+                        ? "badge-success"
+                        : image.qa_grade === "warn"
+                        ? "badge-warning"
+                        : "badge-error"
+                    }`}
                   >
                     {image.qa_grade}
                   </span>
                 )}
-                {image.created_at && <span>{new Date(image.created_at).toLocaleDateString()}</span>}
+                {image.created_at && (
+                  <span className="text-gray-500">
+                    {new Date(image.created_at).toLocaleDateString()}
+                  </span>
+                )}
               </div>
             </Link>
           ))}
         </div>
       ) : (
-        <p style={{ color: "#666" }}>No images found.</p>
+        <p className="text-gray-500">No images found.</p>
       )}
     </div>
   );

@@ -1,4 +1,4 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 import AppLayout from "./components/layout/AppLayout";
 import HomePage from "./pages/HomePage";
 import ImageDetailPage from "./pages/ImageDetailPage";
@@ -22,88 +22,77 @@ import NotFoundPage from "./pages/NotFoundPage";
  * - /sources/:sourceId : Source detail
  * - /jobs : List of jobs
  * - /jobs/:runId : Job detail/provenance
+ *
+ * All detail pages use useParams() internally to access route parameters.
+ *
+ * Note: basename is set for GitHub Pages deployment where the app
+ * is served from /dsa110-contimg/ subdirectory.
  */
-export const router = createBrowserRouter([
+
+// Detect if running on GitHub Pages (production build with base path)
+const basename = import.meta.env.BASE_URL;
+
+export const router = createBrowserRouter(
+  [
+    {
+      path: "/",
+      element: <AppLayout />,
+      children: [
+        {
+          index: true,
+          element: <HomePage />,
+        },
+        {
+          path: "images",
+          children: [
+            {
+              index: true,
+              element: <ImagesListPage />,
+            },
+            {
+              path: ":imageId",
+              element: <ImageDetailPage />,
+            },
+          ],
+        },
+        {
+          path: "ms/*",
+          element: <MSDetailPage />,
+        },
+        {
+          path: "sources",
+          children: [
+            {
+              index: true,
+              element: <SourcesListPage />,
+            },
+            {
+              path: ":sourceId",
+              element: <SourceDetailPage />,
+            },
+          ],
+        },
+        {
+          path: "jobs",
+          children: [
+            {
+              index: true,
+              element: <JobsListPage />,
+            },
+            {
+              path: ":runId",
+              element: <JobDetailPage />,
+            },
+          ],
+        },
+        {
+          path: "*",
+          element: <NotFoundPage />,
+        },
+      ],
+    },
+  ],
   {
-    path: "/",
-    element: <AppLayout />,
-    children: [
-      {
-        index: true,
-        element: <HomePage />,
-      },
-      {
-        path: "images",
-        children: [
-          {
-            index: true,
-            element: <ImagesListPage />,
-          },
-          {
-            path: ":imageId",
-            element: <ImageDetailPageWrapper />,
-          },
-        ],
-      },
-      {
-        path: "ms/*",
-        element: <MSDetailPageWrapper />,
-      },
-      {
-        path: "sources",
-        children: [
-          {
-            index: true,
-            element: <SourcesListPage />,
-          },
-          {
-            path: ":sourceId",
-            element: <SourceDetailPageWrapper />,
-          },
-        ],
-      },
-      {
-        path: "jobs",
-        children: [
-          {
-            index: true,
-            element: <JobsListPage />,
-          },
-          {
-            path: ":runId",
-            element: <JobDetailPage />,
-          },
-        ],
-      },
-      {
-        path: "*",
-        element: <NotFoundPage />,
-      },
-    ],
-  },
-]);
-
-/**
- * Wrapper components to extract route params and pass to page components.
- */
-import { useParams } from "react-router-dom";
-
-function ImageDetailPageWrapper() {
-  const { imageId } = useParams<{ imageId: string }>();
-  if (!imageId) return <NotFoundPage />;
-  return <ImageDetailPage imageId={imageId} />;
-}
-
-function MSDetailPageWrapper() {
-  const { "*": msPath } = useParams<{ "*": string }>();
-  if (!msPath) return <NotFoundPage />;
-  // Decode the path - it may be URL-encoded
-  const decodedPath = decodeURIComponent(msPath);
-  return <MSDetailPage msPath={decodedPath} />;
-}
-
-function SourceDetailPageWrapper() {
-  const { sourceId } = useParams<{ sourceId: string }>();
-  if (!sourceId) return <NotFoundPage />;
-  return <SourceDetailPage sourceId={sourceId} />;
-}
+    basename: basename,
+  }
+);

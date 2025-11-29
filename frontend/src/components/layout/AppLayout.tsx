@@ -20,38 +20,25 @@ const AppLayout: React.FC = () => {
   };
 
   return (
-    <div
-      className="app-layout"
-      style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
-    >
+    <div className="min-h-screen flex flex-col bg-gray-50">
       {/* Header */}
-      <header
-        style={{
-          backgroundColor: "#1a1a2e",
-          color: "white",
-          padding: "12px 20px",
-          display: "flex",
-          alignItems: "center",
-          gap: "24px",
-        }}
-      >
+      <header className="bg-slate-900 text-white px-6 py-3 flex items-center gap-8 shadow-md">
         <Link
           to="/"
-          style={{ color: "white", textDecoration: "none", fontWeight: "bold", fontSize: "1.2rem" }}
+          className="text-white no-underline font-bold text-xl hover:text-cyan-300 transition-colors"
         >
           DSA-110 Pipeline
         </Link>
-        <nav style={{ display: "flex", gap: "16px" }}>
+        <nav className="flex gap-1">
           {navItems.map((item) => (
             <Link
               key={item.path}
               to={item.path}
-              style={{
-                color: isActive(item.path) ? "#4fc3f7" : "#ccc",
-                textDecoration: "none",
-                padding: "4px 8px",
-                borderBottom: isActive(item.path) ? "2px solid #4fc3f7" : "2px solid transparent",
-              }}
+              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                isActive(item.path)
+                  ? "bg-slate-700 text-cyan-300"
+                  : "text-gray-300 hover:bg-slate-800 hover:text-white"
+              }`}
             >
               {item.label}
             </Link>
@@ -60,20 +47,12 @@ const AppLayout: React.FC = () => {
       </header>
 
       {/* Main content */}
-      <main style={{ flex: 1, padding: "20px", backgroundColor: "#f5f5f5" }}>
+      <main className="flex-1 p-6">
         <Outlet />
       </main>
 
       {/* Footer */}
-      <footer
-        style={{
-          backgroundColor: "#1a1a2e",
-          color: "#888",
-          padding: "12px 20px",
-          textAlign: "center",
-          fontSize: "0.85rem",
-        }}
-      >
+      <footer className="bg-slate-900 text-gray-400 px-6 py-3 text-center text-sm">
         DSA-110 Continuum Imaging Pipeline • Deep Synoptic Array
       </footer>
     </div>

@@ -44,7 +44,7 @@ const SourceDetailPage: React.FC = () => {
   if (error) {
     return (
       <div className="page-error" style={{ padding: "20px" }}>
-        <ErrorDisplay error={error as ErrorResponse} onRetry={() => refetch()} />
+        <ErrorDisplay error={error as unknown as ErrorResponse} onRetry={() => refetch()} />
       </div>
     );
   }
@@ -139,14 +139,14 @@ const SourceDetailPage: React.FC = () => {
                           img.qa_grade === "good"
                             ? "#d4edda"
                             : img.qa_grade === "warn"
-                              ? "#fff3cd"
-                              : "#f8d7da",
+                            ? "#fff3cd"
+                            : "#f8d7da",
                         color:
                           img.qa_grade === "good"
                             ? "#155724"
                             : img.qa_grade === "warn"
-                              ? "#856404"
-                              : "#721c24",
+                            ? "#856404"
+                            : "#721c24",
                       }}
                     >
                       {img.qa_grade.toUpperCase()}
