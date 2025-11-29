@@ -1,0 +1,2 @@
+function n(t){const r=new Date(t),e=Math.floor((new Date().getTime()-r.getTime())/1e3);if(e<0)return"in the future";let o=Math.floor(e/31536e3);return o>=1?o===1?"1 year ago":`${o} years ago`:(o=Math.floor(e/2592e3),o>=1?o===1?"1 month ago":`${o} months ago`:(o=Math.floor(e/86400),o>=1?o===1?"1 day ago":`${o} days ago`:(o=Math.floor(e/3600),o>=1?o===1?"1 hour ago":`${o} hours ago`:(o=Math.floor(e/60),o>=1?o===1?"1 minute ago":`${o} minutes ago`:e<=1?"just now":`${e} seconds ago`))))}export{n as r};
+//# sourceMappingURL=relativeTime-Dp84ug83.js.map
