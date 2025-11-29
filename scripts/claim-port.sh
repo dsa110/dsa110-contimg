@@ -48,13 +48,13 @@ log() {
 
 # Check if port has a TCP listener
 check_listener() {
-    lsof -i ":$PORT" -sTCP:LISTEN -t 2>/dev/null || true
+    lsof -i ":$PORT" -sTCP:LISTEN -t 2>/dev/null  # Exception: port check may return empty || true
 }
 
 # Get process info for logging
 get_process_info() {
     local pid="$1"
-    ps -p "$pid" -o pid=,comm=,user=,args= 2>/dev/null | head -1 || echo "$pid (exited)"
+    ps -p "$pid" -o pid=,comm=,user=,args= 2>/dev/null  # Exception: process may have exited | head -1 || echo "$pid (exited)"
 }
 
 # Check if a PID is protected (should not be killed)
@@ -68,7 +68,7 @@ is_protected() {
     fi
     
     # Never kill systemd or journald
-    comm=$(ps -p "$pid" -o comm= 2>/dev/null || true)
+    comm=$(ps -p "$pid" -o comm= 2>/dev/null  # Exception: process may have exited || true)
     case "$comm" in
         systemd|journald|sshd|init)
             return 0
@@ -113,8 +113,8 @@ fi
 # Graceful shutdown
 log "Sending SIGTERM..."
 for pid in $KILLABLE_PIDS; do
-    if kill -0 "$pid" 2>/dev/null; then
-        kill -TERM "$pid" 2>/dev/null || true
+    if kill -0 "$pid" 2>/dev/null  # Exception: process existence check; then
+        kill -TERM "$pid" 2>/dev/null  # Exception: process may have exited || true
     fi
 done
 
@@ -136,9 +136,9 @@ for pid in $PIDS; do
     if is_protected "$pid"; then
         continue
     fi
-    if kill -0 "$pid" 2>/dev/null; then
+    if kill -0 "$pid" 2>/dev/null  # Exception: process existence check; then
         log "  SIGKILL -> $pid"
-        kill -9 "$pid" 2>/dev/null || true
+        kill -9 "$pid" 2>/dev/null  # Exception: process may have exited || true
     fi
 done
 
