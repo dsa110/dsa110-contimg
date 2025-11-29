@@ -16,10 +16,6 @@ interface JobItem {
  */
 const JobsListPage: React.FC = () => {
   const { data: jobs, isLoading, error } = useJobs();
-  const { sortKey, sortDirection, handleSort, sortItems } = useTableSort<JobItem>(
-    "started_at",
-    "desc"
-  );
 
   // Multi-select state
   const selectedJobs = useSelectionStore((s) => s.selectedJobs);

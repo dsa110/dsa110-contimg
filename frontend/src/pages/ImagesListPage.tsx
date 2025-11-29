@@ -19,10 +19,6 @@ interface ImageItem {
  */
 const ImagesListPage: React.FC = () => {
   const { data: images, isLoading, error } = useImages();
-  const { sortKey, sortDirection, handleSort, sortItems } = useTableSort<ImageItem>(
-    "created_at",
-    "desc"
-  );
 
   // View mode: list or comparison
   const [viewMode, setViewMode] = useState<"list" | "compare">("list");
@@ -90,10 +86,9 @@ const ImagesListPage: React.FC = () => {
     return result;
   }, [images, filterValues]);
 
-  const sortedImages = useMemo(() => {
-    if (!filteredImages) return [];
-    return sortItems(filteredImages, sortKey, sortDirection);
-  }, [filteredImages, sortKey, sortDirection, sortItems]);
+  // Apply sorting using the hook with filtered data
+  const { sortColumn, sortDirection, handleSort, sortedData: sortedImages } =
+    useTableSort<ImageItem>(filteredImages, "created_at", "desc");
 
   if (isLoading) {
     return <LoadingSpinner label="Loading images..." />;
