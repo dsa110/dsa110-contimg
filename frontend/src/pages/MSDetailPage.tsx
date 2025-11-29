@@ -108,10 +108,7 @@ const MSDetailPage: React.FC = () => {
                 type="button"
                 className="btn btn-secondary"
                 onClick={() =>
-                  window.open(
-                    `/viewer/carta?ms=${encodeURIComponent(msPath ?? "")}`,
-                    "_blank"
-                  )
+                  window.open(`/viewer/carta?ms=${encodeURIComponent(msPath ?? "")}`, "_blank")
                 }
               >
                 🔭 Open in CARTA
@@ -184,10 +181,7 @@ const MSDetailPage: React.FC = () => {
             >
               <div className="space-y-3">
                 {ms.calibrator_matches.map((cal, index) => (
-                  <div
-                    key={index}
-                    className="p-3 rounded-lg border border-gray-200 bg-gray-50"
-                  >
+                  <div key={index} className="p-3 rounded-lg border border-gray-200 bg-gray-50">
                     <div className="flex items-start justify-between">
                       <div>
                         <span
