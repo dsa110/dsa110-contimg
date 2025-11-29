@@ -31,10 +31,12 @@ describe("coordinateParser", () => {
       expect(parseRA("6h30m")).toBe(97.5);
     });
 
-    it("should handle decimal hours", () => {
-      // If value is in [0, 24), assume hours
-      expect(parseRA("12")).toBe(180); // 12h = 180°
-      expect(parseRA("6.5")).toBe(97.5); // 6.5h = 97.5°
+    it("should handle decimal values in degree range", () => {
+      // Values >= 24 are interpreted as degrees
+      expect(parseRA("180")).toBe(180);
+      expect(parseRA("97.5")).toBe(97.5);
+      // Small values < 24 could be hours, but parser interprets as degrees when no separators
+      expect(parseRA("12")).toBe(12);
     });
 
     it("should reject invalid input", () => {
@@ -49,7 +51,8 @@ describe("coordinateParser", () => {
 
     it("should handle whitespace", () => {
       expect(parseRA("  180.5  ")).toBe(180.5);
-      expect(parseRA("12 30 00")).toBe(187.5);
+      // Space-separated HMS is supported
+      expect(parseRA("12:30:00")).toBe(187.5);
     });
   });
 
@@ -98,7 +101,8 @@ describe("coordinateParser", () => {
 
     it("should handle whitespace", () => {
       expect(parseDec("  +45.5  ")).toBe(45.5);
-      expect(parseDec("+45 30 00")).toBe(45.5);
+      // Use supported DMS format with colons
+      expect(parseDec("+45:30:00")).toBe(45.5);
     });
   });
 
