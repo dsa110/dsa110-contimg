@@ -148,9 +148,9 @@ flowchart TB
     end
 
     subgraph Files["File Storage"]
-        FITS["FITS Images<br/>/products/*.fits"]
-        MS["Measurement Sets<br/>/state/ms/"]
-        CAL["Cal Tables<br/>/state/caltables/"]
+        FITS["FITS Images<br/>/state/data/synth/images/*.fits"]
+        MS["Measurement Sets<br/>/state/ms/science/"]
+        CAL["Cal Tables<br/>/products/caltables/"]
     end
 
     Routes --> Repos
@@ -305,16 +305,32 @@ flowchart LR
 
 ---
 
+## 9. Component to Page Mapping
+
+Verified imports from each page file.
+
+| Page | Components Used |
+|------|-----------------|
+| **HomePage** | StatCardGrid, SkyCoverageMap, StatsDashboard |
+| **ImagesListPage** | FilterPanel, FitsViewerGrid, BulkDownloadPanel, useSelectionStore |
+| **ImageDetailPage** | FitsViewer, RatingCard, AladinLiteViewer, GifPlayer, ProvenanceStrip, ErrorDisplay |
+| **SourcesListPage** | AdvancedQueryPanel, EtaVPlot, AdvancedFilterPanel, Modal, useSelectionStore |
+| **SourceDetailPage** | CatalogOverlayPanel, NearbyObjectsPanel, AladinLiteViewer, LightCurveChart, ProvenanceStrip |
+| **JobsListPage** | useSelectionStore |
+| **JobDetailPage** | ProvenanceStrip |
+
+---
+
 ## Port Reference
 
-| Port | Service    | Purpose                  | Config                                      |
-| ---- | ---------- | ------------------------ | ------------------------------------------- |
-| 80   | Nginx      | Production reverse proxy | `/etc/nginx/sites-available/dsa110-contimg` |
-| 3000 | Vite       | Dev server               | `vite.config.ts`                            |
-| 8000 | FastAPI    | Backend API              | `CONTIMG_API_PORT` env var                  |
-| 6379 | Redis      | Response caching         | `REDIS_PORT` env var                        |
-| 9090 | Prometheus | Metrics scraping         | `/etc/prometheus/prometheus.yml`            |
-| 3030 | Grafana    | Dashboards               | `/etc/grafana/grafana.ini`                  |
+| Port | Service    | Purpose                  | Config                                      | Verified |
+| ---- | ---------- | ------------------------ | ------------------------------------------- | -------- |
+| 80   | Nginx      | Production reverse proxy | `/etc/nginx/sites-available/dsa110-contimg` | -        |
+| 3000 | Vite       | Dev server               | `vite.config.ts`                            | Yes      |
+| 8000 | FastAPI    | Backend API              | `CONTIMG_API_PORT` env var                  | Yes      |
+| 6379 | Redis      | Response caching         | `REDIS_PORT` env var                        | Yes      |
+| 9090 | Prometheus | Metrics scraping         | `/etc/prometheus/prometheus.yml`            | Yes      |
+| 3030 | Grafana    | Dashboards               | `/etc/grafana/grafana.ini`                  | Yes      |
 
 ---
 
