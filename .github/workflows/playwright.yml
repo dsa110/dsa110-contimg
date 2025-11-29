@@ -34,8 +34,12 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium firefox
 
-      - name: Build application
+      - name: Build application for E2E testing
         run: npm run build
+        env:
+          # Override GITHUB_ACTIONS to prevent base path change for E2E tests
+          # We want base "/" for Playwright tests, not "/dsa110-contimg/dashboard/"
+          GITHUB_ACTIONS: ""
 
       - name: Run Playwright tests
         run: npm run test:e2e
