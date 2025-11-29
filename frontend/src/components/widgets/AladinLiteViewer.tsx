@@ -60,7 +60,7 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const aladinRef = useRef<AladinInstance | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentFov, setCurrentFov] = useState(fov);
   const destroyInstance = useCallback(() => {
@@ -77,6 +77,7 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
     const target = `${raDeg.toFixed(6)} ${decDeg >= 0 ? "+" : ""}${decDeg.toFixed(6)}`;
 
     try {
+      setIsLoading(true);
       destroyInstance();
 
       aladinRef.current = Aladin.aladin(containerRef.current, {
@@ -95,10 +96,11 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
       setIsLoading(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load sky viewer");
+      setIsLoading(false);
     }
 
     return destroyInstance;
-  }, [destroyInstance, error, raDeg, decDeg, currentFov, survey, showFullscreen]);
+  }, [destroyInstance, error, raDeg, decDeg, survey, showFullscreen]);
 
   // Update position when coordinates change
   useEffect(() => {
@@ -110,14 +112,26 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
   const handleZoomIn = useCallback(() => {
     if (aladinRef.current) {
       aladinRef.current.increaseZoom();
-      setCurrentFov((prev) => Math.max(0.001, prev / 2));
+      setCurrentFov((prev) => {
+        const next = Math.max(0.001, prev / 2);
+        if (typeof (aladinRef.current as any).setFoV === "function") {
+          (aladinRef.current as any).setFoV(next);
+        }
+        return next;
+      });
     }
   }, []);
 
   const handleZoomOut = useCallback(() => {
     if (aladinRef.current) {
       aladinRef.current.decreaseZoom();
-      setCurrentFov((prev) => Math.min(180, prev * 2));
+      setCurrentFov((prev) => {
+        const next = Math.min(180, prev * 2);
+        if (typeof (aladinRef.current as any).setFoV === "function") {
+          (aladinRef.current as any).setFoV(next);
+        }
+        return next;
+      });
     }
   }, []);
 
