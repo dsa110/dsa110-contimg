@@ -360,7 +360,7 @@ Quick reference checklist for tracking TODO completion progress.
 
 Track overall progress:
 
-```
+```text
 Phase 1: [x] 2/2 complete (100%)
 Phase 2: [ ] 0/4 complete (0%)
 Phase 3: [ ] 0/2 complete (0%)

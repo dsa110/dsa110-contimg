@@ -34,13 +34,13 @@ docker-compose logs stream | tail -50
 
 ## Issue 1: Service Won't Start
 
-### Symptoms
+**Symptoms:**
 
 - Start button returns error
 - Status shows "Stopped" immediately after start
 - Error: "Failed to start streaming service"
 
-### Diagnosis
+**Diagnosis:**
 
 ```bash
 # Check API logs
@@ -58,9 +58,9 @@ ls -la /opt/miniforge/envs/casa6/bin/python
 /opt/miniforge/envs/casa6/bin/python -c "import casatasks; print('CASA OK')"
 ```
 
-### Solutions
+**Solutions:**
 
-**Configuration Error:**
+*Configuration Error:*
 
 ```bash
 curl -X POST http://localhost:8010/api/streaming/config \
@@ -92,13 +92,13 @@ sudo chown -R $USER:$USER /stage/dsa110-contimg
 
 ## Issue 2: Service Starts But Stops Immediately
 
-### Symptoms
+**Symptoms:**
 
 - Service appears to start
 - Status shows "Running" briefly, then "Stopped"
 - No error in dashboard
 
-### Diagnosis
+**Diagnosis:**
 
 ```bash
 # Check container logs
@@ -113,9 +113,9 @@ free -h
 dmesg | tail -20
 ```
 
-### Solutions
+**Solutions:**
 
-**Python Import Error:**
+*Python Import Error:*
 
 ```bash
 docker-compose exec stream python -c "import dsa110_contimg.conversion.streaming.streaming_converter"
@@ -150,12 +150,12 @@ docker-compose restart stream
 
 ## Issue 3: Not Processing Files
 
-### Symptoms
+**Symptoms:**
 
 - Service running but no conversions
 - Queue items stuck in "pending" or "collecting"
 
-### Diagnosis
+**Diagnosis:**
 
 ```bash
 # Check input directory
@@ -169,9 +169,9 @@ sqlite3 state/ingest.sqlite3 "SELECT state, COUNT(*) FROM ingest_queue GROUP BY 
 docker-compose logs stream | grep -i "worker\|processing" | tail -20
 ```
 
-### Solutions
+**Solutions:**
 
-**Files Not Arriving:**
+*Files Not Arriving:*
 
 ```bash
 # Check input directory setting
@@ -207,12 +207,12 @@ curl -X POST http://localhost:8010/api/streaming/restart
 
 ## Issue 4: High CPU Usage
 
-### Symptoms
+**Symptoms:**
 
 - CPU usage >80%
 - System unresponsive
 
-### Diagnosis
+**Diagnosis:**
 
 ```bash
 curl http://localhost:8010/api/streaming/status | jq .cpu_percent
@@ -220,9 +220,9 @@ curl http://localhost:8010/api/streaming/config | jq .max_workers
 docker stats contimg-stream --no-stream
 ```
 
-### Solutions
+**Solutions:**
 
-**Reduce Workers:**
+*Reduce Workers:*
 
 ```bash
 curl -X POST http://localhost:8010/api/streaming/config \
@@ -243,13 +243,13 @@ export MKL_NUM_THREADS=4
 
 ## Issue 5: High Memory Usage
 
-### Symptoms
+**Symptoms:**
 
 - Memory >8GB
 - System swapping
 - OOM crashes
 
-### Diagnosis
+**Diagnosis:**
 
 ```bash
 curl http://localhost:8010/api/streaming/status | jq .memory_mb
@@ -257,9 +257,9 @@ docker stats contimg-stream --no-stream
 du -sh /data/incoming/*.hdf5 | sort -h | tail -5
 ```
 
-### Solutions
+**Solutions:**
 
-**Reduce Workers:**
+*Reduce Workers:*
 
 ```bash
 curl -X POST http://localhost:8010/api/streaming/config \
@@ -279,12 +279,12 @@ curl -X POST http://localhost:8010/api/streaming/config \
 
 ## Issue 6: Dashboard Shows Stale Status
 
-### Symptoms
+**Symptoms:**
 
 - Status doesn't update
 - Old data displayed
 
-### Solutions
+**Solutions:**
 
 1. Refresh browser (Ctrl+F5)
 2. Check API is reachable: `curl http://localhost:8010/api/streaming/status`

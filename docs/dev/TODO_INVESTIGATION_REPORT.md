@@ -54,27 +54,35 @@ updated: 2025-11-12)
 **✅ COMPLETED Items:**
 
 1. **`api/routes.py` - Logging** (Line 144, 236, 1415)
+
    ```python
    logger = logging.getLogger(__name__)
    ```
+
    - Status: ✅ DONE
    - Evidence: Multiple logger instances, proper logging throughout
 2. **`catalog/build_master.py` - Logging** (Line 46)
+
    ```python
    logger = logging.getLogger(__name__)
    ```
+
    - Status: ✅ DONE
    - Evidence: Logger present, docstrings with Args/Returns
 3. **`api/job_adapters.py` - Error Handling** (Line 37)
+
    ```python
    logger = structlog.get_logger(__name__)
    ```
+
    - Status: ✅ DONE
    - Evidence: Structured logging, ValidationError exceptions
 4. **`calibration/cli_calibrate.py` - Error Handling** (Line 50)
+
    ```python
    logger = logging.getLogger(__name__)
    ```
+
    - Status: ✅ DONE
    - Evidence: Imports error_context, performance tracking modules
 5. **Database functions - Type Hints**
@@ -355,7 +363,7 @@ robust task orchestration via the Absurd system.
 
 ---
 
-**Report Complete**
+## Report Complete
 
 _For questions or clarifications, refer to the TODO_ROADMAP.md for detailed
 implementation guidance._
