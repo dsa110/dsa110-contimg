@@ -103,26 +103,26 @@ setup_logging(
 
 ### Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `PIPELINE_LOG_LEVEL` | INFO | Logging level |
-| `PIPELINE_LOG_DIR` | /data/dsa110-contimg/state/logs | Log directory |
-| `PIPELINE_LOG_FORMAT` | text | Format (text or json) |
-| `PIPELINE_LOG_MAX_SIZE` | 50 | Max file size in MB |
-| `PIPELINE_LOG_BACKUP_COUNT` | 10 | Number of backups |
+| Variable                    | Default                         | Description           |
+| --------------------------- | ------------------------------- | --------------------- |
+| `PIPELINE_LOG_LEVEL`        | INFO                            | Logging level         |
+| `PIPELINE_LOG_DIR`          | /data/dsa110-contimg/state/logs | Log directory         |
+| `PIPELINE_LOG_FORMAT`       | text                            | Format (text or json) |
+| `PIPELINE_LOG_MAX_SIZE`     | 50                              | Max file size in MB   |
+| `PIPELINE_LOG_BACKUP_COUNT` | 10                              | Number of backups     |
 
 ### Log Files
 
-| File | Content |
-|------|---------|
-| `pipeline.log` | All log messages |
-| `error.log` | ERROR and above only |
-| `conversion.log` | Conversion module logs |
-| `streaming.log` | Streaming converter logs |
-| `calibration.log` | Calibration module logs |
-| `imaging.log` | Imaging module logs |
-| `api.log` | API server logs |
-| `database.log` | Database operation logs |
+| File              | Content                  |
+| ----------------- | ------------------------ |
+| `pipeline.log`    | All log messages         |
+| `error.log`       | ERROR and above only     |
+| `conversion.log`  | Conversion module logs   |
+| `streaming.log`   | Streaming converter logs |
+| `calibration.log` | Calibration module logs  |
+| `imaging.log`     | Imaging module logs      |
+| `api.log`         | API server logs          |
+| `database.log`    | Database operation logs  |
 
 ## Context Propagation
 
@@ -269,10 +269,10 @@ cat /data/dsa110-contimg/state/logs/pipeline.log | jq 'select(.group_id == "2025
 
 ```bash
 sqlite3 /data/dsa110-contimg/state/ingest.sqlite3 \
-  "SELECT group_id, error_type, error_message, retry_count 
-   FROM ingest_queue 
-   WHERE state = 'failed' 
-   ORDER BY completed_at DESC 
+  "SELECT group_id, error_type, error_message, retry_count
+   FROM ingest_queue
+   WHERE state = 'failed'
+   ORDER BY completed_at DESC
    LIMIT 10;"
 ```
 
@@ -298,7 +298,8 @@ python -m pytest tests/unit/test_conversion_errors.py -v
 
 1. **Always use custom exceptions** for pipeline-specific errors
 2. **Include context** (group_id, file paths, stage) in every error
-3. **Log at appropriate levels**: ERROR for failures, WARNING for recoverable issues
+3. **Log at appropriate levels**: ERROR for failures, WARNING for recoverable
+   issues
 4. **Use log_context** for automatic context propagation
 5. **Test error paths** with unit tests
 6. **Check is_recoverable()** before deciding to halt or continue

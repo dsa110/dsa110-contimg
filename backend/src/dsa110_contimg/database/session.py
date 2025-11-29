@@ -75,6 +75,9 @@ DEFAULT_DB_PATHS = {
     "embedding_cache": "/data/dsa110-contimg/state/embedding_cache.sqlite3",
 }
 
+# Alias for Alembic migrations
+DATABASE_PATHS = DEFAULT_DB_PATHS
+
 # Environment variable names for database paths
 DB_ENV_VARS = {
     "products": "PIPELINE_PRODUCTS_DB",

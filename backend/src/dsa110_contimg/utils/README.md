@@ -1,6 +1,7 @@
 # DSA-110 Pipeline Utilities
 
-This module provides shared utilities for the DSA-110 Continuum Imaging Pipeline.
+This module provides shared utilities for the DSA-110 Continuum Imaging
+Pipeline.
 
 ## Modules
 
@@ -12,40 +13,40 @@ Pipeline-specific exceptions for structured error handling:
 from dsa110_contimg.utils.exceptions import (
     # Base exception
     PipelineError,
-    
+
     # Subband grouping errors
     SubbandGroupingError,
     IncompleteSubbandGroupError,
-    
+
     # Conversion errors
     ConversionError,
     UVH5ReadError,
     MSWriteError,
-    
+
     # Database errors
     DatabaseError,
     DatabaseMigrationError,
     DatabaseConnectionError,
     DatabaseLockError,
-    
+
     # Queue errors
     QueueError,
     QueueStateTransitionError,
-    
+
     # Calibration errors
     CalibrationError,
     CalibrationTableNotFoundError,
     CalibratorNotFoundError,
-    
+
     # Imaging errors
     ImagingError,
     ImageNotFoundError,
-    
+
     # Validation errors
     ValidationError,
     MissingParameterError,
     InvalidPathError,
-    
+
     # Helpers
     wrap_exception,
     is_recoverable,
@@ -134,13 +135,13 @@ from dsa110_contimg.utils import (
     ConversionError,
     DatabaseError,
     # ...
-    
+
     # Logging
     setup_logging,
     log_context,
     get_logger,
     log_exception,
-    
+
     # Constants
     DSA110_LOCATION,
     DSA110_LATITUDE,
@@ -152,13 +153,13 @@ from dsa110_contimg.utils import (
 
 The logging system respects these environment variables:
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `PIPELINE_LOG_LEVEL` | INFO | Logging level |
-| `PIPELINE_LOG_DIR` | /data/dsa110-contimg/state/logs | Log directory |
-| `PIPELINE_LOG_FORMAT` | text | Format (text/json) |
-| `PIPELINE_LOG_MAX_SIZE` | 50 | Max file size in MB |
-| `PIPELINE_LOG_BACKUP_COUNT` | 10 | Backup file count |
+| Variable                    | Default                         | Description         |
+| --------------------------- | ------------------------------- | ------------------- |
+| `PIPELINE_LOG_LEVEL`        | INFO                            | Logging level       |
+| `PIPELINE_LOG_DIR`          | /data/dsa110-contimg/state/logs | Log directory       |
+| `PIPELINE_LOG_FORMAT`       | text                            | Format (text/json)  |
+| `PIPELINE_LOG_MAX_SIZE`     | 50                              | Max file size in MB |
+| `PIPELINE_LOG_BACKUP_COUNT` | 10                              | Backup file count   |
 
 ## See Also
 
