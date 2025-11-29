@@ -309,15 +309,15 @@ flowchart LR
 
 Verified imports from each page file.
 
-| Page | Components Used |
-|------|-----------------|
-| **HomePage** | StatCardGrid, SkyCoverageMap, StatsDashboard |
-| **ImagesListPage** | FilterPanel, FitsViewerGrid, BulkDownloadPanel, useSelectionStore |
-| **ImageDetailPage** | FitsViewer, RatingCard, AladinLiteViewer, GifPlayer, ProvenanceStrip, ErrorDisplay |
-| **SourcesListPage** | AdvancedQueryPanel, EtaVPlot, AdvancedFilterPanel, Modal, useSelectionStore |
+| Page                 | Components Used                                                                             |
+| -------------------- | ------------------------------------------------------------------------------------------- |
+| **HomePage**         | StatCardGrid, SkyCoverageMap, StatsDashboard                                                |
+| **ImagesListPage**   | FilterPanel, FitsViewerGrid, BulkDownloadPanel, useSelectionStore                           |
+| **ImageDetailPage**  | FitsViewer, RatingCard, AladinLiteViewer, GifPlayer, ProvenanceStrip, ErrorDisplay          |
+| **SourcesListPage**  | AdvancedQueryPanel, EtaVPlot, AdvancedFilterPanel, Modal, useSelectionStore                 |
 | **SourceDetailPage** | CatalogOverlayPanel, NearbyObjectsPanel, AladinLiteViewer, LightCurveChart, ProvenanceStrip |
-| **JobsListPage** | useSelectionStore |
-| **JobDetailPage** | ProvenanceStrip |
+| **JobsListPage**     | useSelectionStore                                                                           |
+| **JobDetailPage**    | ProvenanceStrip                                                                             |
 
 ---
 
