@@ -177,9 +177,13 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
         const regions = window.JS9.GetRegions("all", { display: displayId });
         if (regions && regions.length > 0) {
           regions.forEach((region: any) => {
-            window.JS9.ChangeRegions(region.id, {
-              visibility: controls.showRegions,
-            }, { display: displayId });
+            window.JS9.ChangeRegions(
+              region.id,
+              {
+                visibility: controls.showRegions,
+              },
+              { display: displayId }
+            );
           });
         }
       } catch (regionErr) {
