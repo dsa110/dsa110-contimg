@@ -96,7 +96,7 @@ CARTA has read-only access to:
 
 ## File Structure
 
-```
+```text
 frontend/src/
 ├── components/CARTA/
 │   ├── CARTAIframe.tsx          # Iframe integration

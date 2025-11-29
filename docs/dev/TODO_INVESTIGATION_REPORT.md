@@ -253,33 +253,33 @@ implementation
 
 ### Short-term Improvements (Month 1)
 
-3. **🟠 HIGH**: Implement notification system for monitoring
+1. **🟠 HIGH**: Implement notification system for monitoring
 
    - Email/Slack alerts
    - Estimated effort: 8-12 hours
 
-4. **🟡 MEDIUM**: Database location consolidation
+2. **🟡 MEDIUM**: Database location consolidation
 
    - Move catalog DBs from /stage/ to /data/
    - Estimated effort: 6-8 hours
 
-5. **🟡 MEDIUM**: Implement data retention policy
+3. **🟡 MEDIUM**: Implement data retention policy
    - Automatic cleanup of old files
    - Estimated effort: 12-16 hours
 
 ### Long-term Enhancements (Quarter 1)
 
-6. **🟠 HIGH**: React observability dashboard (Absurd Phase D1)
+1. **🟠 HIGH**: React observability dashboard (Absurd Phase D1)
 
    - Real-time task monitoring
    - Estimated effort: 25-30 hours
 
-7. **🟡 MEDIUM**: Distributed mosaic executor (Absurd Phase D2)
+2. **🟡 MEDIUM**: Distributed mosaic executor (Absurd Phase D2)
 
    - Parallel mosaic processing
    - Estimated effort: 16-20 hours
 
-8. **🟢 LOW**: Advanced workflow features (Absurd Phase D3)
+3. **🟢 LOW**: Advanced workflow features (Absurd Phase D3)
    - DAG dependencies, scheduling, templates
    - Estimated effort: 60-80 hours
 

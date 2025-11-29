@@ -66,7 +66,7 @@ causing noise filtering to fail and declination filtering to be slow.
 
 pytest would crash after tests passed with:
 
-```
+```text
 casatools::get_state() called after shutdown initiated
 ```
 
