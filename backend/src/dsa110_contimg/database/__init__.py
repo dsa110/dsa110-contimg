@@ -74,6 +74,7 @@ from .session import (
     reset_engines,
     DatabaseName,
     DEFAULT_DB_PATHS,
+    DATABASE_PATHS,  # Alias for Alembic migrations
 )
 
 # ORM Models - Products database

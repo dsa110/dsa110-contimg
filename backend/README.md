@@ -93,7 +93,7 @@ pytest tests/
 The pipeline supports different strategies for writing Measurement Sets.
 Production uses `DirectSubbandWriter` for parallel 16-subband processing.
 
-See [MS Writers Reference](../docs/reference/ms-writers.md) for full
+See [MS Writers Reference](../docs/architecture/pipeline/ms-writers.md) for full
 documentation on writer strategies, parameters, and usage examples.
 
 ## Contributing
