@@ -110,10 +110,20 @@ describe("vizierQuery", () => {
 
   describe("queryMultipleCatalogs", () => {
     it("should return results for each catalog as a Map", async () => {
-      // The rate limiter and async nature makes detailed testing complex
-      // Just verify that the function returns a Map with expected structure
+      // Mock VOTable XML response with proper FIELD definitions
+      // VizieR returns FIELD elements that define the column structure
       const emptyVotable = `<?xml version="1.0"?>
-<VOTABLE><RESOURCE type="results"><TABLE><DATA><TABLEDATA></TABLEDATA></DATA></TABLE></RESOURCE></VOTABLE>`;
+<VOTABLE version="1.4">
+  <RESOURCE type="results">
+    <TABLE>
+      <FIELD name="ra" datatype="double"/>
+      <FIELD name="dec" datatype="double"/>
+      <DATA>
+        <TABLEDATA></TABLEDATA>
+      </DATA>
+    </TABLE>
+  </RESOURCE>
+</VOTABLE>`;
 
       // Mock enough responses for potential retries
       for (let i = 0; i < 4; i++) {
