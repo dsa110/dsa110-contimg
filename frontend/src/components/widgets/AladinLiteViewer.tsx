@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
-
-// Use the official Aladin Lite CDN URL for reliable loading
-// Version 3.5.0 is the latest stable release from CDS
-const ALADIN_LITE_CDN_URL = "https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.js";
+// Import Aladin Lite from local npm package (v3.7.3-beta)
+import A from "aladin-lite";
 
 export interface AladinLiteViewerProps {
   /** Right Ascension in degrees */
@@ -45,14 +43,7 @@ interface AladinInstance {
   increaseZoom: () => void;
   decreaseZoom: () => void;
   toggleFullscreen: () => void;
-}
-
-declare global {
-  interface Window {
-    A?: {
-      aladin: (element: HTMLElement, options: AladinOptions) => AladinInstance;
-    };
-  }
+  destroy?: () => void;
 }
 
 /**
@@ -94,34 +85,12 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
         setIsLoading(true);
         destroyInstance();
 
-        // Load Aladin from CDN if not already present
-        if (!window.A) {
-          await new Promise<void>((resolve, reject) => {
-            let script = document.querySelector<HTMLScriptElement>(
-              'script[data-aladin-lite="true"]'
-            );
-            if (script) {
-              script.onload = () => resolve();
-              script.onerror = () => reject(new Error("Failed to load Aladin Lite"));
-              return;
-            }
-
-            script = document.createElement("script");
-            script.src = ALADIN_LITE_CDN_URL;
-            script.async = true;
-            script.dataset.aladinLite = "true";
-            script.onload = () => resolve();
-            script.onerror = () => reject(new Error("Failed to load Aladin Lite"));
-            document.head.appendChild(script);
-          });
-        }
+        // Initialize the Aladin Lite WASM module
+        await A.init;
 
         if (cancelled) return;
-        if (!window.A?.aladin) {
-          throw new Error("Aladin Lite library unavailable");
-        }
 
-        aladinRef.current = window.A.aladin(containerRef.current, {
+        aladinRef.current = A.aladin(containerRef.current, {
           target,
           fov: currentFov,
           survey,
