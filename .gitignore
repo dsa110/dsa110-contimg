@@ -268,3 +268,6 @@ docs/archive/
 !.local/bin/python*
 internal/
 .ai/
+
+*storybook.log
+storybook-static
