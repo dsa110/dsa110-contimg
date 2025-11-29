@@ -12,7 +12,8 @@ export default defineConfig({
   server: {
     port: 3000,
     strictPort: true, // Fail if port 3000 is occupied (don't auto-switch)
-    open: true,
+    open: false, // Disabled to prevent SSH disconnection issues
+    host: true, // Listen on all interfaces for remote access
     allowedHosts: ["localhost", ".trycloudflare.com", ".ngrok-free.app", ".ngrok-free.dev"],
     proxy: {
       "/api": {
