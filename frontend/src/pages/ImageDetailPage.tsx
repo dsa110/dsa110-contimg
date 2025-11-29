@@ -10,8 +10,6 @@ import {
   Modal,
   QAMetrics,
 } from "../components/common";
-// TODO: GifPlayer will be used for animated FITS cutout visualization feature
-// eslint-disable-next-line unused-imports/no-unused-imports
 import { AladinLiteViewer, GifPlayer } from "../components/widgets";
 import { FitsViewer } from "../components/fits";
 import { RatingCard, RatingTag } from "../components/rating";
@@ -31,6 +29,7 @@ const ImageDetailPage: React.FC = () => {
   const addRecentImage = usePreferencesStore((state) => state.addRecentImage);
   const [showSkyViewer, setShowSkyViewer] = useState(true);
   const [showFitsViewer, setShowFitsViewer] = useState(false);
+  const [showGifPlayer, setShowGifPlayer] = useState(false);
   const encodedImageId = imageId ? encodeURIComponent(imageId) : "";
   const [showRatingCard, setShowRatingCard] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -148,6 +147,13 @@ const ImageDetailPage: React.FC = () => {
               </button>
               <button
                 type="button"
+                className={`btn ${showGifPlayer ? "btn-primary" : "btn-secondary"}`}
+                onClick={() => setShowGifPlayer(!showGifPlayer)}
+              >
+                {showGifPlayer ? "Hide" : "Show"} Animation
+              </button>
+              <button
+                type="button"
                 className={`btn ${showRatingCard ? "btn-primary" : "btn-secondary"}`}
                 onClick={() => setShowRatingCard(!showRatingCard)}
               >
@@ -214,6 +220,26 @@ const ImageDetailPage: React.FC = () => {
                     ? { ra: imageData.pointing_ra_deg, dec: imageData.pointing_dec_deg }
                     : undefined
                 }
+              />
+            </Card>
+          )}
+
+          {/* Animated FITS Cutout Visualization */}
+          {showGifPlayer && (
+            <Card title="Animated Cutout" subtitle="Time-lapse visualization">
+              <GifPlayer
+                src={`${import.meta.env.VITE_API_URL || "/api"}/images/${encodedImageId}/animation`}
+                width="100%"
+                height={400}
+                autoPlay={false}
+                loop={true}
+                speed={1}
+                showFrameCounter={true}
+                showTimeline={true}
+                onFrameChange={(frameIndex, totalFrames) => {
+                  console.debug(`Animation frame: ${frameIndex + 1}/${totalFrames}`);
+                }}
+                className="rounded-lg overflow-hidden"
               />
             </Card>
           )}

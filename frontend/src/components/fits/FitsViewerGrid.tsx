@@ -1,7 +1,11 @@
 import React, { useState, useCallback, useEffect } from "react";
-// TODO: FitsViewerProps will be used for typed prop spreading in grid cells
-// eslint-disable-next-line unused-imports/no-unused-imports
 import FitsViewer, { FitsViewerProps } from "./FitsViewer";
+
+/** Props passed to individual FitsViewer cells, excluding grid-managed properties */
+type FitsViewerCellProps = Omit<
+  FitsViewerProps,
+  "fitsUrl" | "displayId" | "width" | "height" | "showControls" | "onLoad" | "onCoordinateClick"
+>;
 
 export interface FitsViewerGridProps {
   /** Array of FITS URLs to display */
@@ -18,6 +22,8 @@ export interface FitsViewerGridProps {
   onCoordinateClick?: (ra: number, dec: number, panelIndex: number) => void;
   /** Custom class name */
   className?: string;
+  /** Common props to spread to all FitsViewer cells */
+  viewerProps?: FitsViewerCellProps;
 }
 
 /**
@@ -32,6 +38,7 @@ const FitsViewerGrid: React.FC<FitsViewerGridProps> = ({
   labels,
   onCoordinateClick,
   className = "",
+  viewerProps,
 }) => {
   const [loadedCount, setLoadedCount] = useState(0);
   const [syncEnabled, setSyncEnabled] = useState(initialSyncViews);
@@ -148,6 +155,7 @@ const FitsViewerGrid: React.FC<FitsViewerGridProps> = ({
               onCoordinateClick={
                 onCoordinateClick ? (ra, dec) => onCoordinateClick(ra, dec, index) : undefined
               }
+              {...viewerProps}
             />
           </div>
         ))}

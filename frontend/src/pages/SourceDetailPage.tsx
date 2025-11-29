@@ -2,8 +2,6 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import ProvenanceStrip from "../components/provenance/ProvenanceStrip";
 import ErrorDisplay from "../components/errors/ErrorDisplay";
-// TODO: QAMetrics will be used for source quality assessment display
-// eslint-disable-next-line unused-imports/no-unused-imports
 import { Card, CoordinateDisplay, LoadingSpinner, QAMetrics } from "../components/common";
 import { AladinLiteViewer, LightCurveChart } from "../components/widgets";
 import { CatalogOverlayPanel } from "../components/catalogs";
@@ -275,6 +273,37 @@ const SourceDetailPage: React.FC = () => {
               </div>
             </dl>
           </Card>
+
+          {/* Source Quality Assessment */}
+          {sourceData.contributing_images &&
+            sourceData.contributing_images.length > 0 &&
+            (() => {
+              // Compute aggregate QA metrics from contributing images
+              const imagesWithQA = sourceData.contributing_images.filter((img) => img.qa_grade);
+              const goodCount = imagesWithQA.filter((img) => img.qa_grade === "good").length;
+              const warnCount = imagesWithQA.filter((img) => img.qa_grade === "warn").length;
+              const failCount = imagesWithQA.filter((img) => img.qa_grade === "fail").length;
+
+              // Determine overall grade based on majority
+              let overallGrade: "good" | "warn" | "fail" | undefined;
+              if (imagesWithQA.length > 0) {
+                if (failCount > goodCount && failCount > warnCount) overallGrade = "fail";
+                else if (warnCount > goodCount) overallGrade = "warn";
+                else if (goodCount > 0) overallGrade = "good";
+              }
+
+              return overallGrade ? (
+                <Card title="Quality Assessment">
+                  <QAMetrics
+                    grade={overallGrade}
+                    summary={`Based on ${imagesWithQA.length} image${
+                      imagesWithQA.length !== 1 ? "s" : ""
+                    }: ${goodCount} good, ${warnCount} marginal, ${failCount} failed`}
+                    compact={false}
+                  />
+                </Card>
+              ) : null;
+            })()}
         </div>
 
         {/* Right column - Interactive widgets and images */}
