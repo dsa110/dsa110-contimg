@@ -29,7 +29,7 @@ const SesameResolver: React.FC<SesameResolverProps> = ({ onResolved, className =
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ResolveResult | null>(null);
-  
+
   // AbortController for request cancellation
   const abortControllerRef = useRef<AbortController | null>(null);
 
@@ -71,11 +71,11 @@ const SesameResolver: React.FC<SesameResolverProps> = ({ onResolved, className =
       const response = await fetch(url, {
         signal: abortControllerRef.current.signal,
       });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error: ${response.status}`);
       }
-      
+
       const text = await response.text();
 
       // Parse the Sesame response

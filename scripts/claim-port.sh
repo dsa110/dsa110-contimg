@@ -73,7 +73,7 @@ check_listener() {
 # Get process info for logging
 get_process_info() {
     local pid="$1"
-    ps -p "$pid" -o pid=,comm=,user=,args= 2>/dev/null | # suppress-output-check head -1 || echo "$pid (exited)"
+    ps -p "$pid" -o pid=,comm=,user=,args= 2>/dev/null | head -1 || echo "$pid (exited)"  # suppress-output-check
 }
 
 # Check if a PID is protected (should not be killed)
@@ -87,7 +87,7 @@ is_protected() {
     fi
     
     # Never kill critical system processes
-    comm=$(ps -p "$pid" -o comm= 2>/dev/null || true)
+    comm=$(ps -p "$pid" -o comm= 2>/dev/null || true)  # suppress-output-check
     case "$comm" in
         systemd|systemd-*|journald|sshd|init|dbus-daemon)
             return 0

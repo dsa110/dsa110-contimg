@@ -46,27 +46,27 @@ export interface SkyCoverageMapProps {
 function galacticToEquatorial(l: number, b: number): [number, number] {
   const lRad = (l * Math.PI) / 180;
   const bRad = (b * Math.PI) / 180;
-  
+
   // North Galactic Pole (J2000): RA = 192.85948°, Dec = +27.12825°
   const raGP = (192.85948 * Math.PI) / 180;
   const decGP = (27.12825 * Math.PI) / 180;
   // Galactic longitude of ascending node: 32.93192°
   const lAscend = (32.93192 * Math.PI) / 180;
-  
-  const sinDec = Math.sin(bRad) * Math.sin(decGP) + 
-                 Math.cos(bRad) * Math.cos(decGP) * Math.sin(lRad - lAscend);
+
+  const sinDec =
+    Math.sin(bRad) * Math.sin(decGP) + Math.cos(bRad) * Math.cos(decGP) * Math.sin(lRad - lAscend);
   const dec = Math.asin(sinDec);
-  
+
   const y = Math.cos(bRad) * Math.cos(lRad - lAscend);
-  const x = Math.sin(bRad) * Math.cos(decGP) - 
-            Math.cos(bRad) * Math.sin(decGP) * Math.sin(lRad - lAscend);
-  
+  const x =
+    Math.sin(bRad) * Math.cos(decGP) - Math.cos(bRad) * Math.sin(decGP) * Math.sin(lRad - lAscend);
+
   let ra = raGP + Math.atan2(y, x);
-  
+
   // Normalize RA to [0, 360)
-  ra = ((ra * 180 / Math.PI) % 360 + 360) % 360;
+  ra = ((((ra * 180) / Math.PI) % 360) + 360) % 360;
   const decDeg = (dec * 180) / Math.PI;
-  
+
   return [ra, decDeg];
 }
 
@@ -78,18 +78,18 @@ function eclipticToEquatorial(eclipticLon: number): [number, number] {
   const obliquity = 23.4392911; // Earth's axial tilt in degrees (J2000)
   const oblRad = (obliquity * Math.PI) / 180;
   const lonRad = (eclipticLon * Math.PI) / 180;
-  
+
   // Convert from ecliptic to equatorial
   const sinDec = Math.sin(lonRad) * Math.sin(oblRad);
-  const dec = Math.asin(sinDec) * 180 / Math.PI;
-  
+  const dec = (Math.asin(sinDec) * 180) / Math.PI;
+
   const y = Math.sin(lonRad) * Math.cos(oblRad);
   const x = Math.cos(lonRad);
-  let ra = Math.atan2(y, x) * 180 / Math.PI;
-  
+  let ra = (Math.atan2(y, x) * 180) / Math.PI;
+
   // Normalize RA to [0, 360)
-  ra = (ra % 360 + 360) % 360;
-  
+  ra = ((ra % 360) + 360) % 360;
+
   return [ra, dec];
 }
 
