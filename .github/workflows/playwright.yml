@@ -37,9 +37,8 @@ jobs:
       - name: Build application for E2E testing
         run: npm run build
         env:
-          # Override GITHUB_ACTIONS to prevent base path change for E2E tests
-          # We want base "/" for Playwright tests, not "/dsa110-contimg/dashboard/"
-          GITHUB_ACTIONS: ""
+          # Set VITE_E2E_TEST to use base "/" instead of production base path
+          VITE_E2E_TEST: "true"
 
       - name: Run Playwright tests
         run: npm run test:e2e

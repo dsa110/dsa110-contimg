@@ -6,7 +6,9 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   // Base path for GitHub Pages deployment (repo name + dashboard subdirectory)
-  base: process.env.GITHUB_ACTIONS ? "/dsa110-contimg/dashboard/" : "/",
+  // Use "/" for local dev and E2E tests (VITE_E2E_TEST=true), "/dsa110-contimg/dashboard/" for production
+  base:
+    process.env.GITHUB_ACTIONS && !process.env.VITE_E2E_TEST ? "/dsa110-contimg/dashboard/" : "/",
   server: {
     port: 3000,
     strictPort: true, // Fail if port 3000 is occupied (don't auto-switch)
