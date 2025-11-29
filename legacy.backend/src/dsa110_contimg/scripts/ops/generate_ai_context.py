@@ -29,7 +29,7 @@ class ContextGenerator:
 
     def generate_structure_overview(self) -> Dict:
         """Generate a concise overview of project structure."""
-        print("📂 Analyzing project structure...")
+        print(":open_file_folder: Analyzing project structure...")
 
         structure = {"main_packages": [], "key_directories": {}, "entry_points": []}
 
@@ -71,7 +71,7 @@ class ContextGenerator:
 
     def get_recent_changes(self, days: int = 7) -> List[Dict]:
         """Get recent git commits to understand what changed."""
-        print(f"📜 Fetching recent changes (last {days} days)...")
+        print(f":scroll: Fetching recent changes (last {days} days)...")
 
         try:
             # Get commits from last N days
@@ -113,12 +113,12 @@ class ContextGenerator:
             return commits[:20]  # Limit to most recent 20
 
         except Exception as e:
-            print(f"   ⚠️  Could not fetch git history: {e}")
+            print(f"   :warning_sign::variation_selector-16:  Could not fetch git history: {e}")
             return []
 
     def identify_key_modules(self) -> List[Dict]:
         """Identify the most important modules based on imports."""
-        print("🔑 Identifying key modules...")
+        print(":key: Identifying key modules...")
 
         import_counts = {}
 
@@ -146,7 +146,7 @@ class ContextGenerator:
 
     def extract_conventions(self) -> Dict:
         """Extract coding conventions from the codebase."""
-        print("📐 Extracting conventions...")
+        print(":triangular_ruler: Extracting conventions...")
 
         conventions = {"naming": {}, "imports": [], "common_patterns": []}
 
@@ -185,7 +185,7 @@ class ContextGenerator:
 
     def generate_ai_context_file(self, output_file: str = ".ai-context.json"):
         """Generate the complete context file."""
-        print("\n🤖 Generating AI context file...")
+        print("\n:robot_face: Generating AI context file...")
 
         self.context["structure"] = self.generate_structure_overview()
         self.context["recent_changes"] = self.get_recent_changes(days=14)
@@ -208,17 +208,17 @@ class ContextGenerator:
         output_path = self.root_dir / output_file
         output_path.write_text(json.dumps(self.context, indent=2))
 
-        print(f"\n✅ Context file saved to: {output_path}")
+        print(f"\n:white_heavy_check_mark: Context file saved to: {output_path}")
         return output_path
 
     def generate_markdown_summary(self):
         """Generate a human-readable markdown summary."""
-        print("\n📝 Generating markdown summary...")
+        print("\n:memo: Generating markdown summary...")
 
         lines = [
             "# AI Context Summary",
             f"\n*Generated: {self.context['generated_at']}*",
-            "\n## 📂 Project Structure",
+            "\n## :open_file_folder: Project Structure",
         ]
 
         if "structure" in self.context:
@@ -227,12 +227,12 @@ class ContextGenerator:
                 lines.append(f"- **{pkg['name']}** ({pkg['submodules']} modules)")
 
         if "key_modules" in self.context:
-            lines.append("\n## 🔑 Most Imported Modules")
+            lines.append("\n## :key: Most Imported Modules")
             for mod in self.context["key_modules"][:10]:
                 lines.append(f"- `{mod['module']}` ({mod['import_count']} imports)")
 
         if "recent_changes" in self.context and self.context["recent_changes"]:
-            lines.append("\n## 📜 Recent Changes (Last 14 Days)")
+            lines.append("\n## :scroll: Recent Changes (Last 14 Days)")
             for commit in self.context["recent_changes"][:10]:
                 lines.append(f"- `{commit['hash']}` {commit['message']} *({commit['date']})*")
 
@@ -241,7 +241,7 @@ class ContextGenerator:
         output_path = self.root_dir / ".ai-context.md"
         output_path.write_text(markdown)
 
-        print(f"✅ Markdown summary saved to: {output_path}")
+        print(f":white_heavy_check_mark: Markdown summary saved to: {output_path}")
         return output_path
 
 
@@ -259,7 +259,7 @@ def main():
     args = parser.parse_args()
 
     print("=" * 70)
-    print("🤖 AI Context Generator")
+    print(":robot_face: AI Context Generator")
     print("=" * 70)
 
     generator = ContextGenerator(args.root)
@@ -267,8 +267,8 @@ def main():
     generator.generate_markdown_summary()
 
     print("\n" + "=" * 70)
-    print("✅ Context generation complete!")
-    print("\n💡 Usage Tips:")
+    print(":white_heavy_check_mark: Context generation complete!")
+    print("\n:electric_light_bulb: Usage Tips:")
     print("1. Share .ai-context.json with AI agents at the start of conversations")
     print("2. Reference .ai-context.md when asking AI to understand recent changes")
     print("3. Re-run this script after major refactoring or weekly")

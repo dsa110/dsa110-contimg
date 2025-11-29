@@ -34,9 +34,9 @@ class ProgressReporter:
         if self.verbose:
             status_symbol = {
                 "info": "ℹ",
-                "success": "✓",
-                "warning": "⚠",
-                "error": "✗",
+                "success": ":check_mark:",
+                "warning": ":warning_sign:",
+                "error": ":ballot_x:",
             }.get(status, "•")
             print(f"{status_symbol} {message}")
 

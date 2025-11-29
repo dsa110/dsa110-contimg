@@ -25,7 +25,7 @@ class DocumentationAuditor:
 
     def scan_codebase(self):
         """Build an index of all files in the codebase."""
-        print("📁 Scanning codebase structure...")
+        print(":file_folder: Scanning codebase structure...")
         for path in self.root_dir.rglob("*"):
             if path.is_file() and not self._should_ignore(path):
                 rel_path = path.relative_to(self.root_dir)
@@ -48,7 +48,7 @@ class DocumentationAuditor:
 
     def audit_documentation(self) -> List[Dict]:
         """Audit all markdown files."""
-        print("\n📝 Auditing documentation files...")
+        print("\n:memo: Auditing documentation files...")
 
         md_files = list(self.root_dir.rglob("*.md"))
         print(f"   Found {len(md_files)} markdown files")
@@ -237,10 +237,10 @@ class DocumentationAuditor:
 
         # Print summary
         print("\n" + "=" * 70)
-        print("📊 DOCUMENTATION AUDIT REPORT")
+        print(":bar_chart: DOCUMENTATION AUDIT REPORT")
         print("=" * 70)
 
-        print(f"\n🔴 High Priority Issues: {len(by_severity['high'])}")
+        print(f"\n:large_red_circle: High Priority Issues: {len(by_severity['high'])}")
         for issue in by_severity["high"][:10]:  # Show first 10
             print(f"   • {issue['file']}:{issue.get('line', '?')} - {issue['message']}")
 
@@ -266,7 +266,7 @@ class DocumentationAuditor:
 
             output_path = Path(output_file)
             output_path.write_text(json.dumps(report_data, indent=2))
-            print(f"\n💾 Detailed report saved to: {output_file}")
+            print(f"\n:floppy_disk: Detailed report saved to: {output_file}")
 
         return by_severity
 

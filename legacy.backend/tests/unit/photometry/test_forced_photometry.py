@@ -302,7 +302,7 @@ if __name__ == "__main__":
         snr = measured_flux / flux_error
         recovered = abs(measured_flux - expected_flux) / expected_flux < 0.2
 
-        recovered_str = "✓" if recovered else "✗"
+        recovered_str = ":check_mark:" if recovered else ":ballot_x:"
 
         print(
             f"{src['name']:<20s} {expected_flux:10.4f} {measured_flux:10.4f} "
@@ -586,7 +586,7 @@ if __name__ == "__main__":
         print("Expected: 1.0000")
 
         ratio_ok = abs(mean_ratio - 1.0) < 0.1
-        print(f"Flux scale accuracy: {'✓ PASS' if ratio_ok else '✗ FAIL'}")
+        print(f"Flux scale accuracy: {':check_mark: PASS' if ratio_ok else ':ballot_x: FAIL'}")
 
     # ======================================================================
     # Cell 17
@@ -671,7 +671,7 @@ if __name__ == "__main__":
         if np.isfinite(res.peak_jyb) and src["flux_jy"] > 0:
             ratio = res.peak_jyb / src["flux_jy"]
             print(f"  Ratio (measured/expected): {ratio:.4f}")
-            print(f"  Recovery: {'✓ PASS' if r['recovered'] else '✗ FAIL'}")
+            print(f"  Recovery: {':check_mark: PASS' if r['recovered'] else ':ballot_x: FAIL'}")
 
     # ======================================================================
     # Cell 21

@@ -37,7 +37,7 @@ def test_gsm_basic_generation():
     assert len(sky_map.shape) == 1, f"Expected 1D array, got shape {sky_map.shape}"
     assert sky_map.size > 0, "Sky map should not be empty"
 
-    print(f"✓ Sky map generated: shape={sky_map.shape}, size={sky_map.size}")
+    print(f":check_mark: Sky map generated: shape={sky_map.shape}, size={sky_map.size}")
 
     # Test log10 transformation
     print("\nTesting: np.log10(sky_map)")
@@ -46,7 +46,7 @@ def test_gsm_basic_generation():
     assert not np.any(np.isinf(log_sky_map)), "Log transformation should not produce Inf"
 
     print(
-        f"✓ Log10 transformation successful: min={np.min(log_sky_map):.6f}, max={np.max(log_sky_map):.6f}"
+        f":check_mark: Log10 transformation successful: min={np.min(log_sky_map):.6f}, max={np.max(log_sky_map):.6f}"
     )
 
     # Test HEALPix properties
@@ -55,15 +55,15 @@ def test_gsm_basic_generation():
     npix = hp.nside2npix(nside)
     assert npix == sky_map.size, f"NPIX ({npix}) should match sky_map size ({sky_map.size})"
 
-    print(f"✓ HEALPix properties: NSIDE={nside}, NPIX={npix}")
+    print(f":check_mark: HEALPix properties: NSIDE={nside}, NPIX={npix}")
 
     # Test that mollview would work (check data format)
     print("\nTesting: Data format for mollview")
     assert isinstance(sky_map, np.ndarray), "Sky map should be numpy array"
     assert sky_map.dtype in [np.float32, np.float64], f"Expected float dtype, got {sky_map.dtype}"
 
-    print("✓ Data format is correct for mollview")
-    print("\n✓ All basic GSM generation tests passed!")
+    print(":check_mark: Data format is correct for mollview")
+    print("\n:check_mark: All basic GSM generation tests passed!")
     return True
 
 
@@ -88,8 +88,8 @@ def test_backend_function():
     assert len(data["z"]) == len(data["y"]), "Z rows should match Y coordinates"
     assert len(data["z"][0]) == len(data["x"]), "Z cols should match X coordinates"
 
-    print(f"✓ Backend function works: {len(data['x'])}x{len(data['y'])} grid")
-    print("✓ All backend function tests passed!")
+    print(f":check_mark: Backend function works: {len(data['x'])}x{len(data['y'])} grid")
+    print(":check_mark: All backend function tests passed!")
     return True
 
 
@@ -103,7 +103,7 @@ if __name__ == "__main__":
         success = test_gsm_basic_generation() and success
         success = test_backend_function() and success
     except Exception as e:
-        print(f"\n✗ Test failed with error: {e}")
+        print(f"\n:ballot_x: Test failed with error: {e}")
         import traceback
 
         traceback.print_exc()
@@ -111,8 +111,8 @@ if __name__ == "__main__":
 
     print("\n" + "=" * 60)
     if success:
-        print("✓ All tests passed!")
+        print(":check_mark: All tests passed!")
         sys.exit(0)
     else:
-        print("✗ Some tests failed")
+        print(":ballot_x: Some tests failed")
         sys.exit(1)

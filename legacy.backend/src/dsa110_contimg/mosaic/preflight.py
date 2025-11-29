@@ -147,7 +147,7 @@ def validate_preflight_conditions(
     if issues:
         logger.warning(f"Pre-flight validation found {len(issues)} issues")
     else:
-        logger.info("✓ Pre-flight validation passed")
+        logger.info(":check_mark: Pre-flight validation passed")
 
     return len(issues) == 0, issues, info
 

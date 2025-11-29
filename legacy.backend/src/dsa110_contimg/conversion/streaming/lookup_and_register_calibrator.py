@@ -126,7 +126,7 @@ def main():
         registered_by="lookup_and_register_calibrator",
     )
 
-    logger.info("✓ Calibrator registered successfully!")
+    logger.info(":check_mark: Calibrator registered successfully!")
     logger.info(f"  Name: {args.calibrator_name}")
     logger.info(f"  RA: {ra_deg:.6f}°")
     logger.info(f"  Dec: {dec_deg:.6f}°")

@@ -381,7 +381,7 @@ curl http://localhost:8000/api/status
 
 ## Version & Status
 
-- **Pipeline Status**: ✓ Production-ready
-- **All Icebergs**: ✓ Fixed (24/24)
-- **Documentation**: ✓ Complete (5 documents)
+- **Pipeline Status**: :check_mark: Production-ready
+- **All Icebergs**: :check_mark: Fixed (24/24)
+- **Documentation**: :check_mark: Complete (5 documents)
 - **Last Updated**: 2025-11-17

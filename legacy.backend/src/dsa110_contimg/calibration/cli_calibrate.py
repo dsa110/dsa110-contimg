@@ -525,7 +525,7 @@ def add_calibrate_parser(
         choices=["development", "standard", "high_precision"],
         help=(
             "Use preset calibration quality tiers with explicit trade-offs.\n"
-            "  development: ⚠️  NON-SCIENCE - aggressive subsetting for code testing only\n"
+            "  development: :warning_sign::variation_selector-16:  NON-SCIENCE - aggressive subsetting for code testing only\n"
             "  standard: Recommended for all science observations (full quality)\n"
             "  high_precision: Enhanced settings for maximum quality (slower)\n"
             "Individual flags override preset values."
@@ -625,7 +625,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
         # Log warnings but don't fail
         for warning in warnings:
             logger.warning(warning)
-        logger.info("✓ [1/6] MS validation passed")
+        logger.info(":check_mark: [1/6] MS validation passed")
     except ValidationError as e:
         suggestions = [
             "Check MS path is correct and file exists",
@@ -827,10 +827,10 @@ def handle_calibrate(args: argparse.Namespace) -> int:
     if args.preset:
         logger.info(f"Applying quality tier: {args.preset}")
         if args.preset == "development":
-            # ⚠️  NON-SCIENCE QUALITY - For code testing only
+            # :warning_sign::variation_selector-16:  NON-SCIENCE QUALITY - For code testing only
             logger.warning(
                 "=" * 80 + "\n"
-                "⚠️  DEVELOPMENT TIER: NON-SCIENCE QUALITY\n"
+                ":warning_sign::variation_selector-16:  DEVELOPMENT TIER: NON-SCIENCE QUALITY\n"
                 "   This tier uses aggressive subsetting and compromises calibration quality.\n"
                 "   NEVER use for actual science observations or ESE detection.\n"
                 "   Results will have reduced SNR, resolution, and accuracy.\n"
@@ -876,7 +876,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
         # Force unique naming to prevent accidental application to production data
         args.table_prefix_override = "NON_SCIENCE_DEVELOPMENT"
         logger.warning(
-            "⚠️  STRICT SEPARATION: Development tier calibration tables will be prefixed with 'NON_SCIENCE_DEVELOPMENT'"
+            ":warning_sign::variation_selector-16:  STRICT SEPARATION: Development tier calibration tables will be prefixed with 'NON_SCIENCE_DEVELOPMENT'"
         )
         logger.warning("   These tables CANNOT and MUST NOT be applied to production/science data")
 
@@ -1171,7 +1171,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
         logger.info("CLEARING ALL CALIBRATION ARTIFACTS")
         logger.info("=" * 70)
         _clear_all_calibration_artifacts(args.ms, logger, restore_field_names=False)
-        logger.info("✓ All calibration artifacts cleared\n")
+        logger.info(":check_mark: All calibration artifacts cleared\n")
 
     # MS repair flags removed.
     # Optionally create a fast subset MS
@@ -1296,7 +1296,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             warnings = validate_ms_for_calibration(ms_in, field=field_sel, refant=refant)
             for warning in warnings:
                 logger.warning(warning)
-            logger.info("✓ MS validation passed")
+            logger.info(":check_mark: MS validation passed")
         except ValidationError as e:
             logger.error("MS validation failed:")
             error_msg = e.format_with_suggestions()
@@ -1328,7 +1328,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             logger.info("  Gain: ~5-10 min")
         logger.info("\nTotal estimated time: 15-60 min (depending on options)")
 
-        logger.info("\n✓ Dry-run complete. Use without --dry-run to perform actual calibration.")
+        logger.info("\n:check_mark: Dry-run complete. Use without --dry-run to perform actual calibration.")
         return 0
 
     if not args.no_flagging:
@@ -1357,7 +1357,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                 wtmode="weight",  # Initialize WEIGHT_SPECTRUM from existing WEIGHT
                 dowtsp=True,  # Create/update WEIGHT_SPECTRUM column
             )
-            print("✓ Weights updated to match flags")
+            print(":check_mark: Weights updated to match flags")
         except Exception as e:
             # Non-fatal: CASA calibration tasks respect FLAG column automatically
             # Even if weights aren't updated, calibration will still work correctly
@@ -1405,7 +1405,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                 )
             else:
                 logger.info(
-                    f"✓ [2/6] Flagging complete: {unflagged_fraction * 100:.1f}% data remains unflagged "
+                    f":check_mark: [2/6] Flagging complete: {unflagged_fraction * 100:.1f}% data remains unflagged "
                     f"({unflagged_points:,}/{total_points:,} points, estimated)"
                 )
 
@@ -1437,11 +1437,11 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                             datacolumn=datacolumn,
                         )
                         logger.info(
-                            f"✓ [2/6] Channel-level flagging complete: {total_flagged_channels} "
+                            f":check_mark: [2/6] Channel-level flagging complete: {total_flagged_channels} "
                             f"channel(s) flagged before calibration"
                         )
                     else:
-                        logger.info("✓ [2/6] No problematic channels detected")
+                        logger.info(":check_mark: [2/6] No problematic channels detected")
                 except AttributeError as e:
                     # Specifically catch AttributeError to provide better diagnostics
                     error_msg = str(e)
@@ -1584,7 +1584,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                         if not validation_results.get("consistent", True):
                             logger.warning("  - MODEL_DATA inconsistent across fields")
                     else:
-                        logger.info("✓ MODEL_DATA validation passed")
+                        logger.info(":check_mark: MODEL_DATA validation passed")
 
                     # CRITICAL: Rephase MS to calibrator position before writing MODEL_DATA
                     # The MS is phased to meridian (RA=LST, Dec=pointing), but we need it
@@ -1638,7 +1638,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                         print(f"Separation: {sep_arcmin:.2f} arcmin")
                         if sep_arcmin < 1.0:
                             logger.info(
-                                f"✓ MS already phased to calibrator position (offset: {sep_arcmin:.2f} arcmin)"
+                                f":check_mark: MS already phased to calibrator position (offset: {sep_arcmin:.2f} arcmin)"
                             )
                             needs_rephasing = False
                         else:
@@ -1750,7 +1750,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                                 )
                                 logger.debug("phaseshift complete")
                                 logger.info(
-                                    "✓ phaseshift completed successfully - UVW coordinates and visibility phases transformed"
+                                    ":check_mark: phaseshift completed successfully - UVW coordinates and visibility phases transformed"
                                 )
                                 uv_transformation_valid = True
 
@@ -1878,7 +1878,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                                             )
                                         else:
                                             logger.info(
-                                                "✓ REFERENCE_DIR correctly aligned (separation < 1 arcmin)"
+                                                ":check_mark: REFERENCE_DIR correctly aligned (separation < 1 arcmin)"
                                             )
                             except Exception as verify_error:
                                 logger.warning(f"Could not verify phase center: {verify_error}")
@@ -1887,7 +1887,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                             logger.debug("Replacing original MS with rephased version...")
                             shutil.rmtree(args.ms, ignore_errors=True)
                             shutil.move(ms_phased, args.ms)
-                            logger.info("✓ MS rephased to calibrator position")
+                            logger.info(":check_mark: MS rephased to calibrator position")
                             ms_was_rephased = True  # Track that rephasing was performed
 
                         except ImportError:
@@ -1968,7 +1968,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                                 new_name = f"{name}_t{peak_field_idx}"
                                 field_names[peak_field_idx] = new_name
                                 field_tb.putcol("NAME", field_names)
-                                logger.info(f"✓ Renamed field {peak_field_idx} to '{new_name}'")
+                                logger.info(f":check_mark: Renamed field {peak_field_idx} to '{new_name}'")
                     except Exception as e:
                         logger.warning(f"Could not rename field to calibrator name: {e}")
                 else:
@@ -2090,7 +2090,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                                 use_manual=True,
                             )
                             logger.info(
-                                "✓ MODEL_DATA populated using manual calculation (bypasses ft() phase center bug)"
+                                ":check_mark: MODEL_DATA populated using manual calculation (bypasses ft() phase center bug)"
                             )
                         except Exception as e:
                             logger.warning(f"Failed to use manual calculation for setjy: {e}")
@@ -2205,7 +2205,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                                     )
                                 else:
                                     logger.info(
-                                        f"✓ [3/6] MODEL_DATA validated: median flux {median_flux:.3f} Jy "
+                                        f":check_mark: [3/6] MODEL_DATA validated: median flux {median_flux:.3f} Jy "
                                         f"(range: {min_flux:.3e} - {max_flux:.3e} Jy)"
                                     )
         except Exception as e:
@@ -2231,7 +2231,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             skip_slow=args.k_fast_only,
         )
         elapsed_k = time.perf_counter() - t_k0
-        logger.info(f"✓ [{step_num - 1}/6] K-calibration completed in {elapsed_k:.2f}s")
+        logger.info(f":check_mark: [{step_num - 1}/6] K-calibration completed in {elapsed_k:.2f}s")
 
     # Flag autocorrelations before any solves unless disabled
     if not args.no_flagging and not getattr(args, "no_flag_autocorr", False):
@@ -2267,7 +2267,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             )
             elapsed_prebp = time.perf_counter() - t_prebp0
             logger.info(
-                f"✓ [{step_num}/6] Pre-bandpass phase solve completed in {elapsed_prebp:.2f}s"
+                f":check_mark: [{step_num}/6] Pre-bandpass phase solve completed in {elapsed_prebp:.2f}s"
             )
         except Exception:
             logger.warning("Pre-bandpass phase solve failed: {e}")
@@ -2312,7 +2312,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
             combine=getattr(args, "bp_combine", None),
         )
         elapsed_bp = time.perf_counter() - t_bp0
-        logger.info(f"✓ [{step_num}/6] Bandpass solve completed in {elapsed_bp:.2f}s")
+        logger.info(f":check_mark: [{step_num}/6] Bandpass solve completed in {elapsed_bp:.2f}s")
         step_num += 1
         # Always report bandpass flagged fraction and per-SPW statistics
         try:
@@ -2345,10 +2345,10 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                         )
                         if plot_files:
                             logger.info(
-                                f"✓ Generated {len(plot_files)} bandpass plot(s) in {plot_dir}"
+                                f":check_mark: Generated {len(plot_files)} bandpass plot(s) in {plot_dir}"
                             )
                             logger.info(
-                                f"✓ Bandpass plots: {len(plot_files)} file(s) in {plot_dir}"
+                                f":check_mark: Bandpass plots: {len(plot_files)} file(s) in {plot_dir}"
                             )
                     except Exception as e:
                         logger.warning(f"Failed to generate bandpass plots: {e}")
@@ -2377,7 +2377,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                         print("-" * 70)
 
                         for stats in sorted(spw_stats, key=lambda x: x.spw_id):
-                            status = "⚠ PROBLEMATIC" if stats.is_problematic else "✓ OK"
+                            status = ":warning_sign: PROBLEMATIC" if stats.is_problematic else ":check_mark: OK"
                             flagged_str = f"{stats.fraction_flagged * 100:>5.1f}% ({stats.flagged_solutions}/{stats.total_solutions})"
                             avg_str = f"{stats.avg_flagged_per_channel * 100:>5.1f}%"
                             channels_str = f"{stats.channels_with_high_flagging}/{stats.n_channels}"
@@ -2391,7 +2391,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
 
                         if problematic_spws:
                             print("\n" + "=" * 70)
-                            print("⚠ WARNING: Problematic Spectral Windows Detected")
+                            print(":warning_sign: WARNING: Problematic Spectral Windows Detected")
                             print("=" * 70)
                             for stats in problematic_spws:
                                 logger.warning(
@@ -2416,14 +2416,14 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                                 try:
                                     flagged_spws = flag_problematic_spws(ms_in, bptabs[0])
                                     if flagged_spws:
-                                        logger.info(f"✓ Flagged SPWs: {flagged_spws}")
+                                        logger.info(f":check_mark: Flagged SPWs: {flagged_spws}")
                                         print(
-                                            f"\n✓ Automatically flagged {len(flagged_spws)} problematic SPW(s): {flagged_spws}"
+                                            f"\n:check_mark: Automatically flagged {len(flagged_spws)} problematic SPW(s): {flagged_spws}"
                                         )
                                 except Exception as e:
                                     logger.warning(f"Failed to auto-flag problematic SPWs: {e}")
                         else:
-                            print("\n✓ All spectral windows show acceptable flagging rates")
+                            print("\n:check_mark: All spectral windows show acceptable flagging rates")
                         print("=" * 70 + "\n")
 
                         # Export statistics if requested
@@ -2438,7 +2438,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                                 )
                                 logger.info(f"Exported per-SPW statistics: {json_path}, {csv_path}")
                                 logger.info(
-                                    f"✓ Exported per-SPW statistics: {json_path}, {csv_path}"
+                                    f":check_mark: Exported per-SPW statistics: {json_path}, {csv_path}"
                                 )
                             except Exception as e:
                                 logger.warning(f"Failed to export per-SPW statistics: {e}")
@@ -2453,7 +2453,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                                     title=f"Bandpass Calibration - Per-SPW Flagging Analysis\n{os.path.basename(ms_in)}",
                                 )
                                 logger.info(f"Generated per-SPW flagging plot: {plot_file}")
-                                logger.info(f"✓ Generated visualization: {plot_file}")
+                                logger.info(f":check_mark: Generated visualization: {plot_file}")
                             except Exception as e:
                                 logger.warning(f"Failed to generate per-SPW flagging plot: {e}")
                 except Exception as e:
@@ -2501,7 +2501,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                 peak_field_idx=peak_field_idx if "peak_field_idx" in locals() else None,
             )
             elapsed_g = time.perf_counter() - t_g0
-            logger.info(f"✓ [{step_num}/6] Gain solve completed in {elapsed_g:.2f}s")
+            logger.info(f":check_mark: [{step_num}/6] Gain solve completed in {elapsed_g:.2f}s")
 
             # Generate gain plots if requested
             if getattr(args, "plot_gain", True) and gtabs:
@@ -2522,8 +2522,8 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                         plot_phase=True,
                     )
                     if plot_files:
-                        logger.info(f"✓ Generated {len(plot_files)} gain plot(s) in {plot_dir}")
-                        logger.info(f"✓ Gain plots: {len(plot_files)} file(s) in {plot_dir}")
+                        logger.info(f":check_mark: Generated {len(plot_files)} gain plot(s) in {plot_dir}")
+                        logger.info(f":check_mark: Gain plots: {len(plot_files)} file(s) in {plot_dir}")
                 except Exception as e:
                     logger.warning(f"Failed to generate gain plots: {e}")
                     logger.warning("Continuing without plots (calibration completed successfully)")
@@ -2655,7 +2655,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                 logger.warning(f"Expected calibration tables missing: {missing['all']}")
                 logger.info(f"Existing tables: {existing['all']}")
             else:
-                logger.info(f"✓ All expected calibration tables present: {existing['all']}")
+                logger.info(f":check_mark: All expected calibration tables present: {existing['all']}")
         except Exception as e:
             logger.warning(f"Could not validate calibration table completeness: {e}")
 
@@ -2726,7 +2726,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
                     status="active",
                 )
                 if registered:
-                    logger.info(f"✓ Registered {len(registered)} calibration tables in registry")
+                    logger.info(f":check_mark: Registered {len(registered)} calibration tables in registry")
                 else:
                     logger.warning(
                         f"Warning: No tables found with prefix {table_prefix} for registration. "
@@ -2748,7 +2748,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
         try:
             logger.info(f"Cleaning up subset MS: {subset_ms_created}")
             shutil.rmtree(subset_ms_created, ignore_errors=True)
-            logger.info("✓ Subset MS removed")
+            logger.info(":check_mark: Subset MS removed")
         except Exception as e:
             logger.warning(f"Failed to remove subset MS {subset_ms_created}: {e}")
 

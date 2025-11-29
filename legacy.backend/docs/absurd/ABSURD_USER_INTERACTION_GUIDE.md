@@ -430,10 +430,10 @@ retry
 3. Find mosaic task (task name: "create-mosaic")
 4. Click task to view details
 5. See checkpoint timeline:
-   - ✓ Setup (completed)
-   - ✓ Find Transits (completed)
-   - ✓ Process Group 1 (completed)
-   - ✓ Process Group 2 (completed)
+   - :check_mark: Setup (completed)
+   - :check_mark: Find Transits (completed)
+   - :check_mark: Process Group 1 (completed)
+   - :check_mark: Process Group 2 (completed)
    - → Process Group 3 (in progress) ← Current step
    - ⏳ Process Group 4 (pending)
    - ⏳ Process Group 5 (pending)
@@ -457,10 +457,10 @@ retry
 2. Filter by status: "Failed"
 3. Click on failed task
 4. View checkpoint timeline:
-   - ✓ Setup (completed)
-   - ✓ Convert (completed)
-   - ✓ Calibrate Solve (completed)
-   - ✗ Calibrate Apply (failed) ← Failed here
+   - :check_mark: Setup (completed)
+   - :check_mark: Convert (completed)
+   - :check_mark: Calibrate Solve (completed)
+   - :ballot_x: Calibrate Apply (failed) ← Failed here
    - ⏳ Image (not reached)
 5. Expand failed checkpoint to see error details
 6. Review checkpoint state (what data was available)

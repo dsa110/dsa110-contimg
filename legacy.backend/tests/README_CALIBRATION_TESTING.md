@@ -107,27 +107,27 @@ pytest tests/unit/test_calibration*.py --cov=src/dsa110_contimg/calibration --co
 
 1. **Subband Ordering**
    (`src/dsa110_contimg/conversion/strategies/hdf5_orchestrator.py`)
-   - ✓ File sorting by subband number
-   - ✓ Handling of mixed timestamps
-   - ✓ Complete group validation
+   - :check_mark: File sorting by subband number
+   - :check_mark: Handling of mixed timestamps
+   - :check_mark: Complete group validation
 
 2. **MS Phasing** (`src/dsa110_contimg/calibration/cli.py`)
-   - ✓ REFERENCE_DIR verification
-   - ✓ Phase center alignment calculation
-   - ✓ Rephasing logic
+   - :check_mark: REFERENCE_DIR verification
+   - :check_mark: Phase center alignment calculation
+   - :check_mark: Rephasing logic
 
 3. **MODEL_DATA** (`src/dsa110_contimg/calibration/model.py`)
-   - ✓ Population validation
-   - ✓ Flux validation
+   - :check_mark: Population validation
+   - :check_mark: Flux validation
 
 4. **Pre-Bandpass Phase** (`src/dsa110_contimg/calibration/calibration.py`)
-   - ✓ Parameter validation (solint, minsnr)
-   - ✓ Solution quality metrics
+   - :check_mark: Parameter validation (solint, minsnr)
+   - :check_mark: Solution quality metrics
 
 5. **Bandpass Calibration** (`src/dsa110_contimg/calibration/calibration.py`)
-   - ✓ Combine parameters (SPW, field)
-   - ✓ Solution quality validation
-   - ✓ SNR threshold logic
+   - :check_mark: Combine parameters (SPW, field)
+   - :check_mark: Solution quality validation
+   - :check_mark: SNR threshold logic
 
 ## Known Issues and Tests
 

@@ -57,12 +57,12 @@ def fix_shebang(file_path: Path) -> bool:
             if re.match(pattern, lines[0]):
                 lines[0] = f"#!{CASA6_PYTHON}"
                 file_path.write_text("\n".join(lines) + "\n")
-                print(f"✅ Fixed: {file_path}")
+                print(f":white_heavy_check_mark: Fixed: {file_path}")
                 return True
 
         return False
     except Exception as e:
-        print(f"⚠️  Error fixing {file_path}: {e}")
+        print(f":warning_sign::variation_selector-16:  Error fixing {file_path}: {e}")
         return False
 
 
@@ -109,10 +109,10 @@ def add_version_guard(file_path: Path) -> bool:
 
         new_lines = lines[:insert_idx] + guard_code + lines[insert_idx:]
         file_path.write_text("\n".join(new_lines))
-        print(f"✅ Added guard to: {file_path}")
+        print(f":white_heavy_check_mark: Added guard to: {file_path}")
         return True
     except Exception as e:
-        print(f"⚠️  Error adding guard to {file_path}: {e}")
+        print(f":warning_sign::variation_selector-16:  Error adding guard to {file_path}: {e}")
         return False
 
 

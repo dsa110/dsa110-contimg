@@ -89,7 +89,7 @@ async def main():
 
     try:
         await client.connect()
-        print("✓ Connected to Absurd database")
+        print(":check_mark: Connected to Absurd database")
 
         # Spawn a test task
         task_id = await client.spawn_task(
@@ -98,17 +98,17 @@ async def main():
             params={"message": "Hello from Absurd!"}
         )
 
-        print(f"✓ Spawned task: {task_id}")
+        print(f":check_mark: Spawned task: {task_id}")
 
         # Get task details
         task = await client.get_task("dsa110-pipeline", task_id)
-        print(f"✓ Task status: {task['state']}")
-        print(f"✓ Task name: {task['task_name']}")
+        print(f":check_mark: Task status: {task['state']}")
+        print(f":check_mark: Task name: {task['task_name']}")
 
-        print("\n✅ Basic integration test passed!")
+        print("\n:white_heavy_check_mark: Basic integration test passed!")
 
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f":cross_mark: Error: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

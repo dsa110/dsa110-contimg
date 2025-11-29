@@ -143,7 +143,7 @@ class LegacyWorkflowAdapter:
                 append_job_log(
                     conn,
                     job_id,
-                    f"\n✓ Pipeline completed successfully\n"
+                    f"\n:check_mark: Pipeline completed successfully\n"
                     f"Duration: {result.total_duration_seconds:.2f} seconds\n"
                     f"Artifacts: {', '.join(artifacts)}\n",
                 )
@@ -152,7 +152,7 @@ class LegacyWorkflowAdapter:
                 append_job_log(
                     conn,
                     job_id,
-                    f"\n⚠ Pipeline completed with partial failures\n"
+                    f"\n:warning_sign: Pipeline completed with partial failures\n"
                     f"Duration: {result.total_duration_seconds:.2f} seconds\n",
                 )
             else:  # failed
@@ -166,7 +166,7 @@ class LegacyWorkflowAdapter:
                 append_job_log(
                     conn,
                     job_id,
-                    f"\n✗ Pipeline failed: {error_msg}\n"
+                    f"\n:ballot_x: Pipeline failed: {error_msg}\n"
                     f"Duration: {result.total_duration_seconds:.2f} seconds\n",
                 )
 

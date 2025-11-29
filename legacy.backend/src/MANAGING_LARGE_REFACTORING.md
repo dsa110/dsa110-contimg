@@ -1,6 +1,6 @@
 # Managing a Large Refactored Codebase
 
-## 🎯 Your Situation
+## :direct_hit: Your Situation
 
 You have a **large scientific codebase** that was recently refactored, with:
 
@@ -8,7 +8,7 @@ You have a **large scientific codebase** that was recently refactored, with:
 - AI agents losing context due to size
 - Hard to track what broke during refactoring
 
-## ✅ Recommended Approach
+## :white_heavy_check_mark: Recommended Approach
 
 ### 1. **Use GitHub Issues as Your Source of Truth** (BEST SOLUTION)
 
@@ -16,11 +16,11 @@ This is the most effective way to manage post-refactoring chaos:
 
 **Why it works:**
 
-- ✅ Each issue maintains **persistent context** that AI agents can reference
-- ✅ **No size limits** - full conversation history preserved
-- ✅ **Link related issues** - track dependencies between fixes
-- ✅ **GitHub Copilot can work on entire issues** with full codebase access
-- ✅ **Team visibility** - everyone sees what's broken and being fixed
+- :white_heavy_check_mark: Each issue maintains **persistent context** that AI agents can reference
+- :white_heavy_check_mark: **No size limits** - full conversation history preserved
+- :white_heavy_check_mark: **Link related issues** - track dependencies between fixes
+- :white_heavy_check_mark: **GitHub Copilot can work on entire issues** with full codebase access
+- :white_heavy_check_mark: **Team visibility** - everyone sees what's broken and being fixed
 
 **Setup:**
 
@@ -84,7 +84,7 @@ python scripts/generate_ai_context.py \
   --output .ai-context.json
 ```
 
-**⚠️ Important:** Don't run these on the massive parent directory - scope to:
+**:warning_sign::variation_selector-16: Important:** Don't run these on the massive parent directory - scope to:
 
 - `backend/src/dsa110_contimg/` for code analysis
 - `backend/docs/` for doc audits
@@ -153,7 +153,7 @@ This gives AI agents a quick overview without analyzing everything.
    Now help me with Issue #1..."
    ```
 
-## 🚀 Quick Start (Next Steps)
+## :rocket: Quick Start (Next Steps)
 
 1. **Right now:** Create a GitHub repo if you don't have one
 
@@ -189,7 +189,7 @@ This gives AI agents a quick overview without analyzing everything.
 
 6. **Start fixing issues one by one** with AI help
 
-## 💡 Pro Tips
+## :electric_light_bulb: Pro Tips
 
 ### For Large Codebases:
 
@@ -233,15 +233,15 @@ This gives AI agents a quick overview without analyzing everything.
 
 ### Working with AI Agents:
 
-- ✅ **Do:** Provide specific file paths and line numbers
-- ✅ **Do:** Share `.ai-context.json` at conversation start
-- ✅ **Do:** Reference GitHub issue numbers for context
-- ✅ **Do:** Work on one focused problem per conversation
-- ❌ **Don't:** Ask AI to "fix everything"
-- ❌ **Don't:** Give vague descriptions like "update the docs"
-- ❌ **Don't:** Try to fix 10 different things in one session
+- :white_heavy_check_mark: **Do:** Provide specific file paths and line numbers
+- :white_heavy_check_mark: **Do:** Share `.ai-context.json` at conversation start
+- :white_heavy_check_mark: **Do:** Reference GitHub issue numbers for context
+- :white_heavy_check_mark: **Do:** Work on one focused problem per conversation
+- :cross_mark: **Don't:** Ask AI to "fix everything"
+- :cross_mark: **Don't:** Give vague descriptions like "update the docs"
+- :cross_mark: **Don't:** Try to fix 10 different things in one session
 
-## 📚 Tools Documentation
+## :books: Tools Documentation
 
 See `scripts/REFACTORING_TOOLS.md` for detailed tool documentation.
 

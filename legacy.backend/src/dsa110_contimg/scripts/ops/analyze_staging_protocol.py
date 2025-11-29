@@ -139,7 +139,7 @@ def analyze_staging_protocol() -> Dict:
     print("-" * 80)
 
     if definitely_used:
-        print(f"\n✓ USED BY PIPELINE ({len(definitely_used)} directories):")
+        print(f"\n:check_mark: USED BY PIPELINE ({len(definitely_used)} directories):")
         for dir_name in sorted(definitely_used):
             dir_path = STAGE_BASE / dir_name
             size = get_directory_size(dir_path)
@@ -148,7 +148,7 @@ def analyze_staging_protocol() -> Dict:
             print(f"   - {dir_name}/ {size}{db_info}")
 
     if potentially_unused:
-        print(f"\n⚠ POTENTIALLY UNUSED ({len(potentially_unused)} directories):")
+        print(f"\n:warning_sign: POTENTIALLY UNUSED ({len(potentially_unused)} directories):")
         for dir_name in sorted(potentially_unused):
             dir_path = STAGE_BASE / dir_name
             size = get_directory_size(dir_path)
@@ -203,14 +203,14 @@ def analyze_staging_protocol() -> Dict:
             review_before_removing.append((dir_name, f"Referenced in database ({db_count} times)"))
 
     if safe_to_remove:
-        print("\n✓ SAFE TO REMOVE (not used by pipeline):")
+        print("\n:check_mark: SAFE TO REMOVE (not used by pipeline):")
         for dir_name, reason in safe_to_remove:
             dir_path = STAGE_BASE / dir_name
             size = get_directory_size(dir_path)
             print(f"   - {dir_name}/ {size} - {reason}")
 
     if review_before_removing:
-        print("\n⚠ REVIEW BEFORE REMOVING:")
+        print("\n:warning_sign: REVIEW BEFORE REMOVING:")
         for dir_name, reason in review_before_removing:
             dir_path = STAGE_BASE / dir_name
             size = get_directory_size(dir_path)

@@ -186,12 +186,12 @@ def migrate_data(analysis: Dict, dry_run: bool = True) -> Tuple[int, int]:
             if not dry_run:
                 new_path.parent.mkdir(parents=True, exist_ok=True)
                 shutil.move(str(old_path), str(new_path))
-                print(f"✓ Moved {old_path.name} → {new_path}")
+                print(f":check_mark: Moved {old_path.name} → {new_path}")
             else:
                 print(f"  Would move {old_path.name} → {new_path}")
             moved += 1
         except Exception as e:
-            print(f"✗ Error moving {old_path}: {e}")
+            print(f":ballot_x: Error moving {old_path}: {e}")
             errors += 1
 
     # Migrate calibration tables
@@ -203,12 +203,12 @@ def migrate_data(analysis: Dict, dry_run: bool = True) -> Tuple[int, int]:
             if not dry_run:
                 new_path.parent.mkdir(parents=True, exist_ok=True)
                 shutil.move(str(old_path), str(new_path))
-                print(f"✓ Moved {old_path.name} → {new_path}")
+                print(f":check_mark: Moved {old_path.name} → {new_path}")
             else:
                 print(f"  Would move {old_path.name} → {new_path}")
             moved += 1
         except Exception as e:
-            print(f"✗ Error moving {old_path}: {e}")
+            print(f":ballot_x: Error moving {old_path}: {e}")
             errors += 1
 
     # Migrate images and mosaics (if needed)
@@ -221,12 +221,12 @@ def migrate_data(analysis: Dict, dry_run: bool = True) -> Tuple[int, int]:
                 if not dry_run:
                     new_path.parent.mkdir(parents=True, exist_ok=True)
                     shutil.move(str(old_path), str(new_path))
-                    print(f"✓ Moved {old_path.name} → {new_path}")
+                    print(f":check_mark: Moved {old_path.name} → {new_path}")
                 else:
                     print(f"  Would move {old_path.name} → {new_path}")
                 moved += 1
             except Exception as e:
-                print(f"✗ Error moving {old_path}: {e}")
+                print(f":ballot_x: Error moving {old_path}: {e}")
                 errors += 1
 
     return moved, errors
@@ -251,7 +251,7 @@ def create_symlinks(dry_run: bool = True) -> None:
         if old_path.exists() and not old_path.is_symlink():
             # Move remaining files first
             if list(old_path.iterdir()):
-                print(f"⚠ {old_path} still has files, skipping symlink")
+                print(f":warning_sign: {old_path} still has files, skipping symlink")
                 continue
 
         try:
@@ -260,13 +260,13 @@ def create_symlinks(dry_run: bool = True) -> None:
                     old_path.rmdir()  # Remove empty directory
                 if not old_path.exists():
                     old_path.symlink_to(new_path)
-                    print(f"✓ Created symlink {old_path} → {new_path}")
+                    print(f":check_mark: Created symlink {old_path} → {new_path}")
                 else:
                     print(f"  {old_path} already exists, skipping")
             else:
                 print(f"  Would create symlink {old_path} → {new_path}")
         except Exception as e:
-            print(f"✗ Error creating symlink {old_path}: {e}")
+            print(f":ballot_x: Error creating symlink {old_path}: {e}")
 
 
 def update_database_references(dry_run: bool = True) -> int:
@@ -274,7 +274,7 @@ def update_database_references(dry_run: bool = True) -> int:
     db_path = DATA_BASE / "state" / "data_registry.sqlite3"
 
     if not db_path.exists():
-        print(f"⚠ Database not found: {db_path}")
+        print(f":warning_sign: Database not found: {db_path}")
         return 0
 
     print("\n" + "=" * 80)
@@ -316,7 +316,7 @@ def update_database_references(dry_run: bool = True) -> int:
                         "UPDATE data_registry SET stage_path = ? WHERE data_id = ?",
                         (new_path, data_id),
                     )
-                    print(f"✓ Updated {data_id}: {old_path} → {new_path}")
+                    print(f":check_mark: Updated {data_id}: {old_path} → {new_path}")
                 else:
                     print(f"  Would update {data_id}: {old_path} → {new_path}")
                 updated += 1
@@ -327,7 +327,7 @@ def update_database_references(dry_run: bool = True) -> int:
         conn.close()
 
     except Exception as e:
-        print(f"✗ Error updating database: {e}")
+        print(f":ballot_x: Error updating database: {e}")
 
     return updated
 
@@ -365,7 +365,7 @@ def main():
     print("Creating new directory structure...")
     if not args.dry_run:
         ensure_staging_directories()
-        print("✓ Directory structure created")
+        print(":check_mark: Directory structure created")
     else:
         print("  Would create directory structure")
 
@@ -383,7 +383,7 @@ def main():
     # Update database
     if not args.skip_db:
         updated = update_database_references(dry_run=args.dry_run)
-        print(f"\n✓ Updated {updated} database references")
+        print(f"\n:check_mark: Updated {updated} database references")
 
     # Summary
     print("\n" + "=" * 80)
@@ -395,7 +395,7 @@ def main():
     if args.dry_run:
         print("\nThis was a dry run. To execute migration, run without --dry-run")
     else:
-        print("\n✓ Migration complete!")
+        print("\n:check_mark: Migration complete!")
         print("\nNext steps:")
         print("1. Verify data in new locations")
         print("2. Test pipeline with new structure")

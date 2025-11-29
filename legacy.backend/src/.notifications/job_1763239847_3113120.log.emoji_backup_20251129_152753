@@ -1,0 +1,240 @@
+2025-11-15 12:50:55,907 - INFO - Creating 10-minute mosaic centered on 0834+555
+2025-11-15 12:50:57,167 - INFO - No subband files found in /data/incoming between 2025-11-15 12:18:35 and 2025-11-15 13:18:35
+2025-11-15 12:50:57,340 - INFO - No subband files found in /data/incoming between 2025-11-14 12:22:31 and 2025-11-14 13:22:31
+2025-11-15 12:50:57,511 - INFO - No subband files found in /data/incoming between 2025-11-13 12:26:27 and 2025-11-13 13:26:27
+2025-11-15 12:50:57,694 - INFO - No subband files found in /data/incoming between 2025-11-12 12:30:23 and 2025-11-12 13:30:23
+2025-11-15 12:50:57,869 - INFO - No subband files found in /data/incoming between 2025-11-11 12:34:19 and 2025-11-11 13:34:19
+2025-11-15 12:50:58,028 - INFO - No subband files found in /data/incoming between 2025-11-10 12:38:15 and 2025-11-10 13:38:15
+2025-11-15 12:50:58,183 - INFO - No subband files found in /data/incoming between 2025-11-09 12:42:11 and 2025-11-09 13:42:11
+2025-11-15 12:50:58,354 - INFO - No subband files found in /data/incoming between 2025-11-08 12:46:07 and 2025-11-08 13:46:07
+2025-11-15 12:50:59,433 - WARNING - Group 2025-11-07T13:19:23 transit time matches but declination mismatch: file dec=50.18°, expected 55.57° (diff=5.39°). Trusting transit time match.
+2025-11-15 12:51:00,877 - WARNING - Group 2025-11-06T13:22:18 transit time matches but declination mismatch: file dec=16.27°, expected 55.57° (diff=39.30°). Trusting transit time match.
+2025-11-15 12:51:01,050 - INFO - No subband files found in /data/incoming between 2025-11-05 12:57:54 and 2025-11-05 13:57:54
+2025-11-15 12:51:01,210 - INFO - No subband files found in /data/incoming between 2025-11-04 13:01:50 and 2025-11-04 14:01:50
+2025-11-15 12:51:04,030 - WARNING - Group 2025-11-02T13:34:54 transit time matches but declination mismatch: file dec=16.27°, expected 55.57° (diff=39.30°). Trusting transit time match.
+2025-11-15 12:51:05,465 - WARNING - Group 2025-11-01T13:43:33 transit time matches but declination mismatch: file dec=16.27°, expected 55.57° (diff=39.30°). Trusting transit time match.
+2025-11-15 12:51:11,939 - INFO - No subband files found in /data/incoming between 2025-10-27 13:33:18 and 2025-10-27 14:33:18
+2025-11-15 12:51:15,822 - INFO - No subband files found in /data/incoming between 2025-10-23 13:49:01 and 2025-10-23 14:49:01
+2025-11-15 12:51:23,951 - INFO - No subband files found in /data/incoming between 2025-10-16 14:16:33 and 2025-10-16 15:16:33
+2025-11-15 12:51:24,119 - INFO - No subband files found in /data/incoming between 2025-10-15 14:20:29 and 2025-10-15 15:20:29
+2025-11-15 12:51:24,258 - INFO - No subband files found in /data/incoming between 2025-10-14 14:24:24 and 2025-10-14 15:24:24
+2025-11-15 12:51:24,408 - INFO - No subband files found in /data/incoming between 2025-10-13 14:28:20 and 2025-10-13 15:28:20
+2025-11-15 12:51:24,558 - INFO - No subband files found in /data/incoming between 2025-10-12 14:32:16 and 2025-10-12 15:32:16
+2025-11-15 12:51:24,720 - INFO - No subband files found in /data/incoming between 2025-10-11 14:36:12 and 2025-10-11 15:36:12
+2025-11-15 12:51:24,883 - INFO - No subband files found in /data/incoming between 2025-10-10 14:40:08 and 2025-10-10 15:40:08
+2025-11-15 12:51:25,030 - INFO - No subband files found in /data/incoming between 2025-10-09 14:44:04 and 2025-10-09 15:44:04
+2025-11-15 12:51:25,173 - INFO - No subband files found in /data/incoming between 2025-10-08 14:48:00 and 2025-10-08 15:48:00
+2025-11-15 12:51:25,328 - INFO - No subband files found in /data/incoming between 2025-10-07 14:51:56 and 2025-10-07 15:51:56
+2025-11-15 12:51:25,485 - INFO - No subband files found in /data/incoming between 2025-10-06 14:55:52 and 2025-10-06 15:55:52
+2025-11-15 12:51:29,859 - INFO - No subband files found in /data/incoming between 2025-10-01 15:15:31 and 2025-10-01 16:15:31
+2025-11-15 12:51:30,031 - INFO - No subband files found in /data/incoming between 2025-09-30 15:19:27 and 2025-09-30 16:19:27
+2025-11-15 12:51:30,208 - INFO - No subband files found in /data/incoming between 2025-09-29 15:23:23 and 2025-09-29 16:23:23
+2025-11-15 12:51:30,367 - INFO - No subband files found in /data/incoming between 2025-09-28 15:27:19 and 2025-09-28 16:27:19
+2025-11-15 12:51:30,550 - INFO - No subband files found in /data/incoming between 2025-09-27 15:31:15 and 2025-09-27 16:31:15
+2025-11-15 12:51:30,712 - INFO - No subband files found in /data/incoming between 2025-09-26 15:35:11 and 2025-09-26 16:35:11
+2025-11-15 12:51:30,890 - INFO - No subband files found in /data/incoming between 2025-09-25 15:39:07 and 2025-09-25 16:39:07
+2025-11-15 12:51:31,055 - INFO - No subband files found in /data/incoming between 2025-09-24 15:43:03 and 2025-09-24 16:43:03
+2025-11-15 12:51:31,229 - INFO - No subband files found in /data/incoming between 2025-09-23 15:46:59 and 2025-09-23 16:46:59
+2025-11-15 12:51:31,411 - INFO - No subband files found in /data/incoming between 2025-09-22 15:50:54 and 2025-09-22 16:50:54
+2025-11-15 12:51:31,591 - INFO - No subband files found in /data/incoming between 2025-09-21 15:54:50 and 2025-09-21 16:54:50
+2025-11-15 12:51:31,748 - INFO - No subband files found in /data/incoming between 2025-09-20 15:58:46 and 2025-09-20 16:58:46
+2025-11-15 12:51:31,920 - INFO - No subband files found in /data/incoming between 2025-09-19 16:02:42 and 2025-09-19 17:02:42
+2025-11-15 12:51:32,096 - INFO - No subband files found in /data/incoming between 2025-09-18 16:06:38 and 2025-09-18 17:06:38
+2025-11-15 12:51:32,278 - INFO - No subband files found in /data/incoming between 2025-09-17 16:10:34 and 2025-09-17 17:10:34
+2025-11-15 12:51:32,285 - INFO - Transit time: 2025-10-02T15:41:35.894
+Window: 2025-10-02T15:36:35.894 to 2025-10-02T15:46:35.894
+Required MS files: 2
+2025-11-15 12:51:32,286 - INFO - Only 0 MS files found, need 2. Triggering HDF5 conversion...
+2025-11-15 12:51:32,286 - INFO - Triggering HDF5 conversion for window: 2025-10-02 15:36:35.894 to 2025-10-02 15:46:35.894
+2025-11-15 12:51:33,628 - INFO - Found 2 complete subband group(s) (32 total files)
+2025-11-15 12:51:33,628 - INFO -   Group 1:
+2025-11-15 12:51:33,628 - INFO -     2025-10-02T15:40:06_sb00.hdf5
+2025-11-15 12:51:33,628 - INFO -     2025-10-02T15:40:06_sb01.hdf5
+2025-11-15 12:51:33,628 - INFO -     2025-10-02T15:40:06_sb02.hdf5
+2025-11-15 12:51:33,629 - INFO -     2025-10-02T15:40:07_sb03.hdf5
+2025-11-15 12:51:33,629 - INFO -     2025-10-02T15:40:06_sb04.hdf5
+2025-11-15 12:51:33,629 - INFO -     2025-10-02T15:40:06_sb05.hdf5
+2025-11-15 12:51:33,629 - INFO -     2025-10-02T15:40:07_sb06.hdf5
+2025-11-15 12:51:33,629 - INFO -     2025-10-02T15:40:07_sb07.hdf5
+2025-11-15 12:51:33,629 - INFO -     2025-10-02T15:40:06_sb08.hdf5
+2025-11-15 12:51:33,629 - INFO -     2025-10-02T15:40:06_sb09.hdf5
+2025-11-15 12:51:33,629 - INFO -     2025-10-02T15:40:06_sb10.hdf5
+2025-11-15 12:51:33,629 - INFO -     2025-10-02T15:40:06_sb11.hdf5
+2025-11-15 12:51:33,629 - INFO -     2025-10-02T15:40:06_sb12.hdf5
+2025-11-15 12:51:33,629 - INFO -     2025-10-02T15:40:06_sb13.hdf5
+2025-11-15 12:51:33,630 - INFO -     2025-10-02T15:40:06_sb14.hdf5
+2025-11-15 12:51:33,630 - INFO -     2025-10-02T15:40:06_sb15.hdf5
+2025-11-15 12:51:33,630 - INFO -   Group 2:
+2025-11-15 12:51:33,630 - INFO -     2025-10-02T15:45:15_sb00.hdf5
+2025-11-15 12:51:33,630 - INFO -     2025-10-02T15:45:16_sb01.hdf5
+2025-11-15 12:51:33,630 - INFO -     2025-10-02T15:45:15_sb02.hdf5
+2025-11-15 12:51:33,630 - INFO -     2025-10-02T15:45:16_sb03.hdf5
+2025-11-15 12:51:33,630 - INFO -     2025-10-02T15:45:16_sb04.hdf5
+2025-11-15 12:51:33,630 - INFO -     2025-10-02T15:45:15_sb05.hdf5
+2025-11-15 12:51:33,630 - INFO -     2025-10-02T15:45:16_sb06.hdf5
+2025-11-15 12:51:33,630 - INFO -     2025-10-02T15:45:16_sb07.hdf5
+2025-11-15 12:51:33,630 - INFO -     2025-10-02T15:45:16_sb08.hdf5
+2025-11-15 12:51:33,631 - INFO -     2025-10-02T15:45:16_sb09.hdf5
+2025-11-15 12:51:33,631 - INFO -     2025-10-02T15:45:15_sb10.hdf5
+2025-11-15 12:51:33,631 - INFO -     2025-10-02T15:45:15_sb11.hdf5
+2025-11-15 12:51:33,631 - INFO -     2025-10-02T15:45:15_sb12.hdf5
+2025-11-15 12:51:33,631 - INFO -     2025-10-02T15:45:16_sb13.hdf5
+2025-11-15 12:51:33,631 - INFO -     2025-10-02T15:45:15_sb14.hdf5
+2025-11-15 12:51:33,631 - INFO -     2025-10-02T15:45:15_sb15.hdf5
+2025-11-15 12:51:33,642 - INFO - Converting group 2025-10-02T15:40:06 -> /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms
+2025-11-15 12:51:34,378 - INFO - Using shared pointing declination for group: Dec=54.573401° (MJD=60950.654574)
+2025-11-15 12:51:40,801 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:51:40,823 - INFO - Loaded dynamic antenna positions for 117 antennas
+2025-11-15 12:51:40,824 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:51:40,831 - INFO - Loaded dynamic antenna positions for 117 antennas
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+2025-11-15 12:51:41,171 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:51:41,180 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:51:41,190 - INFO - Loaded dynamic antenna positions for 117 antennas
+2025-11-15 12:51:41,191 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:51:41,198 - INFO - Loaded dynamic antenna positions for 117 antennas
+2025-11-15 12:51:41,211 - INFO - Loaded dynamic antenna positions for 117 antennas
+2025-11-15 12:51:41,211 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:51:41,219 - INFO - Loaded dynamic antenna positions for 117 antennas
+2025-11-15 12:51:41,478 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:51:41,495 - INFO - Loaded dynamic antenna positions for 117 antennas
+2025-11-15 12:51:41,495 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:51:41,503 - INFO - Loaded dynamic antenna positions for 117 antennas
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+2025-11-15 12:51:52,968 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:51:52,979 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:51:53,003 - INFO - Loaded dynamic antenna positions for 117 antennas
+2025-11-15 12:51:53,004 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:51:53,014 - INFO - Loaded dynamic antenna positions for 117 antennas
+2025-11-15 12:51:53,015 - INFO - Loaded dynamic antenna positions for 117 antennas
+2025-11-15 12:51:53,023 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:51:53,049 - INFO - Loaded dynamic antenna positions for 117 antennas
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+2025-11-15 12:51:54,707 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:51:54,750 - INFO - Loaded dynamic antenna positions for 117 antennas
+2025-11-15 12:51:54,757 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:51:54,795 - INFO - Loaded dynamic antenna positions for 117 antennas
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+2025-11-15 12:51:55,621 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:51:55,633 - INFO - Loaded dynamic antenna positions for 117 antennas
+2025-11-15 12:51:55,634 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:51:55,644 - INFO - Loaded dynamic antenna positions for 117 antennas
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+2025-11-15 12:52:09,539 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:52:09,560 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:52:09,629 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:52:09,728 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:52:10,113 - INFO - Loaded dynamic antenna positions for 117 antennas
+2025-11-15 12:52:10,113 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:52:10,121 - INFO - Loaded dynamic antenna positions for 117 antennas
+2025-11-15 12:52:10,144 - INFO - Loaded dynamic antenna positions for 117 antennas
+2025-11-15 12:52:10,144 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:52:10,151 - INFO - Loaded dynamic antenna positions for 117 antennas
+2025-11-15 12:52:10,228 - INFO - Loaded dynamic antenna positions for 117 antennas
+2025-11-15 12:52:10,229 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:52:10,236 - INFO - Loaded dynamic antenna positions for 117 antennas
+2025-11-15 12:52:10,322 - INFO - Loaded dynamic antenna positions for 117 antennas
+2025-11-15 12:52:10,322 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:52:10,330 - INFO - Loaded dynamic antenna positions for 117 antennas
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+2025-11-15 12:52:21,213 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:52:21,231 - INFO - Loaded dynamic antenna positions for 117 antennas
+2025-11-15 12:52:21,231 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:52:21,239 - INFO - Loaded dynamic antenna positions for 117 antennas
+2025-11-15 12:52:21,557 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:52:21,569 - INFO - Loaded dynamic antenna positions for 117 antennas
+2025-11-15 12:52:21,569 - INFO - Setting DSA-110 antenna positions
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+2025-11-15 12:52:21,579 - INFO - Loaded dynamic antenna positions for 117 antennas
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+2025-11-15 12:52:22,093 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:52:22,103 - INFO - Loaded dynamic antenna positions for 117 antennas
+2025-11-15 12:52:22,104 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:52:22,117 - INFO - Loaded dynamic antenna positions for 117 antennas
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+2025-11-15 12:52:22,502 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:52:22,513 - INFO - Loaded dynamic antenna positions for 117 antennas
+2025-11-15 12:52:22,514 - INFO - Setting DSA-110 antenna positions
+2025-11-15 12:52:22,522 - INFO - Loaded dynamic antenna positions for 117 antennas
+UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be "ant2<ant1" on object.
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).
+2025-11-15 12:52:29,412 - INFO - Per-subband writes completed: 4/16
+2025-11-15 12:52:29,412 - INFO - Per-subband writes completed: 8/16
+2025-11-15 12:52:29,412 - INFO - Per-subband writes completed: 12/16
+2025-11-15 12:52:29,412 - INFO - Per-subband writes completed: 16/16
+2025-11-15 12:52:29,920 - INFO - Concatenating 16 parts into /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms
+2025-11-15 12:53:12,277 - INFO - Writer 'parallel-subband' finished in 98.61s
+Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::SPECTRAL_WINDOW: 16 columns, 16 rows
+2025-11-15 12:53:12,283 - INFO - ✓ Frequency order validation passed: 16 SPW(s), range 1311.4-1498.6 MHz
+Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::FIELD: 9 columns, 24 rows
+Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::OBSERVATION: 10 columns, 1 rows
+/opt/miniforge/envs/casa6/lib/python3.11/site-packages/erfa/core.py:133: ErfaWarning: ERFA function "d2dtf" yielded 1 of "dubious year (Note 5)"
+  warn(f'ERFA function "{func_name}" yielded {wmsg}', ErfaWarning)
+2025-11-15 12:53:12,544 - INFO - Fixed FIELD table phase centers after concatenation
+Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::FIELD: 9 columns, 24 rows
+2025-11-15 12:53:12,566 - INFO - Phase center separation (2578.31 arcsec) indicates time-dependent phasing (meridian-tracking). This is expected and correct for DSA-110 observations. Validation check skipped.
+Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::OBSERVATION: 10 columns, 1 rows
+Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::SPECTRAL_WINDOW: 16 columns, 16 rows
+Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms: 23 columns, 1787904 rows
+2025-11-15 12:53:12,583 - INFO - ✓ UVW coordinate validation passed: median baseline 126.5m, max 385.4m (λ=0.21m, tolerance=0.021m)
+Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::ANTENNA: 8 columns, 117 rows
+2025-11-15 12:53:12,604 - INFO - ✓ Antenna position validation passed: 117 antennas, max error 0.0cm, RMS 0.0cm (tolerance 5.0cm)
+Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms: 23 columns, 1787904 rows
+2025-11-15 12:53:12,606 - ERROR - WARNING: MODEL_DATA column does not exist in /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms. This is required for calibration and must be populated before solving.
+Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms: 23 columns, 1787904 rows
+2025-11-15 12:53:12,607 - INFO - ✓ MS validation passed: 1787904 rows, 23 columns
+Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms: 23 columns, 1787904 rows
+added column MODEL_DATA
+'added column CORRECTED_DATA
+added column IMAGING_WEIGHT
+defined keyword CHANNEL_SELECTION in column MODEL_DATA
+Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms: 26 columns, 1787904 rows
+Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms: 26 columns, 1787904 rows
+Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms: 26 columns, 1787904 rows
+2025-11-15 12:55:20,213 - INFO - ✓ Imaging columns verified in /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms
+Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms: 26 columns, 1787904 rows
+Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms/ANTENNA: 8 columns, 117 rows
+Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::OBSERVATION: 10 columns, 1 rows
+Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::FIELD: 9 columns, 24 rows
+Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::OBSERVATION: 10 columns, 1 rows
+/opt/miniforge/envs/casa6/lib/python3.11/site-packages/erfa/core.py:133: ErfaWarning: ERFA function "d2dtf" yielded 1 of "dubious year (Note 5)"
+  warn(f'ERFA function "{func_name}" yielded {wmsg}', ErfaWarning)
+Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::OBSERVATION: 10 columns, 1 rows
+Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms: 26 columns, 1787904 rows
+Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::OBSERVATION: 10 columns, 1 rows
+Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms: 26 columns, 1787904 rows
+Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::OBSERVATION: 10 columns, 1 rows
+2025-11-15 12:55:46,586 - INFO - ✓ MS configuration completed: columns, flag_weight, initweights, mount_fix, telescope_stamp, field_phase_centers, observation_time_range, observation_table
+Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms: 26 columns, 1787904 rows
+2025-11-15 12:55:46,589 - INFO - ✓ MS configured for imaging: /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms
+2025-11-15 12:55:46,590 - INFO - ✓ Successfully created /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms
+2025-11-15 12:55:46,590 - INFO - Checking MS quality after conversion: /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms
+2025-11-15 12:55:46,590 - INFO - Validating MS quality: /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms
+2025-11-15 12:55:53,221 - WARNING - MS has warnings: Very large amplitude dynamic range: 8717035.8x
+2025-11-15 12:55:53,240 - WARNING - MS has warnings: Very large amplitude dynamic range: 8717035.8x
+2025-11-15 12:55:53,241 - WARNING - MS has quality warnings after conversion [ms_conversion] {'ms_path': '/stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms', 'warnings': ['Very large amplitude dynamic range: 8717035.8x'], 'fraction_flagged': '0.0%', 'median_amplitude': '4.751e-02'}
+2025-11-15 12:55:53,241 - INFO - MS passed quality checks: 2025-10-02T15:40:06.ms
+2025-11-15 12:55:53,241 - INFO - ✓ MS passed quality checks
+2025-11-15 12:55:53,244 - INFO - Converting group 2025-10-02T15:45:15 -> /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms
+2025-11-15 12:55:54,559 - INFO - Using shared pointing declination for group: Dec=54.573401° (MJD=60950.658153)

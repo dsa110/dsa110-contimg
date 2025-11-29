@@ -36,7 +36,7 @@ def test_flux_monitoring():
     try:
         # Create tables
         assert create_flux_monitoring_tables(db_path), "Failed to create tables"
-        print("  ✓ Created flux monitoring tables")
+        print("  :check_mark: Created flux monitoring tables")
 
         # Record measurements
         current_mjd = time.time() / 86400.0 + 40587.0
@@ -51,7 +51,7 @@ def test_flux_monitoring():
                 mjd=mjd,
                 db_path=db_path,
             )
-        print(f"  ✓ Recorded 5 calibration measurements")
+        print(f"  :check_mark: Recorded 5 calibration measurements")
 
         # Calculate trends
         trends = calculate_flux_trends(
@@ -59,19 +59,19 @@ def test_flux_monitoring():
         )
         assert "3C286" in trends, "Trends not calculated"
         assert trends["3C286"]["n_measurements"] == 5
-        print(f"  ✓ Calculated flux trends: {trends['3C286']['n_measurements']} measurements")
+        print(f"  :check_mark: Calculated flux trends: {trends['3C286']['n_measurements']} measurements")
 
         # Check stability
         all_stable, issues = check_flux_stability(
             drift_threshold_percent=20.0, time_window_days=1.0, min_measurements=3, db_path=db_path
         )
         assert all_stable, "Should be stable with constant flux"
-        print(f"  ✓ Stability check passed: {len(issues)} issues")
+        print(f"  :check_mark: Stability check passed: {len(issues)} issues")
 
     finally:
         Path(db_path).unlink(missing_ok=True)
 
-    print("✅ Flux monitoring tests passed!\n")
+    print(":white_heavy_check_mark: Flux monitoring tests passed!\n")
 
 
 def test_spectral_indices():
@@ -84,7 +84,7 @@ def test_spectral_indices():
     try:
         # Create tables
         assert create_spectral_indices_table(db_path), "Failed to create table"
-        print("  ✓ Created spectral_indices table")
+        print("  :check_mark: Created spectral_indices table")
 
         # Calculate spectral index (steep spectrum: α = -0.7)
         # For α=-0.7: S(1.4 GHz)=100 mJy => S(3.0 GHz)=58.65 mJy
@@ -97,7 +97,7 @@ def test_spectral_indices():
             flux2_err_mjy=3.0,
         )
         assert abs(alpha - (-0.7)) < 0.05, f"Expected α ≈ -0.7, got {alpha}"
-        print(f"  ✓ Calculated spectral index: α = {alpha:.3f} ± {alpha_err:.3f}")
+        print(f"  :check_mark: Calculated spectral index: α = {alpha:.3f} ± {alpha_err:.3f}")
 
         # Store spectral index
         record_id = store_spectral_index(
@@ -118,7 +118,7 @@ def test_spectral_indices():
             db_path=db_path,
         )
         assert record_id is not None
-        print(f"  ✓ Stored spectral index (ID: {record_id})")
+        print(f"  :check_mark: Stored spectral index (ID: {record_id})")
 
         # Verify stored
         conn = sqlite3.connect(db_path)
@@ -127,12 +127,12 @@ def test_spectral_indices():
         count = cur.fetchone()[0]
         conn.close()
         assert count == 1
-        print(f"  ✓ Verified database storage: {count} record")
+        print(f"  :check_mark: Verified database storage: {count} record")
 
     finally:
         Path(db_path).unlink(missing_ok=True)
 
-    print("✅ Spectral index tests passed!\n")
+    print(":white_heavy_check_mark: Spectral index tests passed!\n")
 
 
 if __name__ == "__main__":
@@ -148,12 +148,12 @@ if __name__ == "__main__":
         test_spectral_indices()
 
         print("=" * 60)
-        print("✅ ALL PHASE 1 TESTS PASSED!")
+        print(":white_heavy_check_mark: ALL PHASE 1 TESTS PASSED!")
         print("=" * 60)
         sys.exit(0)
 
     except Exception as e:
-        print(f"\n❌ TEST FAILED: {e}")
+        print(f"\n:cross_mark: TEST FAILED: {e}")
         import traceback
 
         traceback.print_exc()

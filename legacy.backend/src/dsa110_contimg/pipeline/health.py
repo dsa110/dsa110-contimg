@@ -205,4 +205,4 @@ def validate_pipeline_health(
         logger.error(error_msg)
         raise HealthCheckError(error_msg)
 
-    logger.info("✓ Pipeline health check passed")
+    logger.info(":check_mark: Pipeline health check passed")

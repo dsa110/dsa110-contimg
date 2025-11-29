@@ -68,7 +68,7 @@ python -m dsa110_contimg.calibration.cli_selfcal \
 
 ### Detection Capability
 
-- **0.1mJy source at 16µJy RMS**: **6.25σ** detection ✓ (exceeds 5σ goal)
+- **0.1mJy source at 16µJy RMS**: **6.25σ** detection :check_mark: (exceeds 5σ goal)
 - **0.2mJy source at 16µJy RMS**: 12.5σ detection
 - **Theoretical limit (3σ)**: 48µJy sources detectable
 
@@ -117,7 +117,7 @@ if nfields > 1:
 ```python
 # FIXED CODE:
 if nfields > 1:
-    print("⚠ Multiple fields detected - rephasing required even though FIELD table matches")
+    print(":warning_sign: Multiple fields detected - rephasing required even though FIELD table matches")
     print("   (Field table doesn't guarantee visibility phases are coherent)")
     needs_rephasing = True  # ALWAYS rephase multi-field data
 ```

@@ -74,7 +74,7 @@ def _download_atnf_catalog() -> pd.DataFrame:
         df = query.table.to_pandas()
 
         logger.info(f"Downloaded {len(df)} pulsars from ATNF catalogue")
-        print(f"✓ Downloaded {len(df)} pulsars")
+        print(f":check_mark: Downloaded {len(df)} pulsars")
 
         return df
 
@@ -305,7 +305,7 @@ def build_atnf_pulsar_db(
         with sqlite3.connect(str(output_path)) as conn:
             cursor = conn.execute("SELECT COUNT(*) FROM pulsars")
             count = cursor.fetchone()[0]
-            print(f"\n✓ Successfully created ATNF Pulsar database")
+            print(f"\n:check_mark: Successfully created ATNF Pulsar database")
             print(f"  Database: {output_path}")
             print(f"  Pulsars: {count}")
 
@@ -376,13 +376,13 @@ Examples:
         return 0
 
     except ImportError as e:
-        print(f"\n✗ Error: {e}")
+        print(f"\n:ballot_x: Error: {e}")
         print("\nTo install psrqpy:")
         print("  pip install psrqpy")
         return 1
 
     except Exception as e:
-        print(f"\n✗ Error building database: {e}")
+        print(f"\n:ballot_x: Error building database: {e}")
         import traceback
 
         if args.verbose:

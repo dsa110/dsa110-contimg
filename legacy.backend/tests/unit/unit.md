@@ -124,19 +124,19 @@ PYTHONPATH=/data/dsa110-contimg/src /opt/miniforge/envs/casa6/bin/python -m pyte
 
 ### QA System Tests
 
-- ✅ **Base Classes** (`test_qa_base.py`)
+- :white_heavy_check_mark: **Base Classes** (`test_qa_base.py`)
   - `ValidationContext` initialization
   - `ValidationResult` functionality
   - Exception hierarchy
   - 8 tests, all passing
 
-- ✅ **Configuration** (`test_qa_config.py`)
+- :white_heavy_check_mark: **Configuration** (`test_qa_config.py`)
   - Config class defaults
   - `get_default_config()` singleton
   - `load_config_from_dict()`
   - 7 tests, all passing
 
-- ✅ **Photometry Validation** (`test_qa_photometry_validation.py`)
+- :white_heavy_check_mark: **Photometry Validation** (`test_qa_photometry_validation.py`)
   - Basic structure created
   - Error handling tests
   - Needs expansion

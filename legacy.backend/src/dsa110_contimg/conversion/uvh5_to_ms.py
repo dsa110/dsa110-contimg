@@ -1282,11 +1282,11 @@ def convert_directory(
                 phase_reference_time,
             )
             successful_conversions += 1
-            logger.info(f"✓ Successfully converted {uvh5_file}")
+            logger.info(f":check_mark: Successfully converted {uvh5_file}")
 
         except Exception as e:
             failed_conversions += 1
-            logger.error(f"✗ Failed to convert {uvh5_file}: {e}")
+            logger.error(f":ballot_x: Failed to convert {uvh5_file}: {e}")
             continue
 
     # Report final statistics

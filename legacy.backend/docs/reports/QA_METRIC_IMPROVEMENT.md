@@ -90,7 +90,7 @@ Tested on successful amplitude self-cal table (`selfcal_iter2_ap.gcal`):
 - **Per-antenna scatter**: N/A (solint='inf')
 - **New warning**: "likely cross-antenna geometric delays (expected without
   delay calibration)"
-- **Verdict**: ✅ Correctly identifies scatter as benign geometric offsets
+- **Verdict**: :white_heavy_check_mark: Correctly identifies scatter as benign geometric offsets
 
 ## Benefits
 
@@ -107,8 +107,8 @@ Tested on successful amplitude self-cal table (`selfcal_iter2_ap.gcal`):
 With shorter solints (e.g., `solint='60s'`), the metric will compute meaningful
 per-antenna temporal scatter and provide even better diagnostics:
 
-- Low per-antenna scatter (~20-30°) → stable atmospheric corrections ✅
-- High per-antenna scatter (>50°) → actual calibration instability ⚠️
+- Low per-antenna scatter (~20-30°) → stable atmospheric corrections :white_heavy_check_mark:
+- High per-antenna scatter (>50°) → actual calibration instability :warning_sign::variation_selector-16:
 
 ## Related Documentation
 

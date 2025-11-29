@@ -273,23 +273,23 @@ Time 12:00 UTC
 
 Time 12:30 UTC (same day, same field)
   └─ Observe target at Dec=+30.5°
-     Apply: cal_bp_3c286_12:00.bpcal ✓ OK
+     Apply: cal_bp_3c286_12:00.bpcal :check_mark: OK
      (within 24h, Dec OK, same config)
 
 Time 22:00 UTC (same day, different field)
   └─ Observe target at Dec=+35°
-     Apply: cal_bp_3c286_12:00.bpcal ✗ FAIL
+     Apply: cal_bp_3c286_12:00.bpcal :ballot_x: FAIL
      Reason: Dec difference too large
      Action: Solve new BP calibration
 
 Time 13:00 UTC (next day)
   └─ Observe target at Dec=+30°
-     Apply: cal_bp_3c286_12:00.bpcal ✓ OK
+     Apply: cal_bp_3c286_12:00.bpcal :check_mark: OK
      (within 24h, Dec OK)
 
 Time 13:01 UTC (next day, just past 24h window)
   └─ Observe target at Dec=+30°
-     Apply: cal_bp_3c286_12:00.bpcal ✗ EXPIRED
+     Apply: cal_bp_3c286_12:00.bpcal :ballot_x: EXPIRED
      Action: Solve new BP calibration (old one stale)
 ```
 
@@ -387,20 +387,20 @@ Time 12:00 UTC
 
 Time 12:15 UTC (same calibrator)
   └─ Observe target (same field)
-     Apply: cal_gain_3c286_12:00.gcal ✓ OK
+     Apply: cal_gain_3c286_12:00.gcal :check_mark: OK
 
 Time 12:45 UTC (same calibrator)
   └─ Observe target (same field)
-     Apply: cal_gain_3c286_12:00.gcal ✓ OK
+     Apply: cal_gain_3c286_12:00.gcal :check_mark: OK
 
 Time 13:05 UTC (past 1-hour window)
   └─ Observe target (same field)
-     Apply: cal_gain_3c286_12:00.gcal ✗ EXPIRED
+     Apply: cal_gain_3c286_12:00.gcal :ballot_x: EXPIRED
      Action: Solve new gain calibration
 
 Time 13:00 UTC (1 hour later, different field)
   └─ Observe target at different position
-     Apply: cal_gain_3c286_12:00.gcal ✗ DIFFERENT FIELD
+     Apply: cal_gain_3c286_12:00.gcal :ballot_x: DIFFERENT FIELD
      Action: Solve new gain calibration or apply with caution
 ```
 
@@ -418,8 +418,8 @@ Observation 1: 12:00 UTC, target Dec = +30.0°
   └─ Solve gain calibration (valid until 13:00)
 
 Repoint: 12:30 UTC to Dec = +30.5°
-  ├─ Reuse BP calibration ✓ (Dec within ±1° tolerance)
-  ├─ Reuse gain calibration ✓ (within 1 hour)
+  ├─ Reuse BP calibration :check_mark: (Dec within ±1° tolerance)
+  ├─ Reuse gain calibration :check_mark: (within 1 hour)
   └─ Apply both tables, start observing immediately
 
 Result: **No new calibration needed**
@@ -574,7 +574,7 @@ Field A: Dec = +30.0°
 
 Repoint to Field B: Dec = +30.3° (< 1° away)
   12:25 - 12:30 UTC: Slew (5 min)
-  12:30 UTC: Reuse BP ✓ (Dec OK), Reuse Gain ✓ (within 1h)
+  12:30 UTC: Reuse BP :check_mark: (Dec OK), Reuse Gain :check_mark: (within 1h)
   12:30 - 12:59 UTC: Observe (29 min)
 
 Total overhead: ~10% for slewing

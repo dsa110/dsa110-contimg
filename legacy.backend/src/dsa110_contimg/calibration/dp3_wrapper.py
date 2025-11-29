@@ -296,7 +296,7 @@ def _concatenate_fields_manual(
     data_col = ms_table.getcol("DATA")
     ms_table.putcol("CORRECTED_DATA", data_col)
     ms_table.close()
-    LOG.info("✓ CORRECTED_DATA initialized from DATA")
+    LOG.info(":check_mark: CORRECTED_DATA initialized from DATA")
 
     # Recalculate UVW coordinates for the unified field geometry
     # This is CRITICAL - without this, MODEL_DATA from wsclean will be wrong
@@ -317,7 +317,7 @@ def _concatenate_fields_manual(
                 field="0",
                 phasecenter=phasecenter_str,
             )
-            LOG.info(f"✓ UVW coordinates recalculated for phase center: {phasecenter_str}")
+            LOG.info(f":check_mark: UVW coordinates recalculated for phase center: {phasecenter_str}")
         except Exception as e:
             LOG.warning(f"Failed to recalculate UVWs: {e}. Predictions may be inaccurate.")
     else:

@@ -8,13 +8,13 @@ This directory contains comprehensive unit tests for the mosaic functionality.
 
 Tests for `_calculate_mosaic_bounds()` function:
 
-- ✅ 4D CASA image bounds calculation
-- ✅ 2D CASA image bounds calculation
-- ✅ Multiple tiles union bounds
-- ✅ Correct pixel coordinate order for 4D images (`[0, 0, y, x]` fix)
-- ✅ Handling missing corner coordinates gracefully
+- :white_heavy_check_mark: 4D CASA image bounds calculation
+- :white_heavy_check_mark: 2D CASA image bounds calculation
+- :white_heavy_check_mark: Multiple tiles union bounds
+- :white_heavy_check_mark: Correct pixel coordinate order for 4D images (`[0, 0, y, x]` fix)
+- :white_heavy_check_mark: Handling missing corner coordinates gracefully
 
-**Status:** All 5 tests passing ✅
+**Status:** All 5 tests passing :white_heavy_check_mark:
 
 ### `test_mosaic_coordinate_system.py`
 

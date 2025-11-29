@@ -109,7 +109,7 @@ def test_validation_with_real_observations():
         logger.warning("Note: This test requires actual pipeline output images.")
         return False
 
-    logger.info(f"✓ Found real observation: {real_image}")
+    logger.info(f":check_mark: Found real observation: {real_image}")
     logger.info("")
 
     # Create output directory
@@ -158,7 +158,7 @@ def test_validation_with_real_observations():
                     logger.info(f"  Completeness: {completeness_result.completeness * 100:.1f}%")
 
             logger.info("")
-            logger.info(f"✓ HTML report generated: {html_path}")
+            logger.info(f":check_mark: HTML report generated: {html_path}")
             logger.info(f"  File size: {file_size:,} bytes")
             logger.info("")
             logger.info("=" * 70)

@@ -6,7 +6,7 @@ REFRESH_INTERVAL=5  # seconds
 LOG_FILE="/tmp/absurd_monitor.log"
 
 # Trap Ctrl+C for clean exit
-trap 'echo -e "\n\n✓ Monitor stopped."; exit 0' INT TERM
+trap 'echo -e "\n\n:check_mark: Monitor stopped."; exit 0' INT TERM
 
 echo "Starting Absurd Continuous Monitor (refresh every ${REFRESH_INTERVAL}s)"
 echo "Press Ctrl+C to stop"
@@ -25,10 +25,10 @@ while true; do
         # Service status
         echo "【 SERVICE STATUS 】"
         systemctl is-active --quiet dsa110-mosaic-daemon && \
-            echo "  ✓ Daemon: RUNNING" || echo "  ✗ Daemon: STOPPED"
+            echo "  :check_mark: Daemon: RUNNING" || echo "  :ballot_x: Daemon: STOPPED"
         
         WORKER_COUNT=$(systemctl list-units --state=active 'dsa110-absurd-worker@*' 2>/dev/null | grep -c "dsa110-absurd-worker")
-        echo "  ✓ Workers: $WORKER_COUNT active"
+        echo "  :check_mark: Workers: $WORKER_COUNT active"
         echo ""
         
         # Queue statistics
@@ -91,11 +91,11 @@ while true; do
             --since "5 minutes ago" --no-pager -p err 2>/dev/null | grep -c "ERROR" || echo "0")
         
         if [ "$ERROR_COUNT" -gt 0 ]; then
-            echo "  ⚠ $ERROR_COUNT errors detected"
+            echo "  :warning_sign: $ERROR_COUNT errors detected"
             journalctl -u 'dsa110-absurd-*' -u dsa110-mosaic-daemon \
                 --since "5 minutes ago" --no-pager -p err 2>/dev/null | tail -3
         else
-            echo "  ✓ No errors in last 5 minutes"
+            echo "  :check_mark: No errors in last 5 minutes"
         fi
         echo ""
         

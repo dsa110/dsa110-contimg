@@ -28,9 +28,9 @@ log_dir = setup_casa_logging()
 old_cwd = os.getcwd()
 try:
     os.chdir(log_dir)
-    print(f"✓ Changed CWD to log directory: {log_dir}")
+    print(f":check_mark: Changed CWD to log directory: {log_dir}")
 except (OSError, IOError, PermissionError) as e:
-    print(f"⚠️  Warning: Could not change CWD to {log_dir}: {e}", file=sys.stderr)
+    print(f":warning_sign::variation_selector-16:  Warning: Could not change CWD to {log_dir}: {e}", file=sys.stderr)
 
 """Create 12-minute mosaic with specified parameters.
 
@@ -158,7 +158,7 @@ def list_transits_interactive(
     Returns:
         Selected transit index (0-based) or None if cancelled
     """
-    print(f"\n📋 Listing available transits for {calibrator_name}...")
+    print(f"\n:clipboard: Listing available transits for {calibrator_name}...")
     transits = orchestrator.list_available_transits_with_quality(
         calibrator_name,
         max_days_back=60,
@@ -167,10 +167,10 @@ def list_transits_interactive(
     )
 
     if not transits:
-        print(f"✗ No transits found for {calibrator_name}")
+        print(f":ballot_x: No transits found for {calibrator_name}")
         return None
 
-    print(f"\n✓ Found {len(transits)} transit(s):\n")
+    print(f"\n:check_mark: Found {len(transits)} transit(s):\n")
     print(f"{'Index':<8} {'Transit Time':<25} {'PB Resp':<10} {'MS Count':<10} {'Days Ago':<10}")
     print("-" * 75)
 
@@ -364,7 +364,7 @@ Examples:
                         "Expected format: 'start:end' (e.g., '0:5')"
                     )
 
-            print(f"\n📊 Batch processing mosaics for {calibrator_name}")
+            print(f"\n:bar_chart: Batch processing mosaics for {calibrator_name}")
             results = orchestrator.create_mosaics_batch(
                 calibrator_name=calibrator_name,
                 transit_indices=transit_indices,
@@ -377,7 +377,7 @@ Examples:
             )
 
             success_count = sum(1 for r in results if r["status"] == "success")
-            print(f"\n✓ Batch processing complete: {success_count}/{len(results)} successful")
+            print(f"\n:check_mark: Batch processing complete: {success_count}/{len(results)} successful")
             write_status(
                 "SUCCESS",
                 f"Batch processing: {success_count}/{len(results)} successful",
@@ -402,9 +402,9 @@ Examples:
         if args.transit_time:
             try:
                 transit_time = Time(args.transit_time, format="isot", scale="utc")
-                print(f"✓ Using user-specified transit time: {transit_time.isot}")
+                print(f":check_mark: Using user-specified transit time: {transit_time.isot}")
             except Exception as e:
-                print(f"✗ Error parsing transit-time: {e}")
+                print(f":ballot_x: Error parsing transit-time: {e}")
                 return 1
         elif args.transit_index is not None:
             # Get transit by index
@@ -415,15 +415,15 @@ Examples:
                 min_ms_count=args.min_ms_count,
             )
             if args.transit_index < 0 or args.transit_index >= len(transits):
-                print(f"✗ Transit index {args.transit_index} out of range (0-{len(transits) - 1})")
+                print(f":ballot_x: Transit index {args.transit_index} out of range (0-{len(transits) - 1})")
                 return 1
             transit = transits[args.transit_index]
             transit_time = transit.get("transit_time")
             if isinstance(transit_time, Time):
-                print(f"✓ Using transit index {args.transit_index}: {transit_time.isot}")
+                print(f":check_mark: Using transit index {args.transit_index}: {transit_time.isot}")
             else:
                 transit_time = Time(transit.get("transit_iso"))
-                print(f"✓ Using transit index {args.transit_index}: {transit_time.isot}")
+                print(f":check_mark: Using transit index {args.transit_index}: {transit_time.isot}")
 
         # Parse time range override
         start_time = None
@@ -432,19 +432,19 @@ Examples:
             try:
                 start_time = Time(args.start_time, format="isot", scale="utc")
                 end_time = Time(args.end_time, format="isot", scale="utc")
-                print(f"✓ Using explicit time range: {start_time.isot} to {end_time.isot}")
+                print(f":check_mark: Using explicit time range: {start_time.isot} to {end_time.isot}")
             except Exception as e:
-                print(f"✗ Error parsing time range: {e}")
+                print(f":ballot_x: Error parsing time range: {e}")
                 return 1
 
         # Determine dry_run mode
         dry_run = args.preview or args.dry_run
         if dry_run:
-            print("\n🔍 PREVIEW MODE: Validating plan without creating mosaic\n")
+            print("\n:left-pointing_magnifying_glass: PREVIEW MODE: Validating plan without creating mosaic\n")
 
         # Create mosaic
         write_status("RUNNING", "Creating mosaic")
-        print(f"\n📊 Creating {args.timespan_minutes}-minute mosaic centered on {calibrator_name}")
+        print(f"\n:bar_chart: Creating {args.timespan_minutes}-minute mosaic centered on {calibrator_name}")
 
         mosaic_path = orchestrator.create_mosaic_centered_on_calibrator(
             calibrator_name=calibrator_name,
@@ -460,13 +460,13 @@ Examples:
         if mosaic_path:
             if mosaic_path == "DRY_RUN":
                 success_msg = "Dry run completed successfully - mosaic plan validated"
-                print(f"✓ {success_msg}")
+                print(f":check_mark: {success_msg}")
                 print("  Run without --preview/--dry-run to create the mosaic")
                 write_status("SUCCESS", success_msg)
                 return 0
             else:
                 success_msg = f"Mosaic created successfully at: {mosaic_path}"
-                print(f"✓ {success_msg}")
+                print(f":check_mark: {success_msg}")
                 print("  Location: /stage/dsa110-contimg/mosaics/")
                 print("  Method: pbweighted (default)")
                 write_status("SUCCESS", success_msg)

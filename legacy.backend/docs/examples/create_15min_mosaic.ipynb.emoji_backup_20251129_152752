@@ -1,0 +1,1281 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "35295bd5",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-17 19:04:57,403 - INFO - Creating 15-minute mosaic centered on 0834+555\n",
+      "2025-11-17 19:04:57,418 - INFO - Using default (earliest) transit: 2025-10-02T15:41:35.905\n",
+      "2025-11-17 19:04:57,431 - INFO - Transit time: 2025-10-02T15:41:35.905\n",
+      "Window: 2025-10-02T15:34:05.905 to 2025-10-02T15:49:05.905\n",
+      "Required MS files: 3\n",
+      "2025-11-17 19:04:57,433 - INFO - Only 2 MS files found, need 3. Triggering HDF5 conversion...\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "PIPELINE_STATE_DIR: /data/dsa110-contimg/state\n",
+      "Using VLA catalog: /data/dsa110-contimg/state/catalogs/vla_calibrators.sqlite3\n",
+      "Catalog exists: True\n",
+      "\n",
+      "Checking transit pre-calculation...\n",
+      "✓ Transit times already pre-calculated (13 transits with data)\n",
+      "✓ Using SQLite catalog: /data/dsa110-contimg/state/catalogs/vla_calibrators.sqlite3\n",
+      "\n",
+      "============================================================\n",
+      "Creating 3-tile mosaic (15 minutes) centered on 0834+555\n",
+      "============================================================\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-17 19:05:03,420 - INFO - Triggering HDF5 conversion for window: 2025-10-02 15:34:05.905 to 2025-10-02 15:49:05.905\n",
+      "2025-11-17 19:05:05,471 - INFO - Found 3 complete subband group(s) (48 total files)\n",
+      "2025-11-17 19:05:05,472 - INFO -   Group 1:\n",
+      "2025-11-17 19:05:05,473 - INFO -     2025-10-02T15:34:57_sb00.hdf5\n",
+      "2025-11-17 19:05:05,474 - INFO -     2025-10-02T15:34:57_sb01.hdf5\n",
+      "2025-11-17 19:05:05,475 - INFO -     2025-10-02T15:34:56_sb02.hdf5\n",
+      "2025-11-17 19:05:05,475 - INFO -     2025-10-02T15:34:57_sb03.hdf5\n",
+      "2025-11-17 19:05:05,476 - INFO -     2025-10-02T15:34:57_sb04.hdf5\n",
+      "2025-11-17 19:05:05,477 - INFO -     2025-10-02T15:34:57_sb05.hdf5\n",
+      "2025-11-17 19:05:05,477 - INFO -     2025-10-02T15:34:57_sb06.hdf5\n",
+      "2025-11-17 19:05:05,478 - INFO -     2025-10-02T15:34:57_sb07.hdf5\n",
+      "2025-11-17 19:05:05,479 - INFO -     2025-10-02T15:34:57_sb08.hdf5\n",
+      "2025-11-17 19:05:05,480 - INFO -     2025-10-02T15:34:57_sb09.hdf5\n",
+      "2025-11-17 19:05:05,481 - INFO -     2025-10-02T15:34:56_sb10.hdf5\n",
+      "2025-11-17 19:05:05,481 - INFO -     2025-10-02T15:34:57_sb11.hdf5\n",
+      "2025-11-17 19:05:05,482 - INFO -     2025-10-02T15:34:56_sb12.hdf5\n",
+      "2025-11-17 19:05:05,484 - INFO -     2025-10-02T15:34:57_sb13.hdf5\n",
+      "2025-11-17 19:05:05,485 - INFO -     2025-10-02T15:34:57_sb14.hdf5\n",
+      "2025-11-17 19:05:05,485 - INFO -     2025-10-02T15:34:57_sb15.hdf5\n",
+      "2025-11-17 19:05:05,485 - INFO -   Group 2:\n",
+      "2025-11-17 19:05:05,486 - INFO -     2025-10-02T15:40:06_sb00.hdf5\n",
+      "2025-11-17 19:05:05,486 - INFO -     2025-10-02T15:40:06_sb01.hdf5\n",
+      "2025-11-17 19:05:05,487 - INFO -     2025-10-02T15:40:06_sb02.hdf5\n",
+      "2025-11-17 19:05:05,487 - INFO -     2025-10-02T15:40:07_sb03.hdf5\n",
+      "2025-11-17 19:05:05,487 - INFO -     2025-10-02T15:40:06_sb04.hdf5\n",
+      "2025-11-17 19:05:05,488 - INFO -     2025-10-02T15:40:06_sb05.hdf5\n",
+      "2025-11-17 19:05:05,488 - INFO -     2025-10-02T15:40:07_sb06.hdf5\n",
+      "2025-11-17 19:05:05,488 - INFO -     2025-10-02T15:40:07_sb07.hdf5\n",
+      "2025-11-17 19:05:05,489 - INFO -     2025-10-02T15:40:06_sb08.hdf5\n",
+      "2025-11-17 19:05:05,489 - INFO -     2025-10-02T15:40:06_sb09.hdf5\n",
+      "2025-11-17 19:05:05,490 - INFO -     2025-10-02T15:40:06_sb10.hdf5\n",
+      "2025-11-17 19:05:05,490 - INFO -     2025-10-02T15:40:06_sb11.hdf5\n",
+      "2025-11-17 19:05:05,490 - INFO -     2025-10-02T15:40:06_sb12.hdf5\n",
+      "2025-11-17 19:05:05,491 - INFO -     2025-10-02T15:40:06_sb13.hdf5\n",
+      "2025-11-17 19:05:05,491 - INFO -     2025-10-02T15:40:06_sb14.hdf5\n",
+      "2025-11-17 19:05:05,492 - INFO -     2025-10-02T15:40:06_sb15.hdf5\n",
+      "2025-11-17 19:05:05,492 - INFO -   Group 3:\n",
+      "2025-11-17 19:05:05,493 - INFO -     2025-10-02T15:45:15_sb00.hdf5\n",
+      "2025-11-17 19:05:05,493 - INFO -     2025-10-02T15:45:16_sb01.hdf5\n",
+      "2025-11-17 19:05:05,493 - INFO -     2025-10-02T15:45:15_sb02.hdf5\n",
+      "2025-11-17 19:05:05,494 - INFO -     2025-10-02T15:45:16_sb03.hdf5\n",
+      "2025-11-17 19:05:05,494 - INFO -     2025-10-02T15:45:16_sb04.hdf5\n",
+      "2025-11-17 19:05:05,495 - INFO -     2025-10-02T15:45:15_sb05.hdf5\n",
+      "2025-11-17 19:05:05,495 - INFO -     2025-10-02T15:45:16_sb06.hdf5\n",
+      "2025-11-17 19:05:05,496 - INFO -     2025-10-02T15:45:16_sb07.hdf5\n",
+      "2025-11-17 19:05:05,496 - INFO -     2025-10-02T15:45:16_sb08.hdf5\n",
+      "2025-11-17 19:05:05,497 - INFO -     2025-10-02T15:45:16_sb09.hdf5\n",
+      "2025-11-17 19:05:05,497 - INFO -     2025-10-02T15:45:15_sb10.hdf5\n",
+      "2025-11-17 19:05:05,498 - INFO -     2025-10-02T15:45:15_sb11.hdf5\n",
+      "2025-11-17 19:05:05,498 - INFO -     2025-10-02T15:45:15_sb12.hdf5\n",
+      "2025-11-17 19:05:05,499 - INFO -     2025-10-02T15:45:16_sb13.hdf5\n",
+      "2025-11-17 19:05:05,499 - INFO -     2025-10-02T15:45:15_sb14.hdf5\n",
+      "2025-11-17 19:05:05,500 - INFO -     2025-10-02T15:45:15_sb15.hdf5\n",
+      "2025-11-17 19:05:05,812 - INFO - Converting group 2025-10-02T15:34:57 -> /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms\n",
+      "2025-11-17 19:05:09,727 - INFO - Using shared pointing declination for group: Dec=54.573401° (MJD=60950.650995)\n",
+      "2025-11-17 19:05:22,433 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:05:22,454 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:05:22,456 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:05:22,467 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "2025-11-17 19:05:26,767 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:05:26,850 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:05:26,852 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:05:26,863 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:05:26,981 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:05:26,982 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:05:27,003 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:05:27,006 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:05:27,005 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:05:27,008 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:05:27,016 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:05:27,017 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "2025-11-17 19:06:00,125 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:06:00,139 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:06:00,141 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:06:00,151 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "2025-11-17 19:06:10,660 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:06:10,673 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:06:10,675 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:06:10,690 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "2025-11-17 19:06:12,067 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:06:12,079 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:06:12,080 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:06:12,094 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "2025-11-17 19:06:12,588 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:06:12,602 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:06:12,604 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:06:12,612 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "2025-11-17 19:06:35,717 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:06:35,795 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:06:35,797 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:06:35,838 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "2025-11-17 19:06:43,624 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:06:43,680 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:06:43,681 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:06:43,701 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "2025-11-17 19:06:46,861 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:06:46,886 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:06:46,888 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:06:46,911 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "2025-11-17 19:06:51,138 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:06:51,160 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:06:51,161 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:06:51,171 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "2025-11-17 19:07:10,648 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:07:10,664 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:07:10,666 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:07:10,677 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "2025-11-17 19:07:14,814 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:07:14,825 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:07:14,826 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:07:14,841 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "2025-11-17 19:07:21,300 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:07:21,363 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:07:21,365 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:07:21,379 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "2025-11-17 19:07:27,902 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:07:27,912 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:07:27,913 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:07:27,924 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "2025-11-17 19:07:39,922 - INFO - Per-subband writes completed: 4/16\n",
+      "2025-11-17 19:07:39,923 - INFO - Per-subband writes completed: 8/16\n",
+      "2025-11-17 19:07:39,924 - INFO - Per-subband writes completed: 12/16\n",
+      "2025-11-17 19:07:39,925 - INFO - Per-subband writes completed: 16/16\n",
+      "2025-11-17 19:07:40,810 - INFO - Concatenating 16 parts into /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms\n",
+      "2025-11-17 19:08:24,882 - INFO - Writer 'parallel-subband' finished in 198.27s\n",
+      "2025-11-17 19:08:24,890 - INFO - ✓ Frequency order validation passed: 16 SPW(s), range 1311.4-1498.6 MHz\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms::SPECTRAL_WINDOW: 16 columns, 16 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/opt/miniforge/envs/casa6/lib/python3.11/site-packages/erfa/core.py:133: ErfaWarning: ERFA function \"d2dtf\" yielded 1 of \"dubious year (Note 5)\"\n",
+      "  warn(f'ERFA function \"{func_name}\" yielded {wmsg}', ErfaWarning)\n",
+      "2025-11-17 19:08:27,300 - INFO - Fixed FIELD table phase centers after concatenation\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms::FIELD: 9 columns, 24 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms::OBSERVATION: 10 columns, 1 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms::FIELD: 9 columns, 24 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-17 19:08:28,553 - INFO - Phase center separation (2578.48 arcsec) indicates time-dependent phasing (meridian-tracking). This is expected and correct for DSA-110 observations. Validation check skipped.\n",
+      "2025-11-17 19:08:28,568 - INFO - ✓ UVW coordinate validation passed: median baseline 126.5m, max 385.4m (λ=0.21m, tolerance=0.021m)\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms::OBSERVATION: 10 columns, 1 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms::SPECTRAL_WINDOW: 16 columns, 16 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms: 23 columns, 1787904 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms::ANTENNA: 8 columns, 117 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-17 19:08:29,002 - INFO - ✓ Antenna position validation passed: 117 antennas, max error 0.0cm, RMS 0.0cm (tolerance 5.0cm)\n",
+      "2025-11-17 19:08:29,004 - ERROR - WARNING: MODEL_DATA column does not exist in /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms. This is required for calibration and must be populated before solving.\n",
+      "2025-11-17 19:08:29,008 - INFO - ✓ MS validation passed: 1787904 rows, 23 columns\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms: 23 columns, 1787904 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms: 23 columns, 1787904 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms: 23 columns, 1787904 rows\n",
+      "added column MODEL_DATA\n",
+      "'added column CORRECTED_DATA\n",
+      "added column IMAGING_WEIGHT\n",
+      "defined keyword CHANNEL_SELECTION in column MODEL_DATA\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms: 26 columns, 1787904 rows\n",
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms: 26 columns, 1787904 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-17 19:10:44,512 - INFO - ✓ Imaging columns verified in /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms: 26 columns, 1787904 rows\n",
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms: 26 columns, 1787904 rows\n",
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms/ANTENNA: 8 columns, 117 rows\n",
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms::OBSERVATION: 10 columns, 1 rows\n",
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms::FIELD: 9 columns, 24 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms::OBSERVATION: 10 columns, 1 rows\n",
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms::OBSERVATION: 10 columns, 1 rows\n",
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms: 26 columns, 1787904 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/opt/miniforge/envs/casa6/lib/python3.11/site-packages/erfa/core.py:133: ErfaWarning: ERFA function \"d2dtf\" yielded 1 of \"dubious year (Note 5)\"\n",
+      "  warn(f'ERFA function \"{func_name}\" yielded {wmsg}', ErfaWarning)\n",
+      "2025-11-17 19:11:22,341 - INFO - ✓ MS configuration completed: columns, flag_weight, initweights, mount_fix, telescope_stamp, field_phase_centers, observation_time_range, observation_table\n",
+      "2025-11-17 19:11:22,345 - INFO - ✓ MS configured for imaging: /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms\n",
+      "2025-11-17 19:11:22,346 - INFO - ✓ Successfully created /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms\n",
+      "2025-11-17 19:11:22,347 - INFO - Checking MS quality after conversion: /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms\n",
+      "2025-11-17 19:11:22,348 - INFO - Validating MS quality: /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms::OBSERVATION: 10 columns, 1 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms: 26 columns, 1787904 rows\n",
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms::OBSERVATION: 10 columns, 1 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms: 26 columns, 1787904 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-17 19:12:01,968 - WARNING - MS has warnings: Very large amplitude dynamic range: 67453105.3x\n",
+      "2025-11-17 19:12:02,003 - WARNING - MS has warnings: Very large amplitude dynamic range: 67453105.3x\n",
+      "2025-11-17 19:12:02,005 - WARNING - MS has quality warnings after conversion [ms_conversion] {'ms_path': '/stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms', 'warnings': ['Very large amplitude dynamic range: 67453105.3x'], 'fraction_flagged': '0.0%', 'median_amplitude': '4.143e-02'}\n",
+      "2025-11-17 19:12:02,006 - INFO - MS passed quality checks: 2025-10-02T15:34:57.ms\n",
+      "2025-11-17 19:12:02,007 - INFO - ✓ MS passed quality checks\n",
+      "2025-11-17 19:12:02,100 - INFO - Converting group 2025-10-02T15:40:06 -> /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms\n",
+      "2025-11-17 19:12:06,611 - INFO - Using shared pointing declination for group: Dec=54.573401° (MJD=60950.654574)\n",
+      "2025-11-17 19:12:22,940 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:12:22,962 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:12:22,965 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:12:22,981 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:12:22,989 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:12:23,003 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:12:23,004 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:12:23,010 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:12:23,012 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:12:23,023 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:12:23,032 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:12:23,034 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:12:23,035 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:12:23,038 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:12:23,045 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:12:23,048 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "2025-11-17 19:12:58,633 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:12:58,645 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:12:58,647 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:12:58,657 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "2025-11-17 19:13:00,283 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:13:00,303 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:13:00,304 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:13:00,322 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "2025-11-17 19:13:08,214 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:13:08,226 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:13:08,229 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:13:08,240 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "2025-11-17 19:13:09,118 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:13:09,131 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:13:09,133 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:13:09,143 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "2025-11-17 19:13:32,586 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:13:32,596 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:13:32,598 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:13:32,609 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "2025-11-17 19:13:39,325 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:13:39,340 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:13:39,342 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:13:39,356 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "2025-11-17 19:13:40,160 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:13:40,177 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:13:40,178 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:13:40,189 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:13:40,519 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:13:40,531 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:13:40,533 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:13:40,543 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "2025-11-17 19:14:13,407 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:14:13,422 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:14:13,424 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:14:13,435 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:14:13,463 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:14:13,484 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:14:13,486 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:14:13,498 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "2025-11-17 19:14:19,494 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:14:19,512 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:14:19,513 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:14:19,524 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "2025-11-17 19:14:20,337 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:14:20,352 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:14:20,354 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:14:20,364 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "2025-11-17 19:14:33,534 - INFO - Per-subband writes completed: 4/16\n",
+      "2025-11-17 19:14:33,535 - INFO - Per-subband writes completed: 8/16\n",
+      "2025-11-17 19:14:33,536 - INFO - Per-subband writes completed: 12/16\n",
+      "2025-11-17 19:14:33,536 - INFO - Per-subband writes completed: 16/16\n",
+      "2025-11-17 19:14:38,360 - INFO - Concatenating 16 parts into /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms\n",
+      "2025-11-17 19:15:24,572 - INFO - Writer 'parallel-subband' finished in 201.73s\n",
+      "2025-11-17 19:15:24,580 - INFO - ✓ Frequency order validation passed: 16 SPW(s), range 1311.4-1498.6 MHz\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::SPECTRAL_WINDOW: 16 columns, 16 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-17 19:15:26,193 - INFO - Fixed FIELD table phase centers after concatenation\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::FIELD: 9 columns, 24 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::OBSERVATION: 10 columns, 1 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::FIELD: 9 columns, 24 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-17 19:15:26,531 - INFO - Phase center separation (2578.31 arcsec) indicates time-dependent phasing (meridian-tracking). This is expected and correct for DSA-110 observations. Validation check skipped.\n",
+      "2025-11-17 19:15:26,545 - INFO - ✓ UVW coordinate validation passed: median baseline 126.5m, max 385.4m (λ=0.21m, tolerance=0.021m)\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::OBSERVATION: 10 columns, 1 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::SPECTRAL_WINDOW: 16 columns, 16 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms: 23 columns, 1787904 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::ANTENNA: 8 columns, 117 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-17 19:15:27,957 - INFO - ✓ Antenna position validation passed: 117 antennas, max error 0.0cm, RMS 0.0cm (tolerance 5.0cm)\n",
+      "2025-11-17 19:15:27,959 - ERROR - WARNING: MODEL_DATA column does not exist in /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms. This is required for calibration and must be populated before solving.\n",
+      "2025-11-17 19:15:27,962 - INFO - ✓ MS validation passed: 1787904 rows, 23 columns\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms: 23 columns, 1787904 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms: 23 columns, 1787904 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms: 23 columns, 1787904 rows\n",
+      "added column MODEL_DATA\n",
+      "'added column CORRECTED_DATA\n",
+      "added column IMAGING_WEIGHT\n",
+      "defined keyword CHANNEL_SELECTION in column MODEL_DATA\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms: 26 columns, 1787904 rows\n",
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms: 26 columns, 1787904 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-17 19:17:41,284 - INFO - ✓ Imaging columns verified in /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms: 26 columns, 1787904 rows\n",
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms: 26 columns, 1787904 rows\n",
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms/ANTENNA: 8 columns, 117 rows\n",
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::OBSERVATION: 10 columns, 1 rows\n",
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::FIELD: 9 columns, 24 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::OBSERVATION: 10 columns, 1 rows\n",
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::OBSERVATION: 10 columns, 1 rows\n",
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms: 26 columns, 1787904 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/opt/miniforge/envs/casa6/lib/python3.11/site-packages/erfa/core.py:133: ErfaWarning: ERFA function \"d2dtf\" yielded 1 of \"dubious year (Note 5)\"\n",
+      "  warn(f'ERFA function \"{func_name}\" yielded {wmsg}', ErfaWarning)\n",
+      "2025-11-17 19:18:10,081 - INFO - ✓ MS configuration completed: columns, flag_weight, initweights, mount_fix, telescope_stamp, field_phase_centers, observation_time_range, observation_table\n",
+      "2025-11-17 19:18:10,083 - INFO - ✓ MS configured for imaging: /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms\n",
+      "2025-11-17 19:18:10,084 - INFO - ✓ Successfully created /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms\n",
+      "2025-11-17 19:18:10,085 - INFO - Checking MS quality after conversion: /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms\n",
+      "2025-11-17 19:18:10,086 - INFO - Validating MS quality: /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::OBSERVATION: 10 columns, 1 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms: 26 columns, 1787904 rows\n",
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::OBSERVATION: 10 columns, 1 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms: 26 columns, 1787904 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-17 19:18:31,005 - WARNING - MS has warnings: Very large amplitude dynamic range: 8717035.8x\n",
+      "2025-11-17 19:18:31,034 - WARNING - MS has warnings: Very large amplitude dynamic range: 8717035.8x\n",
+      "2025-11-17 19:18:31,035 - WARNING - MS has quality warnings after conversion [ms_conversion] {'ms_path': '/stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms', 'warnings': ['Very large amplitude dynamic range: 8717035.8x'], 'fraction_flagged': '0.0%', 'median_amplitude': '4.751e-02'}\n",
+      "2025-11-17 19:18:31,036 - INFO - MS passed quality checks: 2025-10-02T15:40:06.ms\n",
+      "2025-11-17 19:18:31,037 - INFO - ✓ MS passed quality checks\n",
+      "2025-11-17 19:18:31,042 - INFO - Converting group 2025-10-02T15:45:15 -> /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms\n",
+      "2025-11-17 19:18:35,626 - INFO - Using shared pointing declination for group: Dec=54.573401° (MJD=60950.658153)\n",
+      "2025-11-17 19:19:02,565 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:19:02,582 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:19:02,584 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:19:02,593 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "2025-11-17 19:19:03,411 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:19:03,427 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:19:03,429 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:19:03,438 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:19:03,449 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:19:03,473 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:19:03,477 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:19:03,488 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "2025-11-17 19:19:03,931 - INFO - Setting DSA-110 antenna positions\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "2025-11-17 19:19:03,948 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:19:03,950 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:19:03,961 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "2025-11-17 19:19:43,611 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:19:43,623 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:19:43,625 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:19:43,635 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:19:44,043 - INFO - Setting DSA-110 antenna positions\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "2025-11-17 19:19:44,059 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:19:44,060 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:19:44,071 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:19:44,471 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:19:44,488 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:19:44,489 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:19:44,499 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "2025-11-17 19:19:45,071 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:19:45,090 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:19:45,091 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:19:45,102 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "2025-11-17 19:20:10,295 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:20:10,320 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:20:10,322 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:20:10,363 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "2025-11-17 19:20:11,978 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:20:12,096 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:20:12,098 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:20:12,181 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "2025-11-17 19:20:14,489 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:20:14,516 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:20:14,518 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:20:14,585 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:20:14,764 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:20:14,774 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:20:14,775 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:20:14,786 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "2025-11-17 19:20:34,705 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:20:34,754 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:20:34,756 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:20:34,876 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "2025-11-17 19:20:40,803 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:20:40,859 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:20:40,861 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:20:40,872 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "2025-11-17 19:20:41,378 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:20:41,389 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:20:41,391 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:20:41,402 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "2025-11-17 19:20:44,917 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:20:44,936 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "2025-11-17 19:20:44,938 - INFO - Setting DSA-110 antenna positions\n",
+      "2025-11-17 19:20:44,949 - INFO - Loaded dynamic antenna positions for 117 antennas\n",
+      "UVData object contains a mix of baseline conjugation states, which is not uniformly supported in CASA -- forcing conjugation to be \"ant2<ant1\" on object.\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "Writing in the MS file that the units of the data are uncalib, although some CASA process will ignore this and assume the units are all in Jy (or may not know how to handle data in these units).\n",
+      "2025-11-17 19:20:55,217 - INFO - Per-subband writes completed: 4/16\n",
+      "2025-11-17 19:20:55,218 - INFO - Per-subband writes completed: 8/16\n",
+      "2025-11-17 19:20:55,219 - INFO - Per-subband writes completed: 12/16\n",
+      "2025-11-17 19:20:55,220 - INFO - Per-subband writes completed: 16/16\n",
+      "2025-11-17 19:20:55,736 - INFO - Concatenating 16 parts into /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms\n",
+      "2025-11-17 19:21:50,790 - INFO - Writer 'parallel-subband' finished in 199.53s\n",
+      "2025-11-17 19:21:50,799 - INFO - ✓ Frequency order validation passed: 16 SPW(s), range 1311.4-1498.6 MHz\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms::SPECTRAL_WINDOW: 16 columns, 16 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-17 19:21:51,384 - INFO - Fixed FIELD table phase centers after concatenation\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms::FIELD: 9 columns, 24 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms::OBSERVATION: 10 columns, 1 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms::FIELD: 9 columns, 24 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-17 19:21:52,984 - INFO - Phase center separation (2578.15 arcsec) indicates time-dependent phasing (meridian-tracking). This is expected and correct for DSA-110 observations. Validation check skipped.\n",
+      "2025-11-17 19:21:52,996 - INFO - ✓ UVW coordinate validation passed: median baseline 126.5m, max 385.4m (λ=0.21m, tolerance=0.021m)\n",
+      "2025-11-17 19:21:53,014 - INFO - ✓ Antenna position validation passed: 117 antennas, max error 0.0cm, RMS 0.0cm (tolerance 5.0cm)\n",
+      "2025-11-17 19:21:53,016 - ERROR - WARNING: MODEL_DATA column does not exist in /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms. This is required for calibration and must be populated before solving.\n",
+      "2025-11-17 19:21:53,019 - INFO - ✓ MS validation passed: 1787904 rows, 23 columns\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms::OBSERVATION: 10 columns, 1 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms::SPECTRAL_WINDOW: 16 columns, 16 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms: 23 columns, 1787904 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms::ANTENNA: 8 columns, 117 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms: 23 columns, 1787904 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms: 23 columns, 1787904 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms: 23 columns, 1787904 rows\n",
+      "added column MODEL_DATA\n",
+      "'added column CORRECTED_DATA\n",
+      "added column IMAGING_WEIGHT\n",
+      "defined keyword CHANNEL_SELECTION in column MODEL_DATA\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms: 26 columns, 1787904 rows\n",
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms: 26 columns, 1787904 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-17 19:24:04,773 - INFO - ✓ Imaging columns verified in /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms: 26 columns, 1787904 rows\n",
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms: 26 columns, 1787904 rows\n",
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms/ANTENNA: 8 columns, 117 rows\n",
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms::OBSERVATION: 10 columns, 1 rows\n",
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms::FIELD: 9 columns, 24 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms::OBSERVATION: 10 columns, 1 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "/opt/miniforge/envs/casa6/lib/python3.11/site-packages/erfa/core.py:133: ErfaWarning: ERFA function \"d2dtf\" yielded 1 of \"dubious year (Note 5)\"\n",
+      "  warn(f'ERFA function \"{func_name}\" yielded {wmsg}', ErfaWarning)\n",
+      "2025-11-17 19:24:36,041 - INFO - ✓ MS configuration completed: columns, flag_weight, initweights, mount_fix, telescope_stamp, field_phase_centers, observation_time_range, observation_table\n",
+      "2025-11-17 19:24:36,045 - INFO - ✓ MS configured for imaging: /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms\n",
+      "2025-11-17 19:24:36,046 - INFO - ✓ Successfully created /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms\n",
+      "2025-11-17 19:24:36,047 - INFO - Checking MS quality after conversion: /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms\n",
+      "2025-11-17 19:24:36,048 - INFO - Validating MS quality: /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms::OBSERVATION: 10 columns, 1 rows\n",
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms: 26 columns, 1787904 rows\n",
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms::OBSERVATION: 10 columns, 1 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms: 26 columns, 1787904 rows\n",
+      "Successful read/write open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms::OBSERVATION: 10 columns, 1 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms: 26 columns, 1787904 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-17 19:25:28,556 - WARNING - MS has warnings: Very large amplitude dynamic range: 7999395.6x\n",
+      "2025-11-17 19:25:28,586 - WARNING - MS has warnings: Very large amplitude dynamic range: 7999395.6x\n",
+      "2025-11-17 19:25:28,587 - WARNING - MS has quality warnings after conversion [ms_conversion] {'ms_path': '/stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms', 'warnings': ['Very large amplitude dynamic range: 7999395.6x'], 'fraction_flagged': '0.0%', 'median_amplitude': '4.625e-02'}\n",
+      "2025-11-17 19:25:28,588 - INFO - MS passed quality checks: 2025-10-02T15:45:15.ms\n",
+      "2025-11-17 19:25:28,589 - INFO - ✓ MS passed quality checks\n",
+      "2025-11-17 19:25:28,589 - INFO - HDF5 conversion completed\n",
+      "2025-11-18 03:25:40\tSEVERE\tmsmetadata_cmpt.cc::timesforscans\tException Reported: Exception: No matching scans found.\n",
+      "2025-11-18 03:25:40\tSEVERE\tmsmetadata_cmpt.cc::timesforscans+\t... thrown by std::set<casacore::ScanKey> casac::msmetadata::_getScanKeys(const std::vector<long int>&, long int, long int) const at File: /home/conda/feedstock_root/build_artifacts/casatools_1757431503580/work/casatools/src/tools/msmetadata/msmetadata_cmpt.cc, line: 2522\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms: 26 columns, 1787904 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-18 03:25:42\tSEVERE\tmsmetadata_cmpt.cc::timesforscans\tException Reported: Exception: No matching scans found.\n",
+      "2025-11-18 03:25:42\tSEVERE\tmsmetadata_cmpt.cc::timesforscans+\t... thrown by std::set<casacore::ScanKey> casac::msmetadata::_getScanKeys(const std::vector<long int>&, long int, long int) const at File: /home/conda/feedstock_root/build_artifacts/casatools_1757431503580/work/casatools/src/tools/msmetadata/msmetadata_cmpt.cc, line: 2522\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T01:25:39.ms: 26 columns, 1787904 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-18 03:25:45\tSEVERE\tmsmetadata_cmpt.cc::timesforscans\tException Reported: Exception: No matching scans found.\n",
+      "2025-11-18 03:25:45\tSEVERE\tmsmetadata_cmpt.cc::timesforscans+\t... thrown by std::set<casacore::ScanKey> casac::msmetadata::_getScanKeys(const std::vector<long int>&, long int, long int) const at File: /home/conda/feedstock_root/build_artifacts/casatools_1757431503580/work/casatools/src/tools/msmetadata/msmetadata_cmpt.cc, line: 2522\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T01:08:33.ms: 26 columns, 1787904 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-18 03:25:46\tSEVERE\tmsmetadata_cmpt.cc::timesforscans\tException Reported: Exception: No matching scans found.\n",
+      "2025-11-18 03:25:46\tSEVERE\tmsmetadata_cmpt.cc::timesforscans+\t... thrown by std::set<casacore::ScanKey> casac::msmetadata::_getScanKeys(const std::vector<long int>&, long int, long int) const at File: /home/conda/feedstock_root/build_artifacts/casatools_1757431503580/work/casatools/src/tools/msmetadata/msmetadata_cmpt.cc, line: 2522\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T01:20:30.ms: 26 columns, 1787904 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-18 03:25:49\tSEVERE\tmsmetadata_cmpt.cc::timesforscans\tException Reported: Exception: No matching scans found.\n",
+      "2025-11-18 03:25:49\tSEVERE\tmsmetadata_cmpt.cc::timesforscans+\t... thrown by std::set<casacore::ScanKey> casac::msmetadata::_getScanKeys(const std::vector<long int>&, long int, long int) const at File: /home/conda/feedstock_root/build_artifacts/casatools_1757431503580/work/casatools/src/tools/msmetadata/msmetadata_cmpt.cc, line: 2522\n",
+      "2025-11-17 19:25:49,040 - INFO - Registered existing MS file: /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms: 26 columns, 1787904 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-18 03:25:50\tSEVERE\tmsmetadata_cmpt.cc::timesforscans\tException Reported: Exception: No matching scans found.\n",
+      "2025-11-18 03:25:50\tSEVERE\tmsmetadata_cmpt.cc::timesforscans+\t... thrown by std::set<casacore::ScanKey> casac::msmetadata::_getScanKeys(const std::vector<long int>&, long int, long int) const at File: /home/conda/feedstock_root/build_artifacts/casatools_1757431503580/work/casatools/src/tools/msmetadata/msmetadata_cmpt.cc, line: 2522\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms: 26 columns, 1787904 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-18 03:25:53\tSEVERE\tmsmetadata_cmpt.cc::timesforscans\tException Reported: Exception: No matching scans found.\n",
+      "2025-11-18 03:25:53\tSEVERE\tmsmetadata_cmpt.cc::timesforscans+\t... thrown by std::set<casacore::ScanKey> casac::msmetadata::_getScanKeys(const std::vector<long int>&, long int, long int) const at File: /home/conda/feedstock_root/build_artifacts/casatools_1757431503580/work/casatools/src/tools/msmetadata/msmetadata_cmpt.cc, line: 2522\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T01:15:20.ms: 26 columns, 1787904 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-18 03:25:54\tSEVERE\tmsmetadata_cmpt.cc::timesforscans\tException Reported: Exception: No matching scans found.\n",
+      "2025-11-18 03:25:54\tSEVERE\tmsmetadata_cmpt.cc::timesforscans+\t... thrown by std::set<casacore::ScanKey> casac::msmetadata::_getScanKeys(const std::vector<long int>&, long int, long int) const at File: /home/conda/feedstock_root/build_artifacts/casatools_1757431503580/work/casatools/src/tools/msmetadata/msmetadata_cmpt.cc, line: 2522\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/calibrators/2025-10-02T01:08:33.ms: 26 columns, 1787904 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-18 03:25:56\tSEVERE\tmsmetadata_cmpt.cc::timesforscans\tException Reported: Exception: No matching scans found.\n",
+      "2025-11-18 03:25:56\tSEVERE\tmsmetadata_cmpt.cc::timesforscans+\t... thrown by std::set<casacore::ScanKey> casac::msmetadata::_getScanKeys(const std::vector<long int>&, long int, long int) const at File: /home/conda/feedstock_root/build_artifacts/casatools_1757431503580/work/casatools/src/tools/msmetadata/msmetadata_cmpt.cc, line: 2522\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/calibrators/2025-10-02T01:15:20.ms: 26 columns, 1787904 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-17 19:25:57,648 - INFO - Registered 1 MS files that were on disk but not in database\n",
+      "2025-11-17 19:25:57,650 - INFO - After conversion: 3 MS files found\n",
+      "2025-11-17 19:26:01,565 - INFO - Created group mosaic_2025-10-02_15-41-35-905 with 3 MS files\n",
+      "2025-11-17 19:26:01,567 - INFO - Processing group mosaic_2025-10-02_15-41-35-905...\n",
+      "2025-11-18 03:26:03\tSEVERE\tmsmetadata_cmpt.cc::timesforscans\tException Reported: Exception: No matching scans found.\n",
+      "2025-11-18 03:26:03\tSEVERE\tmsmetadata_cmpt.cc::timesforscans+\t... thrown by std::set<casacore::ScanKey> casac::msmetadata::_getScanKeys(const std::vector<long int>&, long int, long int) const at File: /home/conda/feedstock_root/build_artifacts/casatools_1757431503580/work/casatools/src/tools/msmetadata/msmetadata_cmpt.cc, line: 2522\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms: 26 columns, 1787904 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-18 03:26:05\tSEVERE\tmsmetadata_cmpt.cc::timesforscans\tException Reported: Exception: No matching scans found.\n",
+      "2025-11-18 03:26:05\tSEVERE\tmsmetadata_cmpt.cc::timesforscans+\t... thrown by std::set<casacore::ScanKey> casac::msmetadata::_getScanKeys(const std::vector<long int>&, long int, long int) const at File: /home/conda/feedstock_root/build_artifacts/casatools_1757431503580/work/casatools/src/tools/msmetadata/msmetadata_cmpt.cc, line: 2522\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms: 26 columns, 1787904 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-18 03:26:07\tSEVERE\tmsmetadata_cmpt.cc::timesforscans\tException Reported: Exception: No matching scans found.\n",
+      "2025-11-18 03:26:07\tSEVERE\tmsmetadata_cmpt.cc::timesforscans+\t... thrown by std::set<casacore::ScanKey> casac::msmetadata::_getScanKeys(const std::vector<long int>&, long int, long int) const at File: /home/conda/feedstock_root/build_artifacts/casatools_1757431503580/work/casatools/src/tools/msmetadata/msmetadata_cmpt.cc, line: 2522\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms: 26 columns, 1787904 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-18 03:26:09\tSEVERE\tmsmetadata_cmpt.cc::timesforscans\tException Reported: Exception: No matching scans found.\n",
+      "2025-11-18 03:26:09\tSEVERE\tmsmetadata_cmpt.cc::timesforscans+\t... thrown by std::set<casacore::ScanKey> casac::msmetadata::_getScanKeys(const std::vector<long int>&, long int, long int) const at File: /home/conda/feedstock_root/build_artifacts/casatools_1757431503580/work/casatools/src/tools/msmetadata/msmetadata_cmpt.cc, line: 2522\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms: 26 columns, 1787904 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-18 03:26:10\tSEVERE\tmsmetadata_cmpt.cc::timesforscans\tException Reported: Exception: No matching scans found.\n",
+      "2025-11-18 03:26:10\tSEVERE\tmsmetadata_cmpt.cc::timesforscans+\t... thrown by std::set<casacore::ScanKey> casac::msmetadata::_getScanKeys(const std::vector<long int>&, long int, long int) const at File: /home/conda/feedstock_root/build_artifacts/casatools_1757431503580/work/casatools/src/tools/msmetadata/msmetadata_cmpt.cc, line: 2522\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms: 26 columns, 1787904 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-18 03:26:12\tSEVERE\tmsmetadata_cmpt.cc::timesforscans\tException Reported: Exception: No matching scans found.\n",
+      "2025-11-18 03:26:12\tSEVERE\tmsmetadata_cmpt.cc::timesforscans+\t... thrown by std::set<casacore::ScanKey> casac::msmetadata::_getScanKeys(const std::vector<long int>&, long int, long int) const at File: /home/conda/feedstock_root/build_artifacts/casatools_1757431503580/work/casatools/src/tools/msmetadata/msmetadata_cmpt.cc, line: 2522\n",
+      "2025-11-17 19:26:12,524 - INFO - Selected calibration MS: /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms (2 of 3 MS)\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms: 26 columns, 1787904 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-18 03:26:14\tSEVERE\tmsmetadata_cmpt.cc::timesforscans\tException Reported: Exception: No matching scans found.\n",
+      "2025-11-18 03:26:14\tSEVERE\tmsmetadata_cmpt.cc::timesforscans+\t... thrown by std::set<casacore::ScanKey> casac::msmetadata::_getScanKeys(const std::vector<long int>&, long int, long int) const at File: /home/conda/feedstock_root/build_artifacts/casatools_1757431503580/work/casatools/src/tools/msmetadata/msmetadata_cmpt.cc, line: 2522\n",
+      "2025-11-17 19:26:13,754 - WARNING - BP table in registry does not exist on disk: /stage/dsa110-contimg/ms/2025-10-02T15:40:06_0~23_bpcal\n",
+      "2025-11-17 19:26:13,755 - WARNING - Gain tables in registry do not exist on disk\n",
+      "2025-11-17 19:26:13,767 - INFO - Found bandpass calibrator 0834+555 for Dec=54.841138 (RA=129.275800)\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms: 26 columns, 1787904 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::FIELD: 9 columns, 24 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-18 03:26:15\tSEVERE\tmsmetadata_cmpt.cc::timesforscans\tException Reported: Exception: No matching scans found.\n",
+      "2025-11-18 03:26:15\tSEVERE\tmsmetadata_cmpt.cc::timesforscans+\t... thrown by std::set<casacore::ScanKey> casac::msmetadata::_getScanKeys(const std::vector<long int>&, long int, long int) const at File: /home/conda/feedstock_root/build_artifacts/casatools_1757431503580/work/casatools/src/tools/msmetadata/msmetadata_cmpt.cc, line: 2522\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms: 26 columns, 1787904 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-18 03:26:16\tSEVERE\tmsmetadata_cmpt.cc::timesforscans\tException Reported: Exception: No matching scans found.\n",
+      "2025-11-18 03:26:16\tSEVERE\tmsmetadata_cmpt.cc::timesforscans+\t... thrown by std::set<casacore::ScanKey> casac::msmetadata::_getScanKeys(const std::vector<long int>&, long int, long int) const at File: /home/conda/feedstock_root/build_artifacts/casatools_1757431503580/work/casatools/src/tools/msmetadata/msmetadata_cmpt.cc, line: 2522\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms: 26 columns, 1787904 rows\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "2025-11-18 03:26:18\tSEVERE\tmsmetadata_cmpt.cc::timesforscans\tException Reported: Exception: No matching scans found.\n",
+      "2025-11-18 03:26:18\tSEVERE\tmsmetadata_cmpt.cc::timesforscans+\t... thrown by std::set<casacore::ScanKey> casac::msmetadata::_getScanKeys(const std::vector<long int>&, long int, long int) const at File: /home/conda/feedstock_root/build_artifacts/casatools_1757431503580/work/casatools/src/tools/msmetadata/msmetadata_cmpt.cc, line: 2522\n",
+      "2025-11-17 19:26:17,832 - INFO - Found and validated calibrator 0834+555 in /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms at fields 0~1 (peak field: 0, flux: 2.500 Jy, PB response: 0.713)\n",
+      "2025-11-17 19:26:17,834 - INFO - Solving bandpass calibration using 0834+555 in /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms at fields 0~1\n",
+      "2025-11-17 19:26:17,835 - INFO - Validating MODEL_DATA for bandpass solve on field(s) 0~1...\n",
+      "2025-11-17 19:26:17,839 - ERROR - Bandpass calibration solving returned no tables\n",
+      "2025-11-17 19:26:17,840 - INFO - Solving gain calibration...\n",
+      "2025-11-17 19:26:17,853 - WARNING - Failed to populate MODEL_DATA: Could not auto-detect calibrator from MS field names. Provide calibrator_name or explicit coordinates.. Proceeding anyway.\n",
+      "2025-11-17 19:26:17,854 - INFO - Validating MODEL_DATA for gain solve on field(s) 0~1...\n",
+      "2025-11-17 19:26:17,858 - ERROR - Gain calibration solving failed: MODEL_DATA column exists but is all zeros (unpopulated). This is a required precondition for gain calibration. Populate MODEL_DATA using setjy, ft(), or a catalog model before calling solve_gains().\n",
+      "Traceback (most recent call last):\n",
+      "  File \"/data/dsa110-contimg/src/dsa110_contimg/mosaic/streaming_mosaic.py\", line 1474, in solve_calibration_for_group\n",
+      "    gain_tables = solve_gains(\n",
+      "                  ^^^^^^^^^^^^\n",
+      "  File \"/data/dsa110-contimg/src/dsa110_contimg/calibration/calibration.py\", line 1163, in solve_gains\n",
+      "    raise ValueError(\n",
+      "ValueError: MODEL_DATA column exists but is all zeros (unpopulated). This is a required precondition for gain calibration. Populate MODEL_DATA using setjy, ft(), or a catalog model before calling solve_gains().\n",
+      "2025-11-17 19:26:17,876 - ERROR - Calibration solving failed for group mosaic_2025-10-02_15-41-35-905: Gain calibration solving failed: MODEL_DATA column exists but is all zeros (unpopulated). This is a required precondition for gain calibration. Populate MODEL_DATA using setjy, ft(), or a catalog model before calling solve_gains().\n",
+      "2025-11-17 19:26:17,876 - ERROR - Mosaic creation failed\n"
+     ]
+    },
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:45:15.ms: 26 columns, 1787904 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms::FIELD: 9 columns, 24 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms::FIELD: 9 columns, 24 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:34:57.ms: 26 columns, 1787904 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::FIELD: 9 columns, 24 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::FIELD: 9 columns, 24 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms::FIELD: 9 columns, 24 rows\n",
+      "Successful readonly open of default-locked table /stage/dsa110-contimg/ms/science/2025-10-02/2025-10-02T15:40:06.ms: 26 columns, 1787904 rows\n",
+      "\n",
+      "============================================================\n",
+      "✗ FAILED: Mosaic creation returned None\n",
+      "============================================================\n"
+     ]
+    }
+   ],
+   "source": [
+    "from pathlib import Path\n",
+    "from dsa110_contimg.mosaic.orchestrator import MosaicOrchestrator\n",
+    "from dsa110_contimg.conversion.transit_precalc import precalculate_transits_for_calibrator\n",
+    "from dsa110_contimg.database.products import ensure_products_db\n",
+    "from dsa110_contimg.photometry.manager import PhotometryConfig\n",
+    "import sqlite3\n",
+    "\n",
+    "# CRITICAL: Set PIPELINE_STATE_DIR to point to the state directory (not a specific database file)\n",
+    "# This is the directory containing all state files: products.sqlite3, hdf5.sqlite3, catalogs/, etc.\n",
+    "import os\n",
+    "os.environ[\"PIPELINE_STATE_DIR\"] = \"/data/dsa110-contimg/state\"\n",
+    "\n",
+    "# CRITICAL: We MUST use vla_calibrators.sqlite3\n",
+    "# The catalog loading function has been fixed to properly index by calibrator name\n",
+    "state_dir = Path(os.getenv(\"PIPELINE_STATE_DIR\", \"/data/dsa110-contimg/state\"))\n",
+    "vla_catalog_path = state_dir / \"catalogs\" / \"vla_calibrators.sqlite3\"\n",
+    "\n",
+    "print(f\"PIPELINE_STATE_DIR: {os.getenv('PIPELINE_STATE_DIR')}\")\n",
+    "print(f\"Using VLA catalog: {vla_catalog_path}\")\n",
+    "print(f\"Catalog exists: {vla_catalog_path.exists()}\")\n",
+    "\n",
+    "# Ensure transit times are pre-calculated (enables fast querying from database)\n",
+    "# Transit pre-calculation stores transit times in calibrator_transits table for fast lookup\n",
+    "print(\"\\nChecking transit pre-calculation...\")\n",
+    "products_db_path = state_dir / \"products.sqlite3\"\n",
+    "products_db = ensure_products_db(products_db_path)\n",
+    "\n",
+    "# Get calibrator coordinates\n",
+    "catalog_db = state_dir / \"catalogs\" / \"vla_calibrators.sqlite3\"\n",
+    "cat_conn = sqlite3.connect(str(catalog_db))\n",
+    "cursor = cat_conn.cursor()\n",
+    "cursor.execute(\"SELECT ra_deg, dec_deg FROM calibrators WHERE name = '0834+555'\")\n",
+    "cal = cursor.fetchone()\n",
+    "cat_conn.close()\n",
+    "\n",
+    "if cal:\n",
+    "    ra_deg, dec_deg = cal\n",
+    "    # Check if transits already pre-calculated\n",
+    "    cursor = products_db.cursor()\n",
+    "    cursor.execute(\"\"\"\n",
+    "        SELECT COUNT(*) FROM calibrator_transits \n",
+    "        WHERE calibrator_name = '0834+555' AND has_data = 1\n",
+    "    \"\"\")\n",
+    "    existing_count = cursor.fetchone()[0]\n",
+    "    \n",
+    "    if existing_count == 0:\n",
+    "        print(f\"Pre-calculating transit times for 0834+555...\")\n",
+    "        transits_with_data = precalculate_transits_for_calibrator(\n",
+    "            products_db=products_db,\n",
+    "            calibrator_name=\"0834+555\",\n",
+    "            ra_deg=ra_deg,\n",
+    "            dec_deg=dec_deg,\n",
+    "            max_days_back=60,\n",
+    "        )\n",
+    "        print(f\"✓ Pre-calculated {transits_with_data} transits with available data\")\n",
+    "    else:\n",
+    "        print(f\"✓ Transit times already pre-calculated ({existing_count} transits with data)\")\n",
+    "else:\n",
+    "    print(\"ERROR: Calibrator 0834+555 not found in catalog\")\n",
+    "\n",
+    "# Initialize orchestrator with photometry enabled (default as of our latest changes)\n",
+    "# Photometry configuration: uses NVSS catalog, 1.0° radius for mosaics, 10 mJy threshold\n",
+    "print(\"\\n\" + \"=\"*60)\n",
+    "print(\"Initializing MosaicOrchestrator\")\n",
+    "print(\"=\"*60)\n",
+    "\n",
+    "photometry_config = {\n",
+    "    \"catalog\": \"nvss\",\n",
+    "    \"radius_deg\": 1.0,\n",
+    "    \"min_flux_mjy\": 10.0,\n",
+    "    \"method\": \"peak\",  # Fast peak photometry (default)\n",
+    "    \"normalize\": False,\n",
+    "    \"detect_ese\": False,\n",
+    "}\n",
+    "\n",
+    "orchestrator = MosaicOrchestrator(\n",
+    "    enable_photometry=True,  # ✓ Now default, but explicit for clarity\n",
+    "    photometry_config=photometry_config,\n",
+    ")\n",
+    "\n",
+    "print(f\"✓ Photometry enabled: {orchestrator.enable_photometry}\")\n",
+    "if orchestrator.photometry_manager:\n",
+    "    print(f\"✓ PhotometryManager initialized\")\n",
+    "    print(f\"  - Catalog: {orchestrator.photometry_manager.default_config.catalog}\")\n",
+    "    print(f\"  - Method: {orchestrator.photometry_manager.default_config.method}\")\n",
+    "    print(f\"  - Min flux: {orchestrator.photometry_manager.default_config.min_flux_mjy} mJy\")\n",
+    "\n",
+    "# Verify calibrator service is initialized with SQLite catalog\n",
+    "if orchestrator.calibrator_service:\n",
+    "    sqlite_catalogs = [c for c in orchestrator.calibrator_service.catalogs if str(c).endswith('.sqlite3')]\n",
+    "    if sqlite_catalogs:\n",
+    "        print(f\"✓ Using SQLite catalog: {sqlite_catalogs[0]}\")\n",
+    "    else:\n",
+    "        print(\"⚠ WARNING: No SQLite catalog found!\")\n",
+    "else:\n",
+    "    print(\"WARNING: Calibrator service not initialized\")\n",
+    "\n",
+    "print(\"\\n\" + \"=\"*60)\n",
+    "print(\"Creating 3-tile mosaic (15 minutes) centered on 0834+555\")\n",
+    "print(\"=\"*60)\n",
+    "print(\"\\n⏱️  EXPECTED WORKFLOW:\")\n",
+    "print(\"1. HDF5→MS conversion (if needed)\")\n",
+    "print(\"2. MODEL_DATA seeding after calibration\")\n",
+    "print(\"3. Calibration solve (BP + Gain)\")\n",
+    "print(\"4. MODEL_DATA validation before imaging\")\n",
+    "print(\"5. WSClean imaging\")\n",
+    "print(\"6. Mosaic creation\")\n",
+    "print(\"7. Photometry measurement (NVSS sources)\")\n",
+    "print(\"8. Publish gating (waits for photometry_status='completed')\")\n",
+    "print(\"\")\n",
+    "\n",
+    "mosaic_path = orchestrator.create_mosaic_centered_on_calibrator(\n",
+    "    calibrator_name=\"0834+555\",\n",
+    "    timespan_minutes=15,  # 3 tiles × 5 minutes = 15 minutes\n",
+    "    wait_for_published=True,\n",
+    "    dry_run=False,\n",
+    "    overwrite=False,\n",
+    ")\n",
+    "\n",
+    "print(f\"\\n{'='*60}\")\n",
+    "if mosaic_path:\n",
+    "    print(f\"✓ SUCCESS: Mosaic created at: {mosaic_path}\")\n",
+    "    print(f\"{'='*60}\")\n",
+    "    \n",
+    "    # Verify photometry was completed\n",
+    "    import sqlite3\n",
+    "    registry_db = state_dir / \"data_registry.sqlite3\"\n",
+    "    if registry_db.exists():\n",
+    "        conn = sqlite3.connect(str(registry_db))\n",
+    "        cursor = conn.cursor()\n",
+    "        cursor.execute(\"\"\"\n",
+    "            SELECT data_id, photometry_status, photometry_job_id \n",
+    "            FROM data_registry \n",
+    "            WHERE data_type='mosaic' \n",
+    "            ORDER BY created_at DESC \n",
+    "            LIMIT 1\n",
+    "        \"\"\")\n",
+    "        result = cursor.fetchone()\n",
+    "        conn.close()\n",
+    "        \n",
+    "        if result:\n",
+    "            data_id, phot_status, job_id = result\n",
+    "            print(f\"\\n📊 PHOTOMETRY STATUS:\")\n",
+    "            print(f\"  - Mosaic ID: {data_id}\")\n",
+    "            print(f\"  - Photometry status: {phot_status}\")\n",
+    "            print(f\"  - Batch job ID: {job_id}\")\n",
+    "            \n",
+    "            # Count measurements\n",
+    "            products_conn = sqlite3.connect(str(products_db_path))\n",
+    "            cursor = products_conn.cursor()\n",
+    "            cursor.execute(\"\"\"\n",
+    "                SELECT COUNT(*), AVG(peak_jyb), AVG(peak_err_jyb)\n",
+    "                FROM photometry\n",
+    "                WHERE image_path LIKE ?\n",
+    "            \"\"\", (f\"%{Path(mosaic_path).name}%\",))\n",
+    "            count, avg_flux, avg_err = cursor.fetchone()\n",
+    "            products_conn.close()\n",
+    "            \n",
+    "            if count and count > 0:\n",
+    "                print(f\"  - Measurements: {count} sources\")\n",
+    "                print(f\"  - Avg flux: {avg_flux:.4f} Jy/beam\")\n",
+    "                print(f\"  - Avg error: {avg_err:.4f} Jy/beam\")\n",
+    "            else:\n",
+    "                print(f\"  ⚠️  No photometry measurements found\")\n",
+    "else:\n",
+    "    print(f\"✗ FAILED: Mosaic creation returned None\")\n",
+    "print(f\"{'='*60}\")"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "542b9529",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "casa6",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.11.13"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}

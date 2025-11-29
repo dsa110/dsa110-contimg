@@ -14,30 +14,30 @@ echo ""
 
 # Check if running as root
 if [[ $EUID -ne 0 ]]; then
-   echo "❌ This script must be run as root (use sudo)"
+   echo ":cross_mark: This script must be run as root (use sudo)"
    exit 1
 fi
 
-echo "✓ Running as root"
+echo ":check_mark: Running as root"
 echo ""
 
 # 1. Install worker service
 echo "Installing worker service template..."
 cp "$SCRIPT_DIR/dsa110-absurd-worker@.service" /etc/systemd/system/
 chmod 644 /etc/systemd/system/dsa110-absurd-worker@.service
-echo "✓ Worker service installed: /etc/systemd/system/dsa110-absurd-worker@.service"
+echo ":check_mark: Worker service installed: /etc/systemd/system/dsa110-absurd-worker@.service"
 
 # 2. Install daemon service
 echo "Installing mosaic daemon service..."
 cp "$SCRIPT_DIR/dsa110-mosaic-daemon.service" /etc/systemd/system/
 chmod 644 /etc/systemd/system/dsa110-mosaic-daemon.service
-echo "✓ Daemon service installed: /etc/systemd/system/dsa110-mosaic-daemon.service"
+echo ":check_mark: Daemon service installed: /etc/systemd/system/dsa110-mosaic-daemon.service"
 
 # 3. Reload systemd
 echo ""
 echo "Reloading systemd daemon..."
 systemctl daemon-reload
-echo "✓ Systemd reloaded"
+echo ":check_mark: Systemd reloaded"
 
 # 4. Show status
 echo ""

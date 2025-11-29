@@ -41,11 +41,11 @@ frontend.
 
 **Pros**:
 
-- ✅ Clean separation of concerns
-- ✅ No framework conflicts (React vs SolidJS)
-- ✅ Reuse existing DSA-110 API patterns
-- ✅ Can customize UI to match DSA-110 design system
-- ✅ Minimal changes to Habitat codebase
+- :white_heavy_check_mark: Clean separation of concerns
+- :white_heavy_check_mark: No framework conflicts (React vs SolidJS)
+- :white_heavy_check_mark: Reuse existing DSA-110 API patterns
+- :white_heavy_check_mark: Can customize UI to match DSA-110 design system
+- :white_heavy_check_mark: Minimal changes to Habitat codebase
 
 **Cons**:
 
@@ -258,16 +258,16 @@ frontend.
 
 **Pros**:
 
-- ✅ Zero code changes needed
-- ✅ Can be done in minutes
-- ✅ Habitat UI works independently
+- :white_heavy_check_mark: Zero code changes needed
+- :white_heavy_check_mark: Can be done in minutes
+- :white_heavy_check_mark: Habitat UI works independently
 
 **Cons**:
 
-- ❌ No integration with DSA-110 UI/UX
-- ❌ Separate authentication/authorization
-- ❌ Limited customization
-- ❌ Not ideal for production
+- :cross_mark: No integration with DSA-110 UI/UX
+- :cross_mark: Separate authentication/authorization
+- :cross_mark: Limited customization
+- :cross_mark: Not ideal for production
 
 **Implementation**:
 
@@ -298,15 +298,15 @@ UI/UX.
 
 **Pros**:
 
-- ✅ Full integration with DSA-110 design system
-- ✅ Consistent user experience
-- ✅ Can reuse Habitat's UI patterns
+- :white_heavy_check_mark: Full integration with DSA-110 design system
+- :white_heavy_check_mark: Consistent user experience
+- :white_heavy_check_mark: Can reuse Habitat's UI patterns
 
 **Cons**:
 
-- ❌ Significant development effort
-- ❌ Need to maintain ported components
-- ❌ Framework differences (SolidJS → React)
+- :cross_mark: Significant development effort
+- :cross_mark: Need to maintain ported components
+- :cross_mark: Framework differences (SolidJS → React)
 
 **Implementation**: Port key components:
 

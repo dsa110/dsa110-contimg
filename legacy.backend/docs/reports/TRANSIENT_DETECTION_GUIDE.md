@@ -870,13 +870,13 @@ python tests/smoke/smoke_test_transient_detection.py
 Expected output:
 
 ```
-✓ PASS: Imports
-✓ PASS: Transient Tables
-✓ PASS: Astrometry Tables
-✓ PASS: Transient Detection
-✓ PASS: Astrometric Offsets
-✓ PASS: Transient Storage
-✓ PASS: Astrometry Storage
+:check_mark: PASS: Imports
+:check_mark: PASS: Transient Tables
+:check_mark: PASS: Astrometry Tables
+:check_mark: PASS: Transient Detection
+:check_mark: PASS: Astrometric Offsets
+:check_mark: PASS: Transient Storage
+:check_mark: PASS: Astrometry Storage
 
 7/7 tests passed
 ```

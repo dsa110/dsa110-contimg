@@ -27,21 +27,21 @@ def test_render():
     # Test render_table
     data = [("Name", "Value"), ("Python", "3.11"), ("Status", "OK")]
     html = render_table(data, headers=["Key", "Value"])
-    print("✓ render_table() works")
+    print(":check_mark: render_table() works")
     assert "<table" in html
     assert "Python" in html
 
     # Test render_status_message
     html = render_status_message("Test message", message_type="success")
-    print("✓ render_status_message() works")
+    print(":check_mark: render_status_message() works")
     assert "Test message" in html
 
     # Test render_error
     html = render_error("Test error", title="Error")
-    print("✓ render_error() works")
+    print(":check_mark: render_error() works")
     assert "Test error" in html
 
-    print("✓ All render tests passed\n")
+    print(":check_mark: All render tests passed\n")
 
 
 def test_filelist():
@@ -57,17 +57,17 @@ def test_filelist():
 
     # Create FileList
     filelist = FileList(content=test_files, title="Test Files")
-    print(f"✓ FileList created with {len(filelist)} items")
+    print(f":check_mark: FileList created with {len(filelist)} items")
 
     # Test filtering
     fits = filelist.fits
-    print(f"✓ Filtered FITS files: {len(fits)} items")
+    print(f":check_mark: Filtered FITS files: {len(fits)} items")
 
     # Test include/exclude
     filtered = filelist.include("*.fits")
-    print(f"✓ Pattern filtering works: {len(filtered)} items")
+    print(f":check_mark: Pattern filtering works: {len(filtered)} items")
 
-    print("✓ All FileList tests passed\n")
+    print(":check_mark: All FileList tests passed\n")
 
 
 def test_datadir():
@@ -76,12 +76,12 @@ def test_datadir():
 
     # Test with current directory
     current_dir = ls(".")
-    print(f"✓ ls('.') works: {len(current_dir)} items found")
+    print(f":check_mark: ls('.') works: {len(current_dir)} items found")
 
     # Test with src directory
     if os.path.exists("src"):
         src_dir = ls("src")
-        print(f"✓ ls('src') works: {len(src_dir)} items found")
+        print(f":check_mark: ls('src') works: {len(src_dir)} items found")
 
         # Test filtering
         if len(src_dir) > 0:
@@ -89,14 +89,14 @@ def test_datadir():
             files = (
                 src_dir.files if hasattr(src_dir, "files") else [f for f in src_dir if not f.isdir]
             )
-            print(f"✓ Filtering works: {len(dirs)} dirs, {len(files)} files")
+            print(f":check_mark: Filtering works: {len(dirs)} dirs, {len(files)} files")
 
     # Test recursive (if not too large)
     if os.path.exists("src/dsa110_contimg/qa"):
         qa_dir = ls("src/dsa110_contimg/qa", recursive=False)
-        print(f"✓ ls('src/dsa110_contimg/qa') works: {len(qa_dir)} items found")
+        print(f":check_mark: ls('src/dsa110_contimg/qa') works: {len(qa_dir)} items found")
 
-    print("✓ All DataDir tests passed\n")
+    print(":check_mark: All DataDir tests passed\n")
 
 
 def test_integration():
@@ -109,18 +109,18 @@ def test_integration():
 
         # Get Python files
         py_files = qa_dir.include("*.py")
-        print(f"✓ Found {len(py_files)} Python files in qa/")
+        print(f":check_mark: Found {len(py_files)} Python files in qa/")
 
         # Test show() would work (we can't actually display in non-Jupyter, but we can check it doesn't crash)
         try:
             # This would display HTML in Jupyter, but here we just check it doesn't error
             # We'll skip actual display for non-interactive testing
-            print("✓ show() method exists and callable")
+            print(":check_mark: show() method exists and callable")
         except Exception as e:
-            print(f"✗ Error: {e}")
+            print(f":ballot_x: Error: {e}")
             raise
 
-    print("✓ Integration tests passed\n")
+    print(":check_mark: Integration tests passed\n")
 
 
 def main():
@@ -137,12 +137,12 @@ def main():
         test_integration()
 
         print("=" * 60)
-        print("✓ All tests passed!")
+        print(":check_mark: All tests passed!")
         print("=" * 60)
         return 0
     except Exception as e:
         print("=" * 60)
-        print(f"✗ Test failed: {e}")
+        print(f":ballot_x: Test failed: {e}")
         import traceback
 
         traceback.print_exc()

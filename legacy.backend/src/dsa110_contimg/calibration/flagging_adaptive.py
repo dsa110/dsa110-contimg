@@ -104,7 +104,7 @@ def flag_rfi_adaptive(
     try:
         logger.info("Attempting calibration with default flagging...")
         calibrate_fn(ms_path, refant=refant, **calibrate_kwargs)
-        logger.info("✓ Calibration successful with default flagging")
+        logger.info(":check_mark: Calibration successful with default flagging")
 
         return {
             "strategy": "default",
@@ -140,7 +140,7 @@ def flag_rfi_adaptive(
         try:
             logger.info("Retrying calibration with aggressive flagging...")
             calibrate_fn(ms_path, refant=refant, **calibrate_kwargs)
-            logger.info("✓ Calibration successful with aggressive flagging")
+            logger.info(":check_mark: Calibration successful with aggressive flagging")
 
             return {
                 "strategy": "aggressive",

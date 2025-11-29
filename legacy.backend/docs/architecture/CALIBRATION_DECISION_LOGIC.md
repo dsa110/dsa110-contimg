@@ -93,10 +93,10 @@ INTERPRETATION:
   - False: Observation outside window
 
 STRICTNESS: Hard boundaries at ±24 hours from transit
-  - Exactly at transit - 24h: TRUE ✓
-  - Exactly at transit + 24h: TRUE ✓
-  - 1 second before transit - 24h: FALSE ✗
-  - 1 second after transit + 24h: FALSE ✗
+  - Exactly at transit - 24h: TRUE :check_mark:
+  - Exactly at transit + 24h: TRUE :check_mark:
+  - 1 second before transit - 24h: FALSE :ballot_x:
+  - 1 second after transit + 24h: FALSE :ballot_x:
 
 PHYSICAL JUSTIFICATION:
   - Receiver thermal stability: 24 hours before transit (pre-transit calibration)
@@ -117,8 +117,8 @@ INTERPRETATION:
   - False: Dec difference > 1.0 degree
 
 STRICTNESS: Hard boundary at 1.0 degree
-  - ±0.9999°: TRUE ✓
-  - ±1.0001°: FALSE ✗
+  - ±0.9999°: TRUE :check_mark:
+  - ±1.0001°: FALSE :ballot_x:
 ```
 
 #### Predicate 3: Time Window Validity (Unchanged)
@@ -259,8 +259,8 @@ INTERPRETATION:
   - False: Table age > 60 minutes (EXPIRED)
 
 STRICTNESS: Hard boundary at 60.0 minutes
-  - 59m 59s: TRUE ✓
-  - 60m 01s: FALSE ✗
+  - 59m 59s: TRUE :check_mark:
+  - 60m 01s: FALSE :ballot_x:
 ```
 
 #### Predicate 2: Field Compatibility (Unchanged)
@@ -809,16 +809,16 @@ NOTE: If Dec changes > 1.0° during observation, may need mid-observation re-sol
 ```
 For any given (BP_state, G_state, obs_params, current_mjd):
 
-✓ Calling the decision function twice produces identical output
-✓ Output includes hash of inputs for audit trail
-✓ Quality score computation is deterministic (same metrics → same score)
-✓ Selection from multiple candidates is deterministic (stable sort)
-✓ No randomness, no floating-point ambiguity
-✓ All boundaries are hard (not fuzzy)
-✓ All states reachable and unambiguous
-✓ Error cases explicitly defined (State E)
-✓ Timing estimates deterministic (not "approximately")
-✓ Multi-calibrator selection is reproducible
+:check_mark: Calling the decision function twice produces identical output
+:check_mark: Output includes hash of inputs for audit trail
+:check_mark: Quality score computation is deterministic (same metrics → same score)
+:check_mark: Selection from multiple candidates is deterministic (stable sort)
+:check_mark: No randomness, no floating-point ambiguity
+:check_mark: All boundaries are hard (not fuzzy)
+:check_mark: All states reachable and unambiguous
+:check_mark: Error cases explicitly defined (State E)
+:check_mark: Timing estimates deterministic (not "approximately")
+:check_mark: Multi-calibrator selection is reproducible
 ```
 
 ---

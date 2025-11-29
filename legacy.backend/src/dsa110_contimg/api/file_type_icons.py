@@ -58,7 +58,7 @@ def _folder_icon_svg(size: int = 64) -> str:
     return f"""<svg width="{size}" height="{size}" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
   <rect x="8" y="16" width="48" height="40" rx="4" fill="#FFB84D" stroke="#CC8800" stroke-width="2"/>
   <path d="M 8 24 L 28 24 L 32 16 L 56 16 L 56 24" fill="#FFA500" stroke="#CC8800" stroke-width="2"/>
-  <text x="32" y="44" font-family="Arial, sans-serif" font-size="24" fill="#FFF" text-anchor="middle">📁</text>
+  <text x="32" y="44" font-family="Arial, sans-serif" font-size="24" fill="#FFF" text-anchor="middle">:file_folder:</text>
 </svg>"""
 
 

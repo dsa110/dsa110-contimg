@@ -68,7 +68,7 @@ def test_enhanced_completeness():
             completeness_limit_threshold=0.95,
         )
 
-        logger.info("✓ Validation completed")
+        logger.info(":check_mark: Validation completed")
         logger.info(
             f"  Overall completeness: {result.completeness * 100:.1f}%"
             if result.completeness
@@ -113,7 +113,7 @@ def test_enhanced_completeness():
             catalog="nvss",
         )
 
-        logger.info(f"✓ HTML report created: {output_dir / 'test_completeness_report.html'}")
+        logger.info(f":check_mark: HTML report created: {output_dir / 'test_completeness_report.html'}")
         logger.info(f"  Report status: {report.overall_status}")
         logger.info(f"  Report score: {report.score:.1%}")
 
@@ -129,30 +129,30 @@ def test_enhanced_completeness():
 
         all_passed = True
         for field_name, check_passed in checks:
-            status = "✓" if check_passed else "✗"
+            status = ":check_mark:" if check_passed else ":ballot_x:"
             logger.info(f"  {status} {field_name}: {'Present' if check_passed else 'Missing'}")
             if not check_passed:
                 all_passed = False
 
         if all_passed:
-            logger.info("\n✓ All enhanced fields present!")
+            logger.info("\n:check_mark: All enhanced fields present!")
         else:
             logger.warning(
-                "\n⚠ Some enhanced fields missing (may be expected if no catalog sources found)"
+                "\n:warning_sign: Some enhanced fields missing (may be expected if no catalog sources found)"
             )
 
         # Summary
         logger.info("\n" + "=" * 70)
         logger.info("Test Summary")
         logger.info("=" * 70)
-        logger.info("✓ Enhanced completeness analysis test completed!")
+        logger.info(":check_mark: Enhanced completeness analysis test completed!")
         logger.info(f"\nGenerated HTML report: {output_dir / 'test_completeness_report.html'}")
         logger.info("Open the report in a web browser to view completeness analysis.")
 
         return True
 
     except Exception as e:
-        logger.error(f"✗ Test failed with error: {e}", exc_info=True)
+        logger.error(f":ballot_x: Test failed with error: {e}", exc_info=True)
         return False
 
 

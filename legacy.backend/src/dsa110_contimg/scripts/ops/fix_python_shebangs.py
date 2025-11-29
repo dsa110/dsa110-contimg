@@ -67,10 +67,10 @@ for py_file in files_to_fix:
 
             updated_count += 1
             rel_path = py_file.relative_to(project_root)
-            print(f"✓ Updated: {rel_path}")
+            print(f":check_mark: Updated: {rel_path}")
     except Exception as e:
         rel_path = py_file.relative_to(project_root)
-        print(f"✗ Error updating {rel_path}: {e}", file=sys.stderr)
+        print(f":ballot_x: Error updating {rel_path}: {e}", file=sys.stderr)
 
 print()
 print(f"Updated {updated_count}/{len(files_to_fix)} files")

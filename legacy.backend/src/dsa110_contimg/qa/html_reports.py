@@ -128,9 +128,9 @@ def _get_status_color(status: str) -> str:
 def _get_status_icon(status: str) -> str:
     """Get icon for status."""
     icons = {
-        "PASS": "✓",
-        "WARNING": "⚠",
-        "FAIL": "✗",
+        "PASS": ":check_mark:",
+        "WARNING": ":warning_sign:",
+        "FAIL": ":ballot_x:",
         "UNKNOWN": "?",
     }
     return icons.get(status.upper(), "?")

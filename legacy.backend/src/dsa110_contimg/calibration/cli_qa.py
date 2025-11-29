@@ -253,7 +253,7 @@ def handle_validate(args: argparse.Namespace) -> int:
             field=args.field if args.field else None,
             refant=args.refant,
         )
-        logger.info("\n✓ MS validation passed")
+        logger.info("\n:check_mark: MS validation passed")
         if warnings:
             logger.info("\nWarnings:")
             for warning in warnings:
@@ -292,7 +292,7 @@ def handle_compare(args: argparse.Namespace) -> int:
             logger.warning("Calibration solutions differ significantly")
             sys.exit(1)
         else:
-            logger.info("✓ Calibration solutions are consistent")
+            logger.info(":check_mark: Calibration solutions are consistent")
     except Exception as e:
         logger.error(f"Comparison failed: {e}")
         sys.exit(1)

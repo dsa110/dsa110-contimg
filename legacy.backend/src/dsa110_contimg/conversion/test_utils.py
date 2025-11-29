@@ -155,9 +155,9 @@ def create_test_ms(
 
     try:
         split(**split_kwargs)
-        print(f"\n✓ Successfully created test MS: {ms_out}")
+        print(f"\n:check_mark: Successfully created test MS: {ms_out}")
     except Exception as e:
-        print(f"\n✗ Split failed: {e}")
+        print(f"\n:ballot_x: Split failed: {e}")
         import traceback
 
         traceback.print_exc()
@@ -188,7 +188,7 @@ def create_test_ms(
             print(f"  Time integrations: {unique_times_out}")
 
     except Exception as e:
-        print(f"⚠ Could not verify output: {e}")
+        print(f":warning_sign: Could not verify output: {e}")
 
     return True
 
@@ -250,7 +250,7 @@ def create_minimal_test_ms(output_ms: str, cleanup: bool = True) -> bool:
             # Find generated files
             synth_files = list(synth_dir.glob("*_sb*.hdf5"))
             if not synth_files:
-                logger.error("✗ Synthetic data generation failed")
+                logger.error(":ballot_x: Synthetic data generation failed")
                 return False
 
             logger.info(f"   Generated {len(synth_files)} subband files")
@@ -275,7 +275,7 @@ def create_minimal_test_ms(output_ms: str, cleanup: bool = True) -> bool:
             # Find generated MS
             ms_files = list(ms_dir.glob("*.ms"))
             if not ms_files:
-                logger.error("✗ MS conversion failed")
+                logger.error(":ballot_x: MS conversion failed")
                 return False
 
             generated_ms = ms_files[0]
@@ -298,10 +298,10 @@ def create_minimal_test_ms(output_ms: str, cleanup: bool = True) -> bool:
                 )
 
                 with table(output_ms, readonly=True) as tb:
-                    logger.info(f"   ✓ MS created: {tb.nrows():,} rows")
+                    logger.info(f"   :check_mark: MS created: {tb.nrows():,} rows")
 
                 logger.info("\n" + "=" * 70)
-                logger.info("✓ Smoke test PASSED")
+                logger.info(":check_mark: Smoke test PASSED")
                 logger.info("=" * 70)
                 logger.info(f"\nTest MS: {output_ms}")
                 logger.info("Pipeline is functional!")
@@ -309,7 +309,7 @@ def create_minimal_test_ms(output_ms: str, cleanup: bool = True) -> bool:
                 return True
 
             except Exception as e:
-                logger.error(f"✗ MS validation failed: {e}")
+                logger.error(f":ballot_x: MS validation failed: {e}")
                 return False
 
             finally:
@@ -319,7 +319,7 @@ def create_minimal_test_ms(output_ms: str, cleanup: bool = True) -> bool:
                     shutil.rmtree(synth_dir, ignore_errors=True)
 
     except Exception as e:
-        logger.error(f"✗ Smoke test failed: {e}")
+        logger.error(f":ballot_x: Smoke test failed: {e}")
         import traceback
 
         traceback.print_exc()

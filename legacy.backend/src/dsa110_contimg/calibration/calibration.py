@@ -553,7 +553,7 @@ def solve_delay(
                 params=kwargs,
             )
             tables.append(f"{table_prefix}_kcal")
-            logger.info(f"✓ Delay solve completed: {table_prefix}_kcal")
+            logger.info(f":check_mark: Delay solve completed: {table_prefix}_kcal")
         except Exception as e:
             logger.error(f"Delay solve failed: {e}")
             # Try with even more conservative settings
@@ -585,7 +585,7 @@ def solve_delay(
                     params=kwargs,
                 )
                 tables.append(f"{table_prefix}_kcal")
-                logger.info(f"✓ Delay solve completed (retry): {table_prefix}_kcal")
+                logger.info(f":check_mark: Delay solve completed (retry): {table_prefix}_kcal")
             except Exception as e2:
                 raise RuntimeError(f"Delay solve failed even with conservative settings: {e2}")
     else:
@@ -626,7 +626,7 @@ def solve_delay(
                 params=kwargs,
             )
             tables.append(f"{table_prefix}_2kcal")
-            logger.info(f"✓ Fast delay solve completed: {table_prefix}_2kcal")
+            logger.info(f":check_mark: Fast delay solve completed: {table_prefix}_2kcal")
         except Exception as e:
             logger.error(f"Fast delay solve failed: {e}")
             logger.info("Skipping fast delay solve...")
@@ -836,7 +836,7 @@ def solve_prebandpass_phase(
         task_name="gaincal",
         params=kwargs,
     )
-    logger.info(f"✓ Pre-bandpass phase-only solve completed: {caltable_name}")
+    logger.info(f":check_mark: Pre-bandpass phase-only solve completed: {caltable_name}")
 
     return caltable_name
 
@@ -1063,7 +1063,7 @@ def solve_bandpass(
         task_name="bandpass",
         params=kwargs,
     )
-    logger.info(f"✓ Bandpass solve completed: {table_prefix}_bpcal")
+    logger.info(f":check_mark: Bandpass solve completed: {table_prefix}_bpcal")
 
     # Optional smoothing of bandpass table (post-solve), off by default
     try:
@@ -1088,7 +1088,7 @@ def solve_bandpass(
                     smoothtype=str(bp_smooth_type).lower(),
                     smoothwindow=int(bp_smooth_window),
                 )
-                logger.info("✓ Bandpass table smoothing complete")
+                logger.info(":check_mark: Bandpass table smoothing complete")
             except Exception as e:
                 logger.warning(f"Could not smooth bandpass table via CASA smoothcal: {e}")
     except Exception:
@@ -1263,7 +1263,7 @@ def solve_gains(
         task_name="gaincal",
         params=kwargs,
     )
-    logger.info(f"✓ Phase-only gain solve completed: {table_prefix}_gpcal")
+    logger.info(f":check_mark: Phase-only gain solve completed: {table_prefix}_gpcal")
 
     out = [f"{table_prefix}_gpcal"]
     gaintable2 = gaintable + [f"{table_prefix}_gpcal"]
@@ -1304,7 +1304,7 @@ def solve_gains(
             task_name="gaincal",
             params=kwargs,
         )
-        logger.info(f"✓ Short-timescale phase-only gain solve completed: {table_prefix}_2gcal")
+        logger.info(f":check_mark: Short-timescale phase-only gain solve completed: {table_prefix}_2gcal")
         out.append(f"{table_prefix}_2gcal")
 
     # QA validation of gain calibration tables

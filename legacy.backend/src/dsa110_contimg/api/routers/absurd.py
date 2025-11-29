@@ -230,7 +230,7 @@ async def shutdown_absurd() -> None:
         await _client.close()
         _client = None
         _monitor = None
-        logger.info("✅ Absurd client shutdown complete")
+        logger.info(":white_heavy_check_mark: Absurd client shutdown complete")
 
 
 # API endpoints

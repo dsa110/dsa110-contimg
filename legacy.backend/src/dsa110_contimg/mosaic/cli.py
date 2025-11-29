@@ -177,10 +177,10 @@ def cmd_create(args: argparse.Namespace) -> int:
         )
 
         if mosaic_path:
-            print(f"✓ Mosaic created: {mosaic_path}")
+            print(f":check_mark: Mosaic created: {mosaic_path}")
             return 0
         else:
-            print("✗ Mosaic creation failed")
+            print(":ballot_x: Mosaic creation failed")
             return 1
 
     except Exception as e:
@@ -208,10 +208,10 @@ def cmd_create_auto(args: argparse.Namespace) -> int:
         )
 
         if mosaic_path:
-            print(f"✓ Mosaic created: {mosaic_path}")
+            print(f":check_mark: Mosaic created: {mosaic_path}")
             return 0
         else:
-            print("✗ Mosaic creation failed")
+            print(":ballot_x: Mosaic creation failed")
             return 1
 
     except Exception as e:
@@ -242,12 +242,12 @@ def cmd_create_all_transits(args: argparse.Namespace) -> int:
         )
 
         if results:
-            print(f"✓ Created {len(results)} mosaics")
+            print(f":check_mark: Created {len(results)} mosaics")
             for result in results:
                 print(f"  - {result.get('mosaic_path', 'N/A')}")
             return 0
         else:
-            print("✗ No mosaics created")
+            print(":ballot_x: No mosaics created")
             return 1
 
     except Exception as e:
@@ -1130,7 +1130,7 @@ def _build_weighted_mosaic_linearmosaic(
         LOG.info(f"  - Output: {output_path}")
         for i, tile in enumerate(tiles, 1):
             LOG.info(f"  - Tile {i}: {tile}")
-        LOG.info("✓ Validation complete. Ready to build.")
+        LOG.info(":check_mark: Validation complete. Ready to build.")
         LOG.info("Run without dry_run=True to build the mosaic.")
         return
 
@@ -1165,7 +1165,7 @@ def _build_weighted_mosaic_linearmosaic(
         if not isinstance(output_path, str):
             raise MosaicError("Output path is not a string", f"Got {type(output_path)}")
         print(
-            f"[DEBUG] ✓ Aggressive validation passed: {len(tiles)} tiles, all exist",
+            f"[DEBUG] :check_mark: Aggressive validation passed: {len(tiles)} tiles, all exist",
             file=sys.stderr,
             flush=True,
         )
@@ -2244,7 +2244,7 @@ def cmd_build(args: argparse.Namespace) -> int:
                     print("  WARNING: Proceeding with out-of-order tiles (--ignore-validation)")
             else:
                 print(
-                    f"✓ Validated: Tiles are in chronological order ({len(tile_times)}/{len(tiles)} tiles validated)"
+                    f":check_mark: Validated: Tiles are in chronological order ({len(tile_times)}/{len(tiles)} tiles validated)"
                 )
         elif len(tile_times) == 0:
             print("  Warning: Could not validate chronological order (no MS times extracted)")
@@ -2441,7 +2441,7 @@ def cmd_build(args: argparse.Namespace) -> int:
             print("\nMosaic build aborted due to PB consistency issues.")
             return 6
 
-    print("✓ All validation checks passed")
+    print(":check_mark: All validation checks passed")
 
     # Dry-run mode: validate without building
     if args.dry_run:
@@ -2453,7 +2453,7 @@ def cmd_build(args: argparse.Namespace) -> int:
         print(f"  - Method: {method}")
         print(f"  - Tiles: {len(tiles)}")
         print(f"  - Output: {out}")
-        print("\n✓ All validations passed. Ready to build.")
+        print("\n:check_mark: All validations passed. Ready to build.")
         print("\nTo build this mosaic, run:")
         print(f"  mosaic build --name {name} --output {out}")
         return 0
@@ -2556,7 +2556,7 @@ def cmd_build(args: argparse.Namespace) -> int:
                         f"coverage={mosaic_metrics.get('coverage_fraction', 0):.1%}"
                     )
             else:
-                print("✓ Post-mosaic validation passed")
+                print(":check_mark: Post-mosaic validation passed")
                 if mosaic_metrics:
                     print(
                         f"Mosaic metrics: RMS={mosaic_metrics.get('rms_noise', 'N/A'):.3e}, "
@@ -2578,7 +2578,7 @@ def cmd_build(args: argparse.Namespace) -> int:
                 output_dir=str(out.parent),
             )
             if metrics_files:
-                print(f"✓ Generated {len(metrics_files)} quality metric images")
+                print(f":check_mark: Generated {len(metrics_files)} quality metric images")
                 for metric_name, metric_path in metrics_files.items():
                     print(f"  - {metric_name}: {metric_path}")
             else:
@@ -2614,7 +2614,7 @@ def cmd_build(args: argparse.Namespace) -> int:
             )
             conn.commit()
 
-        print(f"✓ Built mosaic to {out}")
+        print(f":check_mark: Built mosaic to {out}")
         return 0
     except (
         MosaicError,

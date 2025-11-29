@@ -27,7 +27,7 @@ class RefactorAnalyzer:
 
     def scan(self):
         """Scan all Python files in the codebase."""
-        print("🔍 Scanning Python files...")
+        print(":left-pointing_magnifying_glass: Scanning Python files...")
 
         for path in self.root_dir.rglob("*.py"):
             if self._should_ignore(path):
@@ -38,7 +38,7 @@ class RefactorAnalyzer:
         print(f"   Found {len(self.python_files)} Python files")
 
         # Analyze each file
-        print("\n📊 Analyzing imports and definitions...")
+        print("\n:bar_chart: Analyzing imports and definitions...")
         for i, py_file in enumerate(self.python_files):
             if (i + 1) % 50 == 0:
                 print(f"   Progress: {i+1}/{len(self.python_files)}")
@@ -46,7 +46,7 @@ class RefactorAnalyzer:
             try:
                 self._analyze_file(py_file)
             except Exception as e:
-                print(f"   ⚠️  Failed to analyze {py_file}: {e}")
+                print(f"   :warning_sign::variation_selector-16:  Failed to analyze {py_file}: {e}")
 
     def _should_ignore(self, path: Path) -> bool:
         """Check if path should be ignored."""
@@ -93,7 +93,7 @@ class RefactorAnalyzer:
 
     def find_orphaned_imports(self) -> List[Dict]:
         """Find imports that don't correspond to existing modules."""
-        print("\n🔍 Finding orphaned imports...")
+        print("\n:left-pointing_magnifying_glass: Finding orphaned imports...")
 
         orphaned = []
 
@@ -135,7 +135,7 @@ class RefactorAnalyzer:
         Args:
             old_new_mapping: Dict of old_module -> new_module paths
         """
-        print("\n📋 Generating migration checklist...")
+        print("\n:clipboard: Generating migration checklist...")
 
         migration_tasks = []
 
@@ -156,7 +156,7 @@ class RefactorAnalyzer:
 
     def find_test_coverage_gaps(self) -> List[Dict]:
         """Identify modules without corresponding test files."""
-        print("\n🧪 Checking test coverage...")
+        print("\n:test_tube: Checking test coverage...")
 
         # Find all test files
         test_files = set()
@@ -224,12 +224,12 @@ class RefactorAnalyzer:
     def generate_report(self, output_file: str = None):
         """Generate comprehensive refactoring report."""
         print("\n" + "=" * 70)
-        print("📊 REFACTORING IMPACT REPORT")
+        print(":bar_chart: REFACTORING IMPACT REPORT")
         print("=" * 70)
 
         # Find orphaned imports
         orphaned = self.find_orphaned_imports()
-        print(f"\n🔴 Orphaned Imports: {len(orphaned)}")
+        print(f"\n:large_red_circle: Orphaned Imports: {len(orphaned)}")
         for item in orphaned[:10]:
             print(f"   • {item['module']} (used in {item['count']} files)")
             if item["count"] <= 3:
@@ -238,7 +238,7 @@ class RefactorAnalyzer:
 
         # Check test coverage
         untested = self.find_test_coverage_gaps()
-        print(f"\n🧪 Files Without Tests: {len(untested)}")
+        print(f"\n:test_tube: Files Without Tests: {len(untested)}")
         high_priority = [u for u in untested if u["priority"] == "high"]
         print(f"   High Priority: {len(high_priority)}")
         for item in high_priority[:10]:
@@ -258,7 +258,7 @@ class RefactorAnalyzer:
 
             output_path = Path(output_file)
             output_path.write_text(json.dumps(report_data, indent=2))
-            print(f"\n💾 Detailed report saved to: {output_file}")
+            print(f"\n:floppy_disk: Detailed report saved to: {output_file}")
 
 
 def main():
@@ -281,7 +281,7 @@ def main():
     analyzer.generate_report(args.output)
 
     print("\n" + "=" * 70)
-    print("✅ Analysis complete!")
+    print(":white_heavy_check_mark: Analysis complete!")
     print("\nNext steps:")
     print("1. Review orphaned imports and update them")
     print("2. Add tests for high-priority untested modules")

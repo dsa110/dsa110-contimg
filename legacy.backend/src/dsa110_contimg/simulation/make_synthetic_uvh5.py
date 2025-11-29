@@ -900,16 +900,16 @@ def main() -> None:
         for path in outputs:
             is_valid, errors = validate_uvh5_file(path)
             if is_valid:
-                print(f"  ✓ {path.name}: Valid")
+                print(f"  :check_mark: {path.name}: Valid")
             else:
-                print(f"  ✗ {path.name}: Invalid - {errors}")
+                print(f"  :ballot_x: {path.name}: Invalid - {errors}")
                 all_valid = False
         if all_valid:
-            print("\n✓ All generated files validated successfully")
+            print("\n:check_mark: All generated files validated successfully")
         else:
-            print("\n⚠ Some generated files failed validation")
+            print("\n:warning_sign: Some generated files failed validation")
     except ImportError:
-        print("\n⚠ Validation module not available, skipping validation")
+        print("\n:warning_sign: Validation module not available, skipping validation")
 
 
 if __name__ == "__main__":

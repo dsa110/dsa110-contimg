@@ -1,6 +1,6 @@
 # GitHub Issues Quick Reference
 
-## ✅ I Just Created 3 Example Issues
+## :white_heavy_check_mark: I Just Created 3 Example Issues
 
 Check them out:
 
@@ -10,7 +10,7 @@ Check them out:
 
 View at: https://github.com/dsa110/dsa110-contimg/issues
 
-## 🏷️ Labels I Used
+## :label::variation_selector-16: Labels I Used
 
 - `post-refactor` - Issues introduced during refactoring
 - `bug` - Broken functionality (like orphaned imports)
@@ -18,7 +18,7 @@ View at: https://github.com/dsa110/dsa110-contimg/issues
 - `testing` - Related to test coverage
 - `enhancement` - Improvements (like adding tests)
 
-## 📝 Creating Issues Manually (GitHub Web UI)
+## :memo: Creating Issues Manually (GitHub Web UI)
 
 ### Method 1: GitHub Website
 
@@ -49,7 +49,7 @@ gh issue list
 gh issue view 32
 ```
 
-## 📋 Issue Template (Copy & Paste)
+## :clipboard: Issue Template (Copy & Paste)
 
 ```markdown
 ## Problem
@@ -94,7 +94,7 @@ Introduced during [date] refactoring See [related issue #X] for more context
 - [ ] Verified with audit tools
 ```
 
-## 🎨 Recommended Labels for Your Project
+## :artist_palette: Recommended Labels for Your Project
 
 ### Priority
 
@@ -127,7 +127,7 @@ Introduced during [date] refactoring See [related issue #X] for more context
 3. Enter name, description, and color
 4. Click **"Create label"**
 
-## 🔗 Using Issues with AI Agents
+## :link_symbol: Using Issues with AI Agents
 
 ### Starting a conversation:
 
@@ -156,7 +156,7 @@ In issue body or comments:
 Related to #32 Blocks #34 Depends on #33
 ```
 
-## 🤖 Creating Issues from Analysis Tools
+## :robot_face: Creating Issues from Analysis Tools
 
 ### Option 1: Manual (Recommended for first batch)
 
@@ -211,7 +211,7 @@ Post-refactoring cleanup
     ])
 ```
 
-## 📊 Organizing Issues
+## :bar_chart: Organizing Issues
 
 ### Use Projects (Kanban board)
 
@@ -219,9 +219,9 @@ Post-refactoring cleanup
 2. Click **"New project"**
 3. Choose **"Board"** template
 4. Create columns:
-   - 📋 Backlog
-   - 🔍 In Progress
-   - ✅ Done
+   - :clipboard: Backlog
+   - :left-pointing_magnifying_glass: In Progress
+   - :white_heavy_check_mark: Done
 5. Drag issues between columns
 
 ### Use Milestones (for grouping)
@@ -231,7 +231,7 @@ Post-refactoring cleanup
 3. Add issues to milestone
 4. Track progress
 
-## 🚀 Workflow Example
+## :rocket: Workflow Example
 
 ### Daily workflow:
 
@@ -258,7 +258,7 @@ gh pr create --fill
 # 7. When PR merged, issue auto-closes
 ```
 
-## 💡 Pro Tips
+## :electric_light_bulb: Pro Tips
 
 1. **One issue = One problem** - Don't create mega-issues
 
@@ -283,7 +283,7 @@ gh pr create --fill
    - In PR descriptions: `"Closes #32, #33"`
    - In comments: `"Related to #32"`
 
-## 📚 More Resources
+## :books: More Resources
 
 - GitHub Issues Guide: https://docs.github.com/en/issues
 - GitHub CLI Manual: https://cli.github.com/manual/

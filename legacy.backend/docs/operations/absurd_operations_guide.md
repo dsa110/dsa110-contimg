@@ -1,6 +1,6 @@
 # Absurd Pipeline Operations Guide
 
-> **⚠️ CONSOLIDATION NOTICE:** The canonical Absurd operations documentation is
+> **:warning_sign::variation_selector-16: CONSOLIDATION NOTICE:** The canonical Absurd operations documentation is
 > at
 > [`docs/operations/absurd_operations.md`](/data/dsa110-contimg/docs/operations/absurd_operations.md).
 > This file in `backend/docs/` provides supplementary context and may be merged
@@ -438,7 +438,7 @@ sudo systemctl stop 'dsa110-absurd-worker@*'
 
 ### Clear Task Queue
 
-**⚠️ Warning: This will lose all queued work!**
+**:warning_sign::variation_selector-16: Warning: This will lose all queued work!**
 
 ```bash
 export PGPASSWORD="password"
@@ -453,7 +453,7 @@ psql -h localhost -U user -d dsa110_absurd -c "
 
 ### Reset System
 
-**⚠️ Warning: Complete reset!**
+**:warning_sign::variation_selector-16: Warning: Complete reset!**
 
 ```bash
 # Stop services

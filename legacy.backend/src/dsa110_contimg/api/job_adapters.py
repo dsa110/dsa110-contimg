@@ -107,7 +107,7 @@ def run_convert_job(job_id: int, params: dict, products_db: Path) -> None:
                 (json.dumps(artifacts), time.time(), job_id),
             )
             conn.commit()
-            _log_to_db(conn, job_id, f"✓ Conversion complete: {ms_path}\n")
+            _log_to_db(conn, job_id, f":check_mark: Conversion complete: {ms_path}\n")
         else:
             from dsa110_contimg.utils.exceptions import ConversionError
 
@@ -211,13 +211,13 @@ def run_calibrate_job(job_id: int, ms_path: str, params: dict, products_db: Path
             _log_to_db(
                 conn,
                 job_id,
-                f"✓ Calibration solve complete. Generated {len(cal_tables)} tables.\n",
+                f":check_mark: Calibration solve complete. Generated {len(cal_tables)} tables.\n",
             )
         else:
             _log_to_db(
                 conn,
                 job_id,
-                "⚠ No calibration tables generated (may have used existing tables)\n",
+                ":warning_sign: No calibration tables generated (may have used existing tables)\n",
             )
             update_job_status(conn, job_id, "done", finished_at=time.time())
             conn.commit()
@@ -302,7 +302,7 @@ def run_apply_job(job_id: int, ms_path: str, params: dict, products_db: Path) ->
             (json.dumps(artifacts), job_id),
         )
         conn.commit()
-        _log_to_db(conn, job_id, "✓ Calibration apply complete\n")
+        _log_to_db(conn, job_id, ":check_mark: Calibration apply complete\n")
 
     except (ValueError, RuntimeError, OSError, FileNotFoundError) as e:
         # Catch specific exceptions that can occur during calibration apply
@@ -381,7 +381,7 @@ def run_image_job(job_id: int, ms_path: str, params: dict, products_db: Path) ->
                 (json.dumps(artifacts), time.time(), job_id),
             )
             conn.commit()
-            _log_to_db(conn, job_id, f"✓ Imaging complete: {image_path}\n")
+            _log_to_db(conn, job_id, f":check_mark: Imaging complete: {image_path}\n")
         else:
             from dsa110_contimg.utils.exceptions import ImagingError
 
@@ -739,7 +739,7 @@ def run_mosaic_create_job(job_id: int, params: dict, products_db: Path) -> None:
                 (json.dumps(artifacts), time.time(), job_id),
             )
             conn.commit()
-            _log_to_db(conn, job_id, f"✓ Mosaic creation complete: {published_path}\n")
+            _log_to_db(conn, job_id, f":check_mark: Mosaic creation complete: {published_path}\n")
             # Store group_id in job params for reference
             params["group_id"] = group_id
             cursor.execute(

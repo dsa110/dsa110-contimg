@@ -147,11 +147,11 @@ def quick(bench_filter: str | None, verbose: bool):
     
     if result.returncode == 0:
         click.echo()
-        click.echo("✓ Quick benchmark completed successfully")
+        click.echo(":check_mark: Quick benchmark completed successfully")
         click.echo(f"  Results saved for commit: {commit_hash}")
     else:
         click.echo()
-        click.echo("✗ Benchmark run had errors (see output above)", err=True)
+        click.echo(":ballot_x: Benchmark run had errors (see output above)", err=True)
     
     sys.exit(result.returncode)
 
@@ -203,13 +203,13 @@ def run(bench_filter: str | None, samples: int | None, verbose: bool):
     
     if result.returncode == 0:
         click.echo()
-        click.echo("✓ Full benchmark completed successfully")
+        click.echo(":check_mark: Full benchmark completed successfully")
         click.echo(f"  Results saved for commit: {commit_hash}")
         click.echo()
         click.echo("Generate HTML report with: dsa110-benchmark report")
     else:
         click.echo()
-        click.echo("✗ Benchmark run had errors (see output above)", err=True)
+        click.echo(":ballot_x: Benchmark run had errors (see output above)", err=True)
     
     sys.exit(result.returncode)
 
@@ -235,12 +235,12 @@ def report(open_browser: bool):
     result = _run_asv(["publish"], check=False)
     
     if result.returncode != 0:
-        click.echo("✗ Failed to generate report", err=True)
+        click.echo(":ballot_x: Failed to generate report", err=True)
         sys.exit(result.returncode)
     
     html_index = ASV_HTML / "index.html"
     click.echo()
-    click.echo(f"✓ Report generated: {html_index}")
+    click.echo(f":check_mark: Report generated: {html_index}")
     
     if open_browser:
         # Start preview server
@@ -301,10 +301,10 @@ def check():
     
     if result.returncode == 0:
         click.echo()
-        click.echo("✓ All benchmarks valid")
+        click.echo(":check_mark: All benchmarks valid")
     else:
         click.echo()
-        click.echo("✗ Benchmark validation failed", err=True)
+        click.echo(":ballot_x: Benchmark validation failed", err=True)
     
     sys.exit(result.returncode)
 
@@ -343,13 +343,13 @@ def compare(baseline: str, target: str, factor: float):
     
     if result.returncode == 0:
         click.echo()
-        click.echo("✓ No significant regressions detected")
+        click.echo(":check_mark: No significant regressions detected")
     elif result.returncode == 1:
         click.echo()
-        click.echo("⚠ Performance regressions detected (see above)", err=True)
+        click.echo(":warning_sign: Performance regressions detected (see above)", err=True)
     else:
         click.echo()
-        click.echo("✗ Comparison failed", err=True)
+        click.echo(":ballot_x: Comparison failed", err=True)
     
     sys.exit(result.returncode)
 

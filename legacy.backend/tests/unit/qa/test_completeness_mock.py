@@ -87,7 +87,7 @@ def test_enhanced_completeness_mock():
             warnings=[],
         )
 
-        logger.info("✓ Mock result created")
+        logger.info(":check_mark: Mock result created")
         logger.info(f"  Overall completeness: {result.completeness * 100:.1f}%")
         logger.info(
             f"  Completeness limit: {result.completeness_limit_jy * 1000:.2f} mJy"
@@ -124,7 +124,7 @@ def test_enhanced_completeness_mock():
             catalog="nvss",
         )
 
-        logger.info(f"✓ HTML report created: {output_dir / 'test_completeness_mock_report.html'}")
+        logger.info(f":check_mark: HTML report created: {output_dir / 'test_completeness_mock_report.html'}")
         logger.info(f"  Report status: {report.overall_status}")
         logger.info(f"  Report score: {report.score:.1%}")
 
@@ -150,20 +150,20 @@ def test_enhanced_completeness_mock():
             if missing:
                 logger.warning(f"  Missing HTML elements: {missing}")
             else:
-                logger.info("  ✓ All completeness analysis elements present in HTML")
+                logger.info("  :check_mark: All completeness analysis elements present in HTML")
 
         # Summary
         logger.info("\n" + "=" * 70)
         logger.info("Test Summary")
         logger.info("=" * 70)
-        logger.info("✓ Enhanced completeness analysis test completed!")
+        logger.info(":check_mark: Enhanced completeness analysis test completed!")
         logger.info(f"\nGenerated HTML report: {html_file}")
         logger.info("Open the report in a web browser to view completeness analysis.")
 
         return True
 
     except Exception as e:
-        logger.error(f"✗ Test failed with error: {e}", exc_info=True)
+        logger.error(f":ballot_x: Test failed with error: {e}", exc_info=True)
         return False
 
 

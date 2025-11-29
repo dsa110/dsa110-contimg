@@ -101,9 +101,9 @@ def test_spatial_profiler(fits_path: str):
             # Get WCS
             try:
                 WCS(header)
-                print("✓ WCS loaded")
+                print(":check_mark: WCS loaded")
             except Exception as e:
-                print(f"⚠ WCS not available: {e}")
+                print(f":warning_sign: WCS not available: {e}")
         log_progress(f"FITS loaded (shape: {nx}x{ny})", load_start)
 
         # Test 1.1: Line Profile (Short line for speed)
@@ -129,7 +129,7 @@ def test_spatial_profiler(fits_path: str):
 
         if profile_result and "flux" in profile_result:
             profile = profile_result["flux"]
-            print(f"✓ Line profile extracted: {len(profile)} points")
+            print(f":check_mark: Line profile extracted: {len(profile)} points")
             # Filter out NaN/Inf values for display
             valid_profile = [v for v in profile if np.isfinite(v)]
             if valid_profile:
@@ -145,14 +145,14 @@ def test_spatial_profiler(fits_path: str):
                 flux_array = np.array(profile)
                 fit_result = fit_gaussian_profile(distance=distances, flux=flux_array)
                 if fit_result:
-                    print("✓ 1D Gaussian fit successful")
+                    print(":check_mark: 1D Gaussian fit successful")
                     print(f"  Amplitude: {fit_result['amplitude']:.6f}")
                     print(f"  Center: {fit_result['center']:.2f}")
                     print(f"  FWHM: {fit_result['fwhm']:.2f} pixels")
             except Exception as e:
-                print(f"⚠ 1D Gaussian fit failed: {e}")
+                print(f":warning_sign: 1D Gaussian fit failed: {e}")
         else:
-            print("✗ Line profile extraction failed")
+            print(":ballot_x: Line profile extraction failed")
             return False
 
         # Test 1.2: Point Profile (quick test with small radius)
@@ -176,13 +176,13 @@ def test_spatial_profiler(fits_path: str):
 
         if point_profile_result and "flux" in point_profile_result:
             point_profile = point_profile_result["flux"]
-            print(f"✓ Point profile extracted: {len(point_profile)} annuli")
+            print(f":check_mark: Point profile extracted: {len(point_profile)} annuli")
             print(f"  Radius: {radius_arcsec} arcsec")
             valid_flux = [v for v in point_profile if np.isfinite(v)]
             if valid_flux:
                 print(f"  Mean flux: {np.mean(valid_flux):.6f}")
         else:
-            print("✗ Point profile extraction failed")
+            print(":ballot_x: Point profile extraction failed")
             return False
 
         # Test 1.3: Polyline Profile
@@ -202,17 +202,17 @@ def test_spatial_profiler(fits_path: str):
 
         if polyline_profile_result and "flux" in polyline_profile_result:
             polyline_profile = polyline_profile_result["flux"]
-            print(f"✓ Polyline profile extracted: {len(polyline_profile)} points")
+            print(f":check_mark: Polyline profile extracted: {len(polyline_profile)} points")
             print(f"  Path length: {len(polyline_coords)} segments")
         else:
-            print("✗ Polyline profile extraction failed")
+            print(":ballot_x: Polyline profile extraction failed")
             return False
 
-        print("\n✓ Spatial Profiler tests passed")
+        print("\n:check_mark: Spatial Profiler tests passed")
         return True
 
     except Exception as e:
-        print(f"\n✗ Spatial Profiler test failed: {e}")
+        print(f"\n:ballot_x: Spatial Profiler test failed: {e}")
         import traceback
 
         traceback.print_exc()
@@ -244,9 +244,9 @@ def test_image_fitting(fits_path: str):
             # Get WCS
             try:
                 wcs = WCS(header)
-                print("✓ WCS loaded")
+                print(":check_mark: WCS loaded")
             except Exception as e:
-                print(f"⚠ WCS not available: {e}")
+                print(f":warning_sign: WCS not available: {e}")
                 wcs = None
 
         # Test 2.1: Gaussian Fitting (Small Sub-region for Speed)
@@ -264,7 +264,7 @@ def test_image_fitting(fits_path: str):
         nan_count = np.sum(~np.isfinite(sub_data))
         if nan_count > 0:
             print(
-                f"  ⚠ Warning: {nan_count} non-finite values in sub-region ({100 * nan_count / sub_data.size:.2f}%)"
+                f"  :warning_sign: Warning: {nan_count} non-finite values in sub-region ({100 * nan_count / sub_data.size:.2f}%)"
             )
 
         # Create a temporary FITS file with sub-region
@@ -289,7 +289,7 @@ def test_image_fitting(fits_path: str):
             log_progress(f"  Gaussian fit completed ({elapsed:.1f}s)", gauss_start)
 
             if fit_result:
-                print("✓ Gaussian fit successful")
+                print(":check_mark: Gaussian fit successful")
                 params = fit_result["parameters"]
                 print(f"  Amplitude: {params['amplitude']:.6f}")
                 print(
@@ -306,16 +306,16 @@ def test_image_fitting(fits_path: str):
 
                 # Check if results are reasonable
                 if stats["reduced_chi_squared"] > 0 and stats["reduced_chi_squared"] < 100:
-                    print("  ✓ Fit quality reasonable")
+                    print("  :check_mark: Fit quality reasonable")
                 else:
                     print(
-                        f"  ⚠ Fit quality questionable (chi-squared: {stats['reduced_chi_squared']:.2f})"
+                        f"  :warning_sign: Fit quality questionable (chi-squared: {stats['reduced_chi_squared']:.2f})"
                     )
             else:
-                print("✗ Gaussian fit returned no result")
+                print(":ballot_x: Gaussian fit returned no result")
                 return False
         except Exception as e:
-            print(f"✗ Gaussian fit failed: {e}")
+            print(f":ballot_x: Gaussian fit failed: {e}")
             import traceback
 
             traceback.print_exc()
@@ -346,7 +346,7 @@ def test_image_fitting(fits_path: str):
             log_progress(f"  Moffat fit completed ({elapsed:.1f}s)", moffat_start)
 
             if fit_result:
-                print("✓ Moffat fit successful")
+                print(":check_mark: Moffat fit successful")
                 params = fit_result["parameters"]
                 print(f"  Amplitude: {params['amplitude']:.6f}")
                 print(
@@ -360,10 +360,10 @@ def test_image_fitting(fits_path: str):
                 print(f"  Reduced chi-squared: {stats['reduced_chi_squared']:.4f}")
                 print(f"  R-squared: {stats['r_squared']:.4f}")
             else:
-                print("✗ Moffat fit returned no result")
+                print(":ballot_x: Moffat fit returned no result")
                 return False
         except Exception as e:
-            print(f"✗ Moffat fit failed: {e}")
+            print(f":ballot_x: Moffat fit failed: {e}")
             import traceback
 
             traceback.print_exc()
@@ -383,7 +383,7 @@ def test_image_fitting(fits_path: str):
             elapsed = time.time() - guess_start
             log_progress(f"  Initial guess estimated ({elapsed:.1f}s)", guess_start)
             if initial_guess:
-                print("✓ Initial guess estimated")
+                print(":check_mark: Initial guess estimated")
                 print(f"  Amplitude: {initial_guess['amplitude']:.6f}")
                 print(
                     f"  Center (x, y): ({initial_guess['x_center']:.2f}, {initial_guess['y_center']:.2f})"
@@ -392,20 +392,20 @@ def test_image_fitting(fits_path: str):
                 print(f"  Minor axis: {initial_guess['minor_axis']:.2f} pixels")
                 print(f"  PA: {initial_guess['pa']:.2f} deg")
             else:
-                print("✗ Initial guess estimation failed")
+                print(":ballot_x: Initial guess estimation failed")
                 return False
         except Exception as e:
-            print(f"✗ Initial guess estimation failed: {e}")
+            print(f":ballot_x: Initial guess estimation failed: {e}")
             import traceback
 
             traceback.print_exc()
             return False
 
-        print("\n✓ Image Fitting tests passed")
+        print("\n:check_mark: Image Fitting tests passed")
         return True
 
     except Exception as e:
-        print(f"\n✗ Image Fitting test failed: {e}")
+        print(f"\n:ballot_x: Image Fitting test failed: {e}")
         import traceback
 
         traceback.print_exc()
@@ -437,9 +437,9 @@ def test_region_management(fits_path: str):
             # Get WCS
             try:
                 wcs = WCS(header)
-                print("✓ WCS loaded")
+                print(":check_mark: WCS loaded")
             except Exception as e:
-                print(f"⚠ WCS not available: {e}")
+                print(f":warning_sign: WCS not available: {e}")
                 wcs = None
 
         # Test 3.1: Circle Region Mask
@@ -485,11 +485,11 @@ def test_region_management(fits_path: str):
             )
 
             if n_pixels == 0:
-                print("  ⚠ Warning: Mask is empty")
+                print("  :warning_sign: Warning: Mask is empty")
             else:
-                print("  ✓ Mask has valid pixels")
+                print("  :check_mark: Mask has valid pixels")
         except Exception as e:
-            print(f"✗ Circle region mask creation failed: {e}")
+            print(f":ballot_x: Circle region mask creation failed: {e}")
             import traceback
 
             traceback.print_exc()
@@ -524,11 +524,11 @@ def test_region_management(fits_path: str):
             )
 
             if n_pixels == 0:
-                print("  ⚠ Warning: Mask is empty")
+                print("  :warning_sign: Warning: Mask is empty")
             else:
-                print("  ✓ Mask has valid pixels")
+                print("  :check_mark: Mask has valid pixels")
         except Exception as e:
-            print(f"✗ Rectangle region mask creation failed: {e}")
+            print(f":ballot_x: Rectangle region mask creation failed: {e}")
             import traceback
 
             traceback.print_exc()
@@ -540,15 +540,15 @@ def test_region_management(fits_path: str):
             stats = calculate_region_statistics(fits_path, circle_region)
 
             if stats and "error" not in stats:
-                print("✓ Region statistics calculated")
+                print(":check_mark: Region statistics calculated")
                 print(f"  Mean: {stats.get('mean', 'N/A'):.6f}")
                 print(f"  Std: {stats.get('std', 'N/A'):.6f}")
                 print(f"  Min: {stats.get('min', 'N/A'):.6f}")
                 print(f"  Max: {stats.get('max', 'N/A'):.6f}")
             else:
-                print(f"⚠ Region statistics calculation returned: {stats}")
+                print(f":warning_sign: Region statistics calculation returned: {stats}")
         except Exception as e:
-            print(f"⚠ Region statistics calculation failed: {e}")
+            print(f":warning_sign: Region statistics calculation failed: {e}")
             # Not critical, continue
 
         # Test 3.4: Region-Constrained Fitting
@@ -560,7 +560,7 @@ def test_region_management(fits_path: str):
                 )
 
                 if fit_result:
-                    print("✓ Region-constrained Gaussian fit successful")
+                    print(":check_mark: Region-constrained Gaussian fit successful")
                     params = fit_result["parameters"]
                     print(
                         f"  Center (x, y): ({params['center']['x']:.2f}, {params['center']['y']:.2f})"
@@ -568,18 +568,18 @@ def test_region_management(fits_path: str):
                     stats = fit_result["statistics"]
                     print(f"  Reduced chi-squared: {stats['reduced_chi_squared']:.4f}")
                 else:
-                    print("✗ Region-constrained fit returned no result")
+                    print(":ballot_x: Region-constrained fit returned no result")
             else:
-                print("⚠ Skipping region-constrained fit (mask is empty)")
+                print(":warning_sign: Skipping region-constrained fit (mask is empty)")
         except Exception as e:
-            print(f"⚠ Region-constrained fit failed: {e}")
+            print(f":warning_sign: Region-constrained fit failed: {e}")
             # Not critical, continue
 
-        print("\n✓ Region Management tests passed")
+        print("\n:check_mark: Region Management tests passed")
         return True
 
     except Exception as e:
-        print(f"\n✗ Region Management test failed: {e}")
+        print(f"\n:ballot_x: Region Management test failed: {e}")
         import traceback
 
         traceback.print_exc()
@@ -622,13 +622,13 @@ def main():
 
     print("\n" + "=" * 60)
     if all_passed:
-        print("✓ All core functionality tests passed!")
+        print(":check_mark: All core functionality tests passed!")
         print("\nNext steps:")
         print("  - Core features are working correctly")
         print("  - Ready for API endpoint testing (optional)")
         print("  - Ready for frontend testing (optional)")
     else:
-        print("✗ Some tests failed")
+        print(":ballot_x: Some tests failed")
         print("  - Review errors above")
         print("  - Fix issues before proceeding")
     print("=" * 60)

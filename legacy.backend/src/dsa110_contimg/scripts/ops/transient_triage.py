@@ -64,7 +64,7 @@ def list_alerts(args):
     print(f"{'='*80}\n")
 
     for _, row in df.iterrows():
-        ack_status = "✓ Acknowledged" if row["acknowledged"] else "✗ Unacknowledged"
+        ack_status = ":check_mark: Acknowledged" if row["acknowledged"] else ":ballot_x: Unacknowledged"
         print(f"Alert ID: {row['id']}")
         print(f"  Level: {row['alert_level']}")
         print(f"  Status: {ack_status}")
@@ -125,12 +125,12 @@ def acknowledge_alert_cmd(args):
             db_path=args.db,
         )
         if result:
-            print(f"✓ Alert {args.alert_id} acknowledged by {args.user}")
+            print(f":check_mark: Alert {args.alert_id} acknowledged by {args.user}")
         else:
-            print(f"✗ Failed to acknowledge alert {args.alert_id}")
+            print(f":ballot_x: Failed to acknowledge alert {args.alert_id}")
             sys.exit(1)
     except ValueError as e:
-        print(f"✗ Error: {e}")
+        print(f":ballot_x: Error: {e}")
         sys.exit(1)
 
 
@@ -146,13 +146,13 @@ def classify_candidate_cmd(args):
         )
         if result:
             print(
-                f"✓ Candidate {args.candidate_id} classified as '{args.classification}' by {args.user}"
+                f":check_mark: Candidate {args.candidate_id} classified as '{args.classification}' by {args.user}"
             )
         else:
-            print(f"✗ Failed to classify candidate {args.candidate_id}")
+            print(f":ballot_x: Failed to classify candidate {args.candidate_id}")
             sys.exit(1)
     except ValueError as e:
-        print(f"✗ Error: {e}")
+        print(f":ballot_x: Error: {e}")
         sys.exit(1)
 
 
@@ -167,12 +167,12 @@ def follow_up_cmd(args):
             db_path=args.db,
         )
         if result:
-            print(f"✓ {args.type.capitalize()} {args.id} follow-up status: {args.status}")
+            print(f":check_mark: {args.type.capitalize()} {args.id} follow-up status: {args.status}")
         else:
-            print(f"✗ Failed to update follow-up status")
+            print(f":ballot_x: Failed to update follow-up status")
             sys.exit(1)
     except ValueError as e:
-        print(f"✗ Error: {e}")
+        print(f":ballot_x: Error: {e}")
         sys.exit(1)
 
 
@@ -189,12 +189,12 @@ def add_notes_cmd(args):
         )
         if result:
             action = "replaced" if args.replace else "appended"
-            print(f"✓ Notes {action} for {args.type} {args.id} by {args.user}")
+            print(f":check_mark: Notes {action} for {args.type} {args.id} by {args.user}")
         else:
-            print(f"✗ Failed to add notes")
+            print(f":ballot_x: Failed to add notes")
             sys.exit(1)
     except ValueError as e:
-        print(f"✗ Error: {e}")
+        print(f":ballot_x: Error: {e}")
         sys.exit(1)
 
 
@@ -213,11 +213,11 @@ def bulk_acknowledge_cmd(args):
             )
             if result:
                 success_count += 1
-                print(f"✓ Alert {alert_id} acknowledged")
+                print(f":check_mark: Alert {alert_id} acknowledged")
             else:
                 failed_ids.append(alert_id)
         except Exception as e:
-            print(f"✗ Alert {alert_id} failed: {e}")
+            print(f":ballot_x: Alert {alert_id} failed: {e}")
             failed_ids.append(alert_id)
 
     print(f"\n{'='*80}")
@@ -248,11 +248,11 @@ def bulk_classify_cmd(args):
             )
             if result:
                 success_count += 1
-                print(f"✓ Candidate {candidate_id} classified as '{args.classification}'")
+                print(f":check_mark: Candidate {candidate_id} classified as '{args.classification}'")
             else:
                 failed_ids.append(candidate_id)
         except Exception as e:
-            print(f"✗ Candidate {candidate_id} failed: {e}")
+            print(f":ballot_x: Candidate {candidate_id} failed: {e}")
             failed_ids.append(candidate_id)
 
     print(f"\n{'='*80}")

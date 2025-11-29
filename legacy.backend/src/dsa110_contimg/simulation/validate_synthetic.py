@@ -191,10 +191,10 @@ Examples:
         is_valid, errors = validate_subband_group(args.group, args.timestamp)
 
         if is_valid:
-            print("✓ Subband group is valid")
+            print(":check_mark: Subband group is valid")
             return 0
         else:
-            print("✗ Subband group validation failed:")
+            print(":ballot_x: Subband group validation failed:")
             for error in errors:
                 print(f"  - {error}")
             return 1
@@ -215,15 +215,15 @@ Examples:
     all_valid = True
     for filepath in args.files:
         if not filepath.exists():
-            print(f"✗ {filepath}: File not found")
+            print(f":ballot_x: {filepath}: File not found")
             all_valid = False
             continue
 
         is_valid, errors = validate_uvh5_file(filepath)
         if is_valid:
-            print(f"✓ {filepath.name}: Valid")
+            print(f":check_mark: {filepath.name}: Valid")
         else:
-            print(f"✗ {filepath.name}: Invalid")
+            print(f":ballot_x: {filepath.name}: Invalid")
             for error in errors:
                 print(f"  - {error}")
             all_valid = False

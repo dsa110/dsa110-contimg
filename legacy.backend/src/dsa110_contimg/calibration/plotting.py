@@ -79,7 +79,7 @@ def generate_bandpass_plots(
             generated_plots.extend(phase_files)
             logger.info(f"Generated {len(phase_files)} phase plot(s)")
 
-        logger.info(f"✓ Bandpass plots generated: {len(generated_plots)} file(s) in {output_dir}")
+        logger.info(f":check_mark: Bandpass plots generated: {len(generated_plots)} file(s) in {output_dir}")
         return generated_plots
 
     except Exception as e:
@@ -182,7 +182,7 @@ def generate_gain_plots(
             generated_plots.extend(phase_files)
             logger.info(f"Generated {len(phase_files)} gain phase plot(s)")
 
-        logger.info(f"✓ Gain plots generated: {len(generated_plots)} file(s) in {output_dir}")
+        logger.info(f":check_mark: Gain plots generated: {len(generated_plots)} file(s) in {output_dir}")
         return generated_plots
 
     except Exception as e:

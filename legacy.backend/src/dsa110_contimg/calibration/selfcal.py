@@ -104,7 +104,7 @@ def _fix_ms_permissions(ms_path: Path, user: Optional[str] = None) -> bool:
             text=True,
         )
 
-        logger.debug(f"✓ MS permissions fixed for {ms_path}")
+        logger.debug(f":check_mark: MS permissions fixed for {ms_path}")
         return True
 
     except subprocess.CalledProcessError as e:
@@ -276,7 +276,7 @@ class SelfCalibrator:
             logger.info("=" * 80)
             delay_success = self._run_delay_calibration()
             if delay_success:
-                logger.info("✓ Delay calibration complete - geometric offsets removed")
+                logger.info(":check_mark: Delay calibration complete - geometric offsets removed")
             else:
                 logger.warning("Delay calibration failed, continuing without it")
 
@@ -497,7 +497,7 @@ class SelfCalibrator:
             self.best_iteration = result
 
             logger.info(
-                f"✓ Initial imaging: SNR={snr:.1f}, Peak={peak_flux*1000:.1f} mJy, "
+                f":check_mark: Initial imaging: SNR={snr:.1f}, Peak={peak_flux*1000:.1f} mJy, "
                 f"RMS={rms_noise*1000:.3f} mJy"
             )
 
@@ -558,7 +558,7 @@ class SelfCalibrator:
             # Store delay table path for use in subsequent iterations
             self.delay_caltable = delay_table
 
-            logger.info(f"  ✓ Delay calibration saved: {delay_table}")
+            logger.info(f"  :check_mark: Delay calibration saved: {delay_table}")
             logger.info(
                 f"    {cal_result.n_antennas} antennas, {cal_result.fraction_flagged:.1%} flagged"
             )
@@ -731,12 +731,12 @@ class SelfCalibrator:
             if not self.best_iteration or result.snr > self.best_iteration.snr:
                 self.best_iteration = result
                 logger.info(
-                    f"  ✓ NEW BEST: SNR={snr:.1f}, Peak={peak_flux*1000:.1f} mJy, "
+                    f"  :check_mark: NEW BEST: SNR={snr:.1f}, Peak={peak_flux*1000:.1f} mJy, "
                     f"RMS={rms_noise*1000:.3f} mJy"
                 )
             else:
                 logger.info(
-                    f"  ✓ SNR={snr:.1f}, Peak={peak_flux*1000:.1f} mJy, "
+                    f"  :check_mark: SNR={snr:.1f}, Peak={peak_flux*1000:.1f} mJy, "
                     f"RMS={rms_noise*1000:.3f} mJy"
                 )
 
@@ -827,7 +827,7 @@ class SelfCalibrator:
                     logger.info(f"Running: {' '.join(cmd_predict)}")
                     subprocess.run(cmd_predict, check=True)
 
-                logger.info("✓ MODEL_DATA updated with cleaned model")
+                logger.info(":check_mark: MODEL_DATA updated with cleaned model")
                 return True
 
             else:
@@ -846,7 +846,7 @@ class SelfCalibrator:
 
                 try:
                     write_image_model_with_ft(str(self.ms_path), casa_image)
-                    logger.info("✓ MODEL_DATA updated with cleaned model")
+                    logger.info(":check_mark: MODEL_DATA updated with cleaned model")
                     return True
                 finally:
                     # Clean up temporary CASA image
@@ -1047,7 +1047,7 @@ def selfcal_ms(
                 if not ms_path_obj.exists():
                     raise RuntimeError(f"MS regeneration failed: {ms_path_obj}")
 
-                logger.info("  ✓ MS regenerated from HDF5 - pristine state confirmed")
+                logger.info("  :check_mark: MS regenerated from HDF5 - pristine state confirmed")
             else:
                 raise RuntimeError(
                     f"Cannot reset MS: HDF5 file not found for {ms_name}. "
@@ -1102,7 +1102,7 @@ def selfcal_ms(
             # Update field selection to "" since all fields are now field 0
             config.field = ""
             logger.info(
-                "✅ Field concatenation with rephasing complete - "
+                ":white_heavy_check_mark: Field concatenation with rephasing complete - "
                 "using concatenated MS for self-cal"
             )
         except Exception as e:

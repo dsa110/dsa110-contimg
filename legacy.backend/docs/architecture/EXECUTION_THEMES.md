@@ -86,8 +86,8 @@ dsa110-contimg-streaming-mosaic --loop
 
 ### When to Use
 
-✓ You have a continuous data stream ✓ You want fully automatic processing ✓ You
-need production-grade reliability ✓ You can tolerate eventual consistency
+:check_mark: You have a continuous data stream :check_mark: You want fully automatic processing :check_mark: You
+need production-grade reliability :check_mark: You can tolerate eventual consistency
 (groups processed when complete)
 
 ---
@@ -223,9 +223,9 @@ dsa110-contimg-mosaic build \
 
 ### When to Use
 
-✓ You need fine-grained control over inputs/outputs ✓ You want reproducible
-results (same input → same output) ✓ You're doing research or reprocessing ✓ You
-need to verify before publishing ✓ You want detailed error messages ✓ You need
+:check_mark: You need fine-grained control over inputs/outputs :check_mark: You want reproducible
+results (same input → same output) :check_mark: You're doing research or reprocessing :check_mark: You
+need to verify before publishing :check_mark: You want detailed error messages :check_mark: You need
 to track job history
 
 ---

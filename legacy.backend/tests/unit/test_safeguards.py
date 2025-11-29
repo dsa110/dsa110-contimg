@@ -56,20 +56,20 @@ def test_sanitize_sql_identifier():
     try:
         result = _sanitize_sql_identifier("name", allowed)
         assert result == "name", f"Expected 'name', got '{result}'"
-        print("  ✓ Valid identifier in whitelist: PASS")
+        print("  :check_mark: Valid identifier in whitelist: PASS")
     except Exception as e:
-        print(f"  ✗ Valid identifier in whitelist: FAIL - {e}")
+        print(f"  :ballot_x: Valid identifier in whitelist: FAIL - {e}")
         return False
 
     # Test invalid identifier not in whitelist
     try:
         _sanitize_sql_identifier("evil_column", allowed)
-        print("  ✗ Invalid identifier not in whitelist: FAIL - Should have raised ValueError")
+        print("  :ballot_x: Invalid identifier not in whitelist: FAIL - Should have raised ValueError")
         return False
     except ValueError:
-        print("  ✓ Invalid identifier not in whitelist: PASS - Correctly raised ValueError")
+        print("  :check_mark: Invalid identifier not in whitelist: PASS - Correctly raised ValueError")
     except Exception as e:
-        print(f"  ✗ Invalid identifier not in whitelist: FAIL - Wrong exception: {e}")
+        print(f"  :ballot_x: Invalid identifier not in whitelist: FAIL - Wrong exception: {e}")
         return False
 
     # Test SQL injection attempt in identifier
@@ -83,23 +83,23 @@ def test_sanitize_sql_identifier():
     for attempt in injection_attempts:
         try:
             _sanitize_sql_identifier(attempt, allowed)
-            print(f"  ✗ SQL injection attempt '{attempt}': FAIL - Should have raised ValueError")
+            print(f"  :ballot_x: SQL injection attempt '{attempt}': FAIL - Should have raised ValueError")
             return False
         except ValueError:
-            print(f"  ✓ SQL injection attempt '{attempt}': PASS - Blocked")
+            print(f"  :check_mark: SQL injection attempt '{attempt}': PASS - Blocked")
         except Exception as e:
-            print(f"  ✗ SQL injection attempt '{attempt}': FAIL - Wrong exception: {e}")
+            print(f"  :ballot_x: SQL injection attempt '{attempt}': FAIL - Wrong exception: {e}")
             return False
 
     # Test with special characters
     try:
         _sanitize_sql_identifier("name; DROP TABLE--", allowed)
-        print("  ✗ Special characters: FAIL - Should have raised ValueError")
+        print("  :ballot_x: Special characters: FAIL - Should have raised ValueError")
         return False
     except ValueError:
-        print("  ✓ Special characters: PASS - Blocked")
+        print("  :check_mark: Special characters: PASS - Blocked")
     except Exception as e:
-        print(f"  ✗ Special characters: FAIL - Wrong exception: {e}")
+        print(f"  :ballot_x: Special characters: FAIL - Wrong exception: {e}")
         return False
 
     return True
@@ -115,29 +115,29 @@ def test_validate_enum_value():
     try:
         result = _validate_enum_value("pending", allowed)
         assert result == "pending", f"Expected 'pending', got '{result}'"
-        print("  ✓ Valid enum value: PASS")
+        print("  :check_mark: Valid enum value: PASS")
     except Exception as e:
-        print(f"  ✗ Valid enum value: FAIL - {e}")
+        print(f"  :ballot_x: Valid enum value: FAIL - {e}")
         return False
 
     # Test None value
     try:
         result = _validate_enum_value(None, allowed)
         assert result is None, f"Expected None, got '{result}'"
-        print("  ✓ None value: PASS")
+        print("  :check_mark: None value: PASS")
     except Exception as e:
-        print(f"  ✗ None value: FAIL - {e}")
+        print(f"  :ballot_x: None value: FAIL - {e}")
         return False
 
     # Test invalid value
     try:
         _validate_enum_value("evil_status", allowed)
-        print("  ✗ Invalid enum value: FAIL - Should have raised ValueError")
+        print("  :ballot_x: Invalid enum value: FAIL - Should have raised ValueError")
         return False
     except ValueError:
-        print("  ✓ Invalid enum value: PASS - Correctly raised ValueError")
+        print("  :check_mark: Invalid enum value: PASS - Correctly raised ValueError")
     except Exception as e:
-        print(f"  ✗ Invalid enum value: FAIL - Wrong exception: {e}")
+        print(f"  :ballot_x: Invalid enum value: FAIL - Wrong exception: {e}")
         return False
 
     # Test SQL injection attempts
@@ -151,12 +151,12 @@ def test_validate_enum_value():
     for attempt in injection_attempts:
         try:
             _validate_enum_value(attempt, allowed)
-            print(f"  ✗ SQL injection attempt '{attempt}': FAIL - Should have raised ValueError")
+            print(f"  :ballot_x: SQL injection attempt '{attempt}': FAIL - Should have raised ValueError")
             return False
         except ValueError:
-            print(f"  ✓ SQL injection attempt '{attempt}': PASS - Blocked")
+            print(f"  :check_mark: SQL injection attempt '{attempt}': PASS - Blocked")
         except Exception as e:
-            print(f"  ✗ SQL injection attempt '{attempt}': FAIL - Wrong exception: {e}")
+            print(f"  :ballot_x: SQL injection attempt '{attempt}': FAIL - Wrong exception: {e}")
             return False
 
     return True
@@ -171,9 +171,9 @@ def test_build_safe_where_clause():
         clause, params = _build_safe_where_clause("status", "pending", "=")
         assert clause == "status = ?", f"Expected 'status = ?', got '{clause}'"
         assert params == ["pending"], f"Expected ['pending'], got {params}"
-        print("  ✓ Valid WHERE clause: PASS")
+        print("  :check_mark: Valid WHERE clause: PASS")
     except Exception as e:
-        print(f"  ✗ Valid WHERE clause: FAIL - {e}")
+        print(f"  :ballot_x: Valid WHERE clause: FAIL - {e}")
         return False
 
     # Test unsafe operator
@@ -188,12 +188,12 @@ def test_build_safe_where_clause():
     for operator in unsafe_operators:
         try:
             _build_safe_where_clause("status", "pending", operator)
-            print(f"  ✗ Unsafe operator '{operator}': FAIL - Should have raised ValueError")
+            print(f"  :ballot_x: Unsafe operator '{operator}': FAIL - Should have raised ValueError")
             return False
         except ValueError:
-            print(f"  ✓ Unsafe operator '{operator}': PASS - Blocked")
+            print(f"  :check_mark: Unsafe operator '{operator}': PASS - Blocked")
         except Exception as e:
-            print(f"  ✗ Unsafe operator '{operator}': FAIL - Wrong exception: {e}")
+            print(f"  :ballot_x: Unsafe operator '{operator}': FAIL - Wrong exception: {e}")
             return False
 
     # Test valid operators
@@ -202,9 +202,9 @@ def test_build_safe_where_clause():
         try:
             clause, params = _build_safe_where_clause("status", "pending", operator)
             assert "?" in clause, f"Expected parameterized query, got '{clause}'"
-            print(f"  ✓ Valid operator '{operator}': PASS")
+            print(f"  :check_mark: Valid operator '{operator}': PASS")
         except Exception as e:
-            print(f"  ✗ Valid operator '{operator}': FAIL - {e}")
+            print(f"  :ballot_x: Valid operator '{operator}': FAIL - {e}")
             return False
 
     return True
@@ -233,9 +233,9 @@ def test_query_construction_safety():
         query, params = simulate_get_regions_query("polygon")
         assert "type = ?" in query, "Expected parameterized query"
         assert params == ["polygon"], f"Expected ['polygon'], got {params}"
-        print("  ✓ Valid region_type query: PASS")
+        print("  :check_mark: Valid region_type query: PASS")
     except Exception as e:
-        print(f"  ✗ Valid region_type query: FAIL - {e}")
+        print(f"  :ballot_x: Valid region_type query: FAIL - {e}")
         return False
 
     # Test SQL injection attempts
@@ -249,14 +249,14 @@ def test_query_construction_safety():
     for attempt in injection_attempts:
         try:
             query, params = simulate_get_regions_query(attempt)
-            print(f"  ✗ SQL injection attempt '{attempt}': FAIL - Query was constructed")
+            print(f"  :ballot_x: SQL injection attempt '{attempt}': FAIL - Query was constructed")
             print(f"     Query: {query}")
             print(f"     Params: {params}")
             return False
         except ValueError:
-            print(f"  ✓ SQL injection attempt '{attempt}': PASS - Blocked")
+            print(f"  :check_mark: SQL injection attempt '{attempt}': PASS - Blocked")
         except Exception as e:
-            print(f"  ✗ SQL injection attempt '{attempt}': FAIL - Wrong exception: {e}")
+            print(f"  :ballot_x: SQL injection attempt '{attempt}': FAIL - Wrong exception: {e}")
             return False
 
     # Simulate the ms_index query construction
@@ -288,9 +288,9 @@ def test_query_construction_safety():
         query, params = simulate_ms_index_query("ingest", "pending")
         assert "stage = ?" in query and "status = ?" in query, "Expected parameterized query"
         assert "ingest" in params and "pending" in params, "Expected parameters"
-        print("  ✓ Valid stage/status query: PASS")
+        print("  :check_mark: Valid stage/status query: PASS")
     except Exception as e:
-        print(f"  ✗ Valid stage/status query: FAIL - {e}")
+        print(f"  :ballot_x: Valid stage/status query: FAIL - {e}")
         return False
 
     # Test injection attempts
@@ -298,14 +298,14 @@ def test_query_construction_safety():
         try:
             query, params = simulate_ms_index_query(stage_attempt, None)
             print(
-                f"  ✗ SQL injection attempt in stage '{stage_attempt}': FAIL - Query was constructed"
+                f"  :ballot_x: SQL injection attempt in stage '{stage_attempt}': FAIL - Query was constructed"
             )
             return False
         except ValueError:
-            print(f"  ✓ SQL injection attempt in stage '{stage_attempt}': PASS - Blocked")
+            print(f"  :check_mark: SQL injection attempt in stage '{stage_attempt}': PASS - Blocked")
         except Exception as e:
             print(
-                f"  ✗ SQL injection attempt in stage '{stage_attempt}': FAIL - Wrong exception: {e}"
+                f"  :ballot_x: SQL injection attempt in stage '{stage_attempt}': FAIL - Wrong exception: {e}"
             )
             return False
 
@@ -339,10 +339,10 @@ def main():
     print(f"\nTotal: {passed}/{total} tests passed")
 
     if passed == total:
-        print("\n✓ All safeguards are working correctly!")
+        print("\n:check_mark: All safeguards are working correctly!")
         return 0
     else:
-        print("\n✗ Some safeguards failed. Review the output above.")
+        print("\n:ballot_x: Some safeguards failed. Review the output above.")
         return 1
 
 

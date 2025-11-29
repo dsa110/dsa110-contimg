@@ -617,7 +617,7 @@ class QueueDB:
                 skipped_count += 1
 
         logging.info(
-            f"✓ Bootstrap complete: {new_count} new files registered, "
+            f":check_mark: Bootstrap complete: {new_count} new files registered, "
             f"{skipped_count} already registered"
         )
 
@@ -2079,7 +2079,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             log.error(f"Scratch directory is not writable: {args.scratch_dir}")
             return 1
 
-    log.info("✓ Directory validation passed")
+    log.info(":check_mark: Directory validation passed")
 
     # OPTIMIZATION: Warm up JIT-compiled functions before first observation
     # This eliminates compilation latency during time-critical processing
@@ -2088,7 +2088,7 @@ def main(argv: Optional[List[str]] = None) -> int:
         if NUMBA_AVAILABLE:
             t0 = time.time()
             warm_up_jit()
-            log.info(f"✓ JIT functions warmed up in {time.time() - t0:.2f}s")
+            log.info(f":check_mark: JIT functions warmed up in {time.time() - t0:.2f}s")
     except ImportError:
         log.debug("Numba not available, skipping JIT warm-up")
 

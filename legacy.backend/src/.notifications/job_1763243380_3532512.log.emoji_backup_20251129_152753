@@ -1,0 +1,86 @@
+2025-11-15 13:49:57,230 - INFO - Creating 10-minute mosaic centered on 0834+555
+2025-11-15 13:50:00,885 - INFO - No subband files found in /data/incoming between 2025-11-15 12:18:35 and 2025-11-15 13:18:35
+2025-11-15 13:50:02,682 - INFO - No subband files found in /data/incoming between 2025-11-14 12:22:31 and 2025-11-14 13:22:31
+2025-11-15 13:50:04,346 - INFO - No subband files found in /data/incoming between 2025-11-13 12:26:27 and 2025-11-13 13:26:27
+2025-11-15 13:50:05,734 - INFO - No subband files found in /data/incoming between 2025-11-12 12:30:23 and 2025-11-12 13:30:23
+2025-11-15 13:50:06,953 - INFO - No subband files found in /data/incoming between 2025-11-11 12:34:19 and 2025-11-11 13:34:19
+2025-11-15 13:50:07,356 - INFO - No subband files found in /data/incoming between 2025-11-10 12:38:15 and 2025-11-10 13:38:15
+2025-11-15 13:50:08,144 - INFO - No subband files found in /data/incoming between 2025-11-09 12:42:11 and 2025-11-09 13:42:11
+2025-11-15 13:50:08,889 - INFO - No subband files found in /data/incoming between 2025-11-08 12:46:07 and 2025-11-08 13:46:07
+2025-11-15 13:50:11,252 - WARNING - Group 2025-11-07T13:19:23 transit time matches but declination mismatch: file dec=50.18°, expected 55.57° (diff=5.39°). Trusting transit time match.
+2025-11-15 13:50:14,328 - WARNING - Group 2025-11-06T13:22:18 transit time matches but declination mismatch: file dec=16.27°, expected 55.57° (diff=39.30°). Trusting transit time match.
+2025-11-15 13:50:15,767 - INFO - No subband files found in /data/incoming between 2025-11-05 12:57:54 and 2025-11-05 13:57:54
+2025-11-15 13:50:17,001 - INFO - No subband files found in /data/incoming between 2025-11-04 13:01:50 and 2025-11-04 14:01:50
+2025-11-15 13:50:22,510 - WARNING - Group 2025-11-02T13:34:54 transit time matches but declination mismatch: file dec=16.27°, expected 55.57° (diff=39.30°). Trusting transit time match.
+2025-11-15 13:50:25,853 - WARNING - Group 2025-11-01T13:43:33 transit time matches but declination mismatch: file dec=16.27°, expected 55.57° (diff=39.30°). Trusting transit time match.
+2025-11-15 13:50:39,087 - INFO - No subband files found in /data/incoming between 2025-10-27 13:33:18 and 2025-10-27 14:33:18
+2025-11-15 13:50:45,994 - INFO - No subband files found in /data/incoming between 2025-10-23 13:49:01 and 2025-10-23 14:49:01
+2025-11-15 13:51:10,422 - INFO - No subband files found in /data/incoming between 2025-10-16 14:16:33 and 2025-10-16 15:16:33
+2025-11-15 13:51:12,488 - INFO - No subband files found in /data/incoming between 2025-10-15 14:20:29 and 2025-10-15 15:20:29
+2025-11-15 13:51:14,528 - INFO - No subband files found in /data/incoming between 2025-10-14 14:24:24 and 2025-10-14 15:24:24
+2025-11-15 13:51:16,343 - INFO - No subband files found in /data/incoming between 2025-10-13 14:28:20 and 2025-10-13 15:28:20
+2025-11-15 13:51:18,254 - INFO - No subband files found in /data/incoming between 2025-10-12 14:32:16 and 2025-10-12 15:32:16
+2025-11-15 13:51:20,102 - INFO - No subband files found in /data/incoming between 2025-10-11 14:36:12 and 2025-10-11 15:36:12
+2025-11-15 13:51:22,215 - INFO - No subband files found in /data/incoming between 2025-10-10 14:40:08 and 2025-10-10 15:40:08
+2025-11-15 13:51:24,132 - INFO - No subband files found in /data/incoming between 2025-10-09 14:44:04 and 2025-10-09 15:44:04
+2025-11-15 13:51:26,272 - INFO - No subband files found in /data/incoming between 2025-10-08 14:48:00 and 2025-10-08 15:48:00
+2025-11-15 13:51:28,572 - INFO - No subband files found in /data/incoming between 2025-10-07 14:51:56 and 2025-10-07 15:51:56
+2025-11-15 13:51:30,172 - INFO - No subband files found in /data/incoming between 2025-10-06 14:55:52 and 2025-10-06 15:55:52
+2025-11-15 13:51:44,905 - INFO - No subband files found in /data/incoming between 2025-10-01 15:15:31 and 2025-10-01 16:15:31
+2025-11-15 13:51:46,730 - INFO - No subband files found in /data/incoming between 2025-09-30 15:19:27 and 2025-09-30 16:19:27
+2025-11-15 13:51:48,517 - INFO - No subband files found in /data/incoming between 2025-09-29 15:23:23 and 2025-09-29 16:23:23
+2025-11-15 13:51:50,433 - INFO - No subband files found in /data/incoming between 2025-09-28 15:27:19 and 2025-09-28 16:27:19
+2025-11-15 13:51:52,111 - INFO - No subband files found in /data/incoming between 2025-09-27 15:31:15 and 2025-09-27 16:31:15
+2025-11-15 13:51:53,941 - INFO - No subband files found in /data/incoming between 2025-09-26 15:35:11 and 2025-09-26 16:35:11
+2025-11-15 13:51:55,852 - INFO - No subband files found in /data/incoming between 2025-09-25 15:39:07 and 2025-09-25 16:39:07
+2025-11-15 13:51:57,527 - INFO - No subband files found in /data/incoming between 2025-09-24 15:43:03 and 2025-09-24 16:43:03
+2025-11-15 13:51:59,237 - INFO - No subband files found in /data/incoming between 2025-09-23 15:46:59 and 2025-09-23 16:46:59
+2025-11-15 13:52:01,126 - INFO - No subband files found in /data/incoming between 2025-09-22 15:50:54 and 2025-09-22 16:50:54
+2025-11-15 13:52:03,231 - INFO - No subband files found in /data/incoming between 2025-09-21 15:54:50 and 2025-09-21 16:54:50
+2025-11-15 13:52:05,349 - INFO - No subband files found in /data/incoming between 2025-09-20 15:58:46 and 2025-09-20 16:58:46
+2025-11-15 13:52:07,475 - INFO - No subband files found in /data/incoming between 2025-09-19 16:02:42 and 2025-09-19 17:02:42
+2025-11-15 13:52:09,493 - INFO - No subband files found in /data/incoming between 2025-09-18 16:06:38 and 2025-09-18 17:06:38
+2025-11-15 13:52:11,450 - INFO - No subband files found in /data/incoming between 2025-09-17 16:10:34 and 2025-09-17 17:10:34
+2025-11-15 13:52:11,557 - INFO - Transit time: 2025-10-02T15:41:35.894
+Window: 2025-10-02T15:36:35.894 to 2025-10-02T15:46:35.894
+Required MS files: 2
+2025-11-15 13:52:11,567 - INFO - DRY-RUN: Only 0 MS files found, need 2. Would trigger HDF5 conversion (skipped in dry-run mode)
+2025-11-15 13:52:11,582 - INFO - ============================================================
+2025-11-15 13:52:11,583 - INFO - DRY-RUN MODE: Validating mosaic plan without building
+2025-11-15 13:52:11,591 - INFO - ============================================================
+2025-11-15 13:52:11,596 - INFO - ✓ Database: products database accessible
+2025-11-15 13:52:11,606 - INFO - ✓ Database: data_registry database accessible
+2025-11-15 13:52:11,609 - INFO - ✓ File system: MS output directory writable (/stage/dsa110-contimg/ms)
+2025-11-15 13:52:11,623 - INFO - ✓ File system: Images directory writable (/stage/dsa110-contimg/images)
+2025-11-15 13:52:11,624 - INFO - ✓ File system: Mosaics directory writable (/stage/dsa110-contimg/mosaics)
+2025-11-15 13:52:11,704 - INFO - ✓ Calibrator: 0834+555 found (RA=128.728750, Dec=55.572500)
+2025-11-15 13:52:12,212 - INFO - ✓ Mosaic manager: initialized successfully
+2025-11-15 13:52:12,213 - INFO - ✓ Environment: CONTIMG_INPUT_DIR = /data/incoming
+2025-11-15 13:52:12,213 - INFO - ✓ Environment: CONTIMG_SCRATCH_DIR = /stage/dsa110-contimg
+2025-11-15 13:52:12,215 - INFO - ✓ Time range: valid (10.0 minutes)
+2025-11-15 13:52:12,215 - INFO - ✓ Disk space: MS directory has sufficient space (need ~4.0 GB)
+2025-11-15 13:52:12,216 - INFO - ✓ Disk space: Images directory has sufficient space (need ~1.0 GB)
+2025-11-15 13:52:12,216 - INFO - ✓ Disk space: Mosaics directory has sufficient space (need ~1.0 GB)
+2025-11-15 13:52:12,235 - INFO - ✓ Calibration: Valid bandpass calibrator available for Dec 55.57°
+2025-11-15 13:52:12,235 - INFO - ✓ Group ID: mosaic_2025-10-02_15-41-35-894 is unique
+2025-11-15 13:52:16,640 - INFO - ✓ HDF5 files: Found 80348 HDF5 files in input directory (conversion will be attempted)
+2025-11-15 13:52:16,645 - INFO - 
+2025-11-15 13:52:16,655 - INFO - Mosaic plan:
+2025-11-15 13:52:16,658 - INFO -   - Calibrator: 0834+555
+2025-11-15 13:52:16,668 - INFO -   - Transit time: 2025-10-02T15:41:35.894
+2025-11-15 13:52:16,678 - INFO -   - Window: 2025-10-02T15:36:35.894 to 2025-10-02T15:46:35.894
+2025-11-15 13:52:16,684 - INFO -   - Timespan: 10 minutes
+2025-11-15 13:52:16,691 - INFO -   - Required MS files: 2
+2025-11-15 13:52:16,696 - INFO -   - Available MS files: 0
+2025-11-15 13:52:16,702 - INFO -   - Group ID: mosaic_2025-10-02_15-41-35-894
+2025-11-15 13:52:16,714 - INFO -   - MS file paths: (none - would be created from HDF5)
+2025-11-15 13:52:16,724 - INFO - 
+2025-11-15 13:52:16,726 - WARNING - ============================================================
+2025-11-15 13:52:16,736 - WARNING - VALIDATION WARNINGS (may cause issues):
+2025-11-15 13:52:16,741 - WARNING - ============================================================
+2025-11-15 13:52:16,749 - WARNING -   ⚠ Only 0 MS files available, need at least 3. HDF5 conversion would be triggered in normal mode.
+2025-11-15 13:52:16,760 - WARNING - 
+2025-11-15 13:52:16,765 - WARNING - ⚠ Validation complete with warnings. Review before running.
+2025-11-15 13:52:16,765 - INFO - Run with dry_run=False to create the mosaic.
+✓ Dry run completed successfully - mosaic plan validated
+  Run with dry_run=False to create the mosaic

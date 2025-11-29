@@ -37,9 +37,9 @@ def main():
     print("Creating staging directories...")
     try:
         ensure_staging_directories()
-        print("✓ Staging directories created")
+        print(":check_mark: Staging directories created")
     except Exception as e:
-        print(f"✗ Error creating staging directories: {e}")
+        print(f":ballot_x: Error creating staging directories: {e}")
         return 1
 
     # Ensure data directories
@@ -53,9 +53,9 @@ def main():
     for directory in data_dirs:
         try:
             directory.mkdir(parents=True, exist_ok=True)
-            print(f"✓ {directory}")
+            print(f":check_mark: {directory}")
         except Exception as e:
-            print(f"✗ Error creating {directory}: {e}")
+            print(f":ballot_x: Error creating {directory}: {e}")
             return 1
 
     # Create product subdirectories
@@ -74,13 +74,13 @@ def main():
     for subdir in product_subdirs:
         try:
             (products_dir / subdir).mkdir(parents=True, exist_ok=True)
-            print(f"✓ {products_dir / subdir}")
+            print(f":check_mark: {products_dir / subdir}")
         except Exception as e:
-            print(f"✗ Error creating {products_dir / subdir}: {e}")
+            print(f":ballot_x: Error creating {products_dir / subdir}: {e}")
             return 1
 
     print("\n" + "=" * 80)
-    print("✓ Directory structure initialized successfully!")
+    print(":check_mark: Directory structure initialized successfully!")
     print("=" * 80)
     print()
     print("Next steps:")

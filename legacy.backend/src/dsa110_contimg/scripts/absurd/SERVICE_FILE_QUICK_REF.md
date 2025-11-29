@@ -2,11 +2,11 @@
 
 ## The Problem
 
-❌ **Can't edit files in `/etc/systemd/system/`** (requires root permissions)
+:cross_mark: **Can't edit files in `/etc/systemd/system/`** (requires root permissions)
 
 ## The Solution
 
-✅ **Edit LOCAL copies, then install with script**
+:white_heavy_check_mark: **Edit LOCAL copies, then install with script**
 
 ---
 

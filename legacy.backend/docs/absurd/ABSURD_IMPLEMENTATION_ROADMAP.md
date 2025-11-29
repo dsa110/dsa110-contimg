@@ -242,11 +242,11 @@ async def main():
             params={"message": "Hello from Absurd!"}
         )
 
-        print(f"✓ Spawned task: {task_id}")
+        print(f":check_mark: Spawned task: {task_id}")
 
         # Get task details
         task = await client.get_task("dsa110-pipeline", task_id)
-        print(f"✓ Task status: {task['state']}")
+        print(f":check_mark: Task status: {task['state']}")
 
     finally:
         await client.close()

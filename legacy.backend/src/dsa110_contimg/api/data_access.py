@@ -491,8 +491,8 @@ def fetch_pointing_history(
         else:
             hdf5_db_path = Path.cwd() / hdf5_db_path  # Fallback to CWD
 
-    logger.error(f"🔍 HDF5 DB path: {hdf5_db_path}")
-    logger.error(f"🔍 HDF5 DB exists: {hdf5_db_path.exists()}")
+    logger.error(f":left-pointing_magnifying_glass: HDF5 DB path: {hdf5_db_path}")
+    logger.error(f":left-pointing_magnifying_glass: HDF5 DB exists: {hdf5_db_path.exists()}")
 
     if hdf5_db_path.exists():
         try:
@@ -564,7 +564,7 @@ def fetch_pointing_history(
             if not _is_synthetic_pointing_data(entry.timestamp, data_registry_db)
         ]
 
-    logger.error(f"🔍 Returning {len(entries)} entries after filtering")
+    logger.error(f":left-pointing_magnifying_glass: Returning {len(entries)} entries after filtering")
     return entries
 
 

@@ -1583,7 +1583,7 @@ def convert_subband_groups_to_ms(
                         raise RuntimeError(error_msg)
 
                     logger.info(
-                        f"✓ MS validation passed: {tb.nrows()} rows, "
+                        f":check_mark: MS validation passed: {tb.nrows()} rows, "
                         f"{len(tb.colnames())} columns"
                     )
             except Exception as e:
@@ -1610,7 +1610,7 @@ def convert_subband_groups_to_ms(
             # Get rename_calibrator_fields from writer_kwargs if available
             rename_fields = (writer_kwargs or {}).get("rename_calibrator_fields", True)
             configure_ms_for_imaging(ms_path, rename_calibrator_fields=rename_fields)
-            logger.info(f"✓ MS configured for imaging: {ms_path}")
+            logger.info(f":check_mark: MS configured for imaging: {ms_path}")
         except ConversionError as e:
             # ConversionError already has context and suggestions
             error_msg = (
@@ -1652,7 +1652,7 @@ def convert_subband_groups_to_ms(
             except Exception:
                 logger.warning("Failed to set MODEL_DATA column")
 
-        logger.info("✓ Successfully created %s", ms_path)
+        logger.info(":check_mark: Successfully created %s", ms_path)
 
         # Save checkpoint if checkpoint file provided
         if checkpoint_file:
@@ -1694,9 +1694,9 @@ def convert_subband_groups_to_ms(
                     alert_on_issues=True,
                 )
                 if qa_passed:
-                    logger.info("✓ MS passed quality checks")
+                    logger.info(":check_mark: MS passed quality checks")
                 else:
-                    logger.warning("⚠ MS quality issues detected (see alerts)")
+                    logger.warning(":warning_sign: MS quality issues detected (see alerts)")
             except Exception as e:
                 logger.warning(f"QA check failed (non-fatal): {e}")
         else:
@@ -2178,14 +2178,14 @@ def main(args: Optional[argparse.Namespace] = None) -> int:
             validate_directory(args.output_dir, must_exist=False, must_writable=True)
             if args.scratch_dir:
                 validate_directory(args.scratch_dir, must_exist=False, must_writable=True)
-            logger.info("  ✓ Directory validation passed")
+            logger.info("  :check_mark: Directory validation passed")
         except Exception as e:
             from dsa110_contimg.utils.validation import ValidationError
 
             if isinstance(e, ValidationError):
-                logger.error(f"  ✗ Validation failed: {', '.join(e.errors)}")
+                logger.error(f"  :ballot_x: Validation failed: {', '.join(e.errors)}")
             else:
-                logger.error(f"  ✗ Validation failed: {e}")
+                logger.error(f"  :ballot_x: Validation failed: {e}")
         logger.info("\nDry-run complete. Use without --dry-run to perform conversion.")
         return 0
 

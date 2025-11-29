@@ -248,7 +248,7 @@ def main(argv: list = None) -> int:
             )
 
             if result.found:
-                logger.info(f"✓ Transit found: {result.transit_time.iso}")
+                logger.info(f":check_mark: Transit found: {result.transit_time.iso}")
                 logger.info(f"  Data available: {result.data_available}")
                 logger.info(f"  Files: {len(result.files) if result.files else 0}")
                 logger.info(f"  Declination match: {result.dec_match}")
@@ -263,7 +263,7 @@ def main(argv: list = None) -> int:
                         logger.warning(f"  - {warning}")
                 return 0 if result.data_available else 1
             else:
-                logger.error("✗ Transit not found")
+                logger.error(":ballot_x: Transit not found")
                 if result.errors:
                     for error in result.errors:
                         logger.error(f"  - {error}")
@@ -295,15 +295,15 @@ def main(argv: list = None) -> int:
 
             for path, result in sorted(results.items()):
                 if not result.valid:
-                    logger.error(f"✗ {os.path.basename(path)}")
+                    logger.error(f":ballot_x: {os.path.basename(path)}")
                     for error in result.errors:
                         logger.error(f"    {error}")
                 elif result.warnings:
-                    logger.warning(f"⚠ {os.path.basename(path)}")
+                    logger.warning(f":warning_sign: {os.path.basename(path)}")
                     for warning in result.warnings:
                         logger.warning(f"    {warning}")
                 else:
-                    logger.info(f"✓ {os.path.basename(path)}")
+                    logger.info(f":check_mark: {os.path.basename(path)}")
 
             return 0 if valid_count == total_count else 1
 
@@ -328,13 +328,13 @@ def main(argv: list = None) -> int:
                 check_columns.extend(["CORRECTED_DATA", "MODEL_DATA", "WEIGHT_SPECTRUM"])
 
             validate_ms(args.ms, check_empty=True, check_columns=check_columns)
-            logger.info("✓ MS structure validation passed")
+            logger.info(":check_mark: MS structure validation passed")
 
             if args.check_imaging_columns:
                 warnings = validate_corrected_data_quality(args.ms)
                 if warnings:
                     for warning in warnings:
-                        logger.warning(f"⚠ {warning}")
+                        logger.warning(f":warning_sign: {warning}")
 
             # Additional checks
             with table(args.ms, readonly=True) as tb:
@@ -350,7 +350,7 @@ def main(argv: list = None) -> int:
                 with table(f"{args.ms}::SPECTRAL_WINDOW", readonly=True) as spw_tb:
                     logger.info(f"  Spectral windows: {spw_tb.nrows()}")
 
-            logger.info("\n✓ MS verification complete")
+            logger.info("\n:check_mark: MS verification complete")
             return 0
 
         except ValidationError as e:

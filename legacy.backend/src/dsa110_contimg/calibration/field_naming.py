@@ -86,7 +86,7 @@ def rename_calibrator_field(
             field_tb.putcol("NAME", field_names)
 
             logger.info(
-                f"✓ Renamed field {field_idx} from '{original_name}' to '{new_name}' "
+                f":check_mark: Renamed field {field_idx} from '{original_name}' to '{new_name}' "
                 f"in {Path(ms_path).name}"
             )
 

@@ -89,7 +89,7 @@ ELAPSED=$(( $(date +%s) - START_TIME ))
 echo ""
 echo "=========================================="
 if [ "$HAS_ERROR" = true ]; then
-    echo "✗ JOB FAILED (exit code: $EXIT_CODE, elapsed: ${ELAPSED}s)"
+    echo ":ballot_x: JOB FAILED (exit code: $EXIT_CODE, elapsed: ${ELAPSED}s)"
     echo ""
     echo "Status: FAILED" >> "$STATUS_FILE"
     echo "ERROR: Job $JOB_ID failed" >> "$STATUS_FILE"
@@ -110,7 +110,7 @@ if [ "$HAS_ERROR" = true ]; then
     echo "----------------------------------------"
     exit $EXIT_CODE
 else
-    echo "✓ JOB SUCCEEDED (elapsed: ${ELAPSED}s)"
+    echo ":check_mark: JOB SUCCEEDED (elapsed: ${ELAPSED}s)"
     echo ""
     echo "Status: SUCCESS" >> "$STATUS_FILE"
     echo "Log file: $LOG_FILE"

@@ -67,7 +67,7 @@ fi
 # Report results
 echo "=========================================="
 if [ "$HAS_ERROR" = true ]; then
-    echo "✗ JOB FAILED (exit code: $EXIT_CODE)"
+    echo ":ballot_x: JOB FAILED (exit code: $EXIT_CODE)"
     echo ""
     echo "Status: FAILED" >> "$STATUS_FILE"
     echo "ERROR: Job $JOB_ID failed" >> "$STATUS_FILE"
@@ -88,7 +88,7 @@ if [ "$HAS_ERROR" = true ]; then
     echo "----------------------------------------"
     exit $EXIT_CODE
 else
-    echo "✓ JOB SUCCEEDED"
+    echo ":check_mark: JOB SUCCEEDED"
     echo ""
     echo "Status: SUCCESS" >> "$STATUS_FILE"
     echo "Log file: $LOG_FILE"

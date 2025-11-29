@@ -197,7 +197,7 @@ def setup_data_registry(db_path: Path, verbose: bool = True) -> bool:
         conn.commit()
 
         if verbose:
-            logger.info("✓ Data registry setup completed")
+            logger.info(":check_mark: Data registry setup completed")
         return True
 
     except Exception as e:

@@ -73,9 +73,9 @@ echo -e "${YELLOW}Verifying installation...${NC}"
 QUEUE_COUNT=$($PSQL_CMD -d "$DB_NAME" -t -c "SELECT COUNT(*) FROM absurd.queues WHERE queue_name = 'dsa110-pipeline';" | tr -d ' ')
 
 if [ "$QUEUE_COUNT" = "1" ]; then
-    echo -e "${GREEN}✓ Installation verified${NC}"
+    echo -e "${GREEN}:check_mark: Installation verified${NC}"
 else
-    echo -e "${RED}✗ Verification failed${NC}"
+    echo -e "${RED}:ballot_x: Verification failed${NC}"
     exit 1
 fi
 

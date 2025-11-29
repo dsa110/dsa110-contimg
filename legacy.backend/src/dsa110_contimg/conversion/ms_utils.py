@@ -960,7 +960,7 @@ def configure_ms_for_imaging(
                                 )
                         except Exception as e:
                             logger.warning(f"Could not verify column data in {ms_path}: {e}")
-                    logger.info(f"✓ Imaging columns verified in {ms_path}")
+                    logger.info(f":check_mark: Imaging columns verified in {ms_path}")
             else:
                 logger.debug(f"Imaging columns created (validation skipped) in {ms_path}")
 
@@ -1061,7 +1061,7 @@ def configure_ms_for_imaging(
             if result:
                 cal_name, field_idx = result
                 operations_status["calibrator_renaming"] = "success"
-                logger.info(f"✓ Auto-renamed field {field_idx} to '{cal_name}_t{field_idx}'")
+                logger.info(f":check_mark: Auto-renamed field {field_idx} to '{cal_name}_t{field_idx}'")
             else:
                 operations_status["calibrator_renaming"] = "no calibrator found"
                 logger.debug("No calibrator found in MS for field renaming")
@@ -1079,9 +1079,9 @@ def configure_ms_for_imaging(
     ]
 
     if success_ops:
-        logger.info(f"✓ MS configuration completed: {', '.join(success_ops)}")
+        logger.info(f":check_mark: MS configuration completed: {', '.join(success_ops)}")
     if failed_ops:
-        logger.warning(f"⚠ MS configuration partial failures: {'; '.join(failed_ops)}")
+        logger.warning(f":warning_sign: MS configuration partial failures: {'; '.join(failed_ops)}")
 
     # Final validation: verify MS is still readable after all operations
     try:

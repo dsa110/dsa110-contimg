@@ -3,7 +3,7 @@
 These tools help manage and understand a refactored codebase by identifying
 issues, tracking changes, and maintaining context for AI assistants.
 
-## 🛠️ Tools
+## :hammer_and_wrench::variation_selector-16: Tools
 
 ### 1. `audit_documentation.py` - Documentation Audit
 
@@ -118,7 +118,7 @@ python scripts/generate_ai_context.py
 
 ---
 
-## 🔄 Recommended Workflow
+## :anticlockwise_downwards_and_upwards_open_circle_arrows: Recommended Workflow
 
 ### After Major Refactoring:
 
@@ -155,7 +155,7 @@ python scripts/generate_ai_context.py
 
 ---
 
-## 🎯 Integration with GitHub Issues
+## :direct_hit: Integration with GitHub Issues
 
 For best results, use these tools with **GitHub Issues** to track problems:
 
@@ -202,18 +202,18 @@ python scripts/audit_documentation.py --output docs.json
 
 ---
 
-## 📊 Example Output
+## :bar_chart: Example Output
 
 ### Refactor Impact Analyzer:
 
 ```
-🔴 Orphaned Imports: 12
+:large_red_circle: Orphaned Imports: 12
    • dsa110_contimg.old_module.utils (used in 5 files)
      - dsa110_contimg/api/routes.py
      - dsa110_contimg/imaging/pipeline.py
      ...
 
-🧪 Files Without Tests: 23
+:test_tube: Files Without Tests: 23
    High Priority: 8
    • dsa110_contimg/api/job_runner.py (12 funcs, 3 classes)
    • dsa110_contimg/calibration/apply_service.py (8 funcs, 2 classes)
@@ -222,7 +222,7 @@ python scripts/audit_documentation.py --output docs.json
 ### Documentation Auditor:
 
 ```
-🔴 High Priority Issues: 8
+:large_red_circle: High Priority Issues: 8
    • docs/api/README.md:42 - Referenced file not found: "dsa110_contimg/old_api.py"
    • docs/setup.md:15 - Code example imports non-existent module: dsa110_contimg.legacy
 
@@ -232,7 +232,7 @@ python scripts/audit_documentation.py --output docs.json
 
 ---
 
-## 🚀 Advanced Usage
+## :rocket: Advanced Usage
 
 ### Custom Migration Mapping
 
@@ -276,7 +276,7 @@ jobs:
 
 ---
 
-## 💡 Tips for Working with AI Agents
+## :electric_light_bulb: Tips for Working with AI Agents
 
 1. **Share `.ai-context.json` at conversation start**
    - Paste the JSON into your prompt
@@ -302,7 +302,7 @@ jobs:
 
 ---
 
-## 📚 Additional Resources
+## :books: Additional Resources
 
 ### Related Scripts in `scripts/ops/`:
 
@@ -318,7 +318,7 @@ jobs:
 
 ---
 
-## 🐛 Troubleshooting
+## :bug: Troubleshooting
 
 **Import errors after running analyzer:**
 
@@ -337,7 +337,7 @@ jobs:
 
 ---
 
-## 🤝 Contributing
+## :handshake: Contributing
 
 To add new analysis features:
 

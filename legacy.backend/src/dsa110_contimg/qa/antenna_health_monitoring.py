@@ -541,11 +541,11 @@ def generate_refant_stability_report(
 
     for i, (ant, stats) in enumerate(antenna_ranks[:15], 1):
         if i <= 3:
-            rec = "★★★ EXCELLENT"
+            rec = ":black_star::black_star::black_star: EXCELLENT"
         elif i <= 8:
-            rec = "★★ GOOD"
+            rec = ":black_star::black_star: GOOD"
         else:
-            rec = "★ ACCEPTABLE"
+            rec = ":black_star: ACCEPTABLE"
 
         table_data.append(
             [

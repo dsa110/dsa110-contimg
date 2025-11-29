@@ -28,9 +28,9 @@ def test_fitsfile_basic():
     try:
         fits = FITSFile("/nonexistent/file.fits")
         assert not fits.exists
-        print("✓ Non-existent file handling works")
+        print(":check_mark: Non-existent file handling works")
     except Exception as e:
-        print(f"✗ Error: {e}")
+        print(f":ballot_x: Error: {e}")
         return False
 
     # Test properties
@@ -38,12 +38,12 @@ def test_fitsfile_basic():
         fits = FITSFile("/tmp/test.fits")
         assert fits.basename == "test.fits"
         assert fits.path == "/tmp/test.fits"
-        print("✓ File properties work")
+        print(":check_mark: File properties work")
     except Exception as e:
-        print(f"✗ Error: {e}")
+        print(f":ballot_x: Error: {e}")
         return False
 
-    print("✓ All basic FITSFile tests passed\n")
+    print(":check_mark: All basic FITSFile tests passed\n")
     return True
 
 
@@ -71,43 +71,43 @@ def test_fitsfile_header():
         # Test FITSFile with real file
         fits_file = FITSFile(test_fits_path)
         assert fits_file.exists
-        print(f"✓ FITS file exists: {fits_file.exists}")
+        print(f":check_mark: FITS file exists: {fits_file.exists}")
 
         # Test header reading
         header = fits_file.header
         assert header is not None
-        print(f"✓ Header reading works (length: {len(header)} chars)")
+        print(f":check_mark: Header reading works (length: {len(header)} chars)")
 
         # Test shape
         shape = fits_file.shape
         assert shape == [100, 100]
-        print(f"✓ Shape extraction works: {shape}")
+        print(f":check_mark: Shape extraction works: {shape}")
 
         # Test summary
         summary = fits_file.summary
         assert summary is not None
-        print(f"✓ Summary generation works: {summary[:50]}...")
+        print(f":check_mark: Summary generation works: {summary[:50]}...")
 
         # Test summary items
         items = fits_file._get_summary_items()
         assert len(items) == 5
-        print(f"✓ Summary items: {items}")
+        print(f":check_mark: Summary items: {items}")
 
         # Cleanup
         os.remove(test_fits_path)
-        print("✓ Test FITS file cleaned up")
+        print(":check_mark: Test FITS file cleaned up")
 
     except ImportError:
-        print("⚠ astropy not available, skipping header tests")
+        print(":warning_sign: astropy not available, skipping header tests")
         return True
     except Exception as e:
-        print(f"✗ Error: {e}")
+        print(f":ballot_x: Error: {e}")
         import traceback
 
         traceback.print_exc()
         return False
 
-    print("✓ All FITS header tests passed\n")
+    print(":check_mark: All FITS header tests passed\n")
     return True
 
 
@@ -118,16 +118,16 @@ def test_js9_integration():
     try:
         # Test JS9 availability check
         available = is_js9_available()
-        print(f"✓ JS9 availability check: {available}")
+        print(f":check_mark: JS9 availability check: {available}")
 
         # Test JS9 initialization (won't actually initialize without IPython)
         # But we can test the function exists and doesn't crash
         try:
             result = init_js9()
-            print(f"✓ JS9 initialization function works (result: {result})")
+            print(f":check_mark: JS9 initialization function works (result: {result})")
         except Exception as e:
             print(
-                f"⚠ JS9 initialization error (expected without IPython): {type(e).__name__}"
+                f":warning_sign: JS9 initialization error (expected without IPython): {type(e).__name__}"
             )
 
         # Test get_js9_init_html
@@ -135,16 +135,16 @@ def test_js9_integration():
 
         html = get_js9_init_html()
         assert html is not None
-        print(f"✓ JS9 init HTML generation works (length: {len(html)} chars)")
+        print(f":check_mark: JS9 init HTML generation works (length: {len(html)} chars)")
 
     except Exception as e:
-        print(f"✗ Error: {e}")
+        print(f":ballot_x: Error: {e}")
         import traceback
 
         traceback.print_exc()
         return False
 
-    print("✓ All JS9 integration tests passed\n")
+    print(":check_mark: All JS9 integration tests passed\n")
     return True
 
 
@@ -170,17 +170,17 @@ def test_fitsfile_integration():
             test_files.append(test_file)
 
         filelist = FileList(content=test_files)
-        print(f"✓ FileList created with {len(filelist)} items")
+        print(f":check_mark: FileList created with {len(filelist)} items")
 
         # Test FITS filtering
         fits_files = filelist.fits
         assert len(fits_files) == 2, f"Expected 2 FITS files, got {len(fits_files)}"
-        print(f"✓ FITS filtering works: {len(fits_files)} FITS files")
+        print(f":check_mark: FITS filtering works: {len(fits_files)} FITS files")
 
         # Verify they are FITSFile instances
         for fits_file in fits_files:
             assert isinstance(fits_file, FITSFile)
-        print("✓ FITS files are FITSFile instances")
+        print(":check_mark: FITS files are FITSFile instances")
 
         # Cleanup test files
         for test_file in test_files:
@@ -201,22 +201,22 @@ def test_fitsfile_integration():
         # Test ls() with FITS files
         dir_list = ls(test_dir)
         fits_in_dir = dir_list.fits
-        print(f"✓ Directory browsing found {len(fits_in_dir)} FITS files")
+        print(f":check_mark: Directory browsing found {len(fits_in_dir)} FITS files")
 
         # Cleanup
         import shutil
 
         shutil.rmtree(test_dir)
-        print("✓ Test directory cleaned up")
+        print(":check_mark: Test directory cleaned up")
 
     except Exception as e:
-        print(f"✗ Error: {e}")
+        print(f":ballot_x: Error: {e}")
         import traceback
 
         traceback.print_exc()
         return False
 
-    print("✓ All integration tests passed\n")
+    print(":check_mark: All integration tests passed\n")
     return True
 
 
@@ -241,11 +241,11 @@ def test_fitsfile_show():
         try:
             # This will fail gracefully without IPython
             fits_file.show()
-            print("✓ show() method callable")
+            print(":check_mark: show() method callable")
         except Exception as e:
             # Expected without IPython
             if "IPython" in str(e) or "display" in str(e).lower():
-                print("✓ show() method exists (IPython not available, expected)")
+                print(":check_mark: show() method exists (IPython not available, expected)")
             else:
                 raise
 
@@ -253,27 +253,27 @@ def test_fitsfile_show():
         summary_html = fits_file._render_summary_html()
         assert summary_html is not None
         assert len(summary_html) > 0
-        print(f"✓ Summary HTML rendering works (length: {len(summary_html)} chars)")
+        print(f":check_mark: Summary HTML rendering works (length: {len(summary_html)} chars)")
 
         js9_html = fits_file._render_js9_html()
         assert js9_html is not None
         assert len(js9_html) > 0
-        print(f"✓ JS9 HTML rendering works (length: {len(js9_html)} chars)")
+        print(f":check_mark: JS9 HTML rendering works (length: {len(js9_html)} chars)")
 
         # Cleanup
         os.remove(test_fits_path)
 
     except ImportError:
-        print("⚠ astropy not available, skipping show() tests")
+        print(":warning_sign: astropy not available, skipping show() tests")
         return True
     except Exception as e:
-        print(f"✗ Error: {e}")
+        print(f":ballot_x: Error: {e}")
         import traceback
 
         traceback.print_exc()
         return False
 
-    print("✓ All show() method tests passed\n")
+    print(":check_mark: All show() method tests passed\n")
     return True
 
 
@@ -298,7 +298,7 @@ def main():
             result = test_func()
             results.append((name, result))
         except Exception as e:
-            print(f"✗ Test '{name}' failed with exception: {e}")
+            print(f":ballot_x: Test '{name}' failed with exception: {e}")
             import traceback
 
             traceback.print_exc()
@@ -312,7 +312,7 @@ def main():
     total = len(results)
 
     for name, result in results:
-        status = "✓ PASS" if result else "✗ FAIL"
+        status = ":check_mark: PASS" if result else ":ballot_x: FAIL"
         print(f"{status}: {name}")
 
     print()

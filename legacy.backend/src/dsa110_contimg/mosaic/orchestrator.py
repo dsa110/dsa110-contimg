@@ -1027,7 +1027,7 @@ class MosaicOrchestrator:
             if not cursor.fetchone():
                 errors.append("ms_index table not found in products database")
             else:
-                logger.info("✓ Database: products database accessible")
+                logger.info(":check_mark: Database: products database accessible")
         except Exception as e:
             errors.append(f"Database connectivity issue: {e}")
 
@@ -1037,7 +1037,7 @@ class MosaicOrchestrator:
             if not cursor.fetchall():
                 warnings.append("data_registry database appears empty")
             else:
-                logger.info("✓ Database: data_registry database accessible")
+                logger.info(":check_mark: Database: data_registry database accessible")
         except Exception as e:
             warnings.append(f"data_registry database issue: {e}")
 
@@ -1065,7 +1065,7 @@ class MosaicOrchestrator:
                 if not os.access(dir_path, os.W_OK):
                     errors.append(f"{name} directory not writable: {dir_path}")
                 else:
-                    logger.info(f"✓ File system: {name} directory writable ({dir_path})")
+                    logger.info(f":check_mark: File system: {name} directory writable ({dir_path})")
             except Exception as e:
                 errors.append(f"{name} directory error: {e}")
 
@@ -1092,7 +1092,7 @@ class MosaicOrchestrator:
             try:
                 ra_deg, dec_deg = self.calibrator_service._load_radec(calibrator_name)
                 logger.info(
-                    f"✓ Calibrator: {calibrator_name} found (RA={ra_deg:.6f}, Dec={dec_deg:.6f})"
+                    f":check_mark: Calibrator: {calibrator_name} found (RA={ra_deg:.6f}, Dec={dec_deg:.6f})"
                 )
             except Exception as e:
                 errors.append(f"Calibrator lookup failed: {e}")
@@ -1124,7 +1124,7 @@ class MosaicOrchestrator:
                 elif not os.access(ms_file, os.R_OK):
                     errors.append(f"MS file {i} not readable: {ms_path}")
                 else:
-                    logger.info(f"✓ MS file {i}: exists and readable ({ms_path})")
+                    logger.info(f":check_mark: MS file {i}: exists and readable ({ms_path})")
 
         return errors, warnings
 
@@ -1143,7 +1143,7 @@ class MosaicOrchestrator:
             manager = self._get_mosaic_manager()
             try:
                 _ = manager.products_db
-                logger.info("✓ Mosaic manager: initialized successfully")
+                logger.info(":check_mark: Mosaic manager: initialized successfully")
             except Exception as e:
                 warnings.append(f"Mosaic manager accessible but may have issues: {e}")
         except Exception as e:
@@ -1179,7 +1179,7 @@ class MosaicOrchestrator:
                 if var == "CONTIMG_INPUT_DIR" and not path.exists():
                     warnings.append(f"{desc} does not exist: {value}")
                 else:
-                    logger.info(f"✓ Environment: {var} = {value}")
+                    logger.info(f":check_mark: Environment: {var} = {value}")
 
         return errors, warnings
 
@@ -1204,7 +1204,7 @@ class MosaicOrchestrator:
             errors.append("Invalid time range: start >= end")
         else:
             duration_minutes = (end_time - start_time).to("min").value
-            logger.info(f"✓ Time range: valid ({duration_minutes:.1f} minutes)")
+            logger.info(f":check_mark: Time range: valid ({duration_minutes:.1f} minutes)")
 
         return errors, warnings
 
@@ -1239,7 +1239,7 @@ class MosaicOrchestrator:
                 warnings.append(f"MS directory disk space: {space_msg}")
             else:
                 logger.info(
-                    f"✓ Disk space: MS directory has sufficient space (need ~{estimated_ms_gb:.1f} GB)"
+                    f":check_mark: Disk space: MS directory has sufficient space (need ~{estimated_ms_gb:.1f} GB)"
                 )
 
             # Check images directory
@@ -1253,7 +1253,7 @@ class MosaicOrchestrator:
                 warnings.append(f"Images directory disk space: {space_msg}")
             else:
                 logger.info(
-                    f"✓ Disk space: Images directory has sufficient space (need ~{estimated_images_gb:.1f} GB)"
+                    f":check_mark: Disk space: Images directory has sufficient space (need ~{estimated_images_gb:.1f} GB)"
                 )
 
             # Check mosaic output directory
@@ -1267,7 +1267,7 @@ class MosaicOrchestrator:
                 warnings.append(f"Mosaics directory disk space: {space_msg}")
             else:
                 logger.info(
-                    f"✓ Disk space: Mosaics directory has sufficient space (need ~{estimated_mosaic_gb:.1f} GB)"
+                    f":check_mark: Disk space: Mosaics directory has sufficient space (need ~{estimated_mosaic_gb:.1f} GB)"
                 )
         except Exception as e:
             warnings.append(f"Could not check disk space: {e}")
@@ -1295,7 +1295,7 @@ class MosaicOrchestrator:
             bp_calibrator = manager.get_bandpass_calibrator_for_dec(dec_deg)
             if bp_calibrator:
                 logger.info(
-                    f"✓ Calibration: Valid bandpass calibrator available for Dec {dec_deg:.2f}°"
+                    f":check_mark: Calibration: Valid bandpass calibrator available for Dec {dec_deg:.2f}°"
                 )
             else:
                 warnings.append(
@@ -1334,7 +1334,7 @@ class MosaicOrchestrator:
                     "Mosaic will be updated/replaced if created."
                 )
             else:
-                logger.info(f"✓ Group ID: {group_id} is unique")
+                logger.info(f":check_mark: Group ID: {group_id} is unique")
         except Exception as e:
             warnings.append(f"Could not check group ID uniqueness: {e}")
 
@@ -1386,7 +1386,7 @@ class MosaicOrchestrator:
 
                             if groups:
                                 logger.info(
-                                    f"✓ HDF5 groups: Found {len(groups)} complete 16-subband group(s) "
+                                    f":check_mark: HDF5 groups: Found {len(groups)} complete 16-subband group(s) "
                                     f"in time window {start_time_str} to {end_time_str} "
                                     f"(conversion will be attempted)"
                                 )
@@ -1420,7 +1420,7 @@ class MosaicOrchestrator:
                             )
                             if hdf5_files:
                                 logger.info(
-                                    f"✓ HDF5 files: Found {len(hdf5_files)} HDF5 files in input directory (conversion will be attempted)"
+                                    f":check_mark: HDF5 files: Found {len(hdf5_files)} HDF5 files in input directory (conversion will be attempted)"
                                 )
                             else:
                                 warnings.append(
@@ -1453,7 +1453,7 @@ class MosaicOrchestrator:
         if self.enable_photometry:
             try:
                 if hasattr(self, "photometry_manager") and self.photometry_manager:
-                    logger.info("✓ Photometry: Service is enabled and available")
+                    logger.info(":check_mark: Photometry: Service is enabled and available")
                 else:
                     warnings.append("Photometry is enabled but manager not initialized")
             except Exception as e:
@@ -1787,23 +1787,23 @@ class MosaicOrchestrator:
                 logger.error("VALIDATION ERRORS (must be fixed before running):")
                 logger.error("=" * 60)
                 for error in validation_errors:
-                    logger.error(f"  ✗ {error}")
+                    logger.error(f"  :ballot_x: {error}")
                 logger.error("")
             if validation_warnings:
                 logger.warning("=" * 60)
                 logger.warning("VALIDATION WARNINGS (may cause issues):")
                 logger.warning("=" * 60)
                 for warning in validation_warnings:
-                    logger.warning(f"  ⚠ {warning}")
+                    logger.warning(f"  :warning_sign: {warning}")
                 logger.warning("")
 
             if validation_errors:
-                logger.error("✗ Validation failed. Fix errors before running.")
+                logger.error(":ballot_x: Validation failed. Fix errors before running.")
                 return None
             elif validation_warnings:
-                logger.warning("⚠ Validation complete with warnings. Review before running.")
+                logger.warning(":warning_sign: Validation complete with warnings. Review before running.")
             else:
-                logger.info("✓ Validation complete. Ready to build.")
+                logger.info(":check_mark: Validation complete. Ready to build.")
             logger.info("Run with dry_run=False to create the mosaic.")
             return "DRY_RUN"
 
@@ -1911,7 +1911,7 @@ class MosaicOrchestrator:
                             "path": mosaic_path,
                         }
                     )
-                    logger.info(f"✓ Successfully created mosaic: {mosaic_path}")
+                    logger.info(f":check_mark: Successfully created mosaic: {mosaic_path}")
                 else:
                     results.append(
                         {
@@ -1922,9 +1922,9 @@ class MosaicOrchestrator:
                             "error": "Mosaic creation returned None",
                         }
                     )
-                    logger.error(f"✗ Failed to create mosaic for transit {idx + 1}")
+                    logger.error(f":ballot_x: Failed to create mosaic for transit {idx + 1}")
             except Exception as e:
-                logger.error(f"✗ Exception creating mosaic for transit {idx + 1}: {e}")
+                logger.error(f":ballot_x: Exception creating mosaic for transit {idx + 1}: {e}")
                 results.append(
                     {
                         "transit_index": idx,

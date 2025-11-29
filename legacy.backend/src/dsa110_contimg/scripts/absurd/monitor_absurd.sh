@@ -23,10 +23,10 @@ echo ""
 check_service() {
     local service=$1
     if systemctl is-active --quiet "$service"; then
-        echo -e "${GREEN}✓${NC} $service: ${GREEN}RUNNING${NC}"
+        echo -e "${GREEN}:check_mark:${NC} $service: ${GREEN}RUNNING${NC}"
         return 0
     else
-        echo -e "${RED}✗${NC} $service: ${RED}STOPPED${NC}"
+        echo -e "${RED}:ballot_x:${NC} $service: ${RED}STOPPED${NC}"
         return 1
     fi
 }

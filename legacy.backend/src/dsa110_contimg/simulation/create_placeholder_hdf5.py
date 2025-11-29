@@ -414,10 +414,10 @@ def main():
         )
 
         if success:
-            print(f"✓ {message}")
+            print(f":check_mark: {message}")
             return 0
         else:
-            print(f"✗ {message}")
+            print(f":ballot_x: {message}")
             return 1
 
     elif args.command == "batch":

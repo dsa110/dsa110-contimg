@@ -67,10 +67,10 @@ def test_auto_build_functionality():
             exists, db_path = check_catalog_database_exists(catalog_type, dec_deg)
             logger.info(f"   {catalog_type.upper()}: exists={exists}, path={db_path}")
 
-        logger.info("\n✓ Auto-build functionality tests completed")
+        logger.info("\n:check_mark: Auto-build functionality tests completed")
 
     except Exception as e:
-        logger.error(f"✗ Auto-build functionality test failed: {e}", exc_info=True)
+        logger.error(f":ballot_x: Auto-build functionality test failed: {e}", exc_info=True)
         raise
 
 
@@ -122,10 +122,10 @@ def test_api_status_endpoint():
         coverage_status = get_catalog_coverage_status(ingest_db_path=fake_path)
         logger.info(f"   Result: {coverage_status}")
 
-        logger.info("\n✓ API status endpoint tests completed")
+        logger.info("\n:check_mark: API status endpoint tests completed")
 
     except Exception as e:
-        logger.error(f"✗ API status endpoint test failed: {e}", exc_info=True)
+        logger.error(f":ballot_x: API status endpoint test failed: {e}", exc_info=True)
         raise
 
 
@@ -151,9 +151,9 @@ def test_visualization_tool():
                 show_database_status=True,
             )
             if result_path.exists():
-                logger.info(f"   ✓ Plot generated: {result_path}")
+                logger.info(f"   :check_mark: Plot generated: {result_path}")
             else:
-                logger.error(f"   ✗ Plot not generated: {result_path}")
+                logger.error(f"   :ballot_x: Plot not generated: {result_path}")
 
         # Test 2: Test summary table
         logger.info("\n2. Testing plot_coverage_summary_table")
@@ -164,9 +164,9 @@ def test_visualization_tool():
                 output_path=output_path,
             )
             if result_path.exists():
-                logger.info(f"   ✓ Table generated: {result_path}")
+                logger.info(f"   :check_mark: Table generated: {result_path}")
             else:
-                logger.error(f"   ✗ Table not generated: {result_path}")
+                logger.error(f"   :ballot_x: Table not generated: {result_path}")
 
         # Test 3: Test with None declination (should handle gracefully)
         logger.info("\n3. Testing with None declination")
@@ -177,11 +177,11 @@ def test_visualization_tool():
                 output_path=output_path,
             )
             if result_path.exists():
-                logger.info(f"   ✓ Plot generated without declination: {result_path}")
+                logger.info(f"   :check_mark: Plot generated without declination: {result_path}")
             else:
-                logger.error(f"   ✗ Plot not generated: {result_path}")
+                logger.error(f"   :ballot_x: Plot not generated: {result_path}")
 
-        logger.info("\n✓ Visualization tool tests completed")
+        logger.info("\n:check_mark: Visualization tool tests completed")
 
     except ImportError as e:
         logger.warning(f"   Visualization dependencies not available: {e}")
@@ -190,7 +190,7 @@ def test_visualization_tool():
         import pytest
         pytest.skip(f"Visualization dependencies not available: {e}")
     except Exception as e:
-        logger.error(f"✗ Visualization tool test failed: {e}", exc_info=True)
+        logger.error(f":ballot_x: Visualization tool test failed: {e}", exc_info=True)
         raise
 
 
@@ -240,10 +240,10 @@ def test_edge_cases():
             # Cleanup
             tmp_db.unlink()
 
-        logger.info("\n✓ Edge case tests completed")
+        logger.info("\n:check_mark: Edge case tests completed")
 
     except Exception as e:
-        logger.error(f"✗ Edge case test failed: {e}", exc_info=True)
+        logger.error(f":ballot_x: Edge case test failed: {e}", exc_info=True)
         raise
 
 
@@ -265,17 +265,17 @@ def main():
 
     all_passed = True
     for test_name, passed in results.items():
-        status = "✓ PASS" if passed else "✗ FAIL"
+        status = ":check_mark: PASS" if passed else ":ballot_x: FAIL"
         logger.info(f"{status}: {test_name}")
         if not passed:
             all_passed = False
 
     logger.info("")
     if all_passed:
-        logger.info("✓ All tests passed!")
+        logger.info(":check_mark: All tests passed!")
         return 0
     else:
-        logger.error("✗ Some tests failed")
+        logger.error(":ballot_x: Some tests failed")
         return 1
 
 

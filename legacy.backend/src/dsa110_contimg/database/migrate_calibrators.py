@@ -237,9 +237,9 @@ def main():
         logger.info("Verifying migration...")
         success = verify_migration(args.products_db, args.calibrators_db)
         if success:
-            logger.info("✓ Verification passed")
+            logger.info(":check_mark: Verification passed")
         else:
-            logger.warning("⚠ Verification found discrepancies")
+            logger.warning(":warning_sign: Verification found discrepancies")
             return 1
 
     return 0

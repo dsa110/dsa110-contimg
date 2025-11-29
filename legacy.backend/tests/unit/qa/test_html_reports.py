@@ -71,18 +71,18 @@ def test_html_report_generation():
             html_output_path=str(output_path),
         )
 
-        logger.info("✓ Validation completed")
-        logger.info(f"  - Astrometry: {'✓' if astrometry_result else '✗'}")
-        logger.info(f"  - Flux Scale: {'✓' if flux_scale_result else '✗'}")
-        logger.info(f"  - Source Counts: {'✓' if source_counts_result else '✗'}")
+        logger.info(":check_mark: Validation completed")
+        logger.info(f"  - Astrometry: {':check_mark:' if astrometry_result else ':ballot_x:'}")
+        logger.info(f"  - Flux Scale: {':check_mark:' if flux_scale_result else ':ballot_x:'}")
+        logger.info(f"  - Source Counts: {':check_mark:' if source_counts_result else ':ballot_x:'}")
 
         # Check if HTML file was created
         if output_path.exists():
             file_size = output_path.stat().st_size
-            logger.info(f"✓ HTML report created: {output_path}")
+            logger.info(f":check_mark: HTML report created: {output_path}")
             logger.info(f"  File size: {file_size:,} bytes")
         else:
-            logger.error(f"✗ HTML report not found at {output_path}")
+            logger.error(f":ballot_x: HTML report not found at {output_path}")
             return False
 
         # Test 2: Create report from existing results
@@ -96,7 +96,7 @@ def test_html_report_generation():
             catalog="nvss",
         )
 
-        logger.info(f"✓ Report created with status: {report.overall_status}")
+        logger.info(f":check_mark: Report created with status: {report.overall_status}")
         logger.info(f"  Score: {report.score:.1%}")
         logger.info(f"  Issues: {len(report.issues)}")
         logger.info(f"  Warnings: {len(report.warnings)}")
@@ -155,7 +155,7 @@ def test_html_report_generation():
             catalog="nvss",
         )
 
-        logger.info(f"✓ Mock report created with status: {mock_report.overall_status}")
+        logger.info(f":check_mark: Mock report created with status: {mock_report.overall_status}")
         logger.info(f"  Score: {mock_report.score:.1%}")
 
         # Verify HTML content
@@ -177,17 +177,17 @@ def test_html_report_generation():
                 missing.append(element)
 
         if missing:
-            logger.error(f"✗ Missing required HTML elements: {missing}")
+            logger.error(f":ballot_x: Missing required HTML elements: {missing}")
             return False
 
-        logger.info("✓ HTML content verified")
+        logger.info(":check_mark: HTML content verified")
         logger.info(f"  HTML length: {len(html_content):,} characters")
 
         # Summary
         logger.info("\n" + "=" * 70)
         logger.info("Test Summary")
         logger.info("=" * 70)
-        logger.info("✓ All tests passed!")
+        logger.info(":check_mark: All tests passed!")
         logger.info("\nGenerated HTML reports:")
         logger.info(f"  1. {output_path}")
         logger.info(f"  2. {output_dir / f'{Path(test_image).stem}_report2.html'}")
@@ -197,7 +197,7 @@ def test_html_report_generation():
         return True
 
     except Exception as e:
-        logger.error(f"✗ Test failed with error: {e}", exc_info=True)
+        logger.error(f":ballot_x: Test failed with error: {e}", exc_info=True)
         return False
 
 

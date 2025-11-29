@@ -114,7 +114,7 @@ def test_html_report_with_mock_data():
             catalog="nvss",
         )
 
-        logger.info(f"✓ PASS report created: {report_pass.overall_status}")
+        logger.info(f":check_mark: PASS report created: {report_pass.overall_status}")
         logger.info(f"  Score: {report_pass.score:.1%}")
         logger.info(f"  Output: {output_dir / 'test_report_pass.html'}")
 
@@ -166,7 +166,7 @@ def test_html_report_with_mock_data():
             catalog="nvss",
         )
 
-        logger.info(f"✓ WARNING report created: {report_warn.overall_status}")
+        logger.info(f":check_mark: WARNING report created: {report_warn.overall_status}")
         logger.info(f"  Score: {report_warn.score:.1%}")
         logger.info(f"  Warnings: {len(report_warn.warnings)}")
         logger.info(f"  Output: {output_dir / 'test_report_warning.html'}")
@@ -219,7 +219,7 @@ def test_html_report_with_mock_data():
             catalog="nvss",
         )
 
-        logger.info(f"✓ FAIL report created: {report_fail.overall_status}")
+        logger.info(f":check_mark: FAIL report created: {report_fail.overall_status}")
         logger.info(f"  Score: {report_fail.score:.1%}")
         logger.info(f"  Issues: {len(report_fail.issues)}")
         logger.info(f"  Output: {output_dir / 'test_report_fail.html'}")
@@ -235,7 +235,7 @@ def test_html_report_with_mock_data():
         for html_file in html_files:
             if html_file.exists():
                 file_size = html_file.stat().st_size
-                logger.info(f"✓ {html_file.name}: {file_size:,} bytes")
+                logger.info(f":check_mark: {html_file.name}: {file_size:,} bytes")
 
                 # Verify content
                 with open(html_file, "r") as f:
@@ -248,14 +248,14 @@ def test_html_report_with_mock_data():
                 else:
                     logger.info("  Content verified")
             else:
-                logger.error(f"✗ {html_file.name} not found")
+                logger.error(f":ballot_x: {html_file.name} not found")
                 return False
 
         # Summary
         logger.info("\n" + "=" * 70)
         logger.info("Test Summary")
         logger.info("=" * 70)
-        logger.info("✓ All tests passed!")
+        logger.info(":check_mark: All tests passed!")
         logger.info(f"\nGenerated HTML reports in: {output_dir}")
         logger.info("  1. test_report_pass.html (PASS status)")
         logger.info("  2. test_report_warning.html (WARNING status)")
@@ -265,7 +265,7 @@ def test_html_report_with_mock_data():
         return True
 
     except Exception as e:
-        logger.error(f"✗ Test failed with error: {e}", exc_info=True)
+        logger.error(f":ballot_x: Test failed with error: {e}", exc_info=True)
         return False
 
 

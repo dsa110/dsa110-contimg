@@ -48,9 +48,9 @@ try:
         validate_catalog_choice,
     )
 
-    print("   ✓ All Phase 2 modules imported successfully")
+    print("   :check_mark: All Phase 2 modules imported successfully")
 except ImportError as e:
-    print(f"   ✗ Import failed: {e}")
+    print(f"   :ballot_x: Import failed: {e}")
     sys.exit(1)
 
 print()
@@ -60,59 +60,59 @@ print("2. Testing coverage-aware catalog selection...")
 print("   Testing northern source (Dec=+60°)...")
 recs = recommend_catalogs(ra_deg=180.0, dec_deg=60.0, purpose="general")
 if recs and len(recs) > 0:
-    print(f"      ✓ Got {len(recs)} recommendations")
+    print(f"      :check_mark: Got {len(recs)} recommendations")
     print(f"      Primary: {recs[0]['catalog_type']} (reason: {recs[0]['reason']})")
 else:
-    print("      ✗ No recommendations returned")
+    print("      :ballot_x: No recommendations returned")
 
 # Test 2.2: Recommend catalogs for southern source
 print("   Testing southern source (Dec=-30°)...")
 recs = recommend_catalogs(ra_deg=180.0, dec_deg=-30.0, purpose="general")
 if recs and len(recs) > 0:
-    print(f"      ✓ Got {len(recs)} recommendations")
+    print(f"      :check_mark: Got {len(recs)} recommendations")
     print(f"      Primary: {recs[0]['catalog_type']}")
 else:
-    print("      ✗ No recommendations returned")
+    print("      :ballot_x: No recommendations returned")
 
 # Test 2.3: Calibration-specific recommendations
 print("   Testing calibration purpose...")
 recs = recommend_catalogs(ra_deg=180.0, dec_deg=30.0, purpose="calibration")
 if recs and len(recs) > 0:
-    print(f"      ✓ Got {len(recs)} calibration recommendations")
+    print(f"      :check_mark: Got {len(recs)} calibration recommendations")
     print(f"      Primary: {recs[0]['catalog_type']}")
 else:
-    print("      ✗ No calibration recommendations")
+    print("      :ballot_x: No calibration recommendations")
 
 # Test 2.4: Spectral index purpose
 print("   Testing spectral index purpose...")
 recs = recommend_catalogs(ra_deg=180.0, dec_deg=20.0, purpose="spectral_index")
 if recs and len(recs) >= 2:
-    print(f"      ✓ Got {len(recs)} catalogs for spectral index")
+    print(f"      :check_mark: Got {len(recs)} catalogs for spectral index")
     catalogs = [r["catalog_type"] for r in recs]
     print(f"      Catalogs: {', '.join(catalogs)}")
 else:
-    print(f"      ⚠ Only got {len(recs) if recs else 0} catalogs (need ≥2 for spectral index)")
+    print(f"      :warning_sign: Only got {len(recs) if recs else 0} catalogs (need ≥2 for spectral index)")
 
 # Test 2.5: Validate catalog choices
 print("   Testing catalog validation...")
 is_valid, msg = validate_catalog_choice("nvss", ra_deg=180.0, dec_deg=50.0)
 if is_valid:
-    print("      ✓ NVSS validated for Dec=+50°")
+    print("      :check_mark: NVSS validated for Dec=+50°")
 else:
-    print(f"      ✗ NVSS validation failed: {msg}")
+    print(f"      :ballot_x: NVSS validation failed: {msg}")
 
 is_valid, msg = validate_catalog_choice("sumss", ra_deg=180.0, dec_deg=-40.0)
 if is_valid:
-    print("      ✓ SUMSS validated for Dec=-40°")
+    print("      :check_mark: SUMSS validated for Dec=-40°")
 else:
-    print(f"      ✗ SUMSS validation failed: {msg}")
+    print(f"      :ballot_x: SUMSS validation failed: {msg}")
 
 # Test 2.6: Invalid catalog choice (should fail)
 is_valid, msg = validate_catalog_choice("nvss", ra_deg=180.0, dec_deg=-50.0)
 if not is_valid:
-    print("      ✓ Correctly rejected NVSS for Dec=-50°")
+    print("      :check_mark: Correctly rejected NVSS for Dec=-50°")
 else:
-    print("      ✗ Should have rejected NVSS for Dec=-50°")
+    print("      :ballot_x: Should have rejected NVSS for Dec=-50°")
 
 print()
 print("3. Testing calibrator registry...")
@@ -128,9 +128,9 @@ print(f"   Using temporary database: {temp_db_path}")
 print("   Creating calibrator registry...")
 success = create_calibrator_registry(db_path=temp_db_path)
 if success:
-    print("      ✓ Registry created successfully")
+    print("      :check_mark: Registry created successfully")
 else:
-    print("      ✗ Registry creation failed")
+    print("      :ballot_x: Registry creation failed")
     sys.exit(1)
 
 # Test 3.2: Add calibrators
@@ -156,9 +156,9 @@ for cal in test_calibrators:
         n_added += 1
 
 if n_added == len(test_calibrators):
-    print(f"      ✓ Added {n_added} calibrators")
+    print(f"      :check_mark: Added {n_added} calibrators")
 else:
-    print(f"      ⚠ Only added {n_added}/{len(test_calibrators)} calibrators")
+    print(f"      :warning_sign: Only added {n_added}/{len(test_calibrators)} calibrators")
 
 # Test 3.3: Query calibrators
 print("   Querying calibrators for Dec=30°...")
@@ -169,20 +169,20 @@ calibrators = query_calibrators(
     db_path=temp_db_path,
 )
 if len(calibrators) >= 2:
-    print(f"      ✓ Found {len(calibrators)} calibrators")
+    print(f"      :check_mark: Found {len(calibrators)} calibrators")
     print(
         f"      Best: {calibrators[0]['source_name']} (flux={calibrators[0]['flux_1400mhz_jy']:.1f} Jy)"
     )
 else:
-    print(f"      ⚠ Only found {len(calibrators)} calibrators")
+    print(f"      :warning_sign: Only found {len(calibrators)} calibrators")
 
 # Test 3.4: Get best calibrator
 print("   Getting best calibrator...")
 best = get_best_calibrator(dec_deg=30.0, dec_tolerance=5.0, db_path=temp_db_path)
 if best:
-    print(f"      ✓ Best calibrator: {best['source_name']} (quality={best['quality_score']:.1f})")
+    print(f"      :check_mark: Best calibrator: {best['source_name']} (quality={best['quality_score']:.1f})")
 else:
-    print("      ✗ No calibrator returned")
+    print("      :ballot_x: No calibrator returned")
 
 # Test 3.5: Blacklist a source
 print("   Testing blacklisting...")
@@ -194,9 +194,9 @@ success = blacklist_source(
     db_path=temp_db_path,
 )
 if success:
-    print("      ✓ Source blacklisted")
+    print("      :check_mark: Source blacklisted")
 else:
-    print("      ✗ Blacklisting failed")
+    print("      :ballot_x: Blacklisting failed")
 
 # Test 3.6: Check if blacklisted
 is_blacklisted_flag, reason = is_source_blacklisted(
@@ -204,9 +204,9 @@ is_blacklisted_flag, reason = is_source_blacklisted(
     db_path=temp_db_path,
 )
 if is_blacklisted_flag and reason == "test_blacklist":
-    print("      ✓ Blacklist check works")
+    print("      :check_mark: Blacklist check works")
 else:
-    print("      ✗ Blacklist check failed")
+    print("      :ballot_x: Blacklist check failed")
 
 # Test 3.7: Verify blacklisted source not returned
 calibrators_after = query_calibrators(
@@ -217,18 +217,18 @@ calibrators_after = query_calibrators(
 )
 blacklisted_found = any(c["source_name"] == "TEST_CAL_2" for c in calibrators_after)
 if not blacklisted_found:
-    print("      ✓ Blacklisted source correctly excluded")
+    print("      :check_mark: Blacklisted source correctly excluded")
 else:
-    print("      ✗ Blacklisted source still returned")
+    print("      :ballot_x: Blacklisted source still returned")
 
 # Test 3.8: Registry statistics
 print("   Getting registry statistics...")
 stats = get_registry_statistics(db_path=temp_db_path)
 if stats and "total_calibrators" in stats:
-    print(f"      ✓ Total calibrators: {stats['total_calibrators']}")
-    print(f"      ✓ Blacklisted: {stats['blacklisted_sources']}")
+    print(f"      :check_mark: Total calibrators: {stats['total_calibrators']}")
+    print(f"      :check_mark: Blacklisted: {stats['blacklisted_sources']}")
 else:
-    print("      ✗ Statistics failed")
+    print("      :ballot_x: Statistics failed")
 
 print()
 print("4. Testing calibrator integration...")
@@ -244,9 +244,9 @@ calibrator = select_bandpass_calibrator_fast(
     db_path=temp_db_path,
 )
 if calibrator:
-    print(f"      ✓ Selected: {calibrator['source_name']}")
+    print(f"      :check_mark: Selected: {calibrator['source_name']}")
 else:
-    print("      ⚠ No calibrator selected (may be expected if registry empty)")
+    print("      :warning_sign: No calibrator selected (may be expected if registry empty)")
 
 # Test 4.2: Observation recommendation
 print("   Testing observation recommendation...")
@@ -256,9 +256,9 @@ calibrator = recommend_calibrator_for_observation(
     db_path=temp_db_path,
 )
 if calibrator:
-    print(f"      ✓ Recommended: {calibrator['source_name']}")
+    print(f"      :check_mark: Recommended: {calibrator['source_name']}")
 else:
-    print("      ⚠ No recommendation (may be expected)")
+    print("      :warning_sign: No recommendation (may be expected)")
 
 print()
 print("5. Testing coverage summary display...")
@@ -270,10 +270,10 @@ print("PHASE 2 SMOKE TESTS COMPLETE")
 print("=" * 70)
 print()
 print("Summary:")
-print("  ✓ Coverage-aware catalog selection working")
-print("  ✓ Calibrator registry database functional")
-print("  ✓ Blacklisting system operational")
-print("  ✓ Fast calibrator selection integrated")
+print("  :check_mark: Coverage-aware catalog selection working")
+print("  :check_mark: Calibrator registry database functional")
+print("  :check_mark: Blacklisting system operational")
+print("  :check_mark: Fast calibrator selection integrated")
 print()
 print("Next steps:")
 print("  1. Build production calibrator registry: build_calibrator_registry_from_catalog()")

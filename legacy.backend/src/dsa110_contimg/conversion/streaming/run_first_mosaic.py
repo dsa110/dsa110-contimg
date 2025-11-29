@@ -313,9 +313,9 @@ def process_groups_until_count(
         success = process_one_group(gid, args, queue)
         if success:
             processed_count += 1
-            log.info(f"✓ Completed group {processed_count}/{target_count}")
+            log.info(f":check_mark: Completed group {processed_count}/{target_count}")
         else:
-            log.error(f"✗ Failed to process group {gid}")
+            log.error(f":ballot_x: Failed to process group {gid}")
             # Continue to next group even if one fails
 
     return processed_count
@@ -428,7 +428,7 @@ def main():
     ensure_products_db(products_db_path)
     ensure_cal_db(registry_db_path)
 
-    logger.info("✓ Databases initialized")
+    logger.info(":check_mark: Databases initialized")
 
     # Initialize queue and bootstrap existing files
     logger.info(f"Bootstrapping existing files from {args.input_dir}...")
@@ -440,7 +440,7 @@ def main():
 
     try:
         queue.bootstrap_directory(input_path)
-        logger.info("✓ Bootstrap complete")
+        logger.info(":check_mark: Bootstrap complete")
     except Exception as e:
         logger.error(f"Bootstrap failed: {e}", exc_info=True)
         return 1
@@ -479,7 +479,7 @@ def main():
             dec_tolerance=5.0,
             registered_by="run_first_mosaic",
         )
-        logger.info("✓ Calibrator registered")
+        logger.info(":check_mark: Calibrator registered")
 
     # Process first 10 groups
     logger.info("=" * 80)
@@ -520,7 +520,7 @@ def main():
 
     if success:
         logger.info("=" * 80)
-        logger.info("✓ SUCCESS: First mosaic created!")
+        logger.info(":check_mark: SUCCESS: First mosaic created!")
         logger.info("=" * 80)
         return 0
     else:

@@ -813,7 +813,7 @@ def get_group_count(hdf5_db: Path, group_id: str) -> int:
     # Print warning if group appears incomplete
     if count < 16 and count > 0:
         msg = (
-            f"\n⚠️  WARNING: Group {group_id} has {count}/16 subbands\n"
+            f"\n:warning_sign::variation_selector-16:  WARNING: Group {group_id} has {count}/16 subbands\n"
             f"    This counts EXACT timestamp matches only!\n"
             f"    For proper completeness checking, use query_subband_groups()\n"
             f"    with time-windowing (±2.5 min tolerance).\n"
@@ -843,8 +843,8 @@ def is_group_complete(hdf5_db: Path, group_id: str) -> bool:
 
     if count < 16:
         msg = (
-            f"\nℹ️  Group {group_id}: {count}/16 subbands with exact timestamp match\n"
-            f"   💡 Reminder: Use query_subband_groups() with time-windowing\n"
+            f"\nℹ:variation_selector-16:  Group {group_id}: {count}/16 subbands with exact timestamp match\n"
+            f"   :electric_light_bulb: Reminder: Use query_subband_groups() with time-windowing\n"
             f"      for proper completeness checking (±2.5 min tolerance)\n"
         )
         print(msg, flush=True)

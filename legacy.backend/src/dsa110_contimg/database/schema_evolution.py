@@ -326,13 +326,13 @@ def evolve_products_schema(db_path: Path, verbose: bool = True) -> bool:
         # Re-commit after data registry setup
         conn.commit()
         if verbose:
-            print(f"✓ Schema evolution complete: {db_path}")
+            print(f":check_mark: Schema evolution complete: {db_path}")
         return True
 
     except Exception as e:
         conn.rollback()
         if verbose:
-            print(f"✗ Schema evolution failed: {e}")
+            print(f":ballot_x: Schema evolution failed: {e}")
         return False
     finally:
         conn.close()
@@ -385,12 +385,12 @@ def evolve_ingest_schema(db_path: Path, verbose: bool = True) -> bool:
 
         conn.commit()
         if verbose:
-            print(f"✓ Schema evolution complete: {db_path}")
+            print(f":check_mark: Schema evolution complete: {db_path}")
         return True
     except Exception as e:
         conn.rollback()
         if verbose:
-            print(f"✗ Schema evolution failed: {e}")
+            print(f":ballot_x: Schema evolution failed: {e}")
         return False
     finally:
         conn.close()
@@ -421,7 +421,7 @@ def evolve_all_schemas(state_dir: Path = Path("/data/dsa110-contimg/state"), ver
     if verbose:
         print("\n=== Schema Evolution Summary ===")
         for db_name, success in results.items():
-            status = "✓" if success else "✗"
+            status = ":check_mark:" if success else ":ballot_x:"
             print(f"{status} {db_name}: {'Success' if success else 'Failed'}")
 
     return all(results.values())

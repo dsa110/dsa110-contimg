@@ -177,28 +177,28 @@ def main():
     shebang_issues, shebang_warnings, shebang_passes = check_python_scripts()
 
     # Report results
-    print(f"{GREEN}✓ PASSES ({len(passes) + len(shebang_passes)}):{NC}")
+    print(f"{GREEN}:check_mark: PASSES ({len(passes) + len(shebang_passes)}):{NC}")
     for item in passes[:10]:  # Show first 10
-        print(f"  {GREEN}✓{NC} {item}")
+        print(f"  {GREEN}:check_mark:{NC} {item}")
     if len(passes) > 10:
         print(f"  ... and {len(passes) - 10} more")
     print()
 
-    print(f"{YELLOW}⚠ WARNINGS ({len(warnings) + len(shebang_warnings)}):{NC}")
+    print(f"{YELLOW}:warning_sign: WARNINGS ({len(warnings) + len(shebang_warnings)}):{NC}")
     for item in warnings[:10]:  # Show first 10
-        print(f"  {YELLOW}⚠{NC} {item}")
+        print(f"  {YELLOW}:warning_sign:{NC} {item}")
     for item in shebang_warnings[:10]:  # Show first 10
-        print(f"  {YELLOW}⚠{NC} {item}")
+        print(f"  {YELLOW}:warning_sign:{NC} {item}")
     if len(warnings) + len(shebang_warnings) > 10:
         shown = min(10, len(warnings)) + min(10, len(shebang_warnings))
         print(f"  ... and {len(warnings) + len(shebang_warnings) - shown} more")
     print()
 
-    print(f"{RED}✗ ISSUES ({len(issues) + len(shebang_issues)}):{NC}")
+    print(f"{RED}:ballot_x: ISSUES ({len(issues) + len(shebang_issues)}):{NC}")
     for item in issues:
-        print(f"  {RED}✗{NC} {item}")
+        print(f"  {RED}:ballot_x:{NC} {item}")
     for item in shebang_issues[:20]:  # Show first 20
-        print(f"  {RED}✗{NC} {item}")
+        print(f"  {RED}:ballot_x:{NC} {item}")
     if len(shebang_issues) > 20:
         print(f"  ... and {len(shebang_issues) - 20} more")
     print()
@@ -222,11 +222,11 @@ def main():
     print()
 
     if len(issues) + len(shebang_issues) == 0:
-        print(f"{GREEN}✓ All issues resolved! All Python scripts use CASA6 Python 3.11.13.{NC}")
+        print(f"{GREEN}:check_mark: All issues resolved! All Python scripts use CASA6 Python 3.11.13.{NC}")
         return 0
     else:
         print(
-            f"{RED}✗ Found {len(issues) + len(shebang_issues)} critical issues that need to be fixed.{NC}"
+            f"{RED}:ballot_x: Found {len(issues) + len(shebang_issues)} critical issues that need to be fixed.{NC}"
         )
         return 1
 

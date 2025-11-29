@@ -153,12 +153,12 @@ class CatalogSetupStage(PipelineStage):
                     if dec_change > dec_change_threshold:
                         dec_change_detected = True
                         logger.warning(
-                            f"⚠️  DECLINATION CHANGE DETECTED: "
+                            f":warning_sign::variation_selector-16:  DECLINATION CHANGE DETECTED: "
                             f"{previous_dec:.6f}° → {dec_center:.6f}° "
                             f"(Δ = {dec_change:.6f}° > {dec_change_threshold:.6f}° threshold)"
                         )
                         logger.warning(
-                            "⚠️  Telescope pointing has changed significantly. "
+                            ":warning_sign::variation_selector-16:  Telescope pointing has changed significantly. "
                             "Catalogs will be rebuilt for new declination strip."
                         )
 
@@ -199,11 +199,11 @@ class CatalogSetupStage(PipelineStage):
                                             max_days_back=60,
                                         )
                                         logger.info(
-                                            f"  ✓ {cal_name}: {transits_with_data} transits have available data"
+                                            f"  :check_mark: {cal_name}: {transits_with_data} transits have available data"
                                         )
                                     except Exception as e:
                                         logger.warning(
-                                            f"  ✗ Failed to pre-calculate for {cal_name}: {e}"
+                                            f"  :ballot_x: Failed to pre-calculate for {cal_name}: {e}"
                                         )
 
                                 products_db.close()
@@ -291,7 +291,7 @@ class CatalogSetupStage(PipelineStage):
                         catalog_type=catalog_type, dec_strip=dec_center
                     )
                     if catalog_path.exists():
-                        logger.info(f"✓ {catalog_type.upper()} catalog exists: {catalog_path}")
+                        logger.info(f":check_mark: {catalog_type.upper()} catalog exists: {catalog_path}")
                         catalogs_existed.append(catalog_type)
                         continue
                 except FileNotFoundError:
@@ -329,14 +329,14 @@ class CatalogSetupStage(PipelineStage):
                     continue
 
                 logger.info(
-                    f"✓ {catalog_type.upper()} catalog built: {db_path} "
+                    f":check_mark: {catalog_type.upper()} catalog built: {db_path} "
                     f"({db_path.stat().st_size / (1024 * 1024):.2f} MB)"
                 )
                 catalogs_built.append(catalog_type)
 
             except Exception as e:
                 logger.error(
-                    f"✗ Failed to build {catalog_type.upper()} catalog: {e}",
+                    f":ballot_x: Failed to build {catalog_type.upper()} catalog: {e}",
                     exc_info=True,
                 )
                 catalogs_failed.append(catalog_type)
@@ -536,9 +536,9 @@ class ConversionStage(PipelineStage):
                     alert_on_issues=True,
                 )
                 if qa_passed:
-                    logger.info("✓ MS passed quality checks")
+                    logger.info(":check_mark: MS passed quality checks")
                 else:
-                    logger.warning("⚠ MS quality issues detected (see alerts)")
+                    logger.warning(":warning_sign: MS quality issues detected (see alerts)")
             except Exception as e:
                 logger.warning(f"Quality check failed (non-fatal): {e}")
 
@@ -957,7 +957,7 @@ class CalibrationSolveStage(PipelineStage):
             cal_tables_result["gtabs"] = gtabs_inner
             cal_tables_result["prebp_table"] = prebp_table_inner
 
-            logger.info("✓ Calibration solve completed successfully")
+            logger.info(":check_mark: Calibration solve completed successfully")
 
         # Step 1: Flagging (if requested)
         adaptive_result = None
@@ -1040,7 +1040,7 @@ class CalibrationSolveStage(PipelineStage):
                         refant=refant,
                     )
                     logger.info(
-                        "✓ Phase 1 flag snapshot captured: %.1f%% overall flagging",
+                        ":check_mark: Phase 1 flag snapshot captured: %.1f%% overall flagging",
                         phase1_snapshot.total_flagged_fraction * 100,
                     )
 
@@ -1091,7 +1091,7 @@ class CalibrationSolveStage(PipelineStage):
 
                 logger.info("Flagging autocorrelations...")
                 flagdata(vis=str(ms_path), autocorr=True, flagbackup=False)
-                logger.info("✓ Autocorrelations flagged")
+                logger.info(":check_mark: Autocorrelations flagged")
 
         else:
             # No flagging requested - just do model population and calibration
@@ -1156,7 +1156,7 @@ class CalibrationSolveStage(PipelineStage):
                 cal_table_paths=cal_table_paths,
             )
             logger.info(
-                "✓ Phase 2 flag snapshot captured: %.1f%% overall flagging",
+                ":check_mark: Phase 2 flag snapshot captured: %.1f%% overall flagging",
                 phase2_snapshot.total_flagged_fraction * 100,
             )
             # Store snapshot for later comparison
@@ -1280,7 +1280,7 @@ class CalibrationSolveStage(PipelineStage):
             )
 
             logger.info(
-                f"✓ Registered and verified {len(registered_paths)} calibration tables "
+                f":check_mark: Registered and verified {len(registered_paths)} calibration tables "
                 f"in registry (set: {set_name})"
             )
 
@@ -1456,7 +1456,7 @@ class CalibrationStage(PipelineStage):
                         cal_table_paths={"applied": caltables},
                     )
                     logger.info(
-                        f"✓ Phase 3 flag snapshot captured: {phase3_snapshot.total_flagged_fraction * 100:.1f}% overall flagging"
+                        f":check_mark: Phase 3 flag snapshot captured: {phase3_snapshot.total_flagged_fraction * 100:.1f}% overall flagging"
                     )
 
                     # Store snapshot for later comparison
@@ -1524,7 +1524,7 @@ class CalibrationStage(PipelineStage):
                         cal_table_paths={"applied": applylist},
                     )
                     logger.info(
-                        f"✓ Phase 3 flag snapshot captured: {phase3_snapshot.total_flagged_fraction * 100:.1f}% overall flagging"
+                        f":check_mark: Phase 3 flag snapshot captured: {phase3_snapshot.total_flagged_fraction * 100:.1f}% overall flagging"
                     )
 
                     # Store snapshot for later comparison

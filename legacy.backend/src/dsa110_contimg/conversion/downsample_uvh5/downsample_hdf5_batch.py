@@ -183,11 +183,11 @@ def downsample_uvh5_batch(
                 total_input_size += result["input_size_mb"]
                 total_output_size += result["output_size_mb"]
                 logger.info(
-                    f"✓ {result['input_file']} -> {result['output_file']} "
+                    f":check_mark: {result['input_file']} -> {result['output_file']} "
                     f"({result['compression_ratio']:.1f}x)"
                 )
             else:
-                logger.error(f"✗ {result['input_file']}: {result['error']}")
+                logger.error(f":ballot_x: {result['input_file']}: {result['error']}")
 
     # Print summary
     successful = [r for r in results if r["success"]]

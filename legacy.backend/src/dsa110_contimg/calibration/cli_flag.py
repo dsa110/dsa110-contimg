@@ -241,12 +241,12 @@ def handle_flag(args: argparse.Namespace) -> int:
     if mode == "reset":
         logger.info("Resetting all flags...")
         reset_flags(args.ms)
-        logger.info("✓ All flags reset")
+        logger.info(":check_mark: All flags reset")
 
     elif mode == "zeros":
         logger.info("Flagging zero-value data...")
         flag_zeros(args.ms, datacolumn=args.datacolumn)
-        logger.info("✓ Zero-value data flagged")
+        logger.info(":check_mark: Zero-value data flagged")
 
     elif mode == "rfi":
         if args.rfi_backend == "aoflagger":
@@ -261,12 +261,12 @@ def handle_flag(args: argparse.Namespace) -> int:
         else:
             logger.info("Flagging RFI (CASA tfcrop + rflag)...")
             flag_rfi(args.ms, datacolumn=args.datacolumn, backend="casa")
-        logger.info("✓ RFI flagging complete")
+        logger.info(":check_mark: RFI flagging complete")
 
     elif mode == "shadow":
         logger.info(f"Flagging shadowed baselines (tolerance: {args.shadow_tolerance} deg)...")
         flag_shadow(args.ms, tolerance=args.shadow_tolerance)
-        logger.info("✓ Shadow flagging complete")
+        logger.info(":check_mark: Shadow flagging complete")
 
     elif mode == "quack":
         logger.info(f"Flagging {args.quack_mode} of scans ({args.quack_interval}s)...")
@@ -276,7 +276,7 @@ def handle_flag(args: argparse.Namespace) -> int:
             quackmode=args.quack_mode,
             datacolumn=args.datacolumn,
         )
-        logger.info(f"✓ Quack flagging complete ({args.quack_mode}, {args.quack_interval}s)")
+        logger.info(f":check_mark: Quack flagging complete ({args.quack_mode}, {args.quack_interval}s)")
 
     elif mode == "elevation":
         limits = []
@@ -292,7 +292,7 @@ def handle_flag(args: argparse.Namespace) -> int:
             upperlimit=args.upper_limit,
             datacolumn=args.datacolumn,
         )
-        logger.info("✓ Elevation flagging complete")
+        logger.info(":check_mark: Elevation flagging complete")
 
     elif mode == "clip":
         if args.clip_min is None or args.clip_max is None:
@@ -310,7 +310,7 @@ def handle_flag(args: argparse.Namespace) -> int:
             datacolumn=args.datacolumn,
         )
         logger.info(
-            f"✓ Clip flagging complete ({direction} " f"[{clip_range[0]}, {clip_range[1]}] Jy)"
+            f":check_mark: Clip flagging complete ({direction} " f"[{clip_range[0]}, {clip_range[1]}] Jy)"
         )
 
     elif mode == "extend":
@@ -324,7 +324,7 @@ def handle_flag(args: argparse.Namespace) -> int:
             flagnearfreq=args.flag_near_freq,
             datacolumn=args.datacolumn,
         )
-        logger.info("✓ Flag extension complete")
+        logger.info(":check_mark: Flag extension complete")
 
     elif mode == "manual":
         # Check that at least one selection parameter is provided
@@ -359,7 +359,7 @@ def handle_flag(args: argparse.Namespace) -> int:
             correlation=args.correlation,
             datacolumn=args.datacolumn,
         )
-        logger.info("✓ Manual flagging complete")
+        logger.info(":check_mark: Manual flagging complete")
 
     elif mode == "antenna":
         if not args.antenna:
@@ -367,7 +367,7 @@ def handle_flag(args: argparse.Namespace) -> int:
             sys.exit(1)
         logger.info(f"Flagging antenna: {args.antenna}")
         flag_antenna(args.ms, args.antenna, datacolumn=args.datacolumn)
-        logger.info(f"✓ Antenna {args.antenna} flagged")
+        logger.info(f":check_mark: Antenna {args.antenna} flagged")
 
     elif mode == "baselines":
         if not args.uvrange:
@@ -376,7 +376,7 @@ def handle_flag(args: argparse.Namespace) -> int:
             sys.exit(1)
         logger.info(f"Flagging baselines with UV range: {args.uvrange}")
         flag_baselines(args.ms, args.uvrange, datacolumn=args.datacolumn)
-        logger.info(f"✓ Baselines {args.uvrange} flagged")
+        logger.info(f":check_mark: Baselines {args.uvrange} flagged")
 
     elif mode == "summary":
         logger.info("Computing flagging statistics...")

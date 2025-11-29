@@ -164,14 +164,14 @@ def check_missing_catalog_databases(
 
             if not exists:
                 logger_instance.warning(
-                    f"⚠️  {catalog_type.upper()} catalog database is missing for declination {dec_deg:.2f}°, "
+                    f":warning_sign::variation_selector-16:  {catalog_type.upper()} catalog database is missing for declination {dec_deg:.2f}°, "
                     f"but should exist (within coverage limits: {dec_min:.1f}° to {dec_max:.1f}°)."
                 )
 
                 if auto_build:
                     try:
                         logger_instance.info(
-                            f"🔨 Auto-building {catalog_type.upper()} catalog database for declination {dec_deg:.2f}°..."
+                            f":hammer: Auto-building {catalog_type.upper()} catalog database for declination {dec_deg:.2f}°..."
                         )
                         dec_range = (dec_deg - dec_range_deg, dec_deg + dec_range_deg)
 
@@ -211,11 +211,11 @@ def check_missing_catalog_databases(
                         built_databases.append((catalog_type, db_path))
                         results[catalog_type] = True
                         logger_instance.info(
-                            f"✓ Successfully built {catalog_type.upper()} database: {db_path}"
+                            f":check_mark: Successfully built {catalog_type.upper()} database: {db_path}"
                         )
                     except Exception as e:
                         logger_instance.error(
-                            f"✗ Failed to auto-build {catalog_type.upper()} database: {e}",
+                            f":ballot_x: Failed to auto-build {catalog_type.upper()} database: {e}",
                             exc_info=True,
                         )
                         results[catalog_type] = False
@@ -229,7 +229,7 @@ def check_missing_catalog_databases(
 
     if auto_build and built_databases:
         logger_instance.info(
-            f"✓ Auto-built {len(built_databases)} catalog database(s): "
+            f":check_mark: Auto-built {len(built_databases)} catalog database(s): "
             f"{', '.join([f'{cat.upper()}' for cat, _ in built_databases])}"
         )
 
@@ -318,13 +318,13 @@ def build_nvss_strip_db(
     coverage_limits = CATALOG_COVERAGE_LIMITS.get("nvss", {})
     if dec_center < coverage_limits.get("dec_min", -90.0):
         logger.warning(
-            f"⚠️  Declination {dec_center:.2f}° is outside NVSS coverage "
+            f":warning_sign::variation_selector-16:  Declination {dec_center:.2f}° is outside NVSS coverage "
             f"(southern limit: {coverage_limits.get('dec_min', -40.0)}°). "
             f"Database may be empty or have very few sources."
         )
     if dec_center > coverage_limits.get("dec_max", 90.0):
         logger.warning(
-            f"⚠️  Declination {dec_center:.2f}° is outside NVSS coverage "
+            f":warning_sign::variation_selector-16:  Declination {dec_center:.2f}° is outside NVSS coverage "
             f"(northern limit: {coverage_limits.get('dec_max', 90.0)}°). "
             f"Database may be empty or have very few sources."
         )
@@ -339,7 +339,7 @@ def build_nvss_strip_db(
     # Warn if result is empty
     if len(df_strip) == 0:
         logger.warning(
-            f"⚠️  No NVSS sources found in declination range [{dec_min:.2f}°, {dec_max:.2f}°]. "
+            f":warning_sign::variation_selector-16:  No NVSS sources found in declination range [{dec_min:.2f}°, {dec_max:.2f}°]. "
             f"This may indicate declination {dec_center:.2f}° is outside NVSS coverage limits "
             f"(southern limit: {coverage_limits.get('dec_min', -40.0)}°)."
         )
@@ -486,7 +486,7 @@ def build_nvss_strip_db(
         conn.commit()
 
         file_size_mb = output_path.stat().st_size / (1024 * 1024)
-        print(f"✓ Database created: {output_path}")
+        print(f":check_mark: Database created: {output_path}")
         print(f"  Size: {file_size_mb:.2f} MB")
         print(f"  Sources: {len(insert_data)}")
 
@@ -536,13 +536,13 @@ def build_first_strip_db(
     coverage_limits = CATALOG_COVERAGE_LIMITS.get("first", {})
     if dec_center < coverage_limits.get("dec_min", -90.0):
         logger.warning(
-            f"⚠️  Declination {dec_center:.2f}° is outside FIRST coverage "
+            f":warning_sign::variation_selector-16:  Declination {dec_center:.2f}° is outside FIRST coverage "
             f"(southern limit: {coverage_limits.get('dec_min', -40.0)}°). "
             f"Database may be empty or have very few sources."
         )
     if dec_center > coverage_limits.get("dec_max", 90.0):
         logger.warning(
-            f"⚠️  Declination {dec_center:.2f}° is outside FIRST coverage "
+            f":warning_sign::variation_selector-16:  Declination {dec_center:.2f}° is outside FIRST coverage "
             f"(northern limit: {coverage_limits.get('dec_max', 90.0)}°). "
             f"Database may be empty or have very few sources."
         )
@@ -588,7 +588,7 @@ def build_first_strip_db(
     if len(df_strip) == 0:
         coverage_limits = CATALOG_COVERAGE_LIMITS.get("first", {})
         logger.warning(
-            f"⚠️  No FIRST sources found in declination range [{dec_min:.2f}°, {dec_max:.2f}°]. "
+            f":warning_sign::variation_selector-16:  No FIRST sources found in declination range [{dec_min:.2f}°, {dec_max:.2f}°]. "
             f"This may indicate declination {dec_center:.2f}° is outside FIRST coverage limits "
             f"(southern limit: {coverage_limits.get('dec_min', -40.0)}°)."
         )
@@ -758,7 +758,7 @@ def build_first_strip_db(
         conn.commit()
 
         file_size_mb = output_path.stat().st_size / (1024 * 1024)
-        print(f"✓ Database created: {output_path}")
+        print(f":check_mark: Database created: {output_path}")
         print(f"  Size: {file_size_mb:.2f} MB")
         print(f"  Sources: {len(insert_data)}")
 
@@ -808,13 +808,13 @@ def build_rax_strip_db(
     coverage_limits = CATALOG_COVERAGE_LIMITS.get("rax", {})
     if dec_center < coverage_limits.get("dec_min", -90.0):
         logger.warning(
-            f"⚠️  Declination {dec_center:.2f}° is outside RACS coverage "
+            f":warning_sign::variation_selector-16:  Declination {dec_center:.2f}° is outside RACS coverage "
             f"(southern limit: {coverage_limits.get('dec_min', -90.0)}°). "
             f"Database may be empty or have very few sources."
         )
     if dec_center > coverage_limits.get("dec_max", 90.0):
         logger.warning(
-            f"⚠️  Declination {dec_center:.2f}° is outside RACS coverage "
+            f":warning_sign::variation_selector-16:  Declination {dec_center:.2f}° is outside RACS coverage "
             f"(northern limit: {coverage_limits.get('dec_max', 49.9)}°). "
             f"Database may be empty or have very few sources."
         )
@@ -849,7 +849,7 @@ def build_rax_strip_db(
     if len(df_strip) == 0:
         coverage_limits = CATALOG_COVERAGE_LIMITS.get("rax", {})
         logger.warning(
-            f"⚠️  No RACS sources found in declination range [{dec_min:.2f}°, {dec_max:.2f}°]. "
+            f":warning_sign::variation_selector-16:  No RACS sources found in declination range [{dec_min:.2f}°, {dec_max:.2f}°]. "
             f"This may indicate declination {dec_center:.2f}° is outside RACS coverage limits "
             f"(northern limit: {coverage_limits.get('dec_max', 49.9)}°)."
         )
@@ -1002,7 +1002,7 @@ def build_rax_strip_db(
         conn.commit()
 
         file_size_mb = output_path.stat().st_size / (1024 * 1024)
-        print(f"✓ Database created: {output_path}")
+        print(f":check_mark: Database created: {output_path}")
         print(f"  Size: {file_size_mb:.2f} MB")
         print(f"  Sources: {len(insert_data)}")
 
@@ -1196,7 +1196,7 @@ def build_vlass_strip_db(
         conn.commit()
 
     file_size_mb = output_path.stat().st_size / (1024 * 1024)
-    print(f"✓ Database created: {output_path}")
+    print(f":check_mark: Database created: {output_path}")
     print(f"  Size: {file_size_mb:.2f} MB")
     print(f"  Sources: {len(insert_data)}")
 
@@ -1246,13 +1246,13 @@ def build_atnf_strip_db(
     coverage_limits = CATALOG_COVERAGE_LIMITS.get("atnf", {})
     if dec_center < coverage_limits.get("dec_min", -90.0):
         logger.warning(
-            f"⚠️  Declination {dec_center:.2f}° is outside typical ATNF coverage "
+            f":warning_sign::variation_selector-16:  Declination {dec_center:.2f}° is outside typical ATNF coverage "
             f"(southern limit: {coverage_limits.get('dec_min', -90.0)}°). "
             f"Database may be empty or have very few sources."
         )
     if dec_center > coverage_limits.get("dec_max", 90.0):
         logger.warning(
-            f"⚠️  Declination {dec_center:.2f}° is outside typical ATNF coverage "
+            f":warning_sign::variation_selector-16:  Declination {dec_center:.2f}° is outside typical ATNF coverage "
             f"(northern limit: {coverage_limits.get('dec_max', 90.0)}°). "
             f"Database may be empty or have very few sources."
         )
@@ -1300,7 +1300,7 @@ def build_atnf_strip_db(
         # Warn if result is empty
         if len(df_strip) == 0:
             logger.warning(
-                f"⚠️  No ATNF pulsars found in declination range [{dec_min:.2f}°, {dec_max:.2f}°]."
+                f":warning_sign::variation_selector-16:  No ATNF pulsars found in declination range [{dec_min:.2f}°, {dec_max:.2f}°]."
             )
 
         # Apply flux threshold if specified (use 1400 MHz flux)
@@ -1410,7 +1410,7 @@ def build_atnf_strip_db(
             conn.commit()
 
         file_size_mb = output_path.stat().st_size / (1024 * 1024)
-        print(f"✓ Database created: {output_path}")
+        print(f":check_mark: Database created: {output_path}")
         print(f"  Size: {file_size_mb:.2f} MB")
         print(f"  Sources: {len(insert_data)}")
 

@@ -16,10 +16,10 @@ harmless when running gaincal without prior delay calibration.
 
 **Key Results**:
 
-- ✅ Self-calibration achieved 3.75× RMS improvement (60µJy → 16µJy)
-- ✅ Per-antenna temporal phases are stable (<30° scatter)
-- ✅ Cross-antenna offsets are ~93° (expected without delay cal)
-- ✅ These offsets don't affect imaging (only relative phases matter)
+- :white_heavy_check_mark: Self-calibration achieved 3.75× RMS improvement (60µJy → 16µJy)
+- :white_heavy_check_mark: Per-antenna temporal phases are stable (<30° scatter)
+- :white_heavy_check_mark: Cross-antenna offsets are ~93° (expected without delay cal)
+- :white_heavy_check_mark: These offsets don't affect imaging (only relative phases matter)
 
 ---
 
@@ -79,9 +79,9 @@ Median per-time cross-antenna scatter: 93.0°
 
 **Interpretation**:
 
-- ✅ **At each timestamp, the 90 antennas have ~93° phase offsets between them**
-- ✅ This is the source of the 100° pooled scatter!
-- ✅ These are **geometric/cable delay offsets** between antennas
+- :white_heavy_check_mark: **At each timestamp, the 90 antennas have ~93° phase offsets between them**
+- :white_heavy_check_mark: This is the source of the 100° pooled scatter!
+- :white_heavy_check_mark: These are **geometric/cable delay offsets** between antennas
 
 ### Why This is Expected and Harmless
 
@@ -197,11 +197,11 @@ Since results are excellent and the warning is cosmetic, could simply:
 
 **The 100° phase scatter is REAL but BENIGN**:
 
-✅ **Real**: Actually measures ~93° cross-antenna phase offsets  
-✅ **Benign**: These are geometric delays, not calibration failures  
-✅ **Expected**: Gaincal without delay cal leaves these offsets  
-✅ **Harmless**: Only relative phases matter for imaging  
-✅ **Confirmed**: 3.75× RMS improvement proves calibration works
+:white_heavy_check_mark: **Real**: Actually measures ~93° cross-antenna phase offsets  
+:white_heavy_check_mark: **Benign**: These are geometric delays, not calibration failures  
+:white_heavy_check_mark: **Expected**: Gaincal without delay cal leaves these offsets  
+:white_heavy_check_mark: **Harmless**: Only relative phases matter for imaging  
+:white_heavy_check_mark: **Confirmed**: 3.75× RMS improvement proves calibration works
 
 **Recommendation**: Update QA metric to measure per-antenna temporal scatter
 instead of pooled cross-antenna offsets. Or document that this warning is

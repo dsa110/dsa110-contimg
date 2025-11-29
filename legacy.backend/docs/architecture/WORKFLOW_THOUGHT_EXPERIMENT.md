@@ -15,8 +15,8 @@
    - `ingest_queue` table: `(group_id, state, received_at, ...)`
 5. Group ID normalized: `YYYY-MM-DDTHH:MM:SS`
 
-**ICEBERG #1**: ✅ FIXED - Bootstrap now skips already-registered files
-**ICEBERG #2**: ✅ FIXED - Polling uses database-backed persistence
+**ICEBERG #1**: :white_heavy_check_mark: FIXED - Bootstrap now skips already-registered files
+**ICEBERG #2**: :white_heavy_check_mark: FIXED - Polling uses database-backed persistence
 
 ---
 
@@ -38,8 +38,8 @@
      `(path, start_mjd, end_mjd, mid_mjd, status='converted', stage='converted')`
 7. State updated to `'completed'`
 
-**ICEBERG #3**: ✅ FIXED - MS file existence verified before processing
-**ICEBERG #4**: ✅ FIXED - Phase centers fixed after concatenation
+**ICEBERG #3**: :white_heavy_check_mark: FIXED - MS file existence verified before processing
+**ICEBERG #4**: :white_heavy_check_mark: FIXED - Phase centers fixed after concatenation
 
 ---
 
@@ -54,7 +54,7 @@
    - `(group_id, ms_paths, status='pending', created_at)`
 5. Returns `group_id`
 
-**ICEBERG #5**: ✅ FIXED - MS file existence verified before group formation
+**ICEBERG #5**: :white_heavy_check_mark: FIXED - MS file existence verified before group formation
 
 ---
 
@@ -74,8 +74,8 @@
    - Registers GP/2G tables in registry
 4. Updates `mosaic_groups`: `bpcal_solved=1`, `calibration_ms_path`
 
-**ICEBERG #6**: ✅ FIXED - Calibration table existence verified on disk
-**ICEBERG #7**: ✅ FIXED - Registry checks verify files exist
+**ICEBERG #6**: :white_heavy_check_mark: FIXED - Calibration table existence verified on disk
+**ICEBERG #7**: :white_heavy_check_mark: FIXED - Registry checks verify files exist
 
 ---
 
@@ -89,7 +89,7 @@
 4. Updates `mosaic_groups`: `stage='calibrated'`, `cal_applied=1`,
    `calibrated_at`
 
-**ICEBERG #8**: ✅ FIXED - Idempotent calibration application
+**ICEBERG #8**: :white_heavy_check_mark: FIXED - Idempotent calibration application
 
 ---
 
@@ -105,7 +105,7 @@
    - Records in `images` table: `(path, ms_path, created_at, type, ...)`
 3. Updates `mosaic_groups`: `stage='imaged'`, `imaged_at`
 
-**ICEBERG #9**: ✅ FIXED - Idempotent imaging with filesystem verification
+**ICEBERG #9**: :white_heavy_check_mark: FIXED - Idempotent imaging with filesystem verification
 
 ---
 
@@ -121,7 +121,7 @@
 6. Generates PNG visualization (optional)
 7. Updates `mosaic_groups`: `status='completed'`, `mosaic_id`, `mosaicked_at`
 
-**ICEBERG #10**: ✅ FIXED - Idempotent mosaic creation
+**ICEBERG #10**: :white_heavy_check_mark: FIXED - Idempotent mosaic creation
 
 ---
 
@@ -134,13 +134,13 @@
    - Executes `CrossMatchStage`
    - Records cross-match results
 
-**Status**: ✅ Implemented
+**Status**: :white_heavy_check_mark: Implemented
 
 ---
 
 ### Stage 9: Registration & Publishing
 
-**Location**: ❌ **MISSING - CRITICAL ICEBERG**
+**Location**: :cross_mark: **MISSING - CRITICAL ICEBERG**
 
 **Expected Flow**:
 
@@ -160,9 +160,9 @@
    - Update `data_registry`: `status='published'`, `published_path`,
      `published_at`
 
-**ICEBERG #11**: ❌ **CRITICAL** - Mosaic is NEVER registered in `data_registry`
-**ICEBERG #12**: ❌ **CRITICAL** - Mosaic is NEVER finalized **ICEBERG #13**: ❌
-**CRITICAL** - Mosaic is NEVER moved to `/data/` **ICEBERG #14**: ❌
+**ICEBERG #11**: :cross_mark: **CRITICAL** - Mosaic is NEVER registered in `data_registry`
+**ICEBERG #12**: :cross_mark: **CRITICAL** - Mosaic is NEVER finalized **ICEBERG #13**: :cross_mark:
+**CRITICAL** - Mosaic is NEVER moved to `/data/` **ICEBERG #14**: :cross_mark:
 **CRITICAL** - No QA/validation status set before publish
 
 ---

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { mapErrorResponse } from "./errorMapper";
 import { errorMappings } from "../constants/errorMappings";
-import type { ErrorResponse, MappedError } from "../types/errors";
+import type { ErrorResponse } from "../types/errors";
 
 describe("mapErrorResponse", () => {
   describe("known error codes", () => {

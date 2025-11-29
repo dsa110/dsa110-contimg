@@ -214,7 +214,7 @@ def capture_flag_snapshot(
             )
 
             logger.info(
-                f"✓ Captured flag snapshot: {len(unique_spws)} SPWs, "
+                f":check_mark: Captured flag snapshot: {len(unique_spws)} SPWs, "
                 f"overall {overall_fraction * 100:.1f}% flagged"
             )
 

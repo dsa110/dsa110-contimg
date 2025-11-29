@@ -114,7 +114,7 @@ def test_relative_photometry_logic():
     # Test SNR plot indices
     valid_snr_indices = [i for i in valid_indices if i < len(snrs) and np.isfinite(snrs[i])]
 
-    print("\n✓ All data structures created successfully")
+    print("\n:check_mark: All data structures created successfully")
     print(f"  - {len(relative_results)} relative results")
     print(f"  - {len(valid_indices)} valid indices")
     print(f"  - {len(valid_snr_indices)} valid SNR indices")
@@ -124,7 +124,7 @@ def test_relative_photometry_logic():
     assert len(valid_relative_fluxes) == len(valid_errors), "Mismatch in valid arrays"
     assert len(valid_snr_indices) <= len(valid_indices), "SNR indices out of range"
 
-    print("\n✓ All index checks passed")
+    print("\n:check_mark: All index checks passed")
     print("\nVisualization logic test: PASSED")
 
     return True
@@ -137,7 +137,7 @@ if __name__ == "__main__":
         print("SUCCESS: All visualization logic tests passed!")
         print("=" * 70)
     except Exception as e:
-        print(f"\n✗ ERROR: {e}")
+        print(f"\n:ballot_x: ERROR: {e}")
         import traceback
 
         traceback.print_exc()

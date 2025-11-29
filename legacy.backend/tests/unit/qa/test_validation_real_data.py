@@ -54,14 +54,14 @@ def test_validation_with_real_data():
     # Find test image
     test_image = find_test_fits_image()
     if not test_image:
-        logger.error("✗ No test FITS images found!")
+        logger.error(":ballot_x: No test FITS images found!")
         logger.error("  Please ensure at least one test FITS file exists.")
         logger.error("  Expected locations:")
         logger.error("    - tests/integration/test_outputs/*.fits")
         logger.error("    - notebooks/notebook_outputs/*.fits")
         return False
 
-    logger.info(f"✓ Found test image: {test_image}")
+    logger.info(f":check_mark: Found test image: {test_image}")
 
     # Create output directory
     output_dir = Path("state/qa/reports")
@@ -90,14 +90,14 @@ def test_validation_with_real_data():
             )
             test_results["catalog_query"] = True
             test_results["astrometry"] = True
-            logger.info("✓ Catalog query successful")
+            logger.info(":check_mark: Catalog query successful")
             logger.info(f"  - Matched sources: {astrometry_result.n_matched}")
             logger.info(f"  - Catalog sources: {astrometry_result.n_catalog}")
             logger.info(f"  - Detected sources: {astrometry_result.n_detected}")
             if astrometry_result.rms_offset_arcsec:
                 logger.info(f'  - RMS offset: {astrometry_result.rms_offset_arcsec:.2f}"')
         except Exception as e:
-            logger.error(f"✗ Catalog query failed: {e}", exc_info=True)
+            logger.error(f":ballot_x: Catalog query failed: {e}", exc_info=True)
             return False
 
         # Test 2: Flux Scale Validation
@@ -107,14 +107,14 @@ def test_validation_with_real_data():
         try:
             flux_result = validate_flux_scale(image_path=test_image, catalog="nvss", min_snr=5.0)
             test_results["flux_scale"] = True
-            logger.info("✓ Flux scale validation successful")
+            logger.info(":check_mark: Flux scale validation successful")
             logger.info(f"  - Matched sources: {flux_result.n_matched}")
             if flux_result.mean_flux_ratio:
                 logger.info(f"  - Mean flux ratio: {flux_result.mean_flux_ratio:.3f}")
             if flux_result.flux_scale_error:
                 logger.info(f"  - Flux scale error: {flux_result.flux_scale_error * 100:.1f}%")
         except Exception as e:
-            logger.error(f"✗ Flux scale validation failed: {e}", exc_info=True)
+            logger.error(f":ballot_x: Flux scale validation failed: {e}", exc_info=True)
             return False
 
         # Test 3: Source Counts Completeness
@@ -129,7 +129,7 @@ def test_validation_with_real_data():
                 completeness_threshold=0.95,
             )
             test_results["source_counts"] = True
-            logger.info("✓ Source counts validation successful")
+            logger.info(":check_mark: Source counts validation successful")
             logger.info(f"  - Matched sources: {completeness_result.n_matched}")
             logger.info(f"  - Catalog sources: {completeness_result.n_catalog}")
             logger.info(f"  - Detected sources: {completeness_result.n_detected}")
@@ -142,7 +142,7 @@ def test_validation_with_real_data():
                     f"  - Completeness limit: {completeness_result.completeness_limit_jy * 1000:.2f} mJy"
                 )
         except Exception as e:
-            logger.error(f"✗ Source counts validation failed: {e}", exc_info=True)
+            logger.error(f":ballot_x: Source counts validation failed: {e}", exc_info=True)
             return False
 
         # Test 4: Full Validation with HTML Report
@@ -159,7 +159,7 @@ def test_validation_with_real_data():
                 html_output_path=html_path,
             )
             test_results["html_report"] = True
-            logger.info("✓ Full validation with HTML report successful")
+            logger.info(":check_mark: Full validation with HTML report successful")
             logger.info(f"  - HTML report: {html_path}")
 
             # Check if HTML file exists and contains expected content
@@ -194,7 +194,7 @@ def test_validation_with_real_data():
                 return False
 
         except Exception as e:
-            logger.error(f"✗ Full validation failed: {e}", exc_info=True)
+            logger.error(f":ballot_x: Full validation failed: {e}", exc_info=True)
             return False
 
         # Summary
@@ -205,21 +205,21 @@ def test_validation_with_real_data():
         all_passed = all(test_results.values())
 
         for test_name, passed in test_results.items():
-            status = "✓" if passed else "✗"
+            status = ":check_mark:" if passed else ":ballot_x:"
             logger.info(
                 f"{status} {test_name.replace('_', ' ').title()}: {'PASS' if passed else 'FAIL'}"
             )
 
         if all_passed:
-            logger.info("\n✓ All tests passed! Validation system works with real data.")
+            logger.info("\n:check_mark: All tests passed! Validation system works with real data.")
             logger.info(f"\nView HTML report: {html_path}")
             return True
         else:
-            logger.error("\n✗ Some tests failed. See details above.")
+            logger.error("\n:ballot_x: Some tests failed. See details above.")
             return False
 
     except Exception as e:
-        logger.error(f"✗ Test suite failed with error: {e}", exc_info=True)
+        logger.error(f":ballot_x: Test suite failed with error: {e}", exc_info=True)
         return False
 
 

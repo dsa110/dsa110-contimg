@@ -1351,7 +1351,7 @@ def check_upstream_delay_correction(ms_path: str, n_baselines: int = 100) -> Dic
         if max_delay < threshold_well_corrected:
             logger.info("DELAYS APPEAR TO BE CORRECTED UPSTREAM")
             logger.info(f"Median delay ({max_delay:.3f} ns) is < {threshold_well_corrected} ns")
-            print("✓ DELAYS APPEAR TO BE CORRECTED UPSTREAM")
+            print(":check_mark: DELAYS APPEAR TO BE CORRECTED UPSTREAM")
             print(f"  Median delay ({max_delay:.3f} ns) is < {threshold_well_corrected} ns")
             print("  → K-calibration may be redundant")
             print("  → Phase slopes are minimal")
@@ -1361,7 +1361,7 @@ def check_upstream_delay_correction(ms_path: str, n_baselines: int = 100) -> Dic
             logger.warning(
                 f"Median delay ({max_delay:.3f} ns) is {threshold_well_corrected}-{threshold_needs_correction} ns"
             )
-            print("⚠ DELAYS PARTIALLY CORRECTED")
+            print(":warning_sign: DELAYS PARTIALLY CORRECTED")
             print(
                 f"  Median delay ({max_delay:.3f} ns) is {threshold_well_corrected}-{threshold_needs_correction} ns"
             )
@@ -1371,7 +1371,7 @@ def check_upstream_delay_correction(ms_path: str, n_baselines: int = 100) -> Dic
         else:
             logger.error("DELAYS NOT CORRECTED UPSTREAM")
             logger.error(f"Median delay ({max_delay:.3f} ns) is > {threshold_needs_correction} ns")
-            print("✗ DELAYS NOT CORRECTED UPSTREAM")
+            print(":ballot_x: DELAYS NOT CORRECTED UPSTREAM")
             print(f"  Median delay ({max_delay:.3f} ns) is > {threshold_needs_correction} ns")
             print("  → Significant delays present")
             print("  → K-calibration is NECESSARY")
@@ -1440,7 +1440,7 @@ def verify_kcal_delays(
             if no_create:
                 logger.warning("No K-calibration table found and --no-create specified")
                 logger.warning(f"MS: {ms_path}, Searched in: {ms_dir}")
-                print("✗ No K-calibration table found and --no-create specified")
+                print(":ballot_x: No K-calibration table found and --no-create specified")
                 print(f"  MS: {ms_path}")
                 print(f"  Searched in: {ms_dir}")
                 return
@@ -1456,14 +1456,14 @@ def verify_kcal_delays(
                     if ktabs:
                         kcal_table = ktabs[0]
                         logger.info(f"Created K-calibration table: {kcal_table}")
-                        print(f"✓ Created K-calibration table: {kcal_table}")
+                        print(f":check_mark: Created K-calibration table: {kcal_table}")
                     else:
                         logger.error("Failed to create K-calibration table")
-                        print("✗ Failed to create K-calibration table")
+                        print(":ballot_x: Failed to create K-calibration table")
                         return
                 except Exception as e:
                     logger.error(f"Failed to create K-calibration table: {e}", exc_info=True)
-                    print(f"✗ Failed to create K-calibration table: {e}")
+                    print(f":ballot_x: Failed to create K-calibration table: {e}")
                     return
 
     # Inspect the table
@@ -1485,7 +1485,7 @@ def inspect_kcal_simple(
     if find:
         if not ms_path:
             logger.error("--find requires --ms")
-            print("✗ Error: --find requires --ms")
+            print(":ballot_x: Error: --find requires --ms")
             return
         ms_dir = Path(ms_path).parent
         ms_stem = Path(ms_path).stem
@@ -1511,7 +1511,7 @@ def inspect_kcal_simple(
             print()
         else:
             logger.warning(f"No K-calibration tables found in: {ms_dir}")
-            print(f"\n✗ No K-calibration tables found in: {ms_dir}")
+            print(f"\n:ballot_x: No K-calibration tables found in: {ms_dir}")
             print("\nTo create one, run:")
             print(
                 f"  python -m dsa110_contimg.calibration.cli calibrate --ms {ms_path} --field 0 --refant 103 --do-k"
@@ -1520,12 +1520,12 @@ def inspect_kcal_simple(
 
     if not kcal_path:
         logger.error("--kcal required when not using --find")
-        print("✗ Error: --kcal required when not using --find")
+        print(":ballot_x: Error: --kcal required when not using --find")
         return
 
     if not Path(kcal_path).exists():
         logger.error(f"File not found: {kcal_path}")
-        print(f"✗ Error: File not found: {kcal_path}")
+        print(f":ballot_x: Error: File not found: {kcal_path}")
         return
 
     logger.info(f"\n{'=' * 70}")
@@ -1543,7 +1543,7 @@ def inspect_kcal_simple(
 
             if n_rows == 0:
                 logger.warning("Table has zero solutions!")
-                print("⚠ WARNING: Table has zero solutions!")
+                print(":warning_sign: WARNING: Table has zero solutions!")
                 return
 
             colnames = tb.colnames()
@@ -1552,7 +1552,7 @@ def inspect_kcal_simple(
 
             if "CPARAM" not in colnames:
                 logger.warning("CPARAM column not found. This may not be a K-calibration table.")
-                print("⚠ WARNING: CPARAM column not found.")
+                print(":warning_sign: WARNING: CPARAM column not found.")
                 print("  This may not be a K-calibration table.")
                 return
 
@@ -1575,7 +1575,7 @@ def inspect_kcal_simple(
                         print(f"Reference frequencies: {ref_freqs / 1e6:.1f} MHz")
                 except Exception as e:
                     logger.warning(f"Could not read frequencies from MS: {e}")
-                    print(f"⚠ Could not read frequencies from MS: {e}")
+                    print(f":warning_sign: Could not read frequencies from MS: {e}")
                     ref_freqs = np.array([1400e6])  # Default L-band
             else:
                 ms_dir = Path(kcal_path).parent
@@ -1594,7 +1594,7 @@ def inspect_kcal_simple(
                     logger.warning(
                         "No MS found in same directory. Using default frequency (1.4 GHz)"
                     )
-                    print("⚠ No MS found in same directory. Using default frequency (1.4 GHz)")
+                    print(":warning_sign: No MS found in same directory. Using default frequency (1.4 GHz)")
                     ref_freqs = np.array([1400e6])
 
             # Extract delays per antenna
@@ -1644,7 +1644,7 @@ def inspect_kcal_simple(
 
             if len(delays_ns) == 0:
                 logger.warning("Could not extract any delay values")
-                print("⚠ Could not extract any delay values")
+                print(":warning_sign: Could not extract any delay values")
                 return
 
             # Statistics
@@ -1714,21 +1714,21 @@ def inspect_kcal_simple(
 
             if delay_range < 1.0:
                 logger.info("Delays are very small (< 1 ns range)")
-                print("✓ Delays are very small (< 1 ns range)")
+                print(":check_mark: Delays are very small (< 1 ns range)")
                 print("  → K-calibration impact is minimal")
                 print("  → However, still recommended for precision")
             elif delay_range < 10.0:
                 logger.warning(
                     f"Delays are moderate (1-10 ns range), coherence loss: {coherence_loss_percent:.1f}%"
                 )
-                print("⚠ Delays are moderate (1-10 ns range)")
+                print(":warning_sign: Delays are moderate (1-10 ns range)")
                 print("  → K-calibration is RECOMMENDED")
                 print(f"  → Expected coherence loss: {coherence_loss_percent:.1f}%")
             else:
                 logger.error(
                     f"Delays are large (> 10 ns range), coherence loss: {coherence_loss_percent:.1f}%"
                 )
-                print("✗ Delays are large (> 10 ns range)")
+                print(":ballot_x: Delays are large (> 10 ns range)")
                 print("  → K-calibration is ESSENTIAL")
                 print(f"  → Significant coherence loss: {coherence_loss_percent:.1f}%")
 
@@ -1759,7 +1759,7 @@ def inspect_kcal_simple(
 
     except Exception as e:
         logger.error(f"Error inspecting table: {e}", exc_info=True)
-        print(f"✗ Error inspecting table: {e}")
+        print(f":ballot_x: Error inspecting table: {e}")
         import traceback
 
         traceback.print_exc()

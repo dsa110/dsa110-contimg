@@ -77,7 +77,7 @@ def rephase_ms_to_calibrator(
                 # Single field: trust FIELD table
                 if max_sep_arcmin < 1.0:
                     print(
-                        f"✓ MS already phased to calibrator position (offset: {max_sep_arcmin:.2f} arcmin)"
+                        f":check_mark: MS already phased to calibrator position (offset: {max_sep_arcmin:.2f} arcmin)"
                     )
                     print("=" * 70)
                     return True
@@ -87,7 +87,7 @@ def rephase_ms_to_calibrator(
                 # The FIELD table may match but the actual visibility phases are still
                 # from different pointings and need to be rotated via phaseshift
                 print(
-                    f"⚠ Multiple fields detected - rephasing required even though FIELD table matches"
+                    f":warning_sign: Multiple fields detected - rephasing required even though FIELD table matches"
                 )
                 print(f"   (Field table doesn't guarantee visibility phases are coherent)")
                 needs_rephasing = True
@@ -141,7 +141,7 @@ def rephase_ms_to_calibrator(
             phasecenter=phasecenter_str,
             field="",  # Explicitly rephase ALL fields (empty string = all)
         )
-        print("✓ phaseshift completed successfully")
+        print(":check_mark: phaseshift completed successfully")
 
         # Update REFERENCE_DIR for all fields to match PHASE_DIR
         try:
@@ -167,9 +167,9 @@ def rephase_ms_to_calibrator(
                             f"Updating REFERENCE_DIR for all {nfields} fields to match PHASE_DIR..."
                         )
                         tf.putcol("REFERENCE_DIR", phase_dir_all)
-                        print("✓ REFERENCE_DIR updated for all fields")
+                        print(":check_mark: REFERENCE_DIR updated for all fields")
                     else:
-                        print("✓ REFERENCE_DIR already correct for all fields")
+                        print(":check_mark: REFERENCE_DIR already correct for all fields")
         except Exception as refdir_error:
             print(f"WARNING: Could not verify/update REFERENCE_DIR: {refdir_error}")
             logger.warning(f"Could not verify/update REFERENCE_DIR: {refdir_error}")
@@ -205,7 +205,7 @@ def rephase_ms_to_calibrator(
                             )
 
                     if all_fields_rephased:
-                        print(f"✓ All {nfields} fields correctly rephased to calibrator position")
+                        print(f":check_mark: All {nfields} fields correctly rephased to calibrator position")
                         print(f"  Maximum separation: {max_separation:.4f} arcmin")
                     else:
                         error_msg = (
@@ -228,7 +228,7 @@ def rephase_ms_to_calibrator(
         print("Replacing original MS with rephased version...")
         shutil.rmtree(ms_path, ignore_errors=True)
         shutil.move(ms_phased, ms_path)
-        print("✓ MS rephased to calibrator position")
+        print(":check_mark: MS rephased to calibrator position")
         print("=" * 70)
         return True
 
@@ -281,7 +281,7 @@ def clear_all_calibration_artifacts(ms_path: str, logger, restore_field_names: b
                         zeros = np.zeros((tb.nrows(),) + data_shape, dtype=data_dtype)
                         tb.putcol("MODEL_DATA", zeros)
                         cleared_items.append("MODEL_DATA")
-                        print(f"  ✓ Cleared MODEL_DATA ({tb.nrows()} rows)")
+                        print(f"  :check_mark: Cleared MODEL_DATA ({tb.nrows()} rows)")
     except Exception as e:
         logger.warning(f"Could not clear MODEL_DATA: {e}")
 
@@ -298,7 +298,7 @@ def clear_all_calibration_artifacts(ms_path: str, logger, restore_field_names: b
                         zeros = np.zeros((tb.nrows(),) + data_shape, dtype=data_dtype)
                         tb.putcol("CORRECTED_DATA", zeros)
                         cleared_items.append("CORRECTED_DATA")
-                        print(f"  ✓ Cleared CORRECTED_DATA ({tb.nrows()} rows)")
+                        print(f"  :check_mark: Cleared CORRECTED_DATA ({tb.nrows()} rows)")
     except Exception as e:
         logger.warning(f"Could not clear CORRECTED_DATA: {e}")
 
@@ -338,12 +338,12 @@ def clear_all_calibration_artifacts(ms_path: str, logger, restore_field_names: b
         if removed_tables:
             cleared_items.append(f"{len(removed_tables)} calibration table(s)")
             print(
-                f"  ✓ Removed {len(removed_tables)} calibration table(s): {', '.join(removed_tables[:5])}"
+                f"  :check_mark: Removed {len(removed_tables)} calibration table(s): {', '.join(removed_tables[:5])}"
             )
             if len(removed_tables) > 5:
                 print(f"    ... and {len(removed_tables) - 5} more")
         else:
-            print("  ✓ No calibration tables found to remove")
+            print("  :check_mark: No calibration tables found to remove")
     except Exception as e:
         logger.warning(f"Could not remove calibration tables: {e}")
 
@@ -358,9 +358,9 @@ def clear_all_calibration_artifacts(ms_path: str, logger, restore_field_names: b
                     field_names[0] = "meridian_icrs_t0"
                     field_tb.putcol("NAME", field_names)
                     cleared_items.append(f"field_0_name (restored from '{original_name}')")
-                    print("  ✓ Restored field 0 name to 'meridian_icrs_t0'")
+                    print("  :check_mark: Restored field 0 name to 'meridian_icrs_t0'")
                 else:
-                    print("  ✓ Field 0 name is already correct")
+                    print("  :check_mark: Field 0 name is already correct")
         except Exception as e:
             logger.warning(f"Could not restore field names: {e}")
 

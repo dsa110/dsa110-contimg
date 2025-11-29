@@ -121,10 +121,10 @@ python -m dsa110_contimg.calibration.cli_selfcal \
 
 The implementation:
 
-- ✅ Compiles without syntax errors
-- ✅ CLI help shows new options correctly
-- ✅ Default behavior runs delay cal automatically
-- ✅ --no-delay flag preserves old behavior
+- :white_heavy_check_mark: Compiles without syntax errors
+- :white_heavy_check_mark: CLI help shows new options correctly
+- :white_heavy_check_mark: Default behavior runs delay cal automatically
+- :white_heavy_check_mark: --no-delay flag preserves old behavior
 
 ## Next Steps
 
@@ -138,9 +138,9 @@ automatically!
   Running delay calibration (gaintype='K')
     solint=inf, minsnr=3.0
   Validating delay calibration quality
-  ✓ Delay calibration saved: delay.kcal
+  :check_mark: Delay calibration saved: delay.kcal
     90 antennas, 26.3% flagged
-✓ Delay calibration complete - geometric offsets removed
+:check_mark: Delay calibration complete - geometric offsets removed
 ```
 
 **To verify improvement**: Compare QA warnings before/after:

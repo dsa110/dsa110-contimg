@@ -299,8 +299,8 @@ class EmojiReplacer:
             ".git", "__pycache__", "node_modules", ".pytest_cache",
             ".coverage", ".mypy_cache", "dist", "build", ".venv", "venv",
             ".egg-info", ".idea", ".vscode", ".DS_Store", ".codacy",
-            ".local", "archive", "legacy.backend", "legacy.frontend",
-            "vendor", "benchmarks", ".venv-docs",  # Exclude large legacy/vendor directories
+            ".local", "archive",  # Note: legacy.backend and legacy.frontend are now included
+            "vendor", "benchmarks", ".venv-docs",  # Exclude large vendor directories
         }
         
         self.ignore_files = {
@@ -314,7 +314,7 @@ class EmojiReplacer:
             if part in self.ignore_dirs:
                 return False
             # Also check if path contains ignored substrings
-            if any(ignore in str(file_path) for ignore in ["/.local/", "/archive/", "/legacy", "/.venv", "/venv/", "/site-packages/"]):
+            if any(ignore in str(file_path) for ignore in ["/.local/", "/archive/", "/.venv", "/venv/", "/site-packages/"]):
                 return False
         
         # Check if ignored file

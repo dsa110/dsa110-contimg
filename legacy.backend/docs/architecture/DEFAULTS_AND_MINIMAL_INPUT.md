@@ -344,15 +344,15 @@ dsa110-contimg-streaming-mosaic --loop --sleep 30
 
 **With zero optional flags**, the pipeline:
 
-1. ✓ Continuously polls for HDF5 files
-2. ✓ Converts HDF5 to MS format (5-min chunks, 16 subbands)
-3. ✓ Groups MS files chronologically (10 per group, sliding window)
-4. ✓ Solves bandpass & gain calibration (once per day/hour as appropriate)
-5. ✓ Applies calibration corrections to all MS files
-6. ✓ Creates clean images (1024×1024, Briggs weighting)
-7. ✓ Stacks images into mosaics (simple mean averaging)
-8. ✓ Validates mosaic quality
-9. ✓ Registers mosaic in data registry
-10. ✓ Auto-publishes to `/data/dsa110-contimg/products/mosaics/`
+1. :check_mark: Continuously polls for HDF5 files
+2. :check_mark: Converts HDF5 to MS format (5-min chunks, 16 subbands)
+3. :check_mark: Groups MS files chronologically (10 per group, sliding window)
+4. :check_mark: Solves bandpass & gain calibration (once per day/hour as appropriate)
+5. :check_mark: Applies calibration corrections to all MS files
+6. :check_mark: Creates clean images (1024×1024, Briggs weighting)
+7. :check_mark: Stacks images into mosaics (simple mean averaging)
+8. :check_mark: Validates mosaic quality
+9. :check_mark: Registers mosaic in data registry
+10. :check_mark: Auto-publishes to `/data/dsa110-contimg/products/mosaics/`
 
 **No user intervention required** between HDF5 arrival and published mosaic.

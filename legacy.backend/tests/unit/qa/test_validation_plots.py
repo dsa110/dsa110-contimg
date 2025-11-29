@@ -73,7 +73,7 @@ def test_validation_plots():
             matched_pairs=matched_pairs,
         )
 
-        logger.info("✓ Astrometry result created")
+        logger.info(":check_mark: Astrometry result created")
 
         # Create mock flux scale result with matched fluxes
         logger.info("Creating mock flux scale result...")
@@ -101,7 +101,7 @@ def test_validation_plots():
             matched_fluxes=matched_fluxes,
         )
 
-        logger.info("✓ Flux scale result created")
+        logger.info(":check_mark: Flux scale result created")
 
         # Create mock completeness result
         logger.info("Creating mock completeness result...")
@@ -139,7 +139,7 @@ def test_validation_plots():
             warnings=[],
         )
 
-        logger.info("✓ Completeness result created")
+        logger.info(":check_mark: Completeness result created")
 
         # Generate HTML report with all plots
         logger.info("\nGenerating HTML report with plots...")
@@ -152,7 +152,7 @@ def test_validation_plots():
             catalog="nvss",
         )
 
-        logger.info(f"✓ HTML report created: {output_dir / 'test_validation_plots_report.html'}")
+        logger.info(f":check_mark: HTML report created: {output_dir / 'test_validation_plots_report.html'}")
         logger.info(f"  Report status: {report.overall_status}")
         logger.info(f"  Report score: {report.score:.1%}")
 
@@ -177,7 +177,7 @@ def test_validation_plots():
             if missing:
                 logger.warning(f"  Missing plot indicators: {missing}")
             else:
-                logger.info("  ✓ All plot indicators present in HTML")
+                logger.info("  :check_mark: All plot indicators present in HTML")
 
             # Count base64 images
             plot_count = html_content.count("data:image/png;base64,")
@@ -187,14 +187,14 @@ def test_validation_plots():
         logger.info("\n" + "=" * 70)
         logger.info("Test Summary")
         logger.info("=" * 70)
-        logger.info("✓ Enhanced validation visualization test completed!")
+        logger.info(":check_mark: Enhanced validation visualization test completed!")
         logger.info(f"\nGenerated HTML report: {html_file}")
         logger.info("Open the report in a web browser to view plots.")
 
         return True
 
     except Exception as e:
-        logger.error(f"✗ Test failed with error: {e}", exc_info=True)
+        logger.error(f":ballot_x: Test failed with error: {e}", exc_info=True)
         return False
 
 

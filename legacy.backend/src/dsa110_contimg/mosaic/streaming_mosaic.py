@@ -397,7 +397,7 @@ class StreamingMosaicManager:
                 max_days_back=60,
             )
             logger.info(
-                f"✓ Pre-calculated transit times: {transits_with_data} transits have available data"
+                f":check_mark: Pre-calculated transit times: {transits_with_data} transits have available data"
             )
         except Exception as e:
             logger.warning(
@@ -1350,7 +1350,7 @@ class StreamingMosaicManager:
                     )
                 else:
                     logger.info(
-                        f"✓ Transit time for calibrator {bp_cal['name']} ({transit_mjd:.6f} MJD, "
+                        f":check_mark: Transit time for calibrator {bp_cal['name']} ({transit_mjd:.6f} MJD, "
                         f"RA={calibrator_ra:.6f}°) validated within MS time range. "
                         f"Offset from MS center: {transit_offset_hours:.2f} hours. "
                         f"Closest field: {best_field_idx} (RA={field_ras[best_field_idx]:.6f}°, "

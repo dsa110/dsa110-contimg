@@ -41,9 +41,9 @@ flagging and quality control.
 
 | Group Type        | Subbands Present | Missing Subbands | Status      | Action                      |
 | ----------------- | ---------------- | ---------------- | ----------- | --------------------------- |
-| **Complete**      | 16               | 0                | ✅ Accepted | Use as-is                   |
-| **Semi-complete** | 12-15            | 1-4              | ✅ Accepted | Fill missing with synthetic |
-| **Incomplete**    | < 12             | > 4              | ❌ Rejected | Skip group                  |
+| **Complete**      | 16               | 0                | :white_heavy_check_mark: Accepted | Use as-is                   |
+| **Semi-complete** | 12-15            | 1-4              | :white_heavy_check_mark: Accepted | Fill missing with synthetic |
+| **Incomplete**    | < 12             | > 4              | :cross_mark: Rejected | Skip group                  |
 
 ### Synthetic Subband Generation
 
@@ -434,12 +434,12 @@ ensuring proper quality control while maximizing data utilization.
 
 **Key Points**:
 
-- ✅ Groups with 12-16 subbands are accepted
-- ✅ Missing subbands are automatically filled with synthetic zero-padded files
-- ✅ Synthetic subbands are fully flagged (no bad data in images)
-- ✅ Metadata tracking distinguishes complete vs. semi-complete groups
-- ✅ Automatic cleanup of temporary synthetic files
-- ✅ Backward compatible (complete groups work as before)
+- :white_heavy_check_mark: Groups with 12-16 subbands are accepted
+- :white_heavy_check_mark: Missing subbands are automatically filled with synthetic zero-padded files
+- :white_heavy_check_mark: Synthetic subbands are fully flagged (no bad data in images)
+- :white_heavy_check_mark: Metadata tracking distinguishes complete vs. semi-complete groups
+- :white_heavy_check_mark: Automatic cleanup of temporary synthetic files
+- :white_heavy_check_mark: Backward compatible (complete groups work as before)
 
 ---
 

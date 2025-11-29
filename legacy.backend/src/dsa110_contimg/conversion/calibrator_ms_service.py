@@ -647,12 +647,12 @@ class CalibratorMSGenerator:
             dec_deg: Calibrator Dec in degrees
         """
         logger.info(
-            f"✓ Found complete 16-subband group for transit {transit.isot}: "
+            f":check_mark: Found complete 16-subband group for transit {transit.isot}: "
             f"{os.path.basename(gbest[0]).split('_sb')[0]} "
             f"({dt_min:.1f} min from transit)"
         )
         logger.info(
-            f"✓ Pointing validation PASSED: Calibrator in primary beam\n"
+            f":check_mark: Pointing validation PASSED: Calibrator in primary beam\n"
             f"  Pointing: RA={pb_validation['pt_ra_deg']:.4f}°, Dec={pb_validation['pt_dec_deg']:.4f}°\n"
             f"  Calibrator: RA={ra_deg:.4f}°, Dec={dec_deg:.4f}°\n"
             f"  Separation: {pb_validation['sep_deg']:.4f}° ({pb_validation['sep_deg'] * 60:.1f} arcmin)\n"

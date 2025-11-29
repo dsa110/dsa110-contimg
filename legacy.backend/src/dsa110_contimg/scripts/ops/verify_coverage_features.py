@@ -16,7 +16,7 @@ def check_file_exists(filepath):
     """Check if a file exists."""
     path = Path(filepath)
     exists = path.exists()
-    status = "✓" if exists else "✗"
+    status = ":check_mark:" if exists else ":ballot_x:"
     print(f"{status} {filepath}: {'EXISTS' if exists else 'MISSING'}")
     return exists
 
@@ -30,7 +30,7 @@ def check_function_exists(filepath, function_name):
     content = path.read_text()
     pattern = r"def\s+" + re.escape(function_name) + r"\s*\("
     exists = bool(re.search(pattern, content))
-    status = "✓" if exists else "✗"
+    status = ":check_mark:" if exists else ":ballot_x:"
     print(
         f"{status} Function '{function_name}' in {filepath}: {'FOUND' if exists else 'NOT FOUND'}"
     )
@@ -46,7 +46,7 @@ def check_class_exists(filepath, class_name):
     content = path.read_text()
     pattern = r"class\s+" + re.escape(class_name) + r"\s*[\(:]"
     exists = bool(re.search(pattern, content))
-    status = "✓" if exists else "✗"
+    status = ":check_mark:" if exists else ":ballot_x:"
     print(f"{status} Class '{class_name}' in {filepath}: {'FOUND' if exists else 'NOT FOUND'}")
     return exists
 
@@ -59,7 +59,7 @@ def check_string_in_file(filepath, search_string):
 
     content = path.read_text()
     exists = search_string in content
-    status = "✓" if exists else "✗"
+    status = ":check_mark:" if exists else ":ballot_x:"
     print(
         f"{status} String '{search_string[:50]}...' in {filepath}: {'FOUND' if exists else 'NOT FOUND'}"
     )
@@ -153,7 +153,7 @@ def main():
     print("=" * 70)
 
     if all_passed:
-        print("✓ All verification checks PASSED")
+        print(":check_mark: All verification checks PASSED")
         print()
         print("Next steps:")
         print("  1. Run integration tests with Python 3.7+")
@@ -162,7 +162,7 @@ def main():
         print("  4. Test auto-build by querying NVSS sources")
         return 0
     else:
-        print("✗ Some verification checks FAILED")
+        print(":ballot_x: Some verification checks FAILED")
         print("  Please review the output above for missing components")
         return 1
 

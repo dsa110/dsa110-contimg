@@ -100,19 +100,19 @@ def main():
         size = get_directory_size(state_dir)
         directories_to_remove.append(("state", state_dir, f"Duplicate state directory {size}"))
     elif state_dir.exists():
-        print(f"⚠ Keeping {state_dir} - appears to be in use or different from {DATA_STATE_DIR}")
+        print(f":warning_sign: Keeping {state_dir} - appears to be in use or different from {DATA_STATE_DIR}")
 
     # 3. tmp/ - clean old files
     tmp_dir = STAGE_BASE / "tmp"
     if tmp_dir.exists():
         removed = cleanup_tmp_directory(days_old=7)
         if removed > 0:
-            print(f"✓ Cleaned {removed} old items from tmp/")
+            print(f":check_mark: Cleaned {removed} old items from tmp/")
         else:
-            print("✓ No old files to clean in tmp/ (keeping directory)")
+            print(":check_mark: No old files to clean in tmp/ (keeping directory)")
 
     if not directories_to_remove:
-        print("\n✓ No unused directories to remove.")
+        print("\n:check_mark: No unused directories to remove.")
         return 0
 
     # Show what will be removed
@@ -136,12 +136,12 @@ def main():
         try:
             if path.is_dir():
                 shutil.rmtree(path)
-                print(f"✓ Removed {name}/")
+                print(f":check_mark: Removed {name}/")
             else:
                 path.unlink()
-                print(f"✓ Removed {name}")
+                print(f":check_mark: Removed {name}")
         except Exception as e:
-            print(f"✗ Failed to remove {name}/: {e}")
+            print(f":ballot_x: Failed to remove {name}/: {e}")
             return 1
 
     print("\n" + "=" * 80)
