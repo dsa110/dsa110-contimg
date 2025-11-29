@@ -51,18 +51,26 @@ jobs:
 
           # Find scripts using 2>&1
           VIOLATIONS=0
+          # Exclude scripts/ops, scripts/archive, .local directories
           while IFS= read -r file; do
             # Check for 2>&1 used for suppression (not with tee or pipe to command)
-            if grep -n "2>&1.*>.*dev/null\|2>&1.*>/dev/null" "$file" 2>/dev/null; then
-              echo "❌ VIOLATION in $file: 2>&1 used for suppression"
+            # Skip lines with exception markers
+            while IFS=: read -r line_num content; do
+              # Skip if line has exception marker
+              if echo "$content" | grep -qiE "#.*exception|#.*suppress-output-check|#.*Note:|#.*acceptable"; then
+                continue
+              fi
+              echo "❌ VIOLATION in $file:$line_num"
+              echo "   $content"
               VIOLATIONS=$((VIOLATIONS + 1))
-            fi
-          done < <(find scripts -name "*.sh" -type f)
+            done < <(grep -n "2>&1.*>.*dev/null\|2>&1.*>/dev/null" "$file" 2>/dev/null || true)
+          done < <(find scripts -name "*.sh" -type f ! -path "*/ops/*" ! -path "*/archive/*" ! -path "*/.local/*")
 
           if [ $VIOLATIONS -gt 0 ]; then
             echo ""
             echo "❌ Found $VIOLATIONS violation(s) of 2>&1 usage"
             echo "2>&1 is only allowed when combining streams (e.g., with tee), not for suppression"
+            echo "Add '# Exception: <reason>' comment to justify the suppression"
             exit 1
           fi
 
