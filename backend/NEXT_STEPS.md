@@ -78,29 +78,86 @@ populated and all endpoints are returning real data.
 - Python GC and process metrics included
 - Access via `curl http://localhost:8000/metrics`
 
+### 10. Stats Endpoint ✅
+
+- Summary statistics at `/api/stats`
+- Returns counts for MS, images, photometry, sources, jobs
+- Includes job status breakdown and recent images
+- Cache hint for clients (30s recommended refresh)
+
 ---
 
 ## Remaining Tasks
 
-### 10. Optional Enhancements
+### 11. Optional: Prometheus Server & Grafana
+
+> **Note:** Only needed when you require historical metrics (>24h) or alerting.
+> Current `/metrics` endpoint works for spot-checks without a server.
+
+**When to implement:**
+
+- Operations team needs dashboards
+- Want alerting on error rates or latency
+- Need to track trends over days/weeks
 
 ```bash
-# Add Redis caching for frequently accessed data
-pip install redis aioredis
+# Install Prometheus server
+sudo apt-get install prometheus
 
-# Grafana dashboard for Prometheus metrics
-# Import dashboard JSON or create custom panels
+# Configure scraping (/etc/prometheus/prometheus.yml)
+scrape_configs:
+  - job_name: 'dsa110-api'
+    static_configs:
+      - targets: ['localhost:8000']
+    metrics_path: /metrics
+    scrape_interval: 15s
+
+# Install Grafana
+sudo apt-get install grafana
+sudo systemctl enable grafana-server
+sudo systemctl start grafana-server
+# Access at http://localhost:3000 (admin/admin)
 ```
+
+### 12. Optional: Redis Caching
+
+> **Current scale:** 12 MS, 4 images, 21 photometry records **Recommendation:**
+> Defer until photometry >10,000 records OR p95 latency >100ms
+
+**When to implement:**
+
+- Dashboard loads feel slow (>500ms)
+- Multiple concurrent users cause lock contention
+- Lightcurve queries for sources with 1000+ observations
+
+**Safe caching strategy (when needed):**
+
+```python
+# Only cache truly static data with poll-based invalidation
+CACHEABLE = {
+    "stats:summary": 30,      # Refresh every 30s
+    "cal:tables:all": 3600,   # Calibrator catalog (hourly)
+}
+
+# NEVER cache:
+# - Lightcurves without explicit end_date (scientists expect current data)
+# - Job status during pipeline runs
+# - Individual record lookups (low hit rate, not worth complexity)
+```
+
+**Cache invalidation approach:** Since the API is read-only and the pipeline
+writes directly to SQLite, use TTL-based expiration rather than event-driven
+invalidation.
 
 ---
 
 ## Long-term Improvements
 
-### Performance
+### Performance (When Scale Requires)
 
-- Add Redis caching for frequently accessed data
-- Implement database connection pooling
-- Add pagination to large result sets
+- Redis caching (see above - defer until needed)
+- Database connection pooling (SQLite handles current load)
+- Add pagination to large result sets (already implemented with limit/offset)
 
 ### Features
 
