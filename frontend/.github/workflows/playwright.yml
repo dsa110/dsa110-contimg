@@ -2,11 +2,11 @@ name: Playwright E2E Tests
 
 on:
   push:
-    branches: [master, master-dev]
+    branches: [master-dev]
     paths:
       - "frontend/**"
   pull_request:
-    branches: [master]
+    branches: [master-dev]
     paths:
       - "frontend/**"
   workflow_dispatch:
