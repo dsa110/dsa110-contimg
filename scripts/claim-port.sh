@@ -3,8 +3,8 @@
 # Usage: ./claim-port.sh <port> [--dry-run]
 # 
 # This script will:
-# 1. Check if a port is in use
-# 2. Identify the process using it
+# 1. Check if a port has a LISTENER (not just connections to it)
+# 2. Identify the process listening on that port
 # 3. Kill that process (gracefully first, then forcefully)
 # 4. Wait for the port to be free
 #
@@ -25,9 +25,10 @@ if ! [[ "$PORT" =~ ^[0-9]+$ ]]; then
     exit 1
 fi
 
-# Check if port is in use
-check_port() {
-    lsof -i ":$PORT" -t 2>/dev/null
+# Check if port has a listener (not just connections)
+check_listener() {
+    # -sTCP:LISTEN only shows listening sockets
+    lsof -i ":$PORT" -sTCP:LISTEN -t 2>/dev/null
 }
 
 # Get process info for logging
@@ -36,20 +37,20 @@ get_process_info() {
     ps -p "$pid" -o pid=,comm=,user= 2>/dev/null || echo "$pid unknown unknown"
 }
 
-PIDS=$(check_port)
+PIDS=$(check_listener)
 
 if [ -z "$PIDS" ]; then
-    echo "Port $PORT is free"
+    echo "Port $PORT is free (no listeners)"
     exit 0
 fi
 
-echo "Port $PORT is in use by:"
+echo "Port $PORT has listeners:"
 for pid in $PIDS; do
     get_process_info "$pid"
 done
 
 if [ "$DRY_RUN" = "--dry-run" ]; then
-    echo "[DRY RUN] Would kill processes and free port $PORT"
+    echo "[DRY RUN] Would kill listener processes and free port $PORT"
     exit 0
 fi
 
@@ -64,7 +65,7 @@ done
 # Wait up to 5 seconds for graceful shutdown
 for i in {1..10}; do
     sleep 0.5
-    PIDS=$(check_port)
+    PIDS=$(check_listener)
     if [ -z "$PIDS" ]; then
         echo "Port $PORT freed gracefully"
         exit 0
@@ -73,7 +74,7 @@ done
 
 # Force kill remaining processes
 echo "Graceful shutdown failed, using SIGKILL..."
-PIDS=$(check_port)
+PIDS=$(check_listener)
 for pid in $PIDS; do
     if kill -0 "$pid" 2>/dev/null; then
         echo "  Sending SIGKILL to $pid"
@@ -83,7 +84,7 @@ done
 
 # Final wait
 sleep 1
-PIDS=$(check_port)
+PIDS=$(check_listener)
 if [ -z "$PIDS" ]; then
     echo "Port $PORT freed forcefully"
     exit 0
