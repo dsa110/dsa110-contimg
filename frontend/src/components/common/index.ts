@@ -1,8 +1,12 @@
 export { default as Card } from "./Card";
 export { default as CoordinateDisplay } from "./CoordinateDisplay";
 export { default as ImageThumbnail } from "./ImageThumbnail";
+export { default as LoadingSpinner } from "./LoadingSpinner";
 export { default as QAMetrics } from "./QAMetrics";
+export { default as SortableTableHeader, useTableSort } from "./SortableTableHeader";
 export type { CardProps } from "./Card";
 export type { CoordinateDisplayProps } from "./CoordinateDisplay";
 export type { ImageThumbnailProps } from "./ImageThumbnail";
+export type { LoadingSpinnerProps } from "./LoadingSpinner";
 export type { QAMetricsProps, QAGrade } from "./QAMetrics";
+export type { SortableTableHeaderProps, SortDirection } from "./SortableTableHeader";

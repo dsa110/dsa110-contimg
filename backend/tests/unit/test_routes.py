@@ -12,9 +12,14 @@ from dsa110_contimg.api.app import create_app
 
 @pytest.fixture
 def client():
-    """Create a test client for the API."""
-    app = create_app()
-    return TestClient(app)
+    """Create a test client for the API.
+    
+    Patches is_ip_allowed to always return True to bypass IP filtering
+    during tests.
+    """
+    with patch("dsa110_contimg.api.app.is_ip_allowed", return_value=True):
+        app = create_app()
+        yield TestClient(app)
 
 
 class TestHealthEndpoint:

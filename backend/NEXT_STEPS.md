@@ -7,19 +7,21 @@ populated and all endpoints are returning real data.
 
 ### Current State
 
-| Component   | Status         | Details                      |
-| ----------- | -------------- | ---------------------------- |
-| API Server  | ✅ Running     | Port 8000, systemd enabled   |
-| MS Records  | ✅ 12 records  | Real measurement sets        |
-| Images      | ✅ 4 records   | FITS files registered        |
-| Photometry  | ✅ 21 records  | 5 unique sources             |
-| Cal Tables  | ✅ 3 records   | Linked to source MS          |
-| Batch Jobs  | ✅ 7 jobs      | Provenance tracking          |
-| Lightcurve  | ✅ Implemented | Returns real flux data       |
-| Nginx       | ✅ Configured  | Reverse proxy on port 80     |
-| Prometheus  | ✅ Enabled     | Metrics at /metrics          |
-| Stats API   | ✅ Implemented | Summary counts at /api/stats |
-| IP Security | ✅ Active      | Localhost + private networks |
+| Component         | Status         | Details                      |
+| ----------------- | -------------- | ---------------------------- |
+| API Server        | ✅ Running     | Port 8000, systemd enabled   |
+| MS Records        | ✅ 12 records  | Real measurement sets        |
+| Images            | ✅ 4 records   | FITS files registered        |
+| Photometry        | ✅ 21 records  | 5 unique sources             |
+| Cal Tables        | ✅ 3 records   | Linked to source MS          |
+| Batch Jobs        | ✅ 7 jobs      | Provenance tracking          |
+| Lightcurve        | ✅ Implemented | Returns real flux data       |
+| Nginx             | ✅ Configured  | Reverse proxy on port 80     |
+| Prometheus        | ✅ Enabled     | Metrics at /metrics          |
+| Prometheus Server | ✅ Running     | Scraping API on port 9090    |
+| Redis Cache       | ✅ Connected   | TTL-based caching enabled    |
+| Stats API         | ✅ Implemented | Summary counts at /api/stats |
+| IP Security       | ✅ Active      | Localhost + private networks |
 
 ---
 
@@ -86,77 +88,66 @@ populated and all endpoints are returning real data.
 - Includes job status breakdown and recent images
 - Cache hint for clients (30s recommended refresh)
 
+### 11. Prometheus Server ✅
+
+- Prometheus server running on port 9090
+- Scraping DSA-110 API every 15 seconds
+- 927 unique metrics collected
+- Config at `/etc/prometheus/prometheus.yml`
+- Access UI: `http://localhost:9090`
+
+### 12. Redis Caching ✅
+
+- Redis connected and caching enabled
+- TTL-based expiration (no event-driven invalidation needed)
+- Cache management endpoints at `/api/cache`
+- Blacklist prevents caching of real-time data (open lightcurves, active jobs)
+
+**Cache TTL Configuration:** | Key Prefix | TTL | Rationale |
+|------------|-----|-----------| | `stats` | 30s | Frequently accessed summary |
+| `sources:list` | 5 min | Changes only on new detections | | `images:list` | 5
+min | Changes only on new imaging | | `cal:tables` | 1 hour | Nearly static
+calibrator catalog | | `jobs:list` | 1 min | Changes during pipeline runs |
+
+**Never Cached:**
+
+- Open-ended lightcurves (scientists expect current data)
+- Active job status
+- Real-time logs
+
 ---
 
 ## Remaining Tasks
 
-### 11. Optional: Prometheus Server & Grafana
+### 13. Optional: Grafana Dashboard
 
-> **Note:** Only needed when you require historical metrics (>24h) or alerting.
-> Current `/metrics` endpoint works for spot-checks without a server.
-
-**When to implement:**
-
-- Operations team needs dashboards
-- Want alerting on error rates or latency
-- Need to track trends over days/weeks
+Prometheus server is now running. Add Grafana for visualization:
 
 ```bash
-# Install Prometheus server
-sudo apt-get install prometheus
-
-# Configure scraping (/etc/prometheus/prometheus.yml)
-scrape_configs:
-  - job_name: 'dsa110-api'
-    static_configs:
-      - targets: ['localhost:8000']
-    metrics_path: /metrics
-    scrape_interval: 15s
-
 # Install Grafana
 sudo apt-get install grafana
 sudo systemctl enable grafana-server
 sudo systemctl start grafana-server
 # Access at http://localhost:3000 (admin/admin)
+
+# Add Prometheus data source:
+# URL: http://localhost:9090
 ```
 
-### 12. Optional: Redis Caching
+**Recommended Dashboard Panels:**
 
-> **Current scale:** 12 MS, 4 images, 21 photometry records **Recommendation:**
-> Defer until photometry >10,000 records OR p95 latency >100ms
-
-**When to implement:**
-
-- Dashboard loads feel slow (>500ms)
-- Multiple concurrent users cause lock contention
-- Lightcurve queries for sources with 1000+ observations
-
-**Safe caching strategy (when needed):**
-
-```python
-# Only cache truly static data with poll-based invalidation
-CACHEABLE = {
-    "stats:summary": 30,      # Refresh every 30s
-    "cal:tables:all": 3600,   # Calibrator catalog (hourly)
-}
-
-# NEVER cache:
-# - Lightcurves without explicit end_date (scientists expect current data)
-# - Job status during pipeline runs
-# - Individual record lookups (low hit rate, not worth complexity)
-```
-
-**Cache invalidation approach:** Since the API is read-only and the pipeline
-writes directly to SQLite, use TTL-based expiration rather than event-driven
-invalidation.
+- Request rate by endpoint
+- P95 latency heatmap
+- Error rate (4xx/5xx)
+- Redis cache hit rate
+- Process memory usage
 
 ---
 
 ## Long-term Improvements
 
-### Performance (When Scale Requires)
+### Performance
 
-- Redis caching (see above - defer until needed)
 - Database connection pooling (SQLite handles current load)
 - Add pagination to large result sets (already implemented with limit/offset)
 
