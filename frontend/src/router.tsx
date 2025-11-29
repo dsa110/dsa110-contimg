@@ -1,14 +1,16 @@
+import React, { Suspense, lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
 import AppLayout from "./components/layout/AppLayout";
-import HomePage from "./pages/HomePage";
-import ImageDetailPage from "./pages/ImageDetailPage";
-import MSDetailPage from "./pages/MSDetailPage";
-import SourceDetailPage from "./pages/SourceDetailPage";
-import JobDetailPage from "./pages/JobDetailPage";
-import ImagesListPage from "./pages/ImagesListPage";
-import SourcesListPage from "./pages/SourcesListPage";
-import JobsListPage from "./pages/JobsListPage";
-import NotFoundPage from "./pages/NotFoundPage";
+
+const HomePage = lazy(() => import("./pages/HomePage"));
+const ImageDetailPage = lazy(() => import("./pages/ImageDetailPage"));
+const MSDetailPage = lazy(() => import("./pages/MSDetailPage"));
+const SourceDetailPage = lazy(() => import("./pages/SourceDetailPage"));
+const JobDetailPage = lazy(() => import("./pages/JobDetailPage"));
+const ImagesListPage = lazy(() => import("./pages/ImagesListPage"));
+const SourcesListPage = lazy(() => import("./pages/SourcesListPage"));
+const JobsListPage = lazy(() => import("./pages/JobsListPage"));
+const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
 /**
  * Application router configuration.
@@ -36,7 +38,11 @@ export const router = createBrowserRouter(
   [
     {
       path: "/",
-      element: <AppLayout />,
+      element: (
+        <Suspense fallback={<div className="p-6 text-gray-600">Loading...</div>}>
+          <AppLayout />
+        </Suspense>
+      ),
       children: [
         {
           index: true,

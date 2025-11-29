@@ -1,8 +1,9 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useJobs } from "../hooks/useQueries";
 import { relativeTime } from "../utils/relativeTime";
 import { LoadingSpinner, SortableTableHeader, useTableSort } from "../components/common";
+import { useSelectionStore } from "../stores/appStore";
 
 interface JobItem {
   run_id: string;
@@ -18,6 +19,31 @@ const JobsListPage: React.FC = () => {
   const { sortKey, sortDirection, handleSort, sortItems } = useTableSort<JobItem>(
     "started_at",
     "desc"
+  );
+
+  // Multi-select state
+  const selectedJobs = useSelectionStore((s) => s.selectedJobs);
+  const toggleJobSelection = useSelectionStore((s) => s.toggleJobSelection);
+  const selectAllJobs = useSelectionStore((s) => s.selectAllJobs);
+  const clearJobSelection = useSelectionStore((s) => s.clearJobSelection);
+
+  const selectedIds = useMemo(() => Array.from(selectedJobs), [selectedJobs]);
+
+  const handleBulkAction = useCallback(
+    async (action: "rerun" | "cancel" | "export") => {
+      if (selectedIds.length === 0) return;
+      const baseUrl = import.meta.env.VITE_API_URL || "/api";
+      if (action === "export") {
+        window.open(`${baseUrl}/jobs/export?ids=${selectedIds.join(",")}`, "_blank");
+      } else {
+        await fetch(`${baseUrl}/jobs/bulk-${action}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ runIds: selectedIds }),
+        });
+      }
+    },
+    [selectedIds]
   );
 
   const sortedJobs = useMemo(() => {
@@ -54,13 +80,61 @@ const JobsListPage: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Pipeline Jobs</h1>
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold text-gray-900">Pipeline Jobs</h1>
+          {selectedIds.length > 0 && (
+            <span className="text-sm text-gray-500">{selectedIds.length} selected</span>
+          )}
+        </div>
+        {selectedIds.length > 0 && (
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleBulkAction("rerun")}
+              className="px-3 py-1.5 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-700"
+            >
+              Rerun Selected
+            </button>
+            <button
+              onClick={() => handleBulkAction("cancel")}
+              className="px-3 py-1.5 rounded text-sm font-medium bg-orange-600 text-white hover:bg-orange-700"
+            >
+              Cancel Selected
+            </button>
+            <button
+              onClick={() => handleBulkAction("export")}
+              className="px-3 py-1.5 rounded text-sm font-medium bg-green-600 text-white hover:bg-green-700"
+            >
+              Export Logs
+            </button>
+          </div>
+        )}
+      </div>
 
       {sortedJobs && sortedJobs.length > 0 ? (
         <div className="card overflow-hidden">
           <table className="table">
             <thead>
               <tr>
+                <th className="w-10 px-3 py-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.length === sortedJobs.length && sortedJobs.length > 0}
+                    ref={(el) => {
+                      if (el)
+                        el.indeterminate =
+                          selectedIds.length > 0 && selectedIds.length < sortedJobs.length;
+                    }}
+                    onChange={() => {
+                      if (selectedIds.length === sortedJobs.length) {
+                        clearJobSelection();
+                      } else {
+                        selectAllJobs(sortedJobs.map((j) => j.run_id));
+                      }
+                    }}
+                    className="h-4 w-4 text-blue-600 rounded"
+                  />
+                </th>
                 <SortableTableHeader
                   label="Run ID"
                   sortKey="run_id"
@@ -88,7 +162,15 @@ const JobsListPage: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {sortedJobs.map((job) => (
-                <tr key={job.run_id}>
+                <tr key={job.run_id} className={selectedJobs.has(job.run_id) ? "bg-blue-50" : ""}>
+                  <td className="px-3">
+                    <input
+                      type="checkbox"
+                      checked={selectedJobs.has(job.run_id)}
+                      onChange={() => toggleJobSelection(job.run_id)}
+                      className="h-4 w-4 text-blue-600 rounded"
+                    />
+                  </td>
                   <td>
                     <Link
                       to={`/jobs/${job.run_id}`}

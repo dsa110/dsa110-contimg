@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useSources } from "../hooks/useQueries";
 import { LoadingSpinner, SortableTableHeader, useTableSort } from "../components/common";
 import { AdvancedQueryPanel, SourceQueryParams } from "../components/query";
 import { EtaVPlot, SourcePoint } from "../components/variability";
+import { useSelectionStore } from "../stores/appStore";
 
 interface Source {
   id: string;
@@ -23,6 +24,20 @@ const SourcesListPage: React.FC = () => {
   const { data: sources, isLoading, error } = useSources();
   const [activeTab, setActiveTab] = useState<"list" | "variability">("list");
   const [queryParams, setQueryParams] = useState<SourceQueryParams>({});
+
+  // Multi-select state
+  const selectedSources = useSelectionStore((s) => s.selectedSources);
+  const toggleSourceSelection = useSelectionStore((s) => s.toggleSourceSelection);
+  const selectAllSources = useSelectionStore((s) => s.selectAllSources);
+  const clearSourceSelection = useSelectionStore((s) => s.clearSourceSelection);
+
+  const selectedIds = useMemo(() => Array.from(selectedSources), [selectedSources]);
+
+  const handleExportSelected = useCallback(() => {
+    if (selectedIds.length === 0) return;
+    const baseUrl = import.meta.env.VITE_API_URL || "/api";
+    window.open(`${baseUrl}/sources/export?ids=${selectedIds.join(",")}`, "_blank");
+  }, [selectedIds]);
 
   // Filter sources based on query params
   const filteredSources = useMemo(() => {
@@ -96,8 +111,21 @@ const SourcesListPage: React.FC = () => {
   return (
     <div className="max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Sources</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold text-gray-900">Sources</h1>
+          {selectedIds.length > 0 && (
+            <span className="text-sm text-gray-500">{selectedIds.length} selected</span>
+          )}
+        </div>
         <div className="flex gap-2">
+          {selectedIds.length > 0 && (
+            <button
+              onClick={handleExportSelected}
+              className="px-4 py-2 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-colors"
+            >
+              Export Selected
+            </button>
+          )}
           <button
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               activeTab === "list"
@@ -154,6 +182,25 @@ const SourcesListPage: React.FC = () => {
               <table className="table">
                 <thead>
                   <tr>
+                    <th className="w-10 px-3 py-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.length === sortedData.length && sortedData.length > 0}
+                        ref={(el) => {
+                          if (el)
+                            el.indeterminate =
+                              selectedIds.length > 0 && selectedIds.length < sortedData.length;
+                        }}
+                        onChange={() => {
+                          if (selectedIds.length === sortedData.length) {
+                            clearSourceSelection();
+                          } else {
+                            selectAllSources(sortedData.map((s) => s.id));
+                          }
+                        }}
+                        className="h-4 w-4 text-blue-600 rounded"
+                      />
+                    </th>
                     <SortableTableHeader
                       columnKey="id"
                       sortColumn={sortColumn}
@@ -201,7 +248,18 @@ const SourcesListPage: React.FC = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {sortedData.map((source) => (
-                    <tr key={source.id}>
+                    <tr
+                      key={source.id}
+                      className={selectedSources.has(source.id) ? "bg-blue-50" : ""}
+                    >
+                      <td className="px-3">
+                        <input
+                          type="checkbox"
+                          checked={selectedSources.has(source.id)}
+                          onChange={() => toggleSourceSelection(source.id)}
+                          className="h-4 w-4 text-blue-600 rounded"
+                        />
+                      </td>
                       <td>
                         <Link
                           to={`/sources/${source.id}`}

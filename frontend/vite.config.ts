@@ -23,6 +23,14 @@ export default defineConfig({
     outDir: "dist",
     // Generate sourcemaps for debugging
     sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          d3: ["d3", "d3-geo-projection"],
+          echarts: ["echarts"],
+        },
+      },
+    },
   },
   resolve: {
     alias: {
