@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useImages } from "../hooks/useQueries";
+import { LoadingSpinner } from "../components/common";
 
 /**
  * List page showing all images.
@@ -9,11 +10,7 @@ const ImagesListPage: React.FC = () => {
   const { data: images, isLoading, error } = useImages();
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-gray-500">Loading images...</div>
-      </div>
-    );
+    return <LoadingSpinner label="Loading images..." />;
   }
 
   if (error) {

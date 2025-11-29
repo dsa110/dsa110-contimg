@@ -3,7 +3,7 @@ import { useParams, Link } from "react-router-dom";
 import { useJobProvenance } from "../hooks/useQueries";
 import ProvenanceStrip from "../components/provenance/ProvenanceStrip";
 import ErrorDisplay from "../components/errors/ErrorDisplay";
-import { Card, CoordinateDisplay, QAMetrics } from "../components/common";
+import { Card, CoordinateDisplay, QAMetrics, LoadingSpinner } from "../components/common";
 import type { ErrorResponse } from "../types/errors";
 import { relativeTime } from "../utils/relativeTime";
 import { usePreferencesStore } from "../stores/appStore";
@@ -33,11 +33,7 @@ const JobDetailPage: React.FC = () => {
   }, [provenance, runId, addRecentJob]);
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="animate-pulse text-gray-500">Loading job details...</div>
-      </div>
-    );
+    return <LoadingSpinner label="Loading job details..." />;
   }
 
   if (error) {

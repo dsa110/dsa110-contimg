@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { useJobs } from "../hooks/useQueries";
 import { relativeTime } from "../utils/relativeTime";
+import { LoadingSpinner } from "../components/common";
 
 /**
  * List page showing all pipeline jobs.
@@ -10,11 +11,7 @@ const JobsListPage: React.FC = () => {
   const { data: jobs, isLoading, error } = useJobs();
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-gray-500">Loading jobs...</div>
-      </div>
-    );
+    return <LoadingSpinner label="Loading jobs..." />;
   }
 
   if (error) {
