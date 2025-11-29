@@ -41,7 +41,7 @@ The project is organized into several modules, each serving a specific purpose:
 ## API Server
 
 The pipeline includes a REST API for accessing measurement sets, images,
-sources, and pipeline job status. See [API Reference](../docs/reference/api.md) 
+sources, and pipeline job status. See [API Reference](../docs/reference/api.md)
 for full documentation.
 
 ### Running the API

@@ -153,8 +153,8 @@ def create_app() -> FastAPI:
     @app.middleware("http")
     async def ip_filter_middleware(request: Request, call_next):
         """Restrict API access to allowed IP addresses."""
-        # Always allow health checks (for external monitoring)
-        if request.url.path == "/api/health":
+        # Always allow health checks and metrics (for external monitoring)
+        if request.url.path in ("/api/health", "/metrics"):
             return await call_next(request)
         
         # Get client IP (handle proxies)
@@ -179,6 +179,19 @@ def create_app() -> FastAPI:
 
 # Create the app instance
 app = create_app()
+
+# Prometheus metrics instrumentation (must be after app creation)
+# Metrics available at /metrics
+try:
+    from prometheus_fastapi_instrumentator import Instrumentator
+    
+    Instrumentator(
+        should_group_status_codes=True,
+        should_ignore_untemplated=True,
+        excluded_handlers=["/metrics", "/api/health"],
+    ).instrument(app).expose(app, endpoint="/metrics", include_in_schema=True)
+except ImportError:
+    pass  # prometheus-fastapi-instrumentator not installed
 
 
 # Optional: Mount static files for production (frontend build)

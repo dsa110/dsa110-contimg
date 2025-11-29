@@ -460,3 +460,28 @@ dsa110-benchmark compare HEAD~1 HEAD  # Regression check
 This repository can optionally use a lightweight, non‑blocking post‑commit hook
 to record commit summaries for internal tools. See internal documentation for
 setup and details.
+
+## TODO
+
+### Application-Level Authentication
+
+The current setup uses ngrok's built-in GitHub OAuth which requires any GitHub account to access the API. For proper access control with email filtering (e.g., only `@caltech.edu` emails), implement application-level authentication:
+
+**Components needed:**
+1. **GitHub OAuth App** - Create at GitHub Settings → Developer settings → OAuth Apps
+   - Callback URL: `https://code.deepsynoptic.org/dsa110-contimg/dashboard/callback`
+   
+2. **Backend auth endpoints** (`/api/auth/*`):
+   - `POST /api/auth/github` - Exchange GitHub code for session token
+   - `GET /api/auth/me` - Return current user info
+   - `POST /api/auth/logout` - Clear session
+   - Middleware to validate JWT on all `/api/*` requests
+   - Email allowlist: `jakobtfaber@gmail.com`, `*@caltech.edu`
+
+3. **Frontend auth flow**:
+   - `<LoginPage />` - "Login with GitHub" button
+   - `<ProtectedRoute />` - Redirect to login if not authenticated
+   - `<AuthProvider />` - Context managing auth state
+   - JWT storage in `localStorage` or `httpOnly` cookie
+
+**Reference:** This would replace reliance on ngrok OAuth and work with any tunnel provider.
