@@ -30,7 +30,7 @@ test.describe("DSA-110 Pipeline UI", () => {
 
     // Should be on images page
     await expect(page).toHaveURL(/\/images/);
-    
+
     // Wait for Images page to load (lazy-loaded)
     await expect(page.getByRole("heading", { name: /Images/i })).toBeVisible({ timeout: 10000 });
   });
@@ -46,7 +46,7 @@ test.describe("DSA-110 Pipeline UI", () => {
 
     // Should be on sources page
     await expect(page).toHaveURL(/\/sources/);
-    
+
     // Wait for Sources page to load (lazy-loaded)
     await expect(page.getByRole("heading", { name: /Sources/i })).toBeVisible({ timeout: 10000 });
   });
@@ -62,9 +62,11 @@ test.describe("DSA-110 Pipeline UI", () => {
 
     // Should be on jobs page
     await expect(page).toHaveURL(/\/jobs/);
-    
+
     // Wait for Jobs page to load (lazy-loaded)
-    await expect(page.getByRole("heading", { name: /Pipeline Jobs/i })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole("heading", { name: /Pipeline Jobs/i })).toBeVisible({
+      timeout: 10000,
+    });
   });
 
   test("404 page shows for unknown routes", async ({ page }) => {
