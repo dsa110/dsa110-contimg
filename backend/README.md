@@ -88,6 +88,14 @@ can be found in `tests/integration`. To run the tests, use:
 pytest tests/
 ```
 
+## MS Writer Strategies
+
+The pipeline supports different strategies for writing Measurement Sets.
+Production uses `DirectSubbandWriter` for parallel 16-subband processing.
+
+See [MS Writers Reference](../docs/reference/ms-writers.md) for full
+documentation on writer strategies, parameters, and usage examples.
+
 ## Contributing
 
 Contributions to the DSA-110 Continuum Imaging Pipeline are welcome. Please

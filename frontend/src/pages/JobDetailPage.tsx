@@ -3,9 +3,19 @@ import { useParams, Link } from "react-router-dom";
 import { useJobProvenance } from "../hooks/useQueries";
 import ProvenanceStrip from "../components/provenance/ProvenanceStrip";
 import ErrorDisplay from "../components/errors/ErrorDisplay";
+import { Card, CoordinateDisplay, QAMetrics } from "../components/common";
 import type { ErrorResponse } from "../types/errors";
 import { relativeTime } from "../utils/relativeTime";
 import { usePreferencesStore } from "../stores/appStore";
+
+type JobStatus = "pending" | "running" | "completed" | "failed";
+
+const statusConfig: Record<JobStatus, { icon: string; bg: string; text: string }> = {
+  pending: { icon: "⏳", bg: "bg-gray-100", text: "text-gray-700" },
+  running: { icon: "🔄", bg: "bg-blue-100", text: "text-blue-700" },
+  completed: { icon: "✓", bg: "bg-green-100", text: "text-green-700" },
+  failed: { icon: "✗", bg: "bg-red-100", text: "text-red-700" },
+};
 
 /**
  * Job detail page showing provenance and job information.
@@ -23,12 +33,16 @@ const JobDetailPage: React.FC = () => {
   }, [provenance, runId, addRecentJob]);
 
   if (isLoading) {
-    return <div style={{ padding: "20px" }}>Loading job details...</div>;
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-pulse text-gray-500">Loading job details...</div>
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div style={{ padding: "20px" }}>
+      <div className="max-w-4xl mx-auto p-6">
         <ErrorDisplay error={error as unknown as ErrorResponse} onRetry={() => refetch()} />
       </div>
     );
@@ -36,152 +50,243 @@ const JobDetailPage: React.FC = () => {
 
   if (!provenance) {
     return (
-      <div style={{ padding: "20px" }}>
-        <p>Job not found.</p>
-        <Link to="/jobs">← Back to Jobs</Link>
+      <div className="max-w-4xl mx-auto p-6">
+        <Card>
+          <p className="text-gray-500 mb-4">Job not found.</p>
+          <Link to="/jobs" className="link">
+            ← Back to Jobs
+          </Link>
+        </Card>
       </div>
     );
   }
 
+  // Determine status from provenance data
+  const status: JobStatus = provenance.qaGrade
+    ? "completed"
+    : provenance.createdAt
+    ? "running"
+    : "pending";
+  const statusInfo = statusConfig[status];
+
   return (
-    <div className="job-detail-page">
-      <nav style={{ marginBottom: "16px" }}>
-        <Link to="/jobs" style={{ color: "#0066cc" }}>
+    <div className="max-w-6xl mx-auto p-6">
+      {/* Header */}
+      <div className="mb-6">
+        <Link to="/jobs" className="text-sm text-gray-500 hover:text-gray-700 mb-2 inline-block">
           ← Back to Jobs
         </Link>
-      </nav>
-
-      <header style={{ marginBottom: "24px" }}>
-        <h1 style={{ margin: "0 0 12px" }}>Job: {runId}</h1>
+        <div className="flex items-center gap-3 mb-2">
+          <h1 className="text-2xl font-bold text-gray-900">Job: {runId}</h1>
+          <span
+            className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${statusInfo.bg} ${statusInfo.text}`}
+          >
+            <span>{statusInfo.icon}</span>
+            <span className="capitalize">{status}</span>
+          </span>
+        </div>
         <ProvenanceStrip {...provenance} />
-      </header>
+      </div>
 
-      <section className="job-details" style={{ marginBottom: "24px" }}>
-        <h2>Details</h2>
-        <table
-          style={{
-            backgroundColor: "white",
-            borderCollapse: "collapse",
-            width: "100%",
-            maxWidth: "600px",
-            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-          }}
-        >
-          <tbody>
-            <tr>
-              <td
-                style={{
-                  padding: "12px",
-                  borderBottom: "1px solid #eee",
-                  fontWeight: "bold",
-                  width: "150px",
+      {/* Main content grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left column - Status and actions */}
+        <div className="lg:col-span-1 space-y-6">
+          {/* Status card */}
+          <Card title="Status">
+            <div className="space-y-4">
+              <div
+                className={`p-4 rounded-lg ${statusInfo.bg} flex items-center justify-center gap-2`}
+              >
+                <span className="text-2xl">{statusInfo.icon}</span>
+                <span className={`text-lg font-semibold ${statusInfo.text} capitalize`}>
+                  {status}
+                </span>
+              </div>
+              {provenance.createdAt && (
+                <div>
+                  <dt className="text-xs text-gray-500 uppercase tracking-wide">Started</dt>
+                  <dd className="text-sm text-gray-900">
+                    {new Date(provenance.createdAt).toLocaleString()}
+                    <span className="text-gray-500 ml-1">
+                      ({relativeTime(provenance.createdAt)})
+                    </span>
+                  </dd>
+                </div>
+              )}
+            </div>
+          </Card>
+
+          {/* Actions */}
+          <Card title="Actions">
+            <div className="flex flex-col gap-2">
+              {provenance.logsUrl && (
+                <a
+                  href={provenance.logsUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn btn-secondary text-center"
+                >
+                  📜 View Logs
+                </a>
+              )}
+              {provenance.imageUrl && (
+                <Link to={provenance.imageUrl} className="btn btn-primary text-center">
+                  🖼️ View Output Image
+                </Link>
+              )}
+              {provenance.qaUrl && (
+                <a
+                  href={provenance.qaUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn btn-secondary text-center"
+                >
+                  📊 QA Report
+                </a>
+              )}
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => {
+                  // TODO: Implement re-run functionality
+                  alert("Re-run functionality not yet implemented");
                 }}
               >
-                Run ID
-              </td>
-              <td style={{ padding: "12px", borderBottom: "1px solid #eee" }}>
-                {provenance.runId || runId}
-              </td>
-            </tr>
-            {provenance.msPath && (
-              <tr>
-                <td style={{ padding: "12px", borderBottom: "1px solid #eee", fontWeight: "bold" }}>
-                  Input MS
-                </td>
-                <td style={{ padding: "12px", borderBottom: "1px solid #eee" }}>
-                  <Link to={`/ms/${encodeURIComponent(provenance.msPath)}`}>
-                    {provenance.msPath}
-                  </Link>
-                </td>
-              </tr>
-            )}
-            {provenance.calTable && (
-              <tr>
-                <td style={{ padding: "12px", borderBottom: "1px solid #eee", fontWeight: "bold" }}>
-                  Cal Table
-                </td>
-                <td style={{ padding: "12px", borderBottom: "1px solid #eee" }}>
-                  {provenance.calUrl ? (
-                    <a href={provenance.calUrl}>{provenance.calTable}</a>
-                  ) : (
-                    provenance.calTable
-                  )}
-                </td>
-              </tr>
-            )}
-            {provenance.qaGrade && (
-              <tr>
-                <td style={{ padding: "12px", borderBottom: "1px solid #eee", fontWeight: "bold" }}>
-                  QA Grade
-                </td>
-                <td style={{ padding: "12px", borderBottom: "1px solid #eee" }}>
-                  <span
-                    style={{
-                      padding: "4px 8px",
-                      borderRadius: "4px",
-                      backgroundColor:
-                        provenance.qaGrade === "good"
-                          ? "#d4edda"
-                          : provenance.qaGrade === "warn"
-                          ? "#fff3cd"
-                          : "#f8d7da",
-                    }}
-                  >
-                    {provenance.qaGrade}
-                  </span>
-                  {provenance.qaSummary && (
-                    <span style={{ marginLeft: "8px", color: "#666" }}>{provenance.qaSummary}</span>
-                  )}
-                </td>
-              </tr>
-            )}
-            {provenance.createdAt && (
-              <tr>
-                <td style={{ padding: "12px", borderBottom: "1px solid #eee", fontWeight: "bold" }}>
-                  Started
-                </td>
-                <td style={{ padding: "12px", borderBottom: "1px solid #eee" }}>
-                  {new Date(provenance.createdAt).toLocaleString()} (
-                  {relativeTime(provenance.createdAt)})
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </section>
+                🔄 Re-run Job
+              </button>
+            </div>
+          </Card>
+        </div>
 
-      <section className="job-actions" style={{ display: "flex", gap: "12px" }}>
-        {provenance.logsUrl && (
-          <a
-            href={provenance.logsUrl}
-            target="_blank"
-            rel="noreferrer"
-            style={{
-              padding: "10px 16px",
-              backgroundColor: "#6c757d",
-              color: "white",
-              textDecoration: "none",
-              borderRadius: "4px",
-            }}
-          >
-            View Logs
-          </a>
-        )}
-        {provenance.imageUrl && (
-          <Link
-            to={provenance.imageUrl}
-            style={{
-              padding: "10px 16px",
-              backgroundColor: "#0066cc",
-              color: "white",
-              textDecoration: "none",
-              borderRadius: "4px",
-            }}
-          >
-            View Output Image
-          </Link>
-        )}
-      </section>
+        {/* Right column - Details */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* QA Metrics */}
+          {provenance.qaGrade && (
+            <Card title="Quality Assessment">
+              <QAMetrics
+                grade={provenance.qaGrade as "good" | "warn" | "fail" | undefined}
+                summary={provenance.qaSummary}
+              />
+            </Card>
+          )}
+
+          {/* Pointing coordinates */}
+          {provenance.pointingRaDeg !== undefined && provenance.pointingDecDeg !== undefined && (
+            <Card title="Pointing">
+              <CoordinateDisplay
+                raDeg={provenance.pointingRaDeg}
+                decDeg={provenance.pointingDecDeg}
+                showDecimal
+              />
+            </Card>
+          )}
+
+          {/* Input/Output details */}
+          <Card title="Pipeline Details">
+            <dl className="grid grid-cols-1 gap-4">
+              <div>
+                <dt className="text-xs text-gray-500 uppercase tracking-wide">Run ID</dt>
+                <dd className="font-mono text-sm text-gray-900 break-all">
+                  {provenance.runId || runId}
+                </dd>
+              </div>
+              {provenance.msPath && (
+                <div>
+                  <dt className="text-xs text-gray-500 uppercase tracking-wide">
+                    Input Measurement Set
+                  </dt>
+                  <dd className="font-mono text-sm break-all">
+                    <Link
+                      to={`/ms/${encodeURIComponent(provenance.msPath)}`}
+                      className="text-blue-600 hover:text-blue-800 hover:underline"
+                    >
+                      {provenance.msPath}
+                    </Link>
+                  </dd>
+                </div>
+              )}
+              {provenance.calTable && (
+                <div>
+                  <dt className="text-xs text-gray-500 uppercase tracking-wide">
+                    Calibration Table
+                  </dt>
+                  <dd className="font-mono text-sm text-gray-900 break-all">
+                    {provenance.calUrl ? (
+                      <a
+                        href={provenance.calUrl}
+                        className="text-blue-600 hover:text-blue-800 hover:underline"
+                      >
+                        {provenance.calTable}
+                      </a>
+                    ) : (
+                      provenance.calTable
+                    )}
+                  </dd>
+                </div>
+              )}
+            </dl>
+          </Card>
+
+          {/* Related resources */}
+          <Card title="Related Resources">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {provenance.msUrl && (
+                <Link
+                  to={provenance.msUrl}
+                  className="p-3 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-colors flex items-center gap-3"
+                >
+                  <span className="text-2xl">📁</span>
+                  <div>
+                    <div className="font-medium text-gray-900">Measurement Set</div>
+                    <div className="text-xs text-gray-500">View MS details</div>
+                  </div>
+                </Link>
+              )}
+              {provenance.imageUrl && (
+                <Link
+                  to={provenance.imageUrl}
+                  className="p-3 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-colors flex items-center gap-3"
+                >
+                  <span className="text-2xl">🖼️</span>
+                  <div>
+                    <div className="font-medium text-gray-900">Output Image</div>
+                    <div className="text-xs text-gray-500">View image details</div>
+                  </div>
+                </Link>
+              )}
+              {provenance.logsUrl && (
+                <a
+                  href={provenance.logsUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="p-3 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-colors flex items-center gap-3"
+                >
+                  <span className="text-2xl">📜</span>
+                  <div>
+                    <div className="font-medium text-gray-900">Logs</div>
+                    <div className="text-xs text-gray-500">View job logs</div>
+                  </div>
+                </a>
+              )}
+              {provenance.qaUrl && (
+                <a
+                  href={provenance.qaUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="p-3 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-colors flex items-center gap-3"
+                >
+                  <span className="text-2xl">📊</span>
+                  <div>
+                    <div className="font-medium text-gray-900">QA Report</div>
+                    <div className="text-xs text-gray-500">Quality assessment</div>
+                  </div>
+                </a>
+              )}
+            </div>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 };

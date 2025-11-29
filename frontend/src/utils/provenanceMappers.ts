@@ -16,6 +16,13 @@ export interface ImageDetailResponse {
   qa_summary?: string;
   run_id?: string;
   created_at?: string;
+  // QA metrics fields
+  noise_jy?: number;
+  dynamic_range?: number;
+  beam_major_arcsec?: number;
+  beam_minor_arcsec?: number;
+  beam_pa_deg?: number;
+  peak_flux_jy?: number;
 }
 
 export interface MSDetailResponse {
@@ -40,6 +47,7 @@ export interface SourceDetailResponse {
     ms_path?: string;
     qa_grade?: "good" | "warn" | "fail" | null;
     created_at?: string;
+    flux_jy?: number;
   }>;
   latest_image_id?: string;
 }

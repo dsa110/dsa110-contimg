@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import ProvenanceStrip from "../components/provenance/ProvenanceStrip";
 import ErrorDisplay from "../components/errors/ErrorDisplay";
+import { Card, CoordinateDisplay, QAMetrics } from "../components/common";
 import { mapProvenanceFromSourceDetail, SourceDetailResponse } from "../utils/provenanceMappers";
+import { relativeTime } from "../utils/relativeTime";
 import type { ErrorResponse } from "../types/errors";
 import type { ProvenanceStripProps } from "../types/provenance";
 import { useSource } from "../hooks/useQueries";
@@ -35,15 +37,15 @@ const SourceDetailPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="page-loading" style={{ padding: "20px", textAlign: "center" }}>
-        Loading source details...
+      <div className="flex items-center justify-center py-12">
+        <div className="animate-pulse text-gray-500">Loading source details...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="page-error" style={{ padding: "20px" }}>
+      <div className="max-w-4xl mx-auto p-6">
         <ErrorDisplay error={error as unknown as ErrorResponse} onRetry={() => refetch()} />
       </div>
     );
@@ -51,166 +53,225 @@ const SourceDetailPage: React.FC = () => {
 
   if (!source) {
     return (
-      <div className="page-empty" style={{ padding: "20px" }}>
-        <p>Source not found.</p>
-        <Link to="/sources">← Back to Sources</Link>
+      <div className="max-w-4xl mx-auto p-6">
+        <Card>
+          <p className="text-gray-500 mb-4">Source not found.</p>
+          <Link to="/sources" className="link">
+            ← Back to Sources
+          </Link>
+        </Card>
       </div>
     );
   }
 
-  // Cast for provenance mapper (API response may have additional fields)
+  // Cast for provenance mapper
   const sourceData = source as unknown as SourceDetailResponse;
-
   const provenance: ProvenanceStripProps | null = mapProvenanceFromSourceDetail(
     sourceData,
     selectedImageId
   );
 
   return (
-    <div className="source-detail-page" style={{ padding: "20px" }}>
-      <header style={{ marginBottom: "20px" }}>
-        <h1 style={{ margin: "0 0 12px" }}>Source: {sourceData.name || sourceData.id}</h1>
+    <div className="max-w-6xl mx-auto p-6">
+      {/* Header */}
+      <div className="mb-6">
+        <Link to="/sources" className="text-sm text-gray-500 hover:text-gray-700 mb-2 inline-block">
+          ← Back to Sources
+        </Link>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">
+          {sourceData.name || `Source ${sourceData.id}`}
+        </h1>
         {provenance && <ProvenanceStrip {...provenance} />}
-      </header>
+      </div>
 
-      <section className="source-coordinates" style={{ marginBottom: "20px" }}>
-        <h2>Coordinates</h2>
-        <table style={{ borderCollapse: "collapse", width: "100%", maxWidth: "400px" }}>
-          <tbody>
-            <tr>
-              <td style={{ padding: "8px", borderBottom: "1px solid #eee", fontWeight: "bold" }}>
-                RA
-              </td>
-              <td style={{ padding: "8px", borderBottom: "1px solid #eee" }}>
-                {sourceData.ra_deg.toFixed(6)}°
-              </td>
-            </tr>
-            <tr>
-              <td style={{ padding: "8px", borderBottom: "1px solid #eee", fontWeight: "bold" }}>
-                Dec
-              </td>
-              <td style={{ padding: "8px", borderBottom: "1px solid #eee" }}>
-                {sourceData.dec_deg.toFixed(6)}°
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
-
-      {sourceData.contributing_images && sourceData.contributing_images.length > 0 && (
-        <section className="source-images" style={{ marginBottom: "20px" }}>
-          <h2>Contributing Images ({sourceData.contributing_images.length})</h2>
-          <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxWidth: "600px" }}>
-            {sourceData.contributing_images.map((img) => (
-              <div
-                key={img.image_id}
-                style={{
-                  padding: "12px",
-                  border: selectedImageId === img.image_id ? "2px solid #0066cc" : "1px solid #ddd",
-                  borderRadius: "4px",
-                  cursor: "pointer",
-                  backgroundColor: selectedImageId === img.image_id ? "#f0f7ff" : "white",
-                }}
-                onClick={() => setSelectedImageId(img.image_id)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    setSelectedImageId(img.image_id);
-                  }
-                }}
-                role="button"
-                tabIndex={0}
+      {/* Main content grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left column - Coordinates and actions */}
+        <div className="lg:col-span-1 space-y-6">
+          {/* Coordinates */}
+          <Card title="Position">
+            <CoordinateDisplay raDeg={sourceData.ra_deg} decDeg={sourceData.dec_deg} showDecimal />
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              <a
+                href={`https://simbad.u-strasbg.fr/simbad/sim-coo?Coord=${sourceData.ra_deg}+${sourceData.dec_deg}&CooFrame=FK5&CooEpoch=2000&CooEqui=2000&Radius=2&Radius.unit=arcmin`}
+                target="_blank"
+                rel="noreferrer"
+                className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
               >
-                <div style={{ fontWeight: "bold" }}>
-                  <a href={`/images/${img.image_id}`}>{img.path.split("/").pop()}</a>
-                </div>
-                {img.ms_path && (
-                  <div style={{ fontSize: "0.9em", color: "#666" }}>
-                    MS: {img.ms_path.split("/").pop()}
-                  </div>
-                )}
-                <div style={{ display: "flex", gap: "8px", marginTop: "4px" }}>
-                  {img.qa_grade && (
-                    <span
-                      style={{
-                        padding: "2px 6px",
-                        borderRadius: "3px",
-                        fontSize: "0.8em",
-                        backgroundColor:
-                          img.qa_grade === "good"
-                            ? "#d4edda"
-                            : img.qa_grade === "warn"
-                            ? "#fff3cd"
-                            : "#f8d7da",
-                        color:
-                          img.qa_grade === "good"
-                            ? "#155724"
-                            : img.qa_grade === "warn"
-                            ? "#856404"
-                            : "#721c24",
-                      }}
-                    >
-                      {img.qa_grade.toUpperCase()}
-                    </span>
-                  )}
-                  {img.created_at && (
-                    <span style={{ fontSize: "0.8em", color: "#999" }}>
-                      {new Date(img.created_at).toLocaleDateString()}
-                    </span>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+                Search in SIMBAD →
+              </a>
+            </div>
+          </Card>
 
-      <section
-        className="source-actions"
-        style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}
-      >
-        <button
-          type="button"
-          style={{
-            padding: "10px 16px",
-            backgroundColor: "#0066cc",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-          onClick={() => window.open(`/api/sources/${sourceId}/lightcurve`, "_blank")}
-        >
-          View Lightcurve
-        </button>
-        <button
-          type="button"
-          style={{
-            padding: "10px 16px",
-            backgroundColor: "#28a745",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-          onClick={() => window.open(`/api/sources/${sourceId}/postage_stamps`, "_blank")}
-        >
-          Download Postage Stamps
-        </button>
-        <button
-          type="button"
-          style={{
-            padding: "10px 16px",
-            backgroundColor: "#6c757d",
-            color: "white",
-            border: "none",
-            borderRadius: "4px",
-            cursor: "pointer",
-          }}
-          onClick={() => window.open(`/api/sources/${sourceId}/variability`, "_blank")}
-        >
-          Variability Analysis
-        </button>
-      </section>
+          {/* Actions */}
+          <Card title="Actions">
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() =>
+                  window.open(
+                    `${import.meta.env.VITE_API_URL || "/api"}/sources/${sourceId}/lightcurve`,
+                    "_blank"
+                  )
+                }
+              >
+                📈 View Lightcurve
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() =>
+                  window.open(
+                    `${import.meta.env.VITE_API_URL || "/api"}/sources/${sourceId}/postage_stamps`,
+                    "_blank"
+                  )
+                }
+              >
+                🖼️ Download Postage Stamps
+              </button>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() =>
+                  window.open(
+                    `${import.meta.env.VITE_API_URL || "/api"}/sources/${sourceId}/variability`,
+                    "_blank"
+                  )
+                }
+              >
+                📊 Variability Analysis
+              </button>
+            </div>
+          </Card>
+
+          {/* Source metadata */}
+          <Card title="Details">
+            <dl className="space-y-3">
+              <div>
+                <dt className="text-xs text-gray-500 uppercase tracking-wide">Source ID</dt>
+                <dd className="font-mono text-sm text-gray-900">{sourceData.id}</dd>
+              </div>
+              {sourceData.name && (
+                <div>
+                  <dt className="text-xs text-gray-500 uppercase tracking-wide">Name</dt>
+                  <dd className="text-sm text-gray-900">{sourceData.name}</dd>
+                </div>
+              )}
+              <div>
+                <dt className="text-xs text-gray-500 uppercase tracking-wide">Detections</dt>
+                <dd className="text-sm text-gray-900">
+                  {sourceData.contributing_images?.length || 0} images
+                </dd>
+              </div>
+            </dl>
+          </Card>
+        </div>
+
+        {/* Right column - Contributing images */}
+        <div className="lg:col-span-2 space-y-6">
+          {sourceData.contributing_images && sourceData.contributing_images.length > 0 && (
+            <Card
+              title="Contributing Images"
+              subtitle={`${sourceData.contributing_images.length} detection${
+                sourceData.contributing_images.length !== 1 ? "s" : ""
+              }`}
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {sourceData.contributing_images.map((img) => (
+                  <div
+                    key={img.image_id}
+                    className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                      selectedImageId === img.image_id
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 hover:border-gray-300 bg-white"
+                    }`}
+                    onClick={() => setSelectedImageId(img.image_id)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        setSelectedImageId(img.image_id);
+                      }
+                    }}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <Link
+                          to={`/images/${img.image_id}`}
+                          className="font-medium text-gray-900 hover:text-blue-600 truncate block"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {img.path?.split("/").pop() || img.image_id}
+                        </Link>
+                        {img.ms_path && (
+                          <div className="text-xs text-gray-500 truncate mt-0.5">
+                            MS: {img.ms_path.split("/").pop()}
+                          </div>
+                        )}
+                      </div>
+                      {img.qa_grade && (
+                        <span
+                          className={`badge ml-2 ${
+                            img.qa_grade === "good"
+                              ? "badge-success"
+                              : img.qa_grade === "warn"
+                              ? "badge-warning"
+                              : "badge-error"
+                          }`}
+                        >
+                          {img.qa_grade}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Flux and date info */}
+                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                      {img.flux_jy !== undefined && (
+                        <span>
+                          <span className="font-medium">Flux:</span>{" "}
+                          {img.flux_jy < 0.001
+                            ? `${(img.flux_jy * 1e6).toFixed(1)} μJy`
+                            : img.flux_jy < 1
+                            ? `${(img.flux_jy * 1e3).toFixed(2)} mJy`
+                            : `${img.flux_jy.toFixed(3)} Jy`}
+                        </span>
+                      )}
+                      {img.created_at && (
+                        <span title={new Date(img.created_at).toLocaleString()}>
+                          {relativeTime(img.created_at)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </Card>
+          )}
+
+          {/* Empty state */}
+          {(!sourceData.contributing_images || sourceData.contributing_images.length === 0) && (
+            <Card>
+              <div className="text-center py-8 text-gray-500">
+                <svg
+                  className="w-12 h-12 mx-auto mb-3 text-gray-300"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <p>No contributing images found for this source.</p>
+              </div>
+            </Card>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
