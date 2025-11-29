@@ -9,13 +9,13 @@ CASA Measurement Sets (MS), optionally triggering calibration and imaging.
 
 ## Quick Links
 
-| Document | Description |
-|----------|-------------|
-| [Quick Start](quickstart.md) | Get streaming running in 5 minutes |
-| [Deployment](deployment.md) | Docker Compose and systemd deployment |
-| [Troubleshooting](troubleshooting.md) | Common issues and solutions |
-| [API Reference](api.md) | REST API endpoints |
-| [Architecture](../../architecture/pipeline/streaming-architecture.md) | System design |
+| Document                                                              | Description                           |
+| --------------------------------------------------------------------- | ------------------------------------- |
+| [Quick Start](quickstart.md)                                          | Get streaming running in 5 minutes    |
+| [Deployment](deployment.md)                                           | Docker Compose and systemd deployment |
+| [Troubleshooting](troubleshooting.md)                                 | Common issues and solutions           |
+| [API Reference](api.md)                                               | REST API endpoints                    |
+| [Architecture](../../architecture/pipeline/streaming-architecture.md) | System design                         |
 
 ---
 
@@ -45,11 +45,13 @@ CASA Measurement Sets (MS), optionally triggering calibration and imaging.
 **Page:** Dashboard → Streaming (`/streaming`)
 
 **Controls:**
+
 - Start, Stop, Restart service
 - Edit configuration
 - View status, metrics, queue
 
 **Health Indicators:**
+
 - Service uptime
 - CPU/memory usage
 - Error indicators
@@ -90,15 +92,15 @@ scripts/run_conversion.sh /path/to/uvh5_dir /stage/dsa110-contimg/ms \
 
 The `ingest_queue` table uses this state machine:
 
-| State | Description |
-|-------|-------------|
-| `collecting` | Waiting for all 16 subbands |
-| `pending` | Ready for processing |
-| `in_progress` | Claimed by a worker |
-| `processing_fresh` | First-pass conversion |
-| `resuming` | Recovery from checkpoint |
-| `failed` | Exceeded retry budget |
-| `completed` | MS written successfully |
+| State              | Description                 |
+| ------------------ | --------------------------- |
+| `collecting`       | Waiting for all 16 subbands |
+| `pending`          | Ready for processing        |
+| `in_progress`      | Claimed by a worker         |
+| `processing_fresh` | First-pass conversion       |
+| `resuming`         | Recovery from checkpoint    |
+| `failed`           | Exceeded retry budget       |
+| `completed`        | MS written successfully     |
 
 ---
 
@@ -115,14 +117,14 @@ The `ingest_queue` table uses this state machine:
 
 Key parameters:
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `input_dir` | `/data/incoming` | Watch directory for UVH5 files |
-| `output_dir` | `/stage/dsa110-contimg/ms` | Output directory for MS |
-| `expected_subbands` | 16 | Number of subbands per timestamp |
-| `chunk_duration` | 5.0 | Time chunk in seconds |
-| `max_workers` | 4 | Parallel conversion workers |
-| `stage_to_tmpfs` | false | Use RAM for staging |
+| Parameter           | Default                    | Description                      |
+| ------------------- | -------------------------- | -------------------------------- |
+| `input_dir`         | `/data/incoming`           | Watch directory for UVH5 files   |
+| `output_dir`        | `/stage/dsa110-contimg/ms` | Output directory for MS          |
+| `expected_subbands` | 16                         | Number of subbands per timestamp |
+| `chunk_duration`    | 5.0                        | Time chunk in seconds            |
+| `max_workers`       | 4                          | Parallel conversion workers      |
+| `stage_to_tmpfs`    | false                      | Use RAM for staging              |
 
 ---
 

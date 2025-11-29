@@ -6,10 +6,10 @@ Detailed deployment options for the streaming service.
 
 ## Deployment Options
 
-| Method | Best For | Pros | Cons |
-|--------|----------|------|------|
+| Method         | Best For               | Pros                 | Cons            |
+| -------------- | ---------------------- | -------------------- | --------------- |
 | Docker Compose | Full stack development | Easy setup, isolated | Requires Docker |
-| systemd | Production hosts | Native, persistent | Manual setup |
+| systemd        | Production hosts       | Native, persistent   | Manual setup    |
 
 ---
 
@@ -245,6 +245,7 @@ curl -X POST http://localhost:8010/api/streaming/config \
 ```
 
 **Requirements:**
+
 - Sufficient RAM (files are ~500MB each)
 - tmpfs mounted at `/dev/shm`
 
@@ -259,6 +260,7 @@ curl -X POST http://localhost:8010/api/streaming/config \
 ```
 
 **Guidelines:**
+
 - 2-4 workers for most systems
 - More workers = higher CPU/memory usage
 - Too many workers can cause resource contention

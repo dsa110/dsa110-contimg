@@ -1,14 +1,26 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useJobs } from "../hooks/useQueries";
 import { relativeTime } from "../utils/relativeTime";
-import { LoadingSpinner } from "../components/common";
+import { LoadingSpinner, SortableTableHeader, useTableSort } from "../components/common";
+
+interface JobItem {
+  run_id: string;
+  status: string;
+  started_at?: string;
+}
 
 /**
- * List page showing all pipeline jobs.
+ * List page showing all pipeline jobs with sortable columns.
  */
 const JobsListPage: React.FC = () => {
   const { data: jobs, isLoading, error } = useJobs();
+  const { sortKey, sortDirection, handleSort, sortItems } = useTableSort<JobItem>("started_at", "desc");
+
+  const sortedJobs = useMemo(() => {
+    if (!jobs) return [];
+    return sortItems(jobs, sortKey, sortDirection);
+  }, [jobs, sortKey, sortDirection, sortItems]);
 
   if (isLoading) {
     return <LoadingSpinner label="Loading jobs..." />;
@@ -41,18 +53,38 @@ const JobsListPage: React.FC = () => {
     <div className="max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Pipeline Jobs</h1>
 
-      {jobs && jobs.length > 0 ? (
+      {sortedJobs && sortedJobs.length > 0 ? (
         <div className="card overflow-hidden">
           <table className="table">
             <thead>
               <tr>
-                <th>Run ID</th>
-                <th className="text-center">Status</th>
-                <th className="text-right">Started</th>
+                <SortableTableHeader
+                  label="Run ID"
+                  sortKey="run_id"
+                  currentSortKey={sortKey}
+                  direction={sortDirection}
+                  onSort={handleSort}
+                />
+                <SortableTableHeader
+                  label="Status"
+                  sortKey="status"
+                  currentSortKey={sortKey}
+                  direction={sortDirection}
+                  onSort={handleSort}
+                  className="text-center"
+                />
+                <SortableTableHeader
+                  label="Started"
+                  sortKey="started_at"
+                  currentSortKey={sortKey}
+                  direction={sortDirection}
+                  onSort={handleSort}
+                  className="text-right"
+                />
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {jobs.map((job) => (
+              {sortedJobs.map((job) => (
                 <tr key={job.run_id}>
                   <td>
                     <Link

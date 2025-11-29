@@ -1,13 +1,26 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useImages } from "../hooks/useQueries";
-import { LoadingSpinner } from "../components/common";
+import { LoadingSpinner, SortableTableHeader, useTableSort } from "../components/common";
+
+interface ImageItem {
+  id: string;
+  path?: string;
+  qa_grade?: string;
+  created_at?: string;
+}
 
 /**
- * List page showing all images.
+ * List page showing all images with sortable table headers.
  */
 const ImagesListPage: React.FC = () => {
   const { data: images, isLoading, error } = useImages();
+  const { sortKey, sortDirection, handleSort, sortItems } = useTableSort<ImageItem>("created_at", "desc");
+
+  const sortedImages = useMemo(() => {
+    if (!images) return [];
+    return sortItems(images, sortKey, sortDirection);
+  }, [images, sortKey, sortDirection, sortItems]);
 
   if (isLoading) {
     return <LoadingSpinner label="Loading images..." />;
@@ -25,39 +38,71 @@ const ImagesListPage: React.FC = () => {
     <div className="max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Images</h1>
 
-      {images && images.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {images.map((image) => (
-            <Link
-              key={image.id}
-              to={`/images/${image.id}`}
-              className="card p-4 hover:shadow-lg transition-shadow"
-            >
-              <h3 className="font-medium text-gray-900 mb-2 truncate">
-                {image.path?.split("/").pop() || image.id}
-              </h3>
-              <div className="flex items-center gap-2 text-sm">
-                {image.qa_grade && (
-                  <span
-                    className={`badge ${
-                      image.qa_grade === "good"
-                        ? "badge-success"
-                        : image.qa_grade === "warn"
-                        ? "badge-warning"
-                        : "badge-error"
-                    }`}
-                  >
-                    {image.qa_grade}
-                  </span>
-                )}
-                {image.created_at && (
-                  <span className="text-gray-500">
-                    {new Date(image.created_at).toLocaleDateString()}
-                  </span>
-                )}
-              </div>
-            </Link>
-          ))}
+      {sortedImages && sortedImages.length > 0 ? (
+        <div className="card overflow-hidden">
+          <table className="table">
+            <thead>
+              <tr>
+                <SortableTableHeader
+                  label="Name"
+                  sortKey="path"
+                  currentSortKey={sortKey}
+                  direction={sortDirection}
+                  onSort={handleSort}
+                />
+                <SortableTableHeader
+                  label="QA Grade"
+                  sortKey="qa_grade"
+                  currentSortKey={sortKey}
+                  direction={sortDirection}
+                  onSort={handleSort}
+                  className="text-center"
+                />
+                <SortableTableHeader
+                  label="Created"
+                  sortKey="created_at"
+                  currentSortKey={sortKey}
+                  direction={sortDirection}
+                  onSort={handleSort}
+                  className="text-right"
+                />
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {sortedImages.map((image) => (
+                <tr key={image.id}>
+                  <td>
+                    <Link
+                      to={`/images/${image.id}`}
+                      className="text-blue-600 hover:text-blue-800 font-medium"
+                    >
+                      {image.path?.split("/").pop() || image.id}
+                    </Link>
+                  </td>
+                  <td className="text-center">
+                    {image.qa_grade && (
+                      <span
+                        className={`badge ${
+                          image.qa_grade === "good"
+                            ? "badge-success"
+                            : image.qa_grade === "warn"
+                            ? "badge-warning"
+                            : "badge-error"
+                        }`}
+                      >
+                        {image.qa_grade}
+                      </span>
+                    )}
+                  </td>
+                  <td className="text-right text-gray-500">
+                    {image.created_at
+                      ? new Date(image.created_at).toLocaleDateString()
+                      : "—"}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       ) : (
         <p className="text-gray-500">No images found.</p>

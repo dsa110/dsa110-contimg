@@ -2,7 +2,6 @@
 Pytest configuration and shared fixtures.
 """
 
-import atexit
 import gc
 import sys
 import pytest
@@ -13,38 +12,53 @@ from fastapi.testclient import TestClient
 from dsa110_contimg.api.app import create_app
 
 
-def _cleanup_casa_modules():
-    """Clean up CASA modules to prevent C++ runtime errors on shutdown.
+def _cleanup_casa():
+    """Clean up CASA to prevent C++ runtime errors on shutdown.
     
-    CASA's C++ backend can throw 'casatools::get_state() called after 
-    shutdown initiated' if Python's garbage collector destroys CASA objects
-    in the wrong order during interpreter shutdown. By explicitly removing
-    CASA module references and forcing garbage collection before the 
-    interpreter exits, we ensure proper cleanup order.
+    CASA's C++ backend throws 'casatools::get_state() called after 
+    shutdown initiated' if the internal gRPC service is still running
+    when Python exits. We must remove the service before exit.
     """
-    # Force garbage collection first to release any CASA object references
+    # Only clean up if casatools was actually imported
+    if 'casatools' not in sys.modules:
+        return
+        
+    try:
+        casatools = sys.modules['casatools']
+        # Remove the CASA gRPC service - this is the key fix
+        reg = casatools.ctsys.registry()
+        if reg and 'uri' in reg:
+            casatools.ctsys.remove_service(reg['uri'])
+    except Exception:
+        pass
+    
+    # Force garbage collection to release CASA object references
     gc.collect()
     
-    # Remove all CASA-related modules from sys.modules
-    # This must happen before Python's final cleanup phase
+    # Remove CASA modules from sys.modules
     casa_modules = [m for m in list(sys.modules.keys()) if 'casa' in m.lower()]
     for mod_name in reversed(sorted(casa_modules)):
         try:
             mod = sys.modules.get(mod_name)
-            if mod is not None:
-                # Clear module dict to release references
-                if hasattr(mod, '__dict__'):
+            if mod is not None and hasattr(mod, '__dict__'):
+                try:
                     mod.__dict__.clear()
+                except (TypeError, RuntimeError):
+                    pass
             del sys.modules[mod_name]
         except (KeyError, AttributeError, TypeError):
             pass
     
-    # Force another GC pass to clean up the cleared modules
     gc.collect()
 
 
-# Register cleanup to run at interpreter exit (before C++ destructors)
-atexit.register(_cleanup_casa_modules)
+def pytest_sessionfinish(session, exitstatus):
+    """Called after whole test run finished, right before returning exit status.
+    
+    This hook runs after all tests complete but before Python starts its
+    shutdown sequence, making it the ideal place to clean up CASA.
+    """
+    _cleanup_casa()
 
 
 @pytest.fixture(scope="session")

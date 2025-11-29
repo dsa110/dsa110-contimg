@@ -21,20 +21,21 @@ docker-compose logs stream | tail -50
 
 ### Common Symptoms
 
-| Symptom | Likely Cause | Quick Fix |
-|---------|--------------|-----------|
-| Service won't start | Config error, missing dirs | Check config, verify paths |
-| Stops immediately | Python/CASA unavailable | Check Python path, permissions |
-| No files processing | Input dir inaccessible | Verify input_dir, permissions |
-| High CPU usage | Too many workers | Reduce max_workers |
-| High memory usage | Large files, memory leak | Check file sizes, restart |
-| Queue not processing | Worker stuck, DB locked | Check queue state, restart |
+| Symptom              | Likely Cause               | Quick Fix                      |
+| -------------------- | -------------------------- | ------------------------------ |
+| Service won't start  | Config error, missing dirs | Check config, verify paths     |
+| Stops immediately    | Python/CASA unavailable    | Check Python path, permissions |
+| No files processing  | Input dir inaccessible     | Verify input_dir, permissions  |
+| High CPU usage       | Too many workers           | Reduce max_workers             |
+| High memory usage    | Large files, memory leak   | Check file sizes, restart      |
+| Queue not processing | Worker stuck, DB locked    | Check queue state, restart     |
 
 ---
 
 ## Issue 1: Service Won't Start
 
 ### Symptoms
+
 - Start button returns error
 - Status shows "Stopped" immediately after start
 - Error: "Failed to start streaming service"
@@ -60,6 +61,7 @@ ls -la /opt/miniforge/envs/casa6/bin/python
 ### Solutions
 
 **Configuration Error:**
+
 ```bash
 curl -X POST http://localhost:8010/api/streaming/config \
   -H "Content-Type: application/json" \
@@ -72,6 +74,7 @@ curl -X POST http://localhost:8010/api/streaming/config \
 ```
 
 **Missing Directories:**
+
 ```bash
 mkdir -p /data/incoming
 mkdir -p /stage/dsa110-contimg/ms
@@ -79,6 +82,7 @@ chmod 755 /data/incoming /stage/dsa110-contimg/ms
 ```
 
 **Permission Denied:**
+
 ```bash
 sudo chown -R $USER:$USER /data/incoming
 sudo chown -R $USER:$USER /stage/dsa110-contimg
@@ -89,6 +93,7 @@ sudo chown -R $USER:$USER /stage/dsa110-contimg
 ## Issue 2: Service Starts But Stops Immediately
 
 ### Symptoms
+
 - Service appears to start
 - Status shows "Running" briefly, then "Stopped"
 - No error in dashboard
@@ -111,17 +116,20 @@ dmesg | tail -20
 ### Solutions
 
 **Python Import Error:**
+
 ```bash
 docker-compose exec stream python -c "import dsa110_contimg.conversion.streaming.streaming_converter"
 ```
 
 **Out of Disk Space:**
+
 ```bash
 df -h
 find /stage/dsa110-contimg -type f -mtime +30 -delete
 ```
 
 **Out of Memory (OOM):**
+
 ```bash
 dmesg | grep -i "oom\|killed"
 
@@ -132,6 +140,7 @@ curl -X POST http://localhost:8010/api/streaming/config \
 ```
 
 **Database Locked:**
+
 ```bash
 sqlite3 state/ingest.sqlite3 "SELECT * FROM sqlite_master WHERE type='table';"
 docker-compose restart stream
@@ -142,6 +151,7 @@ docker-compose restart stream
 ## Issue 3: Not Processing Files
 
 ### Symptoms
+
 - Service running but no conversions
 - Queue items stuck in "pending" or "collecting"
 
@@ -162,6 +172,7 @@ docker-compose logs stream | grep -i "worker\|processing" | tail -20
 ### Solutions
 
 **Files Not Arriving:**
+
 ```bash
 # Check input directory setting
 curl http://localhost:8010/api/streaming/config | jq .input_dir
@@ -171,6 +182,7 @@ ls /data/incoming/*_sb*.hdf5 | head -5
 ```
 
 **Wrong Expected Subbands:**
+
 ```bash
 # Update if you have different subband count
 curl -X POST http://localhost:8010/api/streaming/config \
@@ -179,6 +191,7 @@ curl -X POST http://localhost:8010/api/streaming/config \
 ```
 
 **Queue Stuck:**
+
 ```bash
 # Check stuck items
 sqlite3 state/ingest.sqlite3 "SELECT group_id, state, retry_count FROM ingest_queue WHERE state='in_progress';"
@@ -195,6 +208,7 @@ curl -X POST http://localhost:8010/api/streaming/restart
 ## Issue 4: High CPU Usage
 
 ### Symptoms
+
 - CPU usage >80%
 - System unresponsive
 
@@ -209,6 +223,7 @@ docker stats contimg-stream --no-stream
 ### Solutions
 
 **Reduce Workers:**
+
 ```bash
 curl -X POST http://localhost:8010/api/streaming/config \
   -H "Content-Type: application/json" \
@@ -218,6 +233,7 @@ curl -X POST http://localhost:8010/api/streaming/restart
 ```
 
 **Limit CASA Threads:**
+
 ```bash
 export OMP_NUM_THREADS=4
 export MKL_NUM_THREADS=4
@@ -228,6 +244,7 @@ export MKL_NUM_THREADS=4
 ## Issue 5: High Memory Usage
 
 ### Symptoms
+
 - Memory >8GB
 - System swapping
 - OOM crashes
@@ -243,6 +260,7 @@ du -sh /data/incoming/*.hdf5 | sort -h | tail -5
 ### Solutions
 
 **Reduce Workers:**
+
 ```bash
 curl -X POST http://localhost:8010/api/streaming/config \
   -H "Content-Type: application/json" \
@@ -250,6 +268,7 @@ curl -X POST http://localhost:8010/api/streaming/config \
 ```
 
 **Enable tmpfs (if sufficient RAM):**
+
 ```bash
 curl -X POST http://localhost:8010/api/streaming/config \
   -H "Content-Type: application/json" \
@@ -261,6 +280,7 @@ curl -X POST http://localhost:8010/api/streaming/config \
 ## Issue 6: Dashboard Shows Stale Status
 
 ### Symptoms
+
 - Status doesn't update
 - Old data displayed
 
@@ -293,11 +313,11 @@ docker-compose logs stream | grep -i "worker"
 
 ### Log Locations
 
-| Deployment | Location |
-|------------|----------|
-| Docker | `docker-compose logs stream` |
-| systemd | `journalctl -u contimg-stream` |
-| File | `/data/dsa110-contimg/state/logs/streaming.log` |
+| Deployment | Location                                        |
+| ---------- | ----------------------------------------------- |
+| Docker     | `docker-compose logs stream`                    |
+| systemd    | `journalctl -u contimg-stream`                  |
+| File       | `/data/dsa110-contimg/state/logs/streaming.log` |
 
 ---
 
@@ -348,6 +368,7 @@ curl -X POST http://localhost:8010/api/streaming/start
 If issues persist:
 
 1. Collect logs: `docker-compose logs stream > streaming_logs.txt`
-2. Collect config: `curl http://localhost:8010/api/streaming/config > config.json`
+2. Collect config:
+   `curl http://localhost:8010/api/streaming/config > config.json`
 3. Check system resources: `free -h; df -h; top -bn1 | head -20`
 4. Review recent changes to configuration or environment
