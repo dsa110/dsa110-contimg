@@ -274,6 +274,27 @@ const LightCurveChart: React.FC<LightCurveChartProps> = ({
 
   const heightStyle = typeof height === "number" ? `${height}px` : height;
 
+  if (!libraryLoaded) {
+    return (
+      <div
+        className={`bg-gray-100 rounded-lg flex items-center justify-center ${className}`}
+        style={{ height: typeof height === "number" ? `${height}px` : height }}
+      >
+        <div className="flex flex-col items-center text-gray-600 gap-2">
+          <p className="text-sm">Chart library is not loaded.</p>
+          <button
+            type="button"
+            className="btn btn-primary btn-sm"
+            onClick={() => setLibraryLoaded(true)}
+            aria-label="Load chart"
+          >
+            Load chart
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (error) {
     return (
       <div
