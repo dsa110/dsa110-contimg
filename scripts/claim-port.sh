@@ -17,13 +17,13 @@ fi
 
 # Check if port has a listener (not just connections)
 check_listener() {
-    lsof -i ":$PORT" -sTCP:LISTEN -t 2>/dev/null || true
+    lsof -i ":$PORT" -sTCP:LISTEN -t 2>/dev/null  # Exception: port check may fail if no listener || true
 }
 
 # Get process info for logging
 get_process_info() {
     local pid="$1"
-    ps -p "$pid" -o pid=,comm=,user= 2>/dev/null || echo "$pid unknown unknown"
+    ps -p "$pid" -o pid=,comm=,user= 2>/dev/null  # Exception: process may have exited || echo "$pid unknown unknown"
 }
 
 PIDS=$(check_listener)
@@ -45,9 +45,9 @@ fi
 
 echo "Attempting graceful shutdown (SIGTERM)..."
 for pid in $PIDS; do
-    if kill -0 "$pid" 2>/dev/null; then
+    if kill -0 "$pid" 2>/dev/null  # Exception: process existence check; then
         echo "  Sending SIGTERM to $pid"
-        kill -TERM "$pid" 2>/dev/null || true
+        kill -TERM "$pid" 2>/dev/null  # Exception: process may have exited || true
     fi
 done
 
@@ -66,9 +66,9 @@ echo "Graceful shutdown incomplete, using SIGKILL..."
 PIDS=$(check_listener)
 if [ -n "$PIDS" ]; then
     for pid in $PIDS; do
-        if kill -0 "$pid" 2>/dev/null; then
+        if kill -0 "$pid" 2>/dev/null  # Exception: process existence check; then
             echo "  Sending SIGKILL to $pid"
-            kill -9 "$pid" 2>/dev/null || true
+            kill -9 "$pid" 2>/dev/null  # Exception: process may have exited || true
         fi
     done
 fi

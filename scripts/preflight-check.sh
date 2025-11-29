@@ -23,7 +23,7 @@ ERRORS=0
 WARNINGS=0
 
 check() {
-    if eval "$2" >/dev/null 2>&1; then
+    if eval "$2" >/dev/null 2>&1  # Exception: check command exit status only; then
         echo -e "${GREEN}✓${NC} $1"
     else
         echo -e "${RED}✗${NC} $1"
@@ -32,7 +32,7 @@ check() {
 }
 
 warn() {
-    if eval "$2" >/dev/null 2>&1; then
+    if eval "$2" >/dev/null 2>&1  # Exception: check command exit status only; then
         echo -e "${GREEN}✓${NC} $1"
     else
         echo -e "${YELLOW}⚠${NC} $1 (optional)"
@@ -68,9 +68,9 @@ warn "dashboard running" "systemctl is-active --quiet dsa110-contimg-dashboard"
 
 echo ""
 echo "--- Ports ---"
-warn "Port 8000 (API) available or in use by our service" "! lsof -i :8000 >/dev/null 2>&1 || systemctl is-active --quiet contimg-api"
-warn "Port 3210 (Dashboard) available or in use by our service" "! lsof -i :3210 >/dev/null 2>&1 || systemctl is-active --quiet dsa110-contimg-dashboard"
-warn "Port 3111 (Dev) available" "! lsof -i :3111 >/dev/null 2>&1"
+warn "Port 8000 (API) available or in use by our service" "! lsof -i :8000 >/dev/null 2>&1  # Exception: port availability check || systemctl is-active --quiet contimg-api"
+warn "Port 3210 (Dashboard) available or in use by our service" "! lsof -i :3210 >/dev/null 2>&1  # Exception: port availability check || systemctl is-active --quiet dsa110-contimg-dashboard"
+warn "Port 3111 (Dev) available" "! lsof -i :3111 >/dev/null 2>&1  # Exception: port availability check"
 
 echo ""
 echo "--- Frontend Build ---"
