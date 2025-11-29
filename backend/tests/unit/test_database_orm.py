@@ -364,20 +364,22 @@ class TestWALMode:
     
     def test_wal_mode_enabled(self):
         """Test that WAL mode is enabled on connections."""
+        from sqlalchemy import text
         engine = get_engine("products", in_memory=True)
         
         with engine.connect() as conn:
-            result = conn.execute("PRAGMA journal_mode").scalar()
+            result = conn.execute(text("PRAGMA journal_mode")).scalar()
             # In-memory databases use 'memory' mode, file-based use 'wal'
             # For in-memory, we just verify the connection works
             assert result in ("memory", "wal")
     
     def test_foreign_keys_enabled(self):
         """Test that foreign keys are enabled."""
+        from sqlalchemy import text
         engine = get_engine("products", in_memory=True)
         
         with engine.connect() as conn:
-            result = conn.execute("PRAGMA foreign_keys").scalar()
+            result = conn.execute(text("PRAGMA foreign_keys")).scalar()
             assert result == 1
 
 

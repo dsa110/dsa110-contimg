@@ -47,7 +47,7 @@ from __future__ import annotations
 import os
 import logging
 from contextlib import contextmanager
-from threading import Lock
+from threading import RLock
 from typing import Optional, Generator, Dict, Literal, TYPE_CHECKING
 
 from sqlalchemy import create_engine, event
@@ -100,7 +100,7 @@ DatabaseName = Literal[
 _engines: Dict[str, Engine] = {}
 _session_factories: Dict[str, sessionmaker] = {}
 _scoped_sessions: Dict[str, scoped_session] = {}
-_lock = Lock()
+_lock = RLock()  # Use RLock for reentrant locking (get_session_factory calls get_engine)
 
 # SQLite connection settings
 SQLITE_TIMEOUT = 30  # seconds

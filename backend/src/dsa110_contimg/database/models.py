@@ -116,7 +116,8 @@ class Image(ProductsBase):
     
     # Relationships
     measurement_set = relationship("MSIndex", back_populates="images")
-    photometry_entries = relationship("Photometry", back_populates="image")
+    # Note: photometry_entries relationship removed - photometry.image_path is just a string
+    # column without FK constraint for backward compatibility
     
     __table_args__ = (
         Index("idx_images_ms_path", "ms_path"),
@@ -132,12 +133,16 @@ class Photometry(ProductsBase):
     
     Records flux measurements for detected sources, supporting lightcurve
     analysis and variability studies.
+    
+    Note: image_path references images.path but the database does not enforce
+    a foreign key constraint for backward compatibility with existing data.
     """
     __tablename__ = "photometry"
     
     id = Column(Integer, primary_key=True, autoincrement=True)
     source_id = Column(String, doc="Unique source identifier")
-    image_path = Column(String, ForeignKey("images.path"), nullable=False, doc="Image path")
+    # No FK constraint - matches actual database schema for backward compatibility
+    image_path = Column(String, nullable=False, doc="Image path (references images.path)")
     ra_deg = Column(Float, nullable=False, doc="Source RA in degrees")
     dec_deg = Column(Float, nullable=False, doc="Source Dec in degrees")
     nvss_flux_mjy = Column(Float, doc="NVSS catalog flux in mJy")
@@ -154,8 +159,8 @@ class Photometry(ProductsBase):
     sep_from_center_deg = Column(Float, doc="Separation from image center in degrees")
     flags = Column(Integer, default=0, doc="Quality flags bitmask")
     
-    # Relationships
-    image = relationship("Image", back_populates="photometry_entries")
+    # Note: No relationship defined here - image_path is just a string column
+    # matching images.path. Use manual queries to join if needed.
     
     __table_args__ = (
         Index("idx_photometry_image", "image_path"),

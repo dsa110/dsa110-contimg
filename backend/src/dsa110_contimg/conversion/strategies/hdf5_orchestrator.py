@@ -1,42 +1,364 @@
+"""
+HDF5 Subband Group Orchestrator for DSA-110 Continuum Imaging Pipeline.
+
+Orchestrates the conversion of HDF5 subband files to Measurement Sets,
+handling subband grouping, combination, and MS writing with proper
+error handling and logging.
+"""
+
+from __future__ import annotations
+
+import os
+import logging
+from pathlib import Path
+from typing import Optional
+
+import numpy as np
+import pyuvdata
+
 from dsa110_contimg.database.hdf5_index import query_subband_groups
 from dsa110_contimg.conversion.strategies.writers import get_writer
 from dsa110_contimg.utils.antpos_local import get_itrf
 from dsa110_contimg.utils import FastMeta
-import os
-import numpy as np
-import pyuvdata
+from dsa110_contimg.utils.exceptions import (
+    ConversionError,
+    SubbandGroupingError,
+    IncompleteSubbandGroupError,
+    UVH5ReadError,
+    MSWriteError,
+    wrap_exception,
+    is_recoverable,
+)
+from dsa110_contimg.utils.logging_config import log_context, log_exception
 
-def convert_subband_groups_to_ms(input_dir, output_dir, start_time, end_time, tolerance_s=60.0):
+logger = logging.getLogger(__name__)
+
+
+def convert_subband_groups_to_ms(
+    input_dir: str,
+    output_dir: str,
+    start_time: str,
+    end_time: str,
+    tolerance_s: float = 60.0,
+    skip_incomplete: bool = True,
+    skip_existing: bool = False,
+) -> dict:
     """
     Orchestrates the conversion of HDF5 subband files to Measurement Sets.
 
     Parameters:
-    - input_dir: Directory containing the HDF5 subband files.
-    - output_dir: Directory where the Measurement Sets will be saved.
-    - start_time: Start time for the conversion window.
-    - end_time: End time for the conversion window.
-    - tolerance_s: Time tolerance for grouping subbands (default: 60 seconds).
+        input_dir: Directory containing the HDF5 subband files.
+        output_dir: Directory where the Measurement Sets will be saved.
+        start_time: Start time for the conversion window (ISO format).
+        end_time: End time for the conversion window (ISO format).
+        tolerance_s: Time tolerance for grouping subbands (default: 60 seconds).
+        skip_incomplete: Skip groups with fewer than 16 subbands (default: True).
+        skip_existing: Skip groups that already have output MS files (default: False).
+
+    Returns:
+        Dictionary with conversion statistics:
+        - converted: List of successfully converted group IDs
+        - skipped: List of skipped group IDs (incomplete or existing)
+        - failed: List of failed group IDs with error details
+
+    Raises:
+        ConversionError: If no groups are found or critical error occurs.
     """
+    results = {
+        "converted": [],
+        "skipped": [],
+        "failed": [],
+    }
+
+    # Validate paths
+    input_path = Path(input_dir)
+    output_path = Path(output_dir)
+
+    if not input_path.exists():
+        raise ConversionError(
+            f"Input directory does not exist: {input_dir}",
+            input_path=input_dir,
+        )
+
+    # Create output directory if needed
+    output_path.mkdir(parents=True, exist_ok=True)
+
     # Query subband groups based on the provided time window
     hdf5_db = os.path.join(input_dir, 'hdf5_file_index.sqlite3')
-    groups = query_subband_groups(hdf5_db, start_time, end_time, tolerance_s=tolerance_s)
+    
+    try:
+        groups = query_subband_groups(hdf5_db, start_time, end_time, tolerance_s=tolerance_s)
+    except Exception as e:
+        raise ConversionError(
+            f"Failed to query subband groups from database: {e}",
+            input_path=input_dir,
+            original_exception=e,
+        ) from e
+
+    if not groups:
+        logger.warning(
+            "No subband groups found in time window",
+            extra={
+                "input_dir": input_dir,
+                "start_time": start_time,
+                "end_time": end_time,
+                "tolerance_s": tolerance_s,
+            }
+        )
+        return results
+
+    logger.info(
+        f"Found {len(groups)} subband groups to process",
+        extra={
+            "input_dir": input_dir,
+            "start_time": start_time,
+            "end_time": end_time,
+            "group_count": len(groups),
+        }
+    )
 
     for group in groups:
-        # Combine subbands using pyuvdata
-        uvdata = pyuvdata.UVData()
-        for subband_file in group:
-            with FastMeta(subband_file) as meta:
-                uvdata.read(subband_file)
+        group_id = _extract_group_id(group)
+        
+        with log_context(group_id=group_id, pipeline_stage="conversion"):
+            try:
+                result = _convert_single_group(
+                    group=group,
+                    group_id=group_id,
+                    output_dir=output_dir,
+                    skip_incomplete=skip_incomplete,
+                    skip_existing=skip_existing,
+                )
+                
+                if result == "converted":
+                    results["converted"].append(group_id)
+                elif result == "skipped":
+                    results["skipped"].append(group_id)
+                    
+            except IncompleteSubbandGroupError as e:
+                # Log warning but continue with next group
+                logger.warning(
+                    str(e),
+                    extra=e.context,
+                )
+                results["skipped"].append(group_id)
+                
+            except (UVH5ReadError, MSWriteError, ConversionError) as e:
+                # Log error with full context
+                log_exception(logger, e, group_id=group_id)
+                results["failed"].append({
+                    "group_id": group_id,
+                    "error": str(e),
+                    "error_type": type(e).__name__,
+                    "recoverable": e.recoverable,
+                })
+                
+                # Re-raise if not recoverable
+                if not e.recoverable:
+                    raise
+                    
+            except Exception as e:
+                # Unexpected error - wrap and log
+                wrapped = wrap_exception(
+                    e,
+                    ConversionError,
+                    f"Unexpected error during conversion: {e}",
+                    group_id=group_id,
+                )
+                log_exception(logger, wrapped, group_id=group_id)
+                results["failed"].append({
+                    "group_id": group_id,
+                    "error": str(e),
+                    "error_type": type(e).__name__,
+                    "recoverable": is_recoverable(e),
+                })
 
-        # Get antenna positions
+    # Log summary
+    logger.info(
+        f"Conversion complete: {len(results['converted'])} converted, "
+        f"{len(results['skipped'])} skipped, {len(results['failed'])} failed",
+        extra={
+            "converted_count": len(results["converted"]),
+            "skipped_count": len(results["skipped"]),
+            "failed_count": len(results["failed"]),
+        }
+    )
+
+    return results
+
+
+def _convert_single_group(
+    group: list[str],
+    group_id: str,
+    output_dir: str,
+    skip_incomplete: bool,
+    skip_existing: bool,
+) -> str:
+    """
+    Convert a single subband group to Measurement Set.
+    
+    Returns:
+        "converted" if successful, "skipped" if skipped
+        
+    Raises:
+        IncompleteSubbandGroupError: If group is incomplete and skip_incomplete=True
+        UVH5ReadError: If reading UVH5 fails
+        MSWriteError: If writing MS fails
+    """
+    # Check for complete group
+    expected_subbands = 16
+    if len(group) < expected_subbands:
+        if skip_incomplete:
+            raise IncompleteSubbandGroupError(
+                group_id=group_id,
+                expected_count=expected_subbands,
+                actual_count=len(group),
+                missing_subbands=_find_missing_subbands(group),
+            )
+        else:
+            logger.warning(
+                f"Processing incomplete group: {len(group)}/{expected_subbands} subbands",
+                extra={
+                    "group_id": group_id,
+                    "subband_count": len(group),
+                    "expected_count": expected_subbands,
+                }
+            )
+
+    # Prepare output path
+    output_path = os.path.join(output_dir, f"{group_id}.ms")
+    
+    if skip_existing and os.path.exists(output_path):
+        logger.info(
+            f"Skipping existing MS: {output_path}",
+            extra={"output_path": output_path}
+        )
+        return "skipped"
+
+    logger.info(
+        f"Converting {len(group)} subbands to {output_path}",
+        extra={
+            "subband_count": len(group),
+            "output_path": output_path,
+            "file_list": group,
+        }
+    )
+
+    # Combine subbands using pyuvdata
+    uvdata = _load_and_combine_subbands(group, group_id)
+
+    # Get antenna positions
+    try:
         antpos = get_itrf()
+        logger.debug("Loaded antenna positions", extra={"ant_count": len(antpos)})
+    except Exception as e:
+        raise ConversionError(
+            f"Failed to load antenna positions: {e}",
+            group_id=group_id,
+            original_exception=e,
+        ) from e
 
-        # Prepare output path for Measurement Set
-        output_path = os.path.join(output_dir, f"{group[0].split('_')[0]}.ms")
-
-        # Get writer class and write the Measurement Set
+    # Write Measurement Set
+    try:
         writer_cls = get_writer('parallel-subband')
         writer_instance = writer_cls(uvdata, output_path)
-        writer_instance.write()
+        writer_type = writer_instance.write()
+        
+        logger.info(
+            f"Successfully wrote MS: {output_path}",
+            extra={
+                "output_path": output_path,
+                "writer_type": writer_type,
+            }
+        )
+    except Exception as e:
+        raise MSWriteError(
+            output_path=output_path,
+            reason=str(e),
+            original_exception=e,
+            group_id=group_id,
+        ) from e
 
-    print("Conversion completed successfully.")
+    return "converted"
+
+
+def _load_and_combine_subbands(group: list[str], group_id: str) -> pyuvdata.UVData:
+    """
+    Load and combine subband files into a single UVData object.
+    
+    Raises:
+        UVH5ReadError: If any subband file fails to read
+    """
+    uvdata = None
+    
+    for i, subband_file in enumerate(sorted(group)):
+        logger.debug(
+            f"Loading subband {i+1}/{len(group)}: {subband_file}",
+            extra={
+                "subband_index": i,
+                "subband_file": subband_file,
+            }
+        )
+        
+        try:
+            # Validate file with fast metadata read first
+            with FastMeta(subband_file) as meta:
+                _ = meta.time_array  # Quick validation
+            
+            # Read full data
+            subband_data = pyuvdata.UVData()
+            subband_data.read(subband_file, strict_uvw_antpos_check=False)
+            
+            if uvdata is None:
+                uvdata = subband_data
+            else:
+                uvdata += subband_data
+                
+        except FileNotFoundError as e:
+            raise UVH5ReadError(
+                file_path=subband_file,
+                reason="File not found",
+                original_exception=e,
+                group_id=group_id,
+            ) from e
+        except Exception as e:
+            raise UVH5ReadError(
+                file_path=subband_file,
+                reason=str(e),
+                original_exception=e,
+                group_id=group_id,
+            ) from e
+    
+    if uvdata is None:
+        raise ConversionError(
+            "No valid subband data loaded",
+            group_id=group_id,
+        )
+    
+    return uvdata
+
+
+def _extract_group_id(group: list[str]) -> str:
+    """Extract group ID (timestamp) from first file in group."""
+    if not group:
+        return "unknown"
+    
+    first_file = os.path.basename(group[0])
+    # Format: 2025-01-15T12:30:00_sb00.hdf5
+    return first_file.rsplit("_sb", 1)[0]
+
+
+def _find_missing_subbands(group: list[str]) -> list[str]:
+    """Find which subband indices are missing from a group."""
+    expected = set(f"sb{i:02d}" for i in range(16))
+    found = set()
+    
+    for file_path in group:
+        filename = os.path.basename(file_path)
+        # Extract sbXX from filename
+        for sb in expected:
+            if f"_{sb}" in filename:
+                found.add(sb)
+                break
+    
+    return sorted(expected - found)
