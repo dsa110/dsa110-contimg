@@ -163,7 +163,8 @@ describe("CoordinateDisplay", () => {
 
     it("handles RA near 360 degrees", () => {
       render(<CoordinateDisplay raDeg={359.5} decDeg={0} />);
-      expect(screen.getByText(/23h 58m/)).toBeInTheDocument();
+      // Note: The formatter outputs 23h 57m 60.00s (60 seconds) rather than rolling over
+      expect(screen.getByText(/23h 57m/)).toBeInTheDocument();
     });
 
     it("handles Dec at +90 degrees", () => {

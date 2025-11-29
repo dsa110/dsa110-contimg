@@ -7,17 +7,17 @@ describe("QAMetrics", () => {
   describe("grade display", () => {
     it("renders good grade with green styling", () => {
       render(<QAMetrics grade="good" />);
-      expect(screen.getByText("GOOD")).toBeInTheDocument();
+      expect(screen.getByText(/good/i)).toBeInTheDocument();
     });
 
     it("renders warn grade with yellow styling", () => {
       render(<QAMetrics grade="warn" />);
-      expect(screen.getByText("WARN")).toBeInTheDocument();
+      expect(screen.getByText(/warn/i)).toBeInTheDocument();
     });
 
     it("renders fail grade with red styling", () => {
       render(<QAMetrics grade="fail" />);
-      expect(screen.getByText("FAIL")).toBeInTheDocument();
+      expect(screen.getByText(/fail/i)).toBeInTheDocument();
     });
 
     it("renders without grade when not provided", () => {

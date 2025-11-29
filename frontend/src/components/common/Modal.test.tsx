@@ -96,12 +96,12 @@ describe("Modal", () => {
   });
 
   describe("outside click", () => {
-    it("closes when clicking backdrop by default", async () => {
+    it("closes when clicking outside (backdrop)", async () => {
       const user = userEvent.setup();
       render(<Modal {...defaultProps} />);
 
-      // Click the backdrop (the outer dialog element)
-      const backdrop = screen.getByRole("dialog").parentElement!;
+      // Click the backdrop (the dialog element itself with bg-black bg-opacity-50)
+      const backdrop = screen.getByRole("dialog");
       await user.click(backdrop);
 
       expect(defaultProps.onClose).toHaveBeenCalled();
@@ -120,7 +120,7 @@ describe("Modal", () => {
       const user = userEvent.setup();
       render(<Modal {...defaultProps} closeOnOutsideClick={false} />);
 
-      const backdrop = screen.getByRole("dialog").parentElement!;
+      const backdrop = screen.getByRole("dialog");
       await user.click(backdrop);
 
       expect(defaultProps.onClose).not.toHaveBeenCalled();
@@ -130,22 +130,27 @@ describe("Modal", () => {
   describe("size variants", () => {
     it("applies sm size class", () => {
       render(<Modal {...defaultProps} size="sm" />);
-      expect(screen.getByRole("dialog")).toHaveClass("max-w-sm");
+      // Size classes are on the inner modal content div, not the backdrop
+      const modalContent = screen.getByRole("dialog").querySelector(".bg-white.rounded-lg");
+      expect(modalContent).toHaveClass("max-w-sm");
     });
 
     it("applies md size class by default", () => {
       render(<Modal {...defaultProps} />);
-      expect(screen.getByRole("dialog")).toHaveClass("max-w-md");
+      const modalContent = screen.getByRole("dialog").querySelector(".bg-white.rounded-lg");
+      expect(modalContent).toHaveClass("max-w-md");
     });
 
     it("applies lg size class", () => {
       render(<Modal {...defaultProps} size="lg" />);
-      expect(screen.getByRole("dialog")).toHaveClass("max-w-lg");
+      const modalContent = screen.getByRole("dialog").querySelector(".bg-white.rounded-lg");
+      expect(modalContent).toHaveClass("max-w-lg");
     });
 
     it("applies xl size class", () => {
       render(<Modal {...defaultProps} size="xl" />);
-      expect(screen.getByRole("dialog")).toHaveClass("max-w-xl");
+      const modalContent = screen.getByRole("dialog").querySelector(".bg-white.rounded-lg");
+      expect(modalContent).toHaveClass("max-w-xl");
     });
   });
 
@@ -211,15 +216,17 @@ describe("Modal", () => {
   describe("custom className", () => {
     it("applies custom className to modal content", () => {
       render(<Modal {...defaultProps} className="custom-modal-class" />);
-      expect(screen.getByRole("dialog")).toHaveClass("custom-modal-class");
+      // Custom class is applied to the inner modal content div, not the backdrop
+      const modalContent = screen.getByRole("dialog").querySelector(".bg-white.rounded-lg");
+      expect(modalContent).toHaveClass("custom-modal-class");
     });
 
     it("combines custom className with default classes", () => {
       render(<Modal {...defaultProps} className="my-class" />);
-      const dialog = screen.getByRole("dialog");
-      expect(dialog).toHaveClass("my-class");
-      expect(dialog).toHaveClass("bg-white");
-      expect(dialog).toHaveClass("rounded-lg");
+      const modalContent = screen.getByRole("dialog").querySelector(".bg-white.rounded-lg");
+      expect(modalContent).toHaveClass("my-class");
+      expect(modalContent).toHaveClass("bg-white");
+      expect(modalContent).toHaveClass("rounded-lg");
     });
   });
 
@@ -228,16 +235,20 @@ describe("Modal", () => {
       render(<Modal {...defaultProps} />);
 
       await waitFor(() => {
-        expect(document.activeElement).toBe(screen.getByRole("dialog"));
+        // The focusable element is the inner modal content div
+        const dialog = screen.getByRole("dialog");
+        const focusableContent = dialog.querySelector('[tabindex="-1"]');
+        expect(document.activeElement).toBe(focusableContent);
       });
     });
 
-    it("modal has tabIndex for focus", () => {
+    it("modal content has tabIndex for focus", () => {
       render(<Modal {...defaultProps} />);
-      expect(screen.getByRole("dialog")).toHaveAttribute("tabIndex", "-1");
+      const dialog = screen.getByRole("dialog");
+      const focusableContent = dialog.querySelector('[tabindex="-1"]');
+      expect(focusableContent).toBeInTheDocument();
     });
   });
-
   describe("backdrop styling", () => {
     it("has semi-transparent backdrop", () => {
       const { container } = render(<Modal {...defaultProps} />);

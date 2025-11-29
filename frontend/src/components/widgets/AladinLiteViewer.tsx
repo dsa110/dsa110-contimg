@@ -13,7 +13,7 @@ export interface AladinLiteViewerProps {
   height?: number | string;
   /** Optional survey to display (default: P/DSS2/color) */
   survey?: string;
-  /** Optional source name for marker */
+  /** Optional source name - displays a labeled marker at the target coordinates */
   sourceName?: string;
   /** Custom class name */
   className?: string;

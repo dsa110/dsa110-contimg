@@ -8,13 +8,16 @@ import SesameResolver from "./SesameResolver";
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
+// Counter to generate unique object names for each test to avoid cache interference
+let testCounter = 0;
+
 describe("SesameResolver", () => {
   const mockOnResolved = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
-    // Clear the cache between tests
-    // Note: In real tests, we might want to expose a way to clear the cache
+    mockFetch.mockReset();
+    testCounter++;
   });
 
   afterEach(() => {
@@ -171,7 +174,8 @@ describe("SesameResolver", () => {
 
       render(<SesameResolver onResolved={mockOnResolved} />);
 
-      await user.type(screen.getByPlaceholderText(/Object name/), "M31");
+      // Use unique object name to avoid cache hit
+      await user.type(screen.getByPlaceholderText(/Object name/), `LoadingTest${testCounter}`);
       await user.click(screen.getByRole("button", { name: /Resolve/i }));
 
       expect(screen.getByText(/Resolving/i)).toBeInTheDocument();
@@ -227,7 +231,8 @@ describe("SesameResolver", () => {
 
       render(<SesameResolver onResolved={mockOnResolved} />);
 
-      await user.type(screen.getByPlaceholderText(/Object name/), "M31");
+      // Use unique object name to avoid cache hit
+      await user.type(screen.getByPlaceholderText(/Object name/), `NetworkErrorTest${testCounter}`);
       await user.click(screen.getByRole("button", { name: /Resolve/i }));
 
       await waitFor(() => {
@@ -244,7 +249,8 @@ describe("SesameResolver", () => {
 
       render(<SesameResolver onResolved={mockOnResolved} />);
 
-      await user.type(screen.getByPlaceholderText(/Object name/), "M31");
+      // Use unique object name to avoid cache hit
+      await user.type(screen.getByPlaceholderText(/Object name/), `HTTPErrorTest${testCounter}`);
       await user.click(screen.getByRole("button", { name: /Resolve/i }));
 
       await waitFor(() => {
@@ -279,7 +285,9 @@ describe("SesameResolver", () => {
 
       render(<SesameResolver onResolved={mockOnResolved} />);
 
-      await user.type(screen.getByPlaceholderText(/Object name/), "M31");
+      // Use unique object name to avoid cache hit
+      const testName = `URLTestAll${testCounter}`;
+      await user.type(screen.getByPlaceholderText(/Object name/), testName);
       await user.click(screen.getByRole("button", { name: /Resolve/i }));
 
       await waitFor(() => {

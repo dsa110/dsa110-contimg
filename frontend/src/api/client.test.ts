@@ -25,6 +25,14 @@ vi.mock("axios", () => {
 // Import after mocking
 import apiClient, { fetchProvenanceData } from "./client";
 
+// Capture axios.create call args at module load time (before any test clears mocks)
+const axiosCreateCallArgs = (axios.create as ReturnType<typeof vi.fn>).mock.calls[0]?.[0];
+// Also capture the interceptor registration at module load time
+const mockInstanceAtLoad = (axios.create as ReturnType<typeof vi.fn>)() as {
+  interceptors: { response: { use: ReturnType<typeof vi.fn> } };
+};
+const interceptorUseCalls = [...mockInstanceAtLoad.interceptors.response.use.mock.calls];
+
 describe("api/client", () => {
   let mockAxiosInstance: {
     get: ReturnType<typeof vi.fn>;
@@ -40,43 +48,35 @@ describe("api/client", () => {
   };
 
   beforeEach(() => {
-    vi.clearAllMocks();
     mockAxiosInstance = axios.create() as typeof mockAxiosInstance;
-
-    // Capture the response interceptor
-    const useCall = mockAxiosInstance.interceptors.response.use;
-    if (useCall.mock.calls.length > 0) {
-      const [onFulfilled, onRejected] = useCall.mock.calls[0];
-      responseInterceptor = { onFulfilled, onRejected };
-    }
+    vi.clearAllMocks();
   });
 
   describe("axios instance creation", () => {
     it("creates axios instance with correct base URL", () => {
-      expect(axios.create).toHaveBeenCalled();
-      const createCall = (axios.create as ReturnType<typeof vi.fn>).mock.calls[0][0];
       // BaseURL should be /api (from env or default)
-      expect(createCall.baseURL).toBeDefined();
+      expect(axiosCreateCallArgs?.baseURL).toBeDefined();
     });
 
     it("creates axios instance with timeout", () => {
-      const createCall = (axios.create as ReturnType<typeof vi.fn>).mock.calls[0][0];
-      expect(createCall.timeout).toBe(10000);
+      expect(axiosCreateCallArgs?.timeout).toBe(10000);
     });
   });
 
   describe("response interceptor", () => {
     beforeEach(() => {
-      // Re-import to ensure interceptors are registered
-      const useCall = mockAxiosInstance.interceptors.response.use;
-      if (useCall.mock.calls.length > 0) {
-        const [onFulfilled, onRejected] = useCall.mock.calls[0];
-        responseInterceptor = { onFulfilled, onRejected };
+      // Use captured interceptor calls from before mock clearing
+      if (interceptorUseCalls.length > 0) {
+        const [onFulfilled, onRejected] = interceptorUseCalls[0];
+        responseInterceptor = {
+          onFulfilled: onFulfilled as typeof responseInterceptor.onFulfilled,
+          onRejected: onRejected as typeof responseInterceptor.onRejected,
+        };
       }
     });
 
     it("registers a response interceptor", () => {
-      expect(mockAxiosInstance.interceptors.response.use).toHaveBeenCalled();
+      expect(interceptorUseCalls.length).toBeGreaterThan(0);
     });
 
     it("passes through successful responses unchanged", () => {

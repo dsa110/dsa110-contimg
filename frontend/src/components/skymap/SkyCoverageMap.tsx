@@ -25,7 +25,7 @@ export interface SkyCoverageMapProps {
   showGalacticPlane?: boolean;
   /** Whether to show ecliptic */
   showEcliptic?: boolean;
-  /** Whether to show constellation boundaries */
+  /** Whether to show constellation labels (abbreviations at approximate centers) */
   showConstellations?: boolean;
   /** Color scheme for pointings */
   colorScheme?: "status" | "epoch" | "uniform";

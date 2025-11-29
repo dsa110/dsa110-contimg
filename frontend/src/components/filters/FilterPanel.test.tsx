@@ -138,17 +138,13 @@ describe("FilterPanel", () => {
     });
 
     it("calls onChange when text is entered", async () => {
-      const user = userEvent.setup();
       render(<FilterPanel filters={textFilters} values={{ name: "" }} onChange={mockOnChange} />);
 
       const input = screen.getByPlaceholderText(/Filter by name/i);
-      await user.type(input, "hello");
+      // Use fireEvent.change for controlled component - simulates full value change
+      fireEvent.change(input, { target: { value: "hello" } });
 
-      // Should be called for each character
-      expect(mockOnChange).toHaveBeenCalled();
-      // Last call should have the updated value
-      const lastCall = mockOnChange.mock.calls[mockOnChange.mock.calls.length - 1][0];
-      expect(lastCall.name).toBe("hello");
+      expect(mockOnChange).toHaveBeenCalledWith({ name: "hello" });
     });
 
     it("sets undefined when text is cleared", async () => {
