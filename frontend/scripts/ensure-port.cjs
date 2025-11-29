@@ -60,17 +60,25 @@ function isPortAvailable(port) {
 }
 
 /**
- * Kill a process by PID with SIGTERM
+ * Kill a process by PID - try SIGKILL directly for reliability
  */
 function killProcess(pid) {
   try {
-    process.kill(pid, "SIGTERM");
-    log(`Sent SIGTERM to PID ${pid}`);
+    // Use SIGKILL directly - we want these gone immediately
+    process.kill(pid, "SIGKILL");
+    log(`Killed PID ${pid} (SIGKILL)`);
     return true;
   } catch (e) {
     if (e.code === "EPERM") {
-      error(`Permission denied killing PID ${pid} (owned by another user)`);
-      return false;
+      // Try with sudo via shell
+      try {
+        execSync(`sudo kill -9 ${pid} 2>/dev/null`, { encoding: "utf8" });
+        log(`Killed PID ${pid} via sudo`);
+        return true;
+      } catch {
+        error(`Permission denied killing PID ${pid} (owned by another user)`);
+        return false;
+      }
     } else if (e.code === "ESRCH") {
       // Process already dead
       return true;
@@ -121,53 +129,49 @@ function getProcessInfo(pid) {
 async function ensurePortAvailable() {
   log(`Ensuring port ${PORT} is available...`);
 
-  // Check if port is already free
-  if (await isPortAvailable(PORT)) {
-    success(`Port ${PORT} is available`);
-    return true;
-  }
-
-  // Get processes using the port
+  // Get processes using the port FIRST
   const pids = getPidsOnPort(PORT);
 
-  if (pids.length === 0) {
-    // Port busy but no PIDs found - might be TIME_WAIT
-    log(`Port ${PORT} busy but no processes found (possibly TIME_WAIT state)`);
-  } else {
+  if (pids.length > 0) {
     log(`Found ${pids.length} process(es) on port ${PORT}:`);
     for (const pid of pids) {
       const name = getProcessInfo(pid);
       log(`  PID ${pid}: ${name}`);
     }
 
-    // Try graceful termination first
-    let permissionDenied = false;
+    // Kill ALL of them immediately
+    log(`Killing all processes on port ${PORT}...`);
     for (const pid of pids) {
-      if (!killProcess(pid)) {
-        permissionDenied = true;
-      }
+      killProcess(pid);
     }
 
-    if (permissionDenied) {
-      error(`Some processes couldn't be killed due to permissions.`);
-      error(`Try running: sudo kill -9 ${pids.join(" ")}`);
-      process.exit(1);
-    }
+    // Also try pkill for any node processes that might be hanging
+    try {
+      execSync(`pkill -9 -f "vite.*${PORT}" 2>/dev/null || true`, { encoding: "utf8" });
+    } catch {}
 
-    // Wait a moment for graceful shutdown
-    await sleep(1000);
+    // Wait for kills to take effect
+    await sleep(500);
+  }
 
-    // Force kill any remaining
-    const remainingPids = getPidsOnPort(PORT);
-    for (const pid of remainingPids) {
-      log(`Process ${pid} didn't exit gracefully, force killing...`);
-      forceKillProcess(pid);
-    }
+  // Check if port is now free
+  if (await isPortAvailable(PORT)) {
+    success(`Port ${PORT} is available`);
+    return true;
   }
 
   // Retry with exponential backoff (for TIME_WAIT)
   let waitMs = INITIAL_WAIT_MS;
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    // Check for any new processes that appeared
+    const currentPids = getPidsOnPort(PORT);
+    if (currentPids.length > 0) {
+      log(`Found lingering processes: ${currentPids.join(", ")}, killing...`);
+      for (const pid of currentPids) {
+        killProcess(pid);
+      }
+    }
+
     await sleep(waitMs);
 
     if (await isPortAvailable(PORT)) {
