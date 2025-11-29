@@ -57,7 +57,7 @@ if db_file.exists():
 print("Step 1: Creating registry database...")
 start_time = time.time()
 create_calibrator_registry(db_path=DB_PATH)
-print(f"   ✓ Registry created in {time.time() - start_time:.1f}s")
+print(f"   :check: Registry created in {time.time() - start_time:.1f}s")
 print()
 
 # Step 2: Build calibrator registry from NVSS
@@ -77,12 +77,12 @@ try:
 
     elapsed = time.time() - start_time
     print()
-    print(f"   ✓ Added {n_added} calibrators in {elapsed/60:.1f} minutes")
-    print(f"   ✓ Average: {n_added/len(DEC_STRIPS):.0f} calibrators per strip")
-    print(f"   ✓ Rate: {n_added/elapsed:.1f} calibrators/second")
+    print(f"   :check: Added {n_added} calibrators in {elapsed/60:.1f} minutes")
+    print(f"   :check: Average: {n_added/len(DEC_STRIPS):.0f} calibrators per strip")
+    print(f"   :check: Rate: {n_added/elapsed:.1f} calibrators/second")
 
 except Exception as e:
-    print(f"   ✗ Error building registry: {e}")
+    print(f"   :cross: Error building registry: {e}")
     sys.exit(1)
 
 print()
@@ -92,12 +92,12 @@ print("Step 3: Updating blacklist with variable sources...")
 start_time = time.time()
 try:
     results = run_full_blacklist_update(db_path=DB_PATH)
-    print(f"   ✓ Blacklisted {results['total']} sources in {time.time() - start_time:.1f}s")
+    print(f"   :check: Blacklisted {results['total']} sources in {time.time() - start_time:.1f}s")
     print(f"     - Pulsars: {results['pulsars']}")
     print(f"     - AGN: {results['agn']}")
     print(f"     - Extended: {results['extended']}")
 except Exception as e:
-    print(f"   ⚠ Warning: Blacklist update failed: {e}")
+    print(f"   :warning: Warning: Blacklist update failed: {e}")
     print("   You can run blacklist update manually later")
 
 print()
@@ -124,7 +124,7 @@ try:
         print(f"   Mean flux: {stats['flux_stats']['mean_jy']:.2f} Jy")
 
 except Exception as e:
-    print(f"   ⚠ Warning: Could not get statistics: {e}")
+    print(f"   :warning: Warning: Could not get statistics: {e}")
 
 print()
 print("=" * 70)

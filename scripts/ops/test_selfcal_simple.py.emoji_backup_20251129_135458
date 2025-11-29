@@ -60,7 +60,7 @@ success, summary = selfcal_ms(
 print()
 print("=" * 80)
 if success:
-    print("✅ SUCCESS!")
+    print(":check: SUCCESS!")
     final_snr = summary.get("final_snr", 0.0)
     initial_snr = summary.get("initial_snr", 0.0)
     improvement = summary.get("total_snr_improvement", 0.0)
@@ -70,5 +70,5 @@ if success:
     print(f"Final SNR: {final_snr:.2f}")
     print(f"Improvement: {improvement:.2f}x")
 else:
-    print("❌ FAILED")
+    print(":cross: FAILED")
 print("=" * 80)

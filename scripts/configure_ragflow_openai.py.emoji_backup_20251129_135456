@@ -58,7 +58,7 @@ def configure_openai(session: requests.Session, openai_key: str) -> bool:
         print(f"Failed to configure OpenAI: {data.get('message')}")
         return False
     
-    print("✅ OpenAI configured successfully!")
+    print(":check: OpenAI configured successfully!")
     return True
 
 
@@ -96,12 +96,12 @@ def main():
         print(f"Login failed: {data.get('message')}")
         return 1
     
-    print("✅ Logged in successfully")
+    print(":check: Logged in successfully")
     
     # Configure OpenAI
     print("Configuring OpenAI API key...")
     if configure_openai(session, args.openai_key):
-        print("\n✅ OpenAI is now available as a model provider in RAGFlow")
+        print("\n:check: OpenAI is now available as a model provider in RAGFlow")
         print("   You can now use text-embedding-3-small for embeddings")
         return 0
     

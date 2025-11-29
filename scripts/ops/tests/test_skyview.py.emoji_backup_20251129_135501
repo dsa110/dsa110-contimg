@@ -26,10 +26,10 @@ def check_database() -> dict:
     print("=" * 60)
     
     if not PRODUCTS_DB.exists():
-        print(f"  ✗ Database not found: {PRODUCTS_DB}")
+        print(f"  :cross: Database not found: {PRODUCTS_DB}")
         return {"exists": False, "image_count": 0}
     
-    print(f"  ✓ Database found: {PRODUCTS_DB}")
+    print(f"  :check: Database found: {PRODUCTS_DB}")
     
     try:
         conn = sqlite3.connect(PRODUCTS_DB)
@@ -39,28 +39,28 @@ def check_database() -> dict:
         # Check if images table exists
         cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='images'")
         if not cur.fetchone():
-            print("  ✗ 'images' table does not exist")
+            print("  :cross: 'images' table does not exist")
             conn.close()
             return {"exists": True, "table_exists": False, "image_count": 0}
         
-        print("  ✓ 'images' table exists")
+        print("  :check: 'images' table exists")
         
         # Count images
         cur.execute("SELECT COUNT(*) as count FROM images")
         count = cur.fetchone()["count"]
-        print(f"  ✓ Found {count} images in database")
+        print(f"  :check: Found {count} images in database")
         
         # Get sample image
         if count > 0:
             cur.execute("SELECT id, path, type FROM images LIMIT 1")
             sample = cur.fetchone()
             if sample:
-                print(f"  ✓ Sample image: ID={sample['id']}, Path={sample['path']}, Type={sample['type']}")
+                print(f"  :check: Sample image: ID={sample['id']}, Path={sample['path']}, Type={sample['type']}")
         
         conn.close()
         return {"exists": True, "table_exists": True, "image_count": count}
     except Exception as e:
-        print(f"  ✗ Error querying database: {e}")
+        print(f"  :cross: Error querying database: {e}")
         return {"exists": True, "error": str(e)}
 
 
@@ -75,24 +75,24 @@ def test_images_endpoint() -> dict:
         response.raise_for_status()
         data = response.json()
         
-        print(f"  ✓ Status: {response.status_code}")
-        print(f"  ✓ Total images: {data.get('total', 0)}")
-        print(f"  ✓ Items returned: {len(data.get('items', []))}")
+        print(f"  :check: Status: {response.status_code}")
+        print(f"  :check: Total images: {data.get('total', 0)}")
+        print(f"  :check: Items returned: {len(data.get('items', []))}")
         
         if data.get('items'):
             first = data['items'][0]
-            print(f"  ✓ First image: ID={first.get('id')}, Type={first.get('type')}")
+            print(f"  :check: First image: ID={first.get('id')}, Type={first.get('type')}")
         
         return {"status": "success", "total": data.get('total', 0), "items": len(data.get('items', []))}
     except requests.exceptions.ConnectionError:
-        print(f"  ✗ Connection error: API not reachable at {API_BASE_URL}")
+        print(f"  :cross: Connection error: API not reachable at {API_BASE_URL}")
         print("     Make sure the API container is running")
         return {"status": "connection_error"}
     except requests.exceptions.HTTPError as e:
-        print(f"  ✗ HTTP error: {e}")
+        print(f"  :cross: HTTP error: {e}")
         return {"status": "http_error", "error": str(e)}
     except Exception as e:
-        print(f"  ✗ Unexpected error: {e}")
+        print(f"  :cross: Unexpected error: {e}")
         return {"status": "error", "error": str(e)}
 
 
@@ -109,19 +109,19 @@ def test_image_fits_endpoint(image_id: Optional[int] = None) -> dict:
             response.raise_for_status()
             data = response.json()
             if not data.get('items'):
-                print("  ⚠ No images available to test FITS endpoint")
+                print("  :warning: No images available to test FITS endpoint")
                 return {"status": "no_images"}
             image_id = data['items'][0]['id']
             print(f"  Using image ID: {image_id}")
         except Exception as e:
-            print(f"  ✗ Could not get image ID: {e}")
+            print(f"  :cross: Could not get image ID: {e}")
             return {"status": "error", "error": str(e)}
     
     try:
         response = requests.get(f"{API_BASE_URL}/images/{image_id}/fits", stream=True)
         
         if response.status_code == 404:
-            print(f"  ⚠ Image {image_id} not found or FITS file unavailable")
+            print(f"  :warning: Image {image_id} not found or FITS file unavailable")
             print(f"     Response: {response.text[:200]}")
             return {"status": "not_found"}
         
@@ -129,35 +129,35 @@ def test_image_fits_endpoint(image_id: Optional[int] = None) -> dict:
         
         # Check content type
         content_type = response.headers.get('content-type', '')
-        print(f"  ✓ Status: {response.status_code}")
-        print(f"  ✓ Content-Type: {content_type}")
+        print(f"  :check: Status: {response.status_code}")
+        print(f"  :check: Content-Type: {content_type}")
         
         # Check if it's actually a FITS file (starts with 'SIMPLE' or has FITS-like headers)
         if response.status_code == 200:
             # Read first few bytes to verify it's FITS
             first_bytes = response.content[:80]
             if first_bytes.startswith(b'SIMPLE'):
-                print("  ✓ Valid FITS file (starts with 'SIMPLE')")
+                print("  :check: Valid FITS file (starts with 'SIMPLE')")
             else:
-                print(f"  ⚠ Response may not be a valid FITS file (first 80 bytes: {first_bytes[:40]})")
+                print(f"  :warning: Response may not be a valid FITS file (first 80 bytes: {first_bytes[:40]})")
             
             # Check size
             content_length = response.headers.get('content-length')
             if content_length:
                 size_kb = int(content_length) / 1024
-                print(f"  ✓ File size: {size_kb:.2f} KB")
+                print(f"  :check: File size: {size_kb:.2f} KB")
         
         return {"status": "success", "content_type": content_type}
     except requests.exceptions.ConnectionError:
-        print(f"  ✗ Connection error: API not reachable at {API_BASE_URL}")
+        print(f"  :cross: Connection error: API not reachable at {API_BASE_URL}")
         return {"status": "connection_error"}
     except requests.exceptions.HTTPError as e:
-        print(f"  ✗ HTTP error: {e}")
+        print(f"  :cross: HTTP error: {e}")
         if hasattr(e.response, 'text'):
             print(f"     Response: {e.response.text[:200]}")
         return {"status": "http_error", "error": str(e)}
     except Exception as e:
-        print(f"  ✗ Unexpected error: {e}")
+        print(f"  :cross: Unexpected error: {e}")
         return {"status": "error", "error": str(e)}
 
 
@@ -180,10 +180,10 @@ def test_image_filters() -> dict:
             response = requests.get(f"{API_BASE_URL}/images", params=params)
             response.raise_for_status()
             data = response.json()
-            print(f"  ✓ Filter {i} ({params}): {len(data.get('items', []))} items")
+            print(f"  :check: Filter {i} ({params}): {len(data.get('items', []))} items")
             results.append({"filter": params, "count": len(data.get('items', []))})
         except Exception as e:
-            print(f"  ✗ Filter {i} failed: {e}")
+            print(f"  :cross: Filter {i} failed: {e}")
             results.append({"filter": params, "error": str(e)})
     
     return {"status": "success", "results": results}
@@ -214,16 +214,16 @@ def main():
     print("=" * 60)
     
     print(f"\nDatabase:")
-    print(f"  Exists: {'✓' if db_result.get('exists') else '✗'}")
+    print(f"  Exists: {':check:' if db_result.get('exists') else ':cross:'}")
     if db_result.get('exists'):
         print(f"  Images: {db_result.get('image_count', 0)}")
     
     print(f"\nAPI Endpoints:")
-    print(f"  /api/images: {'✓' if images_result.get('status') == 'success' else '✗'}")
+    print(f"  /api/images: {':check:' if images_result.get('status') == 'success' else ':cross:'}")
     if fits_result:
-        print(f"  /api/images/{{id}}/fits: {'✓' if fits_result.get('status') == 'success' else '✗'}")
+        print(f"  /api/images/{{id}}/fits: {':check:' if fits_result.get('status') == 'success' else ':cross:'}")
     if filters_result:
-        print(f"  Image filters: {'✓' if filters_result.get('status') == 'success' else '✗'}")
+        print(f"  Image filters: {':check:' if filters_result.get('status') == 'success' else ':cross:'}")
     
     # Recommendations
     print("\n" + "=" * 60)
@@ -231,18 +231,18 @@ def main():
     print("=" * 60)
     
     if not db_result.get('exists'):
-        print("  • Initialize the products database: python scripts/init_databases.py")
-        print("  • Create mock data: python scripts/create_mock_dashboard_data.py")
+        print("  :bullet: Initialize the products database: python scripts/init_databases.py")
+        print("  :bullet: Create mock data: python scripts/create_mock_dashboard_data.py")
     
     if images_result.get('status') == 'connection_error':
-        print("  • Start the API container: cd ops/docker && docker-compose up -d api")
+        print("  :bullet: Start the API container: cd ops/docker && docker-compose up -d api")
     
     if db_result.get('image_count', 0) == 0:
-        print("  • Add images to the database (run pipeline or create mock data)")
+        print("  :bullet: Add images to the database (run pipeline or create mock data)")
     
     if fits_result and fits_result.get('status') == 'not_found':
-        print("  • Ensure image paths in database point to valid CASA images or FITS files")
-        print("  • Verify CASA is available for on-demand conversion")
+        print("  :bullet: Ensure image paths in database point to valid CASA images or FITS files")
+        print("  :bullet: Verify CASA is available for on-demand conversion")
     
     print()
 

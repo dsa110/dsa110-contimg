@@ -54,10 +54,10 @@ success, summary = selfcal_ms(
 print()
 print("=" * 80)
 if success:
-    print("✅ SUCCESS - Masked self-cal works!")
+    print(":check: SUCCESS - Masked self-cal works!")
     final_snr = summary.get("final_snr", 0.0)
     print(f"Final SNR: {final_snr:.2f}")
     print(f"Iterations: {summary.get('iterations_completed', 0)}")
 else:
-    print("❌ FAILED")
+    print(":cross: FAILED")
 print("=" * 80)

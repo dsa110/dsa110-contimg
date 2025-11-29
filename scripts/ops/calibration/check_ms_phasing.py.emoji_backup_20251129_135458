@@ -36,7 +36,7 @@ def check_ms_phasing(ms_path, calibrator_name=None, calibrator_ra=None, calibrat
     try:
         with table(f"{ms_path}::FIELD", readonly=True, ack=False) as field_tb:
             if field_tb.nrows() == 0:
-                print("✗ FIELD table has no rows")
+                print(":cross: FIELD table has no rows")
                 return False
             
             field_ra = field_tb.getcol("REFERENCE_DIR")[0][0][0] * 180.0 / np.pi  # Convert to degrees
@@ -48,7 +48,7 @@ def check_ms_phasing(ms_path, calibrator_name=None, calibrator_ra=None, calibrat
             print(f"  RA: {field_ra:.6f} deg ({field_ra*15:.4f} hours)")
             print(f"  Dec: {field_dec:.6f} deg")
     except Exception as e:
-        print(f"✗ Error reading FIELD table: {e}")
+        print(f":cross: Error reading FIELD table: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -71,18 +71,18 @@ def check_ms_phasing(ms_path, calibrator_name=None, calibrator_ra=None, calibrat
         
         # Check if separation is reasonable
         if separation.to(u.arcmin).value < 5.0:
-            print(f"  ✓ Separation is very small (<5 arcmin) - good phasing")
+            print(f"  :check: Separation is very small (<5 arcmin) - good phasing")
         elif separation.to(u.arcmin).value < 30.0:
-            print(f"  ⚠ Separation is moderate ({separation.to(u.arcmin):.2f}) - may cause phase decorrelation")
+            print(f"  :warning: Separation is moderate ({separation.to(u.arcmin):.2f}) - may cause phase decorrelation")
         else:
-            print(f"  ✗ Separation is large ({separation.to(u.arcmin):.2f}) - likely causing phase decorrelation!")
+            print(f"  :cross: Separation is large ({separation.to(u.arcmin):.2f}) - likely causing phase decorrelation!")
     
     # Check MODEL_DATA phase structure
     print(f"\nMODEL_DATA Phase Structure:")
     try:
         with table(ms_path, readonly=True, ack=False) as tb:
             if "MODEL_DATA" not in tb.colnames():
-                print("  ✗ MODEL_DATA column not present")
+                print("  :cross: MODEL_DATA column not present")
                 return False
             
             # Sample MODEL_DATA
@@ -97,7 +97,7 @@ def check_ms_phasing(ms_path, calibrator_name=None, calibrator_ra=None, calibrat
             unflagged_model = model_data[~flags]
             
             if len(unflagged_model) == 0:
-                print("  ✗ No unflagged MODEL_DATA")
+                print("  :cross: No unflagged MODEL_DATA")
                 return False
             
             # Check MODEL_DATA phase structure
@@ -113,20 +113,20 @@ def check_ms_phasing(ms_path, calibrator_name=None, calibrator_ra=None, calibrat
             print(f"  Phase scatter: {np.degrees(phase_scatter):.2f} deg")
             
             if phase_scatter < 0.1:  # < 5.7 deg
-                print(f"  ✓ Low phase scatter - model is well-phased")
+                print(f"  :check: Low phase scatter - model is well-phased")
             elif phase_scatter < 0.5:  # < 28.6 deg
-                print(f"  ⚠ Moderate phase scatter - some phase variation")
+                print(f"  :warning: Moderate phase scatter - some phase variation")
             else:
-                print(f"  ✗ High phase scatter - model phase structure may be incorrect")
+                print(f"  :cross: High phase scatter - model phase structure may be incorrect")
             
             # Check for phase wrapping or rapid variation
             phase_diff = np.diff(np.sort(model_phases))
             large_jumps = np.sum(np.abs(phase_diff) > np.pi)
             if large_jumps > len(phase_diff) * 0.1:
-                print(f"  ⚠ Many phase jumps detected ({large_jumps}/{len(phase_diff)}) - possible phase wrapping")
+                print(f"  :warning: Many phase jumps detected ({large_jumps}/{len(phase_diff)}) - possible phase wrapping")
             
     except Exception as e:
-        print(f"  ✗ Error reading MODEL_DATA: {e}")
+        print(f"  :cross: Error reading MODEL_DATA: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -136,7 +136,7 @@ def check_ms_phasing(ms_path, calibrator_name=None, calibrator_ra=None, calibrat
     try:
         with table(ms_path, readonly=True, ack=False) as tb:
             if "DATA" not in tb.colnames():
-                print("  ✗ DATA column not present")
+                print("  :cross: DATA column not present")
                 return False
             
             # Sample DATA and MODEL_DATA
@@ -154,7 +154,7 @@ def check_ms_phasing(ms_path, calibrator_name=None, calibrator_ra=None, calibrat
             unflagged_model = model_data[unflagged_mask]
             
             if len(unflagged_data) == 0:
-                print("  ✗ No unflagged DATA")
+                print("  :cross: No unflagged DATA")
                 return False
             
             # Compute phase difference
@@ -173,11 +173,11 @@ def check_ms_phasing(ms_path, calibrator_name=None, calibrator_ra=None, calibrat
             print(f"  Phase difference scatter: {phase_diff_scatter:.2f} deg")
             
             if phase_diff_scatter < 30.0:
-                print(f"  ✓ Low phase difference scatter - DATA and MODEL_DATA are well-aligned")
+                print(f"  :check: Low phase difference scatter - DATA and MODEL_DATA are well-aligned")
             elif phase_diff_scatter < 60.0:
-                print(f"  ⚠ Moderate phase difference scatter - some misalignment")
+                print(f"  :warning: Moderate phase difference scatter - some misalignment")
             else:
-                print(f"  ✗ High phase difference scatter - DATA and MODEL_DATA are misaligned!")
+                print(f"  :cross: High phase difference scatter - DATA and MODEL_DATA are misaligned!")
                 print(f"     This could cause low SNR in calibration")
             
             # Check amplitude ratio
@@ -193,15 +193,15 @@ def check_ms_phasing(ms_path, calibrator_name=None, calibrator_ra=None, calibrat
                 print(f"  Median amplitude ratio (DATA/MODEL): {median_amp_ratio:.4f}")
                 
                 if 0.5 < median_amp_ratio < 2.0:
-                    print(f"  ✓ Reasonable amplitude ratio")
+                    print(f"  :check: Reasonable amplitude ratio")
                 elif median_amp_ratio < 0.1:
-                    print(f"  ✗ Very low amplitude ratio - DATA much weaker than MODEL")
+                    print(f"  :cross: Very low amplitude ratio - DATA much weaker than MODEL")
                     print(f"     This indicates decorrelation or data quality issues")
                 else:
-                    print(f"  ⚠ Unusual amplitude ratio - may indicate calibration or model issues")
+                    print(f"  :warning: Unusual amplitude ratio - may indicate calibration or model issues")
     
     except Exception as e:
-        print(f"  ✗ Error comparing DATA vs MODEL_DATA: {e}")
+        print(f"  :cross: Error comparing DATA vs MODEL_DATA: {e}")
         import traceback
         traceback.print_exc()
         return False

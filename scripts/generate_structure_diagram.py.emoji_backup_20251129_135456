@@ -368,10 +368,10 @@ def render_to_svg(mermaid_code: str, output_file: str) -> bool:
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write(svg_content)
         
-        print(f"✓ SVG saved to: {output_file}")
+        print(f":check: SVG saved to: {output_file}")
         return True
     except Exception as e:
-        print(f"✗ Error rendering SVG: {e}", file=sys.stderr)
+        print(f":cross: Error rendering SVG: {e}", file=sys.stderr)
         # Save as Mermaid file as fallback
         mermaid_file = output_file.replace('.svg', '.mmd')
         with open(mermaid_file, 'w', encoding='utf-8') as f:
@@ -407,7 +407,7 @@ def main():
         mermaid_file = output_file.replace('.svg', '.mmd')
         with open(mermaid_file, 'w', encoding='utf-8') as f:
             f.write(mermaid_code)
-        print(f"✓ Mermaid source saved to: {mermaid_file}")
+        print(f":check: Mermaid source saved to: {mermaid_file}")
         
         # Render to SVG
         success = render_to_svg(mermaid_code, output_file)
@@ -415,7 +415,7 @@ def main():
         sys.exit(0 if success else 1)
         
     except Exception as e:
-        print(f"✗ Error: {e}", file=sys.stderr)
+        print(f":cross: Error: {e}", file=sys.stderr)
         import traceback
         traceback.print_exc()
         sys.exit(1)

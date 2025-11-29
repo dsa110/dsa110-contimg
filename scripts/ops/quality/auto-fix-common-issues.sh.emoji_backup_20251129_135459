@@ -11,17 +11,17 @@ CHECK_ONLY="${1:-}"
 FIXES_APPLIED=0
 ISSUES_FOUND=0
 
-echo "🔍 Checking for common issues..."
+echo ":search: Checking for common issues..."
 
 # 1. Check Git lock file
 if [ -f "$PROJECT_ROOT/.git/index.lock" ]; then
     ISSUES_FOUND=$((ISSUES_FOUND + 1))
     if [ "$CHECK_ONLY" != "--check-only" ]; then
-        echo "🔧 Fixing: Removing stale Git lock file..."
+        echo ":wrench: Fixing: Removing stale Git lock file..."
         "$SCRIPT_DIR/fix-git-lock.sh"
         FIXES_APPLIED=$((FIXES_APPLIED + 1))
     else
-        echo "⚠️  Issue: Stale Git lock file found"
+        echo ":warning:  Issue: Stale Git lock file found"
     fi
 fi
 
@@ -29,11 +29,11 @@ fi
 if [ ! -f "$PROJECT_ROOT/.githooks/pre-commit" ]; then
     ISSUES_FOUND=$((ISSUES_FOUND + 1))
     if [ "$CHECK_ONLY" != "--check-only" ]; then
-        echo "🔧 Fixing: Installing pre-commit hook..."
+        echo ":wrench: Fixing: Installing pre-commit hook..."
         "$SCRIPT_DIR/test-organization-enforcer.sh"
         FIXES_APPLIED=$((FIXES_APPLIED + 1))
     else
-        echo "⚠️  Issue: Pre-commit hook not found"
+        echo ":warning:  Issue: Pre-commit hook not found"
     fi
 fi
 
@@ -41,11 +41,11 @@ fi
 if [ -z "${_IN_ERROR_DETECTION:-}" ] && [ -z "$(type -t _run_with_error_detection 2>/dev/null)" ]; then
     ISSUES_FOUND=$((ISSUES_FOUND + 1))
     if [ "$CHECK_ONLY" != "--check-only" ]; then
-        echo "🔧 Fixing: Enabling error detection..."
+        echo ":wrench: Fixing: Enabling error detection..."
         source "$SCRIPT_DIR/auto-error-detection.sh"
         FIXES_APPLIED=$((FIXES_APPLIED + 1))
     else
-        echo "⚠️  Issue: Error detection not enabled"
+        echo ":warning:  Issue: Error detection not enabled"
     fi
 fi
 
@@ -53,27 +53,27 @@ fi
 if ! /opt/miniforge/envs/casa6/bin/python -c "import casacore" 2>/dev/null; then
     ISSUES_FOUND=$((ISSUES_FOUND + 1))
     if [ "$CHECK_ONLY" != "--check-only" ]; then
-        echo "🔧 Fixing: Setting up CASA environment..."
+        echo ":wrench: Fixing: Setting up CASA environment..."
         /opt/miniforge/envs/casa6/bin/python -c "from dsa110_contimg.utils.casa_init import ensure_casa_path; ensure_casa_path()" 2>/dev/null || true
         FIXES_APPLIED=$((FIXES_APPLIED + 1))
     else
-        echo "⚠️  Issue: CASA environment not properly configured"
+        echo ":warning:  Issue: CASA environment not properly configured"
     fi
 fi
 
 # 5. Check for test organization issues
 if [ "$CHECK_ONLY" != "--check-only" ]; then
-    echo "🔍 Checking test organization..."
+    echo ":search: Checking test organization..."
     if "$SCRIPT_DIR/validate-test-organization.py" --check-only 2>/dev/null; then
-        echo "✅ Test organization is valid"
+        echo ":check: Test organization is valid"
     else
         ISSUES_FOUND=$((ISSUES_FOUND + 1))
-        echo "⚠️  Issue: Test organization problems found (run validate-test-organization.py for details)"
+        echo ":warning:  Issue: Test organization problems found (run validate-test-organization.py for details)"
     fi
 else
     if ! "$SCRIPT_DIR/validate-test-organization.py" --check-only 2>/dev/null; then
         ISSUES_FOUND=$((ISSUES_FOUND + 1))
-        echo "⚠️  Issue: Test organization problems found"
+        echo ":warning:  Issue: Test organization problems found"
     fi
 fi
 
@@ -81,20 +81,20 @@ fi
 echo ""
 if [ "$CHECK_ONLY" == "--check-only" ]; then
     if [ $ISSUES_FOUND -eq 0 ]; then
-        echo "✅ No issues found!"
+        echo ":check: No issues found!"
         exit 0
     else
-        echo "⚠️  Found $ISSUES_FOUND issue(s). Run without --check-only to fix."
+        echo ":warning:  Found $ISSUES_FOUND issue(s). Run without --check-only to fix."
         exit 1
     fi
 else
     if [ $FIXES_APPLIED -eq 0 ] && [ $ISSUES_FOUND -eq 0 ]; then
-        echo "✅ No issues found, everything is configured correctly!"
+        echo ":check: No issues found, everything is configured correctly!"
         exit 0
     else
-        echo "✅ Applied $FIXES_APPLIED fix(es)"
+        echo ":check: Applied $FIXES_APPLIED fix(es)"
         if [ $ISSUES_FOUND -gt $FIXES_APPLIED ]; then
-            echo "⚠️  $((ISSUES_FOUND - FIXES_APPLIED)) issue(s) require manual attention"
+            echo ":warning:  $((ISSUES_FOUND - FIXES_APPLIED)) issue(s) require manual attention"
         fi
         exit 0
     fi

@@ -36,7 +36,7 @@ def test_fits_endpoint(image_id: int):
         print(f"Content-Length: {response.headers.get('content-length', 'N/A')} bytes")
         
         if response.status_code != 200:
-            print(f"  ✗ HEAD request failed: {response.status_code}")
+            print(f"  :cross: HEAD request failed: {response.status_code}")
             if response.status_code == 404:
                 print(f"     Response: {response.text[:200]}")
             return False
@@ -50,16 +50,16 @@ def test_fits_endpoint(image_id: int):
         
         # Check FITS header (should start with 'SIMPLE')
         if first_chunk.startswith(b'SIMPLE'):
-            print(f"  ✓ Valid FITS file (starts with 'SIMPLE')")
+            print(f"  :check: Valid FITS file (starts with 'SIMPLE')")
         else:
-            print(f"  ⚠ First bytes: {first_chunk[:80]}")
+            print(f"  :warning: First bytes: {first_chunk[:80]}")
             print(f"     May not be a valid FITS file")
         
         # Get full file size
         content_length = response.headers.get('content-length')
         if content_length:
             size_mb = int(content_length) / (1024 * 1024)
-            print(f"  ✓ File size: {size_mb:.2f} MB")
+            print(f"  :check: File size: {size_mb:.2f} MB")
         
         # Try to open with astropy to verify it's valid
         response.rewind = False
@@ -70,7 +70,7 @@ def test_fits_endpoint(image_id: int):
         
         try:
             with fits.open(temp_file) as hdul:
-                print(f"  ✓ Valid FITS file (astropy can open it)")
+                print(f"  :check: Valid FITS file (astropy can open it)")
                 print(f"     HDUs: {len(hdul)}")
                 if len(hdul) > 0:
                     hdu = hdul[0]
@@ -78,7 +78,7 @@ def test_fits_endpoint(image_id: int):
                         print(f"     Data shape: {hdu.data.shape}")
                         print(f"     Data type: {hdu.data.dtype}")
         except Exception as e:
-            print(f"  ✗ astropy failed to open FITS: {e}")
+            print(f"  :cross: astropy failed to open FITS: {e}")
             return False
         finally:
             if temp_file.exists():
@@ -87,15 +87,15 @@ def test_fits_endpoint(image_id: int):
         return True
         
     except requests.exceptions.ConnectionError:
-        print(f"  ✗ Connection error: API not reachable at {API_BASE_URL}")
+        print(f"  :cross: Connection error: API not reachable at {API_BASE_URL}")
         return False
     except requests.exceptions.HTTPError as e:
-        print(f"  ✗ HTTP error: {e}")
+        print(f"  :cross: HTTP error: {e}")
         if hasattr(e.response, 'text'):
             print(f"     Response: {e.response.text[:200]}")
         return False
     except Exception as e:
-        print(f"  ✗ Unexpected error: {e}")
+        print(f"  :cross: Unexpected error: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -108,7 +108,7 @@ def test_image_paths():
     print(f"{'='*60}")
     
     if not PRODUCTS_DB.exists():
-        print(f"  ✗ Database not found: {PRODUCTS_DB}")
+        print(f"  :cross: Database not found: {PRODUCTS_DB}")
         return []
     
     try:
@@ -122,7 +122,7 @@ def test_image_paths():
                 image_path = row["path"]
                 exists = Path(image_path).exists()
                 
-                status = "✓" if exists else "✗"
+                status = ":check:" if exists else ":cross:"
                 print(f"  {status} ID={image_id}: {Path(image_path).name}")
                 print(f"      Path exists: {exists}")
                 
@@ -135,14 +135,14 @@ def test_image_paths():
                         # Quick check if it's valid FITS
                         try:
                             with fits.open(image_path, memmap=False) as hdul:
-                                print(f"      Valid FITS: ✓")
+                                print(f"      Valid FITS: :check:")
                                 valid_images.append(image_id)
                         except Exception as e:
-                            print(f"      Valid FITS: ✗ ({e})")
+                            print(f"      Valid FITS: :cross: ({e})")
             
             return valid_images
     except Exception as e:
-        print(f"  ✗ Error: {e}")
+        print(f"  :cross: Error: {e}")
         import traceback
         traceback.print_exc()
         return []
@@ -160,7 +160,7 @@ def main():
     valid_image_ids = test_image_paths()
     
     if not valid_image_ids:
-        print("\n⚠ No valid images found in database")
+        print("\n:warning: No valid images found in database")
         print("  Run: python scripts/create_synthetic_images.py")
         return 1
     
@@ -184,17 +184,17 @@ def main():
     
     print(f"\nFITS Endpoint Tests: {passed}/{total} passed")
     for image_id, success in results:
-        status = "✓ PASS" if success else "✗ FAIL"
+        status = ":check: PASS" if success else ":cross: FAIL"
         print(f"  Image ID {image_id}: {status}")
     
     if passed == total:
-        print("\n✓ All tests passed! Images should display in SkyView.")
+        print("\n:check: All tests passed! Images should display in SkyView.")
         print("\nTo verify in browser:")
         print("  1. Navigate to: http://localhost:5173/skyview")
         print("  2. Select an image from the ImageBrowser")
         print("  3. Verify JS9 displays the image")
     else:
-        print("\n✗ Some tests failed. Check API logs and file paths.")
+        print("\n:cross: Some tests failed. Check API logs and file paths.")
     
     return 0 if passed == total else 1
 

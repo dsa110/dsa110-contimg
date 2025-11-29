@@ -70,67 +70,67 @@ workflows-help  # Show all available shortcuts
 
 ## Directory Organization
 
-### 📁 [dev/](dev/)
+### :folder: [dev/](dev/)
 
 Development environment setup and automation
 
 - **Quick Start**: `dev/quick-start.sh`
 - **See**: [dev/README.md](dev/README.md)
 
-### 📁 [tests/](tests/)
+### :folder: [tests/](tests/)
 
 Test scripts and utilities
 
 - **Run Tests**: `utils/run-tests.sh`
 - **See**: [tests/README.md](tests/README.md)
 
-### 📁 [quality/](quality/)
+### :folder: [quality/](quality/)
 
 Code quality, validation, and error detection
 
 - **Quality Check**: `quality/check-code-quality.sh`
 - **See**: [quality/README.md](quality/README.md)
 
-### 📁 [utils/](utils/)
+### :folder: [utils/](utils/)
 
 General utility scripts
 
 - **Service Management**: `utils/manage-services.sh`
 - **See**: [utils/README.md](utils/README.md)
 
-### 📁 [casa/](casa/)
+### :folder: [casa/](casa/)
 
 CASA log management and utilities
 
 - **Cleanup**: `casa/cleanup_casa_logs.sh`
 - **See**: [docs/README.md](docs/README.md) for detailed docs
 
-### 📁 [calibration/](calibration/)
+### :folder: [calibration/](calibration/)
 
 Calibration workflows and validation
 
 - **Check Phasing**: `calibration/check_ms_phasing.py`
 
-### 📁 [imaging/](imaging/)
+### :folder: [imaging/](imaging/)
 
 Imaging and mosaic creation
 
 - **Build Mosaic**: `imaging/build_60min_mosaic.py`
 
-### 📁 [dashboard/](dashboard/)
+### :folder: [dashboard/](dashboard/)
 
 Frontend and dashboard scripts
 
 - **Build**: `dashboard/build-dashboard-production.sh`
 - **Serve**: `dashboard/serve-dashboard-production.sh`
 
-### 📁 [monitoring/](monitoring/)
+### :folder: [monitoring/](monitoring/)
 
 Monitoring and health checks
 
 - **Monitor Calibration**: `monitoring/monitor_calibration.py`
 
-### 📁 [graphiti/](graphiti/)
+### :folder: [graphiti/](graphiti/)
 
 Knowledge graph management
 

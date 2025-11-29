@@ -215,10 +215,10 @@ def test_linearmosaic():
     print("\n1. Getting test tiles...")
     tiles = get_test_tiles(max_tiles=3)
     if not tiles:
-        print("✗ No tiles found for testing")
+        print(":cross: No tiles found for testing")
         return False
 
-    print(f"✓ Found {len(tiles)} tiles:")
+    print(f":check: Found {len(tiles)} tiles:")
     for tile in tiles:
         print(f"  - {Path(tile).name}")
 
@@ -233,11 +233,11 @@ def test_linearmosaic():
     )
 
     if not pb_available:
-        print("⚠ Warning: Not all tiles have PB images")
+        print(":warning: Warning: Not all tiles have PB images")
         print("  linearmosaic requires PB images - will test fallback instead")
         return test_fallback()
 
-    print("✓ All tiles have PB images")
+    print(":check: All tiles have PB images")
 
     # Create output path
     output_dir = Path("/data/dsa110-contimg/state/test_mosaics")
@@ -273,7 +273,7 @@ def test_linearmosaic():
 
         # Check output
         if Path(output_path).exists():
-            print(f"\n✓✓✓ SUCCESS: Mosaic created at {output_path}")
+            print(f"\n:check::check::check: SUCCESS: Mosaic created at {output_path}")
 
             # Convert to FITS
             try:
@@ -285,19 +285,19 @@ def test_linearmosaic():
                 if Path(fits_path).exists():
                     size_mb = Path(fits_path).stat().st_size / 1024 / 1024
                     print(
-                        f"✓ FITS file created: {fits_path} ({size_mb:.2f} MB)")
+                        f":check: FITS file created: {fits_path} ({size_mb:.2f} MB)")
                 else:
-                    print(f"⚠ Warning: FITS conversion completed but file not found")
+                    print(f":warning: Warning: FITS conversion completed but file not found")
             except Exception as e:
-                print(f"⚠ Warning: Failed to convert to FITS: {e}")
+                print(f":warning: Warning: Failed to convert to FITS: {e}")
 
             return True
         else:
-            print(f"\n✗ FAILED: Mosaic not created")
+            print(f"\n:cross: FAILED: Mosaic not created")
             return False
 
     except Exception as e:
-        print(f"\n✗ FAILED: {e}")
+        print(f"\n:cross: FAILED: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -311,7 +311,7 @@ def test_fallback():
 
     tiles = get_test_tiles(max_tiles=3)
     if not tiles:
-        print("✗ No tiles found for testing")
+        print(":cross: No tiles found for testing")
         return False
 
     metrics_dict = get_metrics_dict(tiles)
@@ -347,14 +347,14 @@ def test_fallback():
         )
 
         if Path(output_path).exists():
-            print(f"\n✓✓✓ SUCCESS: Fallback mosaic created at {output_path}")
+            print(f"\n:check::check::check: SUCCESS: Fallback mosaic created at {output_path}")
             return True
         else:
-            print(f"\n✗ FAILED: Mosaic not created")
+            print(f"\n:cross: FAILED: Mosaic not created")
             return False
 
     except Exception as e:
-        print(f"\n✗ FAILED: {e}")
+        print(f"\n:cross: FAILED: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -368,7 +368,7 @@ def test_wrapper():
 
     tiles = get_test_tiles(max_tiles=3)
     if not tiles:
-        print("✗ No tiles found for testing")
+        print(":cross: No tiles found for testing")
         return False
 
     metrics_dict = get_metrics_dict(tiles)
@@ -404,7 +404,7 @@ def test_wrapper():
         )
 
         if Path(output_path).exists():
-            print(f"\n✓✓✓ SUCCESS: Wrapper created mosaic at {output_path}")
+            print(f"\n:check::check::check: SUCCESS: Wrapper created mosaic at {output_path}")
 
             # Convert to FITS
             try:
@@ -416,19 +416,19 @@ def test_wrapper():
                 if Path(fits_path).exists():
                     size_mb = Path(fits_path).stat().st_size / 1024 / 1024
                     print(
-                        f"✓ FITS file created: {fits_path} ({size_mb:.2f} MB)")
+                        f":check: FITS file created: {fits_path} ({size_mb:.2f} MB)")
                 else:
-                    print(f"⚠ Warning: FITS conversion completed but file not found")
+                    print(f":warning: Warning: FITS conversion completed but file not found")
             except Exception as e:
-                print(f"⚠ Warning: Failed to convert to FITS: {e}")
+                print(f":warning: Warning: Failed to convert to FITS: {e}")
 
             return True
         else:
-            print(f"\n✗ FAILED: Mosaic not created")
+            print(f"\n:cross: FAILED: Mosaic not created")
             return False
 
     except Exception as e:
-        print(f"\n✗ FAILED: {e}")
+        print(f"\n:cross: FAILED: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -476,14 +476,14 @@ if __name__ == '__main__':
         print("Test Summary")
         print("=" * 60)
         print(
-            f"linearmosaic direct: {'✓ PASSED' if success1 else '✗ FAILED/SKIPPED'}")
-        print(f"Wrapper function:    {'✓ PASSED' if success2 else '✗ FAILED'}")
+            f"linearmosaic direct: {':check: PASSED' if success1 else ':cross: FAILED/SKIPPED'}")
+        print(f"Wrapper function:    {':check: PASSED' if success2 else ':cross: FAILED'}")
 
         if success1 or success2:
-            print("\n✓✓✓ At least one test passed!")
+            print("\n:check::check::check: At least one test passed!")
             sys.exit(0)
         else:
-            print("\n✗✗✗ All tests failed")
+            print("\n:cross::cross::cross: All tests failed")
             sys.exit(1)
     except KeyboardInterrupt:
         signal.alarm(0)

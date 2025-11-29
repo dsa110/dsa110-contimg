@@ -7,7 +7,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-echo "🚀 DSA-110 Project Quick Start"
+echo ":rocket: DSA-110 Project Quick Start"
 echo "================================"
 echo ""
 
@@ -15,7 +15,7 @@ echo ""
 echo "Step 1: Validating environment..."
 if ! "$SCRIPT_DIR/validate-environment.sh" 2>/dev/null; then
     echo ""
-    echo "⚠️  Some issues found. Attempting to fix..."
+    echo ":warning:  Some issues found. Attempting to fix..."
     echo ""
 fi
 
@@ -34,7 +34,7 @@ echo "Step 4: Final validation..."
 "$SCRIPT_DIR/validate-environment.sh"
 
 echo ""
-echo "✅ Quick start complete!"
+echo ":check: Quick start complete!"
 echo ""
 echo "Next steps:"
 echo "  1. Read: docs/how-to/CRITICAL_HANDOVER_WARNINGS.md"

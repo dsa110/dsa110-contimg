@@ -28,12 +28,12 @@ def clear_model_data(ms_path: str) -> bool:
         
         with table(ms_path, readonly=False) as tb:
             if "MODEL_DATA" not in tb.colnames():
-                print("  ✓ MODEL_DATA column does not exist")
+                print("  :check: MODEL_DATA column does not exist")
                 return True
             
             nrows = tb.nrows()
             if nrows == 0:
-                print("  ✓ MS has no rows")
+                print("  :check: MS has no rows")
                 return True
             
             # Get DATA shape to match MODEL_DATA shape
@@ -46,17 +46,17 @@ def clear_model_data(ms_path: str) -> bool:
                     # Clear MODEL_DATA with zeros matching DATA shape
                     zeros = np.zeros((nrows,) + data_shape, dtype=data_dtype)
                     tb.putcol("MODEL_DATA", zeros)
-                    print(f"  ✓ MODEL_DATA cleared ({nrows} rows)")
+                    print(f"  :check: MODEL_DATA cleared ({nrows} rows)")
                     return True
                 else:
-                    print("  ⚠ Could not determine DATA shape")
+                    print("  :warning: Could not determine DATA shape")
                     return False
             else:
-                print("  ⚠ DATA column not found")
+                print("  :warning: DATA column not found")
                 return False
                 
     except Exception as e:
-        print(f"  ✗ Error clearing MODEL_DATA: {e}")
+        print(f"  :cross: Error clearing MODEL_DATA: {e}")
         return False
 
 
@@ -69,17 +69,17 @@ def clear_corrected_data(ms_path: str) -> bool:
         
         with table(ms_path, readonly=False) as tb:
             if "CORRECTED_DATA" not in tb.colnames():
-                print("  ✓ CORRECTED_DATA column does not exist")
+                print("  :check: CORRECTED_DATA column does not exist")
                 return True
             
             # CORRECTED_DATA is typically initialized from DATA
             # We'll just verify it exists, actual clearing happens during calibration
             nrows = tb.nrows()
-            print(f"  ✓ CORRECTED_DATA present ({nrows} rows, will be recalculated during calibration)")
+            print(f"  :check: CORRECTED_DATA present ({nrows} rows, will be recalculated during calibration)")
             return True
                 
     except Exception as e:
-        print(f"  ✗ Error checking CORRECTED_DATA: {e}")
+        print(f"  :cross: Error checking CORRECTED_DATA: {e}")
         return False
 
 
@@ -106,13 +106,13 @@ def clear_calibration_tables(ms_dir: str) -> int:
                     shutil.rmtree(item_path)
                 else:
                     os.remove(item_path)
-                print(f"  ✓ Removed: {item}")
+                print(f"  :check: Removed: {item}")
                 removed += 1
             except Exception as e:
-                print(f"  ✗ Failed to remove {item}: {e}")
+                print(f"  :cross: Failed to remove {item}: {e}")
     
     if removed == 0:
-        print("  ✓ No calibration tables found")
+        print("  :check: No calibration tables found")
     
     return removed
 
@@ -131,17 +131,17 @@ def clear_flag_tables(ms_path: str) -> bool:
                 if nrows > 0:
                     # Clear all rows (flag commands are not critical for calibration)
                     # Actually, we probably shouldn't clear this - it may contain important flags
-                    print(f"  ✓ Flag table exists ({nrows} rows, preserving)")
+                    print(f"  :check: Flag table exists ({nrows} rows, preserving)")
                     return True
                 else:
-                    print(f"  ✓ Flag table is empty")
+                    print(f"  :check: Flag table is empty")
                     return True
         else:
-            print(f"  ✓ Flag table does not exist")
+            print(f"  :check: Flag table does not exist")
             return True
             
     except Exception as e:
-        print(f"  ⚠ Error checking flag table: {e}")
+        print(f"  :warning: Error checking flag table: {e}")
         return False
 
 
@@ -152,7 +152,7 @@ def clear_all(ms_path: str) -> bool:
     print("=" * 70)
     
     if not os.path.exists(ms_path):
-        print(f"✗ MS not found: {ms_path}")
+        print(f":cross: MS not found: {ms_path}")
         return False
     
     ms_dir = os.path.dirname(ms_path) if os.path.dirname(ms_path) else os.getcwd()
@@ -170,15 +170,15 @@ def clear_all(ms_path: str) -> bool:
     
     all_ok = all([results["model_data"], results["corrected_data"], results["flag_tables"]])
     
-    print(f"  MODEL_DATA cleared: {'✓' if results['model_data'] else '✗'}")
-    print(f"  CORRECTED_DATA checked: {'✓' if results['corrected_data'] else '✗'}")
+    print(f"  MODEL_DATA cleared: {':check:' if results['model_data'] else ':cross:'}")
+    print(f"  CORRECTED_DATA checked: {':check:' if results['corrected_data'] else ':cross:'}")
     print(f"  Calibration tables removed: {results['calibration_tables']}")
-    print(f"  Flag tables checked: {'✓' if results['flag_tables'] else '✗'}")
+    print(f"  Flag tables checked: {':check:' if results['flag_tables'] else ':cross:'}")
     
     if all_ok:
-        print("\n✓ All artifacts cleared successfully")
+        print("\n:check: All artifacts cleared successfully")
     else:
-        print("\n⚠ Some artifacts may not be fully cleared")
+        print("\n:warning: Some artifacts may not be fully cleared")
     
     return all_ok
 

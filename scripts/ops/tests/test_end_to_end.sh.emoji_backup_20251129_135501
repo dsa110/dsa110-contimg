@@ -16,9 +16,9 @@ import tempfile
 db_path = Path('/data/dsa110-contimg/state/db/products.sqlite3')
 if db_path.exists():
     result = evolve_products_schema(db_path, verbose=False)
-    print(f'   Migration: {\"✓\" if result else \"✗\"}')
+    print(f'   Migration: {\":check:\" if result else \":cross:\"}')
 else:
-    print('   ⚠ Database does not exist, skipping migration')
+    print('   :warning: Database does not exist, skipping migration')
 "
 echo ""
 
@@ -39,29 +39,29 @@ client = TestClient(app)
 # Test list endpoint
 response = client.get('/api/data')
 assert response.status_code == 200, f'Expected 200, got {response.status_code}'
-print(f'   GET /api/data: ✓ ({len(response.json())} instances)')
+print(f'   GET /api/data: :check: ({len(response.json())} instances)')
 
 # Test with filters
 response = client.get('/api/data?status=staging')
 assert response.status_code == 200
-print(f'   GET /api/data?status=staging: ✓')
+print(f'   GET /api/data?status=staging: :check:')
 
-print('   ✓ All API endpoints working')
+print('   :check: All API endpoints working')
 "
 echo ""
 
 # 4. Check directory structure
 echo "4. Checking directory structure..."
 if [ -d "/stage/dsa110-contimg" ]; then
-    echo "   ✓ /stage/dsa110-contimg exists"
+    echo "   :check: /stage/dsa110-contimg exists"
 else
-    echo "   ✗ /stage/dsa110-contimg missing"
+    echo "   :cross: /stage/dsa110-contimg missing"
 fi
 
 if [ -d "/data/dsa110-contimg/products" ]; then
-    echo "   ✓ /data/dsa110-contimg/products exists"
+    echo "   :check: /data/dsa110-contimg/products exists"
 else
-    echo "   ✗ /data/dsa110-contimg/products missing"
+    echo "   :cross: /data/dsa110-contimg/products missing"
 fi
 echo ""
 

@@ -26,12 +26,12 @@ if [ -f ".pre-commit-config.yaml" ]; then
     always_run: true
     stages: [pre-commit]
 EOF
-        echo "  ✓ Added pre-commit hook"
+        echo "  :check: Added pre-commit hook"
     else
-        echo "  ✓ Pre-commit hook already exists"
+        echo "  :check: Pre-commit hook already exists"
     fi
 else
-    echo "  ⚠ .pre-commit-config.yaml not found, skipping"
+    echo "  :warning: .pre-commit-config.yaml not found, skipping"
 fi
 
 # 2. Create CI validation workflow
@@ -72,9 +72,9 @@ jobs:
           chmod +x scripts/check-ports.sh
           ./scripts/check-ports.sh || true
 EOF
-    echo "  ✓ Created .github/workflows/validate-ports.yml"
+    echo "  :check: Created .github/workflows/validate-ports.yml"
 else
-    echo "  ✓ CI workflow already exists"
+    echo "  :check: CI workflow already exists"
 fi
 
 # 3. Create Docker Compose validation script
@@ -126,18 +126,18 @@ check_file "docker/docker-compose.test.yml"
 check_file "frontend/docker-compose.test.yml"
 
 if [ $ERRORS -eq 0 ]; then
-    echo "✓ All Docker Compose files use environment variables for ports"
+    echo ":check: All Docker Compose files use environment variables for ports"
     exit 0
 else
     echo ""
-    echo "✗ Found $ERRORS hardcoded port(s)"
+    echo ":cross: Found $ERRORS hardcoded port(s)"
     echo "  Use environment variables instead (e.g., \${CONTIMG_API_PORT:-8000})"
     exit 1
 fi
 EOF
 
 chmod +x scripts/validate-docker-ports.sh
-echo "  ✓ Created scripts/validate-docker-ports.sh"
+echo "  :check: Created scripts/validate-docker-ports.sh"
 
 # 4. Create port health check endpoint helper
 echo ""
@@ -167,7 +167,7 @@ print("Manually add /health/ports endpoint to routes.py")
 EOF
 
 chmod +x scripts/add-port-health-check.py
-echo "  ✓ Created scripts/add-port-health-check.py"
+echo "  :check: Created scripts/add-port-health-check.py"
 
 # 5. Create startup validation helper
 echo ""
@@ -207,16 +207,16 @@ else:
     print('All ports validated successfully')
     sys.exit(0)
 " 2>/dev/null; then
-    echo "✓ Port validation passed"
+    echo ":check: Port validation passed"
     exit 0
 else
-    echo "✗ Port validation failed"
+    echo ":cross: Port validation failed"
     exit 1
 fi
 EOF
 
 chmod +x scripts/validate-startup-ports.sh
-echo "  ✓ Created scripts/validate-startup-ports.sh"
+echo "  :check: Created scripts/validate-startup-ports.sh"
 
 echo ""
 echo "=== Safeguards Enforcement Complete ==="

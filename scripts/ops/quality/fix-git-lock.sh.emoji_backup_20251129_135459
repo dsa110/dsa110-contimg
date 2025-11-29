@@ -7,18 +7,18 @@ set -e
 LOCK_FILE=".git/index.lock"
 
 if [ ! -f "$LOCK_FILE" ]; then
-    echo "✅ No lock file found - nothing to fix"
+    echo ":check: No lock file found - nothing to fix"
     exit 0
 fi
 
-echo "⚠️  Git lock file found: $LOCK_FILE"
+echo ":warning:  Git lock file found: $LOCK_FILE"
 echo ""
 
 # Check if any process is using the lock file
 PROCESSES=$(lsof "$LOCK_FILE" 2>/dev/null || true)
 
 if [ -n "$PROCESSES" ]; then
-    echo "❌ ERROR: Lock file is in use by running process:"
+    echo ":cross: ERROR: Lock file is in use by running process:"
     echo "$PROCESSES"
     echo ""
     echo "DO NOT remove the lock file while a process is using it!"
@@ -30,7 +30,7 @@ fi
 GIT_PROCESSES=$(ps aux | grep -E "[g]it|pre-commit" | grep -v "grep" || true)
 
 if [ -n "$GIT_PROCESSES" ]; then
-    echo "⚠️  WARNING: Git processes are running:"
+    echo ":warning:  WARNING: Git processes are running:"
     echo "$GIT_PROCESSES"
     echo ""
     echo "It's safer to wait for these to complete."
@@ -48,10 +48,10 @@ echo "Removing lock file..."
 rm -f "$LOCK_FILE"
 
 if [ ! -f "$LOCK_FILE" ]; then
-    echo "✅ Lock file removed successfully"
+    echo ":check: Lock file removed successfully"
     exit 0
 else
-    echo "❌ Failed to remove lock file"
+    echo ":cross: Failed to remove lock file"
     exit 1
 fi
 

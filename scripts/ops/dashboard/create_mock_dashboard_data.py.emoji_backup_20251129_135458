@@ -136,7 +136,7 @@ def create_mock_data(db_path: Path):
     
     conn.commit()
     conn.close()
-    print("✓ Mock data created successfully!")
+    print(":check: Mock data created successfully!")
 
 
 if __name__ == "__main__":

@@ -11,19 +11,19 @@ echo ""
 echo "1. CARTA Service Status"
 echo "----------------------"
 if docker ps | grep -q carta-backend; then
-    echo "✅ CARTA container running"
+    echo ":check: CARTA container running"
     if curl -s http://localhost:9002 | grep -q "CARTA"; then
-        echo "✅ CARTA frontend responding on port 9002"
+        echo ":check: CARTA frontend responding on port 9002"
     else
-        echo "⚠️  CARTA frontend not responding"
+        echo ":warning:  CARTA frontend not responding"
     fi
     if curl -s http://localhost:9003 | grep -q "CARTA"; then
-        echo "✅ CARTA UI responding on port 9003"
+        echo ":check: CARTA UI responding on port 9003"
     else
-        echo "⚠️  CARTA UI not responding"
+        echo ":warning:  CARTA UI not responding"
     fi
 else
-    echo "❌ CARTA container not running"
+    echo ":cross: CARTA container not running"
     echo "   Fix: docker start carta-backend"
 fi
 echo ""
@@ -32,24 +32,24 @@ echo ""
 echo "2. Metadata Registration Code"
 echo "----------------------------"
 if [ -f "/data/dsa110-contimg/src/dsa110_contimg/database/register_products.py" ]; then
-    echo "✅ register_products.py exists"
+    echo ":check: register_products.py exists"
     
     # Check if it's valid Python
     if /opt/miniforge/envs/casa6/bin/python -m py_compile /data/dsa110-contimg/src/dsa110_contimg/database/register_products.py 2>/dev/null; then
-        echo "✅ register_products.py compiles successfully"
+        echo ":check: register_products.py compiles successfully"
         
         # Check for key functions
         if grep -q "def register_image_with_metadata" /data/dsa110-contimg/src/dsa110_contimg/database/register_products.py; then
-            echo "✅ register_image_with_metadata() function defined"
+            echo ":check: register_image_with_metadata() function defined"
         fi
         if grep -q "def register_ms_with_metadata" /data/dsa110-contimg/src/dsa110_contimg/database/register_products.py; then
-            echo "✅ register_ms_with_metadata() function defined"
+            echo ":check: register_ms_with_metadata() function defined"
         fi
     else
-        echo "⚠️  register_products.py has syntax errors"
+        echo ":warning:  register_products.py has syntax errors"
     fi
 else
-    echo "❌ register_products.py not found"
+    echo ":cross: register_products.py not found"
 fi
 echo ""
 
@@ -57,11 +57,11 @@ echo ""
 echo "3. Backend API Status"
 echo "--------------------"
 if curl -s http://localhost:8000/api/status > /dev/null 2>&1; then
-    echo "✅ Backend API responding"
+    echo ":check: Backend API responding"
     STATUS=$(curl -s http://localhost:8000/api/status | head -1)
     echo "   Status: $STATUS"
 else
-    echo "❌ Backend API not responding"
+    echo ":cross: Backend API not responding"
     if docker ps | grep -q dsa110-api; then
         echo "   Docker container: Running (but unhealthy)"
         docker logs dsa110-api 2>&1 | grep -E "ERROR|CRITICAL" | tail -3
@@ -76,21 +76,21 @@ echo ""
 echo "4. Database Status"
 echo "-----------------"
 if [ -f "/data/dsa110-contimg/state/db/products.sqlite3" ]; then
-    echo "✅ products.sqlite3 exists"
+    echo ":check: products.sqlite3 exists"
     
     # Check if we can query it
     IMAGE_COUNT=$(sqlite3 /data/dsa110-contimg/state/db/products.sqlite3 "SELECT COUNT(*) FROM images;" 2>/dev/null)
     if [ -n "$IMAGE_COUNT" ]; then
-        echo "✅ Database accessible: $IMAGE_COUNT images registered"
+        echo ":check: Database accessible: $IMAGE_COUNT images registered"
         
         # Check for metadata completeness
         METADATA_COUNT=$(sqlite3 /data/dsa110-contimg/state/db/products.sqlite3 "SELECT COUNT(*) FROM images WHERE center_ra_deg IS NOT NULL;" 2>/dev/null)
         echo "   Images with metadata: $METADATA_COUNT / $IMAGE_COUNT"
     else
-        echo "⚠️  Cannot query database"
+        echo ":warning:  Cannot query database"
     fi
 else
-    echo "❌ products.sqlite3 not found"
+    echo ":cross: products.sqlite3 not found"
 fi
 echo ""
 
@@ -98,9 +98,9 @@ echo ""
 echo "5. Absurd Workflow Manager"
 echo "-------------------------"
 if curl -s http://localhost:8000/api/absurd/health > /dev/null 2>&1; then
-    echo "✅ Absurd responding"
+    echo ":check: Absurd responding"
 else
-    echo "❌ Absurd not responding"
+    echo ":cross: Absurd not responding"
     if grep -q "ABSURD_ENABLED=true" /data/dsa110-contimg/.env 2>/dev/null; then
         echo "   Config: ABSURD_ENABLED=true (in .env)"
         echo "   Status: Requires PostgreSQL database"
@@ -115,9 +115,9 @@ echo ""
 echo "6. Frontend Status"
 echo "-----------------"
 if curl -s http://localhost:3210 | grep -q "DSA-110"; then
-    echo "✅ Frontend accessible at http://localhost:3210"
+    echo ":check: Frontend accessible at http://localhost:3210"
 else
-    echo "⚠️  Frontend not responding"
+    echo ":warning:  Frontend not responding"
     echo "   Start with: cd frontend && npm run preview:local"
 fi
 echo ""
@@ -127,16 +127,16 @@ echo "=========================================="
 echo "Summary"
 echo "=========================================="
 echo ""
-echo "✅ Working:"
+echo ":check: Working:"
 echo "   - CARTA service (Docker)"
 echo "   - Metadata registration code"
 echo "   - Frontend UI"
 echo ""
-echo "❌ Blocked:"
+echo ":cross: Blocked:"
 echo "   - Backend API (Docker Python version issue)"
 echo "   - Absurd (requires PostgreSQL)"
 echo ""
-echo "📖 Documentation:"
+echo ":book: Documentation:"
 echo "   - IMPLEMENTATION_TEST_SUMMARY.md - Full test report"
 echo "   - BACKEND_RESTART_ISSUE.md - Backend fix instructions"
 echo "   - INTEGRATION_FIXES_QUICK_START.md - Quick start guide"

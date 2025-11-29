@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
-import FitsViewer, { FitsViewerProps } from "./FitsViewer";
+import FitsViewer from "./FitsViewer";
 
 export interface FitsViewerGridProps {
   /** Array of FITS URLs to display */

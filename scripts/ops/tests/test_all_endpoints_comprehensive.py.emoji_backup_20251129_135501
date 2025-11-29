@@ -37,16 +37,16 @@ def test_with_database(db_path: Path, scenario_name: str):
             'count': len(candidates),
             'works': True
         }
-        print(f"   ✓ Returns {len(candidates)} candidates")
+        print(f"   :check: Returns {len(candidates)} candidates")
         if candidates:
-            print(f"   ✓ First candidate: {candidates[0].get('source_id', 'N/A')}")
+            print(f"   :check: First candidate: {candidates[0].get('source_id', 'N/A')}")
     except Exception as e:
         results['ese_candidates'] = {
             'status': 'FAIL',
             'error': str(e),
             'works': False
         }
-        print(f"   ✗ Error: {e}")
+        print(f"   :cross: Error: {e}")
     
     # 2. Mosaics
     print("\n2. Mosaic Query Endpoint:")
@@ -59,16 +59,16 @@ def test_with_database(db_path: Path, scenario_name: str):
             'count': len(mosaics),
             'works': True
         }
-        print(f"   ✓ Returns {len(mosaics)} mosaics")
+        print(f"   :check: Returns {len(mosaics)} mosaics")
         if mosaics:
-            print(f"   ✓ First mosaic: {mosaics[0].get('name', 'N/A')}")
+            print(f"   :check: First mosaic: {mosaics[0].get('name', 'N/A')}")
     except Exception as e:
         results['mosaics'] = {
             'status': 'FAIL',
             'error': str(e),
             'works': False
         }
-        print(f"   ✗ Error: {e}")
+        print(f"   :cross: Error: {e}")
     
     # 3. Source Search
     print("\n3. Source Search Endpoint:")
@@ -80,17 +80,17 @@ def test_with_database(db_path: Path, scenario_name: str):
             'works': True
         }
         if source:
-            print(f"   ✓ Found timeseries for source")
-            print(f"   ✓ Flux points: {len(source.get('flux_points', []))}")
+            print(f"   :check: Found timeseries for source")
+            print(f"   :check: Flux points: {len(source.get('flux_points', []))}")
         else:
-            print(f"   ✓ Returns None (graceful - no data)")
+            print(f"   :check: Returns None (graceful - no data)")
     except Exception as e:
         results['source_search'] = {
             'status': 'FAIL',
             'error': str(e),
             'works': False
         }
-        print(f"   ✗ Error: {e}")
+        print(f"   :cross: Error: {e}")
     
     # 4. Alert History
     print("\n4. Alert History Endpoint:")
@@ -101,16 +101,16 @@ def test_with_database(db_path: Path, scenario_name: str):
             'count': len(alerts),
             'works': True
         }
-        print(f"   ✓ Returns {len(alerts)} alerts")
+        print(f"   :check: Returns {len(alerts)} alerts")
         if alerts:
-            print(f"   ✓ Most recent: {alerts[0].get('alert_type', 'N/A')}")
+            print(f"   :check: Most recent: {alerts[0].get('alert_type', 'N/A')}")
     except Exception as e:
         results['alert_history'] = {
             'status': 'FAIL',
             'error': str(e),
             'works': False
         }
-        print(f"   ✗ Error: {e}")
+        print(f"   :cross: Error: {e}")
     
     return results
 
@@ -140,14 +140,14 @@ def main():
     print("\nReal Database (products.sqlite3):")
     for endpoint in endpoints:
         r = results_real.get(endpoint, {})
-        status = "✓ PASS" if r.get('works') else "✗ FAIL"
+        status = ":check: PASS" if r.get('works') else ":cross: FAIL"
         count = r.get('count', 0) if 'count' in r else ('Found' if r.get('found') else 'None')
         print(f"  {endpoint:20s} {status:10s} ({count})")
     
     print("\nEmpty Database (graceful degradation):")
     for endpoint in endpoints:
         r = results_empty.get(endpoint, {})
-        status = "✓ PASS" if r.get('works') else "✗ FAIL"
+        status = ":check: PASS" if r.get('works') else ":cross: FAIL"
         count = r.get('count', 0) if 'count' in r else ('None' if not r.get('found') else 'Found')
         print(f"  {endpoint:20s} {status:10s} ({count})")
     
@@ -157,11 +157,11 @@ def main():
     
     print(f"\n{'='*60}")
     if all_pass_real and all_pass_empty:
-        print("✓ ALL ENDPOINTS WORKING CORRECTLY")
+        print(":check: ALL ENDPOINTS WORKING CORRECTLY")
         print("  - Real database: All endpoints functional")
         print("  - Empty database: All endpoints handle gracefully")
     else:
-        print("✗ SOME ENDPOINTS HAVE ISSUES")
+        print(":cross: SOME ENDPOINTS HAVE ISSUES")
         if not all_pass_real:
             print("  - Real database: Some endpoints failed")
         if not all_pass_empty:

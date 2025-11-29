@@ -123,8 +123,8 @@ def main():
         beam_fwhm_arcsec=args.beam_fwhm,
     )
 
-    print(f"\n✓ FITS image: {fits_path}")
-    print(f"✓ PNG image: {png_path}")
+    print(f"\n:check: FITS image: {fits_path}")
+    print(f":check: PNG image: {png_path}")
     print(f"\nPNG saved to: {png_path}")
 
     return 0

@@ -116,14 +116,14 @@ def main():
 
     if success:
         logger.info("")
-        logger.info("✓ Fast self-calibration test PASSED")
+        logger.info(":check: Fast self-calibration test PASSED")
         logger.info(f"  Output: {OUTPUT_DIR}")
         logger.info(
             f"  Best image: {OUTPUT_DIR}/selfcal_iter{summary.get('best_iteration', 0)}-image.fits"
         )
     else:
         logger.error("")
-        logger.error("✗ Fast self-calibration test FAILED")
+        logger.error(":cross: Fast self-calibration test FAILED")
         logger.error(f"  Reason: {summary.get('error', 'Unknown')}")
 
     return 0 if success else 1

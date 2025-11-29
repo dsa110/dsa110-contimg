@@ -33,7 +33,7 @@ list_category() {
         return 1
     fi
     
-    echo -e "${BLUE}📁 $category/${NC}"
+    echo -e "${BLUE}:folder: $category/${NC}"
     local count=0
     for script in "$dir"/*; do
         if [ -f "$script" ] && [ -x "$script" ] || [[ "$script" == *.py ]] || [[ "$script" == *.sh ]]; then
@@ -42,7 +42,7 @@ list_category() {
             [[ "$basename" == *.backup ]] && continue
             [[ "$basename" == *.pyc ]] && continue
             
-            echo -e "  ${GREEN}•${NC} $basename"
+            echo -e "  ${GREEN}:bullet:${NC} $basename"
             ((count++))
         fi
     done
@@ -63,7 +63,7 @@ search_scripts() {
         [[ "$dir" == "." ]] && dir="root"
         
         if [[ "$basename" == *"$query"* ]] || [[ "$dir" == *"$query"* ]]; then
-            echo -e "  ${GREEN}✓${NC} $dir/${CYAN}$basename${NC}"
+            echo -e "  ${GREEN}:check:${NC} $dir/${CYAN}$basename${NC}"
             ((found++))
         fi
     done < <(find "$SCRIPT_DIR" -type f \( -name "*.sh" -o -name "*.py" \) ! -path "*/__pycache__/*" ! -path "*/.git/*" ! -name "*.pyc" -print0)
@@ -197,7 +197,7 @@ case "${1:-help}" in
             for category in calibration casa dashboard dev graphiti imaging monitoring quality tests utils; do
                 if [ -d "$SCRIPT_DIR/$category" ]; then
                     count=$(find "$SCRIPT_DIR/$category" -type f \( -name "*.sh" -o -name "*.py" \) ! -name "*.pyc" ! -name "*.backup" 2>/dev/null | wc -l)
-                    echo -e "  ${GREEN}•${NC} ${CYAN}$category${NC} ($count scripts)"
+                    echo -e "  ${GREEN}:bullet:${NC} ${CYAN}$category${NC} ($count scripts)"
                 fi
             done
             echo ""

@@ -168,7 +168,7 @@ def main():
         print(f"{'=' * 80}")
         try:
             apply_to_target(args.ms_path, field=str(args.field), gaintables=args.caltables, verify=True)
-            print("✓ Calibration applied successfully")
+            print(":check: Calibration applied successfully")
         except Exception as e:
             print(f"ERROR: Failed to apply calibration: {e}")
             sys.exit(1)
@@ -192,14 +192,14 @@ def main():
     print(f"{'=' * 80}")
     
     if improvements['amplitude_scatter_factor'] < 1.0:
-        print("✓ Amplitude scatter improved")
+        print(":check: Amplitude scatter improved")
     else:
-        print("⚠ Amplitude scatter increased (may indicate calibration issues)")
+        print(":warning: Amplitude scatter increased (may indicate calibration issues)")
     
     if improvements['phase_scatter_factor'] > 1.0:
-        print("✓ Phase scatter improved")
+        print(":check: Phase scatter improved")
     else:
-        print("⚠ Phase scatter increased (may indicate calibration issues)")
+        print(":warning: Phase scatter increased (may indicate calibration issues)")
     
     print(f"\nCalibration appears to be: {'EFFECTIVE' if improvements['amplitude_scatter_factor'] < 1.0 and improvements['phase_scatter_factor'] > 1.0 else 'INEFFECTIVE or DEGRADING'}")
     

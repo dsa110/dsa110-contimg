@@ -44,10 +44,10 @@ all_valid = True
 for service, (is_valid, error) in results.items():
     if is_valid:
         port = pm.get_port(service, check_conflict=False)
-        print(f'  ✓ {service:20s} -> {port:5d} (OK)')
+        print(f'  :check: {service:20s} -> {port:5d} (OK)')
     else:
         port = pm.get_port(service, check_conflict=False)
-        print(f'  ✗ {service:20s} -> {port:5d} (CONFLICT: {error})')
+        print(f'  :cross: {service:20s} -> {port:5d} (CONFLICT: {error})')
         all_valid = False
 
 sys.exit(0 if all_valid else 1)
@@ -80,11 +80,11 @@ else
         
         if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1 || \
            sudo lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1; then
-            echo -e "  ${RED}✗${NC} $service (port $port): ${RED}IN USE${NC}"
+            echo -e "  ${RED}:cross:${NC} $service (port $port): ${RED}IN USE${NC}"
             lsof -i :$port 2>/dev/null | head -2 || true
             return 1
         else
-            echo -e "  ${GREEN}✓${NC} $service (port $port): ${GREEN}FREE${NC}"
+            echo -e "  ${GREEN}:check:${NC} $service (port $port): ${GREEN}FREE${NC}"
             return 0
         fi
     }
@@ -99,9 +99,9 @@ fi
 echo ""
 echo -e "${BLUE}Port configuration file:${NC}"
 if [ -f "$PROJECT_DIR/config/ports.yaml" ]; then
-    echo -e "  ${GREEN}✓${NC} $PROJECT_DIR/config/ports.yaml"
+    echo -e "  ${GREEN}:check:${NC} $PROJECT_DIR/config/ports.yaml"
 else
-    echo -e "  ${YELLOW}⚠${NC} $PROJECT_DIR/config/ports.yaml ${YELLOW}(not found, using defaults)${NC}"
+    echo -e "  ${YELLOW}:warning:${NC} $PROJECT_DIR/config/ports.yaml ${YELLOW}(not found, using defaults)${NC}"
     echo -e "    Run: cp config/ports.yaml.example config/ports.yaml"
 fi
 

@@ -46,7 +46,7 @@ echo "Attempting to connect to Chrome DevTools Protocol..."
 cdp_response=$(curl -s "http://localhost:9222/json" 2>/dev/null || echo "[]")
 
 if [ "$cdp_response" != "[]" ] && [ -n "$cdp_response" ]; then
-    echo "✓ Connected to Chrome DevTools Protocol"
+    echo ":check: Connected to Chrome DevTools Protocol"
     page_count=$(echo "$cdp_response" | jq 'length' 2>/dev/null || echo "0")
     echo "  Found ${page_count} page(s)"
     
@@ -62,7 +62,7 @@ if [ "$cdp_response" != "[]" ] && [ -n "$cdp_response" ]; then
         fi
     fi
 else
-    echo "⚠ Could not connect to Chrome DevTools Protocol"
+    echo ":warning: Could not connect to Chrome DevTools Protocol"
     echo "  Chrome is running, but CDP connection failed"
     echo "  You can manually inspect the page in Chrome"
 fi

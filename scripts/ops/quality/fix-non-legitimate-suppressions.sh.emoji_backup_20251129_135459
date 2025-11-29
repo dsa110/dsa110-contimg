@@ -65,7 +65,7 @@ for pattern in "${PATTERNS[@]}"; do
 done
 
 if [ $FOUND_ISSUES -eq 0 ]; then
-    echo "✓ No obvious non-legitimate suppressions found"
+    echo ":check: No obvious non-legitimate suppressions found"
     echo "  (All suppressions are either whitelisted or need manual review)"
 else
     echo "=========================================="

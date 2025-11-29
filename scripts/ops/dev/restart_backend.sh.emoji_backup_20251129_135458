@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "🔄 Restarting DSA-110 Backend API..."
+echo ":refresh: Restarting DSA-110 Backend API..."
 echo ""
 
 # Find and kill the current backend process
@@ -17,7 +17,7 @@ if [ -n "$BACKEND_PID" ]; then
         echo "Force stopping..."
         kill -9 $BACKEND_PID
     fi
-    echo "✓ Backend stopped"
+    echo ":check: Backend stopped"
 else
     echo "No backend process found"
 fi
@@ -34,24 +34,24 @@ conda activate casa6
 nohup uvicorn dsa110_contimg.api:app --host 0.0.0.0 --port 8000 --reload > /tmp/backend.log 2>&1 &
 BACKEND_PID=$!
 
-echo "✓ Backend started (PID: $BACKEND_PID)"
+echo ":check: Backend started (PID: $BACKEND_PID)"
 echo ""
 echo "Waiting for backend to be ready..."
 sleep 3
 
 # Test if backend is responding
 if curl -s -f http://localhost:8000/api/status > /dev/null 2>&1; then
-    echo "✓ Backend is responding!"
+    echo ":check: Backend is responding!"
     echo ""
     echo "Testing disk metrics..."
     curl -s "http://localhost:8000/api/metrics/system" | python3 -c "
 import json, sys
 data = json.load(sys.stdin)
-print(f'✓ {len(data.get(\"disks\", []))} disks reported:')
+print(f':check: {len(data.get(\"disks\", []))} disks reported:')
 for disk in data.get('disks', []):
     print(f'  {disk[\"mount_point\"]:20} {disk[\"percent\"]:5.1f}%  ({disk[\"total\"]/1024**3:8.1f} GB total)')
 "
 else
-    echo "⚠ Backend not responding yet. Check logs:"
+    echo ":warning: Backend not responding yet. Check logs:"
     echo "  tail -f /tmp/backend.log"
 fi

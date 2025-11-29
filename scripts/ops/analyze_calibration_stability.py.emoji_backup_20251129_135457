@@ -488,12 +488,12 @@ def compare_with_simulation_defaults(results: Dict) -> Dict:
         f"Amplitude: Sim={sim_amp_std_percent:.1f}%, Measured={measured_amp_median:.1f}% "
         f"(ratio: {comparison['amplitude']['ratio_median_to_default']:.2f})"
     )
-    logger.info(f"  → {comparison['amplitude']['recommendation']}")
+    logger.info(f"  :arrow_right: {comparison['amplitude']['recommendation']}")
     logger.info(
         f"Phase: Sim={sim_phase_std_deg:.1f}°, Measured={measured_phase_median:.1f}° "
         f"(ratio: {comparison['phase']['ratio_median_to_default']:.2f})"
     )
-    logger.info(f"  → {comparison['phase']['recommendation']}")
+    logger.info(f"  :arrow_right: {comparison['phase']['recommendation']}")
 
     return comparison
 
@@ -559,13 +559,13 @@ def save_results(results: Dict, comparison: Dict, output_dir: Path):
             f"Measured={comparison['amplitude']['measured_median_percent']:.1f}% "
             f"(ratio: {comparison['amplitude']['ratio_median_to_default']:.2f})\n"
         )
-        f.write(f"  → {comparison['amplitude']['recommendation']}\n\n")
+        f.write(f"  :arrow_right: {comparison['amplitude']['recommendation']}\n\n")
         f.write(
             f"Phase: Sim={comparison['phase']['simulation_default_deg']:.1f}°, "
             f"Measured={comparison['phase']['measured_median_deg']:.1f}° "
             f"(ratio: {comparison['phase']['ratio_median_to_default']:.2f})\n"
         )
-        f.write(f"  → {comparison['phase']['recommendation']}\n\n")
+        f.write(f"  :arrow_right: {comparison['phase']['recommendation']}\n\n")
 
         f.write("Per-Antenna Results\n")
         f.write("-" * 60 + "\n")

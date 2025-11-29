@@ -136,7 +136,7 @@ monitor_containers() {
   done
   
   if [[ "$all_healthy" == true ]]; then
-    log "INFO" "All containers are healthy ✓"
+    log "INFO" "All containers are healthy :check:"
   else
     log "WARN" "Some containers are unhealthy!"
   fi

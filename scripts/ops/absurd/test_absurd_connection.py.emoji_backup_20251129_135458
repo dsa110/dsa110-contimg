@@ -35,7 +35,7 @@ async def main():
         # Connect
         print("Connecting to Absurd database...")
         await client.connect()
-        print("✓ Connected\n")
+        print(":check: Connected\n")
 
         # Spawn a test task
         print("Spawning test task...")
@@ -45,25 +45,25 @@ async def main():
             params={"message": "Hello from Absurd!", "timestamp": "now"},
             priority=0,
         )
-        print(f"✓ Task spawned: {task_id}\n")
+        print(f":check: Task spawned: {task_id}\n")
 
         # Get task details
         print("Fetching task details...")
         task = await client.get_task(task_id)
         if task:
-            print(f"✓ Task retrieved:")
+            print(f":check: Task retrieved:")
             print(f"  ID: {task['task_id']}")
             print(f"  Name: {task['task_name']}")
             print(f"  Status: {task['status']}")
             print(f"  Params: {task['params']}")
             print()
         else:
-            print("✗ Task not found\n")
+            print(":cross: Task not found\n")
 
         # List tasks
         print("Listing recent tasks...")
         tasks = await client.list_tasks(queue_name=config.queue_name, limit=5)
-        print(f"✓ Found {len(tasks)} tasks")
+        print(f":check: Found {len(tasks)} tasks")
         for task in tasks:
             print(
                 f"  - {task['task_name']} " f"[{task['status']}] " f"(ID: {task['task_id'][:8]}...)"
@@ -73,7 +73,7 @@ async def main():
         # Get queue stats
         print("Getting queue statistics...")
         stats = await client.get_queue_stats(config.queue_name)
-        print(f"✓ Queue stats:")
+        print(f":check: Queue stats:")
         for status, count in stats.items():
             print(f"  {status}: {count}")
         print()
@@ -82,7 +82,7 @@ async def main():
         return 0
 
     except Exception as e:
-        print(f"\n✗ Error: {e}")
+        print(f"\n:cross: Error: {e}")
         import traceback
 
         traceback.print_exc()

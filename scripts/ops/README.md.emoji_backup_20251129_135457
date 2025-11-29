@@ -7,11 +7,11 @@ various aspects of the dsa110-contimg project.
 
 The scripts directory is organized into the following categories:
 
-### 📁 [archive/](archive/)
+### :folder: [archive/](archive/)
 
 Temporary storage for deprecated or redundant scripts pending removal.
 
-### 📁 [calibration/](calibration/)
+### :folder: [calibration/](calibration/)
 
 Scripts for calibration workflows, bandpass analysis, and calibration
 validation:
@@ -22,7 +22,7 @@ validation:
 - Calibration artifact management
 - Measurement set phasing checks
 
-### 📁 [casa/](casa/)
+### :folder: [casa/](casa/)
 
 CASA (Common Astronomy Software Applications) related scripts:
 
@@ -34,7 +34,7 @@ CASA (Common Astronomy Software Applications) related scripts:
 **See [docs/README.md](docs/README.md) for detailed CASA log management
 documentation.**
 
-### 📁 [dashboard/](dashboard/)
+### :folder: [dashboard/](dashboard/)
 
 Frontend and dashboard related scripts:
 
@@ -43,7 +43,7 @@ Frontend and dashboard related scripts:
 - Health checks for dashboard and API
 - CARTA integration scripts
 
-### 📁 [dev/](dev/)
+### :folder: [dev/](dev/)
 
 Development environment setup and automation:
 
@@ -53,7 +53,7 @@ Development environment setup and automation:
 - Environment validation
 - Test dependency verification
 
-### 📁 [docs/](docs/)
+### :folder: [docs/](docs/)
 
 Documentation files:
 
@@ -63,7 +63,7 @@ Documentation files:
 - `TEST_SCRIPT_VERIFICATION.md` - Test script verification documentation
 - `CASA_LOG_DAEMON_INOTIFY.md` - CASA log daemon inotify documentation
 
-### 📁 [graphiti/](graphiti/)
+### :folder: [graphiti/](graphiti/)
 
 Knowledge graph management scripts:
 
@@ -72,7 +72,7 @@ Knowledge graph management scripts:
 - Guardrails checking
 - Re-embedding utilities
 
-### 📁 [imaging/](imaging/)
+### :folder: [imaging/](imaging/)
 
 Imaging and mosaic creation scripts:
 
@@ -81,7 +81,7 @@ Imaging and mosaic creation scripts:
 - Tile processing
 - Image creation utilities
 
-### 📁 [lib/](lib/)
+### :folder: [lib/](lib/)
 
 Reusable library scripts and shared utilities:
 
@@ -90,7 +90,7 @@ Reusable library scripts and shared utilities:
 - Anti-pattern detection
 - Test utilities
 
-### 📁 [monitoring/](monitoring/)
+### :folder: [monitoring/](monitoring/)
 
 Monitoring and health check scripts:
 
@@ -99,7 +99,7 @@ Monitoring and health check scripts:
 - Milestone tracking
 - Health check utilities
 
-### 📁 [quality/](quality/)
+### :folder: [quality/](quality/)
 
 Code quality, validation, and error detection scripts:
 
@@ -110,7 +110,7 @@ Code quality, validation, and error detection scripts:
 - Port validation
 - Environment validation
 
-### 📁 [services/](services/)
+### :folder: [services/](services/)
 
 Systemd service and timer files:
 
@@ -118,14 +118,14 @@ Systemd service and timer files:
 - Log cleanup timers
 - Service management configurations
 
-### 📁 [templates/](templates/)
+### :folder: [templates/](templates/)
 
 Template scripts for creating new scripts:
 
 - Dependency check templates
 - Other script templates
 
-### 📁 [tests/](tests/)
+### :folder: [tests/](tests/)
 
 Test scripts and test utilities:
 
@@ -135,7 +135,7 @@ Test scripts and test utilities:
 - Test organization utilities
 - Test templates
 
-### 📁 [utils/](utils/)
+### :folder: [utils/](utils/)
 
 General utility scripts:
 

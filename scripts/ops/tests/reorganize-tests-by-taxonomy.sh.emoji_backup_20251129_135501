@@ -20,27 +20,27 @@ mkdir -p tests/unit/{api,calibration,catalog,conversion,database,imaging,mosaic,
 # Analyze and categorize remaining tests in tests/unit/ root
 echo "Analyzing remaining tests in tests/unit/..."
 
-# CASA-related tests → unit (infrastructure)
+# CASA-related tests :arrow_right: unit (infrastructure)
 [ -f tests/unit/test_casa_lazy_imports.py ] && echo "  Keeping test_casa_lazy_imports.py in unit/ (infrastructure test)"
 
-# Masking tests → unit/imaging (masking is part of imaging pipeline)
-[ -f tests/unit/test_masking.py ] && mv tests/unit/test_masking.py tests/unit/imaging/ && echo "  Moved test_masking.py → tests/unit/imaging/"
+# Masking tests :arrow_right: unit/imaging (masking is part of imaging pipeline)
+[ -f tests/unit/test_masking.py ] && mv tests/unit/test_masking.py tests/unit/imaging/ && echo "  Moved test_masking.py :arrow_right: tests/unit/imaging/"
 
-# Utility/helper tests → keep in unit root or create utils subdirectory
+# Utility/helper tests :arrow_right: keep in unit root or create utils subdirectory
 [ -f tests/unit/test_mermaid_diagram_helpers.py ] && echo "  Keeping test_mermaid_diagram_helpers.py in unit/ (utility test)"
 [ -f tests/unit/test_monitoring_script.py ] && echo "  Keeping test_monitoring_script.py in unit/ (utility test)"
 
-# Optimization tests → unit (performance testing)
+# Optimization tests :arrow_right: unit (performance testing)
 [ -f tests/unit/test_optimizations.py ] && echo "  Keeping test_optimizations.py in unit/ (performance test)"
 
-# Parallel processing tests → unit (infrastructure)
+# Parallel processing tests :arrow_right: unit (infrastructure)
 [ -f tests/unit/test_parallel.py ] && echo "  Keeping test_parallel.py in unit/ (infrastructure test)"
 
-# Pointing tests → unit/pointing (if we create it) or unit/catalog
-[ -f tests/unit/test_products_pointing.py ] && mv tests/unit/test_products_pointing.py tests/unit/catalog/ && echo "  Moved test_products_pointing.py → tests/unit/catalog/"
+# Pointing tests :arrow_right: unit/pointing (if we create it) or unit/catalog
+[ -f tests/unit/test_products_pointing.py ] && mv tests/unit/test_products_pointing.py tests/unit/catalog/ && echo "  Moved test_products_pointing.py :arrow_right: tests/unit/catalog/"
 
-# Source class tests → unit/photometry (sources are used in photometry)
-[ -f tests/unit/test_source_class.py ] && mv tests/unit/test_source_class.py tests/unit/photometry/ && echo "  Moved test_source_class.py → tests/unit/photometry/"
+# Source class tests :arrow_right: unit/photometry (sources are used in photometry)
+[ -f tests/unit/test_source_class.py ] && mv tests/unit/test_source_class.py tests/unit/photometry/ && echo "  Moved test_source_class.py :arrow_right: tests/unit/photometry/"
 
 # Create smoke tests from critical path tests
 echo ""
@@ -50,7 +50,7 @@ echo "Identifying smoke tests..."
 if [ -f tests/test_priority1_quick.py ]; then
     # This is already a quick check - make it a smoke test
     mv tests/test_priority1_quick.py tests/smoke/test_priority1_quick.py
-    echo "  Moved test_priority1_quick.py → tests/smoke/ (quick sanity check)"
+    echo "  Moved test_priority1_quick.py :arrow_right: tests/smoke/ (quick sanity check)"
 fi
 
 # Check integration tests for end-to-end workflows

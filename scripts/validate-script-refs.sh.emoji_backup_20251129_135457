@@ -21,7 +21,7 @@ for script in $scripts; do
         echo "ERROR: package.json references missing script: $script"
         ((ERRORS++))
     else
-        echo "  ✓ $script"
+        echo "  :check: $script"
     fi
 done
 
@@ -38,7 +38,7 @@ for service in *.service; do
             echo "ERROR: $service references missing script: $script"
             ((ERRORS++))
         else
-            echo "  ✓ $service → $script"
+            echo "  :check: $service :arrow_right: $script"
         fi
     done
 done

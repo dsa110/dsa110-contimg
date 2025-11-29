@@ -69,7 +69,7 @@ def test_ft_with_phasecenter(ms_path, cal_ra_deg, cal_dec_deg, flux_jy):
                     zeros = np.zeros((t.nrows(),) + data_shape, dtype=data_dtype)
                     t.putcol("MODEL_DATA", zeros)
         t.close()
-        print("  ✓ MODEL_DATA cleared")
+        print("  :check: MODEL_DATA cleared")
     except Exception as e:
         print(f"  ERROR: Failed to clear MODEL_DATA: {e}")
         return False
@@ -80,7 +80,7 @@ def test_ft_with_phasecenter(ms_path, cal_ra_deg, cal_dec_deg, flux_jy):
     print("=" * 100)
     try:
         ft(vis=ms_path, complist=comp_path, usescratch=True)
-        print("  ✓ ft() completed")
+        print("  :check: ft() completed")
         
         # Check phase scatter
         with table(ms_path, readonly=True) as tb:
@@ -131,7 +131,7 @@ def test_ft_with_phasecenter(ms_path, cal_ra_deg, cal_dec_deg, flux_jy):
         # Try ft() with phasecenter parameter
         # Note: This may not be supported in CASA 6, but worth trying
         ft(vis=ms_path, complist=comp_path, usescratch=True, phasecenter=phasecenter_str)
-        print("  ✓ ft() with phasecenter completed")
+        print("  :check: ft() with phasecenter completed")
         
         # Check phase scatter
         with table(ms_path, readonly=True) as tb:
@@ -169,9 +169,9 @@ def test_ft_with_phasecenter(ms_path, cal_ra_deg, cal_dec_deg, flux_jy):
     if scatter_with is not None:
         print(f"  With phasecenter: {scatter_with:.2f}°")
         if scatter_without is not None and scatter_with < scatter_without:
-            print(f"  ✓ phasecenter parameter improves phase scatter!")
+            print(f"  :check: phasecenter parameter improves phase scatter!")
         elif scatter_without is not None and scatter_with >= scatter_without:
-            print(f"  ✗ phasecenter parameter does not improve phase scatter")
+            print(f"  :cross: phasecenter parameter does not improve phase scatter")
     else:
         print(f"  phasecenter parameter not supported or test failed")
     

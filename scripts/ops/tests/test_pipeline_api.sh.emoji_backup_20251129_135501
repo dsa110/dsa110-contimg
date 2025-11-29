@@ -27,7 +27,7 @@ test_endpoint() {
     body=$(echo "$response" | sed '/HTTP_STATUS:/d')
     
     if [ "$http_code" = "200" ]; then
-        echo -e "${GREEN}✓${NC} (HTTP $http_code)"
+        echo -e "${GREEN}:check:${NC} (HTTP $http_code)"
         
         # Check if response is valid JSON
         if echo "$body" | jq . > /dev/null 2>&1; then
@@ -37,9 +37,9 @@ test_endpoint() {
             if [ -n "$expected_fields" ]; then
                 for field in $expected_fields; do
                     if echo "$body" | jq -e ".$field" > /dev/null 2>&1; then
-                        echo "  ✓ Contains field: $field"
+                        echo "  :check: Contains field: $field"
                     else
-                        echo -e "  ${YELLOW}⚠${NC} Missing field: $field"
+                        echo -e "  ${YELLOW}:warning:${NC} Missing field: $field"
                     fi
                 done
             fi
@@ -47,11 +47,11 @@ test_endpoint() {
             # Show preview
             echo "  Preview: $(echo "$body" | jq -c '.' | head -c 100)..."
         else
-            echo -e "  ${YELLOW}⚠${NC} Response is not valid JSON"
+            echo -e "  ${YELLOW}:warning:${NC} Response is not valid JSON"
             echo "  Response: $(echo "$body" | head -c 200)"
         fi
     else
-        echo -e "${RED}✗${NC} (HTTP $http_code)"
+        echo -e "${RED}:cross:${NC} (HTTP $http_code)"
         echo "  Response: $(echo "$body" | head -c 200)"
     fi
     echo ""
@@ -72,7 +72,7 @@ if [ -n "$EXECUTION_ID" ] && [ "$EXECUTION_ID" != "null" ] && [ "$EXECUTION_ID" 
     test_endpoint "Execution Details" "/api/pipeline/executions/${EXECUTION_ID}" "id status job_type"
     test_endpoint "Execution Stages" "/api/pipeline/executions/${EXECUTION_ID}/stages" "length"
 else
-    echo -e "${YELLOW}⚠${NC} No executions found for detail testing"
+    echo -e "${YELLOW}:warning:${NC} No executions found for detail testing"
     echo ""
 fi
 

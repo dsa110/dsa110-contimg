@@ -84,7 +84,7 @@ def quick_plot(fits_file, output_file, crop_size=1000):
     print(f"Saving...")
     plt.tight_layout()
     plt.savefig(output_file, dpi=100, bbox_inches="tight")
-    print(f"✓ Saved to {output_file}")
+    print(f":check: Saved to {output_file}")
     plt.close()
 
 

@@ -143,9 +143,9 @@ def monitor(ms_path, watch=False):
     print("1. Process Status:")
     proc_info = check_process()
     if proc_info:
-        print(f"   ✓ {proc_info}")
+        print(f"   :check: {proc_info}")
     else:
-        print(f"   ✗ Process not running (may have completed or failed)")
+        print(f"   :cross: Process not running (may have completed or failed)")
     print()
     
     # Check calibration tables
@@ -156,10 +156,10 @@ def monitor(ms_path, watch=False):
             size_mb = size / (1024 * 1024) if size > 0 else 0
             age = datetime.now() - mtime
             age_str = f"{age.seconds}s ago" if age.seconds < 60 else f"{age.seconds//60}m {age.seconds%60}s ago"
-            status = "✓" if age.seconds < 60 else "•"
+            status = ":check:" if age.seconds < 60 else ":bullet:"
             print(f"   {status} {name}: {path.name} ({size_mb:.2f} MB, modified {age_str})")
     else:
-        print(f"   • No calibration tables found yet")
+        print(f"   :bullet: No calibration tables found yet")
     print()
     
     # Check recent file activity
@@ -167,9 +167,9 @@ def monitor(ms_path, watch=False):
     recent = check_table_activity(ms_path)
     if recent:
         for name, size, age in recent:
-            print(f"   • {name} ({size/1024:.1f} KB, {age:.1f}s ago)")
+            print(f"   :bullet: {name} ({size/1024:.1f} KB, {age:.1f}s ago)")
     else:
-        print(f"   • No recent file activity")
+        print(f"   :bullet: No recent file activity")
     print()
     
     # Check CASA logs
@@ -179,9 +179,9 @@ def monitor(ms_path, watch=False):
         for log_file, mtime in logs:
             age = datetime.now() - mtime
             age_str = f"{age.seconds}s ago" if age.seconds < 60 else f"{age.seconds//60}m ago"
-            print(f"   • {log_file.name} (modified {age_str})")
+            print(f"   :bullet: {log_file.name} (modified {age_str})")
     else:
-        print(f"   • No recent CASA logs found")
+        print(f"   :bullet: No recent CASA logs found")
     print()
     
     # Summary

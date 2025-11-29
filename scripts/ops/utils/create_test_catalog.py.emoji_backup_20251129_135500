@@ -92,10 +92,10 @@ def create_test_catalog(db_path: str = "state/catalogs/master_sources.sqlite3"):
     conn.commit()
     conn.close()
 
-    print(f"✓ Created test catalog database: {db_path}")
-    print("✓ Added 5 reference sources for testing")
-    print("✓ Created good_references and final_references views")
-    print("✓ Ready for photometry normalization testing")
+    print(f":check: Created test catalog database: {db_path}")
+    print(":check: Added 5 reference sources for testing")
+    print(":check: Created good_references and final_references views")
+    print(":check: Ready for photometry normalization testing")
 
     return db_path
 

@@ -70,7 +70,7 @@ class AbsurdBenchmark:
 
     async def benchmark_spawn_throughput(self, num_tasks: int = 1000):
         """Benchmark task spawning throughput."""
-        print(f"\n🚀 Benchmarking task spawning ({num_tasks} tasks)...")
+        print(f"\n:rocket: Benchmarking task spawning ({num_tasks} tasks)...")
 
         process = psutil.Process()
         start_mem = process.memory_info().rss / 1024 / 1024
@@ -115,15 +115,15 @@ class AbsurdBenchmark:
 
         self.results.append(result)
 
-        print(f"  ✓ Spawned {success_count} tasks in {duration:.2f}s")
-        print(f"  ✓ Throughput: {result.throughput:.1f} tasks/s")
-        print(f"  ✓ Memory: +{result.memory_used_mb:.1f} MB")
+        print(f"  :check: Spawned {success_count} tasks in {duration:.2f}s")
+        print(f"  :check: Throughput: {result.throughput:.1f} tasks/s")
+        print(f"  :check: Memory: +{result.memory_used_mb:.1f} MB")
 
         return result
 
     async def benchmark_claim_throughput(self, num_tasks: int = 1000):
         """Benchmark task claiming throughput."""
-        print(f"\n🎯 Benchmarking task claiming ({num_tasks} tasks)...")
+        print(f"\n:target: Benchmarking task claiming ({num_tasks} tasks)...")
 
         # First spawn tasks
         await asyncio.gather(
@@ -170,14 +170,14 @@ class AbsurdBenchmark:
 
         self.results.append(result)
 
-        print(f"  ✓ Claimed {len(successful_claims)} tasks in {duration:.2f}s")
-        print(f"  ✓ Throughput: {result.throughput:.1f} tasks/s")
+        print(f"  :check: Claimed {len(successful_claims)} tasks in {duration:.2f}s")
+        print(f"  :check: Throughput: {result.throughput:.1f} tasks/s")
 
         return result
 
     async def benchmark_complete_throughput(self, num_tasks: int = 1000):
         """Benchmark task completion throughput."""
-        print(f"\n✅ Benchmarking task completion ({num_tasks} tasks)...")
+        print(f"\n:check: Benchmarking task completion ({num_tasks} tasks)...")
 
         # Spawn and claim tasks
         task_ids = await asyncio.gather(
@@ -225,14 +225,14 @@ class AbsurdBenchmark:
 
         self.results.append(result)
 
-        print(f"  ✓ Completed {success_count} tasks in {duration:.2f}s")
-        print(f"  ✓ Throughput: {result.throughput:.1f} tasks/s")
+        print(f"  :check: Completed {success_count} tasks in {duration:.2f}s")
+        print(f"  :check: Throughput: {result.throughput:.1f} tasks/s")
 
         return result
 
     async def benchmark_end_to_end_latency(self, num_tasks: int = 100):
-        """Benchmark end-to-end latency (spawn → claim → complete)."""
-        print(f"\n⏱️  Benchmarking end-to-end latency ({num_tasks} tasks)...")
+        """Benchmark end-to-end latency (spawn :arrow_right: claim :arrow_right: complete)."""
+        print(f"\n:stopwatch:  Benchmarking end-to-end latency ({num_tasks} tasks)...")
 
         latencies = []
 
@@ -272,15 +272,15 @@ class AbsurdBenchmark:
 
         self.results.append(result)
 
-        print(f"  ✓ P50 latency: {result.latency_p50*1000:.1f} ms")
-        print(f"  ✓ P95 latency: {result.latency_p95*1000:.1f} ms")
-        print(f"  ✓ P99 latency: {result.latency_p99*1000:.1f} ms")
+        print(f"  :check: P50 latency: {result.latency_p50*1000:.1f} ms")
+        print(f"  :check: P95 latency: {result.latency_p95*1000:.1f} ms")
+        print(f"  :check: P99 latency: {result.latency_p99*1000:.1f} ms")
 
         return result
 
     async def benchmark_concurrent_operations(self, num_concurrent: int = 50):
         """Benchmark concurrent operations from multiple clients."""
-        print(f"\n🔀 Benchmarking concurrent operations ({num_concurrent} concurrent)...")
+        print(f"\n:twisted_rightwards_arrows: Benchmarking concurrent operations ({num_concurrent} concurrent)...")
 
         async def worker_simulation(worker_id: int):
             """Simulate a worker performing operations."""
@@ -334,15 +334,15 @@ class AbsurdBenchmark:
 
         self.results.append(result)
 
-        print(f"  ✓ {total_tasks} tasks from {num_concurrent} concurrent workers")
-        print(f"  ✓ Throughput: {result.throughput:.1f} tasks/s")
-        print(f"  ✓ P50 latency: {result.latency_p50*1000:.1f} ms")
+        print(f"  :check: {total_tasks} tasks from {num_concurrent} concurrent workers")
+        print(f"  :check: Throughput: {result.throughput:.1f} tasks/s")
+        print(f"  :check: P50 latency: {result.latency_p50*1000:.1f} ms")
 
         return result
 
     async def benchmark_queue_stats_performance(self):
         """Benchmark queue statistics query performance."""
-        print(f"\n📊 Benchmarking queue stats performance...")
+        print(f"\n:chart: Benchmarking queue stats performance...")
 
         # Create varied task states
         await asyncio.gather(
@@ -379,8 +379,8 @@ class AbsurdBenchmark:
 
         self.results.append(result)
 
-        print(f"  ✓ P50 latency: {result.latency_p50*1000:.1f} ms")
-        print(f"  ✓ P95 latency: {result.latency_p95*1000:.1f} ms")
+        print(f"  :check: P50 latency: {result.latency_p50*1000:.1f} ms")
+        print(f"  :check: P95 latency: {result.latency_p95*1000:.1f} ms")
 
         return result
 
@@ -427,7 +427,7 @@ class AbsurdBenchmark:
         with open(output_path, "w") as f:
             json.dump(data, f, indent=2)
 
-        print(f"\n💾 Results saved to: {output_path}")
+        print(f"\n:floppy: Results saved to: {output_path}")
 
 
 async def main():

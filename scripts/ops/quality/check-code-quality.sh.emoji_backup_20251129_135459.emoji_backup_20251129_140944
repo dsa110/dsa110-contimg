@@ -1,0 +1,151 @@
+#!/usr/bin/env bash
+# Code quality checks
+# Detects common code quality issues
+
+set -e
+
+REPO_ROOT="$(cd "$(dirname -- "$0")/.." && pwd)"
+cd "$REPO_ROOT"
+
+ERRORS=0
+WARNINGS=0
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m'
+
+error() {
+  echo -e "${RED}❌ ERROR:${NC} $1" >&2
+  ((ERRORS++))
+}
+
+warning() {
+  echo -e "${YELLOW}⚠️  WARNING:${NC} $1" >&2
+  ((WARNINGS++))
+}
+
+success() {
+  echo -e "${GREEN}✓${NC} $1"
+}
+
+info() {
+  echo -e "${BLUE}ℹ️${NC} $1"
+}
+
+echo "Checking code quality..."
+echo ""
+
+# 1. Check for console.log in production code
+echo "1. Checking for debug statements..."
+CONSOLE_LOGS=$(grep -r "console\.log\|console\.debug" --include="*.ts" --include="*.tsx" frontend/src 2>/dev/null | grep -v "node_modules" | wc -l || echo "0")
+if [ "$CONSOLE_LOGS" -gt 0 ]; then
+  warning "Found $CONSOLE_LOGS console.log/debug statements in frontend code"
+  info "   Consider removing or using proper logging"
+  grep -r "console\.log\|console\.debug" --include="*.ts" --include="*.tsx" frontend/src 2>/dev/null | grep -v "node_modules" | head -3 | while read -r line; do
+    info "   $line"
+  done
+else
+  success "No console.log/debug statements found"
+fi
+
+# 2. Check for Python shebang issues
+echo ""
+echo "2. Checking Python shebangs..."
+PYTHON_SHEBANGS=$(find scripts src tests -name "*.py" -type f -exec head -1 {} \; 2>/dev/null | grep -E "^#!/usr/bin/env python$|^#!/usr/bin/python$" | wc -l || echo "0")
+if [ "$PYTHON_SHEBANGS" -gt 0 ]; then
+  warning "Found $PYTHON_SHEBANGS Python files with incorrect shebang"
+  info "   Should use: #!/usr/bin/env /opt/miniforge/envs/casa6/bin/python"
+  info "   Or: #!/opt/miniforge/envs/casa6/bin/python"
+else
+  success "All Python shebangs are correct (or missing)"
+fi
+
+# 3. Check for markdown files in root
+echo ""
+echo "3. Checking documentation location..."
+ROOT_MARKDOWN=$(find . -maxdepth 1 -name "*.md" -type f ! -name "README.md" 2>/dev/null | wc -l)
+if [ "$ROOT_MARKDOWN" -gt 0 ]; then
+  warning "Found $ROOT_MARKDOWN markdown file(s) in root directory"
+  info "   Documentation should be in docs/ structure"
+  find . -maxdepth 1 -name "*.md" -type f ! -name "README.md" 2>/dev/null | while read -r file; do
+    info "   Found: $file"
+  done
+else
+  success "No markdown files in root (except README.md)"
+fi
+
+# 4. Check for test files in wrong locations
+echo ""
+echo "4. Checking test organization..."
+MISPLACED_TESTS=$(find tests -name "test_*.py" -type f ! -path "tests/unit/*" ! -path "tests/integration/*" ! -path "tests/smoke/*" ! -path "tests/science/*" ! -path "tests/e2e/*" 2>/dev/null | wc -l || echo "0")
+if [ "$MISPLACED_TESTS" -gt 0 ]; then
+  warning "Found $MISPLACED_TESTS test file(s) in wrong location"
+  info "   Tests should be in: tests/<type>/<module>/test_*.py"
+  find tests -name "test_*.py" -type f ! -path "tests/unit/*" ! -path "tests/integration/*" ! -path "tests/smoke/*" ! -path "tests/science/*" ! -path "tests/e2e/*" 2>/dev/null | head -3 | while read -r file; do
+    info "   Found: $file"
+  done
+else
+  success "All test files are in correct locations"
+fi
+
+# 5. Check for large files that might be accidentally committed
+echo ""
+echo "5. Checking for large files..."
+LARGE_FILES=$(find . -type f -size +5M ! -path "*/node_modules/*" ! -path "*/.git/*" ! -path "*/dist/*" ! -path "*/.cache/*" ! -path "*/__pycache__/*" 2>/dev/null | wc -l || echo "0")
+if [ "$LARGE_FILES" -gt 0 ]; then
+  warning "Found $LARGE_FILES file(s) larger than 5MB"
+  info "   Ensure these are in .gitignore"
+  find . -type f -size +5M ! -path "*/node_modules/*" ! -path "*/.git/*" ! -path "*/dist/*" ! -path "*/.cache/*" ! -path "*/__pycache__/*" 2>/dev/null | head -3 | while read -r file; do
+    SIZE=$(du -h "$file" 2>/dev/null | cut -f1)
+    info "   Found: $file ($SIZE)"
+  done
+else
+  success "No unexpectedly large files found"
+fi
+
+# 6. Check for hardcoded secrets (basic check)
+echo ""
+echo "6. Checking for potential secrets..."
+POTENTIAL_SECRETS=$(grep -ri "password\s*=\s*['\"].*['\"]\|secret\s*=\s*['\"].*['\"]\|api_key\s*=\s*['\"].*['\"]" --include="*.py" --include="*.ts" --include="*.tsx" src/ frontend/src/ 2>/dev/null | grep -v "node_modules" | grep -v "demodemo" | grep -v "test" | wc -l || echo "0")
+if [ "$POTENTIAL_SECRETS" -gt 0 ]; then
+  warning "Found potential hardcoded secrets"
+  info "   Use environment variables instead"
+  grep -ri "password\s*=\s*['\"].*['\"]\|secret\s*=\s*['\"].*['\"]\|api_key\s*=\s*['\"].*['\"]" --include="*.py" --include="*.ts" --include="*.tsx" src/ frontend/src/ 2>/dev/null | grep -v "node_modules" | grep -v "demodemo" | grep -v "test" | head -3 | while read -r line; do
+    info "   $line"
+  done
+else
+  success "No obvious hardcoded secrets found"
+fi
+
+# 7. Check for process.env usage without VITE_ prefix
+echo ""
+echo "7. Checking environment variable usage..."
+BAD_ENV_VARS=$(grep -r "process\.env\." --include="*.ts" --include="*.tsx" frontend/src 2>/dev/null | grep -v "VITE_" | grep -v "node_modules" | wc -l || echo "0")
+if [ "$BAD_ENV_VARS" -gt 0 ]; then
+  warning "Found process.env usage without VITE_ prefix"
+  info "   Frontend env vars must be prefixed with VITE_"
+  grep -r "process\.env\." --include="*.ts" --include="*.tsx" frontend/src 2>/dev/null | grep -v "VITE_" | grep -v "node_modules" | head -3 | while read -r line; do
+    info "   $line"
+  done
+else
+  success "All frontend env vars use VITE_ prefix"
+fi
+
+# Summary
+echo ""
+echo "=========================================="
+if [ $ERRORS -eq 0 ] && [ $WARNINGS -eq 0 ]; then
+  echo -e "${GREEN}✓ All code quality checks passed!${NC}"
+  exit 0
+elif [ $ERRORS -eq 0 ]; then
+  echo -e "${YELLOW}⚠️  $WARNINGS warning(s) found${NC}"
+  echo "   These are non-blocking but should be addressed"
+  exit 0
+else
+  echo -e "${RED}❌ $ERRORS error(s), $WARNINGS warning(s) found${NC}"
+  exit 1
+fi
+

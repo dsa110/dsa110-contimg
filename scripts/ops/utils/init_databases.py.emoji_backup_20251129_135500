@@ -26,9 +26,9 @@ def init_all(state_dir: Path = Path("/data/dsa110-contimg/state")):
     try:
         queue = QueueDB(queue_db, expected_subbands=16, chunk_duration_minutes=5.0)
         queue.close()
-        print("  ✓ Ingest queue initialized\n")
+        print("  :check: Ingest queue initialized\n")
     except Exception as e:
-        print(f"  ✗ Failed: {e}\n")
+        print(f"  :cross: Failed: {e}\n")
         return False
     
     # 2. Registry DB
@@ -36,9 +36,9 @@ def init_all(state_dir: Path = Path("/data/dsa110-contimg/state")):
     print(f"Initializing calibration registry: {registry_db}")
     try:
         ensure_registry_db(registry_db)
-        print("  ✓ Registry initialized\n")
+        print("  :check: Registry initialized\n")
     except Exception as e:
-        print(f"  ✗ Failed: {e}\n")
+        print(f"  :cross: Failed: {e}\n")
         return False
     
     # 3. Products DB
@@ -46,9 +46,9 @@ def init_all(state_dir: Path = Path("/data/dsa110-contimg/state")):
     print(f"Initializing products: {products_db}")
     try:
         ensure_products_db(products_db)
-        print("  ✓ Products initialized\n")
+        print("  :check: Products initialized\n")
     except Exception as e:
-        print(f"  ✗ Failed: {e}\n")
+        print(f"  :cross: Failed: {e}\n")
         return False
     
     # 4. Evolve schemas to add any missing columns/tables

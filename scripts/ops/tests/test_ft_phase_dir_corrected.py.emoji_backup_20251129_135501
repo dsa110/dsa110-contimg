@@ -167,22 +167,22 @@ def test_ft_phase_dir_corrected(ms_path):
                 print("CONCLUSION:")
                 print("=" * 80)
                 if scatter_b < 10:
-                    print(f"\n✓ ft() USES PHASE_DIR for phase calculations")
+                    print(f"\n:check: ft() USES PHASE_DIR for phase calculations")
                     print(f"  Scatter ({scatter_b:.1f}°) is small, indicating component is at phase center")
                     return True
                 elif scatter_a < 10:
-                    print(f"\n✓ ft() USES REFERENCE_DIR for phase calculations")
+                    print(f"\n:check: ft() USES REFERENCE_DIR for phase calculations")
                     print(f"  Scatter ({scatter_a:.1f}°) is small, but component is 1° from REFERENCE_DIR")
                     print(f"  This suggests ft() correctly uses REFERENCE_DIR")
                     return True
                 else:
-                    print(f"\n✗ ft() does NOT match either REFERENCE_DIR or PHASE_DIR")
+                    print(f"\n:cross: ft() does NOT match either REFERENCE_DIR or PHASE_DIR")
                     print(f"  PHASE_DIR scatter: {scatter_b:.1f}° (expected ~0°)")
                     print(f"  REFERENCE_DIR scatter: {scatter_a:.1f}° (expected ~100°)")
                     print(f"  This suggests ft() uses a different source or has a bug")
                     return False
             else:
-                print("\n✗ No unflagged data found")
+                print("\n:cross: No unflagged data found")
                 return False
     
     finally:

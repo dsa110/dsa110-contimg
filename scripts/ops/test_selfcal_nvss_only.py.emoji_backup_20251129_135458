@@ -54,8 +54,8 @@ success, summary = selfcal_ms(
 print()
 print("=" * 80)
 if success:
-    print("✅ SUCCESS!")
+    print(":check: SUCCESS!")
     print(f"SNR: {summary.get('final_snr', 0.0):.2f}")
 else:
-    print("❌ FAILED")
+    print(":cross: FAILED")
 print("=" * 80)

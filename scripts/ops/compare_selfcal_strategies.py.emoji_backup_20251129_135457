@@ -203,7 +203,7 @@ def run_selfcal_test(
         "snr_progression": snr_progression,
     }
 
-    LOG.info(f"✅ Test completed: {test_name}")
+    LOG.info(f":check: Test completed: {test_name}")
     LOG.info(f"  Initial SNR: {initial_snr:.2f}")
     LOG.info(f"  Final SNR: {final_snr:.2f}")
     LOG.info(f"  SNR improvement: {snr_improvement:.2f}x")
@@ -241,7 +241,7 @@ def generate_comparison_report(results: List[Dict], output_dir: Path):
         )
 
         if not sorted_results:
-            f.write("❌ No successful tests\n")
+            f.write(":cross: No successful tests\n")
             return
 
         # Summary table
@@ -299,16 +299,16 @@ def generate_comparison_report(results: List[Dict], output_dir: Path):
 
         if baseline and best["nvss_seeding"]:
             improvement_over_baseline = best["snr_improvement"] / baseline["snr_improvement"]
-            f.write(f"✅ Best strategy: {best['test_name']}\n")
+            f.write(f":check: Best strategy: {best['test_name']}\n")
             f.write(f"   SNR improvement: {best['snr_improvement']:.2f}x\n")
             f.write(f"   {improvement_over_baseline:.2f}x better than baseline (no NVSS seeding)\n")
             f.write(f"   Recommended for production: YES\n")
         else:
-            f.write(f"⚠️  NVSS seeding did not improve results\n")
+            f.write(f":warning:  NVSS seeding did not improve results\n")
             f.write(f"   Stick with baseline self-calibration\n")
 
-    LOG.info(f"📊 Report saved to: {report_path}")
-    LOG.info(f"📊 JSON results saved to: {json_path}")
+    LOG.info(f":chart: Report saved to: {report_path}")
+    LOG.info(f":chart: JSON results saved to: {json_path}")
 
 
 def main():
@@ -404,8 +404,8 @@ def main():
     generate_comparison_report(results, output_dir)
 
     LOG.info("=" * 80)
-    LOG.info("✅ Comparison complete!")
-    LOG.info(f"📊 Results in: {output_dir}")
+    LOG.info(":check: Comparison complete!")
+    LOG.info(f":chart: Results in: {output_dir}")
     LOG.info("=" * 80)
 
     return 0

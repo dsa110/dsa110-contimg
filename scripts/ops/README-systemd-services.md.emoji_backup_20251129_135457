@@ -119,13 +119,13 @@ sudo journalctl -u container-health-monitor -f
 
 ```
 System Boot
-    ↓
+    :arrow_down:
 docker.service (starts automatically)
-    ↓
+    :arrow_down:
 dsa110-backend.service (our backend)
-    ↓
+    :arrow_down:
 vite-dev.service (our frontend, depends on backend being up)
-    ↓
+    :arrow_down:
 container-health-monitor.service (monitors all containers)
 ```
 

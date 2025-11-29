@@ -47,7 +47,7 @@ VITE_CARTA_FRONTEND_URL=${CARTA_FRONTEND_URL}
 EOF
 fi
 
-echo "  ✓ CARTA environment variables configured:"
+echo "  :check: CARTA environment variables configured:"
 echo "    VITE_CARTA_BACKEND_URL=${CARTA_BACKEND_URL}"
 echo "    VITE_CARTA_FRONTEND_URL=${CARTA_FRONTEND_URL}"
 echo ""
@@ -75,5 +75,5 @@ echo ""
 echo "  3. (Optional) Start CARTA backend:"
 echo "     docker run -d --name carta-backend -p 9002:3002 -p 9003:3000 cartavis/carta-backend:latest"
 echo ""
-echo "✓ CARTA configuration complete!"
+echo ":check: CARTA configuration complete!"
 

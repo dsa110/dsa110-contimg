@@ -185,7 +185,7 @@ def main():
             print(f"\nERROR: Orchestrator failed with exit code {ret}")
             return ret
         
-        print(f"\n✓ Conversion completed successfully!")
+        print(f"\n:check: Conversion completed successfully!")
         print(f"\nMS files should be in: {output_dir}")
         
         # List generated MS files

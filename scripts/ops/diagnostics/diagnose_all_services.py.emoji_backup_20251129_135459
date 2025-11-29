@@ -223,9 +223,9 @@ class ServiceDiagnostic:
                 else YELLOW if result["status"] == "degraded" else RED
             )
             status_icon = (
-                "✓"
+                ":check:"
                 if result["status"] == "healthy"
-                else "⚠" if result["status"] == "degraded" else "✗"
+                else ":warning:" if result["status"] == "degraded" else ":cross:"
             )
             print(
                 f"{status_color}{status_icon}{RESET} {name:40s} {status_color}{result['status']:10s}{RESET} {result['details'] or ''}"
@@ -288,13 +288,13 @@ class ServiceDiagnostic:
         print(f"{'='*80}\n")
 
         print(
-            f"{GREEN}✓ Healthy:{RESET}   {report['summary']['healthy']:2d} / {report['summary']['total']}"
+            f"{GREEN}:check: Healthy:{RESET}   {report['summary']['healthy']:2d} / {report['summary']['total']}"
         )
         print(
-            f"{YELLOW}⚠ Degraded:{RESET}  {report['summary']['degraded']:2d} / {report['summary']['total']}"
+            f"{YELLOW}:warning: Degraded:{RESET}  {report['summary']['degraded']:2d} / {report['summary']['total']}"
         )
         print(
-            f"{RED}✗ Unhealthy:{RESET} {report['summary']['unhealthy']:2d} / {report['summary']['total']}"
+            f"{RED}:cross: Unhealthy:{RESET} {report['summary']['unhealthy']:2d} / {report['summary']['total']}"
         )
 
         print(f"\n{BOLD}ISSUE BREAKDOWN:{RESET}")
@@ -305,7 +305,7 @@ class ServiceDiagnostic:
         if report["degraded_services"]:
             print(f"\n{BOLD}{YELLOW}DEGRADED SERVICES:{RESET}")
             for svc in report["degraded_services"]:
-                print(f"\n  {YELLOW}⚠{RESET} {BOLD}{svc['name']}{RESET}")
+                print(f"\n  {YELLOW}:warning:{RESET} {BOLD}{svc['name']}{RESET}")
                 print(f"    Endpoint: {svc['endpoint']}")
                 print(f"    Error:    {svc['error']}")
                 print(f"    Fix:      {BLUE}{svc['fix']}{RESET}")
@@ -313,7 +313,7 @@ class ServiceDiagnostic:
         if report["unhealthy_services"]:
             print(f"\n{BOLD}{RED}UNHEALTHY SERVICES:{RESET}")
             for svc in report["unhealthy_services"]:
-                print(f"\n  {RED}✗{RESET} {BOLD}{svc['name']}{RESET}")
+                print(f"\n  {RED}:cross:{RESET} {BOLD}{svc['name']}{RESET}")
                 print(f"    Endpoint: {svc['endpoint']}")
                 print(f"    Error:    {svc['error']}")
                 print(f"    Fix:      {BLUE}{svc['fix']}{RESET}")

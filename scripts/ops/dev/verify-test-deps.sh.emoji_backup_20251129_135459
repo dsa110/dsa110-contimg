@@ -30,7 +30,7 @@ echo "5. Installing from requirements-test.txt..."
 pip install -r /workspaces/dsa110-contimg/requirements-test.txt -q
 
 echo "6. Verifying all test tools..."
-python -c "import pytest; print('✓ pytest imported successfully')"
+python -c "import pytest; print(':check: pytest imported successfully')"
 pytest --version
 pytest --markers | head -20
 

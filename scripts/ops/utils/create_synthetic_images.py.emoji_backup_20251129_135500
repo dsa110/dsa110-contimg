@@ -105,7 +105,7 @@ def main():
 
     # Check database exists
     if not PRODUCTS_DB.exists():
-        print(f"✗ Database not found: {PRODUCTS_DB}")
+        print(f":cross: Database not found: {PRODUCTS_DB}")
         print("  Run: python scripts/init_databases.py")
         return 1
 
@@ -147,9 +147,9 @@ def main():
             )
 
             created_images.append((output_path, img_type, pbcor, noise, beam))
-            print(f"    ✓ Created {output_path.name}")
+            print(f"    :check: Created {output_path.name}")
         except Exception as e:
-            print(f"    ✗ Failed: {e}")
+            print(f"    :cross: Failed: {e}")
             import traceback
 
             traceback.print_exc()
@@ -159,9 +159,9 @@ def main():
         print(f"\nAdding {len(created_images)} images to database...")
         try:
             add_images_to_database(PRODUCTS_DB, created_images)
-            print(f"  ✓ Added {len(created_images)} images to database")
+            print(f"  :check: Added {len(created_images)} images to database")
         except Exception as e:
-            print(f"  ✗ Failed to add to database: {e}")
+            print(f"  :cross: Failed to add to database: {e}")
             import traceback
 
             traceback.print_exc()
@@ -172,10 +172,10 @@ def main():
     with _connect(PRODUCTS_DB) as conn:
         cur = conn.execute("SELECT COUNT(*) FROM images")
         count = cur.fetchone()[0]
-        print(f"  ✓ Total images in database: {count}")
+        print(f"  :check: Total images in database: {count}")
 
     print("\n" + "=" * 60)
-    print("✓ Synthetic image generation complete!")
+    print(":check: Synthetic image generation complete!")
     print("=" * 60)
     print(f"\nImages created in: {IMAGES_DIR}")
     print(f"Access SkyView at: http://localhost:5173/skyview")

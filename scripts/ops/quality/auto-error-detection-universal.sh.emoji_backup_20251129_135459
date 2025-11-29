@@ -95,7 +95,7 @@ export -f _run_with_error_detection should_skip_command
 export AUTO_ERROR_DETECTION=1
 export AUTO_ERROR_DETECTION_UNIVERSAL=1
 
-echo "✅ Universal auto error detection enabled"
+echo ":check: Universal auto error detection enabled"
 echo "   ALL commands will be wrapped with error detection"
 echo "   To disable: unset AUTO_ERROR_DETECTION"
 echo "   To skip for one command: SKIP_ERROR_DETECTION=1 command args"

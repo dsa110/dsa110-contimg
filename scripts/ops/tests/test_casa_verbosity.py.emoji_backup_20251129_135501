@@ -22,9 +22,9 @@ try:
     try:
         casalog.setlogfile("")  # Console output
         casalog.setlogfile("casa_test.log")  # Also write to file
-        print("   ✓ CASA logger configured")
+        print("   :check: CASA logger configured")
     except Exception as e:
-        print(f"   ✗ Failed to configure logger: {e}")
+        print(f"   :cross: Failed to configure logger: {e}")
     
     # Check if there's a verbosity parameter
     print("\n3. Checking for bandpass verbosity parameter...")

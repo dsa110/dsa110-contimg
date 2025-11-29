@@ -51,16 +51,16 @@ def check_refant_data(ms_path, refant):
             # But actual antenna IDs in the data may be different
             if refant < n_antennas:
                 ant_name = ant_tb.getcol("NAME")[refant] if "NAME" in ant_tb.colnames() else f"Antenna{refant}"
-                print(f"✓ Antenna {refant} ({ant_name}) exists in ANTENNA table (row {refant})")
+                print(f":check: Antenna {refant} ({ant_name}) exists in ANTENNA table (row {refant})")
                 stats["exists_in_antenna_table"] = True
             else:
                 stats["issues"].append(f"Antenna {refant} not found in ANTENNA table (only {n_antennas} antennas)")
-                print(f"✗ Antenna {refant} NOT found in ANTENNA table")
+                print(f":cross: Antenna {refant} NOT found in ANTENNA table")
                 print(f"  ANTENNA table has {n_antennas} rows (indices 0-{n_antennas-1})")
                 # Note: Antenna IDs in data may not match row indices
     except Exception as e:
         stats["issues"].append(f"Error reading ANTENNA table: {e}")
-        print(f"✗ Error reading ANTENNA table: {e}")
+        print(f":cross: Error reading ANTENNA table: {e}")
         return stats
     
     # Check main table for baselines involving refant
@@ -69,7 +69,7 @@ def check_refant_data(ms_path, refant):
             n_rows = tb.nrows()
             if n_rows == 0:
                 stats["issues"].append("MS has zero rows")
-                print(f"✗ MS has zero rows")
+                print(f":cross: MS has zero rows")
                 return stats
             
             # Get antenna columns
@@ -83,19 +83,19 @@ def check_refant_data(ms_path, refant):
             
             if n_refant_rows == 0:
                 stats["issues"].append(f"No baselines involving antenna {refant}")
-                print(f"✗ No baselines involving antenna {refant}")
+                print(f":cross: No baselines involving antenna {refant}")
                 print(f"  Total rows in MS: {n_rows}")
                 print(f"  Antenna range: {ant1.min()}-{ant1.max()}")
                 return stats
             
-            print(f"✓ Found {n_refant_rows:,} rows involving antenna {refant} (out of {n_rows:,} total)")
+            print(f":check: Found {n_refant_rows:,} rows involving antenna {refant} (out of {n_rows:,} total)")
             
             # Count unique baselines
             refant_ant1 = ant1[refant_rows]
             refant_ant2 = ant2[refant_rows]
             baselines = set(zip(refant_ant1, refant_ant2))
             stats["n_baselines"] = len(baselines)
-            print(f"✓ Antenna {refant} appears in {len(baselines)} unique baselines")
+            print(f":check: Antenna {refant} appears in {len(baselines)} unique baselines")
             
             # Check flagging
             flags = tb.getcol("FLAG")
@@ -112,7 +112,7 @@ def check_refant_data(ms_path, refant):
             
             if stats["fraction_flagged"] > 0.9:
                 stats["issues"].append(f"Very high flagging fraction: {stats['fraction_flagged']:.1%}")
-                print(f"⚠ WARNING: Very high flagging fraction ({stats['fraction_flagged']:.1%})")
+                print(f":warning: WARNING: Very high flagging fraction ({stats['fraction_flagged']:.1%})")
             
             # Check amplitudes in unflagged data
             if stats["n_unflagged"] > 0:
@@ -130,28 +130,28 @@ def check_refant_data(ms_path, refant):
                     
                     if stats["median_amplitude"] < 1e-5:
                         stats["issues"].append(f"Very low median amplitude: {stats['median_amplitude']:.3e}")
-                        print(f"⚠ WARNING: Very low median amplitude")
+                        print(f":warning: WARNING: Very low median amplitude")
                 else:
                     stats["issues"].append("No unflagged data points")
-                    print(f"✗ No unflagged data points")
+                    print(f":cross: No unflagged data points")
             else:
                 stats["issues"].append("All data involving refant is flagged")
-                print(f"✗ All data involving antenna {refant} is flagged")
+                print(f":cross: All data involving antenna {refant} is flagged")
     
     except Exception as e:
         stats["issues"].append(f"Error reading main table: {e}")
-        print(f"✗ Error reading main table: {e}")
+        print(f":cross: Error reading main table: {e}")
         import traceback
         traceback.print_exc()
         return stats
     
     # Summary
     if stats["has_data"] and stats["fraction_flagged"] < 0.9:
-        print(f"\n✓ Reference antenna {refant} has usable data")
+        print(f"\n:check: Reference antenna {refant} has usable data")
         print(f"  {stats['n_unflagged']:,} unflagged points available")
         print(f"  {stats['n_baselines']} baselines involving refant")
     else:
-        print(f"\n✗ Reference antenna {refant} has issues:")
+        print(f"\n:cross: Reference antenna {refant} has issues:")
         for issue in stats["issues"]:
             print(f"  - {issue}")
     

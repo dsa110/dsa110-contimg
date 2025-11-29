@@ -66,7 +66,7 @@ def check_field_phase_centers(ms_path, cal_ra_deg, cal_dec_deg):
             if pc_ref_diff > 2.9e-5:  # > 1 arcmin
                 mismatches.append(field_idx)
             
-            status = "✓" if sep_arcmin < 0.1 else "✗"
+            status = ":check:" if sep_arcmin < 0.1 else ":cross:"
             print(f"{field_idx}\t{pc_ra_deg:.6f}\t{pc_dec_deg:.6f}\t{ref_ra_deg:.6f}\t{ref_dec_deg:.6f}\t{sep_arcmin:.2f} {status}")
         
         print("-" * 100)
@@ -81,12 +81,12 @@ def check_field_phase_centers(ms_path, cal_ra_deg, cal_dec_deg):
             print(f"\n  WARNING: PHASE_DIR != REFERENCE_DIR for fields: {mismatches}")
         
         if max(separations) > 1.0:
-            print(f"\n  ✗ PHASE CENTER INCOHERENCE DETECTED")
+            print(f"\n  :cross: PHASE CENTER INCOHERENCE DETECTED")
             print(f"    Maximum separation ({max(separations):.2f} arcmin) exceeds 1 arcmin tolerance")
             print(f"    This is likely causing MODEL_DATA phase structure errors and high phase scatter")
-            print(f"    → Run phase center alignment fix (see PHASE_CENTER_FIX_SOLUTION_PATH.md)")
+            print(f"    :arrow_right: Run phase center alignment fix (see PHASE_CENTER_FIX_SOLUTION_PATH.md)")
         else:
-            print(f"\n  ✓ All phase centers aligned (within 1 arcmin tolerance)")
+            print(f"\n  :check: All phase centers aligned (within 1 arcmin tolerance)")
         
         return max(separations), separations
 

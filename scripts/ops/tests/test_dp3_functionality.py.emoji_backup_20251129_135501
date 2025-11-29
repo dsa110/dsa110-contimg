@@ -30,10 +30,10 @@ def test_dp3_detection():
     
     dp3_cmd = _find_dp3_executable()
     if dp3_cmd:
-        print(f"✓ DP3 found: {dp3_cmd}")
+        print(f":check: DP3 found: {dp3_cmd}")
         return True
     else:
-        print("✗ DP3 not found")
+        print(":cross: DP3 not found")
         print("  Checking Docker images...")
         import shutil
         import subprocess
@@ -46,9 +46,9 @@ def test_dp3_detection():
                 check=False,
             )
             if result.stdout.strip():
-                print(f"  ✓ Docker image 'dp3:latest' exists")
+                print(f"  :check: Docker image 'dp3:latest' exists")
             else:
-                print(f"  ✗ Docker image 'dp3:latest' not found")
+                print(f"  :cross: Docker image 'dp3:latest' not found")
                 # Check for alternative image names
                 result2 = subprocess.run(
                     [docker_cmd, "images"],
@@ -83,7 +83,7 @@ def test_dp3_skymodel_conversion():
             freq_ghz=1.4,
             out_path=temp_path,
         )
-        print(f"✓ Calibrator conversion successful: {result}")
+        print(f":check: Calibrator conversion successful: {result}")
         
         # Check file contents
         with open(temp_path, 'r') as f:
@@ -94,7 +94,7 @@ def test_dp3_skymodel_conversion():
         os.unlink(temp_path)
         return True
     except Exception as e:
-        print(f"✗ Calibrator conversion failed: {e}")
+        print(f":cross: Calibrator conversion failed: {e}")
         import traceback
         traceback.print_exc()
         if os.path.exists(temp_path):
@@ -115,7 +115,7 @@ def test_dp3_skymodel_conversion():
             freq_ghz=1.4,
             out_path=temp_path,
         )
-        print(f"✓ NVSS conversion successful: {result}")
+        print(f":check: NVSS conversion successful: {result}")
         
         # Check file contents
         with open(temp_path, 'r') as f:
@@ -127,7 +127,7 @@ def test_dp3_skymodel_conversion():
         os.unlink(temp_path)
         return True
     except Exception as e:
-        print(f"✗ NVSS conversion failed: {e}")
+        print(f":cross: NVSS conversion failed: {e}")
         import traceback
         traceback.print_exc()
         if os.path.exists(temp_path):
@@ -156,18 +156,18 @@ def test_dp3_predict_parset():
         # This will fail because MS doesn't exist, but we can check the command generation
         dp3_cmd = _find_dp3_executable()
         if not dp3_cmd:
-            print("⚠ Skipping - DP3 not found")
+            print(":warning: Skipping - DP3 not found")
             os.unlink(skymodel_path)
             return False
         
-        print(f"✓ DP3 command available: {dp3_cmd}")
-        print(f"✓ Sky model created: {skymodel_path}")
+        print(f":check: DP3 command available: {dp3_cmd}")
+        print(f":check: Sky model created: {skymodel_path}")
         print("  (Full predict test requires valid MS file)")
         
         os.unlink(skymodel_path)
         return True
     except Exception as e:
-        print(f"⚠ Test incomplete: {e}")
+        print(f":warning: Test incomplete: {e}")
         if os.path.exists(skymodel_path):
             os.unlink(skymodel_path)
         return False
@@ -195,16 +195,16 @@ def main():
     print("\n" + "=" * 60)
     print("Test Summary")
     print("=" * 60)
-    print(f"DP3 Detection: {'✓' if results['detection'] else '✗'}")
-    print(f"Sky Model Conversion: {'✓' if results['conversion'] else '✗'}")
-    print(f"Predict Parset: {'✓' if results['predict'] else '⚠'}")
+    print(f"DP3 Detection: {':check:' if results['detection'] else ':cross:'}")
+    print(f"Sky Model Conversion: {':check:' if results['conversion'] else ':cross:'}")
+    print(f"Predict Parset: {':check:' if results['predict'] else ':warning:'}")
     
     if results['detection'] and results['conversion']:
-        print("\n✓ DP3 basic functionality is working")
+        print("\n:check: DP3 basic functionality is working")
         print("  Next step: Test with actual MS file")
         return 0
     else:
-        print("\n✗ Some tests failed - check output above")
+        print("\n:cross: Some tests failed - check output above")
         return 1
 
 

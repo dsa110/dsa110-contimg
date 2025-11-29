@@ -27,7 +27,7 @@ echo ""
 
 # Check if results file exists
 if [ -f "codeql-results-fixed.sarif" ]; then
-    echo "✓ Results file found: codeql-results-fixed.sarif"
+    echo ":check: Results file found: codeql-results-fixed.sarif"
     echo ""
     
     # Compare results
@@ -75,8 +75,8 @@ try:
         new_count = len([r for r in new_path if file in r.get('locations', [{}])[0].get('physicalLocation', {}).get('artifactLocation', {}).get('uri', '')])
         if old_count > 0 or new_count > 0:
             fixed = old_count - new_count
-            status = '✓' if fixed > 0 else '⚠' if new_count == 0 else '○'
-            print(f'{status} {file:40s} {old_count:3d} → {new_count:3d} (fixed {fixed:3d})')
+            status = ':check:' if fixed > 0 else ':warning:' if new_count == 0 else '○'
+            print(f'{status} {file:40s} {old_count:3d} :arrow_right: {new_count:3d} (fixed {fixed:3d})')
 
     print('')
     print('=' * 60)
@@ -103,7 +103,7 @@ except Exception as e:
 PYTHON_SCRIPT
 
 else
-    echo "⚠ Results file not found yet"
+    echo ":warning: Results file not found yet"
     echo ""
     echo "Analysis may still be running. Check:"
     echo "  ps aux | grep codeql"

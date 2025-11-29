@@ -6,7 +6,7 @@
 This script:
 1. Queries NVSS catalog for sources in a specified field
 2. Simulates 2 tiles (10 minutes) with those sources + noise + RFI
-3. Runs full pipeline: conversion → calibration → imaging → mosaic → photometry
+3. Runs full pipeline: conversion :arrow_right: calibration :arrow_right: imaging :arrow_right: mosaic :arrow_right: photometry
 4. Compares recovered sources to input NVSS catalog
 
 Usage:
@@ -529,11 +529,11 @@ def main():
 
         shutil.copy2(src_file, dst_file)
         staged_files.append(dst_file)
-    print(f"  ✓ Staged {len(staged_files)} files to {staging_dir}")
+    print(f"  :check: Staged {len(staged_files)} files to {staging_dir}")
 
-    # Step 4: Run pipeline (conversion → calibration → imaging → mosaic)
+    # Step 4: Run pipeline (conversion :arrow_right: calibration :arrow_right: imaging :arrow_right: mosaic)
     print("\n" + "=" * 60)
-    print("Step 4: Running pipeline (conversion → calibration → imaging → mosaic)")
+    print("Step 4: Running pipeline (conversion :arrow_right: calibration :arrow_right: imaging :arrow_right: mosaic)")
     print("=" * 60)
 
     # Find complete groups from staged files
@@ -563,7 +563,7 @@ def main():
         print(f"  ERROR: Need at least 2 complete groups, found {len(groups)}")
         sys.exit(1)
 
-    print(f"  ✓ Found {len(groups)} complete group(s), using first 2")
+    print(f"  :check: Found {len(groups)} complete group(s), using first 2")
     selected_groups = groups[:2]
 
     # Convert groups to MS files
@@ -591,9 +591,9 @@ def main():
                 configure_final_ms=True,
             )
             ms_files.append(ms_path)
-            print(f"      ✓ Created MS: {ms_path.name}")
+            print(f"      :check: Created MS: {ms_path.name}")
         except Exception as e:
-            print(f"      ✗ Failed to convert group {i}: {e}")
+            print(f"      :cross: Failed to convert group {i}: {e}")
             import traceback
 
             traceback.print_exc()
@@ -625,12 +625,12 @@ def main():
             result = handle_calibrate(cal_args)
             if result == 0:
                 calibrated_ms_files.append(ms_path)
-                print(f"      ✓ Calibrated: {ms_path.name}")
+                print(f"      :check: Calibrated: {ms_path.name}")
             else:
-                print(f"      ✗ Calibration failed for {ms_path.name}")
+                print(f"      :cross: Calibration failed for {ms_path.name}")
                 sys.exit(1)
         except Exception as e:
-            print(f"      ✗ Calibration error: {e}")
+            print(f"      :cross: Calibration error: {e}")
             import traceback
 
             traceback.print_exc()
@@ -666,15 +666,15 @@ def main():
                 pbcor_path = Path(f"{image_base}.pbcor.fits")
                 if pbcor_path.exists():
                     image_files.append(pbcor_path)
-                    print(f"      ✓ Imaged: {pbcor_path.name}")
+                    print(f"      :check: Imaged: {pbcor_path.name}")
                 else:
-                    print(f"      ✗ PB-corrected image not found: {pbcor_path}")
+                    print(f"      :cross: PB-corrected image not found: {pbcor_path}")
                     sys.exit(1)
             else:
-                print(f"      ✗ Imaging failed for {ms_path.name}")
+                print(f"      :cross: Imaging failed for {ms_path.name}")
                 sys.exit(1)
         except Exception as e:
-            print(f"      ✗ Imaging error: {e}")
+            print(f"      :cross: Imaging error: {e}")
             import traceback
 
             traceback.print_exc()
@@ -696,12 +696,12 @@ def main():
 
         mosaic_fits = Path(f"{mosaic_path}.fits")
         if mosaic_fits.exists():
-            print(f"      ✓ Mosaic built: {mosaic_fits.name}")
+            print(f"      :check: Mosaic built: {mosaic_fits.name}")
         else:
-            print(f"      ✗ Mosaic FITS not found: {mosaic_fits}")
+            print(f"      :cross: Mosaic FITS not found: {mosaic_fits}")
             sys.exit(1)
     else:
-        print(f"      ✗ Need at least 2 images for mosaic, found {len(image_files)}")
+        print(f"      :cross: Need at least 2 images for mosaic, found {len(image_files)}")
         sys.exit(1)
 
     # Step 5: Run photometry and compare recovered sources
@@ -732,10 +732,10 @@ def main():
     )
 
     if not photometry_result:
-        print("  ✗ Photometry failed")
+        print("  :cross: Photometry failed")
         sys.exit(1)
 
-    print(f"  ✓ Photometry completed: {photometry_result.measurements_successful} measurements")
+    print(f"  :check: Photometry completed: {photometry_result.measurements_successful} measurements")
 
     # Extract photometry results from database
     print("  Extracting photometry results from database...")
@@ -744,7 +744,7 @@ def main():
 
     products_db = Path("state/db/products.sqlite3")
     if not products_db.exists():
-        print(f"  ✗ Products database not found: {products_db}")
+        print(f"  :cross: Products database not found: {products_db}")
         sys.exit(1)
 
     conn = sqlite3.connect(str(products_db))
@@ -764,7 +764,7 @@ def main():
     conn.close()
 
     if not rows:
-        print("  ✗ No photometry results found in database")
+        print("  :cross: No photometry results found in database")
         sys.exit(1)
 
     # Convert to list of dicts for comparison
@@ -778,7 +778,7 @@ def main():
             }
         )
 
-    print(f"  ✓ Extracted {len(recovered_sources)} recovered sources")
+    print(f"  :check: Extracted {len(recovered_sources)} recovered sources")
 
     # Compare recovered sources to input NVSS catalog
     print("\n  Comparing recovered sources to input NVSS catalog...")
@@ -806,9 +806,9 @@ def main():
     # Determine success
     success = recovery_stats["recovery_rate"] >= 0.7  # 70% recovery threshold
     if success:
-        print("\n✓ VALIDATION PASSED: Pipeline successfully recovers NVSS sources")
+        print("\n:check: VALIDATION PASSED: Pipeline successfully recovers NVSS sources")
     else:
-        print("\n✗ VALIDATION FAILED: Recovery rate below threshold (70%)")
+        print("\n:cross: VALIDATION FAILED: Recovery rate below threshold (70%)")
 
     return 0 if success else 1
 

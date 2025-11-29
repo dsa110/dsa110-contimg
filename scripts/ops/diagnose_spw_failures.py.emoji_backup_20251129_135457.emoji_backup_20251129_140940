@@ -1,0 +1,289 @@
+#!/usr/bin/env python
+"""
+Diagnostic CLI tool to compare flag states across pipeline phases and
+definitively determine why specific SPWs failed calibration.
+
+This tool takes an MS path and generates a complete temporal flagging analysis,
+showing how flagging percentages changed from pre-calibration (Phase 1) through
+post-applycal (Phase 3).
+
+Usage:
+    python scripts/diagnose_spw_failures.py <ms_path> [options]
+
+Example:
+    python scripts/diagnose_spw_failures.py /stage/data.ms --refant 103 --failed-spws 9,14,15
+
+    # With calibration table prefix (for Phase 2 analysis)
+    python scripts/diagnose_spw_failures.py /stage/data.ms --cal-prefix /stage/data_0~23 --refant 103
+"""
+
+import argparse
+import sys
+from pathlib import Path
+
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from dsa110_contimg.calibration.flagging_temporal import (
+    capture_flag_snapshot,
+    compare_flag_snapshots,
+    diagnose_spw_failure,
+    format_comparison_summary,
+    format_snapshot_summary,
+)
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Diagnose SPW calibration failures using temporal flagging analysis",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Basic usage - compare current MS state to infer what happened
+  python scripts/diagnose_spw_failures.py /stage/dsa110-contimg/test_data/2025-10-19T14:31:45.ms \\
+    --refant 103 --failed-spws 9,14,15
+  
+  # With calibration table inspection
+  python scripts/diagnose_spw_failures.py /stage/dsa110-contimg/test_data/2025-10-19T14:31:45.ms \\
+    --cal-prefix /stage/dsa110-contimg/test_data/2025-10-19T14:31:45_0~23 \\
+    --refant 103
+  
+  # Save output to file
+  python scripts/diagnose_spw_failures.py /stage/dsa110-contimg/test_data/2025-10-19T14:31:45.ms \\
+    --refant 103 --output diagnosis.txt
+
+NOTE: This tool currently can only examine the CURRENT MS state. To get truly
+definitive pre-calibration flagging percentages, the pipeline must capture
+snapshots during the calibration run (which is now implemented in stages_impl.py).
+
+For retrospective analysis of already-calibrated MSs, this tool will show the
+POST-applycal state and can identify which SPWs are 100% flagged, but cannot
+definitively determine pre-calibration percentages.
+        """,
+    )
+
+    parser.add_argument(
+        "ms_path",
+        help="Path to Measurement Set to analyze",
+    )
+
+    parser.add_argument(
+        "--refant",
+        type=int,
+        default=103,
+        help="Reference antenna ID (default: 103)",
+    )
+
+    parser.add_argument(
+        "--failed-spws",
+        help="Comma-separated list of SPWs known to have failed calibration (e.g., '9,14,15')",
+    )
+
+    parser.add_argument(
+        "--cal-prefix",
+        help="Calibration table prefix (e.g., '/stage/data_0~23' for K/BP/G table inspection)",
+    )
+
+    parser.add_argument(
+        "--output",
+        "-o",
+        help="Output file path (default: print to stdout)",
+    )
+
+    parser.add_argument(
+        "--verbose",
+        "-v",
+        action="store_true",
+        help="Verbose output",
+    )
+
+    args = parser.parse_args()
+
+    # Validate MS path
+    ms_path = Path(args.ms_path)
+    if not ms_path.exists():
+        print(f"ERROR: MS not found: {ms_path}", file=sys.stderr)
+        sys.exit(1)
+
+    # Parse failed SPWs
+    failed_spws = []
+    if args.failed_spws:
+        try:
+            failed_spws = [int(s.strip()) for s in args.failed_spws.split(",")]
+        except ValueError:
+            print(f"ERROR: Invalid SPW list: {args.failed_spws}", file=sys.stderr)
+            sys.exit(1)
+
+    # Build calibration table paths if prefix provided
+    cal_table_paths = None
+    if args.cal_prefix:
+        cal_table_paths = {
+            "K": f"{args.cal_prefix}_kcal",
+            "BP": f"{args.cal_prefix}_bpcal",
+            "G": f"{args.cal_prefix}_gpcal",
+            "2G": f"{args.cal_prefix}_2gcal",
+        }
+
+    print("=" * 80)
+    print("SPW CALIBRATION FAILURE DIAGNOSTIC TOOL")
+    print("=" * 80)
+    print(f"MS: {ms_path}")
+    print(f"Reference antenna: {args.refant}")
+    if failed_spws:
+        print(f"Known failed SPWs: {failed_spws}")
+    if cal_table_paths:
+        print(f"Calibration table prefix: {args.cal_prefix}")
+    print("=" * 80)
+    print()
+
+    # Capture current MS state snapshot
+    print("Capturing current MS flag state...")
+    try:
+        current_snapshot = capture_flag_snapshot(
+            ms_path=str(ms_path),
+            phase="current_state",
+            refant=args.refant,
+            cal_table_paths=cal_table_paths,
+        )
+        print("✓ Snapshot captured\n")
+    except Exception as e:
+        print(f"ERROR: Failed to capture snapshot: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    # Display current state
+    output_lines = []
+    output_lines.append(format_snapshot_summary(current_snapshot))
+    output_lines.append("")
+
+    # Identify SPWs that are fully flagged
+    fully_flagged_spws = [
+        spw_id
+        for spw_id, stats in current_snapshot.spw_stats.items()
+        if stats.total_flagged_fraction >= 0.999
+    ]
+
+    if fully_flagged_spws:
+        output_lines.append("=" * 80)
+        output_lines.append("IDENTIFIED FULLY FLAGGED SPWs")
+        output_lines.append("=" * 80)
+        output_lines.append(f"SPWs with 100% flagging: {fully_flagged_spws}")
+        output_lines.append("")
+
+        # Check calibration tables if prefix provided
+        if cal_table_paths:
+            output_lines.append("Checking calibration tables...")
+            output_lines.append("-" * 80)
+
+            from casacore.tables import table
+
+            for cal_type, cal_path in cal_table_paths.items():
+                if Path(cal_path).exists():
+                    try:
+                        with table(cal_path, readonly=True) as tb:
+                            if "SPECTRAL_WINDOW_ID" in tb.colnames():
+                                spw_ids = tb.getcol("SPECTRAL_WINDOW_ID")
+                                unique_spws = sorted(set(spw_ids))
+                                output_lines.append(
+                                    f"{cal_type:3s}: Has solutions for SPWs {unique_spws}"
+                                )
+
+                                # Check if fully flagged SPWs are missing
+                                missing = [
+                                    spw for spw in fully_flagged_spws if spw not in unique_spws
+                                ]
+                                if missing:
+                                    output_lines.append(
+                                        f"     → MISSING solutions for SPWs {missing}"
+                                    )
+                    except Exception as e:
+                        output_lines.append(f"{cal_type:3s}: Error reading table - {e}")
+                else:
+                    output_lines.append(f"{cal_type:3s}: Table not found")
+
+            output_lines.append("")
+
+        # Provide retrospective analysis
+        output_lines.append("=" * 80)
+        output_lines.append("RETROSPECTIVE ANALYSIS")
+        output_lines.append("=" * 80)
+        output_lines.append("")
+        output_lines.append(
+            "⚠️  LIMITATION: This is a RETROSPECTIVE analysis of an already-calibrated MS."
+        )
+        output_lines.append("   The current MS state shows POST-applycal flagging.")
+        output_lines.append("")
+        output_lines.append("To get DEFINITIVE pre-calibration flagging percentages:")
+        output_lines.append(
+            "1. The pipeline now captures flag snapshots at each phase automatically"
+        )
+        output_lines.append("2. Re-run calibration to generate temporal snapshots")
+        output_lines.append(
+            "3. Snapshots are logged during calibration and can be stored in database"
+        )
+        output_lines.append("")
+        output_lines.append("ANALYSIS of currently 100% flagged SPWs:")
+        output_lines.append("-" * 80)
+
+        for spw_id in fully_flagged_spws:
+            stats = current_snapshot.spw_stats[spw_id]
+            output_lines.append(f"\nSPW {spw_id}:")
+            output_lines.append(
+                f"  Current state: 100% flagged ({stats.n_rows} rows, {stats.n_channels} channels)"
+            )
+
+            if stats.refant_flagged_fraction is not None:
+                output_lines.append(
+                    f"  Refant {stats.refant_id}: {stats.refant_flagged_fraction * 100:.1f}% flagged"
+                )
+
+            # Check if has calibration solutions
+            has_solutions = False
+            if cal_table_paths:
+                for cal_type, cal_path in cal_table_paths.items():
+                    if Path(cal_path).exists():
+                        try:
+                            with table(cal_path, readonly=True) as tb:
+                                if "SPECTRAL_WINDOW_ID" in tb.colnames():
+                                    spw_ids = tb.getcol("SPECTRAL_WINDOW_ID")
+                                    if spw_id in spw_ids:
+                                        has_solutions = True
+                                        break
+                        except Exception:
+                            pass
+
+            if not has_solutions and cal_table_paths:
+                output_lines.append(f"  Calibration tables: NO SOLUTIONS")
+                output_lines.append(
+                    f"  → LIKELY CAUSE: Pre-calibration flagging prevented calibration solve,"
+                )
+                output_lines.append(
+                    f"    then CASA applycal flagged remaining data → 100% flagging"
+                )
+            else:
+                output_lines.append(
+                    f"  → Unable to determine cause without pre-calibration snapshot"
+                )
+
+        output_lines.append("")
+        output_lines.append("=" * 80)
+
+    else:
+        output_lines.append("No SPWs are 100% flagged in current MS state.")
+        output_lines.append("")
+
+    # Format output
+    output_text = "\n".join(output_lines)
+
+    # Write to file or stdout
+    if args.output:
+        with open(args.output, "w") as f:
+            f.write(output_text)
+        print(f"✓ Diagnosis written to: {args.output}")
+    else:
+        print(output_text)
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

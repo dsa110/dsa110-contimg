@@ -41,10 +41,10 @@ def fix_queue_db():
         # Try to add location_type column if it doesn't exist
         try:
             cursor.execute("ALTER TABLE jobs ADD COLUMN location_type TEXT")
-            print("✅ Added location_type column to jobs table")
+            print(":check: Added location_type column to jobs table")
         except sqlite3.OperationalError as e:
             if "duplicate column name" in str(e):
-                print("✓ location_type column already exists in jobs")
+                print(":check: location_type column already exists in jobs")
             else:
                 raise
 
@@ -73,16 +73,16 @@ def fix_queue_db():
     else:
         try:
             cursor.execute("ALTER TABLE batch_jobs ADD COLUMN location_type TEXT")
-            print("✅ Added location_type column to batch_jobs table")
+            print(":check: Added location_type column to batch_jobs table")
         except sqlite3.OperationalError as e:
             if "duplicate column name" in str(e):
-                print("✓ location_type column already exists in batch_jobs")
+                print(":check: location_type column already exists in batch_jobs")
             else:
                 raise
 
     conn.commit()
     conn.close()
-    print("✅ queue.db fixed")
+    print(":check: queue.db fixed")
 
 
 def init_pipeline_queue():
@@ -147,13 +147,13 @@ def init_pipeline_queue():
 
         conn.commit()
         conn.close()
-        print("✅ pipeline_queue.db initialized")
+        print(":check: pipeline_queue.db initialized")
     else:
-        print("✓ pipeline_queue.db already has data")
+        print(":check: pipeline_queue.db already has data")
 
 
 if __name__ == "__main__":
-    print("🔧 Fixing DSA-110 database schemas...\n")
+    print(":wrench: Fixing DSA-110 database schemas...\n")
     fix_queue_db()
     init_pipeline_queue()
-    print("\n✅ All database fixes applied!")
+    print("\n:check: All database fixes applied!")

@@ -30,7 +30,7 @@ if ! curl -s -f "${BASE_URL}/health/liveness" > /dev/null 2>&1; then
     exit 1
 fi
 
-echo -e "${GREEN}✓${NC} Backend is running"
+echo -e "${GREEN}:check:${NC} Backend is running"
 echo ""
 
 # Function to get current stats
@@ -66,9 +66,9 @@ echo "Creating new DLQ item..."
 PYTHON_BIN="/opt/miniforge/envs/casa6/bin/python"
 if [ -f "scripts/test_dlq_endpoints.py" ]; then
     $PYTHON_BIN scripts/test_dlq_endpoints.py > /dev/null 2>&1
-    echo -e "${GREEN}✓${NC} DLQ item created"
+    echo -e "${GREEN}:check:${NC} DLQ item created"
 else
-    echo -e "${YELLOW}⚠${NC} test_dlq_endpoints.py not found, skipping item creation"
+    echo -e "${YELLOW}:warning:${NC} test_dlq_endpoints.py not found, skipping item creation"
 fi
 
 echo ""
@@ -97,11 +97,11 @@ for i in {1..15}; do
     sleep 1
     current_total=$(curl -s "${API_BASE}/operations/dlq/stats" | jq -r '.total')
     if [ "$current_total" != "$initial_total" ]; then
-        echo -e "${GREEN}✓${NC} DLQ stats updated after ${i} seconds (total: $initial_total -> $current_total)"
+        echo -e "${GREEN}:check:${NC} DLQ stats updated after ${i} seconds (total: $initial_total -> $current_total)"
         break
     fi
     if [ $i -eq 15 ]; then
-        echo -e "${YELLOW}⚠${NC} DLQ stats did not change (may be expected if no new items)"
+        echo -e "${YELLOW}:warning:${NC} DLQ stats did not change (may be expected if no new items)"
     fi
 done
 
@@ -127,7 +127,7 @@ for i in {1..7}; do
     current_state=$(curl -s "${API_BASE}/operations/circuit-breakers/ese_detection" | jq -r '.state')
     failure_count=$(curl -s "${API_BASE}/operations/circuit-breakers/ese_detection" | jq -r '.failure_count')
     if [ "$failure_count" = "0" ]; then
-        echo -e "${GREEN}✓${NC} Circuit breaker reset confirmed after ${i} seconds (state: $current_state, failures: $failure_count)"
+        echo -e "${GREEN}:check:${NC} Circuit breaker reset confirmed after ${i} seconds (state: $current_state, failures: $failure_count)"
         break
     fi
 done
@@ -163,11 +163,11 @@ for i in {1..12}; do
     sleep 1
     current_dlq_total=$(curl -s "${API_BASE}/health/summary" | jq -r '.dlq_stats.total')
     if [ "$current_dlq_total" != "$initial_dlq_total" ]; then
-        echo -e "${GREEN}✓${NC} Health summary updated after ${i} seconds (DLQ total: $initial_dlq_total -> $current_dlq_total)"
+        echo -e "${GREEN}:check:${NC} Health summary updated after ${i} seconds (DLQ total: $initial_dlq_total -> $current_dlq_total)"
         break
     fi
     if [ $i -eq 12 ]; then
-        echo -e "${YELLOW}⚠${NC} Health summary did not update (may need manual refresh)"
+        echo -e "${YELLOW}:warning:${NC} Health summary did not update (may need manual refresh)"
     fi
 done
 
@@ -192,9 +192,9 @@ for endpoint in "${endpoints[@]}"; do
     duration=$(( (end_time - start_time) / 1000000 ))
     
     if [ $duration -lt 500 ]; then
-        echo -e "${GREEN}✓${NC} ${endpoint}: ${duration}ms (< 500ms)"
+        echo -e "${GREEN}:check:${NC} ${endpoint}: ${duration}ms (< 500ms)"
     else
-        echo -e "${YELLOW}⚠${NC} ${endpoint}: ${duration}ms (>= 500ms)"
+        echo -e "${YELLOW}:warning:${NC} ${endpoint}: ${duration}ms (>= 500ms)"
     fi
 done
 
@@ -212,7 +212,7 @@ echo ""
 echo "To test frontend auto-refresh:"
 echo "  1. Start frontend dev server: cd frontend && npm run dev"
 echo "  2. Open http://localhost:5173/operations"
-echo "  3. Open browser DevTools → Network tab"
+echo "  3. Open browser DevTools :arrow_right: Network tab"
 echo "  4. Observe automatic API calls at configured intervals"
 echo "  5. Create/update DLQ items and watch UI update automatically"
 

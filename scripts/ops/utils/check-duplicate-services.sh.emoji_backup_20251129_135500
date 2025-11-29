@@ -33,7 +33,7 @@ vite_ports=$(echo "$vite_ports" | tr ' ' '\n' | grep -v '^$' | sort -u)
 vite_count=$(echo "$vite_ports" | wc -l | tr -d ' ')
 
 if [ "$vite_count" -gt 1 ]; then
-    echo -e "${YELLOW}⚠️  Warning: Multiple Vite instances detected ($vite_count ports in use)${NC}"
+    echo -e "${YELLOW}:warning:  Warning: Multiple Vite instances detected ($vite_count ports in use)${NC}"
     echo ""
     echo "Vite instances by port:"
     for port in $vite_ports; do
@@ -47,7 +47,7 @@ if [ "$vite_count" -gt 1 ]; then
     echo "Recommendation: Keep only one Vite instance (preferably on port 5173)"
     echo "  To kill duplicates: pkill -f 'vite.*517[4-9]'"
 else
-    echo -e "${GREEN}✓ No duplicate Vite instances${NC}"
+    echo -e "${GREEN}:check: No duplicate Vite instances${NC}"
 fi
 
 echo ""
@@ -61,7 +61,7 @@ else
 fi
 
 if [ "$api_count" -gt 1 ]; then
-    echo -e "${YELLOW}⚠️  Warning: Multiple API instances detected ($api_count)${NC}"
+    echo -e "${YELLOW}:warning:  Warning: Multiple API instances detected ($api_count)${NC}"
     echo ""
     echo "Running API processes:"
     echo "$api_processes" | while read -r line; do
@@ -73,7 +73,7 @@ if [ "$api_count" -gt 1 ]; then
     echo "Recommendation: Keep only one API instance"
     echo "  To kill duplicates: pkill -f 'uvicorn.*dsa110_contimg'"
 else
-    echo -e "${GREEN}✓ No duplicate API instances${NC}"
+    echo -e "${GREEN}:check: No duplicate API instances${NC}"
 fi
 
 echo ""
@@ -91,7 +91,7 @@ if [ "$total_duplicates" -gt 0 ]; then
     echo -e "${RED}Found $total_duplicates service type(s) with duplicate instances${NC}"
     exit 1
 else
-    echo -e "${GREEN}✓ No duplicate services detected${NC}"
+    echo -e "${GREEN}:check: No duplicate services detected${NC}"
     exit 0
 fi
 

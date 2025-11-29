@@ -21,11 +21,11 @@ def test_import():
     
     try:
         import pyradiosky
-        print(f"✓ pyradiosky imported successfully")
+        print(f":check: pyradiosky imported successfully")
         print(f"  Version: {pyradiosky.__version__}")
         return True, pyradiosky
     except ImportError as e:
-        print(f"✗ Failed to import pyradiosky: {e}")
+        print(f":cross: Failed to import pyradiosky: {e}")
         return False, None
 
 
@@ -58,13 +58,13 @@ def test_skymodel_creation(pyradiosky):
             component_type='point',
         )
         
-        print(f"✓ SkyModel created successfully")
+        print(f":check: SkyModel created successfully")
         print(f"  Ncomponents: {sky.Ncomponents}")
         print(f"  Component type: {sky.component_type}")
         print(f"  Spectral type: {sky.spectral_type}")
         return True
     except Exception as e:
-        print(f"✗ SkyModel creation failed: {e}")
+        print(f":cross: SkyModel creation failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -91,10 +91,10 @@ def test_dependency_compatibility():
             mod = __import__(module)
             version = getattr(mod, '__version__', 'unknown')
             results[name] = (True, version)
-            print(f"✓ {name}: {version}")
+            print(f":check: {name}: {version}")
         except ImportError:
             results[name] = (False, None)
-            print(f"✗ {name}: NOT INSTALLED")
+            print(f":cross: {name}: NOT INSTALLED")
     
     all_ok = all(status for status, _ in results.values())
     return all_ok
@@ -113,21 +113,21 @@ def test_casa_compatibility():
         # Then try to import CASA tools
         try:
             from casatools import componentlist
-            print("✓ casatools.componentlist imports successfully")
+            print(":check: casatools.componentlist imports successfully")
         except Exception as e:
-            print(f"✗ casatools.componentlist import failed: {e}")
+            print(f":cross: casatools.componentlist import failed: {e}")
             return False
         
         try:
             from casatasks import ft
-            print("✓ casatasks.ft imports successfully")
+            print(":check: casatasks.ft imports successfully")
         except Exception as e:
-            print(f"✗ casatasks.ft import failed: {e}")
+            print(f":cross: casatasks.ft import failed: {e}")
             return False
         
         return True
     except Exception as e:
-        print(f"✗ CASA compatibility test failed: {e}")
+        print(f":cross: CASA compatibility test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -170,18 +170,18 @@ def test_skymodel_io():
         
         try:
             sky.write_text_catalog(temp_path)
-            print(f"✓ write_text_catalog() works")
+            print(f":check: write_text_catalog() works")
             
             # Check file was created
             if os.path.exists(temp_path) and os.path.getsize(temp_path) > 0:
                 print(f"  File created: {os.path.getsize(temp_path)} bytes")
                 os.unlink(temp_path)
             else:
-                print(f"  ⚠ File created but appears empty")
+                print(f"  :warning: File created but appears empty")
                 if os.path.exists(temp_path):
                     os.unlink(temp_path)
         except Exception as e:
-            print(f"✗ write_text_catalog() failed: {e}")
+            print(f":cross: write_text_catalog() failed: {e}")
             if os.path.exists(temp_path):
                 os.unlink(temp_path)
             return False
@@ -192,23 +192,23 @@ def test_skymodel_io():
                 temp_path = f.name
             
             sky.write_skyh5(temp_path)
-            print(f"✓ write_skyh5() works")
+            print(f":check: write_skyh5() works")
             
             if os.path.exists(temp_path) and os.path.getsize(temp_path) > 0:
                 print(f"  File created: {os.path.getsize(temp_path)} bytes")
                 os.unlink(temp_path)
             else:
-                print(f"  ⚠ File created but appears empty")
+                print(f"  :warning: File created but appears empty")
                 if os.path.exists(temp_path):
                     os.unlink(temp_path)
         except Exception as e:
-            print(f"⚠ write_skyh5() failed (may be expected): {e}")
+            print(f":warning: write_skyh5() failed (may be expected): {e}")
             if os.path.exists(temp_path):
                 os.unlink(temp_path)
         
         return True
     except Exception as e:
-        print(f"✗ SkyModel I/O test failed: {e}")
+        print(f":cross: SkyModel I/O test failed: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -227,7 +227,7 @@ def main():
     success, pyradiosky_module = test_import()
     results['import'] = success
     if not success:
-        print("\n✗ Cannot proceed without pyradiosky")
+        print("\n:cross: Cannot proceed without pyradiosky")
         return 1
     
     # Test 2: Basic functionality
@@ -246,20 +246,20 @@ def main():
     print("\n" + "=" * 60)
     print("Test Summary")
     print("=" * 60)
-    print(f"Import: {'✓' if results['import'] else '✗'}")
-    print(f"SkyModel Creation: {'✓' if results['creation'] else '✗'}")
-    print(f"Dependencies: {'✓' if results['dependencies'] else '✗'}")
-    print(f"CASA Compatibility: {'✓' if results['casa'] else '✗'}")
-    print(f"I/O Capabilities: {'✓' if results['io'] else '✗'}")
+    print(f"Import: {':check:' if results['import'] else ':cross:'}")
+    print(f"SkyModel Creation: {':check:' if results['creation'] else ':cross:'}")
+    print(f"Dependencies: {':check:' if results['dependencies'] else ':cross:'}")
+    print(f"CASA Compatibility: {':check:' if results['casa'] else ':cross:'}")
+    print(f"I/O Capabilities: {':check:' if results['io'] else ':cross:'}")
     
     if all(results.values()):
-        print("\n✓ All tests passed - pyradiosky is ready for use")
+        print("\n:check: All tests passed - pyradiosky is ready for use")
         return 0
     elif results['import'] and results['creation'] and results['dependencies']:
-        print("\n⚠ Core functionality works - some optional features may have issues")
+        print("\n:warning: Core functionality works - some optional features may have issues")
         return 0
     else:
-        print("\n✗ Critical tests failed - check output above")
+        print("\n:cross: Critical tests failed - check output above")
         return 1
 
 

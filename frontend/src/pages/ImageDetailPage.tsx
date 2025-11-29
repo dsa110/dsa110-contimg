@@ -10,7 +10,7 @@ import {
   Modal,
   QAMetrics,
 } from "../components/common";
-import { AladinLiteViewer, GifPlayer } from "../components/widgets";
+import { AladinLiteViewer } from "../components/widgets";
 import { FitsViewer } from "../components/fits";
 import { RatingCard, RatingTag } from "../components/rating";
 import { mapProvenanceFromImageDetail, ImageDetailResponse } from "../utils/provenanceMappers";

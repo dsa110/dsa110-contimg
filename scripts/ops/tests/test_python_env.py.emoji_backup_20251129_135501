@@ -29,9 +29,9 @@ def main():
     # Expected casa6 path
     expected_casa6 = "/opt/miniforge/envs/casa6/bin/python"
     if python_exe == expected_casa6:
-        print(f"✓ Using casa6 environment (CORRECT)")
+        print(f":check: Using casa6 environment (CORRECT)")
     else:
-        print(f"✗ NOT using casa6 environment (WRONG)")
+        print(f":cross: NOT using casa6 environment (WRONG)")
         print(f"  Expected: {expected_casa6}")
         print(f"  Actual:   {python_exe}")
     
@@ -40,15 +40,15 @@ def main():
     print("Checking CASA availability...")
     try:
         import casatools
-        print("✓ casatools imported successfully")
+        print(":check: casatools imported successfully")
     except ImportError as e:
-        print(f"✗ casatools import failed: {e}")
+        print(f":cross: casatools import failed: {e}")
     
     try:
         import casatasks
-        print("✓ casatasks imported successfully")
+        print(":check: casatasks imported successfully")
     except ImportError as e:
-        print(f"✗ casatasks import failed: {e}")
+        print(f":cross: casatasks import failed: {e}")
     
     # Check other scientific packages
     print("\n" + "-" * 60)
@@ -59,18 +59,18 @@ def main():
         try:
             mod = __import__(pkg)
             version = getattr(mod, '__version__', 'unknown')
-            print(f"✓ {pkg} imported successfully (version: {version})")
+            print(f":check: {pkg} imported successfully (version: {version})")
         except ImportError as e:
-            print(f"✗ {pkg} import failed: {e}")
+            print(f":cross: {pkg} import failed: {e}")
     
     print("\n" + "=" * 60)
     
     # Final verdict
     if python_exe == expected_casa6:
-        print("RESULT: ✓ Test PASSED - Using correct casa6 environment")
+        print("RESULT: :check: Test PASSED - Using correct casa6 environment")
         return 0
     else:
-        print("RESULT: ✗ Test FAILED - Not using casa6 environment")
+        print("RESULT: :cross: Test FAILED - Not using casa6 environment")
         return 1
 
 if __name__ == "__main__":

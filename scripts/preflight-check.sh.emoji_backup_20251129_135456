@@ -13,18 +13,18 @@ WARNINGS=0
 
 check() {
     if eval "$2" >/dev/null 2>&1; then  # suppress-output-check
-        echo -e "${GREEN}✓${NC} $1"
+        echo -e "${GREEN}:check:${NC} $1"
     else
-        echo -e "${RED}✗${NC} $1"
+        echo -e "${RED}:cross:${NC} $1"
         ((ERRORS++))
     fi
 }
 
 warn() {
     if eval "$2" >/dev/null 2>&1; then  # suppress-output-check
-        echo -e "${GREEN}✓${NC} $1"
+        echo -e "${GREEN}:check:${NC} $1"
     else
-        echo -e "${YELLOW}⚠${NC} $1 (optional)"
+        echo -e "${YELLOW}:warning:${NC} $1 (optional)"
         ((WARNINGS++))
     fi
 }

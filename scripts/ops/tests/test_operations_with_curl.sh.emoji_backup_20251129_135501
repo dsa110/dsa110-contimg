@@ -19,18 +19,18 @@ echo ""
 # Check frontend is running
 echo "Checking frontend server..."
 if curl -s -f "${FRONTEND_URL}" > /dev/null 2>&1; then
-    echo -e "${GREEN}✓${NC} Frontend server is running at ${FRONTEND_URL}"
+    echo -e "${GREEN}:check:${NC} Frontend server is running at ${FRONTEND_URL}"
 else
-    echo "✗ Frontend server is not running"
+    echo ":cross: Frontend server is not running"
     exit 1
 fi
 
 # Check backend is running
 echo "Checking backend server..."
 if curl -s -f "${BASE_URL}/health/liveness" > /dev/null 2>&1; then
-    echo -e "${GREEN}✓${NC} Backend server is running at ${BASE_URL}"
+    echo -e "${GREEN}:check:${NC} Backend server is running at ${BASE_URL}"
 else
-    echo "✗ Backend server is not running"
+    echo ":cross: Backend server is not running"
     exit 1
 fi
 
@@ -53,9 +53,9 @@ for endpoint in "${endpoints[@]}"; do
     response=$(curl -s -w "\nHTTP_STATUS:%{http_code}" "${BASE_URL}${endpoint}")
     status=$(echo "$response" | grep -oE 'HTTP_STATUS:([0-9]+)' | grep -oE '[0-9]+')
     if [ "$status" = "200" ]; then
-        echo -e "${GREEN}✓${NC} OK"
+        echo -e "${GREEN}:check:${NC} OK"
     else
-        echo "✗ Failed (Status: $status)"
+        echo ":cross: Failed (Status: $status)"
     fi
 done
 
@@ -89,11 +89,11 @@ echo ""
 echo "Checking Operations page HTML..."
 page_content=$(curl -s "${FRONTEND_URL}/operations")
 if echo "$page_content" | grep -q "DSA-110"; then
-    echo -e "${GREEN}✓${NC} Page contains DSA-110 title"
+    echo -e "${GREEN}:check:${NC} Page contains DSA-110 title"
 fi
 
 if echo "$page_content" | grep -q "react"; then
-    echo -e "${GREEN}✓${NC} React app detected"
+    echo -e "${GREEN}:check:${NC} React app detected"
 fi
 
 echo ""
@@ -104,9 +104,9 @@ echo ""
 echo "Frontend URL: ${FRONTEND_URL}/operations"
 echo "Backend URL: ${BASE_URL}"
 echo ""
-echo -e "${GREEN}✓${NC} All API endpoints are working"
-echo -e "${GREEN}✓${NC} Frontend server is running"
-echo -e "${GREEN}✓${NC} Backend server is running"
+echo -e "${GREEN}:check:${NC} All API endpoints are working"
+echo -e "${GREEN}:check:${NC} Frontend server is running"
+echo -e "${GREEN}:check:${NC} Backend server is running"
 echo ""
 echo "To test the UI manually:"
 echo "  1. Open browser: ${FRONTEND_URL}/operations"

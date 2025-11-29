@@ -9,18 +9,18 @@ correct RMS from radiometer equation).
 IMPORTANT: This tests the SIMULATION CODE, not telescope parameters!
 
 What this script validates:
-✅ calculate_thermal_noise_rms() produces theoretically correct RMS
-✅ Generated noise follows proper Gaussian distribution
-✅ Real and imaginary components have expected independence
+:check: calculate_thermal_noise_rms() produces theoretically correct RMS
+:check: Generated noise follows proper Gaussian distribution
+:check: Real and imaginary components have expected independence
 
 What this script does NOT validate:
-❌ Whether T_sys, efficiency parameters match real telescope
-❌ Whether real "off-source" data is truly noise-dominated
-❌ Telescope noise characteristics (requires clean empty-field obs)
+:cross: Whether T_sys, efficiency parameters match real telescope
+:cross: Whether real "off-source" data is truly noise-dominated
+:cross: Telescope noise characteristics (requires clean empty-field obs)
 
 Typical results:
-- Synthetic matches theory (e.g., 28 mJy for T_sys=25K) → CODE WORKS ✅
-- Real data higher (e.g., 3000 mJy) → residual signals present (expected)
+- Synthetic matches theory (e.g., 28 mJy for T_sys=25K) :arrow_right: CODE WORKS :check:
+- Real data higher (e.g., 3000 mJy) :arrow_right: residual signals present (expected)
 
 Performs statistical tests:
 - Kolmogorov-Smirnov test (distribution shape)

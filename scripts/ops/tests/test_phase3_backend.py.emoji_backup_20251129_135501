@@ -74,7 +74,7 @@ def test_event_bus():
     recent = event_bus.get_history(since=since, limit=10)
     print(f"   Retrieved {len(recent)} recent events")
 
-    print("\n✓ Event bus tests passed!\n")
+    print("\n:check: Event bus tests passed!\n")
 
 
 def test_cache():
@@ -135,7 +135,7 @@ def test_cache():
     cleared_stats = cache.get_statistics()
     print(f"   After clear, total keys: {cleared_stats['total_keys']}")
 
-    print("\n✓ Cache tests passed!\n")
+    print("\n:check: Cache tests passed!\n")
 
 
 if __name__ == "__main__":
@@ -146,7 +146,7 @@ if __name__ == "__main__":
         print("All Phase 3 backend tests passed!")
         print("=" * 60)
     except Exception as e:
-        print(f"\n✗ Test failed with error: {e}")
+        print(f"\n:cross: Test failed with error: {e}")
         import traceback
 
         traceback.print_exc()

@@ -95,7 +95,7 @@ def main():
             keep_copy=True,
         )
         prep_time = time.time() - start_time
-        print(f"✓ MS prepared in {prep_time:.2f} seconds")
+        print(f":check: MS prepared in {prep_time:.2f} seconds")
         print(f"  Prepared MS: {prepared_ms}")
         
         # Verify it's single field
@@ -104,9 +104,9 @@ def main():
         field_table.close()
         print(f"  Fields after preparation: {nfields_prep}")
         if nfields_prep != 1:
-            print(f"  ⚠ Expected 1 field, got {nfields_prep}")
+            print(f"  :warning: Expected 1 field, got {nfields_prep}")
     except Exception as e:
-        print(f"✗ MS preparation failed: {e}")
+        print(f":cross: MS preparation failed: {e}")
         import traceback
         traceback.print_exc()
         return 1
@@ -128,7 +128,7 @@ def main():
         spectral_type='flat',
         component_type='point',
     )
-    print(f"✓ Created SkyModel")
+    print(f":check: Created SkyModel")
     
     # Step 3: Convert to DP3 format
     print("\n" + "-" * 60)
@@ -140,9 +140,9 @@ def main():
     
     try:
         convert_skymodel_to_dp3(sky, out_path=dp3_path)
-        print(f"✓ Converted to DP3 format: {dp3_path}")
+        print(f":check: Converted to DP3 format: {dp3_path}")
     except Exception as e:
-        print(f"✗ Conversion failed: {e}")
+        print(f":cross: Conversion failed: {e}")
         import traceback
         traceback.print_exc()
         return 1
@@ -167,9 +167,9 @@ def main():
             field="",  # Single field now, so empty is fine
         )
         dp3_time = time.time() - start_time
-        print(f"✓ DP3 predict completed in {dp3_time:.2f} seconds")
+        print(f":check: DP3 predict completed in {dp3_time:.2f} seconds")
     except Exception as e:
-        print(f"✗ DP3 predict failed: {e}")
+        print(f":cross: DP3 predict failed: {e}")
         import traceback
         traceback.print_exc()
         if os.path.exists(dp3_path):
@@ -196,14 +196,14 @@ def main():
     print(f"Preparation time: {prep_time:.2f} seconds")
     print(f"DP3 predict time: {dp3_time:.2f} seconds")
     print(f"Total time: {prep_time + dp3_time:.2f} seconds")
-    print(f"MODEL_DATA: {'✓ Populated' if after_ok else '✗ Not populated'}")
+    print(f"MODEL_DATA: {':check: Populated' if after_ok else ':cross: Not populated'}")
     
     if after_ok:
-        print("\n✓ Full workflow PASSED")
+        print("\n:check: Full workflow PASSED")
         print("  Rephasing + Concatenation + DP3 is working!")
         return 0
     else:
-        print("\n✗ Workflow FAILED")
+        print("\n:cross: Workflow FAILED")
         print("  Check output above for details")
         return 1
 

@@ -50,14 +50,14 @@ def test_basic_queries(calibrators_db=None):
         )
 
         if calibrators:
-            print(f"✅ Dec {dec_deg:6.1f}° ({description}): Found {len(calibrators)} calibrator(s)")
+            print(f":check: Dec {dec_deg:6.1f}° ({description}): Found {len(calibrators)} calibrator(s)")
             for cal in calibrators[:2]:  # Show first 2
                 print(
                     f"   - {cal['calibrator_name']:12s} "
                     f"(RA={cal['ra_deg']:8.4f}, Dec={cal['dec_deg']:7.4f})"
                 )
         else:
-            print(f"⚠️  Dec {dec_deg:6.1f}° ({description}): No calibrators found")
+            print(f":warning:  Dec {dec_deg:6.1f}° ({description}): No calibrators found")
             all_passed = False
 
     print()
@@ -86,9 +86,9 @@ def test_pipeline_code_compatibility(calibrators_db=None):
 
         if result:
             name, ra, dec = result
-            print(f"✅ Dec {dec_deg:6.1f}°: Found {name} (RA={ra:.4f}, Dec={dec:.4f})")
+            print(f":check: Dec {dec_deg:6.1f}°: Found {name} (RA={ra:.4f}, Dec={dec:.4f})")
         else:
-            print(f"⚠️  Dec {dec_deg:6.1f}°: No calibrator found")
+            print(f":warning:  Dec {dec_deg:6.1f}°: No calibrator found")
             all_passed = False
 
     print()
@@ -119,13 +119,13 @@ def test_unified_catalog_query(calibrators_db=None):
             )
 
             if bp_cal:
-                print(f"✅ {description}: Found BP calibrator {bp_cal['name']}")
+                print(f":check: {description}: Found BP calibrator {bp_cal['name']}")
                 print(f"   Gain calibrators: {len(gain_cals)}")
             else:
-                print(f"⚠️  {description}: No BP calibrator found")
+                print(f":warning:  {description}: No BP calibrator found")
                 all_passed = False
         except Exception as e:
-            print(f"❌ {description}: Error - {e}")
+            print(f":cross: {description}: Error - {e}")
             all_passed = False
 
     print()
@@ -167,11 +167,11 @@ def test_streaming_mosaic_compatibility(calibrators_db=None):
             }
 
             print(
-                f"✅ Dec {dec_deg:6.1f}°: {result['name']} "
+                f":check: Dec {dec_deg:6.1f}°: {result['name']} "
                 f"(RA={result['ra_deg']:.4f}, Dec={result['dec_deg']:.4f})"
             )
         else:
-            print(f"⚠️  Dec {dec_deg:6.1f}°: No calibrator found")
+            print(f":warning:  Dec {dec_deg:6.1f}°: No calibrator found")
             all_passed = False
 
     print()
@@ -198,15 +198,15 @@ def test_query_performance(calibrators_db=None):
     elapsed = time.time() - start_time
     avg_time = elapsed / 100
 
-    print(f"✅ 100 queries completed in {elapsed:.3f}s")
+    print(f":check: 100 queries completed in {elapsed:.3f}s")
     print(f"   Average: {avg_time*1000:.2f}ms per query")
 
     if avg_time < 0.01:  # Less than 10ms
-        print("   ✅ Performance: Excellent")
+        print("   :check: Performance: Excellent")
     elif avg_time < 0.05:  # Less than 50ms
-        print("   ✅ Performance: Good")
+        print("   :check: Performance: Good")
     else:
-        print("   ⚠️  Performance: May need optimization")
+        print("   :warning:  Performance: May need optimization")
 
     print()
     return True
@@ -263,17 +263,17 @@ def main():
     print("=" * 70)
 
     for test_name, passed in results.items():
-        status = "✅ PASSED" if passed else "❌ FAILED"
+        status = ":check: PASSED" if passed else ":cross: FAILED"
         print(f"{test_name:20s}: {status}")
 
     all_passed = all(results.values())
 
     print()
     if all_passed:
-        print("✅ All tests passed!")
+        print(":check: All tests passed!")
         return 0
     else:
-        print("❌ Some tests failed")
+        print(":cross: Some tests failed")
         return 1
 
 

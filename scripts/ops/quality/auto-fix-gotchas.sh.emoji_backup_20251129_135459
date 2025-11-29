@@ -16,16 +16,16 @@ BLUE='\033[0;34m'
 NC='\033[0m'
 
 info() {
-  echo -e "${BLUE}ℹ️${NC} $1"
+  echo -e "${BLUE}:info:${NC} $1"
 }
 
 fix() {
-  echo -e "${GREEN}✓${NC} $1"
+  echo -e "${GREEN}:check:${NC} $1"
   ((FIXES_APPLIED++))
 }
 
 warning() {
-  echo -e "${YELLOW}⚠️${NC} $1"
+  echo -e "${YELLOW}:warning:${NC} $1"
 }
 
 echo "Auto-fixing common gotchas..."
@@ -80,7 +80,7 @@ fi
 # Summary
 echo ""
 if [ $FIXES_APPLIED -gt 0 ]; then
-  echo -e "${GREEN}✓ Applied $FIXES_APPLIED fix(es)${NC}"
+  echo -e "${GREEN}:check: Applied $FIXES_APPLIED fix(es)${NC}"
 else
   echo "No fixes needed"
 fi

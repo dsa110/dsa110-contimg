@@ -50,13 +50,13 @@ enable_absurd_in_config() {
         echo "ABSURD_ENABLED=true" >> "$CONTIMG_ENV"
     fi
     
-    log "✓ Absurd re-enabled in config"
+    log ":check: Absurd re-enabled in config"
     
     # Reload systemd and restart API
     systemctl daemon-reload
     systemctl restart dsa110-contimg-api.service
     
-    log "✓ API service restarted"
+    log ":check: API service restarted"
 }
 
 # Main monitoring loop

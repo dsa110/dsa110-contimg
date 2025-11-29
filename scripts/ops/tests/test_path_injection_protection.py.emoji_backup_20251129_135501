@@ -84,29 +84,29 @@ def test_path_injection(base_url: str = BASE_URL):
                     if response.status_code in [400, 403]:
                         test_name = f"{endpoint_template} with {malicious_path[:30]}"
                         results["passed"].append(test_name)
-                        print(f"✓ {test_name}: Rejected (status {response.status_code})")
+                        print(f":check: {test_name}: Rejected (status {response.status_code})")
                     elif response.status_code == 404:
                         # 404 might be acceptable if path validation passed but file doesn't exist
                         # But we want to ensure it's not 404 because the malicious path was accepted
                         test_name = f"{endpoint_template} with {malicious_path[:30]}"
                         results["failed"].append(f"{test_name}: Returned 404 (might be vulnerable)")
-                        print(f"⚠ {test_name}: Returned 404 (needs review)")
+                        print(f":warning: {test_name}: Returned 404 (needs review)")
                     else:
                         test_name = f"{endpoint_template} with {malicious_path[:30]}"
                         results["failed"].append(
                             f"{test_name}: Returned {response.status_code} (VULNERABLE!)"
                         )
-                        print(f"✗ {test_name}: VULNERABLE! Status {response.status_code}")
+                        print(f":cross: {test_name}: VULNERABLE! Status {response.status_code}")
 
                 except requests.exceptions.RequestException as e:
                     test_name = f"{endpoint_template} with {malicious_path[:30]}"
                     results["errors"].append(f"{test_name}: {str(e)}")
-                    print(f"✗ {test_name}: Error - {e}")
+                    print(f":cross: {test_name}: Error - {e}")
 
             except Exception as e:
                 test_name = f"{endpoint_template} with {malicious_path[:30]}"
                 results["errors"].append(f"{test_name}: {str(e)}")
-                print(f"✗ {test_name}: Exception - {e}")
+                print(f":cross: {test_name}: Exception - {e}")
 
     print("=" * 60)
     print(f"\nResults:")
@@ -115,12 +115,12 @@ def test_path_injection(base_url: str = BASE_URL):
     print(f"  Errors: {len(results['errors'])}")
 
     if results["failed"]:
-        print(f"\n⚠ Failed tests (potential vulnerabilities):")
+        print(f"\n:warning: Failed tests (potential vulnerabilities):")
         for failure in results["failed"][:10]:
             print(f"  - {failure}")
 
     if results["errors"]:
-        print(f"\n✗ Errors:")
+        print(f"\n:cross: Errors:")
         for error in results["errors"][:5]:
             print(f"  - {error}")
 

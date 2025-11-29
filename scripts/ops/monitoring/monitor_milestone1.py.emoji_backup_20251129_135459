@@ -112,7 +112,7 @@ def print_status(progress: dict):
     
     # Heartbeat check
     is_ok, msg = check_heartbeat(progress)
-    print(f"\nHeartbeat: {'✓' if is_ok else '✗'} {msg}")
+    print(f"\nHeartbeat: {':check:' if is_ok else ':cross:'} {msg}")
     
     print("="*80)
 

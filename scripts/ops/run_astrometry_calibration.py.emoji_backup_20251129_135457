@@ -233,7 +233,7 @@ def process_mosaic(
             result["rms_residual_mas"] = astrometry_result.get("rms_residual_mas")
             result["solution_id"] = astrometry_result.get("solution_id")
 
-            logger.info(f"✓ Success:")
+            logger.info(f":check: Success:")
             logger.info(f"    Matches: {result['n_matches']}")
             logger.info(f"    RA offset: {result['ra_offset_mas']:.1f} mas")
             logger.info(f"    Dec offset: {result['dec_offset_mas']:.1f} mas")
@@ -243,11 +243,11 @@ def process_mosaic(
                 logger.info(f"    WCS correction applied to {fits_path}")
         else:
             result["error"] = "Insufficient matches or processing failed"
-            logger.warning(f"✗ Failed: {result['error']}")
+            logger.warning(f":cross: Failed: {result['error']}")
 
     except Exception as e:
         result["error"] = str(e)
-        logger.error(f"✗ Error processing {fits_path}: {e}")
+        logger.error(f":cross: Error processing {fits_path}: {e}")
 
     return result
 

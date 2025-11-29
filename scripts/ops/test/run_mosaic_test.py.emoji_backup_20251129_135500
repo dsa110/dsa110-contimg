@@ -62,9 +62,9 @@ if cal:
             dec_deg=dec_deg,
             max_days_back=60,
         )
-        print(f"✓ Pre-calculated {transits_with_data} transits with available data")
+        print(f":check: Pre-calculated {transits_with_data} transits with available data")
     else:
-        print(f"✓ Transit times already pre-calculated ({existing_count} transits with data)")
+        print(f":check: Transit times already pre-calculated ({existing_count} transits with data)")
 else:
     print("ERROR: Calibrator 0834+555 not found in catalog")
     exit(1)
@@ -89,9 +89,9 @@ orchestrator = MosaicOrchestrator(
     photometry_config=photometry_config,
 )
 
-print(f"✓ Photometry enabled: {orchestrator.enable_photometry}")
+print(f":check: Photometry enabled: {orchestrator.enable_photometry}")
 if orchestrator.photometry_manager:
-    print(f"✓ PhotometryManager initialized")
+    print(f":check: PhotometryManager initialized")
     print(f"  - Catalog: {orchestrator.photometry_manager.default_config.catalog}")
     print(f"  - Method: {orchestrator.photometry_manager.default_config.method}")
     print(f"  - Min flux: {orchestrator.photometry_manager.default_config.min_flux_mjy} mJy")
@@ -102,15 +102,15 @@ if orchestrator.calibrator_service:
         c for c in orchestrator.calibrator_service.catalogs if str(c).endswith(".sqlite3")
     ]
     if sqlite_catalogs:
-        print(f"✓ Using SQLite catalog: {sqlite_catalogs[0]}")
+        print(f":check: Using SQLite catalog: {sqlite_catalogs[0]}")
 
 print("")
 print("=" * 70)
 print("Creating 3-tile mosaic (15 minutes) centered on 0834+555")
 print("=" * 70)
 print("")
-print("⏱️  EXPECTED WORKFLOW:")
-print("1. HDF5→MS conversion (if needed)")
+print(":stopwatch:  EXPECTED WORKFLOW:")
+print("1. HDF5:arrow_right:MS conversion (if needed)")
 print("2. MODEL_DATA seeding after calibration")
 print("3. Calibration solve (BP + Gain)")
 print("4. MODEL_DATA validation before imaging")
@@ -135,7 +135,7 @@ try:
     print("")
     print("=" * 70)
     if mosaic_path:
-        print(f"✓ SUCCESS: Mosaic created at: {mosaic_path}")
+        print(f":check: SUCCESS: Mosaic created at: {mosaic_path}")
         print("=" * 70)
 
         # Verify photometry was completed
@@ -158,7 +158,7 @@ try:
             if result:
                 data_id, phot_status, job_id = result
                 print("")
-                print("📊 PHOTOMETRY STATUS:")
+                print(":chart: PHOTOMETRY STATUS:")
                 print(f"  - Mosaic ID: {data_id}")
                 print(f"  - Photometry status: {phot_status}")
                 print(f"  - Batch job ID: {job_id}")
@@ -182,19 +182,19 @@ try:
                     print(f"  - Avg flux: {avg_flux:.4f} Jy/beam")
                     print(f"  - Avg error: {avg_err:.4f} Jy/beam")
                 else:
-                    print(f"  ⚠️  No photometry measurements found")
+                    print(f"  :warning:  No photometry measurements found")
 
         print("=" * 70)
-        print("✅ Pipeline completed successfully!")
+        print(":check: Pipeline completed successfully!")
     else:
-        print(f"✗ FAILED: Mosaic creation returned None")
+        print(f":cross: FAILED: Mosaic creation returned None")
         print("=" * 70)
         exit(1)
 
 except Exception as e:
     print("")
     print("=" * 70)
-    print(f"❌ Pipeline failed with exception:")
+    print(f":cross: Pipeline failed with exception:")
     print(f"{type(e).__name__}: {e}")
     print("=" * 70)
     import traceback

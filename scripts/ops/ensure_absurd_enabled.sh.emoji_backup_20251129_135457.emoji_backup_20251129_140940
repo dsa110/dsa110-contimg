@@ -1,0 +1,93 @@
+#!/bin/bash
+#
+# Absurd Auto-Enablement Monitor
+# This script ensures Absurd stays enabled by monitoring its status
+# and automatically re-enabling it if it gets disabled.
+#
+
+set -euo pipefail
+
+# Configuration
+CONTIMG_ENV="/data/dsa110-contimg/ops/systemd/contimg.env"
+API_ENDPOINT="http://localhost:8000/api/absurd/queues/dsa110-pipeline/stats"
+CHECK_INTERVAL=60  # Check every 60 seconds
+LOG_FILE="/data/dsa110-contimg/state/logs/absurd-monitor.log"
+
+# Function to log with timestamp
+log() {
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*" | tee -a "$LOG_FILE"
+}
+
+# Function to check if Absurd is enabled in config
+check_config_enabled() {
+    if grep -q "^ABSURD_ENABLED=true" "$CONTIMG_ENV"; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Function to check if Absurd is responding
+check_absurd_responding() {
+    if curl -sf "$API_ENDPOINT" > /dev/null 2>&1; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Function to enable Absurd in config
+enable_absurd_in_config() {
+    log "ALERT: Absurd is disabled in config! Re-enabling..."
+    
+    # Backup config
+    cp "$CONTIMG_ENV" "${CONTIMG_ENV}.bak.$(date +%s)"
+    
+    # Enable Absurd
+    if grep -q "^ABSURD_ENABLED=" "$CONTIMG_ENV"; then
+        sed -i 's/^ABSURD_ENABLED=.*/ABSURD_ENABLED=true/' "$CONTIMG_ENV"
+    else
+        echo "ABSURD_ENABLED=true" >> "$CONTIMG_ENV"
+    fi
+    
+    log "✓ Absurd re-enabled in config"
+    
+    # Reload systemd and restart API
+    systemctl daemon-reload
+    systemctl restart dsa110-contimg-api.service
+    
+    log "✓ API service restarted"
+}
+
+# Main monitoring loop
+log "Starting Absurd auto-enablement monitor (PID: $$)"
+log "Configuration file: $CONTIMG_ENV"
+log "API endpoint: $API_ENDPOINT"
+log "Check interval: ${CHECK_INTERVAL}s"
+
+while true; do
+    # Check if Absurd is enabled in config
+    if ! check_config_enabled; then
+        log "WARNING: Absurd disabled in config - auto-enabling..."
+        enable_absurd_in_config
+        
+        # Wait for service to restart
+        sleep 10
+    fi
+    
+    # Check if Absurd API is responding
+    if ! check_absurd_responding; then
+        log "WARNING: Absurd API not responding (may be starting up)"
+        
+        # Check if it's a config issue
+        if ! check_config_enabled; then
+            log "Root cause: Absurd disabled in config"
+            enable_absurd_in_config
+        else
+            log "Config is correct (ABSURD_ENABLED=true), API may be starting..."
+        fi
+    fi
+    
+    # Sleep until next check
+    sleep "$CHECK_INTERVAL"
+done

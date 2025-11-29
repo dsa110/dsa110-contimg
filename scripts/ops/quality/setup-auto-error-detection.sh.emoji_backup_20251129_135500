@@ -21,7 +21,7 @@ fi
 
 # Check if already configured
 if grep -q "auto-error-detection" "$SHELL_RC" 2>/dev/null; then
-    echo "⚠️  Auto error detection already configured in $SHELL_RC"
+    echo ":warning:  Auto error detection already configured in $SHELL_RC"
     echo ""
     echo "Current configuration:"
     grep -A 3 "auto-error-detection" "$SHELL_RC" | head -5
@@ -41,7 +41,7 @@ fi
 # Create backup
 BACKUP_FILE="${SHELL_RC}.backup.$(date +%Y%m%d_%H%M%S)"
 cp "$SHELL_RC" "$BACKUP_FILE"
-echo "✅ Created backup: $BACKUP_FILE"
+echo ":check: Created backup: $BACKUP_FILE"
 
 # Create BASH_ENV script for non-interactive shells
 BASH_ENV_SCRIPT="$PROJECT_ROOT/scripts/auto-error-detection-env.sh"
@@ -56,7 +56,7 @@ if [ -f "/data/dsa110-contimg/scripts/auto-error-detection.sh" ]; then
 fi
 BASHENVEOF
 chmod +x "$BASH_ENV_SCRIPT"
-echo "✅ Created BASH_ENV script: $BASH_ENV_SCRIPT"
+echo ":check: Created BASH_ENV script: $BASH_ENV_SCRIPT"
 
 # Set BASH_ENV in ~/.profile (sourced for login shells, including agentic sessions)
 PROFILE_FILE="$HOME/.profile"
@@ -72,9 +72,9 @@ if ! grep -q "BASH_ENV.*auto-error-detection-env.sh" "$PROFILE_FILE" 2>/dev/null
 # This ensures error detection works in agentic sessions, CI/CD, and automated scripts
 export BASH_ENV="$BASH_ENV_SCRIPT"
 PROFILEEOF
-    echo "✅ Added BASH_ENV to $PROFILE_FILE"
+    echo ":check: Added BASH_ENV to $PROFILE_FILE"
 else
-    echo "⚠️  BASH_ENV already configured in $PROFILE_FILE"
+    echo ":warning:  BASH_ENV already configured in $PROFILE_FILE"
 fi
 
 # Add configuration to shell RC
@@ -111,14 +111,14 @@ if [ -z "${AUTO_ERROR_DETECTION:-}" ]; then
     fi
 fi
 
-echo "✅ Error detection enabled for agentic session"
+echo ":check: Error detection enabled for agentic session"
 echo "   BASH_ENV=${BASH_ENV}"
 echo "   AUTO_ERROR_DETECTION=${AUTO_ERROR_DETECTION:-not set}"
 AGENTSETUPEOF
 chmod +x "$AGENT_SETUP_SCRIPT"
-echo "✅ Created agent setup script: $AGENT_SETUP_SCRIPT"
+echo ":check: Created agent setup script: $AGENT_SETUP_SCRIPT"
 
-echo "✅ Auto error detection configured!"
+echo ":check: Auto error detection configured!"
 echo ""
 echo "Configuration added to:"
 echo "  - $SHELL_RC (for interactive shells)"

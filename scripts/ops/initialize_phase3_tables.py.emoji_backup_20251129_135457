@@ -227,9 +227,9 @@ def verify_tables(conn: sqlite3.Connection) -> bool:
     all_exist = True
     for table in required_tables:
         if table in existing_tables:
-            logger.info(f"✓ Table '{table}' exists")
+            logger.info(f":check: Table '{table}' exists")
         else:
-            logger.error(f"✗ Table '{table}' missing")
+            logger.error(f":cross: Table '{table}' missing")
             all_exist = False
 
     return all_exist
@@ -289,10 +289,10 @@ def initialize_tables(
         if verify_only:
             logger.info("Verifying Phase 3 tables...")
             if verify_tables(conn):
-                logger.info("✓ All Phase 3 tables exist")
+                logger.info(":check: All Phase 3 tables exist")
                 return 0
             else:
-                logger.error("✗ Some Phase 3 tables are missing")
+                logger.error(":cross: Some Phase 3 tables are missing")
                 return 2
 
         # Drop existing tables if force
@@ -307,9 +307,9 @@ def initialize_tables(
         for sql in transient_schema:
             cursor.execute(sql)
 
-        logger.info("✓ Created transient_candidates table with indices")
-        logger.info("✓ Created transient_alerts table with indices")
-        logger.info("✓ Created transient_lightcurves table with indices")
+        logger.info(":check: Created transient_candidates table with indices")
+        logger.info(":check: Created transient_alerts table with indices")
+        logger.info(":check: Created transient_lightcurves table with indices")
 
         # Create astrometric calibration tables
         logger.info("Creating astrometric calibration tables...")
@@ -318,20 +318,20 @@ def initialize_tables(
         for sql in astrometry_schema:
             cursor.execute(sql)
 
-        logger.info("✓ Created astrometric_solutions table with indices")
-        logger.info("✓ Created astrometric_residuals table with indices")
+        logger.info(":check: Created astrometric_solutions table with indices")
+        logger.info(":check: Created astrometric_residuals table with indices")
 
         # Commit changes
         conn.commit()
-        logger.info("✓ All Phase 3 tables created successfully")
+        logger.info(":check: All Phase 3 tables created successfully")
 
         # Verify
         logger.info("Verifying table creation...")
         if verify_tables(conn):
-            logger.info("✓ Verification passed")
+            logger.info(":check: Verification passed")
             return 0
         else:
-            logger.error("✗ Verification failed")
+            logger.error(":cross: Verification failed")
             return 2
 
     except sqlite3.Error as e:
@@ -376,8 +376,8 @@ def main():
 
     # Warn if force
     if args.force and not args.verify:
-        logger.warning("⚠️  --force will DROP all existing Phase 3 tables!")
-        logger.warning("⚠️  Press Ctrl+C to cancel, or wait 5 seconds to continue...")
+        logger.warning(":warning:  --force will DROP all existing Phase 3 tables!")
+        logger.warning(":warning:  Press Ctrl+C to cancel, or wait 5 seconds to continue...")
         import time
 
         try:
@@ -393,11 +393,11 @@ def main():
 
     if exit_code == 0:
         if args.verify:
-            logger.info("✓ Phase 3 tables verified successfully")
+            logger.info(":check: Phase 3 tables verified successfully")
         else:
-            logger.info("✓ Phase 3 initialization complete")
+            logger.info(":check: Phase 3 initialization complete")
     else:
-        logger.error("✗ Phase 3 initialization failed")
+        logger.error(":cross: Phase 3 initialization failed")
 
     return exit_code
 

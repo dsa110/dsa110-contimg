@@ -192,7 +192,7 @@ export -f _run_with_error_detection
 # Set flag to indicate auto-detection is enabled
 export AUTO_ERROR_DETECTION=1
 
-echo "✅ Auto error detection enabled"
+echo ":check: Auto error detection enabled"
 echo "   All commands will be wrapped with error detection"
 echo "   To disable: unset AUTO_ERROR_DETECTION"
 echo "   To skip for one command: SKIP_ERROR_DETECTION=1 command args"

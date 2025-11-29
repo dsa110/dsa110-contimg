@@ -30,15 +30,15 @@ def test_stream_017_loading_states():
             timeout=5
         )
         elapsed = (time.time() - start_time) * 1000
-        print(f"   ✓ Request completed in {elapsed:.0f}ms (should be ~2000ms)")
-        print(f"   ✓ Status: {response.status_code}")
+        print(f"   :check: Request completed in {elapsed:.0f}ms (should be ~2000ms)")
+        print(f"   :check: Status: {response.status_code}")
         print("\n   MANUAL VERIFICATION REQUIRED:")
         print("   - Open browser to http://localhost:5173/streaming")
         print("   - Click 'Start' or 'Configure' button")
         print("   - Verify loading spinner/indicator appears")
         return True
     except Exception as e:
-        print(f"   ✗ Error: {e}")
+        print(f"   :cross: Error: {e}")
         return False
 
 def test_stream_018_error_handling():
@@ -55,21 +55,21 @@ def test_stream_018_error_handling():
             params={"test_mode": "error", "test_error": 500},
             timeout=5
         )
-        print(f"   ✗ Unexpected success: {response.status_code}")
+        print(f"   :cross: Unexpected success: {response.status_code}")
         return False
     except requests.exceptions.HTTPError as e:
         if e.response.status_code == 500:
-            print(f"   ✓ Error correctly returned: {e.response.status_code}")
+            print(f"   :check: Error correctly returned: {e.response.status_code}")
             print("\n   MANUAL VERIFICATION REQUIRED:")
             print("   - Open browser to http://localhost:5173/streaming")
             print("   - Trigger an API call (refresh page, click button)")
             print("   - Verify error notification/alert displays")
             return True
         else:
-            print(f"   ✗ Wrong error code: {e.response.status_code}")
+            print(f"   :cross: Wrong error code: {e.response.status_code}")
             return False
     except Exception as e:
-        print(f"   ✗ Error: {e}")
+        print(f"   :cross: Error: {e}")
         return False
 
 def test_stream_019_configuration_validation():
@@ -90,14 +90,14 @@ def test_stream_019_configuration_validation():
             params={"test_validation_error": True},
             timeout=5
         )
-        print(f"   ✗ Unexpected success: {response.status_code}")
+        print(f"   :cross: Unexpected success: {response.status_code}")
         return False
     except requests.exceptions.HTTPError as e:
         if e.response.status_code == 422:
-            print(f"   ✓ Validation error correctly returned: {e.response.status_code}")
+            print(f"   :check: Validation error correctly returned: {e.response.status_code}")
             try:
                 error_detail = e.response.json()
-                print(f"   ✓ Error details: {error_detail.get('detail', {})}")
+                print(f"   :check: Error details: {error_detail.get('detail', {})}")
             except:
                 pass
             print("\n   MANUAL VERIFICATION REQUIRED:")
@@ -107,10 +107,10 @@ def test_stream_019_configuration_validation():
             print("   - Verify validation errors display")
             return True
         else:
-            print(f"   ✗ Wrong error code: {e.response.status_code}")
+            print(f"   :cross: Wrong error code: {e.response.status_code}")
             return False
     except Exception as e:
-        print(f"   ✗ Error: {e}")
+        print(f"   :cross: Error: {e}")
         return False
 
 def test_stream_020_realtime_updates():
@@ -133,8 +133,8 @@ def test_stream_020_realtime_updates():
         )
         if response.status_code == 200:
             result = response.json()
-            print(f"   ✓ Broadcast sent successfully")
-            print(f"   ✓ Response: {result.get('message', '')}")
+            print(f"   :check: Broadcast sent successfully")
+            print(f"   :check: Response: {result.get('message', '')}")
             print("\n   MANUAL VERIFICATION REQUIRED:")
             print("   - Open browser to http://localhost:5173/streaming")
             print("   - Ensure WebSocket connection is established")
@@ -142,10 +142,10 @@ def test_stream_020_realtime_updates():
             print("   - Verify status updates automatically in frontend")
             return True
         else:
-            print(f"   ✗ Unexpected status: {response.status_code}")
+            print(f"   :cross: Unexpected status: {response.status_code}")
             return False
     except Exception as e:
-        print(f"   ✗ Error: {e}")
+        print(f"   :cross: Error: {e}")
         return False
 
 def main():
@@ -169,7 +169,7 @@ def main():
     print("TEST EXECUTION SUMMARY")
     print("="*70)
     for test_name, passed in results.items():
-        status = "✓ PASS" if passed else "✗ FAIL"
+        status = ":check: PASS" if passed else ":cross: FAIL"
         print(f"{test_name}: {status}")
     
     passed_count = sum(results.values())

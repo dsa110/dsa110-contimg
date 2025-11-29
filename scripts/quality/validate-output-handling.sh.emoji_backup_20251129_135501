@@ -72,7 +72,7 @@ while IFS= read -r file; do
             
             # This is a violation
             if [ $FILE_VIOLATIONS -eq 0 ]; then
-                echo "❌ Violations in: $file"
+                echo ":cross: Violations in: $file"
             fi
             echo "   Line $line_num: $content"
             FILE_VIOLATIONS=$((FILE_VIOLATIONS + 1))
@@ -102,5 +102,5 @@ if [ $VIOLATIONS -gt 0 ]; then
     exit 1
 fi
 
-echo "✅ No output suppression violations found"
+echo ":check: No output suppression violations found"
 exit 0

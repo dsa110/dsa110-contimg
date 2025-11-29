@@ -165,14 +165,14 @@ def fix_file(filepath: Path) -> bool:
         # Check for syntax errors
         try:
             ast.parse(source)
-            print(f"✓ File parses successfully after {attempt} fix attempts!")
+            print(f":check: File parses successfully after {attempt} fix attempts!")
             if source != original_source:
                 # Write fixed version
                 with open(filepath, 'w') as f:
                     f.write(source)
-                print(f"✓ Fixed file written: {filepath}")
+                print(f":check: Fixed file written: {filepath}")
             else:
-                print(f"✓ No fixes needed")
+                print(f":check: No fixes needed")
             return True
         except SyntaxError as e:
             fixes_applied += 1
@@ -270,11 +270,11 @@ def fix_file(filepath: Path) -> bool:
         if source != original_source:
             with open(filepath, 'w') as f:
                 f.write(source)
-            print(f"✓ Fixed file written after {fixes_applied} fixes")
+            print(f":check: Fixed file written after {fixes_applied} fixes")
         return True
     except SyntaxError as e:
         print(
-            f"✗ Could not fix all errors. Remaining error at line {e.lineno}: {e.msg}")
+            f":cross: Could not fix all errors. Remaining error at line {e.lineno}: {e.msg}")
         return False
 
 

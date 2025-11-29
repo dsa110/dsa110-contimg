@@ -112,7 +112,7 @@ def run_masked_selfcal(flux_limit_mjy: float = 1.0):
     print("=" * 80)
     print("SELF-CALIBRATION SUMMARY")
     print("=" * 80)
-    print(f"Status:      {'✅ SUCCESS' if success else '❌ FAILED'}")
+    print(f"Status:      {':check: SUCCESS' if success else ':cross: FAILED'}")
     print(f"Iterations:  {summary.get('iterations_completed', 0)}")
     print()
 

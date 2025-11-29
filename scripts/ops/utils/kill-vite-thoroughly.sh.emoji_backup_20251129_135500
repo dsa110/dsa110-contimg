@@ -22,7 +22,7 @@ echo -e "${YELLOW}Step 0: Checking for PM2-managed processes...${NC}"
 # Find PM2 daemon - check for process with "PM2" in command
 pm2_running=$(ps aux | grep -i "PM2.*God\|pm2.*God\|PM2.*Daemon" | grep -v grep | awk '{print $2}' | head -1 || true)
 if [ -n "$pm2_running" ]; then
-    echo -e "${RED}⚠️  WARNING: PM2 daemon is running!${NC}"
+    echo -e "${RED}:warning:  WARNING: PM2 daemon is running!${NC}"
     echo "  PM2 daemon PID: $pm2_running"
     
     # Check if any npm/vite processes have PM2 as parent
@@ -57,7 +57,7 @@ if [ -n "$pm2_running" ]; then
                 "$PM2_CMD" stop all 2>/dev/null || true
                 "$PM2_CMD" delete all 2>/dev/null || true
                 sleep 2
-                echo -e "${GREEN}✓ PM2 processes stopped${NC}"
+                echo -e "${GREEN}:check: PM2 processes stopped${NC}"
             else
                 echo -e "${YELLOW}Continuing anyway - PM2 may restart processes${NC}"
                 echo "  You may need to kill PM2 daemon: sudo kill $pm2_running"
@@ -77,9 +77,9 @@ if [ -n "$pm2_running" ]; then
                 sleep 2
                 # Verify it's dead
                 if ! ps -p "$pm2_running" > /dev/null 2>&1; then
-                    echo -e "${GREEN}✓ PM2 daemon killed${NC}"
+                    echo -e "${GREEN}:check: PM2 daemon killed${NC}"
                 else
-                    echo -e "${RED}✗ PM2 daemon still running - may need sudo${NC}"
+                    echo -e "${RED}:cross: PM2 daemon still running - may need sudo${NC}"
                     echo "  Try: sudo kill $pm2_running"
                 fi
             else
@@ -91,7 +91,7 @@ if [ -n "$pm2_running" ]; then
         echo -e "${YELLOW}  No PM2-managed Vite processes found, but PM2 daemon is running${NC}"
     fi
 else
-    echo -e "${GREEN}✓ No PM2 daemon running${NC}"
+    echo -e "${GREEN}:check: No PM2 daemon running${NC}"
 fi
 echo ""
 
@@ -112,7 +112,7 @@ for port in 5173 5174 5175 5176 5177 5178 5179; do
 done
 
 if [ -z "$vite_pids" ]; then
-    echo -e "${GREEN}✓ No Vite processes found${NC}"
+    echo -e "${GREEN}:check: No Vite processes found${NC}"
     exit 0
 fi
 
@@ -274,10 +274,10 @@ for port in 5173 5174 5175 5176 5177 5178 5179; do
 done
 
 if [ -z "$remaining" ]; then
-    echo -e "${GREEN}✓ All Vite processes killed successfully${NC}"
+    echo -e "${GREEN}:check: All Vite processes killed successfully${NC}"
     exit 0
 else
-    echo -e "${RED}✗ Some processes still running on ports: $remaining${NC}"
+    echo -e "${RED}:cross: Some processes still running on ports: $remaining${NC}"
     echo ""
     echo "Remaining processes:"
     for port in $remaining; do

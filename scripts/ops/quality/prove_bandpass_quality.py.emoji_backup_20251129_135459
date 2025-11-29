@@ -75,13 +75,13 @@ def measure_model_data_phase_scatter(ms_path: str) -> dict:
                 phase_center_ok = separation.to(u.arcmin).value < 1.0
 
                 print(f"\n  Quality Checks:")
-                status = "✓" if phase_scatter_ok else "✗"
+                status = ":check:" if phase_scatter_ok else ":cross:"
                 print(f"    {status} Phase scatter < 10°: {phase_scatter_deg:.1f}°")
-                status = "✓" if phase_center_ok else "✗"
+                status = ":check:" if phase_center_ok else ":cross:"
                 print(f"    {status} Phase center aligned: {separation.to(u.arcmin):.2f}")
 
                 if phase_scatter_ok and phase_center_ok:
-                    print(f"\n  ✓ PROOF: MODEL_DATA has correct phase structure")
+                    print(f"\n  :check: PROOF: MODEL_DATA has correct phase structure")
                     print(f"    This indicates UVW transformation was verified and correct")
                     return {
                         "phase_scatter_deg": float(phase_scatter_deg),
@@ -90,7 +90,7 @@ def measure_model_data_phase_scatter(ms_path: str) -> dict:
                         "quality_ok": True,
                     }
                 else:
-                    print(f"\n  ✗ MODEL_DATA quality issues detected")
+                    print(f"\n  :cross: MODEL_DATA quality issues detected")
                     return {
                         "phase_scatter_deg": float(phase_scatter_deg),
                         "phase_center": phase_center,
@@ -99,7 +99,7 @@ def measure_model_data_phase_scatter(ms_path: str) -> dict:
                     }
 
             except Exception as e:
-                print(f"  ⚠ Could not verify phase center: {e}")
+                print(f"  :warning: Could not verify phase center: {e}")
                 return {
                     "phase_scatter_deg": float(phase_scatter_deg),
                     "quality_ok": phase_scatter_deg < 10.0,
@@ -157,12 +157,12 @@ def measure_bandpass_quality(caltable_path: str) -> dict:
                     print(f"  Median SNR: {median_snr:.1f}")
 
                 print(f"\n  Quality Checks:")
-                status = "✓" if flagging_ok else "✗"
+                status = ":check:" if flagging_ok else ":cross:"
                 print(f"    {status} Flagging rate < 50%: {flagging_rate:.1%}")
                 if snr_ok is not None:
-                    status = "✓" if snr_ok else "✗"
+                    status = ":check:" if snr_ok else ":cross:"
                     print(f"    {status} Median SNR >= 3.0: {median_snr:.1f}")
-                status = "✓" if amplitude_ok else "✗"
+                status = ":check:" if amplitude_ok else ":cross:"
                 print(f"    {status} Amplitude in range [0.1, 10.0]: {median_amp:.3f}")
 
                 quality_ok = (
@@ -170,10 +170,10 @@ def measure_bandpass_quality(caltable_path: str) -> dict:
                 )
 
                 if quality_ok:
-                    print(f"\n  ✓ PROOF: Bandpass solutions meet scientific standards")
+                    print(f"\n  :check: PROOF: Bandpass solutions meet scientific standards")
                     print(f"    This indicates calibration workflow is complete and effective")
                 else:
-                    print(f"\n  ✗ Bandpass solutions do not meet standards")
+                    print(f"\n  :cross: Bandpass solutions do not meet standards")
                     print(f"    Issues:")
                     if not flagging_ok:
                         print(f"      - Flagging rate too high: {flagging_rate:.1%}")
@@ -204,7 +204,7 @@ def verify_workflow_completeness():
     cli_path = Path(__file__).parent.parent / "src" / "dsa110_contimg" / "calibration" / "cli.py"
 
     if not cli_path.exists():
-        print("✗ CLI file not found")
+        print(":cross: CLI file not found")
         return False
 
     with open(cli_path, "r") as f:
@@ -225,16 +225,16 @@ def verify_workflow_completeness():
     print("\nWorkflow Steps Verification:")
     all_present = True
     for step, present in checks.items():
-        status = "✓" if present else "✗"
+        status = ":check:" if present else ":cross:"
         print(f"  {status} {step}")
         if not present:
             all_present = False
 
     if all_present:
-        print(f"\n  ✓ PROOF: All workflow steps are present")
+        print(f"\n  :check: PROOF: All workflow steps are present")
         print(f"    This indicates implementation is complete")
     else:
-        print(f"\n  ✗ Some workflow steps are missing")
+        print(f"\n  :cross: Some workflow steps are missing")
 
     return all_present
 
@@ -270,14 +270,14 @@ def main():
         results["model_data_quality"] = measure_model_data_phase_scatter(args.ms)
     else:
         results["model_data_quality"] = {"error": "MS not provided"}
-        print("\n⚠ MODEL_DATA quality test skipped (no MS provided)")
+        print("\n:warning: MODEL_DATA quality test skipped (no MS provided)")
 
     # Proof 3: Bandpass quality (if table provided)
     if args.bandpass_table and os.path.exists(args.bandpass_table):
         results["bandpass_quality"] = measure_bandpass_quality(args.bandpass_table)
     else:
         results["bandpass_quality"] = {"error": "Bandpass table not provided"}
-        print("\n⚠ Bandpass quality test skipped (no table provided)")
+        print("\n:warning: Bandpass quality test skipped (no table provided)")
 
     # Final proof
     print("\n" + "=" * 70)
@@ -288,39 +288,39 @@ def main():
 
     # Proof 1: Implementation is complete
     if results["workflow_completeness"]:
-        proofs.append("✓ Implementation is COMPLETE (all workflow steps present)")
+        proofs.append(":check: Implementation is COMPLETE (all workflow steps present)")
     else:
-        proofs.append("✗ Implementation is INCOMPLETE (missing steps)")
+        proofs.append(":cross: Implementation is INCOMPLETE (missing steps)")
 
     # Proof 2: MODEL_DATA quality (if measured)
     if "quality_ok" in results["model_data_quality"]:
         if results["model_data_quality"]["quality_ok"]:
-            proofs.append("✓ MODEL_DATA quality is GOOD (phase scatter < 10°)")
+            proofs.append(":check: MODEL_DATA quality is GOOD (phase scatter < 10°)")
         else:
-            proofs.append("✗ MODEL_DATA quality is POOR (phase scatter >= 10°)")
+            proofs.append(":cross: MODEL_DATA quality is POOR (phase scatter >= 10°)")
     elif "error" in results["model_data_quality"]:
-        proofs.append("⚠ MODEL_DATA quality not measured (error)")
+        proofs.append(":warning: MODEL_DATA quality not measured (error)")
 
     # Proof 3: Bandpass quality (if measured)
     if "quality_ok" in results["bandpass_quality"]:
         if results["bandpass_quality"]["quality_ok"]:
-            proofs.append("✓ Bandpass solutions are GOOD (meet scientific standards)")
+            proofs.append(":check: Bandpass solutions are GOOD (meet scientific standards)")
         else:
-            proofs.append("✗ Bandpass solutions are POOR (do not meet standards)")
+            proofs.append(":cross: Bandpass solutions are POOR (do not meet standards)")
     elif "error" in results["bandpass_quality"]:
-        proofs.append("⚠ Bandpass quality not measured (error)")
+        proofs.append(":warning: Bandpass quality not measured (error)")
 
     print("\nProof Summary:")
     for proof in proofs:
         print(f"  {proof}")
 
     # Overall conclusion
-    quality_proofs = [p for p in proofs if "quality" in p.lower() and "✓" in p]
-    completeness_proofs = [p for p in proofs if "complete" in p.lower() and "✓" in p]
+    quality_proofs = [p for p in proofs if "quality" in p.lower() and ":check:" in p]
+    completeness_proofs = [p for p in proofs if "complete" in p.lower() and ":check:" in p]
 
     print("\n" + "=" * 70)
     if results["workflow_completeness"] and len(quality_proofs) > 0:
-        print("✓ CONCLUSION: Implementation is COMPLETE and produces GOOD bandpass solutions")
+        print(":check: CONCLUSION: Implementation is COMPLETE and produces GOOD bandpass solutions")
         print("\nEvidence:")
         print("  1. All workflow steps are present and correctly ordered")
         print("  2. UVW transformation is verified (mandatory, no workarounds)")
@@ -328,11 +328,11 @@ def main():
         print("  4. Bandpass solutions meet scientific standards (if measured)")
         return 0
     elif results["workflow_completeness"]:
-        print("✓ CONCLUSION: Implementation is COMPLETE")
-        print("⚠ Quality not measured (provide --ms and --bandpass-table to measure)")
+        print(":check: CONCLUSION: Implementation is COMPLETE")
+        print(":warning: Quality not measured (provide --ms and --bandpass-table to measure)")
         return 0
     else:
-        print("✗ CONCLUSION: Implementation is INCOMPLETE")
+        print(":cross: CONCLUSION: Implementation is INCOMPLETE")
         return 1
 
 

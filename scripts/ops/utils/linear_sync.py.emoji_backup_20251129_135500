@@ -212,13 +212,13 @@ class TODOParser:
         
         for line in self.content.split('\n'):
             # Detect priority sections
-            if '## 🔴 High Priority' in line:
+            if '## :red_circle: High Priority' in line:
                 current_priority = 0  # Linear priority 0 = Urgent
-            elif '## 🟡 Medium Priority' in line:
+            elif '## :yellow_circle: Medium Priority' in line:
                 current_priority = 1  # Linear priority 1 = High
-            elif '## 🟢 Low Priority' in line:
+            elif '## :green_circle: Low Priority' in line:
                 current_priority = 2  # Linear priority 2 = Medium
-            elif '## 📋 Separate Projects' in line:
+            elif '## :clipboard: Separate Projects' in line:
                 current_priority = 3  # Linear priority 3 = Low
             
             # Detect subsections
@@ -332,9 +332,9 @@ def sync_to_linear(dry_run: bool = False, only_unchecked: bool = True):
                 # Update existing issue
                 try:
                     issue = client.update_issue(linear_id, title=title, description=description)
-                    print(f"  ✓ Updated: {title} -> {issue.get('identifier', linear_id)}")
+                    print(f"  :check: Updated: {title} -> {issue.get('identifier', linear_id)}")
                 except Exception as e:
-                    print(f"  ✗ Failed to update {title}: {e}", file=sys.stderr)
+                    print(f"  :cross: Failed to update {title}: {e}", file=sys.stderr)
             else:
                 # Create new issue
                 try:
@@ -349,9 +349,9 @@ def sync_to_linear(dry_run: bool = False, only_unchecked: bool = True):
                     
                     # Update TODO.md with Linear ID
                     parser.update_item_with_linear_id(title, identifier)
-                    print(f"  ✓ Created: {title} -> {identifier} ({issue.get('url', '')})")
+                    print(f"  :check: Created: {title} -> {identifier} ({issue.get('url', '')})")
                 except Exception as e:
-                    print(f"  ✗ Failed to create {title}: {e}", file=sys.stderr)
+                    print(f"  :cross: Failed to create {title}: {e}", file=sys.stderr)
 
 
 def main():

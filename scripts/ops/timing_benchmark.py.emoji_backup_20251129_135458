@@ -117,7 +117,7 @@ def format_time(seconds: float) -> str:
 
 def print_result(result: TimingResult):
     """Print a timing result in a readable format."""
-    status = "✓" if result.success else "✗"
+    status = ":check:" if result.success else ":cross:"
     io_pct = result.io_fraction * 100
 
     logger.info(

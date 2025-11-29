@@ -211,9 +211,9 @@ def analyze_failures():
     print(f"Running in casa6 env: {env_info['path_includes_casa6']}")
 
     if not env_info["path_includes_casa6"]:
-        print("⚠️  WARNING: Tests may not be running in casa6 environment!")
+        print(":warning:  WARNING: Tests may not be running in casa6 environment!")
     else:
-        print("✓ Tests are running in casa6 environment")
+        print(":check: Tests are running in casa6 environment")
     print()
 
     # Run tests and parse output
@@ -283,27 +283,27 @@ def analyze_failures():
     print("-" * 80)
 
     if category_counts["frontend_e2e"] > 50:
-        print("⚠️  Frontend/E2E tests: Many failures likely due to missing browser/server setup")
+        print(":warning:  Frontend/E2E tests: Many failures likely due to missing browser/server setup")
         print("   Action: Check if Playwright/Selenium browsers are installed")
         print()
 
     if category_counts["environment"] > 20:
-        print("⚠️  Environment issues: Missing dependencies or wrong environment")
+        print(":warning:  Environment issues: Missing dependencies or wrong environment")
         print("   Action: Verify casa6 conda environment has all required packages")
         print()
 
     if category_counts["database"] > 10:
-        print("⚠️  Database issues: Missing test databases or fixtures")
+        print(":warning:  Database issues: Missing test databases or fixtures")
         print("   Action: Check if test database fixtures are properly set up")
         print()
 
     if category_counts["mock_setup"] > 20:
-        print("⚠️  Mock setup issues: Tests need proper mocking/fixtures")
+        print(":warning:  Mock setup issues: Tests need proper mocking/fixtures")
         print("   Action: Review and fix test fixtures and mocks")
         print()
 
     if category_counts["assertion"] > 50:
-        print("⚠️  Assertion failures: Test expectations may need updating")
+        print(":warning:  Assertion failures: Test expectations may need updating")
         print("   Action: Review failing assertions - may be due to code changes")
         print()
 
