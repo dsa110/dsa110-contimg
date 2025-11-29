@@ -1,126 +1,159 @@
 # Port Mapping Reference
 
 This document lists all network ports used by the DSA-110 Continuum Imaging
-Pipeline monitoring and API stack.
+Pipeline services, monitoring stack, and development tools.
 
-## Port Summary
+**Last Updated:** 2025-11-29
 
-| Port | Service          | Protocol | Access            | Description                    |
-| ---- | ---------------- | -------- | ----------------- | ------------------------------ |
-| 80   | Nginx            | HTTP     | Public            | Reverse proxy, frontend        |
-| 3000 | Vite Dev Server  | HTTP     | Dev only          | Frontend development server    |
-| 3030 | Grafana          | HTTP     | Localhost         | Monitoring dashboard           |
-| 6379 | Redis            | TCP      | Localhost         | Cache server                   |
-| 8000 | FastAPI          | HTTP     | Private networks  | REST API backend               |
-| 9090 | Prometheus       | HTTP     | Localhost         | Metrics collection server      |
+## Quick Reference
 
-## Service Details
+| Port | Service            | Protocol | Access           | Configurable          |
+| ---- | ------------------ | -------- | ---------------- | --------------------- |
+| 80   | Nginx              | HTTP     | Public           | No                    |
+| 3000 | Vite Dev Server    | HTTP     | Dev only         | No (hardcoded)        |
+| 3030 | Grafana            | HTTP     | Localhost        | grafana.ini           |
+| 5173 | Vite Dev (default) | HTTP     | Dev only         | No (hardcoded)        |
+| 6379 | Redis              | TCP      | Localhost        | REDIS_PORT            |
+| 8000 | FastAPI            | HTTP     | Private networks | CONTIMG_API_PORT      |
+| 8001 | MkDocs             | HTTP     | Dev only         | CONTIMG_DOCS_PORT     |
+| 9090 | Prometheus         | HTTP     | Localhost        | prometheus.yml        |
+
+## Production Services
 
 ### Port 80 - Nginx Reverse Proxy
 
-- **Config:** /etc/nginx/sites-available/dsa110-contimg
-- **Service:** nginx.service
-- **Purpose:** 
-  - Serves frontend static files from /data/dsa110-contimg/frontend/dist
-  - Proxies /api/ requests to FastAPI on port 8000
-  - Restricts /metrics to localhost only
+- **Config:** `/etc/nginx/sites-available/dsa110-contimg`
+- **Service:** `nginx.service`
+- **Purpose:**
+  - Serves frontend static files from `/data/dsa110-contimg/frontend/dist`
+  - Proxies `/api/` requests to FastAPI on port 8000
+  - Restricts `/metrics` to localhost only
 - **Access:** Publicly accessible (firewall permitting)
-
-### Port 3000 - Vite Development Server
-
-- **Command:** npm run dev in /data/dsa110-contimg/frontend
-- **Purpose:** Hot-reload development server for Vue.js frontend
-- **Access:** Development only, not for production
-- **Note:** Only run when actively developing frontend
-
-### Port 3030 - Grafana
-
-- **Config:** /etc/grafana/grafana.ini (http_port = 3030)
-- **Service:** grafana-simple.service
-- **Default Credentials:** admin / admin
-- **Purpose:** Prometheus visualization and dashboards
-- **Dashboard URL:** /d/dsa110-pipeline/dsa-110-continuum-imaging-pipeline
-- **Note:** Runs on 3030 instead of default 3000 to avoid conflict with Vite
-
-### Port 6379 - Redis
-
-- **Config:** /etc/redis/redis.conf
-- **Service:** redis-server.service
-- **Purpose:** 
-  - API response caching with TTL-based expiration
-  - Cache management via /api/cache endpoints
-- **Access:** Localhost only (no authentication configured)
 
 ### Port 8000 - FastAPI Backend
 
-- **Config:** Systemd service at /etc/systemd/system/dsa110-api.service
-- **Service:** dsa110-api.service
+- **Config:** `/etc/systemd/system/dsa110-api.service`
+- **Service:** `dsa110-api.service`
+- **Environment Variable:** `CONTIMG_API_PORT`
 - **Purpose:**
   - REST API for pipeline data
-  - Prometheus metrics at /metrics
-  - Health check at /api/health
-- **Access:** Restricted to localhost and private networks (10.x, 172.16.x, 192.168.x)
-- **Docs:** Interactive API docs at /api/docs
+  - Prometheus metrics at `/metrics`
+  - Health check at `/api/health`
+- **Access:** Localhost and private networks (10.x, 172.16.x, 192.168.x)
+- **Docs:** Interactive API docs at `/api/docs`
+
+### Port 6379 - Redis
+
+- **Config:** `/etc/redis/redis.conf`
+- **Service:** `redis-server.service`
+- **Environment Variable:** `REDIS_PORT`
+- **Purpose:**
+  - API response caching with TTL-based expiration
+  - Cache management via `/api/cache` endpoints
+- **Access:** Localhost only (no authentication)
+
+## Monitoring Stack
 
 ### Port 9090 - Prometheus Server
 
-- **Config:** /etc/prometheus/prometheus.yml
-- **Service:** prometheus.service
+- **Config:** `/etc/prometheus/prometheus.yml`
+- **Service:** `prometheus.service`
 - **Purpose:**
   - Scrapes metrics from dsa110-api every 15 seconds
   - Stores time-series data for Grafana
-- **UI:** Query interface at http://localhost:9090
+- **UI:** Query interface at `http://localhost:9090`
 - **Access:** Localhost only
 
-## Firewall Considerations
+### Port 3030 - Grafana
 
-For production deployments, configure firewall rules:
+- **Config:** `/etc/grafana/grafana.ini` (http_port = 3030)
+- **Service:** `grafana-simple.service`
+- **Default Credentials:** admin / admin
+- **Purpose:** Prometheus visualization and dashboards
+- **Dashboard:** `/d/dsa110-pipeline/dsa-110-continuum-imaging-pipeline`
+- **Note:** Uses 3030 to avoid conflict with Vite dev server on 3000
 
-    # Allow HTTP (Nginx)
-    sudo ufw allow 80/tcp
+## Development Services
 
-    # Block direct access to internal services
-    # (These should only be accessible via localhost)
-    # 8000, 9090, 3030, 6379 - keep blocked from external
+### Port 3000 / 5173 - Vite Dev Server
 
-## Checking Port Usage
+- **Command:** `npm run dev` in `/data/dsa110-contimg/frontend`
+- **Purpose:** Hot-reload development server for Vue.js frontend
+- **Access:** Development only, not for production
+- **Note:** Port varies by Vite version (3000 or 5173)
 
-    # List all listening ports
-    ss -tlnp
+### Port 8001 - MkDocs Documentation
 
-    # Check specific port
-    lsof -i :8000
+- **Command:** `mkdocs serve`
+- **Environment Variable:** `CONTIMG_DOCS_PORT`
+- **Purpose:** Local documentation preview
+- **Access:** Development only
 
-    # Verify all services running
-    sudo systemctl status nginx prometheus dsa110-api redis-server grafana-simple
+## Reserved Ranges
 
-## Troubleshooting
+- **3210-3220**: Dashboard fallback ports (auto-selected if 3210 busy)
+- **8010**: Alternative API port (if needed)
 
-### Port Already in Use
+## Common Commands
 
-    # Find process using port
-    sudo lsof -i :<port>
+```bash
+# List all listening ports
+ss -tlnp
 
-    # Kill process if needed
-    sudo kill -9 <pid>
+# Check specific port
+lsof -i :8000
 
-### Service Not Listening
+# Kill process on port
+sudo fuser -k 8000/tcp
 
-    # Check service status
-    sudo systemctl status <service-name>
+# Check all DSA-110 services
+sudo systemctl status nginx prometheus dsa110-api redis-server grafana-simple
 
-    # View logs
-    sudo journalctl -u <service-name> -n 50
+# Start/stop services
+./scripts/manage-services.sh start all
+./scripts/manage-services.sh stop all
+./scripts/manage-services.sh status
+```
 
-    # Restart service
-    sudo systemctl restart <service-name>
+## Port Conflict Resolution
 
-### Cannot Connect to Port
+### Find What's Using a Port
 
-1. Check if service is running: systemctl status <service>
-2. Check if port is listening: ss -tlnp | grep <port>
-3. Check firewall: sudo ufw status
-4. Check IP restrictions (for port 8000, see security.md)
+```bash
+sudo lsof -i :<port>
+# or
+sudo netstat -tlnp | grep :<port>
+```
+
+### Kill Process by Port
+
+```bash
+# Graceful
+sudo fuser -k <port>/tcp
+
+# Force
+sudo kill -9 $(lsof -ti :<port>)
+```
+
+### Common Conflicts
+
+| Conflict              | Resolution                                       |
+| --------------------- | ------------------------------------------------ |
+| Grafana vs Vite       | Grafana moved to 3030                            |
+| Multiple uvicorn      | `pkill -f "dsa110_contimg.api"`                  |
+| Port 80 in use        | Stop other web server or change nginx port       |
+
+## Firewall Configuration
+
+```bash
+# Allow HTTP (Nginx only, internal services stay blocked)
+sudo ufw allow 80/tcp
+
+# Check firewall status
+sudo ufw status
+
+# Internal services (8000, 9090, 3030, 6379) should NOT be exposed
+```
 
 ## Related Documentation
 
