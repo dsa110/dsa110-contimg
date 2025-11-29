@@ -1,0 +1,5 @@
+numpy
+astropy
+pyuvdata==3.2.4
+pyuvsim
+casa6
