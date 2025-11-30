@@ -19,6 +19,7 @@ import type { ErrorResponse, ImageDetail } from "../types";
 import { useImage } from "../hooks/useQueries";
 import { usePreferencesStore } from "../stores/appStore";
 import apiClient, { noRetry } from "../api/client";
+import { ROUTES } from "../constants/routes";
 
 /**
  * Detail page for a single image.
@@ -43,7 +44,7 @@ const ImageDetailPage: React.FC = () => {
     try {
       // Use noRetry for delete operations - they should not be retried automatically
       await apiClient.delete(`/images/${encodedImageId}`, noRetry());
-      window.location.href = "/images";
+      window.location.href = ROUTES.IMAGES.LIST;
     } catch (e) {
       const message = e instanceof Error ? e.message : "Failed to delete image";
       console.error("Failed to delete image:", e);
@@ -100,7 +101,7 @@ const ImageDetailPage: React.FC = () => {
       <div className="max-w-4xl mx-auto p-6">
         <Card>
           <p className="text-gray-500 mb-4">Image not found.</p>
-          <Link to="/images" className="link">
+          <Link to={ROUTES.IMAGES.LIST} className="link">
             Back to Images
           </Link>
         </Card>
@@ -117,7 +118,7 @@ const ImageDetailPage: React.FC = () => {
     <div className="max-w-6xl mx-auto p-6">
       {/* Header */}
       <div className="mb-6">
-        <Link to="/images" className="text-sm text-gray-500 hover:text-gray-700 mb-2 inline-block">
+        <Link to={ROUTES.IMAGES.LIST} className="text-sm text-gray-500 hover:text-gray-700 mb-2 inline-block">
           Back to Images
         </Link>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">{filename}</h1>

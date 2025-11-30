@@ -1,7 +1,27 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import * as echarts from "echarts";
+import type { ECElementEvent } from "echarts";
 import VariabilityControls, { VariabilityControlsValues } from "./VariabilityControls";
 import SourcePreview from "./SourcePreview";
+
+/**
+ * Extended event data for EtaVPlot scatter points.
+ * The data property contains the source information attached to each point.
+ */
+interface EtaVPlotEventData {
+  source?: SourcePoint;
+  [key: string]: unknown;
+}
+
+/**
+ * Extended ECharts element event with typed data.
+ */
+interface EtaVPlotClickEvent extends Omit<ECElementEvent, "data"> {
+  data?: EtaVPlotEventData;
+  event?: {
+    event?: MouseEvent;
+  };
+}
 
 export interface SourcePoint {
   id: string;
@@ -303,9 +323,7 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
     chart.off("click");
 
     // Event handlers
-    // TODO: Import ECElementEvent from 'echarts' and type params properly
-    // ECharts event params have complex union types that may need custom interface
-    chart.on("mouseover", (params: any) => {
+    chart.on("mouseover", (params: EtaVPlotClickEvent) => {
       if (params.componentType === "series" && params.data?.source) {
         const event = params.event?.event;
         setHoverSource(params.data.source);
@@ -319,8 +337,7 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
       setHoverSource(null);
     });
 
-    // TODO: Type params as ECElementEvent or custom EtaVPlotClickEvent
-    chart.on("click", (params: any) => {
+    chart.on("click", (params: EtaVPlotClickEvent) => {
       if (params.componentType === "series" && params.data?.source) {
         setSelectedSource(params.data.source);
         setHoverSource(null);

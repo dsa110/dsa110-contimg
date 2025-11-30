@@ -1,12 +1,6 @@
 import React, { useEffect, useRef, useCallback, useState } from "react";
 import FitsViewerControls, { FitsViewerControlsValues } from "./FitsViewerControls";
-import type {
-  JS9Image,
-  JS9Region,
-  JS9MouseEvent,
-  JS9ColorMap,
-  JS9Scale,
-} from "../../types/js9.d";
+import type { JS9Image, JS9Region, JS9MouseEvent, JS9ColorMap, JS9Scale } from "../../types/js9.d";
 
 // Note: JS9 global is declared in src/types/js9.d.ts
 
@@ -149,10 +143,9 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
 
       // Set up click handler
       if (onCoordinateClick) {
-        // TODO: Type im as JS9Image, xreg as JS9Region, evt as JS9MouseEvent
         window.JS9.SetCallback(
           "onclick",
-          (im: any, xreg: any, evt: any) => {
+          (_im: JS9Image | null, _xreg: JS9Region | null, evt: JS9MouseEvent) => {
             const wcs = window.JS9.PixToWCS(evt.x, evt.y, { display: displayId });
             if (wcs) {
               onCoordinateClick(wcs.ra, wcs.dec);
@@ -163,10 +156,9 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
       }
 
       // Set up mouse move handler for live WCS display
-      // TODO: Type im as JS9Image, xreg as JS9Region, evt as JS9MouseEvent
       window.JS9.SetCallback(
         "onmousemove",
-        (im: any, xreg: any, evt: any) => {
+        (_im: JS9Image | null, _xreg: JS9Region | null, evt: JS9MouseEvent) => {
           try {
             const wcs = window.JS9.PixToWCS(evt.x, evt.y, { display: displayId });
             if (wcs && wcs.ra !== undefined && wcs.dec !== undefined) {
@@ -233,8 +225,7 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
       try {
         const regions = window.JS9.GetRegions("all", { display: displayId });
         if (regions && regions.length > 0) {
-          // TODO: Type region as JS9Region when JS9 types are created
-          regions.forEach((region: any) => {
+          regions.forEach((region: JS9Region) => {
             window.JS9.ChangeRegions(
               region.id,
               {
@@ -246,7 +237,6 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
         }
       } catch (regionErr) {
         // Regions may not exist yet or API differs
-        // TODO: Remove debug logging or wrap in DEBUG flag check
         console.debug("Region visibility toggle:", regionErr);
       }
 

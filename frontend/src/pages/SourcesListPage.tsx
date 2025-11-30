@@ -11,6 +11,7 @@ import {
 } from "../components/filters";
 import { useSelectionStore } from "../stores/appStore";
 import type { SourceSummary } from "../types";
+import { ROUTES } from "../constants/routes";
 
 /**
  * List page showing all detected sources with advanced query and variability plot.
@@ -373,7 +374,7 @@ const SourcesListPage: React.FC = () => {
                       </td>
                       <td>
                         <Link
-                          to={`/sources/${source.id}`}
+                          to={ROUTES.SOURCES.DETAIL(source.id)}
                           className="text-blue-600 hover:text-blue-800 font-medium"
                         >
                           {source.id}
