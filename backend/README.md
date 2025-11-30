@@ -7,6 +7,26 @@ visibility data from UVH5 (HDF5) format into CASA Measurement Sets for
 calibration and imaging. The pipeline processes data from the DSA-110 telescope,
 which generates multiple subband files per observation.
 
+## Documentation
+
+Full documentation is available in the [`docs/`](../docs/) directory:
+
+- **[Backend Structure](../docs/architecture/BACKEND_STRUCTURE.md)** - Detailed
+  directory structure and module organization
+- **[API Implementation Summary](../docs/reference/API_IMPLEMENTATION_SUMMARY.md)** -
+  API endpoints and data sources
+- **[API Reference](../docs/reference/api.md)** - Full API documentation
+- **[Security Guide](../docs/reference/security.md)** - Access control
+  configuration
+- **[MS Writers Reference](../docs/architecture/pipeline/ms-writers.md)** -
+  Writer strategies documentation
+- **[Next Steps / Roadmap](../docs/dev/NEXT_STEPS.md)** - Project status and
+  roadmap
+- **[Troubleshooting Runbook](../docs/troubleshooting/runbooks/troubleshooting_common_scenarios.md)** -
+  Common issues and solutions
+- **[Architecture Diagrams](../docs/architecture/diagrams/)** - Visual structure
+  diagrams
+
 ## Quick Start
 
 ```bash
