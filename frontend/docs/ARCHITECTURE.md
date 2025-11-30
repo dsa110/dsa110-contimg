@@ -478,3 +478,130 @@ if (isLoading) {
 ```
 
 Variants: `list`, `detail`, `cards`, `table`
+
+---
+
+## State Management Architecture
+
+The application uses a **layered state management approach** with clear
+boundaries of responsibility:
+
+### 1. Server State (TanStack Query)
+
+**Purpose:** All data fetched from the backend API
+
+**Location:** `src/hooks/useQueries.ts`
+
+**Rationale:** React Query handles caching, synchronization, background
+refetching, and optimistic updates automatically. This eliminates the need for
+manual cache management and reduces boilerplate.
+
+**Examples:**
+
+- Image, source, job data
+- Provenance information
+- MS metadata
+
+**Benefits:**
+
+- Automatic cache invalidation
+- Background synchronization
+- Optimistic updates
+- Request deduplication
+
+### 2. Global UI State (Zustand)
+
+**Purpose:** Ephemeral UI state shared across components
+
+**Location:** `src/stores/appStore.ts`
+
+**Stores:**
+
+- `useUIStore` - Sidebar, modals, notifications
+- `useSelectionStore` - Multi-select state for bulk operations
+
+**Rationale:** Zustand provides lightweight global state without the ceremony of
+Redux. No providers needed, direct import where required.
+
+**When to use:**
+
+- Sidebar open/closed state
+- Global notifications/toasts
+- Bulk selection across pages
+- Modal visibility
+
+### 3. Persisted Preferences (Zustand + localStorage)
+
+**Purpose:** User preferences that persist across sessions
+
+**Location:** `src/stores/appStore.ts` (`usePreferencesStore`)
+
+**Rationale:** Uses Zustand's `persist` middleware to automatically sync with
+localStorage. Preferences like theme and recent items should survive page
+refreshes.
+
+**Examples:**
+
+- Theme preference (light/dark/system)
+- Default table page size
+- Recent items (images, sources, jobs)
+
+### 4. Local Component State (React useState)
+
+**Purpose:** Component-specific state that doesn't need to be shared
+
+**When to use:**
+
+- Form inputs
+- Toggle states (expand/collapse)
+- Temporary UI state
+- Component-specific modals
+
+**Rationale:** Keep it simple. Use `useState` for ephemeral state that doesn't
+need to escape the component boundary.
+
+### 5. URL State (React Router + Custom Hooks)
+
+**Purpose:** Shareable, bookmarkable application state
+
+**Location:** `src/hooks/useUrlFilterState.ts`
+
+**When to use:**
+
+- Search filters
+- Sort orders
+- Pagination
+- Active tabs
+
+**Rationale:** Filter state in URLs enables users to share links to specific
+views. Makes the application more transparent and enables browser back/forward.
+
+**Example:** `?ra=180&dec=45&radius=10&minFlux=0.1&tab=variability`
+
+### State Management Decision Tree
+
+```text
+Is it server data?
+  → YES → Use TanStack Query (useImages, useSource, etc.)
+
+Is it shared across many components?
+  → YES → Use Zustand (useUIStore, useSelectionStore)
+
+Should it persist across sessions?
+  → YES → Use Zustand with persist (usePreferencesStore)
+
+Should it be shareable via URL?
+  → YES → Use URL state (useUrlFilterState)
+
+Otherwise:
+  → Use local React state (useState, useReducer)
+```
+
+### Configuration and Constants
+
+**Location:** `src/config/index.ts`
+
+**Purpose:** Centralized environment variables and configuration
+
+**Rationale:** Eliminates duplication of `import.meta.env.VITE_*` across the
+codebase. Single source of truth for all configuration values.

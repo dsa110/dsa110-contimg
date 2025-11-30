@@ -203,9 +203,7 @@ const ImageDetailPage: React.FC = () => {
             <Card title="FITS Viewer">
               <WidgetErrorBoundary widgetName="FITS Viewer" minHeight={500}>
                 <FitsViewer
-                  fitsUrl={`${
-                    config.api.baseUrl
-                  }}/images/${encodedImageId}/gif`}}
+                  fitsUrl={`${config.api.baseUrl}/images/${encodedImageId}/fits`}
                   displayId={`fits-${encodedImageId}`}
                   width={600}
                   height={500}
@@ -225,9 +223,7 @@ const ImageDetailPage: React.FC = () => {
             <Card title="Animated Cutout" subtitle="Time-lapse visualization">
               <WidgetErrorBoundary widgetName="Animation Player" minHeight={400}>
                 <GifPlayer
-                  src={`${
-                    import.meta.env.VITE_API_URL || "/api"
-                  }/images/${encodedImageId}/animation`}
+                  src={`${config.api.baseUrl}/images/${encodedImageId}/animation`}
                   width="100%"
                   height={400}
                   autoPlay={false}

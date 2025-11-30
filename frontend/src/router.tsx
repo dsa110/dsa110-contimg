@@ -60,28 +60,48 @@ export const router = createBrowserRouter(
           children: [
             {
               index: true,
-              element: <ImagesListPage />,
+              element: (
+                <Suspense fallback={<PageSkeleton variant="list" />}>
+                  <ImagesListPage />
+                </Suspense>
+              ),
             },
             {
               path: ":imageId",
-              element: <ImageDetailPage />,
+              element: (
+                <Suspense fallback={<PageSkeleton variant="detail" />}>
+                  <ImageDetailPage />
+                </Suspense>
+              ),
             },
           ],
         },
         {
           path: "ms/*",
-          element: <MSDetailPage />,
+          element: (
+            <Suspense fallback={<PageSkeleton variant="detail" />}>
+              <MSDetailPage />
+            </Suspense>
+          ),
         },
         {
           path: "sources",
           children: [
             {
               index: true,
-              element: <SourcesListPage />,
+              element: (
+                <Suspense fallback={<PageSkeleton variant="list" />}>
+                  <SourcesListPage />
+                </Suspense>
+              ),
             },
             {
               path: ":sourceId",
-              element: <SourceDetailPage />,
+              element: (
+                <Suspense fallback={<PageSkeleton variant="detail" />}>
+                  <SourceDetailPage />
+                </Suspense>
+              ),
             },
           ],
         },
@@ -90,17 +110,29 @@ export const router = createBrowserRouter(
           children: [
             {
               index: true,
-              element: <JobsListPage />,
+              element: (
+                <Suspense fallback={<PageSkeleton variant="list" />}>
+                  <JobsListPage />
+                </Suspense>
+              ),
             },
             {
               path: ":runId",
-              element: <JobDetailPage />,
+              element: (
+                <Suspense fallback={<PageSkeleton variant="detail" />}>
+                  <JobDetailPage />
+                </Suspense>
+              ),
             },
           ],
         },
         {
           path: "*",
-          element: <NotFoundPage />,
+          element: (
+            <Suspense fallback={<div className="p-6">Loading...</div>}>
+              <NotFoundPage />
+            </Suspense>
+          ),
         },
       ],
     },

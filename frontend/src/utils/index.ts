@@ -53,3 +53,15 @@ export type {
 export { queryCatalog, CATALOG_CONFIGS } from "./vizierQuery";
 
 export type { CatalogSource, CatalogQueryResult } from "./vizierQuery";
+
+// Input sanitization and validation
+export {
+  sanitizeId,
+  sanitizePath,
+  sanitizeQuery,
+  sanitizeNumericId,
+  buildApiUrl,
+} from "./sanitization";
+
+// Centralized logging
+export { logger } from "./logger";

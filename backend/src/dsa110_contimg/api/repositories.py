@@ -20,10 +20,14 @@ from astropy.io import fits
 from .config import get_config
 
 
-# Get database paths from configuration
-_config = get_config()
-DEFAULT_DB_PATH = str(_config.database.products_path)
-CAL_REGISTRY_DB_PATH = str(_config.database.cal_registry_path)
+def _get_default_db_path() -> str:
+    """Get default database path from config (lazy-loaded)."""
+    return str(get_config().database.products_path)
+
+
+def _get_cal_registry_path() -> str:
+    """Get calibration registry path from config (lazy-loaded)."""
+    return str(get_config().database.cal_registry_path)
 
 
 @dataclass
@@ -123,8 +127,14 @@ class JobRecord:
     qa_flags: Optional[List[dict]] = None
 
 
-def get_db_connection(db_path: str = DEFAULT_DB_PATH) -> sqlite3.Connection:
-    """Get a database connection with proper timeout and WAL mode."""
+def get_db_connection(db_path: Optional[str] = None) -> sqlite3.Connection:
+    """Get a database connection with proper timeout and WAL mode.
+    
+    Args:
+        db_path: Database path, defaults to products DB from config
+    """
+    if db_path is None:
+        db_path = _get_default_db_path()
     conn = sqlite3.connect(db_path, timeout=30.0)
     conn.row_factory = sqlite3.Row
     # Enable WAL mode for better concurrent access
@@ -220,8 +230,8 @@ def _build_flag_entries(row: sqlite3.Row, source: str) -> List[dict]:
 class ImageRepository:
     """Repository for querying image data."""
     
-    def __init__(self, db_path: str = DEFAULT_DB_PATH):
-        self.db_path = db_path
+    def __init__(self, db_path: Optional[str] = None):
+        self.db_path = db_path or _get_default_db_path()
     
     def get_by_id(self, image_id: str) -> Optional[ImageRecord]:
         """Get image by ID (can be integer ID or path)."""
@@ -446,8 +456,8 @@ class ImageRepository:
 class MSRepository:
     """Repository for querying Measurement Set data."""
     
-    def __init__(self, db_path: str = DEFAULT_DB_PATH):
-        self.db_path = db_path
+    def __init__(self, db_path: Optional[str] = None):
+        self.db_path = db_path or _get_default_db_path()
     
     def get_metadata(self, ms_path: str) -> Optional[MSRecord]:
         """Get MS metadata by path."""
@@ -563,8 +573,8 @@ class MSRepository:
 class SourceRepository:
     """Repository for querying source catalog data."""
     
-    def __init__(self, db_path: str = DEFAULT_DB_PATH):
-        self.db_path = db_path
+    def __init__(self, db_path: Optional[str] = None):
+        self.db_path = db_path or _get_default_db_path()
     
     def get_by_id(self, source_id: str) -> Optional[SourceRecord]:
         """Get source by ID."""
@@ -689,8 +699,8 @@ class SourceRepository:
 class JobRepository:
     """Repository for querying pipeline job data."""
     
-    def __init__(self, db_path: str = DEFAULT_DB_PATH):
-        self.db_path = db_path
+    def __init__(self, db_path: Optional[str] = None):
+        self.db_path = db_path or _get_default_db_path()
     
     def get_by_run_id(self, run_id: str) -> Optional[JobRecord]:
         """Get job by run ID."""
@@ -712,9 +722,10 @@ class JobRepository:
                     img_row = img_cursor.fetchone()
                     
                     cal_table = None
-                    if os.path.exists(CAL_REGISTRY_DB_PATH):
+                    cal_registry_path = _get_cal_registry_path()
+                    if os.path.exists(cal_registry_path):
                         try:
-                            cal_conn = get_db_connection(CAL_REGISTRY_DB_PATH)
+                            cal_conn = get_db_connection(cal_registry_path)
                             cal_cursor = cal_conn.execute(
                                 "SELECT path FROM caltables WHERE source_ms_path = ? ORDER BY created_at DESC LIMIT 1",
                                 (row["path"],)

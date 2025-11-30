@@ -74,8 +74,8 @@ export class AppErrorBoundary extends Component<Props, State> {
               <div className="text-6xl mb-4">⚠️</div>
               <h1 className="text-2xl font-bold text-gray-900 mb-4">Something went wrong</h1>
               <p className="text-gray-600 mb-6">
-                An unexpected error occurred in the application. This has been logged and we'll look
-                into it.
+                An unexpected error occurred in the application. This has been logged and we&apos;ll
+                look into it.
               </p>
 
               {import.meta.env.DEV && this.state.error && (
