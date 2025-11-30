@@ -11,13 +11,14 @@ from typing import Optional, List, TYPE_CHECKING
 from urllib.parse import quote
 
 if TYPE_CHECKING:
-    from ..repositories import ImageRepository, ImageRecord
+    from ..repositories import ImageRecord
+    from ..interfaces import ImageRepositoryProtocol
 
 
 class ImageService:
     """Business logic for image operations."""
     
-    def __init__(self, repository: "ImageRepository"):
+    def __init__(self, repository: "ImageRepositoryProtocol"):
         self.repo = repository
     
     def get_image(self, image_id: str) -> Optional["ImageRecord"]:

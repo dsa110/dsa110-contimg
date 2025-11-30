@@ -9,7 +9,8 @@ from typing import Optional, List, TYPE_CHECKING
 from urllib.parse import quote
 
 if TYPE_CHECKING:
-    from ..repositories import JobRepository, JobRecord
+    from ..repositories import JobRecord
+    from ..interfaces import JobRepositoryProtocol
 
 
 class JobService:
@@ -20,7 +21,7 @@ class JobService:
         "/data/dsa110-contimg/logs",
     ]
     
-    def __init__(self, repository: "JobRepository"):
+    def __init__(self, repository: "JobRepositoryProtocol"):
         self.repo = repository
     
     def get_job(self, run_id: str) -> Optional["JobRecord"]:

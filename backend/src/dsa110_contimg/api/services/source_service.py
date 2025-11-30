@@ -8,13 +8,14 @@ import statistics
 from typing import Optional, List, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ..repositories import SourceRepository, SourceRecord
+    from ..repositories import SourceRecord
+    from ..interfaces import SourceRepositoryProtocol
 
 
 class SourceService:
     """Business logic for source operations."""
     
-    def __init__(self, repository: "SourceRepository"):
+    def __init__(self, repository: "SourceRepositoryProtocol"):
         self.repo = repository
     
     def get_source(self, source_id: str) -> Optional["SourceRecord"]:

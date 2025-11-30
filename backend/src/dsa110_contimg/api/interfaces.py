@@ -1,27 +1,99 @@
 """
-Repository interfaces (abstract base classes).
+Repository interfaces using Protocol for structural subtyping.
 
 Defines the contracts that repository implementations must fulfill.
+Using Protocol allows for duck-typing and better type checking without
+requiring explicit inheritance.
 """
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from typing import Optional, List, TYPE_CHECKING
+from typing import Optional, List, Protocol, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from .repositories import ImageRecord, MSRecord, SourceRecord, JobRecord
 
 
-class ImageRepositoryInterface(ABC):
-    """Interface for image data access."""
+# =============================================================================
+# Synchronous Repository Protocols
+# =============================================================================
+
+class ImageRepositoryProtocol(Protocol):
+    """Protocol for synchronous image data access."""
     
-    @abstractmethod
+    def get_by_id(self, image_id: str) -> Optional["ImageRecord"]:
+        """Get image by ID."""
+        ...
+    
+    def list_all(
+        self,
+        limit: int = 100,
+        offset: int = 0
+    ) -> List["ImageRecord"]:
+        """List all images with pagination."""
+        ...
+
+
+class MSRepositoryProtocol(Protocol):
+    """Protocol for synchronous measurement set data access."""
+    
+    def get_metadata(self, ms_path: str) -> Optional["MSRecord"]:
+        """Get metadata for a measurement set."""
+        ...
+
+
+class SourceRepositoryProtocol(Protocol):
+    """Protocol for synchronous source data access."""
+    
+    def get_by_id(self, source_id: str) -> Optional["SourceRecord"]:
+        """Get source by ID."""
+        ...
+    
+    def list_all(
+        self,
+        limit: int = 100,
+        offset: int = 0
+    ) -> List["SourceRecord"]:
+        """List all sources with pagination."""
+        ...
+    
+    def get_lightcurve(
+        self,
+        source_id: str,
+        start_mjd: Optional[float] = None,
+        end_mjd: Optional[float] = None
+    ) -> List[dict]:
+        """Get lightcurve data for a source."""
+        ...
+
+
+class JobRepositoryProtocol(Protocol):
+    """Protocol for synchronous job data access."""
+    
+    def get_by_run_id(self, run_id: str) -> Optional["JobRecord"]:
+        """Get job by run ID."""
+        ...
+    
+    def list_all(
+        self,
+        limit: int = 100,
+        offset: int = 0
+    ) -> List["JobRecord"]:
+        """List all jobs with pagination."""
+        ...
+
+
+# =============================================================================
+# Asynchronous Repository Protocols
+# =============================================================================
+
+class AsyncImageRepositoryProtocol(Protocol):
+    """Protocol for asynchronous image data access."""
+    
     async def get_by_id(self, image_id: str) -> Optional["ImageRecord"]:
         """Get image by ID."""
         ...
     
-    @abstractmethod
     async def list_all(
         self,
         limit: int = 100,
@@ -29,31 +101,23 @@ class ImageRepositoryInterface(ABC):
     ) -> List["ImageRecord"]:
         """List all images with pagination."""
         ...
-    
-    @abstractmethod
-    async def get_for_source(self, source_id: str) -> List["ImageRecord"]:
-        """Get images containing a source."""
-        ...
 
 
-class MSRepositoryInterface(ABC):
-    """Interface for measurement set data access."""
+class AsyncMSRepositoryProtocol(Protocol):
+    """Protocol for asynchronous measurement set data access."""
     
-    @abstractmethod
     async def get_metadata(self, ms_path: str) -> Optional["MSRecord"]:
         """Get metadata for a measurement set."""
         ...
 
 
-class SourceRepositoryInterface(ABC):
-    """Interface for source data access."""
+class AsyncSourceRepositoryProtocol(Protocol):
+    """Protocol for asynchronous source data access."""
     
-    @abstractmethod
     async def get_by_id(self, source_id: str) -> Optional["SourceRecord"]:
         """Get source by ID."""
         ...
     
-    @abstractmethod
     async def list_all(
         self,
         limit: int = 100,
@@ -62,7 +126,6 @@ class SourceRepositoryInterface(ABC):
         """List all sources with pagination."""
         ...
     
-    @abstractmethod
     async def get_lightcurve(
         self,
         source_id: str,
@@ -73,15 +136,13 @@ class SourceRepositoryInterface(ABC):
         ...
 
 
-class JobRepositoryInterface(ABC):
-    """Interface for job data access."""
+class AsyncJobRepositoryProtocol(Protocol):
+    """Protocol for asynchronous job data access."""
     
-    @abstractmethod
     async def get_by_run_id(self, run_id: str) -> Optional["JobRecord"]:
         """Get job by run ID."""
         ...
     
-    @abstractmethod
     async def list_all(
         self,
         limit: int = 100,
@@ -89,3 +150,10 @@ class JobRepositoryInterface(ABC):
     ) -> List["JobRecord"]:
         """List all jobs with pagination."""
         ...
+
+
+# Backwards compatibility aliases (deprecated)
+ImageRepositoryInterface = AsyncImageRepositoryProtocol
+MSRepositoryInterface = AsyncMSRepositoryProtocol
+SourceRepositoryInterface = AsyncSourceRepositoryProtocol
+JobRepositoryInterface = AsyncJobRepositoryProtocol

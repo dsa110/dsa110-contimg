@@ -62,8 +62,8 @@ def is_ip_allowed(client_ip: str, allowed_networks: list) -> bool:
     except ValueError:
         return False
 
-from .errors import validation_failed, internal_error
 from .middleware import add_exception_handlers
+from .exceptions import ValidationError as DSA110ValidationError
 from .routes import (
     images_router,
     ms_router,
@@ -171,26 +171,38 @@ def create_app() -> FastAPI:
     # Register exception handlers for Pydantic validation
     @app.exception_handler(ValidationError)
     async def validation_exception_handler(request: Request, exc: ValidationError):
-        """Handle Pydantic validation errors with standardized envelope."""
+        """Handle Pydantic validation errors by wrapping in our exception type."""
         errors = [
             {"field": ".".join(str(loc) for loc in e["loc"]), "message": e["msg"]}
             for e in exc.errors()
         ]
-        error = validation_failed(errors)
+        # Convert to our custom ValidationError
+        error_msg = "; ".join(f"{e['field']}: {e['message']}" for e in errors)
+        custom_exc = DSA110ValidationError(
+            message=error_msg,
+            details={"validation_errors": errors}
+        )
         return JSONResponse(
-            status_code=error.http_status,
-            content=error.to_dict(),
+            status_code=400,
+            content=custom_exc.to_dict(),
         )
     
     @app.exception_handler(Exception)
     async def generic_exception_handler(request: Request, exc: Exception):
-        """Handle uncaught exceptions with standardized envelope."""
-        # Log the exception for debugging
-        # logger.exception("Unhandled exception")
+        """Handle uncaught exceptions with logging and consistent response."""
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.exception("Unhandled exception in API request")
         
-        error = internal_error(str(exc) if app.debug else "An unexpected error occurred")
+        # Return generic error message (don't leak internal details in production)
+        from .exceptions import ProcessingError
+        error = ProcessingError(
+            operation="request_processing",
+            message="An unexpected error occurred" if not app.debug else str(exc),
+            details={"type": type(exc).__name__} if app.debug else {}
+        )
         return JSONResponse(
-            status_code=error.http_status,
+            status_code=500,
             content=error.to_dict(),
         )
     
@@ -230,10 +242,10 @@ def create_app() -> FastAPI:
                             db_status[db_name] = "ok"
                         else:
                             db_status[db_name] = "not_found"
-                    except Exception as e:
+                    except (sqlite3.Error, OSError, IOError) as e:
                         db_status[db_name] = f"error: {str(e)[:50]}"
-            except Exception:
-                db_status["error"] = "Could not check databases"
+            except (ImportError, AttributeError) as e:
+                db_status["error"] = f"Could not check databases: {str(e)[:50]}"
             response["databases"] = db_status
             
             # Check Redis connectivity
@@ -252,8 +264,8 @@ def create_app() -> FastAPI:
                     redis_status = {"status": "error", "message": "ping failed"}
             except ImportError:
                 redis_status = {"status": "unavailable", "message": "redis module not installed"}
-            except Exception as e:
-                # Catch all redis-related exceptions (ConnectionError, etc.)
+            except (ConnectionError, TimeoutError, OSError) as e:
+                # Redis connection errors
                 redis_status = {"status": "unavailable", "message": str(e)[:50]}
             response["redis"] = redis_status
             

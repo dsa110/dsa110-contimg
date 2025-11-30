@@ -9,13 +9,13 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, Query
 from fastapi.responses import FileResponse
 
-from ..dependencies import get_image_service
+from ..dependencies import get_async_image_service
 from ..exceptions import (
     RecordNotFoundError,
     FileNotAccessibleError,
 )
 from ..schemas import ImageDetailResponse, ImageListResponse, ProvenanceResponse
-from ..services.image_service import ImageService
+from ..services.async_services import AsyncImageService
 
 router = APIRouter(prefix="/images", tags=["images"])
 
@@ -24,7 +24,7 @@ router = APIRouter(prefix="/images", tags=["images"])
 async def list_images(
     limit: int = Query(100, le=1000, description="Maximum number of results"),
     offset: int = Query(0, ge=0, description="Offset for pagination"),
-    service: ImageService = Depends(get_image_service),
+    service: AsyncImageService = Depends(get_async_image_service),
 ):
     """
     List all images with summary info.
@@ -34,7 +34,7 @@ async def list_images(
     Raises:
         DatabaseError: If database query fails
     """
-    images = service.list_images(limit=limit, offset=offset)
+    images = await service.list_images(limit=limit, offset=offset)
     return [
         ImageListResponse(
             id=str(img.id),
@@ -50,7 +50,7 @@ async def list_images(
 @router.get("/{image_id}", response_model=ImageDetailResponse)
 async def get_image_detail(
     image_id: str,
-    service: ImageService = Depends(get_image_service),
+    service: AsyncImageService = Depends(get_async_image_service),
 ):
     """
     Get detailed information about an image.
@@ -58,7 +58,7 @@ async def get_image_detail(
     Raises:
         RecordNotFoundError: If image is not found
     """
-    image = service.get_image(image_id)
+    image = await service.get_image(image_id)
     if not image:
         raise RecordNotFoundError("Image", image_id)
     
@@ -79,7 +79,7 @@ async def get_image_detail(
 @router.get("/{image_id}/provenance", response_model=ProvenanceResponse)
 async def get_image_provenance(
     image_id: str,
-    service: ImageService = Depends(get_image_service),
+    service: AsyncImageService = Depends(get_async_image_service),
 ):
     """
     Get provenance information for an image.
@@ -87,7 +87,7 @@ async def get_image_provenance(
     Raises:
         RecordNotFoundError: If image is not found
     """
-    image = service.get_image(image_id)
+    image = await service.get_image(image_id)
     if not image:
         raise RecordNotFoundError("Image", image_id)
     
@@ -112,7 +112,7 @@ async def get_image_provenance(
 @router.get("/{image_id}/qa")
 async def get_image_qa_detail(
     image_id: str,
-    service: ImageService = Depends(get_image_service),
+    service: AsyncImageService = Depends(get_async_image_service),
 ):
     """
     Get detailed QA report for an image.
@@ -120,7 +120,7 @@ async def get_image_qa_detail(
     Raises:
         RecordNotFoundError: If image is not found
     """
-    image = service.get_image(image_id)
+    image = await service.get_image(image_id)
     if not image:
         raise RecordNotFoundError("Image", image_id)
     
@@ -130,7 +130,7 @@ async def get_image_qa_detail(
 @router.get("/{image_id}/fits")
 async def download_image_fits(
     image_id: str,
-    service: ImageService = Depends(get_image_service),
+    service: AsyncImageService = Depends(get_async_image_service),
 ):
     """
     Download the FITS file for an image.
@@ -139,7 +139,7 @@ async def download_image_fits(
         RecordNotFoundError: If image is not found
         FileNotAccessibleError: If FITS file is not accessible
     """
-    image = service.get_image(image_id)
+    image = await service.get_image(image_id)
     if not image:
         raise RecordNotFoundError("Image", image_id)
     

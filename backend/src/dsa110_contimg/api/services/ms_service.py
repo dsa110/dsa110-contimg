@@ -8,13 +8,14 @@ from typing import Optional, TYPE_CHECKING
 from urllib.parse import quote
 
 if TYPE_CHECKING:
-    from ..repositories import MSRepository, MSRecord
+    from ..repositories import MSRecord
+    from ..interfaces import MSRepositoryProtocol
 
 
 class MSService:
     """Business logic for measurement set operations."""
     
-    def __init__(self, repository: "MSRepository"):
+    def __init__(self, repository: "MSRepositoryProtocol"):
         self.repo = repository
     
     def get_metadata(self, ms_path: str) -> Optional["MSRecord"]:
