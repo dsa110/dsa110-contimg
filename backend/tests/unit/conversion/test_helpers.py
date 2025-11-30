@@ -2,9 +2,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 import numpy as np
 
-# Import module at top level to ensure it's loaded before patching
-from dsa110_contimg.conversion import helpers_coordinates
-
 
 def test_phase_to_meridian(monkeypatch):
     """Test phase_to_meridian sets time-dependent phase centers.
@@ -17,6 +14,13 @@ def test_phase_to_meridian(monkeypatch):
     The function is complex and calls pyuvdata internals, so we patch
     the heavy compute_and_set_uvw to avoid needing real antenna positions.
     """
+    # Mock pandas before any imports that might need it
+    import sys
+    sys.modules['pandas'] = MagicMock()
+    
+    # Now import the module
+    from dsa110_contimg.conversion import helpers_coordinates
+    
     # Patch dependencies where they're used (in helpers_coordinates module)
     # These must return None (side effects only) to avoid mock issues
     with patch.object(helpers_coordinates, "set_antenna_positions", return_value=None):

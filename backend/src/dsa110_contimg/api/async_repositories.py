@@ -88,7 +88,7 @@ class AsyncTransaction:
 
 @asynccontextmanager
 async def get_async_connection(
-    db_path: str = DEFAULT_DB_PATH,
+    db_path: Optional[str] = None,
     timeout: float = 30.0
 ) -> AsyncIterator[aiosqlite.Connection]:
     """
@@ -104,6 +104,8 @@ async def get_async_connection(
     Raises:
         DatabaseConnectionError: If connection fails
     """
+    if db_path is None:
+        db_path = _get_default_db_path()
     try:
         conn = await aiosqlite.connect(db_path, timeout=timeout)
         conn.row_factory = aiosqlite.Row
@@ -126,9 +128,9 @@ class AsyncImageRepository(ImageRepositoryInterface):
     Implements ImageRepositoryInterface with aiosqlite.
     """
     
-    def __init__(self, db_path: str = DEFAULT_DB_PATH):
-        self.db_path = db_path
-        self.cal_db_path = CAL_REGISTRY_DB_PATH
+    def __init__(self, db_path: Optional[str] = None):
+        self.db_path = db_path or _get_default_db_path()
+        self.cal_db_path = _get_cal_registry_path()
     
     async def get_by_id(self, image_id: str) -> Optional[ImageRecord]:
         """Get image by ID (can be integer ID or path)."""
@@ -280,8 +282,8 @@ class AsyncMSRepository(MSRepositoryInterface):
     Implements MSRepositoryInterface with aiosqlite.
     """
     
-    def __init__(self, db_path: str = DEFAULT_DB_PATH):
-        self.db_path = db_path
+    def __init__(self, db_path: Optional[str] = None):
+        self.db_path = db_path or _get_default_db_path()
         self.cal_db_path = CAL_REGISTRY_DB_PATH
     
     async def get_metadata(self, ms_path: str) -> Optional[MSRecord]:
@@ -402,8 +404,8 @@ class AsyncSourceRepository(SourceRepositoryInterface):
     Implements SourceRepositoryInterface with aiosqlite.
     """
     
-    def __init__(self, db_path: str = DEFAULT_DB_PATH):
-        self.db_path = db_path
+    def __init__(self, db_path: Optional[str] = None):
+        self.db_path = db_path or _get_default_db_path()
     
     async def get_by_id(self, source_id: str) -> Optional[SourceRecord]:
         """Get source by ID."""
@@ -527,8 +529,8 @@ class AsyncJobRepository(JobRepositoryInterface):
     Implements JobRepositoryInterface with aiosqlite.
     """
     
-    def __init__(self, db_path: str = DEFAULT_DB_PATH):
-        self.db_path = db_path
+    def __init__(self, db_path: Optional[str] = None):
+        self.db_path = db_path or _get_default_db_path()
         self.cal_db_path = CAL_REGISTRY_DB_PATH
     
     async def get_by_run_id(self, run_id: str) -> Optional[JobRecord]:
