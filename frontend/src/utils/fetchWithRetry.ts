@@ -238,12 +238,11 @@ export async function fetchWithRetry(
  * Parse common error responses and return user-friendly messages.
  */
 export function parseExternalServiceError(error: unknown, serviceName: string): string {
-  if (error instanceof Error) {
-    // Abort errors
-    if (error.name === "AbortError") {
-      return "Request was cancelled";
-    }
+  if (error instanceof DOMException && error.name === "AbortError") {
+    return "Request was cancelled";
+  }
 
+  if (error instanceof Error) {
     // Timeout errors
     if (error.message.includes("timeout")) {
       return `${serviceName} is taking too long to respond. Please try again.`;
