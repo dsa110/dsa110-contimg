@@ -26,7 +26,7 @@ import { ROUTES } from "../constants/routes";
  */
 const ImageDetailPage: React.FC = () => {
   const { imageId } = useParams<{ imageId: string }>();
-  
+
   // Use centralized hook for image detail logic
   const {
     image,
@@ -39,27 +39,13 @@ const ImageDetailPage: React.FC = () => {
     confirmDelete,
     submitRating,
     encodedImageId,
+    filename,
   } = useImageDetail(imageId);
 
   const [showSkyViewer, setShowSkyViewer] = useState(true);
   const [showFitsViewer, setShowFitsViewer] = useState(false);
   const [showGifPlayer, setShowGifPlayer] = useState(false);
   const [showRatingCard, setShowRatingCard] = useState(false);
-
-  const handleDeleteImage = async () => {
-    setIsDeleting(true);
-    setDeleteError(null);
-    try {
-      // Use noRetry for delete operations - they should not be retried automatically
-      await apiClient.delete(`/images/${encodedImageId}`, noRetry());
-      window.location.href = ROUTES.IMAGES.LIST;
-    } catch (e) {
-      const message = e instanceof Error ? e.message : "Failed to delete image";
-      console.error("Failed to delete image:", e);
-      setDeleteError(message);
-      setIsDeleting(false);
-    }
-  };
 
   // Rating tags for QA assessment
   const ratingTags: RatingTag[] = [
@@ -69,28 +55,7 @@ const ImageDetailPage: React.FC = () => {
     { id: "rfi", name: "RFI", color: "#8B5CF6", description: "Radio frequency interference" },
   ];
 
-  const handleRatingSubmit = async (rating: {
-    itemId: string;
-    confidence: "true" | "false" | "unsure";
-    tagId: string;
-    notes: string;
-  }) => {
-    try {
-      await apiClient.post(`/images/${rating.itemId}/rating`, rating);
-      // Refresh image data
-      refetch();
-    } catch (e) {
-      console.error("Failed to submit rating:", e);
-      // Could add user-facing error handling here
-    }
-  };
-
-  // Track in recent items when image loads
-  React.useEffect(() => {
-    if (image && imageId) {
-      addRecentImage(imageId);
-    }
-  }, [image, imageId, addRecentImage]);
+  // Recent items tracking is now handled by useImageDetail hook
 
   if (isLoading) {
     return <PageSkeleton variant="detail" showHeader showSidebar />;
@@ -120,7 +85,6 @@ const ImageDetailPage: React.FC = () => {
   // Cast to expected response type for mapper
   const imageData = image as ImageDetail;
   const provenance = mapProvenanceFromImageDetail(imageData);
-  const filename = image.path?.split("/").pop() || image.id;
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -187,7 +151,7 @@ const ImageDetailPage: React.FC = () => {
               <button
                 type="button"
                 className="btn bg-red-100 text-red-700 hover:bg-red-200"
-                onClick={() => setShowDeleteModal(true)}
+                onClick={openDeleteModal}
               >
                 Delete Image
               </button>
@@ -196,31 +160,25 @@ const ImageDetailPage: React.FC = () => {
 
           {/* Delete Confirmation Modal */}
           <Modal
-            isOpen={showDeleteModal}
-            onClose={() => {
-              setShowDeleteModal(false);
-              setDeleteError(null);
-            }}
+            isOpen={deleteState.showModal}
+            onClose={closeDeleteModal}
             title="Delete Image"
             size="sm"
             footer={
               <div className="flex justify-end gap-2">
                 <button
-                  onClick={() => {
-                    setShowDeleteModal(false);
-                    setDeleteError(null);
-                  }}
-                  disabled={isDeleting}
+                  onClick={closeDeleteModal}
+                  disabled={deleteState.isDeleting}
                   className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
-                  onClick={handleDeleteImage}
-                  disabled={isDeleting}
+                  onClick={confirmDelete}
+                  disabled={deleteState.isDeleting}
                   className="px-4 py-2 text-sm text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {isDeleting ? "Deleting..." : "Delete"}
+                  {deleteState.isDeleting ? "Deleting..." : "Delete"}
                 </button>
               </div>
             }
@@ -229,9 +187,9 @@ const ImageDetailPage: React.FC = () => {
               Are you sure you want to delete <strong>{filename}</strong>? This action cannot be
               undone.
             </p>
-            {deleteError && (
+            {deleteState.error && (
               <p className="mt-3 text-sm text-red-600 bg-red-50 p-2 rounded">
-                Error: {deleteError}
+                Error: {deleteState.error}
               </p>
             )}
           </Modal>

@@ -10,6 +10,19 @@ from fastapi.testclient import TestClient
 from dsa110_contimg.api.app import create_app
 
 
+def assert_error_response(data: dict, message: str = ""):
+    """Assert that a response contains a valid error structure.
+    
+    Supports both old format (detail field) and new format (error/message/details).
+    """
+    # New exception format uses error, message, details
+    has_new_format = "message" in data and "error" in data
+    # Old format uses detail
+    has_old_format = "detail" in data
+    
+    assert has_new_format or has_old_format, f"Response should have error structure: {data}"
+
+
 @pytest.fixture
 def client():
     """Create a test client for the API.
@@ -56,7 +69,7 @@ class TestImagesRoutes:
         # Without a test database, expect 404 for unknown image
         assert response.status_code == 404
         data = response.json()
-        assert "detail" in data
+        assert_error_response(data)
     
     def test_get_image_detail_not_found(self, client):
         """Test GET /api/images/{id} returns 404 for unknown image."""
@@ -94,7 +107,7 @@ class TestMSRoutes:
         # Without a test database, expect 404 for unknown MS
         assert response.status_code == 404
         data = response.json()
-        assert "detail" in data
+        assert_error_response(data)
 
 
 class TestSourcesRoutes:
@@ -119,7 +132,7 @@ class TestSourcesRoutes:
         # Without a test database, expect 404 for unknown source
         assert response.status_code == 404
         data = response.json()
-        assert "detail" in data
+        assert_error_response(data)
 
 
 class TestJobsRoutes:
@@ -144,7 +157,7 @@ class TestJobsRoutes:
         # Without a test database, expect 404 for unknown job
         assert response.status_code == 404
         data = response.json()
-        assert "detail" in data
+        assert_error_response(data)
     
     def test_create_job_not_implemented(self, client):
         """Test POST /api/jobs is not implemented.

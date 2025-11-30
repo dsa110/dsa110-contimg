@@ -16,6 +16,19 @@ from fastapi.testclient import TestClient
 from dsa110_contimg.api.app import create_app
 
 
+def assert_error_response(data: dict, context: str = ""):
+    """Assert that a response contains a valid error structure.
+    
+    Supports both old format (detail field) and new format (error/message/details).
+    """
+    # New exception format uses error, message, details
+    has_new_format = "message" in data and "error" in data
+    # Old format uses detail
+    has_old_format = "detail" in data
+    
+    assert has_new_format or has_old_format, f"{context} Response should have error structure: {data}"
+
+
 @pytest.fixture
 def client():
     """Create a test client for the API."""
@@ -60,11 +73,11 @@ class TestPageHealthImages:
         assert response.status_code == 404
 
     def test_images_error_has_detail(self, client):
-        """Test image error response has detail field."""
+        """Test image error response has error structure."""
         response = client.get("/api/v1/images/invalid-id-xyz")
         data = response.json()
         
-        assert "detail" in data
+        assert_error_response(data, "images error")
 
 
 class TestPageHealthSources:
@@ -179,7 +192,7 @@ class TestUIResponseConsistency:
                 assert isinstance(data, list), f"{endpoint} should return array"
 
     def test_error_responses_have_detail(self, client):
-        """Test error responses have detail field."""
+        """Test error responses have error structure."""
         error_urls = [
             "/api/v1/images/nonexistent",
             "/api/v1/sources/nonexistent",
@@ -189,7 +202,7 @@ class TestUIResponseConsistency:
             response = client.get(url)
             if response.status_code >= 400:
                 data = response.json()
-                assert "detail" in data, f"{url} error should have detail"
+                assert_error_response(data, url)
 
     def test_all_endpoints_return_json(self, client):
         """Test all API endpoints return JSON."""
@@ -257,7 +270,7 @@ class TestUIErrorHandling:
         response = client.get("/api/v1/images/nonexistent-id")
         data = response.json()
         
-        assert "detail" in data
+        assert_error_response(data, "404 error")
 
     def test_validation_error_returns_422(self, client):
         """Test validation errors return 422."""
