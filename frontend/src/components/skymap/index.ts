@@ -11,3 +11,7 @@ export type {
   ConstellationConfig,
   LinesConfig,
 } from "./CelestialMap";
+
+// Utility exports for reusable sky map functions
+export * from "./projectionUtils";
+export * from "./gridUtils";
