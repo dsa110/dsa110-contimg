@@ -153,8 +153,8 @@ def create_jwt(
     now = datetime.utcnow()
     payload = {
         "sub": subject,
-        "iat": now.timestamp(),
-        "exp": (now + timedelta(hours=expiry_hours)).timestamp(),
+        "iat": int(now.timestamp()),  # Integer timestamps for PyJWT compatibility
+        "exp": int((now + timedelta(hours=expiry_hours)).timestamp()),
         "scopes": scopes or ["read"],
     }
     
