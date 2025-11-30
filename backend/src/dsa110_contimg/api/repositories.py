@@ -8,10 +8,11 @@ sources, and pipeline jobs from the products database.
 from __future__ import annotations
 
 import os
+import json
 import sqlite3
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional, List, Dict
 from dataclasses import dataclass
 
 from astropy.io import fits
@@ -55,6 +56,12 @@ class ImageRecord:
     qa_grade: Optional[str] = None
     qa_summary: Optional[str] = None
     run_id: Optional[str] = None
+    qa_metrics: Optional[dict] = None
+    qa_flags: Optional[List[dict]] = None
+    qa_timestamp: Optional[float] = None
+    n_sources: Optional[int] = None
+    peak_flux_jy: Optional[float] = None
+    theoretical_noise_jy: Optional[float] = None
 
 
 @dataclass
@@ -82,6 +89,9 @@ class MSRecord:
     qa_summary: Optional[str] = None
     run_id: Optional[str] = None
     created_at: Optional[datetime] = None
+    qa_metrics: Optional[dict] = None
+    qa_flags: Optional[List[dict]] = None
+    qa_timestamp: Optional[float] = None
 
 
 @dataclass
@@ -107,6 +117,10 @@ class JobRecord:
     qa_summary: Optional[str] = None
     output_image_id: Optional[int] = None
     started_at: Optional[datetime] = None
+    queue_status: Optional[str] = None
+    config: Optional[dict] = None
+    job_id: Optional[int] = None
+    qa_flags: Optional[List[dict]] = None
 
 
 def get_db_connection(db_path: str = DEFAULT_DB_PATH) -> sqlite3.Connection:
@@ -133,6 +147,74 @@ def safe_row_get(row: sqlite3.Row, key: str, default: Optional[any] = None) -> a
         return row[key]
     except (KeyError, IndexError):
         return default
+
+
+_ALLOWED_QA_TABLES = {"image_qa", "calibration_qa", "qa_flags"}
+
+
+def _fetch_latest_qa_row(
+    conn: sqlite3.Connection,
+    table: str,
+    key_column: str,
+    key_value: str,
+) -> Optional[sqlite3.Row]:
+    """Fetch the latest QA row for a given key."""
+    if table not in _ALLOWED_QA_TABLES:
+        return None
+    try:
+        cursor = conn.execute(
+            f"SELECT * FROM {table} WHERE {key_column} = ? ORDER BY timestamp DESC LIMIT 1",
+            (key_value,),
+        )
+        return cursor.fetchone()
+    except sqlite3.OperationalError:
+        return None
+
+
+def _collect_flag_rows(
+    conn: sqlite3.Connection,
+    table: str,
+    key_column: str,
+    key_value: str,
+) -> List[dict]:
+    """Collect all QA flag rows for a given key."""
+    if table not in _ALLOWED_QA_TABLES:
+        return []
+
+    try:
+        cursor = conn.execute(
+            f"SELECT * FROM {table} WHERE {key_column} = ? ORDER BY timestamp DESC",
+            (key_value,),
+        )
+    except sqlite3.OperationalError:
+        return []
+
+    flags = []
+    for row in cursor.fetchall():
+        row_dict = dict(row)
+        row_dict.pop(key_column, None)
+        row_dict.pop("timestamp", None)
+        if row_dict:
+            flags.append({
+                "source": table,
+                "details": row_dict,
+            })
+    return flags
+
+
+def _build_flag_entries(row: sqlite3.Row, source: str) -> List[dict]:
+    """Build canonical flag entries from a QA row."""
+    if not row:
+        return []
+    entries = []
+    for column in ["overall_quality", "flags_total"]:
+        if column in row.keys() and row[column] is not None:
+            entries.append({
+                "rule": column,
+                "value": row[column],
+                "source": source,
+            })
+    return entries
 
 
 class ImageRepository:
@@ -203,7 +285,34 @@ class ImageRepository:
             
             # Try to get calibration table
             record.cal_table = self._find_cal_table(record.ms_path)
-            
+
+            # Attach QA metrics/flags from QA tables
+            qa_row = _fetch_latest_qa_row(conn, "image_qa", "image_path", record.path)
+            if not qa_row and record.ms_path:
+                qa_row = _fetch_latest_qa_row(conn, "image_qa", "ms_path", record.ms_path)
+
+            if qa_row:
+                metrics = {}
+                for key in ["rms_noise", "dynamic_range", "beam_major", "beam_minor", "beam_pa"]:
+                    if key in qa_row.keys() and qa_row[key] is not None:
+                        metrics[key] = qa_row[key]
+                record.qa_metrics = metrics or None
+                record.noise_jy = record.noise_jy or safe_row_get(qa_row, "rms_noise")
+                record.dynamic_range = record.dynamic_range or safe_row_get(qa_row, "dynamic_range")
+                record.beam_major_arcsec = safe_row_get(qa_row, "beam_major") or record.beam_major_arcsec
+                record.beam_minor_arcsec = safe_row_get(qa_row, "beam_minor") or record.beam_minor_arcsec
+                record.beam_pa_deg = safe_row_get(qa_row, "beam_pa") or record.beam_pa_deg
+                record.n_sources = safe_row_get(qa_row, "num_sources")
+                record.peak_flux_jy = safe_row_get(qa_row, "peak_flux")
+                record.qa_timestamp = safe_row_get(qa_row, "timestamp")
+                record.qa_flags = _build_flag_entries(qa_row, "image_qa")
+
+            extra_flags = _collect_flag_rows(conn, "qa_flags", "image_path", record.path)
+            if not extra_flags and record.ms_path:
+                extra_flags = _collect_flag_rows(conn, "qa_flags", "ms_path", record.ms_path)
+            if extra_flags:
+                record.qa_flags = (record.qa_flags or []) + extra_flags
+
             return record
         finally:
             conn.close()
@@ -372,6 +481,21 @@ class MSRepository:
             
             # Get calibration tables
             record.calibrator_tables = self._get_calibrator_matches(ms_path)
+
+            # Attach QA metrics and flags from calibration QA
+            qa_row = _fetch_latest_qa_row(conn, "calibration_qa", "ms_path", ms_path)
+            if qa_row:
+                metrics = {}
+                for key in ["overall_quality", "k_metrics", "bp_metrics", "g_metrics", "flags_total"]:
+                    if key in qa_row.keys() and qa_row[key] is not None:
+                        metrics[key] = qa_row[key]
+                record.qa_metrics = metrics or None
+                record.qa_timestamp = safe_row_get(qa_row, "timestamp")
+                record.qa_flags = _build_flag_entries(qa_row, "calibration_qa")
+
+            extra_flags = _collect_flag_rows(conn, "qa_flags", "ms_path", ms_path)
+            if extra_flags:
+                record.qa_flags = (record.qa_flags or []) + extra_flags
             
             # Generate QA info
             record.qa_grade = self._stage_to_qa_grade(record.stage, record.status)
@@ -572,26 +696,21 @@ class JobRepository:
         """Get job by run ID."""
         conn = get_db_connection(self.db_path)
         try:
-            # Extract timestamp from run_id (e.g., "job-20251031-134906" -> "2025-10-31T13:49:06")
-            # This is a reverse operation of _generate_run_id
             if run_id.startswith("job-"):
-                timestamp_part = run_id[4:]  # Remove "job-" prefix
-                # Try to find matching MS
+                timestamp_part = run_id[4:]
                 cursor = conn.execute(
                     "SELECT * FROM ms_index WHERE path LIKE ? LIMIT 1",
-                    (f"%{timestamp_part[:10]}%",)  # Match date part
+                    (f"%{timestamp_part[:10]}%",)
                 )
                 row = cursor.fetchone()
                 
                 if row:
-                    # Get associated image
                     img_cursor = conn.execute(
-                        "SELECT id FROM images WHERE ms_path = ? ORDER BY created_at DESC LIMIT 1",
+                        "SELECT id, path FROM images WHERE ms_path = ? ORDER BY created_at DESC LIMIT 1",
                         (row["path"],)
                     )
                     img_row = img_cursor.fetchone()
                     
-                    # Get calibration table
                     cal_table = None
                     if os.path.exists(CAL_REGISTRY_DB_PATH):
                         try:
@@ -618,6 +737,37 @@ class JobRepository:
                         output_image_id=img_row["id"] if img_row else None,
                         started_at=datetime.fromtimestamp(row["processed_at"]) if safe_row_get(row, "processed_at") else None,
                     )
+
+                    job_cursor = conn.execute(
+                        "SELECT * FROM jobs WHERE run_id = ? ORDER BY created_at DESC LIMIT 1",
+                        (run_id,)
+                    )
+                    job_row = job_cursor.fetchone()
+                    if job_row:
+                        record.queue_status = job_row["status"]
+                        record.job_id = job_row["id"]
+                        params = {}
+                        try:
+                            params = json.loads(job_row["params"]) if job_row["params"] else {}
+                        except json.JSONDecodeError:
+                            params = {}
+                        record.config = params.get("config") or params
+
+                    flags = []
+                    ms_meta = MSRepository(self.db_path).get_metadata(row["path"])
+                    if ms_meta and ms_meta.qa_flags:
+                        flags.extend(ms_meta.qa_flags)
+
+                    image_record = None
+                    if img_row:
+                        image_record = ImageRepository(self.db_path).get_by_id(str(img_row["id"]))
+                    if not image_record and record.input_ms_path:
+                        image_record = ImageRepository(self.db_path).get_by_id(record.input_ms_path)
+                    if image_record and image_record.qa_flags:
+                        flags.extend(image_record.qa_flags)
+
+                    record.qa_flags = flags or None
+
                     return record
             
             return None
@@ -707,4 +857,3 @@ class JobRepository:
             timestamp_part = basename.split("T")[0] + "-" + basename.split("T")[1].replace(":", "").split(".")[0]
             return f"job-{timestamp_part}"
         return f"job-{basename}"
-

@@ -37,6 +37,8 @@ class JobService:
     
     def get_job_status(self, job: "JobRecord") -> str:
         """Determine job status from record."""
+        if getattr(job, "queue_status", None):
+            return job.queue_status
         if job.qa_grade:
             return "completed"
         return "pending"

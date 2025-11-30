@@ -22,8 +22,12 @@ Environment Variables:
 
 from __future__ import annotations
 
+import json
 import logging
 import os
+import shlex
+import subprocess
+import time
 import uuid
 from dataclasses import dataclass, asdict
 from datetime import datetime
@@ -35,6 +39,14 @@ logger = logging.getLogger(__name__)
 # Configuration
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 QUEUE_NAME = os.getenv("DSA110_QUEUE_NAME", "dsa110-pipeline")
+PIPELINE_CMD_TEMPLATE = os.getenv("DSA110_PIPELINE_RUN_CMD", "")
+
+from .repositories import JobRepository, get_db_connection
+from dsa110_contimg.database.jobs import (
+    ensure_jobs_table,
+    create_job as db_create_job,
+    update_job_status as db_update_job_status,
+)
 
 # RQ imports (optional - graceful degradation if not available)
 try:

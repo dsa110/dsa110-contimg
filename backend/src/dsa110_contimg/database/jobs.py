@@ -17,6 +17,7 @@ def ensure_jobs_table(conn: sqlite3.Connection) -> None:
             type TEXT NOT NULL,
             status TEXT NOT NULL DEFAULT 'pending',
             ms_path TEXT NOT NULL,
+            run_id TEXT,
             params TEXT,
             logs TEXT,
             artifacts TEXT,
@@ -28,20 +29,32 @@ def ensure_jobs_table(conn: sqlite3.Connection) -> None:
     )
     conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_status ON jobs(status)")
     conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_created ON jobs(created_at DESC)")
+    # Ensure run_id column exists for status tracking
+    cursor = conn.execute("PRAGMA table_info(jobs)")
+    columns = {row[1] for row in cursor.fetchall()}
+    if "run_id" not in columns:
+        try:
+            conn.execute("ALTER TABLE jobs ADD COLUMN run_id TEXT")
+        except sqlite3.OperationalError:
+            pass
     conn.commit()
 
 
 def create_job(
-    conn: sqlite3.Connection, job_type: str, ms_path: str, params: Dict[str, Any]
+    conn: sqlite3.Connection,
+    job_type: str,
+    ms_path: str,
+    params: Dict[str, Any],
+    run_id: Optional[str] = None,
 ) -> int:
     """Create a new job and return its ID."""
     ensure_jobs_table(conn)
     cursor = conn.execute(
         """
-        INSERT INTO jobs (type, status, ms_path, params, created_at, logs, artifacts)
-        VALUES (?, 'pending', ?, ?, ?, '', '[]')
+        INSERT INTO jobs (type, status, ms_path, run_id, params, created_at, logs, artifacts)
+        VALUES (?, 'pending', ?, ?, ?, ?, '', '[]')
         """,
-        (job_type, ms_path, json.dumps(params), time.time()),
+        (job_type, ms_path, run_id, json.dumps(params), time.time()),
     )
     conn.commit()
     return cursor.lastrowid

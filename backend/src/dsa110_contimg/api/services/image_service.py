@@ -72,7 +72,7 @@ class ImageService:
                 "n_sources": getattr(image, 'n_sources', None),
                 "peak_flux_jy": getattr(image, 'peak_flux_jy', None),
             },
-            "flags": [],
+            "flags": image.qa_flags or [],
             "warnings": warnings,
         }
     
