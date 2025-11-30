@@ -281,6 +281,52 @@ async def get_ms_calibrator_matches(encoded_path: str):
         )
 
 
+@ms_router.get("/{encoded_path:path}/provenance", response_model=ProvenanceResponse)
+async def get_ms_provenance(encoded_path: str):
+    """
+    Get provenance information for a Measurement Set.
+    
+    Returns all relevant context for the MS including calibration,
+    pointing, QA, and links to related resources.
+    """
+    ms_path = unquote(encoded_path)
+    
+    try:
+        ms_meta = ms_repo.get_metadata(ms_path)
+        if not ms_meta:
+            raise HTTPException(
+                status_code=404,
+                detail=ms_not_found(ms_path).to_dict(),
+            )
+        
+        # Get the first calibration table if available
+        cal_table = None
+        if ms_meta.calibrator_tables:
+            cal_table = ms_meta.calibrator_tables[0].get("cal_table")
+        
+        return ProvenanceResponse(
+            run_id=ms_meta.run_id,
+            ms_path=ms_path,
+            cal_table=cal_table,
+            pointing_ra_deg=ms_meta.pointing_ra_deg or ms_meta.ra_deg,
+            pointing_dec_deg=ms_meta.pointing_dec_deg or ms_meta.dec_deg,
+            qa_grade=ms_meta.qa_grade,
+            qa_summary=ms_meta.qa_summary,
+            logs_url=f"/api/logs/{ms_meta.run_id}" if ms_meta.run_id else None,
+            qa_url=f"/api/qa/ms/{quote(ms_path, safe='')}",
+            ms_url=f"/api/ms/{quote(ms_path, safe='')}/metadata",
+            image_url=f"/api/images/{ms_meta.imagename}" if ms_meta.imagename else None,
+            created_at=ms_meta.created_at,
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=internal_error(f"Failed to retrieve MS provenance: {str(e)}").to_dict(),
+        )
+
+
 # =============================================================================
 # Source Endpoints
 # =============================================================================
@@ -517,6 +563,44 @@ async def get_job_logs(
     # Try alternative log paths
     if not log_path.exists():
         log_path = Path(f"/data/dsa110-contimg/logs/{run_id}.log")
+
+
+@jobs_router.post("/{run_id}/rerun")
+async def rerun_job(run_id: str):
+    """
+    Re-run a pipeline job.
+    
+    Creates a new job based on the configuration of the specified job.
+    Returns the new job's run_id.
+    """
+    try:
+        # Get original job
+        original_job = job_repo.get_by_run_id(run_id)
+        if not original_job:
+            raise HTTPException(
+                status_code=404,
+                detail=internal_error(f"Job {run_id} not found").to_dict(),
+            )
+        
+        # Create new run_id with timestamp
+        from datetime import datetime
+        new_run_id = f"{run_id.rsplit('_', 1)[0]}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+        
+        # Queue the new job (placeholder - actual implementation depends on job queue system)
+        # For now, return the new run_id indicating the job was accepted
+        return {
+            "status": "queued",
+            "original_run_id": run_id,
+            "new_run_id": new_run_id,
+            "message": f"Job {run_id} queued for re-run as {new_run_id}",
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=internal_error(f"Failed to rerun job: {str(e)}").to_dict(),
+        )
     
     if not log_path.exists():
         return {

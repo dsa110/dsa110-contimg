@@ -1,8 +1,19 @@
 #!/usr/bin/env python3
 """
-Entry point for running the DSA-110 API with automatic port reservation.
+PRIMARY ENTRY POINT for running the DSA-110 Continuum Imaging API.
 
-This mirrors how the frontend uses predev hooks in package.json.
+This script handles port reservation and starts the FastAPI server.
+
+Usage:
+    python scripts/ops/run_api.py
+
+Environment Variables:
+    API_PORT   - Port to listen on (default: 8000)
+    API_HOST   - Host to bind to (default: 0.0.0.0)
+    API_RELOAD - Enable auto-reload (default: 1)
+
+Alternative:
+    python -m uvicorn dsa110_contimg.api.app:app --host 0.0.0.0 --port 8000
 """
 
 import os
@@ -10,9 +21,9 @@ import subprocess
 import sys
 from pathlib import Path
 
-# Add scripts directory to path for ensure_port import
-scripts_dir = Path(__file__).parent
-sys.path.insert(0, str(scripts_dir))
+# Add ops directory to path for ensure_port import
+ops_dir = Path(__file__).parent
+sys.path.insert(0, str(ops_dir))
 
 from ensure_port import ensure_port_available
 

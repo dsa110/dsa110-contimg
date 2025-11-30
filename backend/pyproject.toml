@@ -47,4 +47,4 @@ filterwarnings = [
 
 [tool.poetry.scripts]
 dsa110-cli = "dsa110_contimg.conversion.cli:main"
-run-api = "scripts.run_api:main"
+run-api = "scripts.ops.run_api:main"
