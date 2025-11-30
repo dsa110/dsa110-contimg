@@ -7,11 +7,11 @@ from __future__ import annotations
 from typing import Optional
 from urllib.parse import unquote
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 
-from ..dependencies import get_source_service, get_source_repository, get_image_repository
+from ..dependencies import get_source_service, get_image_repository
 from ..exceptions import RecordNotFoundError, ValidationError
-from ..repositories import SourceRepository, ImageRepository
+from ..repositories import ImageRepository
 from ..schemas import SourceDetailResponse, SourceListResponse, ContributingImage
 from ..services.source_service import SourceService
 
