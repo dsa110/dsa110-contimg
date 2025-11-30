@@ -77,6 +77,7 @@ from .routes import (
     cache_router,
 )
 from .rate_limit import limiter, rate_limit_exceeded_handler
+from .websocket import ws_router
 from slowapi.errors import RateLimitExceeded
 
 
@@ -111,6 +112,20 @@ def create_app() -> FastAPI:
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
+    )
+    
+    # Add security headers middleware
+    from .security import SecurityHeadersMiddleware, CachingHeadersMiddleware
+    is_production = os.getenv("DSA110_ENV", "development").lower() == "production"
+    app.add_middleware(
+        SecurityHeadersMiddleware,
+        enable_hsts=is_production,
+        enable_csp=True,
+    )
+    app.add_middleware(
+        CachingHeadersMiddleware,
+        default_max_age=0,
+        private=True,
     )
     
     # Configure rate limiting
@@ -148,6 +163,9 @@ def create_app() -> FastAPI:
     app.include_router(stats_router, prefix=legacy_prefix, include_in_schema=False)
     app.include_router(cache_router, prefix=legacy_prefix, include_in_schema=False)
     app.include_router(services_router, prefix=legacy_prefix, include_in_schema=False)
+    
+    # WebSocket routes for real-time updates
+    app.include_router(ws_router, prefix="/api/v1", tags=["WebSocket"])
     
     # Register exception handlers
     @app.exception_handler(ValidationError)
