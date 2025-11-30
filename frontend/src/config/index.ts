@@ -65,7 +65,7 @@ export const FEATURES = {
   enableVerboseLogging: import.meta.env.DEV,
 
   /** Enable Storybook integration */
-  enableStorybook: false, // TODO: Enable when Storybook stories are implemented
+  enableStorybook: true,
 } as const;
 
 /**
