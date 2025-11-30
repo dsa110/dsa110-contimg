@@ -4,11 +4,7 @@ Job routes.
 
 from __future__ import annotations
 
-from datetime import datetime
-from pathlib import Path
-from urllib.parse import quote
-
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 
 from ..auth import require_write_access, AuthContext
 from ..dependencies import get_job_service

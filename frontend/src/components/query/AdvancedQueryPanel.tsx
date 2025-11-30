@@ -248,12 +248,12 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
   }, [parseUrlHash, disableUrlSync]);
 
   // Sync with initialParams when they change (for controlled mode)
-  // Use individual values as deps to avoid object reference issues
+  // Extract primitive values to avoid object reference issues in deps
   const initRa = initialParams?.ra;
   const initDec = initialParams?.dec;
   const initRadius = initialParams?.radius;
-  const initMinFlux = initialParams?.minFlux;
-  const initMaxFlux = initialParams?.maxFlux;
+  const initMinFluxMin = initialParams?.minFlux?.min;
+  const initMaxFluxMax = initialParams?.maxFlux?.max;
 
   useEffect(() => {
     // Only sync if we have values to sync
@@ -272,12 +272,12 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
       updates.radius = initRadius;
       hasUpdates = true;
     }
-    if (initMinFlux !== undefined) {
-      updates.minFlux = initMinFlux;
+    if (initMinFluxMin !== undefined && initMinFluxMin !== params.minFlux?.min) {
+      updates.minFlux = { min: initMinFluxMin, type: "peak" };
       hasUpdates = true;
     }
-    if (initMaxFlux !== undefined) {
-      updates.maxFlux = initMaxFlux;
+    if (initMaxFluxMax !== undefined && initMaxFluxMax !== params.maxFlux?.max) {
+      updates.maxFlux = { max: initMaxFluxMax, type: "peak" };
       hasUpdates = true;
     }
 
@@ -293,7 +293,7 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
       setDecInput(initDec?.toString() ?? "");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initRa, initDec, initRadius, initMinFlux, initMaxFlux]);
+  }, [initRa, initDec, initRadius, initMinFluxMin, initMaxFluxMax]);
 
   // Debounced URL sync when params change (only if URL sync is enabled)
   useEffect(() => {

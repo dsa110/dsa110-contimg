@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from urllib.parse import unquote
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 
 from ..dependencies import (
     get_image_service,

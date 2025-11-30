@@ -4,22 +4,14 @@ Image routes.
 
 from __future__ import annotations
 
-import os
-from datetime import datetime
-from pathlib import Path
-from typing import Optional
-from urllib.parse import quote
-
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import FileResponse
 
-from ..dependencies import get_image_service, get_image_repository
+from ..dependencies import get_image_service
 from ..exceptions import (
     RecordNotFoundError,
     FileNotAccessibleError,
-    DatabaseError,
 )
-from ..repositories import ImageRepository
 from ..schemas import ImageDetailResponse, ImageListResponse, ProvenanceResponse
 from ..services.image_service import ImageService
 

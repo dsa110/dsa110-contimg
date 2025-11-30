@@ -4,10 +4,9 @@ Measurement Set routes.
 
 from __future__ import annotations
 
-from datetime import datetime
-from urllib.parse import unquote, quote
+from urllib.parse import unquote
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 
 from ..dependencies import get_ms_service
 from ..exceptions import RecordNotFoundError
