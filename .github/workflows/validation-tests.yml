@@ -2,9 +2,9 @@ name: DSA-110 Pipeline Validation Tests
 
 on:
   push:
-    branches: [main, dev]
+    branches: [master, master-dev]
   pull_request:
-    branches: [main, dev]
+    branches: [master, master-dev]
   schedule:
     # Run tests daily at 02:00 UTC
     - cron: "0 2 * * *"

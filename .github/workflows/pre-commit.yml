@@ -15,8 +15,8 @@ on:
       - ".husky/**"
   push:
     branches:
-      - main
-      - develop
+      - master
+      - master-dev
     paths:
       - "**/*.py"
       - "**/*.js"

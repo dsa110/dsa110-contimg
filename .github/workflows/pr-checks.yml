@@ -17,8 +17,8 @@ on:
       - ".github/workflows/**"
   push:
     branches:
-      - main
-      - develop
+      - master
+      - master-dev
     paths:
       - "**/*.py"
       - "**/*.js"
