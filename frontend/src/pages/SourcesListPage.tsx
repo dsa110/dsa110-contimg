@@ -254,6 +254,7 @@ const SourcesListPage: React.FC = () => {
           onSubmit={handleQuerySubmit}
           onReset={clearFilters}
           initialParams={queryPanelInitialParams}
+          disableUrlSync
         />
       </div>
 

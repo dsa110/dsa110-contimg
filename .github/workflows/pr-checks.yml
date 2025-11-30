@@ -52,7 +52,7 @@ jobs:
         working-directory: ./backend
         run: |
           conda activate casa6
-          pip install -e .
+          pip install -e ".[dev]"
 
       - name: Run linting (flake8)
         run: |
@@ -161,7 +161,7 @@ jobs:
         working-directory: ./backend
         run: |
           conda activate casa6
-          pip install -e .
+          pip install -e ".[dev]"
 
       - name: Run integration tests
         env:

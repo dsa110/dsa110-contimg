@@ -22,6 +22,12 @@ from .exceptions import (
     DatabaseQueryError,
     RecordNotFoundError,
 )
+from .interfaces import (
+    ImageRepositoryInterface,
+    MSRepositoryInterface,
+    SourceRepositoryInterface,
+    JobRepositoryInterface,
+)
 from .repositories import (
     ImageRecord,
     MSRecord,
@@ -118,8 +124,11 @@ async def get_async_connection(
 # Async Image Repository
 # =============================================================================
 
-class AsyncImageRepository:
-    """Async repository for querying image data."""
+class AsyncImageRepository(ImageRepositoryInterface):
+    """Async repository for querying image data.
+    
+    Implements ImageRepositoryInterface with aiosqlite.
+    """
     
     def __init__(self, db_path: str = DEFAULT_DB_PATH):
         self.db_path = db_path

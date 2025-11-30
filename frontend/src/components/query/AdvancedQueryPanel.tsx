@@ -56,6 +56,8 @@ export interface AdvancedQueryPanelProps {
   onReset?: () => void;
   /** Initial query params (e.g., from URL) */
   initialParams?: Partial<SourceQueryParams>;
+  /** Disable internal URL hash syncing (use when parent manages URL state) */
+  disableUrlSync?: boolean;
   /** Custom class name */
   className?: string;
 }
@@ -77,6 +79,7 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
   onSubmit,
   onReset,
   initialParams,
+  disableUrlSync = false,
   className = "",
 }) => {
   const [params, setParams] = useState<SourceQueryParams>({
@@ -235,16 +238,71 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
     return errors;
   }, []);
 
-  // Load from URL hash on mount
+  // Load from URL hash on mount (only if URL sync is enabled)
   useEffect(() => {
+    if (disableUrlSync) return;
     const urlParams = parseUrlHash();
     if (Object.keys(urlParams).length > 0) {
       setParams((prev) => ({ ...prev, ...urlParams }));
     }
-  }, [parseUrlHash]);
+  }, [parseUrlHash, disableUrlSync]);
 
-  // Debounced URL sync when params change
+  // Sync with initialParams when they change (for controlled mode)
+  // Use individual values as deps to avoid object reference issues
+  const initRa = initialParams?.ra;
+  const initDec = initialParams?.dec;
+  const initRadius = initialParams?.radius;
+  const initMinFlux = initialParams?.minFlux;
+  const initMaxFlux = initialParams?.maxFlux;
+
   useEffect(() => {
+    // Only sync if we have values to sync
+    const updates: Partial<SourceQueryParams> = {};
+    let hasUpdates = false;
+
+    if (initRa !== undefined && initRa !== params.ra) {
+      updates.ra = initRa;
+      hasUpdates = true;
+    }
+    if (initDec !== undefined && initDec !== params.dec) {
+      updates.dec = initDec;
+      hasUpdates = true;
+    }
+    if (initRadius !== undefined && initRadius !== params.radius) {
+      updates.radius = initRadius;
+      hasUpdates = true;
+    }
+    if (initMinFlux !== undefined) {
+      updates.minFlux = initMinFlux;
+      hasUpdates = true;
+    }
+    if (initMaxFlux !== undefined) {
+      updates.maxFlux = initMaxFlux;
+      hasUpdates = true;
+    }
+
+    if (hasUpdates) {
+      setParams((prev) => ({ ...prev, ...updates }));
+    }
+
+    // Sync input fields
+    if (initRa !== undefined) {
+      setRaInput(initRa?.toString() ?? "");
+    }
+    if (initDec !== undefined) {
+      setDecInput(initDec?.toString() ?? "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initRa, initDec, initRadius, initMinFlux, initMaxFlux]);
+
+  // Debounced URL sync when params change (only if URL sync is enabled)
+  useEffect(() => {
+    if (disableUrlSync) {
+      // Still validate even without URL sync
+      setValidationErrors(validateParams(params));
+      return;
+    }
+
     if (debounceTimeoutRef.current) {
       window.clearTimeout(debounceTimeoutRef.current);
     }
@@ -258,7 +316,7 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
         window.clearTimeout(debounceTimeoutRef.current);
       }
     };
-  }, [params, writeUrlHash, validateParams]);
+  }, [params, writeUrlHash, validateParams, disableUrlSync]);
 
   const toggleSection = useCallback((section: string) => {
     setExpandedSections((prev) => {
