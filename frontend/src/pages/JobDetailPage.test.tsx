@@ -8,6 +8,12 @@ import JobDetailPage from "./JobDetailPage";
 // Mock the hooks
 vi.mock("../hooks/useQueries", () => ({
   useJobProvenance: vi.fn(),
+  useRerunJob: vi.fn(() => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+    isError: false,
+    isSuccess: false,
+  })),
 }));
 
 vi.mock("../stores/appStore", () => ({
