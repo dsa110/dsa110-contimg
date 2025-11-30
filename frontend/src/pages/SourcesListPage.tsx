@@ -152,6 +152,20 @@ const SourcesListPage: React.FC = () => {
     [setFilters]
   );
 
+  // Adapter: Convert URL state to AdvancedQueryPanel initialParams format
+  const queryPanelInitialParams: Partial<SourceQueryParams> = useMemo(
+    () => ({
+      ra: filters.ra,
+      dec: filters.dec,
+      radius: filters.radius,
+      minFlux:
+        filters.minFlux !== undefined ? { min: filters.minFlux, type: "peak" as const } : undefined,
+      maxFlux:
+        filters.maxFlux !== undefined ? { max: filters.maxFlux, type: "peak" as const } : undefined,
+    }),
+    [filters.ra, filters.dec, filters.radius, filters.minFlux, filters.maxFlux]
+  );
+
   const { sortColumn, sortDirection, handleSort, sortedData } = useTableSort<SourceSummary>(
     filteredSources,
     "id",
@@ -236,7 +250,11 @@ const SourcesListPage: React.FC = () => {
 
       {/* Advanced Query Panel */}
       <div className="mb-6">
-        <AdvancedQueryPanel onSubmit={handleQuerySubmit} onReset={clearFilters} />
+        <AdvancedQueryPanel
+          onSubmit={handleQuerySubmit}
+          onReset={clearFilters}
+          initialParams={queryPanelInitialParams}
+        />
       </div>
 
       {/* Advanced Filter Panel (collapsible) */}

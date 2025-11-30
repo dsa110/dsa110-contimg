@@ -45,7 +45,7 @@ jobs:
 
       - name: Create casa6 conda environment
         run: |
-          conda env create -f ops/env/environment.yml
+          conda env create -f ops/docker/environment.yml
           conda activate casa6
 
       - name: Install dependencies
@@ -154,7 +154,7 @@ jobs:
 
       - name: Create casa6 conda environment
         run: |
-          conda env create -f ops/env/environment.yml
+          conda env create -f ops/docker/environment.yml
           conda activate casa6
 
       - name: Install dependencies

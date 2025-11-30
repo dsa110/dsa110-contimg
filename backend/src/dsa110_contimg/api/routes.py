@@ -1,11 +1,24 @@
 """
 FastAPI routes for the DSA-110 Continuum Imaging Pipeline API.
 
+.. deprecated::
+    This module is deprecated. Use the modular routes from the `routes/` package instead.
+    This file is kept for reference during migration and will be removed in a future release.
+
 This module defines the REST API endpoints for images, measurement sets,
 sources, and job provenance. All endpoints use standardized error responses.
 """
 
 from __future__ import annotations
+
+import warnings
+
+warnings.warn(
+    "dsa110_contimg.api.routes module is deprecated. "
+    "Use dsa110_contimg.api.routes.* submodules instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 import os
 from datetime import datetime

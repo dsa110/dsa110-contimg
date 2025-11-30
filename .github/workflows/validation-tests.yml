@@ -103,7 +103,7 @@ jobs:
           channels: conda-forge
           channel-priority: strict
           activate-environment: casa6
-          environment-file: ops/env/environment.yml
+          environment-file: ops/docker/environment.yml
 
       - name: Activate environment and verify installation
         shell: bash -l {0}
@@ -137,7 +137,7 @@ jobs:
           channels: conda-forge
           channel-priority: strict
           activate-environment: casa6
-          environment-file: ops/env/environment.yml
+          environment-file: ops/docker/environment.yml
 
       - name: Generate synthetic test data
         shell: bash -l {0}
@@ -212,7 +212,7 @@ jobs:
           channels: conda-forge
           channel-priority: strict
           activate-environment: casa6
-          environment-file: ops/env/environment.yml
+          environment-file: ops/docker/environment.yml
 
       - name: Run performance benchmarks
         shell: bash -l {0}
