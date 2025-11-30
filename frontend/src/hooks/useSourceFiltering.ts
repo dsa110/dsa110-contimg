@@ -75,7 +75,7 @@ function angularDistance(ra1: number, dec1: number, ra2: number, dec2: number): 
  */
 export function useSourceFiltering(
   sources: SourceSummary[] | undefined,
-  options: SourceFilterOptions
+  options: SourceFilterOptions = {}
 ) {
   const { ra, dec, radius, minFlux, maxFlux, name, minImages, variableOnly } = options;
 

@@ -18,7 +18,7 @@ echo ""
 
 # Check for duplicate Vite instances
 vite_ports=""
-for port in 5173 5174 5175 5176 5177 5178 5179; do
+for port in 3000 3210; do
     pid=$(lsof -ti :$port 2>/dev/null | head -1)
     if [ -n "$pid" ]; then
         cmd=$(ps -p "$pid" -o cmd --no-headers 2>/dev/null | grep -i vite || true)
@@ -34,7 +34,7 @@ if [ "$vite_count" -gt 1 ]; then
     echo -e "${YELLOW}Found $vite_count Vite instances${NC}"
     echo ""
     
-    # Keep port 5173 (primary), kill others
+    # Keep port 3000 (primary), kill others
     primary_port=3000
     duplicates=""
     
@@ -94,7 +94,7 @@ if [ "$vite_count" -gt 1 ]; then
                         # Check if this npm is parent of a duplicate Vite
                         child_vite=$(pgrep -P "$npm_pid" -f vite 2>/dev/null | head -1 || true)
                         if [ -n "$child_vite" ]; then
-                            vite_port=$(lsof -ti -a -p "$child_vite" -i :5173-5179 2>/dev/null | head -1 || true)
+                            vite_port=$(lsof -ti -a -p "$child_vite" -i :3000 2>/dev/null | head -1 || true)
                             if [ -n "$vite_port" ] && [ "$vite_port" != "3000" ]; then
                                 echo "  Killing npm process PID $npm_pid (parent of duplicate on port $vite_port)..."
                                 kill "$npm_pid" 2>/dev/null || sudo kill "$npm_pid" 2>/dev/null || true

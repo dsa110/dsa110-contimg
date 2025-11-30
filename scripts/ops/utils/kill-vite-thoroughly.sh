@@ -99,7 +99,7 @@ echo ""
 echo -e "${YELLOW}Step 1: Finding all Vite processes...${NC}"
 vite_pids=""
 vite_ports=""
-for port in 5173 5174 5175 5176 5177 5178 5179; do
+for port in 3000 3210; do
     pid=$(lsof -ti :$port 2>/dev/null | head -1)
     if [ -n "$pid" ]; then
         cmd=$(ps -p "$pid" -o cmd --no-headers 2>/dev/null | grep -i vite || true)
@@ -263,7 +263,7 @@ echo ""
 # Step 7: Verify cleanup
 echo -e "${BLUE}Step 7: Verifying cleanup...${NC}"
 remaining=""
-for port in 5173 5174 5175 5176 5177 5178 5179; do
+for port in 3000 3210; do
     pid=$(lsof -ti :$port 2>/dev/null | head -1)
     if [ -n "$pid" ]; then
         cmd=$(ps -p "$pid" -o cmd --no-headers 2>/dev/null | grep -i vite || true)

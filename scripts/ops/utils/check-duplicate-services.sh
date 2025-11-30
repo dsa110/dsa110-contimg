@@ -19,7 +19,7 @@ echo ""
 # Check for duplicate Vite instances
 # Check by port usage - find all processes listening on Vite ports
 vite_ports=""
-for port in 5173 5174 5175 5176 5177 5178 5179; do
+for port in 3000 3210; do
     pid=$(lsof -ti :$port 2>/dev/null | head -1)
     if [ -n "$pid" ]; then
         # Check if this PID is actually a Vite process
@@ -45,7 +45,7 @@ if [ "$vite_count" -gt 1 ]; then
     done
     echo ""
     echo "Recommendation: Keep only one Vite instance (preferably on port 3000)"
-    echo "  To kill duplicates: pkill -f 'vite.*517[4-9]'"
+    echo "  To kill duplicates: pkill -f 'vite'"
 else
     echo -e "${GREEN}:check: No duplicate Vite instances${NC}"
 fi
