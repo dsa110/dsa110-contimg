@@ -361,11 +361,12 @@ class ImageRepository:
     def _find_cal_table(self, ms_path: str) -> Optional[str]:
         """Find calibration table for MS."""
         # Check if cal_registry database exists
-        if not os.path.exists(CAL_REGISTRY_DB_PATH):
+        cal_registry_path = _get_cal_registry_path()
+        if not os.path.exists(cal_registry_path):
             return None
         
         try:
-            cal_conn = get_db_connection(CAL_REGISTRY_DB_PATH)
+            cal_conn = get_db_connection(cal_registry_path)
             cursor = cal_conn.execute(
                 "SELECT path FROM caltables WHERE source_ms_path = ? ORDER BY created_at DESC LIMIT 1",
                 (ms_path,)
@@ -524,11 +525,12 @@ class MSRepository:
     
     def _get_calibrator_matches(self, ms_path: str) -> List[dict]:
         """Get calibration tables for MS."""
-        if not os.path.exists(CAL_REGISTRY_DB_PATH):
+        cal_registry_path = _get_cal_registry_path()
+        if not os.path.exists(cal_registry_path):
             return []
         
         try:
-            cal_conn = get_db_connection(CAL_REGISTRY_DB_PATH)
+            cal_conn = get_db_connection(cal_registry_path)
             cursor = cal_conn.execute(
                 "SELECT path, table_type FROM caltables WHERE source_ms_path = ? ORDER BY order_index",
                 (ms_path,)

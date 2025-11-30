@@ -34,13 +34,9 @@ from .repositories import (
     SourceRecord,
     JobRecord,
     safe_row_get,
+    _get_default_db_path,
+    _get_cal_registry_path,
 )
-
-
-# Get database paths from configuration
-_config = get_config()
-DEFAULT_DB_PATH = str(_config.database.products_path)
-CAL_REGISTRY_DB_PATH = str(_config.database.cal_registry_path)
 
 
 # =============================================================================
