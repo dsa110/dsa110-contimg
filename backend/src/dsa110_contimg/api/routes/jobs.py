@@ -7,10 +7,10 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, Query
 
 from ..auth import require_write_access, AuthContext
-from ..dependencies import get_job_service
+from ..dependencies import get_async_job_service
 from ..exceptions import RecordNotFoundError
 from ..schemas import JobListResponse, ProvenanceResponse
-from ..services.job_service import JobService
+from ..services.async_services import AsyncJobService
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
@@ -19,12 +19,12 @@ router = APIRouter(prefix="/jobs", tags=["jobs"])
 async def list_jobs(
     limit: int = Query(100, le=1000, description="Maximum number of results"),
     offset: int = Query(0, ge=0, description="Offset for pagination"),
-    service: JobService = Depends(get_job_service),
+    service: AsyncJobService = Depends(get_async_job_service),
 ):
     """
     List all pipeline jobs with summary info.
     """
-    jobs = service.list_jobs(limit=limit, offset=offset)
+    jobs = await service.list_jobs(limit=limit, offset=offset)
     return [
         JobListResponse(
             run_id=job.run_id,
@@ -38,7 +38,7 @@ async def list_jobs(
 @router.get("/{run_id}")
 async def get_job_detail(
     run_id: str,
-    service: JobService = Depends(get_job_service),
+    service: AsyncJobService = Depends(get_async_job_service),
 ):
     """
     Get detailed information about a pipeline job.
@@ -46,7 +46,7 @@ async def get_job_detail(
     Raises:
         RecordNotFoundError: If job is not found
     """
-    job = service.get_job(run_id)
+    job = await service.get_job(run_id)
     if not job:
         raise RecordNotFoundError("Job", run_id)
     
@@ -66,7 +66,7 @@ async def get_job_detail(
 @router.get("/{run_id}/provenance", response_model=ProvenanceResponse)
 async def get_job_provenance(
     run_id: str,
-    service: JobService = Depends(get_job_service),
+    service: AsyncJobService = Depends(get_async_job_service),
 ):
     """
     Get provenance information for a pipeline job.
@@ -74,7 +74,7 @@ async def get_job_provenance(
     Raises:
         RecordNotFoundError: If job is not found
     """
-    job = service.get_job(run_id)
+    job = await service.get_job(run_id)
     if not job:
         raise RecordNotFoundError("Job", run_id)
     
@@ -100,7 +100,7 @@ async def get_job_provenance(
 async def get_job_logs(
     run_id: str,
     tail: int = Query(100, description="Number of lines from end"),
-    service: JobService = Depends(get_job_service),
+    service: AsyncJobService = Depends(get_async_job_service),
 ):
     """Get logs for a pipeline job."""
     return service.read_log_tail(run_id, tail)
@@ -110,7 +110,7 @@ async def get_job_logs(
 async def rerun_job(
     run_id: str,
     auth: AuthContext = Depends(require_write_access),
-    service: JobService = Depends(get_job_service),
+    service: AsyncJobService = Depends(get_async_job_service),
 ):
     """
     Re-run a pipeline job.
@@ -122,7 +122,7 @@ async def rerun_job(
     """
     from ..job_queue import job_queue, rerun_pipeline_job
     
-    original_job = service.get_job(run_id)
+    original_job = await service.get_job(run_id)
     if not original_job:
         raise RecordNotFoundError("Job", run_id)
     

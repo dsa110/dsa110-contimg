@@ -4,14 +4,14 @@ import { fn } from "@storybook/test";
 
 /**
  * FitsViewerGrid displays multiple FITS images in a synchronized grid layout.
- * 
+ *
  * Features:
  * - Multiple column layouts (1-4 columns)
  * - Synchronized pan and zoom across viewers
  * - Individual panel labels
  * - Coordinate click handling
  * - Adjustable viewer size
- * 
+ *
  * Note: This component requires actual FITS files. The stories use placeholder URLs.
  */
 const meta = {

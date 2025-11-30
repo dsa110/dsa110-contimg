@@ -8,10 +8,10 @@ from urllib.parse import unquote
 
 from fastapi import APIRouter, Depends
 
-from ..dependencies import get_ms_service
+from ..dependencies import get_async_ms_service
 from ..exceptions import RecordNotFoundError
 from ..schemas import MSDetailResponse, ProvenanceResponse
-from ..services.ms_service import MSService
+from ..services.async_services import AsyncMSService
 
 router = APIRouter(prefix="/ms", tags=["measurement-sets"])
 
@@ -19,7 +19,7 @@ router = APIRouter(prefix="/ms", tags=["measurement-sets"])
 @router.get("/{encoded_path:path}/metadata", response_model=MSDetailResponse)
 async def get_ms_metadata(
     encoded_path: str,
-    service: MSService = Depends(get_ms_service),
+    service: AsyncMSService = Depends(get_async_ms_service),
 ):
     """
     Get metadata for a Measurement Set.
@@ -31,7 +31,7 @@ async def get_ms_metadata(
     """
     ms_path = unquote(encoded_path)
     
-    ms_meta = service.get_metadata(ms_path)
+    ms_meta = await service.get_ms_metadata(ms_path)
     if not ms_meta:
         raise RecordNotFoundError("MeasurementSet", ms_path)
     
@@ -52,7 +52,7 @@ async def get_ms_metadata(
 @router.get("/{encoded_path:path}/calibrator-matches")
 async def get_ms_calibrator_matches(
     encoded_path: str,
-    service: MSService = Depends(get_ms_service),
+    service: AsyncMSService = Depends(get_async_ms_service),
 ):
     """
     Get calibrator matches for a Measurement Set.
@@ -62,7 +62,7 @@ async def get_ms_calibrator_matches(
     """
     ms_path = unquote(encoded_path)
     
-    ms_meta = service.get_metadata(ms_path)
+    ms_meta = await service.get_ms_metadata(ms_path)
     if not ms_meta:
         raise RecordNotFoundError("MeasurementSet", ms_path)
     
@@ -75,7 +75,7 @@ async def get_ms_calibrator_matches(
 @router.get("/{encoded_path:path}/provenance", response_model=ProvenanceResponse)
 async def get_ms_provenance(
     encoded_path: str,
-    service: MSService = Depends(get_ms_service),
+    service: AsyncMSService = Depends(get_async_ms_service),
 ):
     """
     Get provenance information for a Measurement Set.
@@ -85,7 +85,7 @@ async def get_ms_provenance(
     """
     ms_path = unquote(encoded_path)
     
-    ms_meta = service.get_metadata(ms_path)
+    ms_meta = await service.get_ms_metadata(ms_path)
     if not ms_meta:
         raise RecordNotFoundError("MeasurementSet", ms_path)
     

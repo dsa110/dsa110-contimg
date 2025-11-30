@@ -42,15 +42,16 @@ class TestVariabilityEndpoint:
 
     def test_variability_response_structure(self, client):
         """Test variability response has expected structure when source exists."""
-        # Mock the source service dependency
-        with patch("dsa110_contimg.api.routes.sources.get_source_service") as mock_get_service:
+        # Mock the async source service dependency
+        with patch("dsa110_contimg.api.routes.sources.get_async_source_service") as mock_get_service:
             mock_service = MagicMock()
-            mock_service.get_source.return_value = MagicMock(id="src-1")
-            mock_service.get_lightcurve.return_value = []
-            mock_service.calculate_variability.return_value = {
+            # Make the async methods return awaitable values
+            mock_service.get_source = MagicMock(return_value=MagicMock(id="src-1"))
+            mock_service.get_lightcurve = MagicMock(return_value=[])
+            mock_service.calculate_variability = MagicMock(return_value={
                 "source_id": "src-1",
                 "n_epochs": 0,
-            }
+            })
             mock_get_service.return_value = mock_service
             
             response = client.get("/api/v1/sources/src-1/variability")
