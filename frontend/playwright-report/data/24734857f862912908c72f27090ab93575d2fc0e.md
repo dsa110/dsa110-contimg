@@ -1,0 +1,174 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - link "DSA-110 Pipeline" [ref=e5] [cursor=pointer]:
+        - /url: /
+      - navigation [ref=e6]:
+        - link "Home" [ref=e7] [cursor=pointer]:
+          - /url: /
+        - link "Images" [ref=e8] [cursor=pointer]:
+          - /url: /images
+        - link "Sources" [ref=e9] [cursor=pointer]:
+          - /url: /sources
+        - link "Jobs" [ref=e10] [cursor=pointer]:
+          - /url: /jobs
+    - main [ref=e11]:
+      - generic [ref=e12]:
+        - heading "DSA-110 Continuum Imaging Pipeline" [level=1] [ref=e13]
+        - paragraph [ref=e14]: Monitor and manage the radio imaging pipeline for the Deep Synoptic Array.
+        - generic [ref=e15]:
+          - generic [ref=e16]:
+            - heading "Pipeline Overview" [level=2] [ref=e17]
+            - button "Show Detailed Stats" [ref=e18] [cursor=pointer]
+          - generic [ref=e19]:
+            - 'link "Total Images: 0" [ref=e20] [cursor=pointer]':
+              - /url: /images
+              - 'button "Total Images: 0" [ref=e21]':
+                - generic [ref=e22]:
+                  - generic [ref=e23]:
+                    - paragraph [ref=e24]: Total Images
+                    - status "Loading..." [ref=e25]
+                  - generic [ref=e26]: IMG
+            - 'link "Detected Sources: 0" [ref=e27] [cursor=pointer]':
+              - /url: /sources
+              - 'button "Detected Sources: 0" [ref=e28]':
+                - generic [ref=e29]:
+                  - generic [ref=e30]:
+                    - paragraph [ref=e31]: Detected Sources
+                    - status "Loading..." [ref=e32]
+                  - generic [ref=e33]: SRC
+            - 'link "Pipeline Jobs: 0" [ref=e34] [cursor=pointer]':
+              - /url: /jobs
+              - 'button "Pipeline Jobs: 0" [ref=e35]':
+                - generic [ref=e36]:
+                  - generic [ref=e37]:
+                    - paragraph [ref=e38]: Pipeline Jobs
+                    - status "Loading..." [ref=e39]
+                  - generic [ref=e40]: JOB
+        - generic [ref=e41]:
+          - link "IMG Images Browse processed FITS images and view QA assessments." [ref=e42] [cursor=pointer]:
+            - /url: /images
+            - generic [ref=e43]: IMG
+            - heading "Images" [level=3] [ref=e44]
+            - paragraph [ref=e45]: Browse processed FITS images and view QA assessments.
+          - link "SRC Sources Explore detected radio sources and lightcurves." [ref=e46] [cursor=pointer]:
+            - /url: /sources
+            - generic [ref=e47]: SRC
+            - heading "Sources" [level=3] [ref=e48]
+            - paragraph [ref=e49]: Explore detected radio sources and lightcurves.
+          - link "JOB Jobs Monitor pipeline jobs and view provenance." [ref=e50] [cursor=pointer]:
+            - /url: /jobs
+            - generic [ref=e51]: JOB
+            - heading "Jobs" [level=3] [ref=e52]
+            - paragraph [ref=e53]: Monitor pipeline jobs and view provenance.
+        - generic [ref=e54]:
+          - heading "Quick Links" [level=2] [ref=e55]
+          - list [ref=e56]:
+            - listitem [ref=e57]:
+              - link "Troubleshooting Guide" [ref=e58] [cursor=pointer]:
+                - /url: /docs/troubleshooting.md
+            - listitem [ref=e59]:
+              - link "API Health Check" [ref=e60] [cursor=pointer]:
+                - /url: /api/health
+        - generic [ref=e61]:
+          - heading "Infrastructure Status" [level=2] [ref=e62]
+          - generic [ref=e63]:
+            - generic [ref=e64]:
+              - generic [ref=e65]:
+                - heading "Service Status" [level=2] [ref=e66]
+                - paragraph [ref=e67]: 0/6 services running
+              - generic [ref=e68]:
+                - generic [ref=e69]: "Last checked: 9:02:06 AM"
+                - button "Refresh" [ref=e70] [cursor=pointer]
+            - generic [ref=e71]:
+              - generic [ref=e73]: ⚠ Backend API Unavailable
+              - paragraph [ref=e74]: Using client-side probes as fallback. Some services (e.g., Redis) cannot be checked directly from the browser.
+              - group [ref=e75]:
+                - generic "View diagnostics (1 backend attempt)" [ref=e76] [cursor=pointer]
+            - table [ref=e78]:
+              - rowgroup [ref=e79]:
+                - row "Service Port Status Response Source Description" [ref=e80]:
+                  - columnheader "Service" [ref=e81]
+                  - columnheader "Port" [ref=e82]
+                  - columnheader "Status" [ref=e83]
+                  - columnheader "Response" [ref=e84]
+                  - columnheader "Source" [ref=e85]
+                  - columnheader "Description" [ref=e86]
+              - rowgroup [ref=e87]:
+                - row "Vite Dev Server 3000 ? Unknown — Unknown Frontend development server with HMR(Check aborted)" [ref=e88]:
+                  - cell "Vite Dev Server" [ref=e89]:
+                    - generic [ref=e90]: Vite Dev Server
+                  - cell "3000" [ref=e91]:
+                    - code [ref=e92]: "3000"
+                  - cell "? Unknown" [ref=e93]
+                  - cell "—" [ref=e94]
+                  - cell "Unknown" [ref=e95]
+                  - cell "Frontend development server with HMR(Check aborted)" [ref=e96]:
+                    - text: Frontend development server with HMR
+                    - generic "Check aborted" [ref=e97]: (Check aborted)
+                - row "Grafana 3030 ? Unknown — Unknown Metrics visualization dashboards(Check aborted)" [ref=e98]:
+                  - cell "Grafana" [ref=e99]:
+                    - generic [ref=e100]: Grafana
+                  - cell "3030" [ref=e101]:
+                    - code [ref=e102]: "3030"
+                  - cell "? Unknown" [ref=e103]
+                  - cell "—" [ref=e104]
+                  - cell "Unknown" [ref=e105]
+                  - cell "Metrics visualization dashboards(Check aborted)" [ref=e106]:
+                    - text: Metrics visualization dashboards
+                    - generic "Check aborted" [ref=e107]: (Check aborted)
+                - row "Redis 6379 ? Unknown — Unknown API response caching(Check aborted)" [ref=e108]:
+                  - cell "Redis" [ref=e109]:
+                    - generic [ref=e110]: Redis
+                  - cell "6379" [ref=e111]:
+                    - code [ref=e112]: "6379"
+                  - cell "? Unknown" [ref=e113]
+                  - cell "—" [ref=e114]
+                  - cell "Unknown" [ref=e115]
+                  - cell "API response caching(Check aborted)" [ref=e116]:
+                    - text: API response caching
+                    - generic "Check aborted" [ref=e117]: (Check aborted)
+                - row "FastAPI Backend 8000 ? Unknown — Unknown REST API for pipeline data(Check aborted)" [ref=e118]:
+                  - cell "FastAPI Backend" [ref=e119]:
+                    - generic [ref=e120]: FastAPI Backend
+                  - cell "8000" [ref=e121]:
+                    - code [ref=e122]: "8000"
+                  - cell "? Unknown" [ref=e123]
+                  - cell "—" [ref=e124]
+                  - cell "Unknown" [ref=e125]
+                  - cell "REST API for pipeline data(Check aborted)" [ref=e126]:
+                    - text: REST API for pipeline data
+                    - generic "Check aborted" [ref=e127]: (Check aborted)
+                - row "MkDocs 8001 ? Unknown — Unknown Documentation server (dev only)(Check aborted)" [ref=e128]:
+                  - cell "MkDocs" [ref=e129]:
+                    - generic [ref=e130]: MkDocs
+                  - cell "8001" [ref=e131]:
+                    - code [ref=e132]: "8001"
+                  - cell "? Unknown" [ref=e133]
+                  - cell "—" [ref=e134]
+                  - cell "Unknown" [ref=e135]
+                  - cell "Documentation server (dev only)(Check aborted)" [ref=e136]:
+                    - text: Documentation server (dev only)
+                    - generic "Check aborted" [ref=e137]: (Check aborted)
+                - row "Prometheus 9090 ? Unknown — Unknown Metrics collection and storage(Check aborted)" [ref=e138]:
+                  - cell "Prometheus" [ref=e139]:
+                    - generic [ref=e140]: Prometheus
+                  - cell "9090" [ref=e141]:
+                    - code [ref=e142]: "9090"
+                  - cell "? Unknown" [ref=e143]
+                  - cell "—" [ref=e144]
+                  - cell "Unknown" [ref=e145]
+                  - cell "Metrics collection and storage(Check aborted)" [ref=e146]:
+                    - text: Metrics collection and storage
+                    - generic "Check aborted" [ref=e147]: (Check aborted)
+            - group [ref=e149]:
+              - generic "ℹ️ About Service Health Checks" [ref=e150] [cursor=pointer]
+    - contentinfo [ref=e151]: "DSA-110 Continuum Imaging Pipeline :bullet: Deep Synoptic Array"
+  - generic [ref=e152]:
+    - img [ref=e154]
+    - button "Open Tanstack query devtools" [ref=e202] [cursor=pointer]:
+      - img [ref=e203]
+```
