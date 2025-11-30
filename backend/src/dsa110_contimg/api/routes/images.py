@@ -34,7 +34,7 @@ async def list_images(
     Returns a paginated list of images with basic metadata.
     """
     try:
-        images = await service.list_images(limit=limit, offset=offset)
+        images = service.list_images(limit=limit, offset=offset)
         return [
             ImageListResponse(
                 id=str(img.id),
@@ -61,7 +61,7 @@ async def get_image_detail(
     Get detailed information about an image.
     """
     try:
-        image = await service.get_image(image_id)
+        image = service.get_image(image_id)
         if not image:
             raise HTTPException(
                 status_code=404,
@@ -98,7 +98,7 @@ async def get_image_provenance(
     Get provenance information for an image.
     """
     try:
-        image = await service.get_image(image_id)
+        image = service.get_image(image_id)
         if not image:
             raise HTTPException(
                 status_code=404,
@@ -139,7 +139,7 @@ async def get_image_qa_detail(
     Get detailed QA report for an image.
     """
     try:
-        image = await service.get_image(image_id)
+        image = service.get_image(image_id)
         if not image:
             raise HTTPException(
                 status_code=404,
@@ -163,7 +163,7 @@ async def download_image_fits(
 ):
     """Download the FITS file for an image."""
     try:
-        image = await service.get_image(image_id)
+        image = service.get_image(image_id)
         if not image:
             raise HTTPException(
                 status_code=404,

@@ -28,7 +28,7 @@ async def list_sources(
     List all sources with summary info.
     """
     try:
-        sources = await service.list_sources(limit=limit, offset=offset)
+        sources = service.list_sources(limit=limit, offset=offset)
         return [
             SourceListResponse(
                 id=src.id,
@@ -56,7 +56,7 @@ async def get_source_detail(
     Get detailed information about an astronomical source.
     """
     try:
-        source = await service.get_source(source_id)
+        source = service.get_source(source_id)
         if not source:
             raise HTTPException(
                 status_code=404,
@@ -110,7 +110,7 @@ async def get_source_lightcurve(
             pass
     
     decoded_source_id = unquote(source_id)
-    data_points = await service.get_lightcurve(decoded_source_id, start_mjd, end_mjd)
+    data_points = service.get_lightcurve(decoded_source_id, start_mjd, end_mjd)
     
     return {
         "source_id": decoded_source_id,
@@ -127,7 +127,7 @@ async def get_source_variability(
     Get variability analysis for a source.
     """
     try:
-        source = await service.get_source(source_id)
+        source = service.get_source(source_id)
         if not source:
             raise HTTPException(
                 status_code=404,
@@ -135,7 +135,7 @@ async def get_source_variability(
             )
         
         # Get lightcurve data
-        epochs = await service.get_lightcurve(source_id)
+        epochs = service.get_lightcurve(source_id)
         
         return service.calculate_variability(source, epochs)
     except HTTPException:
@@ -157,7 +157,7 @@ async def get_source_qa(
     Get QA report for a source.
     """
     try:
-        source = await service.get_source(source_id)
+        source = service.get_source(source_id)
         if not source:
             raise HTTPException(
                 status_code=404,

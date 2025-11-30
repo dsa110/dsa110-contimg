@@ -64,7 +64,6 @@ def is_ip_allowed(client_ip: str, allowed_networks: list) -> bool:
 
 from .errors import validation_failed, internal_error
 from .routes import (
-    services_router,
     images_router,
     ms_router,
     sources_router,
@@ -75,6 +74,7 @@ from .routes import (
     logs_router,
     stats_router,
     cache_router,
+    services_router,
 )
 from .rate_limit import limiter, rate_limit_exceeded_handler
 from .websocket import ws_router

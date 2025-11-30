@@ -1,9 +1,4 @@
-import type {
-  ProvenanceStripProps,
-  ImageDetail,
-  MSMetadata,
-  SourceDetail,
-} from "../types";
+import type { ProvenanceStripProps, ImageDetail, MSMetadata, SourceDetail } from "../types";
 import { ROUTES } from "../constants/routes";
 
 // Re-export types for backward compatibility

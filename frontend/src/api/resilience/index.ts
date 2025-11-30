@@ -6,12 +6,7 @@
  */
 
 // Types
-export type {
-  RetryConfig,
-  CircuitState,
-  CircuitBreakerState,
-  CircuitBreakerConfig,
-} from "./types";
+export type { RetryConfig, CircuitState, CircuitBreakerState, CircuitBreakerConfig } from "./types";
 
 export { DEFAULT_RETRY_CONFIG, DEFAULT_CIRCUIT_BREAKER_CONFIG } from "./types";
 
@@ -27,10 +22,4 @@ export {
 } from "./circuit-breaker";
 
 // Retry utilities
-export {
-  sleep,
-  calculateBackoffDelay,
-  isRetryable,
-  withRetry,
-  noRetry,
-} from "./retry";
+export { sleep, calculateBackoffDelay, isRetryable, withRetry, noRetry } from "./retry";

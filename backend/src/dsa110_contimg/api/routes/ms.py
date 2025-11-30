@@ -30,7 +30,7 @@ async def get_ms_metadata(
     ms_path = unquote(encoded_path)
     
     try:
-        ms_meta = await service.get_metadata(ms_path)
+        ms_meta = service.get_metadata(ms_path)
         if not ms_meta:
             raise HTTPException(
                 status_code=404,
@@ -67,7 +67,7 @@ async def get_ms_calibrator_matches(
     ms_path = unquote(encoded_path)
     
     try:
-        ms_meta = await service.get_metadata(ms_path)
+        ms_meta = service.get_metadata(ms_path)
         if not ms_meta:
             raise HTTPException(
                 status_code=404,
@@ -98,7 +98,7 @@ async def get_ms_provenance(
     ms_path = unquote(encoded_path)
     
     try:
-        ms_meta = await service.get_metadata(ms_path)
+        ms_meta = service.get_metadata(ms_path)
         if not ms_meta:
             raise HTTPException(
                 status_code=404,

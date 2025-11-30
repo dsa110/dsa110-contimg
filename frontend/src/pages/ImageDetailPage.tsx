@@ -118,7 +118,10 @@ const ImageDetailPage: React.FC = () => {
     <div className="max-w-6xl mx-auto p-6">
       {/* Header */}
       <div className="mb-6">
-        <Link to={ROUTES.IMAGES.LIST} className="text-sm text-gray-500 hover:text-gray-700 mb-2 inline-block">
+        <Link
+          to={ROUTES.IMAGES.LIST}
+          className="text-sm text-gray-500 hover:text-gray-700 mb-2 inline-block"
+        >
           Back to Images
         </Link>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">{filename}</h1>
