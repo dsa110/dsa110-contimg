@@ -16,7 +16,7 @@ check() {
         echo -e "${GREEN}:check:${NC} $1"
     else
         echo -e "${RED}:cross:${NC} $1"
-        ((ERRORS++))
+        ((ERRORS++)) || true
     fi
 }
 
@@ -25,7 +25,7 @@ warn() {
         echo -e "${GREEN}:check:${NC} $1"
     else
         echo -e "${YELLOW}:warning:${NC} $1 (optional)"
-        ((WARNINGS++))
+        ((WARNINGS++)) || true
     fi
 }
 
@@ -39,9 +39,9 @@ check "Python 3.11 in casa6" "/opt/miniforge/envs/casa6/bin/python --version | g
 
 echo ""
 echo "--- Frontend Scripts ---"
-check "scripts/dev/start-dev.sh exists" "test -f /data/dsa110-contimg/frontend/scripts/dev/start-dev.sh"
-check "scripts/dev/restart-dev.sh exists" "test -f /data/dsa110-contimg/frontend/scripts/dev/restart-dev.sh"
-check "package.json dev script valid" "grep -q 'scripts/dev/start-dev.sh' /data/dsa110-contimg/frontend/package.json"
+check "scripts/start-dev.sh exists" "test -f /data/dsa110-contimg/frontend/scripts/start-dev.sh"
+check "scripts/ensure-port.cjs exists" "test -f /data/dsa110-contimg/frontend/scripts/ensure-port.cjs"
+check "package.json dev script valid" "grep -q 'ensure-port.cjs' /data/dsa110-contimg/frontend/package.json"
 
 echo ""
 echo "--- Production Scripts ---"

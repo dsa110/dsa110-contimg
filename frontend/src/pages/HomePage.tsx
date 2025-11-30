@@ -4,6 +4,7 @@ import { StatCardGrid } from "../components/summary";
 import { SkyCoverageMap } from "../components/skymap";
 import { StatsDashboard, ServiceStatusPanel } from "../components/stats";
 import { useImages, useSources, useJobs } from "../hooks/useQueries";
+import type { ImageSummary } from "../types";
 
 /**
  * Home page / dashboard.
@@ -94,14 +95,12 @@ const HomePage: React.FC = () => {
   // Build pointing data for sky coverage from images
   const pointings = React.useMemo(() => {
     if (!images) return [];
-    // TODO: Import and use Image type from api/client.ts instead of 'any'
-    // The images array should be typed as Image[] from the useImages hook
     return images
-      .filter((img: any) => img.pointing_ra_deg != null && img.pointing_dec_deg != null)
-      .map((img: any) => ({
+      .filter((img: ImageSummary) => img.pointing_ra_deg != null && img.pointing_dec_deg != null)
+      .map((img: ImageSummary) => ({
         id: img.id,
-        ra: img.pointing_ra_deg,
-        dec: img.pointing_dec_deg,
+        ra: img.pointing_ra_deg as number,
+        dec: img.pointing_dec_deg as number,
         label: img.path?.split("/").pop() || img.id,
         status:
           img.qa_grade === "good" ? "completed" : img.qa_grade === "fail" ? "failed" : "scheduled",

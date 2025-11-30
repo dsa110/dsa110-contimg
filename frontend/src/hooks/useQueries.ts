@@ -12,7 +12,15 @@ import type {
 } from "../types";
 
 // Re-export types for backward compatibility with existing imports
-export type { ImageSummary, ImageDetail, SourceSummary, SourceDetail, MSMetadata, JobSummary, JobDetail };
+export type {
+  ImageSummary,
+  ImageDetail,
+  SourceSummary,
+  SourceDetail,
+  MSMetadata,
+  JobSummary,
+  JobDetail,
+};
 
 // =============================================================================
 // Query Keys - centralized for cache invalidation

@@ -13,9 +13,9 @@ import {
 import { AladinLiteViewer, GifPlayer } from "../components/widgets";
 import { FitsViewer } from "../components/fits";
 import { RatingCard, RatingTag } from "../components/rating";
-import { mapProvenanceFromImageDetail, ImageDetailResponse } from "../utils/provenanceMappers";
+import { mapProvenanceFromImageDetail } from "../utils/provenanceMappers";
 import { relativeTime } from "../utils/relativeTime";
-import type { ErrorResponse } from "../types/errors";
+import type { ErrorResponse, ImageDetail } from "../types";
 import { useImage } from "../hooks/useQueries";
 import { usePreferencesStore } from "../stores/appStore";
 import apiClient, { noRetry } from "../api/client";
@@ -109,7 +109,7 @@ const ImageDetailPage: React.FC = () => {
   }
 
   // Cast to expected response type for mapper
-  const imageData = image as ImageDetailResponse;
+  const imageData = image as ImageDetail;
   const provenance = mapProvenanceFromImageDetail(imageData);
   const filename = image.path?.split("/").pop() || image.id;
 

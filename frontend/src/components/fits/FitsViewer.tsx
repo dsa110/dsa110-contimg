@@ -1,16 +1,14 @@
 import React, { useEffect, useRef, useCallback, useState } from "react";
 import FitsViewerControls, { FitsViewerControlsValues } from "./FitsViewerControls";
+import type {
+  JS9Image,
+  JS9Region,
+  JS9MouseEvent,
+  JS9ColorMap,
+  JS9Scale,
+} from "../../types/js9.d";
 
-// Declare JS9 global from CDN
-// TODO: Create comprehensive type definitions for JS9 library in src/types/js9.d.ts
-// JS9 is loaded via CDN and has no @types package. Key methods to type:
-// - JS9.Load, JS9.SetPan, JS9.SetZoom, JS9.GetRegions, JS9.ChangeRegions
-// - JS9.SetCallback, JS9.PixToWCS, JS9.SetParam, JS9.CloseDisplay
-declare global {
-  interface Window {
-    JS9: any;
-  }
-}
+// Note: JS9 global is declared in src/types/js9.d.ts
 
 export interface FitsViewerProps {
   /** URL to FITS file */
@@ -120,8 +118,7 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
     try {
       window.JS9.Load(fitsUrl, {
         display: displayId,
-        // TODO: Type _im as JS9Image when JS9 types are created
-        onload: (_im: any) => {
+        onload: (_im: JS9Image) => {
           setIsLoading(false);
 
           // Apply initial settings

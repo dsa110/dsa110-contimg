@@ -15,7 +15,7 @@ export type { SourceDetail as SourceDetailResponse };
  * Maps an image detail API response to ProvenanceStripProps.
  * Handles missing fields gracefully by omitting them from the result.
  */
-export function mapProvenanceFromImageDetail(image: ImageDetailResponse): ProvenanceStripProps {
+export function mapProvenanceFromImageDetail(image: ImageDetail): ProvenanceStripProps {
   return {
     runId: image.run_id,
     msPath: image.ms_path,
@@ -37,7 +37,7 @@ export function mapProvenanceFromImageDetail(image: ImageDetailResponse): Proven
  * Maps an MS detail API response to ProvenanceStripProps.
  * Extracts the first calibrator table if available.
  */
-export function mapProvenanceFromMSDetail(ms: MSDetailResponse): ProvenanceStripProps {
+export function mapProvenanceFromMSDetail(ms: MSMetadata): ProvenanceStripProps {
   const firstCal = ms.calibrator_matches?.[0]?.cal_table;
 
   return {
@@ -61,7 +61,7 @@ export function mapProvenanceFromMSDetail(ms: MSDetailResponse): ProvenanceStrip
  * Uses the latest contributing image for provenance data.
  */
 export function mapProvenanceFromSourceDetail(
-  source: SourceDetailResponse,
+  source: SourceDetail,
   selectedImageId?: string
 ): ProvenanceStripProps | null {
   // Find the selected image or use the latest

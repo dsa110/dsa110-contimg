@@ -10,17 +10,7 @@ import {
   FilterValues as AdvFilterValues,
 } from "../components/filters";
 import { useSelectionStore } from "../stores/appStore";
-
-interface Source {
-  id: string;
-  name?: string;
-  ra_deg?: number;
-  dec_deg?: number;
-  num_images?: number;
-  eta?: number;
-  v?: number;
-  peak_flux_jy?: number;
-}
+import type { SourceSummary } from "../types";
 
 /**
  * List page showing all detected sources with advanced query and variability plot.
@@ -96,7 +86,7 @@ const SourcesListPage: React.FC = () => {
   // Filter sources based on query params and advanced filters
   const filteredSources = useMemo(() => {
     if (!sources) return [];
-    let result = sources as Source[];
+    let result = sources as SourceSummary[];
 
     // Apply cone search filter
     if (queryParams.ra !== undefined && queryParams.dec !== undefined && queryParams.radius) {
@@ -140,7 +130,7 @@ const SourcesListPage: React.FC = () => {
     return result;
   }, [sources, queryParams, advFilterValues]);
 
-  const { sortColumn, sortDirection, handleSort, sortedData } = useTableSort<Source>(
+  const { sortColumn, sortDirection, handleSort, sortedData } = useTableSort<SourceSummary>(
     filteredSources,
     "id",
     "asc"
@@ -149,7 +139,7 @@ const SourcesListPage: React.FC = () => {
   // Build EtaVPlot data from sources
   const variabilityData: SourcePoint[] = useMemo(() => {
     if (!sources) return [];
-    return (sources as Source[])
+    return (sources as SourceSummary[])
       .filter(
         (s) =>
           s.eta !== undefined &&
@@ -295,7 +285,7 @@ const SourcesListPage: React.FC = () => {
         /* List View Tab */
         <>
           <p className="text-sm text-gray-500 mb-4">
-            Showing {filteredSources.length} of {(sources as Source[])?.length ?? 0} sources
+            Showing {filteredSources.length} of {(sources as SourceSummary[])?.length ?? 0} sources
           </p>
 
           {sortedData && sortedData.length > 0 ? (
