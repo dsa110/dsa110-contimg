@@ -1,5 +1,31 @@
 # Systemd Service Files
 
+> **📖 For a complete guide to all services (dev + production), see
+> [docs/ops/SERVICES.md](../../docs/ops/SERVICES.md)**
+
+## Core Services
+
+| Service                           | Purpose                      | Port  |
+| --------------------------------- | ---------------------------- | ----- |
+| `contimg-api.service`             | FastAPI backend              | 8000  |
+| `dsa110-contimg-dashboard.service`| Production frontend          | 3210  |
+| `contimg-stream.service`          | Real-time data ingest        | -     |
+
+### Quick Commands
+
+```bash
+# Start core services
+sudo systemctl start contimg-api dsa110-contimg-dashboard
+
+# Check status
+sudo systemctl status contimg-api dsa110-contimg-dashboard
+
+# View logs
+sudo journalctl -u contimg-api -f
+```
+
+---
+
 ## Editing Service Files
 
 Systemd service files in `/etc/systemd/system/` are owned by `root` and cannot
