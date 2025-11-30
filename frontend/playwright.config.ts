@@ -51,11 +51,21 @@ export default defineConfig({
     },
   ],
 
-  /* Run your local dev server before starting the tests */
-  webServer: {
-    command: "npm run dev",
-    url: "http://localhost:3000",
-    reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
-  },
+  /* Run both backend and frontend before starting the tests */
+  webServer: [
+    {
+      command: "cd ../backend && /opt/miniforge/envs/casa6/bin/python3 -m uvicorn src.dsa110_contimg.api.app:app --host 0.0.0.0 --port 8000",
+      url: "http://localhost:8000/api/v1/health",
+      reuseExistingServer: !process.env.CI,
+      timeout: 120 * 1000,
+      stdout: "pipe",
+      stderr: "pipe",
+    },
+    {
+      command: "npm run dev",
+      url: "http://localhost:3000",
+      reuseExistingServer: !process.env.CI,
+      timeout: 120 * 1000,
+    },
+  ],
 });
