@@ -34,7 +34,7 @@ make compose-logs SERVICE=stream
 
 - Output MS: `${CONTIMG_OUTPUT_DIR}`
 - API: `http://localhost:${CONTIMG_API_PORT}/api/status`
-- Dashboard: `http://localhost:5173`
+- Dashboard: `http://localhost:3000` (dev) or `http://localhost:3210` (production)
 
 ---
 

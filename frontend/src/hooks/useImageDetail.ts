@@ -100,11 +100,7 @@ export function useImageDetail(imageId: string | undefined) {
    * Submit a rating for this image.
    */
   const submitRating = useCallback(
-    async (rating: {
-      confidence: "true" | "false" | "unsure";
-      tagId: string;
-      notes: string;
-    }) => {
+    async (rating: { confidence: "true" | "false" | "unsure"; tagId: string; notes: string }) => {
       if (!imageId) return;
 
       try {

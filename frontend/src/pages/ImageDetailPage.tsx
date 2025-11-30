@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import ProvenanceStrip from "../components/provenance/ProvenanceStrip";
 import ErrorDisplay from "../components/errors/ErrorDisplay";
+import { WidgetErrorBoundary } from "../components/errors";
 import {
   Card,
   CoordinateDisplay,
@@ -234,18 +235,22 @@ const ImageDetailPage: React.FC = () => {
           {/* Interactive FITS Viewer */}
           {showFitsViewer && (
             <Card title="FITS Viewer">
-              <FitsViewer
-                fitsUrl={`${import.meta.env.VITE_API_URL || "/api"}/images/${encodedImageId}/fits`}
-                displayId={`fits-${encodedImageId}`}
-                width={600}
-                height={500}
-                showControls
-                initialCenter={
-                  imageData.pointing_ra_deg != null && imageData.pointing_dec_deg != null
-                    ? { ra: imageData.pointing_ra_deg, dec: imageData.pointing_dec_deg }
-                    : undefined
-                }
-              />
+              <WidgetErrorBoundary widgetName="FITS Viewer" minHeight={500}>
+                <FitsViewer
+                  fitsUrl={`${
+                    import.meta.env.VITE_API_URL || "/api"
+                  }/images/${encodedImageId}/fits`}
+                  displayId={`fits-${encodedImageId}`}
+                  width={600}
+                  height={500}
+                  showControls
+                  initialCenter={
+                    imageData.pointing_ra_deg != null && imageData.pointing_dec_deg != null
+                      ? { ra: imageData.pointing_ra_deg, dec: imageData.pointing_dec_deg }
+                      : undefined
+                  }
+                />
+              </WidgetErrorBoundary>
             </Card>
           )}
 

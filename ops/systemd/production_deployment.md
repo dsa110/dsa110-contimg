@@ -29,7 +29,7 @@ Pipeline dashboard and API services.
   - Memory: 2GB max, 1.5GB high watermark
   - CPU: 200% quota (2 cores)
 
-### API Service (`dsa110-contimg-api.service`)
+### API Service (`contimg-api.service`)
 
 - **Purpose**: FastAPI backend serving REST API and WebSocket endpoints
 - **Port**: Configured via `CONTIMG_API_PORT` (default: 8000)
@@ -75,11 +75,11 @@ Edit `/data/dsa110-contimg/ops/systemd/contimg.env` to set:
 
 ```bash
 # Enable services to start on boot
-sudo systemctl enable dsa110-contimg-api.service
+sudo systemctl enable contimg-api.service
 sudo systemctl enable dsa110-contimg-dashboard.service
 
 # Start services
-sudo systemctl start dsa110-contimg-api.service
+sudo systemctl start contimg-api.service
 sudo systemctl start dsa110-contimg-dashboard.service
 ```
 
@@ -87,7 +87,7 @@ sudo systemctl start dsa110-contimg-dashboard.service
 
 ```bash
 # Check service status
-sudo systemctl status dsa110-contimg-api.service
+sudo systemctl status contimg-api.service
 sudo systemctl status dsa110-contimg-dashboard.service
 
 # Check health endpoints
@@ -95,7 +95,7 @@ curl http://localhost:8000/health
 curl http://localhost:3210/index.html
 
 # View logs
-sudo journalctl -u dsa110-contimg-api.service -f
+sudo journalctl -u contimg-api.service -f
 sudo journalctl -u dsa110-contimg-dashboard.service -f
 ```
 
@@ -147,14 +147,14 @@ Should return the dashboard HTML.
 ### Restart Services
 
 ```bash
-sudo systemctl restart dsa110-contimg-api.service
+sudo systemctl restart contimg-api.service
 sudo systemctl restart dsa110-contimg-dashboard.service
 ```
 
 ### Stop Services
 
 ```bash
-sudo systemctl stop dsa110-contimg-api.service
+sudo systemctl stop contimg-api.service
 sudo systemctl stop dsa110-contimg-dashboard.service
 ```
 
@@ -162,11 +162,11 @@ sudo systemctl stop dsa110-contimg-dashboard.service
 
 ```bash
 # Real-time logs
-sudo journalctl -u dsa110-contimg-api.service -f
+sudo journalctl -u contimg-api.service -f
 sudo journalctl -u dsa110-contimg-dashboard.service -f
 
 # Log files (also written to)
-tail -f /data/dsa110-contimg/state/logs/dsa110-contimg-api.out
+tail -f /data/dsa110-contimg/state/logs/contimg-api.out
 tail -f /data/dsa110-contimg/state/logs/dsa110-contimg-dashboard.out
 ```
 
@@ -205,7 +205,7 @@ Adjust limits in service files if needed.
 
 ### Health Check Fails
 
-1. Verify service is running: `sudo systemctl status dsa110-contimg-api.service`
+1. Verify service is running: `sudo systemctl status contimg-api.service`
 2. Check port conflicts: `sudo netstat -tulpn | grep :8000`
 3. Review service logs for errors
 
