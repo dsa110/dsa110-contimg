@@ -14,6 +14,7 @@ import type { ErrorResponse } from "../types/errors";
 import type { ProvenanceStripProps } from "../types/provenance";
 import { useSource } from "../hooks/useQueries";
 import { usePreferencesStore } from "../stores/appStore";
+import { config } from "../config";
 
 /** SIMBAD external link icon */
 const ExternalLinkIcon: React.FC<{ className?: string }> = ({ className = "w-4 h-4" }) => (
@@ -212,12 +213,7 @@ const SourceDetailPage: React.FC = () => {
                 type="button"
                 className="btn btn-primary"
                 onClick={() =>
-                  window.open(
-                    `${
-                      import.meta.env.VITE_API_URL || "/api"
-                    }/sources/${encodedSourceId}/lightcurve`,
-                    "_blank"
-                  )
+                  window.open(`${config.api.baseUrl}/sources/${encodedSourceId}/export`, "_blank")
                 }
               >
                 View Lightcurve
@@ -227,9 +223,7 @@ const SourceDetailPage: React.FC = () => {
                 className="btn btn-secondary"
                 onClick={() =>
                   window.open(
-                    `${
-                      import.meta.env.VITE_API_URL || "/api"
-                    }/sources/${encodedSourceId}/postage_stamps`,
+                    `${config.api.baseUrl}/sources/${encodedSourceId}/contributing-images`,
                     "_blank"
                   )
                 }

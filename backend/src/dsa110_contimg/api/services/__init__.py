@@ -11,6 +11,12 @@ from .ms_service import MSService
 from .stats_service import StatsService
 from .qa_service import QAService
 from .fits_service import FITSParsingService, FITSMetadata
+from .async_services import (
+    AsyncImageService,
+    AsyncMSService,
+    AsyncSourceService,
+    AsyncJobService,
+)
 
 __all__ = [
     "ImageService",
@@ -21,4 +27,8 @@ __all__ = [
     "QAService",
     "FITSParsingService",
     "FITSMetadata",
+    "AsyncImageService",
+    "AsyncMSService",
+    "AsyncSourceService",
+    "AsyncJobService",
 ]

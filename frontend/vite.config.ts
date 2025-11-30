@@ -29,12 +29,16 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          d3: ["d3", "d3-geo-projection"],
+          // D3 visualization libraries (~300KB)
+          d3: ["d3", "d3-geo-projection", "d3-celestial"],
+          // ECharts charting library (~900KB)
           echarts: ["echarts"],
+          // Note: aladin-lite is vendored and loaded separately
         },
       },
     },
-    // Allow larger vendor chunks for optional heavy viewers (echarts, aladin-lite)
+    // Allow larger vendor chunks for optional heavy viewers
+    // Rationale: These are loaded on-demand only when users access specific features
     chunkSizeWarningLimit: 2500,
   },
   resolve: {

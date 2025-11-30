@@ -80,6 +80,11 @@ interface UserPreferences {
   addRecentJob: (runId: string) => void;
 }
 
+/**
+ * Maximum number of recent items to track per type.
+ * Rationale: 10 items provides quick access to recent work without
+ * cluttering the UI or consuming excessive localStorage space.
+ */
 const MAX_RECENT_ITEMS = 10;
 
 const addToRecent = (list: string[], item: string): string[] => {
@@ -96,6 +101,8 @@ export const usePreferencesStore = create<UserPreferences>()(
         setTheme: (theme) => set({ theme }),
 
         // Table settings
+        // Default page size of 25: balances between reducing API requests
+        // and providing reasonable viewport scrolling on most displays
         defaultPageSize: 25,
         setDefaultPageSize: (size) => set({ defaultPageSize: size }),
 

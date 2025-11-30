@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useImages } from "../hooks/useQueries";
 import { PageSkeleton, SortableTableHeader, useTableSort } from "../components/common";
 import { BulkDownloadPanel } from "../components/download";
+import { config } from "../config";
 import { FitsViewerGrid } from "../components/fits";
 import { FilterPanel, FilterConfig, FilterValues } from "../components/filters";
 import { useSelectionStore } from "../stores/appStore";
@@ -63,7 +64,7 @@ const ImagesListPage: React.FC = () => {
   );
 
   const handleBulkDownload = useCallback(async (ids: string[], format: string) => {
-    const baseUrl = import.meta.env.VITE_API_URL || "/api";
+    const baseUrl = config.api.baseUrl;
     const url = `${baseUrl}/images/bulk-download?ids=${ids.join(",")}&format=${format}`;
     window.open(url, "_blank");
   }, []);
@@ -107,7 +108,7 @@ const ImagesListPage: React.FC = () => {
 
   // FITS URLs for selected images comparison - must be before early returns
   const comparisonUrls = useMemo(() => {
-    const baseUrl = import.meta.env.VITE_API_URL || "/api";
+    const baseUrl = config.api.baseUrl;
     return selectedIds.map((id) => `${baseUrl}/images/${id}/fits`);
   }, [selectedIds]);
 

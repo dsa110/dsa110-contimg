@@ -2,6 +2,9 @@ from unittest.mock import MagicMock, patch
 import pytest
 import numpy as np
 
+# Import module at top level to ensure it's loaded before patching
+from dsa110_contimg.conversion import helpers_coordinates
+
 
 def test_phase_to_meridian(monkeypatch):
     """Test phase_to_meridian sets time-dependent phase centers.
@@ -16,11 +19,9 @@ def test_phase_to_meridian(monkeypatch):
     """
     # Patch dependencies where they're used (in helpers_coordinates module)
     # These must return None (side effects only) to avoid mock issues
-    with patch("dsa110_contimg.conversion.helpers_coordinates.set_antenna_positions", return_value=None):
-        with patch("dsa110_contimg.conversion.helpers_coordinates._ensure_antenna_diameters", return_value=None):
-            with patch("dsa110_contimg.conversion.helpers_coordinates.compute_and_set_uvw", return_value=None):
-                # Import after patches are applied
-                from dsa110_contimg.conversion.helpers_coordinates import phase_to_meridian
+    with patch.object(helpers_coordinates, "set_antenna_positions", return_value=None):
+        with patch.object(helpers_coordinates, "_ensure_antenna_diameters", return_value=None):
+            with patch.object(helpers_coordinates, "compute_and_set_uvw", return_value=None):
                 
                 # Mock the UVData object with required attributes
                 mock_uvdata = MagicMock()
@@ -32,7 +33,7 @@ def test_phase_to_meridian(monkeypatch):
                 mock_uvdata.Nblts = 2
                 
                 # Call the function
-                phase_to_meridian(mock_uvdata)
+                helpers_coordinates.phase_to_meridian(mock_uvdata)
 
                 # Assert that phase centers were added for each unique time
                 assert mock_uvdata._add_phase_center.call_count == 2

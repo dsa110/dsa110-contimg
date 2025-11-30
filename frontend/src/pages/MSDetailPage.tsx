@@ -7,6 +7,7 @@ import { mapProvenanceFromMSDetail } from "../utils/provenanceMappers";
 import { relativeTime } from "../utils/relativeTime";
 import type { ErrorResponse } from "../types/errors";
 import { useMS } from "../hooks/useQueries";
+import { config } from "../config";
 
 /**
  * Detail page for a Measurement Set.
@@ -95,9 +96,7 @@ const MSDetailPage: React.FC = () => {
                 className="btn btn-primary"
                 onClick={() =>
                   window.open(
-                    `${import.meta.env.VITE_API_URL || "/api"}/ms/${encodeURIComponent(
-                      msPath ?? ""
-                    )}/download`,
+                    `${config.api.baseUrl}/ms/${encodeURIComponent(msPath ?? "")}/download`,
                     "_blank"
                   )
                 }

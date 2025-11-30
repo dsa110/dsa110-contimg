@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
 import AppLayout from "./components/layout/AppLayout";
+import { PageSkeleton } from "./components/common";
 
 const HomePage = lazy(() => import("./pages/HomePage"));
 const ImageDetailPage = lazy(() => import("./pages/ImageDetailPage"));
@@ -41,14 +42,18 @@ export const router = createBrowserRouter(
     {
       path: "/",
       element: (
-        <Suspense fallback={<div className="p-6 text-gray-600">Loading...</div>}>
+        <Suspense fallback={<PageSkeleton variant="list" showHeader />}>
           <AppLayout />
         </Suspense>
       ),
       children: [
         {
           index: true,
-          element: <HomePage />,
+          element: (
+            <Suspense fallback={<PageSkeleton variant="dashboard" />}>
+              <HomePage />
+            </Suspense>
+          ),
         },
         {
           path: "images",

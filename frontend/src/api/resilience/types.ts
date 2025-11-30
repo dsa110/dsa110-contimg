@@ -51,6 +51,14 @@ export interface CircuitBreakerConfig {
 
 /**
  * Default retry configuration aligned with backend expectations.
+ *
+ * Rationale for values:
+ * - maxRetries: 3 - Provides reasonable balance between persistence and UX
+ * - initialDelayMs: 500ms - Quick enough for transient issues, not too aggressive
+ * - maxDelayMs: 5000ms (5s) - Prevents indefinite waiting
+ * - backoffMultiplier: 2 - Standard exponential backoff (500ms, 1s, 2s, 4s)
+ * - retryableStatuses: Server errors and rate limits that may resolve on retry
+ * - retryOnNetworkError: true - Network blips are common, worth retrying
  */
 export const DEFAULT_RETRY_CONFIG: RetryConfig = {
   maxRetries: 3,
@@ -63,6 +71,11 @@ export const DEFAULT_RETRY_CONFIG: RetryConfig = {
 
 /**
  * Default circuit breaker configuration.
+ *
+ * Rationale for values:
+ * - failureThreshold: 5 - Enough to detect pattern, not too sensitive to noise
+ * - resetTimeout: 30000ms (30s) - Allows backend time to recover from issues
+ * - successThreshold: 2 - Requires multiple successes to confirm recovery
  */
 export const DEFAULT_CIRCUIT_BREAKER_CONFIG: CircuitBreakerConfig = {
   failureThreshold: 5,

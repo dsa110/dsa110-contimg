@@ -21,6 +21,7 @@ from .repositories import (
 )
 from .async_repositories import (
     AsyncImageRepository,
+    AsyncMSRepository,
     AsyncSourceRepository,
     AsyncJobRepository,
 )
@@ -98,24 +99,57 @@ def get_qa_service() -> QAService:
     return QAService()
 
 
-# Async repository dependencies (for future async routes)
+# Async repository dependencies
 
-def get_async_image_repository(
-    db_pool: DatabasePool = Depends(get_db_pool)
-) -> AsyncImageRepository:
+def get_async_image_repository() -> AsyncImageRepository:
     """Get async image repository instance."""
-    return AsyncImageRepository(db_pool)
+    return AsyncImageRepository()
 
 
-def get_async_source_repository(
-    db_pool: DatabasePool = Depends(get_db_pool)
-) -> AsyncSourceRepository:
+def get_async_ms_repository() -> AsyncMSRepository:
+    """Get async MS repository instance."""
+    return AsyncMSRepository()
+
+
+def get_async_source_repository() -> AsyncSourceRepository:
     """Get async source repository instance."""
-    return AsyncSourceRepository(db_pool)
+    return AsyncSourceRepository()
 
 
-def get_async_job_repository(
-    db_pool: DatabasePool = Depends(get_db_pool)
-) -> AsyncJobRepository:
+def get_async_job_repository() -> AsyncJobRepository:
     """Get async job repository instance."""
-    return AsyncJobRepository(db_pool)
+    return AsyncJobRepository()
+
+
+# Async service dependencies
+
+def get_async_image_service(
+    repo: AsyncImageRepository = Depends(get_async_image_repository)
+) -> "AsyncImageService":
+    """Get async image service with injected repository."""
+    from .services.async_services import AsyncImageService
+    return AsyncImageService(repo)
+
+
+def get_async_source_service(
+    repo: AsyncSourceRepository = Depends(get_async_source_repository)
+) -> "AsyncSourceService":
+    """Get async source service with injected repository."""
+    from .services.async_services import AsyncSourceService
+    return AsyncSourceService(repo)
+
+
+def get_async_job_service(
+    repo: AsyncJobRepository = Depends(get_async_job_repository)
+) -> "AsyncJobService":
+    """Get async job service with injected repository."""
+    from .services.async_services import AsyncJobService
+    return AsyncJobService(repo)
+
+
+def get_async_ms_service(
+    repo: AsyncMSRepository = Depends(get_async_ms_repository)
+) -> "AsyncMSService":
+    """Get async MS service with injected repository."""
+    from .services.async_services import AsyncMSService
+    return AsyncMSService(repo)

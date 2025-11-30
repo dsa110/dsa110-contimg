@@ -4,6 +4,7 @@ import { useJobs } from "../hooks/useQueries";
 import { relativeTime } from "../utils/relativeTime";
 import { PageSkeleton, SortableTableHeader, useTableSort } from "../components/common";
 import { useSelectionStore } from "../stores/appStore";
+import { config } from "../config";
 
 interface JobItem {
   run_id: string;
@@ -28,7 +29,7 @@ const JobsListPage: React.FC = () => {
   const handleBulkAction = useCallback(
     async (action: "rerun" | "cancel" | "export") => {
       if (selectedIds.length === 0) return;
-      const baseUrl = import.meta.env.VITE_API_URL || "/api";
+      const baseUrl = config.api.baseUrl;
       if (action === "export") {
         window.open(`${baseUrl}/jobs/export?ids=${selectedIds.join(",")}`, "_blank");
       } else {

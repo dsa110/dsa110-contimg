@@ -14,6 +14,7 @@ import {
 import { useSelectionStore } from "../stores/appStore";
 import type { SourceSummary } from "../types";
 import { ROUTES } from "../constants/routes";
+import { config } from "../config";
 
 /**
  * List page showing all detected sources with advanced query and variability plot.
@@ -91,7 +92,7 @@ const SourcesListPage: React.FC = () => {
   }, [selectedIds]);
 
   const confirmExport = useCallback(() => {
-    const baseUrl = import.meta.env.VITE_API_URL || "/api";
+    const baseUrl = config.api.baseUrl;
     window.open(`${baseUrl}/sources/export?ids=${selectedIds.join(",")}`, "_blank");
     setShowExportModal(false);
   }, [selectedIds]);
