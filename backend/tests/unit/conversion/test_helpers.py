@@ -15,9 +15,10 @@ def test_phase_to_meridian(monkeypatch):
     the heavy compute_and_set_uvw to avoid needing real antenna positions.
     """
     # Patch dependencies where they're used (in helpers_coordinates module)
-    with patch("dsa110_contimg.conversion.helpers_coordinates.set_antenna_positions"):
-        with patch("dsa110_contimg.conversion.helpers_coordinates._ensure_antenna_diameters"):
-            with patch("dsa110_contimg.conversion.helpers_coordinates.compute_and_set_uvw"):
+    # These must return None (side effects only) to avoid mock issues
+    with patch("dsa110_contimg.conversion.helpers_coordinates.set_antenna_positions", return_value=None):
+        with patch("dsa110_contimg.conversion.helpers_coordinates._ensure_antenna_diameters", return_value=None):
+            with patch("dsa110_contimg.conversion.helpers_coordinates.compute_and_set_uvw", return_value=None):
                 # Import after patches are applied
                 from dsa110_contimg.conversion.helpers_coordinates import phase_to_meridian
                 

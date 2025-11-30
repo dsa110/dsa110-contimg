@@ -61,9 +61,37 @@ jobs:
       - name: Run security scanning (bandit)
         run: bandit -r backend/src/ -f screen -ll --skip B101,B601 || true
 
+      - name: Create CI database directory
+        run: mkdir -p /tmp/dsa110-ci
+
+      - name: Initialize test databases
+        env:
+          PYTHONPATH: backend/src
+          PIPELINE_PRODUCTS_DB: /tmp/dsa110-ci/products.sqlite3
+          PIPELINE_CAL_REGISTRY_DB: /tmp/dsa110-ci/cal_registry.sqlite3
+          PIPELINE_HDF5_DB: /tmp/dsa110-ci/hdf5.sqlite3
+          PIPELINE_INGEST_DB: /tmp/dsa110-ci/ingest.sqlite3
+          PIPELINE_DATA_REGISTRY_DB: /tmp/dsa110-ci/data_registry.sqlite3
+          PIPELINE_DOCSEARCH_DB: /tmp/dsa110-ci/docsearch.sqlite3
+          PIPELINE_EMBEDDING_CACHE_DB: /tmp/dsa110-ci/embedding_cache.sqlite3
+        run: |
+          python -c "
+          from dsa110_contimg.database.session import init_database
+          for db in ['products', 'cal_registry', 'hdf5', 'ingest', 'data_registry']:
+              init_database(db)
+              print(f'Initialized {db} database')
+          "
+
       - name: Run unit tests with coverage
         env:
           PYTHONPATH: backend/src
+          PIPELINE_PRODUCTS_DB: /tmp/dsa110-ci/products.sqlite3
+          PIPELINE_CAL_REGISTRY_DB: /tmp/dsa110-ci/cal_registry.sqlite3
+          PIPELINE_HDF5_DB: /tmp/dsa110-ci/hdf5.sqlite3
+          PIPELINE_INGEST_DB: /tmp/dsa110-ci/ingest.sqlite3
+          PIPELINE_DATA_REGISTRY_DB: /tmp/dsa110-ci/data_registry.sqlite3
+          PIPELINE_DOCSEARCH_DB: /tmp/dsa110-ci/docsearch.sqlite3
+          PIPELINE_EMBEDDING_CACHE_DB: /tmp/dsa110-ci/embedding_cache.sqlite3
         run: |
           pytest backend/tests/unit/ \
             --cov=backend/src \
@@ -75,6 +103,13 @@ jobs:
       - name: Run backend unit tests (including diagnostics/mosaic)
         env:
           PYTHONPATH: backend/src
+          PIPELINE_PRODUCTS_DB: /tmp/dsa110-ci/products.sqlite3
+          PIPELINE_CAL_REGISTRY_DB: /tmp/dsa110-ci/cal_registry.sqlite3
+          PIPELINE_HDF5_DB: /tmp/dsa110-ci/hdf5.sqlite3
+          PIPELINE_INGEST_DB: /tmp/dsa110-ci/ingest.sqlite3
+          PIPELINE_DATA_REGISTRY_DB: /tmp/dsa110-ci/data_registry.sqlite3
+          PIPELINE_DOCSEARCH_DB: /tmp/dsa110-ci/docsearch.sqlite3
+          PIPELINE_EMBEDDING_CACHE_DB: /tmp/dsa110-ci/embedding_cache.sqlite3
         run: pytest backend/tests/unit/ -v
 
       - name: Check coverage thresholds
