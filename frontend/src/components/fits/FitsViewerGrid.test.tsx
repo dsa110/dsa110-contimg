@@ -29,6 +29,7 @@ const mockJS9 = {
   GetZoom: vi.fn().mockReturnValue(2),
   GetPan: vi.fn().mockReturnValue({ x: 100, y: 100 }),
   SetCallback: vi.fn(),
+  RemoveCallback: vi.fn(),
 };
 
 describe("FitsViewerGrid", () => {

@@ -307,17 +307,17 @@ export interface JS9Static {
 
   /**
    * Save the current image as PNG.
-   * @param filename Optional filename
-   * @param options Display options
+   * @param filenameOrOptions Optional filename or display options
+   * @param options Display options (if first param is filename)
    */
-  SavePNG: (filename?: string, options?: JS9DisplayOptions) => void;
+  SavePNG: (filenameOrOptions?: string | JS9DisplayOptions, options?: JS9DisplayOptions) => void;
 
   /**
    * Save the current image as FITS.
-   * @param filename Optional filename
-   * @param options Display options
+   * @param filenameOrOptions Optional filename or display options
+   * @param options Display options (if first param is filename)
    */
-  SaveFITS: (filename?: string, options?: JS9DisplayOptions) => void;
+  SaveFITS: (filenameOrOptions?: string | JS9DisplayOptions, options?: JS9DisplayOptions) => void;
 
   /**
    * Get image data as a 2D array.

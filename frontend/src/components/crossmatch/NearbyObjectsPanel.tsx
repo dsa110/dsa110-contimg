@@ -1,6 +1,8 @@
 import React, { useState, useCallback, useEffect } from "react";
 
 export interface NearbyObject {
+  /** Unique identifier for the object */
+  id?: string;
   name: string;
   ra: string;
   dec: string;

@@ -71,7 +71,7 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
   // Check if JS9 is loaded
   useEffect(() => {
     const checkJS9 = () => {
-      if (window.JS9 && window.JS9.Load) {
+      if (window.JS9 && typeof window.JS9.Load === "function") {
         setIsJS9Ready(true);
         return true;
       }

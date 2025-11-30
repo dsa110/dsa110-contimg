@@ -1,13 +1,12 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
-import A from "aladin-lite";
-import type A_Module from "aladin-lite";
 import { CATALOG_DEFINITIONS, CatalogDefinition } from "../../constants/catalogDefinitions";
 import CatalogLegend from "./CatalogLegend";
 import { queryCatalogCached, CatalogQueryResult, CatalogSource } from "../../utils/vizierQuery";
 
-// Use type inference from the module
-type AladinCatalog = ReturnType<typeof A.catalog>;
-type AladinInstance = ReturnType<typeof A.aladin>;
+// Aladin types - using 'any' until proper npm types are available
+// The aladin-lite module is loaded via vendor scripts, not npm
+type AladinCatalog = any;
+type AladinInstance = any;
 
 export interface CatalogOverlayPanelProps {
   /** Currently enabled catalog IDs */
@@ -164,7 +163,9 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
       }
 
       // Create new catalog layer using Aladin's static A.catalog method
-      const catalogLayer = A.catalog({
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const A = (window as any).A;
+      const catalogLayer = A?.catalog({
         name: catalog.name,
         sourceSize: 12,
         color: catalog.color,

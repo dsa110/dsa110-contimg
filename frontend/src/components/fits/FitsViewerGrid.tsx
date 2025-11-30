@@ -88,8 +88,8 @@ const FitsViewerGrid: React.FC<FitsViewerGridProps> = ({
 
     return () => {
       if (window.JS9) {
-        window.JS9.SetCallback("onzoom", null, { display: "JS9Grid_0" });
-        window.JS9.SetCallback("onpan", null, { display: "JS9Grid_0" });
+        window.JS9.RemoveCallback("onzoom", { display: "JS9Grid_0" });
+        window.JS9.RemoveCallback("onpan", { display: "JS9Grid_0" });
       }
     };
   }, [syncEnabled, loadedCount, fitsUrls.length, handleSync]);
