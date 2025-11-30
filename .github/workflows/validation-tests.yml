@@ -25,6 +25,15 @@ jobs:
   fast-tests:
     name: Fast Tests (Impacted/Fail-Fast)
     runs-on: ubuntu-latest
+    env:
+      # Use temp directories for databases in CI
+      PIPELINE_PRODUCTS_DB: /tmp/dsa110-ci/products.sqlite3
+      PIPELINE_CAL_REGISTRY_DB: /tmp/dsa110-ci/cal_registry.sqlite3
+      PIPELINE_HDF5_DB: /tmp/dsa110-ci/hdf5.sqlite3
+      PIPELINE_INGEST_DB: /tmp/dsa110-ci/ingest.sqlite3
+      PIPELINE_DATA_REGISTRY_DB: /tmp/dsa110-ci/data_registry.sqlite3
+      PIPELINE_DOCSEARCH_DB: /tmp/dsa110-ci/docsearch.sqlite3
+      PIPELINE_EMBEDDING_CACHE_DB: /tmp/dsa110-ci/embedding_cache.sqlite3
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -33,6 +42,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
+      - name: Create CI database directory
+        run: mkdir -p /tmp/dsa110-ci
 
       - name: Install test dependencies
         run: |
@@ -52,6 +64,15 @@ jobs:
     name: Unit Tests (Mocked)
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.test_type == 'unit' || github.event.inputs.test_type == 'full' || github.event.inputs.test_type == '' }}
+    env:
+      # Use temp directories for databases in CI
+      PIPELINE_PRODUCTS_DB: /tmp/dsa110-ci/products.sqlite3
+      PIPELINE_CAL_REGISTRY_DB: /tmp/dsa110-ci/cal_registry.sqlite3
+      PIPELINE_HDF5_DB: /tmp/dsa110-ci/hdf5.sqlite3
+      PIPELINE_INGEST_DB: /tmp/dsa110-ci/ingest.sqlite3
+      PIPELINE_DATA_REGISTRY_DB: /tmp/dsa110-ci/data_registry.sqlite3
+      PIPELINE_DOCSEARCH_DB: /tmp/dsa110-ci/docsearch.sqlite3
+      PIPELINE_EMBEDDING_CACHE_DB: /tmp/dsa110-ci/embedding_cache.sqlite3
 
     steps:
       - name: Checkout code
@@ -61,6 +82,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
+      - name: Create CI database directory
+        run: mkdir -p /tmp/dsa110-ci
 
       - name: Install test dependencies
         run: |
