@@ -38,7 +38,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Set up Miniforge
-        uses: conda-incubator/setup-miniforge@v3
+        uses: conda-incubator/setup-miniconda@v3
         with:
           miniforge-version: latest
           activate-environment: casa6
