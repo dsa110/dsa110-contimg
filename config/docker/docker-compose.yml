@@ -54,15 +54,13 @@ services:
       retries: 3
 
   dashboard-dev:
-    # NOTE: Docker dev container uses Vite default port 5173 internally.
-    # Local dev (npm run dev) uses port 3000 per vite.config.ts.
-    # Both are mapped to external port 3210 for consistency.
+    # Dev container runs on port 3000 (matching vite.config.ts), mapped to 3210 externally
     build:
       context: ./frontend
       dockerfile: Dockerfile.dev
     container_name: dsa110-dashboard-dev
     ports:
-      - "3210:5173" # Maps Docker's internal 5173 to external 3210
+      - "3210:3000" # Maps container port 3000 to external 3210
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -75,7 +73,7 @@ services:
       - api
     command: npm run dev -- --host 0.0.0.0
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5173/"]
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
       interval: 30s
       timeout: 10s
       retries: 3

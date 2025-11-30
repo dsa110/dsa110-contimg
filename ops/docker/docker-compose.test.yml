@@ -12,7 +12,7 @@ services:
       - test-results:/app/test-results
       - playwright-report:/app/playwright-report
     environment:
-      - BASE_URL=http://host.docker.internal:5173
+      - BASE_URL=http://host.docker.internal:3000
       - API_URL=http://host.docker.internal:8010
       - CI=false
     network_mode: host
@@ -32,7 +32,7 @@ services:
     volumes:
       - ../frontend:/app/frontend
     ports:
-      - "5173:5173"
+      - "3000:3000"
     command: sh -c "npm ci && npm run dev -- --host 0.0.0.0"
     environment:
       - NODE_ENV=development

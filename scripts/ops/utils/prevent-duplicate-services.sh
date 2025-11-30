@@ -24,10 +24,9 @@ echo ""
 check_and_cleanup_vite() {
     local auto_cleanup=$1
     
-    # Check for duplicate Vite instances
-    # Check port 3000 (current default) and legacy ports for cleanup
+    # Check for duplicate Vite instances on dev (3000) and production (3210) ports
     vite_ports=""
-    for port in 3000 3210 5173 5174 5175 5176 5177 5178 5179; do
+    for port in 3000 3210; do
         pid=$(lsof -ti :$port 2>/dev/null | head -1)
         if [ -n "$pid" ]; then
             cmd=$(ps -p "$pid" -o cmd --no-headers 2>/dev/null | grep -i vite || true)
@@ -88,21 +87,12 @@ check_and_cleanup_vite() {
         fi
     elif [ "$vite_count" -eq 1 ]; then
         port=$(echo "$vite_ports" | head -1)
-        if [ "$port" != "5173" ]; then
-            echo -e "${YELLOW}:warning:  Vite running on non-standard port $port${NC}"
-            if [ "$auto_cleanup" = "1" ]; then
-                vite_pid=$(lsof -ti :$port 2>/dev/null | head -1)
-                npm_pid=$(ps -o ppid= -p "$vite_pid" 2>/dev/null | tr -d ' ')
-                if [ -n "$npm_pid" ]; then
-                    kill "$npm_pid" 2>/dev/null || true
-                    sleep 1
-                    echo -e "${GREEN}:check: Cleaned up${NC}"
-                fi
-            fi
-        else
-            echo -e "${GREEN}:check: Vite already running on port 3000${NC}"
-            return 2  # Service already running (not an error)
+        if [ "$port" = "3000" ]; then
+            echo -e "${GREEN}✓ Vite running on port 3000 (dev)${NC}"
+        elif [ "$port" = "3210" ]; then
+            echo -e "${GREEN}✓ Vite running on port 3210 (production)${NC}"
         fi
+        return 2  # Service already running (not an error)
     else
         echo -e "${GREEN}:check: No Vite instances running${NC}"
     fi

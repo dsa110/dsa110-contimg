@@ -42,7 +42,7 @@ vite_pids=$(pgrep -f "vite" 2>/dev/null | grep -v "grep" || true)
 if [ -n "$vite_pids" ]; then
     echo -e "${YELLOW}Found Vite processes:${NC}"
     for pid in $vite_pids; do
-        port=$(lsof -ti -a -p "$pid" -i :5173-5179 2>/dev/null | head -1 || echo "unknown")
+        port=$(lsof -ti -a -p "$pid" -i :3000-3210 2>/dev/null | head -1 || echo "unknown")
         cmd=$(ps -p "$pid" -o cmd --no-headers 2>/dev/null | head -c 80)
         echo "  PID $pid (port $port): $cmd"
     done

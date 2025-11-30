@@ -94,7 +94,7 @@ services:
     working_dir: /app/frontend
     command: sh -c "npm install && npm run dev -- --host"
     ports:
-      - "5173:5173"
+      - "3000:3000"
     volumes:
       - ${REPO_ROOT}/frontend:/app/frontend:rw
     environment:
