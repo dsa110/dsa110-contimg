@@ -287,7 +287,10 @@ function normalizeError(error: AxiosError<ErrorResponse> | Error): Partial<Error
 /**
  * Create request config with custom retry settings
  */
-export function withRetry(config: AxiosRequestConfig, retryConfig?: Partial<RetryConfig>): AxiosRequestConfig {
+export function withRetry(
+  config: AxiosRequestConfig,
+  retryConfig?: Partial<RetryConfig>
+): AxiosRequestConfig {
   return {
     ...config,
     __retryConfig: { ...DEFAULT_RETRY_CONFIG, ...retryConfig },
