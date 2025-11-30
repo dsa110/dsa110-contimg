@@ -73,9 +73,17 @@ const SesameResolver: React.FC<SesameResolverProps> = ({ onResolved, className =
         trimmedName
       )}`;
 
-      const response = await fetch(url, {
-        signal: abortControllerRef.current.signal,
-      });
+      const response = await fetchWithRetry(
+        url,
+        {
+          signal: abortControllerRef.current.signal,
+        },
+        {
+          ...DEFAULT_EXTERNAL_RETRY_CONFIG,
+          maxRetries: 2, // Fewer retries for interactive user requests
+          timeoutMs: 15000, // 15s timeout per attempt
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP error: ${response.status}`);
@@ -117,13 +125,7 @@ const SesameResolver: React.FC<SesameResolverProps> = ({ onResolved, className =
       if (err instanceof Error && err.name === "AbortError") {
         return;
       }
-      const message = err instanceof Error ? err.message : "Resolution failed";
-      // Distinguish network errors
-      if (message.includes("fetch") || message.includes("network")) {
-        setError("Network error. CORS may be blocking the request. Try using a backend proxy.");
-      } else {
-        setError(message);
-      }
+      setError(parseExternalServiceError(err, "CDS Sesame"));
     } finally {
       setIsLoading(false);
     }
