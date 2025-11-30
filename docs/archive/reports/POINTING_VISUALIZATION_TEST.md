@@ -20,7 +20,7 @@ All three next steps have been completed successfully. The pointing visualizatio
 
 **Details:**
 - Process ID: 2151109
-- Port: 5173 (standard Vite dev port)
+- Port: 3000 (standard Vite dev port)
 - Server responding: ✅ Yes
 - Accessible at: `http://localhost:3000`
 
@@ -162,7 +162,7 @@ Pointing Monitor → Database → API → Frontend Hook → Component → Visual
 - **Format**: MJD timestamps, RA/Dec in degrees
 
 ### Frontend
-- **Server**: Running on port 5173
+- **Server**: Running on port 3000
 - **Component**: Integrated in dashboard
 - **API**: Connected and responding
 

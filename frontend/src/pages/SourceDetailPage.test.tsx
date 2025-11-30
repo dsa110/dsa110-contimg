@@ -13,6 +13,11 @@ vi.mock("../stores/appStore", () => ({
   usePreferencesStore: vi.fn(() => vi.fn()),
 }));
 
+// Mock error boundary
+vi.mock("../components/errors", () => ({
+  WidgetErrorBoundary: vi.fn(({ children }) => <>{children}</>),
+}));
+
 // Mock components
 vi.mock("../components/widgets", () => ({
   AladinLiteViewer: vi.fn(() => <div data-testid="aladin-viewer">Aladin Viewer</div>),
@@ -28,6 +33,7 @@ vi.mock("../components/common", () => ({
   )),
   CoordinateDisplay: vi.fn(() => <div>Coordinates</div>),
   LoadingSpinner: vi.fn(({ label }) => <div>{label}</div>),
+  PageSkeleton: vi.fn(() => <div data-testid="page-skeleton">Loading...</div>),
   QAMetrics: vi.fn(({ grade, summary }) => (
     <div data-testid="qa-metrics" data-grade={grade} data-summary={summary}>
       QA Metrics: {grade}

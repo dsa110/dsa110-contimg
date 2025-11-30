@@ -23,6 +23,15 @@ vi.mock("../stores/appStore", () => ({
   }),
 }));
 
+// Mock components
+vi.mock("../components/common", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("../components/common")>();
+  return {
+    ...actual,
+    PageSkeleton: vi.fn(() => <div data-testid="page-skeleton">Loading...</div>),
+  };
+});
+
 import { useImages } from "../hooks/useQueries";
 
 const mockUseImages = vi.mocked(useImages);

@@ -265,9 +265,8 @@ Units:
   - `stream`: streaming worker with orchestrator (bind mounts to host paths)
   - `api`: uvicorn exposing `${CONTIMG_API_PORT}`
   - `scheduler`: optional nightly mosaic + periodic housekeeping
-  - `dashboard`: production frontend build (serves static files on port 3000)
-  - `dashboard-dev`: development frontend with hot reloading (Vite dev server on
-    port 5173)
+  - `dashboard`: production frontend build (serves static files on port 3210)
+  - `dashboard-dev`: development frontend with hot reloading (mapped to port 3210)
 
 Image:
 
@@ -410,8 +409,7 @@ docker compose stop dashboard-dev api
 - **Frontend (dashboard-dev)**: Hot module replacement (HMR) - code changes
   reflect immediately
 - Volume-mounted source code - no image rebuilds needed after initial build
-- Frontend available at `http://localhost:5174` (avoids conflict with local dev
-  server on 5173)
+- Frontend available at `http://localhost:3210` (Docker) or `http://localhost:3000` (local dev)
 - Backend available at `http://localhost:8000`
 - Services connect via Docker network
 
@@ -424,8 +422,8 @@ docker compose stop dashboard-dev api
 - Uses `docker-compose.yml` in repository root (not
   `ops/docker/docker-compose.yml`)
 
-**Note:** Port 5174 is used for the Docker frontend to avoid conflict with local
-dev server on 5173. Both can run simultaneously.
+**Note:** Docker maps the frontend to port 3210 externally. Local dev server
+uses port 3000. Both can run simultaneously if using different ports.
 
 ## Performance Benchmarking
 

@@ -100,7 +100,7 @@ check_and_cleanup_vite() {
                 fi
             fi
         else
-            echo -e "${GREEN}:check: Vite already running on port 5173${NC}"
+            echo -e "${GREEN}:check: Vite already running on port 3000${NC}"
             return 2  # Service already running (not an error)
         fi
     else

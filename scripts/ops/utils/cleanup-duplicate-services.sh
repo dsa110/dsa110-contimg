@@ -35,7 +35,7 @@ if [ "$vite_count" -gt 1 ]; then
     echo ""
     
     # Keep port 5173 (primary), kill others
-    primary_port=5173
+    primary_port=3000
     duplicates=""
     
     for port in $vite_ports; do
@@ -95,7 +95,7 @@ if [ "$vite_count" -gt 1 ]; then
                         child_vite=$(pgrep -P "$npm_pid" -f vite 2>/dev/null | head -1 || true)
                         if [ -n "$child_vite" ]; then
                             vite_port=$(lsof -ti -a -p "$child_vite" -i :5173-5179 2>/dev/null | head -1 || true)
-                            if [ -n "$vite_port" ] && [ "$vite_port" != "5173" ]; then
+                            if [ -n "$vite_port" ] && [ "$vite_port" != "3000" ]; then
                                 echo "  Killing npm process PID $npm_pid (parent of duplicate on port $vite_port)..."
                                 kill "$npm_pid" 2>/dev/null || sudo kill "$npm_pid" 2>/dev/null || true
                             fi

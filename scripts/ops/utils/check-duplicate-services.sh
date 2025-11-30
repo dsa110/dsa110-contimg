@@ -44,7 +44,7 @@ if [ "$vite_count" -gt 1 ]; then
         fi
     done
     echo ""
-    echo "Recommendation: Keep only one Vite instance (preferably on port 5173)"
+    echo "Recommendation: Keep only one Vite instance (preferably on port 3000)"
     echo "  To kill duplicates: pkill -f 'vite.*517[4-9]'"
 else
     echo -e "${GREEN}:check: No duplicate Vite instances${NC}"
