@@ -1,4 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
 
+# Testing & Coverage
+.coverage
+.pytest_cache/
+htmlcov/
 
-#Ignore cursor AI rules
+# IDE & Editor
+.cursor/
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env
+.venv/
+venv/
+
+# Cursor AI rules (keep specific rule files)
 .cursor/rules/codacy.mdc
