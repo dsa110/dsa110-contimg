@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useSources } from "../hooks/useQueries";
+import { useUrlFilterState } from "../hooks/useUrlFilterState";
+import { useSourceFiltering } from "../hooks/useSourceFiltering";
 import { PageSkeleton, SortableTableHeader, useTableSort, Modal } from "../components/common";
 import { AdvancedQueryPanel, SourceQueryParams } from "../components/query";
 import { EtaVPlot, SourcePoint } from "../components/variability";
@@ -15,13 +17,23 @@ import { ROUTES } from "../constants/routes";
 
 /**
  * List page showing all detected sources with advanced query and variability plot.
+ * Uses URL-based filter state for shareable/bookmarkable views.
  */
 const SourcesListPage: React.FC = () => {
   const { data: sources, isLoading, error } = useSources();
-  const [activeTab, setActiveTab] = useState<"list" | "variability">("list");
-  const [queryParams, setQueryParams] = useState<SourceQueryParams>({});
+
+  // URL-based filter state for shareable views
+  const { filters, setFilters, clearFilters, hasActiveFilters } = useUrlFilterState();
+
+  // Derive active tab from URL, default to "list"
+  const activeTab = (filters.tab as "list" | "variability") || "list";
+  const setActiveTab = useCallback(
+    (tab: "list" | "variability") => setFilters({ tab }),
+    [setFilters]
+  );
+
+  // Local UI state (not persisted in URL)
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  const [advFilterValues, setAdvFilterValues] = useState<AdvFilterValues>({});
   const [showExportModal, setShowExportModal] = useState(false);
 
   // Advanced filter definitions
@@ -84,52 +96,60 @@ const SourcesListPage: React.FC = () => {
     setShowExportModal(false);
   }, [selectedIds]);
 
-  // Filter sources based on query params and advanced filters
-  const filteredSources = useMemo(() => {
-    if (!sources) return [];
-    let result = sources as SourceSummary[];
+  // Use centralized filtering hook with URL state
+  const { filteredSources, totalCount, filteredCount, isFiltered } = useSourceFiltering(
+    sources as SourceSummary[] | undefined,
+    {
+      ra: filters.ra,
+      dec: filters.dec,
+      radius: filters.radius,
+      minFlux: filters.minFlux,
+      maxFlux: filters.maxFlux,
+      name: filters.name,
+      minImages: filters.minImages,
+      variableOnly: filters.variable,
+    }
+  );
 
-    // Apply cone search filter
-    if (queryParams.ra !== undefined && queryParams.dec !== undefined && queryParams.radius) {
-      const { ra, dec, radius } = queryParams;
-      result = result.filter((s) => {
-        if (s.ra_deg === undefined || s.dec_deg === undefined) return false;
-        // Simple angular distance approximation
-        const dRa = (s.ra_deg - ra) * Math.cos((dec * Math.PI) / 180);
-        const dDec = s.dec_deg - dec;
-        const dist = Math.sqrt(dRa * dRa + dDec * dDec) * 60; // arcmin
-        return dist <= radius;
+  // Adapter: Convert URL state to AdvancedFilterPanel values format
+  const advFilterValues: AdvFilterValues = useMemo(
+    () => ({
+      name: filters.name,
+      minFlux: filters.minFlux,
+      maxFlux: filters.maxFlux,
+      minImages: filters.minImages,
+      variable: filters.variable,
+    }),
+    [filters]
+  );
+
+  // Adapter: Handle AdvancedFilterPanel changes by updating URL state
+  const handleAdvFilterChange = useCallback(
+    (values: AdvFilterValues) => {
+      setFilters({
+        name: values.name as string | undefined,
+        minFlux: values.minFlux as number | undefined,
+        maxFlux: values.maxFlux as number | undefined,
+        minImages: values.minImages as number | undefined,
+        variable: values.variable as boolean | undefined,
       });
-    }
+    },
+    [setFilters]
+  );
 
-    // Apply flux filter from queryParams
-    if (queryParams.minFlux !== undefined) {
-      result = result.filter((s) => (s.peak_flux_jy ?? 0) >= (queryParams.minFlux ?? 0));
-    }
-    if (queryParams.maxFlux !== undefined) {
-      result = result.filter(
-        (s) => (s.peak_flux_jy ?? Infinity) <= (queryParams.maxFlux ?? Infinity)
-      );
-    }
-
-    // Apply advanced filters
-    if (advFilterValues.name && typeof advFilterValues.name === "string") {
-      const term = advFilterValues.name.toLowerCase();
-      result = result.filter(
-        (s) => s.name?.toLowerCase().includes(term) || s.id.toLowerCase().includes(term)
-      );
-    }
-    if (advFilterValues.minImages && typeof advFilterValues.minImages === "number") {
-      result = result.filter((s) => (s.num_images ?? 0) >= (advFilterValues.minImages as number));
-    }
-    if (advFilterValues.variable === true) {
-      result = result.filter(
-        (s) => s.eta !== undefined && s.v !== undefined && (s.eta > 2 || s.v > 0.1)
-      );
-    }
-
-    return result;
-  }, [sources, queryParams, advFilterValues]);
+  // Adapter: Handle AdvancedQueryPanel changes (cone search)
+  const handleQueryChange = useCallback(
+    (params: SourceQueryParams) => {
+      setFilters({
+        ra: params.ra,
+        dec: params.dec,
+        radius: params.radius,
+        minFlux: params.minFlux,
+        maxFlux: params.maxFlux,
+      });
+    },
+    [setFilters]
+  );
 
   const { sortColumn, sortDirection, handleSort, sortedData } = useTableSort<SourceSummary>(
     filteredSources,
@@ -215,24 +235,31 @@ const SourcesListPage: React.FC = () => {
 
       {/* Advanced Query Panel */}
       <div className="mb-6">
-        <AdvancedQueryPanel onQueryChange={setQueryParams} />
+        <AdvancedQueryPanel onQueryChange={handleQueryChange} />
       </div>
 
       {/* Advanced Filter Panel (collapsible) */}
       <div className="mb-6">
-        <button
-          onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-          className="text-sm text-blue-600 hover:text-blue-800 mb-2"
-        >
-          {showAdvancedFilters ? "Hide Advanced Filters" : "Show Advanced Filters"}
-        </button>
+        <div className="flex items-center gap-2 mb-2">
+          <button
+            onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+            className="text-sm text-blue-600 hover:text-blue-800"
+          >
+            {showAdvancedFilters ? "Hide Advanced Filters" : "Show Advanced Filters"}
+          </button>
+          {hasActiveFilters && (
+            <button onClick={clearFilters} className="text-sm text-red-600 hover:text-red-800">
+              Clear All Filters
+            </button>
+          )}
+        </div>
         {showAdvancedFilters && (
           <AdvancedFilterPanel
             filters={advFilterDefs}
             values={advFilterValues}
-            onChange={setAdvFilterValues}
+            onChange={handleAdvFilterChange}
             onApply={() => {}}
-            onReset={() => setAdvFilterValues({})}
+            onReset={clearFilters}
           />
         )}
       </div>
@@ -286,7 +313,8 @@ const SourcesListPage: React.FC = () => {
         /* List View Tab */
         <>
           <p className="text-sm text-gray-500 mb-4">
-            Showing {filteredSources.length} of {(sources as SourceSummary[])?.length ?? 0} sources
+            Showing {filteredCount} of {totalCount} sources
+            {isFiltered && " (filtered)"}
           </p>
 
           {sortedData && sortedData.length > 0 ? (

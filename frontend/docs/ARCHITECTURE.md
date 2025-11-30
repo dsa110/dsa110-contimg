@@ -440,11 +440,14 @@ src/api/resilience/
 
 Complex page logic is extracted into focused hooks:
 
-| Hook                 | Purpose                             |
-| -------------------- | ----------------------------------- |
-| `useUrlFilterState`  | URL-based filter state for sharing  |
-| `useSourceFiltering` | Source list filtering logic         |
-| `useImageDetail`     | Image detail page data & operations |
+| Hook                 | Purpose                             | Status        |
+| -------------------- | ----------------------------------- | ------------- |
+| `useImageDetail`     | Image detail page data & operations | ✅ Integrated |
+| `useUrlFilterState`  | URL-based filter state for sharing  | 🔧 Available  |
+| `useSourceFiltering` | Source list filtering logic         | 🔧 Available  |
+
+**Note:** `useImageDetail` is fully integrated in `ImageDetailPage`. The other
+hooks are available infrastructure for future refactoring of `SourcesListPage`.
 
 ### Error Boundaries
 

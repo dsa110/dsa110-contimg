@@ -4,10 +4,9 @@ Statistics routes.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends
 
 from ..dependencies import get_stats_service
-from ..errors import internal_error
 from ..services.stats_service import StatsService
 
 router = APIRouter(prefix="/stats", tags=["statistics"])
@@ -22,10 +21,4 @@ async def get_stats(
     
     Returns counts and status summaries in a single efficient query.
     """
-    try:
-        return await service.get_dashboard_stats()
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=internal_error(f"Failed to retrieve stats: {str(e)}").to_dict(),
-        )
+    return await service.get_dashboard_stats()
