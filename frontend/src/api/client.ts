@@ -280,6 +280,30 @@ function normalizeError(error: AxiosError<ErrorResponse> | Error): Partial<Error
   };
 }
 
+// =============================================================================
+// Helper Functions
+// =============================================================================
+
+/**
+ * Create request config with custom retry settings
+ */
+export function withRetry(config: AxiosRequestConfig, retryConfig?: Partial<RetryConfig>): AxiosRequestConfig {
+  return {
+    ...config,
+    __retryConfig: { ...DEFAULT_RETRY_CONFIG, ...retryConfig },
+  } as AxiosRequestConfig;
+}
+
+/**
+ * Create request config that disables retry
+ */
+export function noRetry(config: AxiosRequestConfig = {}): AxiosRequestConfig {
+  return {
+    ...config,
+    __retryConfig: { ...DEFAULT_RETRY_CONFIG, maxRetries: 0 },
+  } as AxiosRequestConfig;
+}
+
 /**
  * Fetch provenance data for a given run/job ID.
  * Used by the ProvenanceStrip component to display pipeline context.
@@ -289,4 +313,5 @@ export const fetchProvenanceData = async (runId: string): Promise<ProvenanceStri
   return response.data;
 };
 
+export { DEFAULT_RETRY_CONFIG };
 export default apiClient;
