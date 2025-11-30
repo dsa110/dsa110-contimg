@@ -55,7 +55,7 @@ CWD before import: /data/dsa110-contimg/src
 Logs before: 28
 CASA imported
 Logs after: 29
-:warning_sign::variation_selector-16:  New log created in root directory!
+:warning:  New log created in root directory!
 ```
 
 **Conclusion**: CASA creates logs in whatever directory is the CWD when it's

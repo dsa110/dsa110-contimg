@@ -301,8 +301,8 @@ sudo systemctl stop dsa110-absurd-worker@{5..8}
 
 ### Critical (Blocking Production)
 
-- :warning_sign::variation_selector-16: **Disk space critical**: `/data` at 95%, needs cleanup
-- :warning_sign::variation_selector-16: **Stale MS entries**: 17 missing MS files in products DB
+- :warning: **Disk space critical**: `/data` at 95%, needs cleanup
+- :warning: **Stale MS entries**: 17 missing MS files in products DB
 
 ### High Priority
 

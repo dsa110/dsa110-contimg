@@ -30,7 +30,7 @@ try:
     os.chdir(log_dir)
     print(f":check_mark: Changed CWD to log directory: {log_dir}")
 except (OSError, IOError, PermissionError) as e:
-    print(f":warning_sign::variation_selector-16:  Warning: Could not change CWD to {log_dir}: {e}", file=sys.stderr)
+    print(f":warning:  Warning: Could not change CWD to {log_dir}: {e}", file=sys.stderr)
 
 """Create 12-minute mosaic with specified parameters.
 
