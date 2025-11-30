@@ -10,9 +10,10 @@ from __future__ import annotations
 import os
 import sqlite3
 from contextlib import asynccontextmanager
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, List, AsyncIterator, Any
+from typing import Optional, List, AsyncIterator, Any, Dict
 
 import aiosqlite
 
@@ -28,6 +29,156 @@ from .interfaces import (
     SourceRepositoryInterface,
     JobRepositoryInterface,
 )
+
+
+# =============================================================================
+# Helper functions
+# =============================================================================
+
+def safe_row_get(row: sqlite3.Row, key: str, default: Optional[Any] = None) -> Any:
+    """Safely get a value from a sqlite3.Row object.
+    
+    Args:
+        row: The SQLite row to extract value from
+        key: The column name to retrieve
+        default: Default value if key doesn't exist
+        
+    Returns:
+        The value at the given key, or default if not found
+    """
+    try:
+        return row[key]
+    except (KeyError, IndexError):
+        return default
+
+
+# =============================================================================
+# Configuration helpers
+# =============================================================================
+
+def _get_default_db_path() -> str:
+    """Get default database path from config (lazy-loaded)."""
+    return str(get_config().database.products_path)
+
+
+def _get_cal_registry_path() -> str:
+    """Get calibration registry path from config (lazy-loaded)."""
+    return str(get_config().database.cal_registry_path)
+
+
+# =============================================================================
+# Data records
+# =============================================================================
+
+@dataclass
+class ImageRecord:
+    """Image metadata record."""
+    id: int
+    path: str
+    ms_path: str
+    created_at: float
+    type: str
+    beam_major_arcsec: Optional[float] = None
+    noise_jy: Optional[float] = None
+    pbcor: int = 0
+    format: str = "fits"
+    beam_minor_arcsec: Optional[float] = None
+    beam_pa_deg: Optional[float] = None
+    dynamic_range: Optional[float] = None
+    field_name: Optional[str] = None
+    center_ra_deg: Optional[float] = None
+    center_dec_deg: Optional[float] = None
+    imsize_x: Optional[int] = None
+    imsize_y: Optional[int] = None
+    cellsize_arcsec: Optional[float] = None
+    freq_ghz: Optional[float] = None
+    bandwidth_mhz: Optional[float] = None
+    integration_sec: Optional[float] = None
+    
+    # Derived from ms_index
+    cal_table: Optional[str] = None
+    qa_grade: Optional[str] = None
+    qa_summary: Optional[str] = None
+    run_id: Optional[str] = None
+    qa_metrics: Optional[dict] = None
+    qa_flags: Optional[List[dict]] = None
+    qa_timestamp: Optional[float] = None
+    n_sources: Optional[int] = None
+    peak_flux_jy: Optional[float] = None
+    theoretical_noise_jy: Optional[float] = None
+
+
+@dataclass
+class MSRecord:
+    """Measurement Set metadata record."""
+    path: str
+    start_mjd: Optional[float] = None
+    end_mjd: Optional[float] = None
+    mid_mjd: Optional[float] = None
+    processed_at: Optional[float] = None
+    status: Optional[str] = None
+    stage: Optional[str] = None
+    stage_updated_at: Optional[float] = None
+    cal_applied: int = 0
+    imagename: Optional[str] = None
+    ra_deg: Optional[float] = None
+    dec_deg: Optional[float] = None
+    field_name: Optional[str] = None
+    pointing_ra_deg: Optional[float] = None
+    pointing_dec_deg: Optional[float] = None
+    
+    # Derived fields
+    calibrator_tables: List[dict] = None
+    qa_grade: Optional[str] = None
+    qa_summary: Optional[str] = None
+    run_id: Optional[str] = None
+    created_at: Optional[datetime] = None
+    qa_metrics: Optional[dict] = None
+    qa_flags: Optional[List[dict]] = None
+    qa_timestamp: Optional[float] = None
+
+
+@dataclass
+class SourceRecord:
+    """Source catalog record."""
+    id: str
+    name: Optional[str] = None
+    ra_deg: float = 0.0
+    dec_deg: float = 0.0
+    contributing_images: List[dict] = None
+    latest_image_id: Optional[str] = None
+
+
+@dataclass
+class JobRecord:
+    """Pipeline job record."""
+    run_id: str
+    input_ms_path: Optional[str] = None
+    cal_table_path: Optional[str] = None
+    phase_center_ra: Optional[float] = None
+    phase_center_dec: Optional[float] = None
+    qa_grade: Optional[str] = None
+    qa_summary: Optional[str] = None
+    output_image_id: Optional[int] = None
+    started_at: Optional[datetime] = None
+    queue_status: Optional[str] = None
+    config: Optional[dict] = None
+    job_id: Optional[int] = None
+    qa_flags: Optional[List[dict]] = None
+
+
+def get_db_connection(db_path: Optional[str] = None) -> sqlite3.Connection:
+    """Get a sync database connection with proper timeout and WAL mode.
+    
+    Args:
+        db_path: Database path, defaults to products DB from config
+    """
+    if db_path is None:
+        db_path = _get_default_db_path()
+    conn = sqlite3.connect(db_path, timeout=30.0)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode=WAL")
+    return conn
 
 
 # =============================================================================
