@@ -86,8 +86,8 @@ describe("config", () => {
       }
     });
 
-    it("should have Storybook disabled by default", () => {
-      expect(FEATURES.enableStorybook).toBe(false);
+    it("should have Storybook enabled", () => {
+      expect(FEATURES.enableStorybook).toBe(true);
     });
   });
 
