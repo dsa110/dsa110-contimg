@@ -5,6 +5,7 @@ import { SkyCoverageMap } from "../components/skymap";
 import { StatsDashboard, ServiceStatusPanel } from "../components/stats";
 import { useImages, useSources, useJobs } from "../hooks/useQueries";
 import type { ImageSummary } from "../types";
+import { ROUTES } from "../constants/routes";
 
 /**
  * Home page / dashboard.
@@ -73,21 +74,21 @@ const HomePage: React.FC = () => {
       label: "Total Images",
       value: images?.length ?? 0,
       icon: "IMG",
-      href: "/images",
+      href: ROUTES.IMAGES.LIST,
       variant: "primary" as const,
     },
     {
       label: "Detected Sources",
       value: sources?.length ?? 0,
       icon: "SRC",
-      href: "/sources",
+      href: ROUTES.SOURCES.LIST,
       variant: "success" as const,
     },
     {
       label: "Pipeline Jobs",
       value: jobs?.length ?? 0,
       icon: "JOB",
-      href: "/jobs",
+      href: ROUTES.JOBS.LIST,
       variant: "info" as const,
     },
   ];
@@ -167,19 +168,19 @@ const HomePage: React.FC = () => {
         <DashboardCard
           title="Images"
           description="Browse processed FITS images and view QA assessments."
-          link="/images"
+          link={ROUTES.IMAGES.LIST}
           icon="IMG"
         />
         <DashboardCard
           title="Sources"
           description="Explore detected radio sources and lightcurves."
-          link="/sources"
+          link={ROUTES.SOURCES.LIST}
           icon="SRC"
         />
         <DashboardCard
           title="Jobs"
           description="Monitor pipeline jobs and view provenance."
-          link="/jobs"
+          link={ROUTES.JOBS.LIST}
           icon="JOB"
         />
       </div>

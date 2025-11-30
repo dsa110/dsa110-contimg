@@ -17,11 +17,11 @@ class SourceService:
     def __init__(self, repository: "SourceRepository"):
         self.repo = repository
     
-    async def get_source(self, source_id: str) -> Optional["SourceRecord"]:
+    def get_source(self, source_id: str) -> Optional["SourceRecord"]:
         """Get source by ID."""
         return self.repo.get_by_id(source_id)
     
-    async def list_sources(
+    def list_sources(
         self,
         limit: int = 100,
         offset: int = 0
@@ -29,7 +29,7 @@ class SourceService:
         """List sources with pagination."""
         return self.repo.list_all(limit=limit, offset=offset)
     
-    async def get_lightcurve(
+    def get_lightcurve(
         self,
         source_id: str,
         start_mjd: Optional[float] = None,

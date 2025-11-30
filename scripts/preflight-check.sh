@@ -59,7 +59,7 @@ echo ""
 echo "--- Ports ---"
 warn "Port 8000 (API) available or in use by our service" "! lsof -i :8000 >/dev/null 2>&1 || systemctl is-active --quiet contimg-api"  # suppress-output-check
 warn "Port 3210 (Dashboard) available or in use by our service" "! lsof -i :3210 >/dev/null 2>&1 || systemctl is-active --quiet dsa110-contimg-dashboard"  # suppress-output-check
-warn "Port 3111 (Dev) available" "! lsof -i :3111 >/dev/null 2>&1"  # suppress-output-check
+warn "Port 3000 (Dev) available" "! lsof -i :3000 >/dev/null 2>&1"  # suppress-output-check
 
 echo ""
 echo "--- Frontend Build ---"

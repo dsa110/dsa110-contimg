@@ -23,11 +23,11 @@ class JobService:
     def __init__(self, repository: "JobRepository"):
         self.repo = repository
     
-    async def get_job(self, run_id: str) -> Optional["JobRecord"]:
+    def get_job(self, run_id: str) -> Optional["JobRecord"]:
         """Get job by run ID."""
         return self.repo.get_by_run_id(run_id)
     
-    async def list_jobs(
+    def list_jobs(
         self,
         limit: int = 100,
         offset: int = 0

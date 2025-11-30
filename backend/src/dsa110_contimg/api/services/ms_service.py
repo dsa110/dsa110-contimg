@@ -17,7 +17,7 @@ class MSService:
     def __init__(self, repository: "MSRepository"):
         self.repo = repository
     
-    async def get_metadata(self, ms_path: str) -> Optional["MSRecord"]:
+    def get_metadata(self, ms_path: str) -> Optional["MSRecord"]:
         """Get metadata for a measurement set."""
         return self.repo.get_metadata(ms_path)
     

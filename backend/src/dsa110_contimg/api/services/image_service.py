@@ -20,11 +20,11 @@ class ImageService:
     def __init__(self, repository: "ImageRepository"):
         self.repo = repository
     
-    async def get_image(self, image_id: str) -> Optional["ImageRecord"]:
+    def get_image(self, image_id: str) -> Optional["ImageRecord"]:
         """Get image by ID."""
         return self.repo.get_by_id(image_id)
     
-    async def list_images(
+    def list_images(
         self,
         limit: int = 100,
         offset: int = 0
