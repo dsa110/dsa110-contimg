@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
-import { useJobProvenance } from "../hooks/useQueries";
+import { useJobProvenance, useRerunJob } from "../hooks/useQueries";
 import ProvenanceStrip from "../components/provenance/ProvenanceStrip";
 import ErrorDisplay from "../components/errors/ErrorDisplay";
 import { Card, CoordinateDisplay, QAMetrics, LoadingSpinner } from "../components/common";
@@ -24,6 +24,25 @@ const JobDetailPage: React.FC = () => {
   const { runId } = useParams<{ runId: string }>();
   const { data: provenance, isLoading, error, refetch } = useJobProvenance(runId);
   const addRecentJob = usePreferencesStore((state) => state.addRecentJob);
+  const rerunMutation = useRerunJob();
+  const [rerunStatus, setRerunStatus] = useState<"idle" | "pending" | "success" | "error">("idle");
+
+  // Handle re-running the job
+  const handleRerunJob = useCallback(async () => {
+    if (!runId) return;
+
+    setRerunStatus("pending");
+    try {
+      await rerunMutation.mutateAsync(runId);
+      setRerunStatus("success");
+      // Reset after showing success briefly
+      setTimeout(() => setRerunStatus("idle"), 2000);
+    } catch {
+      setRerunStatus("error");
+      // Reset after showing error briefly
+      setTimeout(() => setRerunStatus("idle"), 3000);
+    }
+  }, [runId, rerunMutation]);
 
   // Track in recent items when job loads
   React.useEffect(() => {
@@ -143,13 +162,24 @@ const JobDetailPage: React.FC = () => {
               )}
               <button
                 type="button"
-                className="btn btn-secondary"
-                onClick={() => {
-                  // TODO: Implement re-run functionality
-                  alert("Re-run functionality not yet implemented");
-                }}
+                className={`btn ${
+                  rerunStatus === "success"
+                    ? "btn-success"
+                    : rerunStatus === "error"
+                    ? "btn-error"
+                    : "btn-secondary"
+                }`}
+                onClick={handleRerunJob}
+                disabled={rerunStatus === "pending"}
               >
-                Re-run Job
+                {rerunStatus === "pending" && (
+                  <span className="loading loading-spinner loading-xs mr-2" />
+                )}
+                {rerunStatus === "success"
+                  ? "✓ Job Queued"
+                  : rerunStatus === "error"
+                  ? "✗ Failed"
+                  : "Re-run Job"}
               </button>
             </div>
           </Card>

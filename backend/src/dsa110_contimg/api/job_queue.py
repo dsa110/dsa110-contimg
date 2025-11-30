@@ -41,7 +41,7 @@ REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 QUEUE_NAME = os.getenv("DSA110_QUEUE_NAME", "dsa110-pipeline")
 PIPELINE_CMD_TEMPLATE = os.getenv("DSA110_PIPELINE_RUN_CMD", "")
 
-from .repositories import JobRepository, get_db_connection
+from .repositories import AsyncJobRepository as JobRepository, get_db_connection
 from dsa110_contimg.database.jobs import (
     ensure_jobs_table,
     create_job as db_create_job,

@@ -16,6 +16,7 @@ import { FitsViewer } from "../components/fits";
 import { RatingCard, RatingTag } from "../components/rating";
 import { mapProvenanceFromImageDetail } from "../utils/provenanceMappers";
 import { relativeTime } from "../utils/relativeTime";
+import { logger } from "../utils/logger";
 import type { ErrorResponse, ImageDetail } from "../types";
 import { useImageDetail } from "../hooks/useImageDetail";
 import { ROUTES } from "../constants/routes";
@@ -231,9 +232,8 @@ const ImageDetailPage: React.FC = () => {
                   speed={1}
                   showFrameCounter={true}
                   showTimeline={true}
-                  // TODO: Remove debug logging or use a debug utility that can be disabled in production
                   onFrameChange={(frameIndex, totalFrames) => {
-                    console.debug(`Animation frame: ${frameIndex + 1}/${totalFrames}`);
+                    logger.debug(`Animation frame: ${frameIndex + 1}/${totalFrames}`);
                   }}
                   className="rounded-lg overflow-hidden"
                 />

@@ -154,7 +154,7 @@ class TestQAService:
 
 
 class TestImageService:
-    """Tests for ImageService."""
+    """Tests for AsyncImageService (sync utility methods)."""
     
     @pytest.fixture
     def mock_repo(self):
@@ -162,19 +162,23 @@ class TestImageService:
     
     @pytest.fixture
     def image_service(self, mock_repo):
-        from dsa110_contimg.api.services.image_service import ImageService
-        return ImageService(repository=mock_repo)
+        from dsa110_contimg.api.services.async_services import AsyncImageService
+        return AsyncImageService(repository=mock_repo)
     
-    def test_get_image_calls_repo(self, image_service, mock_repo):
+    @pytest.mark.asyncio
+    async def test_get_image_calls_repo(self, image_service, mock_repo):
         """Test get_image delegates to repository."""
-        mock_repo.get_by_id.return_value = MockImageRecord()
-        _ = image_service.get_image("img-001")
+        from unittest.mock import AsyncMock
+        mock_repo.get_by_id = AsyncMock(return_value=MockImageRecord())
+        _ = await image_service.get_image("img-001")
         mock_repo.get_by_id.assert_called_once_with("img-001")
 
-    def test_list_images_calls_repo(self, image_service, mock_repo):
+    @pytest.mark.asyncio
+    async def test_list_images_calls_repo(self, image_service, mock_repo):
         """Test list_images delegates to repository."""
-        mock_repo.list_all.return_value = [MockImageRecord()]
-        _ = image_service.list_images(limit=50, offset=10)
+        from unittest.mock import AsyncMock
+        mock_repo.list_all = AsyncMock(return_value=[MockImageRecord()])
+        _ = await image_service.list_images(limit=50, offset=10)
         mock_repo.list_all.assert_called_once_with(limit=50, offset=10)
     
     def test_build_provenance_links_structure(self, image_service):
@@ -242,7 +246,7 @@ class TestImageService:
 
 
 class TestSourceService:
-    """Tests for SourceService."""
+    """Tests for AsyncSourceService (sync utility methods)."""
     
     @pytest.fixture
     def mock_repo(self):
@@ -250,8 +254,8 @@ class TestSourceService:
     
     @pytest.fixture
     def source_service(self, mock_repo):
-        from dsa110_contimg.api.services.source_service import SourceService
-        return SourceService(repository=mock_repo)
+        from dsa110_contimg.api.services.async_services import AsyncSourceService
+        return AsyncSourceService(repository=mock_repo)
     
     def test_get_source_calls_repo(self, source_service, mock_repo):
         """Test get_source delegates to repository."""
@@ -365,7 +369,7 @@ class TestSourceService:
 
 
 class TestJobService:
-    """Tests for JobService."""
+    """Tests for AsyncJobService (sync utility methods)."""
     
     @pytest.fixture
     def mock_repo(self):
@@ -373,8 +377,8 @@ class TestJobService:
     
     @pytest.fixture
     def job_service(self, mock_repo):
-        from dsa110_contimg.api.services.job_service import JobService
-        return JobService(repository=mock_repo)
+        from dsa110_contimg.api.services.async_services import AsyncJobService
+        return AsyncJobService(repository=mock_repo)
     
     def test_get_job_calls_repo(self, job_service, mock_repo):
         """Test get_job delegates to repository."""
@@ -457,7 +461,7 @@ class TestJobService:
 
 
 class TestMSService:
-    """Tests for MSService."""
+    """Tests for AsyncMSService (sync utility methods)."""
     
     @pytest.fixture
     def mock_repo(self):
@@ -465,8 +469,8 @@ class TestMSService:
     
     @pytest.fixture
     def ms_service(self, mock_repo):
-        from dsa110_contimg.api.services.ms_service import MSService
-        return MSService(repository=mock_repo)
+        from dsa110_contimg.api.services.async_services import AsyncMSService
+        return AsyncMSService(repository=mock_repo)
     
     def test_get_metadata_calls_repo(self, ms_service, mock_repo):
         """Test get_metadata delegates to repository."""

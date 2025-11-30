@@ -154,7 +154,9 @@ export type JS9CallbackType =
   | "onmouseup"
   | "onkeydown"
   | "onkeyup"
-  | "onregionschange";
+  | "onregionschange"
+  | "onzoom"
+  | "onpan";
 
 /**
  * Callback function signature for JS9 events.
@@ -295,6 +297,51 @@ export interface JS9Static {
    * @param options Display options
    */
   RemoveRegions: (which?: string | "all", options?: JS9DisplayOptions) => void;
+
+  /**
+   * Get the current pan position.
+   * @param options Display options
+   * @returns Object with x, y pixel coordinates
+   */
+  GetPan: (options?: JS9DisplayOptions) => { x: number; y: number } | null;
+
+  /**
+   * Save the current image as PNG.
+   * @param filename Optional filename
+   * @param options Display options
+   */
+  SavePNG: (filename?: string, options?: JS9DisplayOptions) => void;
+
+  /**
+   * Save the current image as FITS.
+   * @param filename Optional filename
+   * @param options Display options
+   */
+  SaveFITS: (filename?: string, options?: JS9DisplayOptions) => void;
+
+  /**
+   * Get image data as a 2D array.
+   * @param options Display options
+   * @returns Image data array
+   */
+  GetImageData: (options?: JS9DisplayOptions) => {
+    width: number;
+    height: number;
+    data: number[];
+  } | null;
+
+  /**
+   * Close the current image.
+   * @param options Display options
+   */
+  CloseImage: (options?: JS9DisplayOptions) => void;
+
+  /**
+   * Display a message in the JS9 message area.
+   * @param message Message text
+   * @param options Display options
+   */
+  DisplayMessage: (message: string, options?: JS9DisplayOptions) => void;
 
   /**
    * Set an event callback.
