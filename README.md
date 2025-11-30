@@ -114,7 +114,9 @@ imaging.
 
 ### Directory Structure Visualization
 
-The project includes a tool to automatically generate visual diagrams of directory structures. This is useful for understanding the organization of any directory in the project.
+The project includes a tool to automatically generate visual diagrams of
+directory structures. This is useful for understanding the organization of any
+directory in the project.
 
 **Usage:**
 
@@ -134,16 +136,19 @@ python scripts/generate_structure_diagram.py /data/dsa110-contimg/docs docs_stru
 - Automatically detects Python packages, key files, and directory structure
 - Generates Mermaid flowchart diagrams showing module relationships
 - Renders to SVG format (ready to use in documentation)
-- Detects common pipeline relationships (conversion :arrow_right: calibration :arrow_right: imaging, etc.)
+- Detects common pipeline relationships (conversion :arrow_right: calibration
+  :arrow_right: imaging, etc.)
 - Color-codes different module types for easy identification
 
 **Output:**
 
 The script generates two files:
+
 - `<output>.svg` - Rendered SVG diagram (ready to use)
 - `<output>.mmd` - Mermaid source code (for manual editing)
 
 The diagrams can be used in:
+
 - GitHub/GitLab markdown (renders automatically)
 - Documentation
 - Presentations
@@ -266,7 +271,8 @@ Units:
   - `api`: uvicorn exposing `${CONTIMG_API_PORT}`
   - `scheduler`: optional nightly mosaic + periodic housekeeping
   - `dashboard`: production frontend build (serves static files on port 3210)
-  - `dashboard-dev`: development frontend with hot reloading (mapped to port 3210)
+  - `dashboard-dev`: development frontend with hot reloading (mapped to
+    port 3210)
 
 Image:
 
@@ -409,7 +415,8 @@ docker compose stop dashboard-dev api
 - **Frontend (dashboard-dev)**: Hot module replacement (HMR) - code changes
   reflect immediately
 - Volume-mounted source code - no image rebuilds needed after initial build
-- Frontend available at `http://localhost:3210` (Docker) or `http://localhost:3000` (local dev)
+- Frontend available at `http://localhost:3210` (Docker) or
+  `http://localhost:3000` (local dev)
 - Backend available at `http://localhost:8000`
 - Services connect via Docker network
 
@@ -457,12 +464,12 @@ dsa110-benchmark compare HEAD~1 HEAD  # Regression check
 
 ### Benchmark Categories
 
-| Category    | Command                    | Measures                           |
-| ----------- | -------------------------- | ---------------------------------- |
+| Category    | Command                    | Measures                                       |
+| ----------- | -------------------------- | ---------------------------------------------- |
 | Conversion  | `make bench-conversion`    | HDF5 :arrow_right: MS conversion (SSD staging) |
-| Calibration | `make bench-calibration`   | Bandpass, gain, applycal           |
-| Flagging    | (included in `make bench`) | Flag reset, zero flagging          |
-| Imaging     | (disabled by default)      | WSClean imaging                    |
+| Calibration | `make bench-calibration`   | Bandpass, gain, applycal                       |
+| Flagging    | (included in `make bench`) | Flag reset, zero flagging                      |
+| Imaging     | (disabled by default)      | WSClean imaging                                |
 
 ### Reference Results (lxd110h17)
 
@@ -505,13 +512,18 @@ setup and details.
 
 ### Application-Level Authentication
 
-The current setup uses ngrok's built-in GitHub OAuth which requires any GitHub account to access the API. For proper access control with email filtering (e.g., only `@caltech.edu` emails), implement application-level authentication:
+The current setup uses ngrok's built-in GitHub OAuth which requires any GitHub
+account to access the API. For proper access control with email filtering (e.g.,
+only `@caltech.edu` emails), implement application-level authentication:
 
 **Components needed:**
-1. **GitHub OAuth App** - Create at GitHub Settings :arrow_right: Developer settings :arrow_right: OAuth Apps
-   - Callback URL: `https://code.deepsynoptic.org/dsa110-contimg/dashboard/callback`
-   
+
+1. **GitHub OAuth App** - Create at GitHub Settings :arrow_right: Developer
+   settings :arrow_right: OAuth Apps
+   - Callback URL:
+     `https://code.deepsynoptic.org/dsa110-contimg/dashboard/callback`
 2. **Backend auth endpoints** (`/api/auth/*`):
+
    - `POST /api/auth/github` - Exchange GitHub code for session token
    - `GET /api/auth/me` - Return current user info
    - `POST /api/auth/logout` - Clear session
@@ -524,4 +536,5 @@ The current setup uses ngrok's built-in GitHub OAuth which requires any GitHub a
    - `<AuthProvider />` - Context managing auth state
    - JWT storage in `localStorage` or `httpOnly` cookie
 
-**Reference:** This would replace reliance on ngrok OAuth and work with any tunnel provider.
+**Reference:** This would replace reliance on ngrok OAuth and work with any
+tunnel provider.

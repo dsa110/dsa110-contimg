@@ -779,7 +779,7 @@ frontend/
 - **Database Setup**: SQLite databases in `/state/` directory
 
 ### 12.2 Development Server
-- **Frontend Dev Server**: Vite dev server (port 5173)
+- **Frontend Dev Server**: Vite dev server (port 3000)
 - **Backend API Server**: FastAPI/Uvicorn (port 8000)
 - **Hot Module Replacement**: Fast refresh for React components
 - **Proxy Configuration**: Proxy API requests to backend
@@ -842,7 +842,7 @@ frontend/
 
 ### 14.2 Production Configuration
 - **Environment Variables**: API URLs, feature flags, thresholds
-- **Port Management**: Frontend (5173 dev, 80/443 prod), Backend (8000)
+- **Port Management**: Frontend (3000 dev, 80/443 prod), Backend (8000)
 - **SSL/TLS**: HTTPS configuration for production
 - **CORS**: Cross-origin resource sharing configuration
 
