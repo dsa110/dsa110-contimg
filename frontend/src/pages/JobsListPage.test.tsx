@@ -64,7 +64,7 @@ describe("JobsListPage", () => {
   };
 
   describe("loading state", () => {
-    it("shows loading spinner when loading", () => {
+    it("shows loading skeleton when loading", () => {
       mockUseJobs.mockReturnValue({
         data: undefined,
         isLoading: true,
@@ -72,7 +72,7 @@ describe("JobsListPage", () => {
       } as ReturnType<typeof useJobs>);
 
       renderPage();
-      expect(screen.getByText(/loading/i)).toBeInTheDocument();
+      expect(screen.getByTestId("page-skeleton")).toBeInTheDocument();
     });
   });
 

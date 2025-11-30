@@ -116,7 +116,7 @@ describe("SourceDetailPage", () => {
     });
 
     renderWithRouter();
-    expect(screen.getByText("Loading source details...")).toBeInTheDocument();
+    expect(screen.getByTestId("page-skeleton")).toBeInTheDocument();
   });
 
   it("renders error state", () => {

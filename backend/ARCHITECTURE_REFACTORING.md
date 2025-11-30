@@ -2,7 +2,8 @@
 
 ## Overview
 
-This document summarizes the major architectural improvements made to the DSA-110 Continuum Imaging Pipeline backend API.
+This document summarizes the major architectural improvements made to the
+DSA-110 Continuum Imaging Pipeline backend API.
 
 ## Completed Refactoring
 
@@ -11,6 +12,7 @@ This document summarizes the major architectural improvements made to the DSA-11
 **Before**: Single 1320-line `routes.py` file with all API endpoints.
 
 **After**: Modular route structure under `src/dsa110_contimg/api/routes/`:
+
 - `__init__.py` - Package init with router composition
 - `common.py` - Shared utilities and response helpers
 - `images.py` - Image-related endpoints
@@ -27,7 +29,9 @@ This document summarizes the major architectural improvements made to the DSA-11
 
 ### 2. Service Layer ✅
 
-Created `src/dsa110_contimg/api/services/` package with business logic separation:
+Created `src/dsa110_contimg/api/services/` package with business logic
+separation:
+
 - `image_service.py` - Image retrieval and processing
 - `source_service.py` - Source catalog operations
 - `job_service.py` - Job lifecycle management
@@ -38,6 +42,7 @@ Created `src/dsa110_contimg/api/services/` package with business logic separatio
 ### 3. Dependency Injection ✅
 
 Created `src/dsa110_contimg/api/dependencies.py`:
+
 - FastAPI `Depends()` factories for all services
 - Repository injection for testability
 - Centralized dependency resolution
@@ -45,6 +50,7 @@ Created `src/dsa110_contimg/api/dependencies.py`:
 ### 4. Repository Interfaces ✅
 
 Created `src/dsa110_contimg/api/interfaces.py`:
+
 - Protocol classes for type-safe repository abstraction
 - `IImageRepository`, `ISourceRepository`, `IJobRepository`, `IMSRepository`
 - Enables mock injection for testing
@@ -52,6 +58,7 @@ Created `src/dsa110_contimg/api/interfaces.py`:
 ### 5. Database Module ✅
 
 Created `src/dsa110_contimg/api/database.py`:
+
 - `DatabasePool` class for connection management
 - `DatabaseConfig` for connection settings
 - Async support via `aiosqlite`
@@ -59,6 +66,7 @@ Created `src/dsa110_contimg/api/database.py`:
 ### 6. Configuration Centralization ✅
 
 Updated `src/dsa110_contimg/api/config.py`:
+
 - All database paths loaded from environment variables
 - `DatabaseConfig.from_env()` for environment-based configuration
 - Removed hardcoded paths from `repositories.py`
@@ -68,21 +76,28 @@ Updated `src/dsa110_contimg/api/config.py`:
 **Before**: Single 782-line `batch_jobs.py` file.
 
 **After**: Focused modules under `src/dsa110_contimg/api/batch/`:
+
 - `__init__.py` - Package exports
 - `jobs.py` - Job creation and status management (validation, CRUD)
 - `qa.py` - QA extraction from calibration tables and images
 - `thumbnails.py` - Image thumbnail generation
 
-Legacy `batch_jobs.py` maintained for backwards compatibility with deprecation warning.
+Legacy `batch_jobs.py` maintained for backwards compatibility with deprecation
+warning.
 
 ### 8. Custom Exception Types ✅
 
 Created `src/dsa110_contimg/api/exceptions.py`:
+
 - `DSA110APIError` base class with `to_dict()` for API responses
-- Database exceptions: `DatabaseConnectionError`, `DatabaseQueryError`, `DatabaseTransactionError`
-- Repository exceptions: `RecordNotFoundError`, `RecordAlreadyExistsError`, `InvalidRecordError`
-- Service exceptions: `ValidationError`, `ProcessingError`, `ExternalServiceError`
-- File system exceptions: `FileNotAccessibleError`, `InvalidPathError`, `FITSParsingError`, `MSParsingError`
+- Database exceptions: `DatabaseConnectionError`, `DatabaseQueryError`,
+  `DatabaseTransactionError`
+- Repository exceptions: `RecordNotFoundError`, `RecordAlreadyExistsError`,
+  `InvalidRecordError`
+- Service exceptions: `ValidationError`, `ProcessingError`,
+  `ExternalServiceError`
+- File system exceptions: `FileNotAccessibleError`, `InvalidPathError`,
+  `FITSParsingError`, `MSParsingError`
 - QA exceptions: `QAExtractionError`, `QACalculationError`
 - Batch job exceptions: `BatchJobNotFoundError`, `BatchJobInvalidStateError`
 - `map_exception_to_http_status()` utility function
@@ -147,9 +162,12 @@ src/dsa110_contimg/api/
 
 ## Remaining Enhancements (Future Work)
 
-1. **Async Database Operations** - Convert remaining sync queries to async using aiosqlite
+1. **Async Database Operations** - Convert remaining sync queries to async using
+   aiosqlite
 2. **Database Migrations** - Add Alembic for schema migrations
 3. **Transaction Management** - Add proper transaction context managers
-4. **FITS Parsing Service** - Move FITS parsing out of repositories into dedicated service
+4. **FITS Parsing Service** - Move FITS parsing out of repositories into
+   dedicated service
 5. **Connection Pooling** - Implement proper SQLite connection pooling
-6. **Narrow Exception Handling** - Replace remaining `except Exception` with specific types
+6. **Narrow Exception Handling** - Replace remaining `except Exception` with
+   specific types

@@ -87,7 +87,7 @@ describe("SourcesListPage", () => {
   };
 
   describe("loading state", () => {
-    it("shows loading spinner when loading", () => {
+    it("shows loading skeleton when loading", () => {
       mockUseSources.mockReturnValue({
         data: undefined,
         isLoading: true,
@@ -95,7 +95,7 @@ describe("SourcesListPage", () => {
       } as ReturnType<typeof useSources>);
 
       renderPage();
-      expect(screen.getByText(/loading/i)).toBeInTheDocument();
+      expect(screen.getByTestId("page-skeleton")).toBeInTheDocument();
     });
   });
 

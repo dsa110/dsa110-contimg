@@ -78,7 +78,7 @@ describe("ImagesListPage", () => {
   };
 
   describe("loading state", () => {
-    it("shows loading spinner when loading", () => {
+    it("shows loading skeleton when loading", () => {
       mockUseImages.mockReturnValue({
         data: undefined,
         isLoading: true,
@@ -86,7 +86,7 @@ describe("ImagesListPage", () => {
       } as ReturnType<typeof useImages>);
 
       renderPage();
-      expect(screen.getByText(/loading/i)).toBeInTheDocument();
+      expect(screen.getByTestId("page-skeleton")).toBeInTheDocument();
     });
   });
 

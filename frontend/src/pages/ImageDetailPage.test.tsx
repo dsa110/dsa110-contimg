@@ -100,7 +100,7 @@ describe("ImageDetailPage", () => {
     });
 
     renderWithRouter();
-    expect(screen.getByText("Loading image details...")).toBeInTheDocument();
+    expect(screen.getByTestId("page-skeleton")).toBeInTheDocument();
   });
 
   it("renders error state", () => {
