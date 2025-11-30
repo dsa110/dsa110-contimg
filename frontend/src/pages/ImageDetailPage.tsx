@@ -16,10 +16,8 @@ import { FitsViewer } from "../components/fits";
 import { RatingCard, RatingTag } from "../components/rating";
 import { mapProvenanceFromImageDetail } from "../utils/provenanceMappers";
 import { relativeTime } from "../utils/relativeTime";
-import type { ErrorResponse, ImageDetail } from "../types";
-import { useImage } from "../hooks/useQueries";
-import { usePreferencesStore } from "../stores/appStore";
-import apiClient, { noRetry } from "../api/client";
+import type { ErrorResponse } from "../types";
+import { useImageDetail } from "../hooks/useImageDetail";
 import { ROUTES } from "../constants/routes";
 
 /**
@@ -28,16 +26,25 @@ import { ROUTES } from "../constants/routes";
  */
 const ImageDetailPage: React.FC = () => {
   const { imageId } = useParams<{ imageId: string }>();
-  const { data: image, isLoading, error, refetch } = useImage(imageId);
-  const addRecentImage = usePreferencesStore((state) => state.addRecentImage);
+  
+  // Use centralized hook for image detail logic
+  const {
+    image,
+    isLoading,
+    error,
+    refetch,
+    deleteState,
+    openDeleteModal,
+    closeDeleteModal,
+    confirmDelete,
+    submitRating,
+    encodedImageId,
+  } = useImageDetail(imageId);
+
   const [showSkyViewer, setShowSkyViewer] = useState(true);
   const [showFitsViewer, setShowFitsViewer] = useState(false);
   const [showGifPlayer, setShowGifPlayer] = useState(false);
-  const encodedImageId = imageId ? encodeURIComponent(imageId) : "";
   const [showRatingCard, setShowRatingCard] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDeleteImage = async () => {
     setIsDeleting(true);
