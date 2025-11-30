@@ -260,9 +260,11 @@ describe("SesameResolver", () => {
 
     it("displays error on HTTP error", async () => {
       const user = userEvent.setup();
-      mockFetch.mockResolvedValueOnce({
+      // Use 400 Bad Request which is not retried (unlike 500 which triggers retry)
+      mockFetch.mockResolvedValue({
         ok: false,
-        status: 500,
+        status: 400,
+        statusText: "Bad Request",
       });
 
       render(<SesameResolver onResolved={mockOnResolved} />);
@@ -272,7 +274,8 @@ describe("SesameResolver", () => {
       await user.click(screen.getByRole("button", { name: /Resolve/i }));
 
       await waitFor(() => {
-        expect(screen.getByText(/HTTP error/i)).toBeInTheDocument();
+        // Look for error message that includes the status code or error-related text
+        expect(screen.getByText(/error.*400|returned an error/i)).toBeInTheDocument();
       });
     });
 
