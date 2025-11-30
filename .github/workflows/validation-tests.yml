@@ -50,7 +50,7 @@ jobs:
         run: |
           set -euo pipefail
           python -m pip install --upgrade pip
-          pip install pytest pytest-cov pytest-xdist pytest-timeout pytest-mock httpx
+          pip install pytest pytest-cov pytest-xdist pytest-timeout pytest-mock pytest-asyncio httpx
           pip install -e "backend/[dev]"
 
       - name: Initialize test databases
@@ -101,7 +101,7 @@ jobs:
         run: |
           set -euo pipefail
           python -m pip install --upgrade pip
-          pip install pytest pytest-cov pytest-mock httpx
+          pip install pytest pytest-cov pytest-mock pytest-asyncio httpx
           pip install -e "backend/[dev]"
 
       - name: Initialize test databases
