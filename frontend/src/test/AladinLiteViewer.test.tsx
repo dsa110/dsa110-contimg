@@ -13,11 +13,20 @@ vi.mock("aladin-lite", () => {
     increaseZoom: vi.fn(),
     decreaseZoom: vi.fn(),
     toggleFullscreen: vi.fn(),
+    destroy: vi.fn(), // Mock the destroy method to prevent errors on cleanup
   });
   return {
     default: {
       init: Promise.resolve(),
       aladin: aladinMock,
+      catalog: vi.fn().mockReturnValue({
+        addSources: vi.fn(),
+        removeSources: vi.fn(),
+        hide: vi.fn(),
+        show: vi.fn(),
+        getSources: vi.fn().mockReturnValue([]),
+      }),
+      source: vi.fn().mockImplementation((ra, dec, data) => ({ ra, dec, data })),
     },
   };
 });
