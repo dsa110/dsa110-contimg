@@ -10,7 +10,7 @@ from urllib.parse import unquote
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from ..dependencies import get_source_service, get_source_repository, get_image_repository
-from ..exceptions import RecordNotFoundError
+from ..exceptions import RecordNotFoundError, ValidationError
 from ..repositories import SourceRepository, ImageRepository
 from ..schemas import SourceDetailResponse, SourceListResponse, ContributingImage
 from ..services.source_service import SourceService
@@ -87,13 +87,13 @@ async def get_source_lightcurve(
     if start_date:
         try:
             start_mjd = Time(start_date).mjd
-        except Exception:
-            pass
+        except Exception as e:
+            raise ValidationError(f"Invalid start_date format: {start_date}. Use ISO format (YYYY-MM-DD).") from e
     if end_date:
         try:
             end_mjd = Time(end_date).mjd
-        except Exception:
-            pass
+        except Exception as e:
+            raise ValidationError(f"Invalid end_date format: {end_date}. Use ISO format (YYYY-MM-DD).") from e
     
     decoded_source_id = unquote(source_id)
     data_points = service.get_lightcurve(decoded_source_id, start_mjd, end_mjd)

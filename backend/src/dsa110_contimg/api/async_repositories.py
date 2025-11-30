@@ -278,8 +278,11 @@ class AsyncImageRepository(ImageRepositoryInterface):
 # Async MS Repository
 # =============================================================================
 
-class AsyncMSRepository:
-    """Async repository for querying Measurement Set data."""
+class AsyncMSRepository(MSRepositoryInterface):
+    """Async repository for querying Measurement Set data.
+    
+    Implements MSRepositoryInterface with aiosqlite.
+    """
     
     def __init__(self, db_path: str = DEFAULT_DB_PATH):
         self.db_path = db_path
@@ -397,8 +400,11 @@ class AsyncMSRepository:
 # Async Source Repository
 # =============================================================================
 
-class AsyncSourceRepository:
-    """Async repository for querying source catalog data."""
+class AsyncSourceRepository(SourceRepositoryInterface):
+    """Async repository for querying source catalog data.
+    
+    Implements SourceRepositoryInterface with aiosqlite.
+    """
     
     def __init__(self, db_path: str = DEFAULT_DB_PATH):
         self.db_path = db_path
@@ -519,8 +525,11 @@ class AsyncSourceRepository:
 # Async Job Repository
 # =============================================================================
 
-class AsyncJobRepository:
-    """Async repository for querying pipeline job data."""
+class AsyncJobRepository(JobRepositoryInterface):
+    """Async repository for querying pipeline job data.
+    
+    Implements JobRepositoryInterface with aiosqlite.
+    """
     
     def __init__(self, db_path: str = DEFAULT_DB_PATH):
         self.db_path = db_path

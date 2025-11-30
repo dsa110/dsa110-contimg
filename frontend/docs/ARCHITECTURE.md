@@ -452,6 +452,11 @@ All hooks are fully integrated:
 - `useUrlFilterState` in `SourcesListPage` - shareable/bookmarkable filter URLs
 - `useSourceFiltering` in `SourcesListPage` - centralized filtering logic
 
+**URL State Pattern:** The `SourcesListPage` uses URL search params
+(`?ra=180&minFlux=0.1`) for filter state via `useUrlFilterState`. The
+`AdvancedQueryPanel` is configured with `disableUrlSync` to prevent conflicts
+with its internal hash-based URL sync.
+
 ### Error Boundaries
 
 Error boundaries wrap visualization widgets to prevent crashes:
