@@ -18,8 +18,9 @@ vi.mock("../api/client", () => ({
 // Mock the preferences store
 const mockAddRecentImage = vi.fn();
 vi.mock("../stores/appStore", () => ({
-  usePreferencesStore: (selector: (state: { addRecentImage: typeof mockAddRecentImage }) => unknown) =>
-    selector({ addRecentImage: mockAddRecentImage }),
+  usePreferencesStore: (
+    selector: (state: { addRecentImage: typeof mockAddRecentImage }) => unknown
+  ) => selector({ addRecentImage: mockAddRecentImage }),
 }));
 
 // Mock useImage hook

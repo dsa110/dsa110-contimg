@@ -93,7 +93,7 @@ else
     check_port_basic "${CONTIMG_API_PORT:-8000}" "API" "CONTIMG_API_PORT"
     check_port_basic "${CONTIMG_DOCS_PORT:-8001}" "Docs" "CONTIMG_DOCS_PORT"
     check_port_basic "${CONTIMG_DASHBOARD_PORT:-3210}" "Dashboard" "CONTIMG_DASHBOARD_PORT"
-    check_port_basic "${CONTIMG_FRONTEND_DEV_PORT:-5173}" "Frontend Dev" "CONTIMG_FRONTEND_DEV_PORT"
+    check_port_basic "${CONTIMG_FRONTEND_DEV_PORT:-3000}" "Frontend Dev" "CONTIMG_FRONTEND_DEV_PORT"
 fi
 
 echo ""

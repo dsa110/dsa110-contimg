@@ -25,9 +25,9 @@ check_and_cleanup_vite() {
     local auto_cleanup=$1
     
     # Check for duplicate Vite instances
-    # Check both old port (5173) and new port (3210) for migration period
+    # Check port 3000 (current default) and legacy ports for cleanup
     vite_ports=""
-    for port in 3210 5173 5174 5175 5176 5177 5178 5179; do
+    for port in 3000 3210 5173 5174 5175 5176 5177 5178 5179; do
         pid=$(lsof -ti :$port 2>/dev/null | head -1)
         if [ -n "$pid" ]; then
             cmd=$(ps -p "$pid" -o cmd --no-headers 2>/dev/null | grep -i vite || true)
@@ -42,10 +42,10 @@ check_and_cleanup_vite() {
     if [ "$vite_count" -gt 1 ]; then
         echo -e "${YELLOW}:warning:  Found $vite_count Vite instances${NC}"
         
-        # Keep port 3210 (new default), fallback to 5173 for migration
-        primary_port=3210
-        if ! echo "$vite_ports" | grep -q "3210"; then
-            primary_port=5173
+        # Keep port 3000 (current default)
+        primary_port=3000
+        if ! echo "$vite_ports" | grep -q "3000"; then
+            primary_port=3210  # fallback to production port
         fi
         duplicates=""
         npm_pids_to_kill=""
