@@ -9,7 +9,7 @@ import { EtaVPlot, SourcePoint } from "../components/variability";
 import {
   AdvancedFilterPanel,
   FilterDefinition,
-  FilterValues as AdvFilterValues,
+  AdvancedFilterValues as FilterValues,
 } from "../components/filters";
 import { useSelectionStore } from "../stores/appStore";
 import type { SourceSummary } from "../types";
@@ -112,7 +112,7 @@ const SourcesListPage: React.FC = () => {
   );
 
   // Adapter: Convert URL state to AdvancedFilterPanel values format
-  const advFilterValues: AdvFilterValues = useMemo(
+  const advFilterValues: FilterValues = useMemo(
     () => ({
       name: filters.name,
       minFlux: filters.minFlux,
@@ -125,7 +125,7 @@ const SourcesListPage: React.FC = () => {
 
   // Adapter: Handle AdvancedFilterPanel changes by updating URL state
   const handleAdvFilterChange = useCallback(
-    (values: AdvFilterValues) => {
+    (values: FilterValues) => {
       setFilters({
         name: values.name as string | undefined,
         minFlux: values.minFlux as number | undefined,
@@ -137,15 +137,16 @@ const SourcesListPage: React.FC = () => {
     [setFilters]
   );
 
-  // Adapter: Handle AdvancedQueryPanel changes (cone search)
-  const handleQueryChange = useCallback(
+  // Adapter: Handle AdvancedQueryPanel submit (cone search + flux)
+  const handleQuerySubmit = useCallback(
     (params: SourceQueryParams) => {
       setFilters({
         ra: params.ra,
         dec: params.dec,
         radius: params.radius,
-        minFlux: params.minFlux,
-        maxFlux: params.maxFlux,
+        // Extract simple min value from complex flux object
+        minFlux: params.minFlux?.min,
+        maxFlux: params.maxFlux?.max,
       });
     },
     [setFilters]
@@ -235,7 +236,7 @@ const SourcesListPage: React.FC = () => {
 
       {/* Advanced Query Panel */}
       <div className="mb-6">
-        <AdvancedQueryPanel onQueryChange={handleQueryChange} />
+        <AdvancedQueryPanel onSubmit={handleQuerySubmit} onReset={clearFilters} />
       </div>
 
       {/* Advanced Filter Panel (collapsible) */}

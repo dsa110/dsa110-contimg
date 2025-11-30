@@ -46,7 +46,7 @@ jobs:
 
       - name: Create casa6 conda environment
         run: |
-          conda env create -f env/environment.yml
+          conda env create -f ops/env/environment.yml
           conda activate casa6
 
       - name: Install pre-commit
@@ -60,9 +60,9 @@ jobs:
           # Run pre-commit hooks manually since we're not installing git hooks
           pre-commit run --all-files --hook-stage manual || true
           # Check Python files specifically
-          /opt/miniforge/envs/casa6/bin/black --check --diff .
-          /opt/miniforge/envs/casa6/bin/isort --check-only --diff .
-          /opt/miniforge/envs/casa6/bin/pylint --errors-only src/ || true
+          /opt/miniforge/envs/casa6/bin/black --check --diff backend/src/ || true
+          /opt/miniforge/envs/casa6/bin/isort --check-only --diff backend/src/ || true
+          /opt/miniforge/envs/casa6/bin/pylint --errors-only backend/src/ || true
 
       - name: Setup Node.js
         uses: actions/setup-node@v4

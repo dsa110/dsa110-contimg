@@ -443,11 +443,13 @@ Complex page logic is extracted into focused hooks:
 | Hook                 | Purpose                             | Status        |
 | -------------------- | ----------------------------------- | ------------- |
 | `useImageDetail`     | Image detail page data & operations | ✅ Integrated |
-| `useUrlFilterState`  | URL-based filter state for sharing  | 🔧 Available  |
-| `useSourceFiltering` | Source list filtering logic         | 🔧 Available  |
+| `useUrlFilterState`  | URL-based filter state for sharing  | ✅ Integrated |
+| `useSourceFiltering` | Source list filtering logic         | ✅ Integrated |
 
-**Note:** `useImageDetail` is fully integrated in `ImageDetailPage`. The other
-hooks are available infrastructure for future refactoring of `SourcesListPage`.
+All hooks are fully integrated:
+- `useImageDetail` in `ImageDetailPage` - handles delete, rating, recent items
+- `useUrlFilterState` in `SourcesListPage` - shareable/bookmarkable filter URLs
+- `useSourceFiltering` in `SourcesListPage` - centralized filtering logic
 
 ### Error Boundaries
 

@@ -19,6 +19,11 @@ from .repositories import (
     SourceRepository,
     JobRepository,
 )
+from .async_repositories import (
+    AsyncImageRepository,
+    AsyncSourceRepository,
+    AsyncJobRepository,
+)
 from .services import (
     ImageService,
     SourceService,
@@ -91,3 +96,26 @@ def get_stats_service(
 def get_qa_service() -> QAService:
     """Get QA service instance."""
     return QAService()
+
+
+# Async repository dependencies (for future async routes)
+
+def get_async_image_repository(
+    db_pool: DatabasePool = Depends(get_db_pool)
+) -> AsyncImageRepository:
+    """Get async image repository instance."""
+    return AsyncImageRepository(db_pool)
+
+
+def get_async_source_repository(
+    db_pool: DatabasePool = Depends(get_db_pool)
+) -> AsyncSourceRepository:
+    """Get async source repository instance."""
+    return AsyncSourceRepository(db_pool)
+
+
+def get_async_job_repository(
+    db_pool: DatabasePool = Depends(get_db_pool)
+) -> AsyncJobRepository:
+    """Get async job repository instance."""
+    return AsyncJobRepository(db_pool)

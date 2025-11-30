@@ -10,6 +10,7 @@ from .job_service import JobService
 from .ms_service import MSService
 from .stats_service import StatsService
 from .qa_service import QAService
+from .fits_service import FITSParsingService, FITSMetadata
 
 __all__ = [
     "ImageService",
@@ -18,4 +19,6 @@ __all__ = [
     "MSService",
     "StatsService",
     "QAService",
+    "FITSParsingService",
+    "FITSMetadata",
 ]

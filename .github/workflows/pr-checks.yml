@@ -45,10 +45,11 @@ jobs:
 
       - name: Create casa6 conda environment
         run: |
-          conda env create -f env/environment.yml
+          conda env create -f ops/env/environment.yml
           conda activate casa6
 
       - name: Install dependencies
+        working-directory: ./backend
         run: |
           conda activate casa6
           pip install -e .
@@ -56,23 +57,25 @@ jobs:
       - name: Run linting (flake8)
         run: |
           conda activate casa6
-          /opt/miniforge/envs/casa6/bin/flake8 src/ --max-line-length=88 --extend-ignore=E203,W503 || true
+          /opt/miniforge/envs/casa6/bin/flake8 backend/src/ --max-line-length=88 --extend-ignore=E203,W503 || true
 
       - name: Run type checking (mypy)
         run: |
           conda activate casa6
-          /opt/miniforge/envs/casa6/bin/mypy src/ --ignore-missing-imports --no-strict-optional || true
+          /opt/miniforge/envs/casa6/bin/mypy backend/src/ --ignore-missing-imports --no-strict-optional || true
 
       - name: Run security scanning (bandit)
         run: |
           conda activate casa6
-          /opt/miniforge/envs/casa6/bin/bandit -r src/ -f screen -ll --skip B101,B601 || true
+          /opt/miniforge/envs/casa6/bin/bandit -r backend/src/ -f screen -ll --skip B101,B601 || true
 
       - name: Run unit tests with coverage
+        env:
+          PYTHONPATH: backend/src
         run: |
           conda activate casa6
-          /opt/miniforge/envs/casa6/bin/pytest tests/unit/ \
-            --cov=src \
+          /opt/miniforge/envs/casa6/bin/pytest backend/tests/unit/ \
+            --cov=backend/src \
             --cov-report=xml \
             --cov-report=term \
             --cov-report=html \
@@ -86,10 +89,12 @@ jobs:
           /opt/miniforge/envs/casa6/bin/pytest backend/tests/unit/ -v
 
       - name: Check coverage thresholds
+        env:
+          PYTHONPATH: backend/src
         run: |
           conda activate casa6
-          /opt/miniforge/envs/casa6/bin/pytest tests/unit/ \
-            --cov=src \
+          /opt/miniforge/envs/casa6/bin/pytest backend/tests/unit/ \
+            --cov=backend/src \
             --cov-report=term \
             --cov-fail-under=60
 
@@ -149,18 +154,21 @@ jobs:
 
       - name: Create casa6 conda environment
         run: |
-          conda env create -f env/environment.yml
+          conda env create -f ops/env/environment.yml
           conda activate casa6
 
       - name: Install dependencies
+        working-directory: ./backend
         run: |
           conda activate casa6
           pip install -e .
 
       - name: Run integration tests
+        env:
+          PYTHONPATH: backend/src
         run: |
           conda activate casa6
-          /opt/miniforge/envs/casa6/bin/pytest tests/integration/ -v -m "not slow" || true
+          /opt/miniforge/envs/casa6/bin/pytest backend/tests/integration/ -v -m "not slow" || true
 
       - name: Run backend integration tests (API)
         env:

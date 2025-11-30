@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional, Dict, Any, List, Tuple
 
-from .exceptions import FITSParsingError, FileNotAccessibleError
+from ..exceptions import FITSParsingError, FileNotAccessibleError
 
 
 logger = logging.getLogger(__name__)
