@@ -122,6 +122,28 @@ class AsyncMSService:
         """List MS records with pagination."""
         return await self.repo.list_all(limit=limit, offset=offset)
     
+    def get_pointing(self, ms: "MSRecord") -> tuple[Optional[float], Optional[float]]:
+        """Get pointing coordinates, preferring explicit pointing over derived."""
+        ra = ms.pointing_ra_deg or ms.ra_deg
+        dec = ms.pointing_dec_deg or ms.dec_deg
+        return ra, dec
+    
+    def get_primary_cal_table(self, ms: "MSRecord") -> Optional[str]:
+        """Get the primary calibration table path."""
+        if ms.calibrator_tables and len(ms.calibrator_tables) > 0:
+            return ms.calibrator_tables[0].get("cal_table")
+        return None
+    
+    def build_provenance_links(self, ms: "MSRecord") -> dict:
+        """Build provenance URLs for a measurement set."""
+        ms_path_encoded = quote(ms.path, safe='')
+        return {
+            "logs_url": f"/api/logs/{ms.run_id}" if ms.run_id else None,
+            "qa_url": f"/api/qa/ms/{ms_path_encoded}",
+            "ms_url": f"/api/ms/{ms_path_encoded}/metadata",
+            "image_url": f"/api/images/{ms.imagename}" if ms.imagename else None,
+        }
+    
     def build_ms_summary(self, ms: "MSRecord") -> dict:
         """Build summary information for an MS."""
         return {
@@ -222,6 +244,11 @@ class AsyncSourceService:
 class AsyncJobService:
     """Async business logic for pipeline job operations."""
     
+    LOG_PATHS = [
+        "/data/dsa110-contimg/state/logs",
+        "/data/dsa110-contimg/logs",
+    ]
+    
     def __init__(self, repository: "AsyncJobRepository"):
         self.repo = repository
     
@@ -236,6 +263,63 @@ class AsyncJobService:
     ) -> List["JobRecord"]:
         """List jobs with pagination."""
         return await self.repo.list_all(limit=limit, offset=offset)
+    
+    def get_job_status(self, job: "JobRecord") -> str:
+        """Determine job status from record."""
+        if getattr(job, "queue_status", None):
+            return job.queue_status
+        if job.qa_grade:
+            return "completed"
+        return "pending"
+    
+    def build_provenance_links(self, job: "JobRecord") -> dict:
+        """Build provenance URLs for a job."""
+        return {
+            "logs_url": f"/api/logs/{job.run_id}",
+            "qa_url": f"/api/qa/job/{job.run_id}",
+            "ms_url": (
+                f"/api/ms/{quote(job.input_ms_path, safe='')}/metadata"
+                if job.input_ms_path else None
+            ),
+            "image_url": (
+                f"/api/images/{job.output_image_id}"
+                if job.output_image_id else None
+            ),
+        }
+    
+    def find_log_file(self, run_id: str) -> Optional[Path]:
+        """Find log file for a job, checking multiple paths."""
+        for log_dir in self.LOG_PATHS:
+            log_path = Path(log_dir) / f"{run_id}.log"
+            if log_path.exists():
+                return log_path
+        return None
+    
+    def read_log_tail(self, run_id: str, tail: int = 100) -> dict:
+        """Read the last N lines of a job's log file."""
+        log_path = self.find_log_file(run_id)
+        
+        if not log_path:
+            return {
+                "run_id": run_id,
+                "logs": [],
+                "error": f"Log file not found for run_id: {run_id}",
+            }
+        
+        try:
+            with open(log_path) as f:
+                lines = f.readlines()
+                return {
+                    "run_id": run_id,
+                    "logs": lines[-tail:] if tail > 0 else lines,
+                    "total_lines": len(lines),
+                }
+        except IOError as e:
+            return {
+                "run_id": run_id,
+                "logs": [],
+                "error": f"Failed to read log file: {str(e)}",
+            }
     
     def build_job_summary(self, job: "JobRecord") -> dict:
         """Build summary information for a job."""
