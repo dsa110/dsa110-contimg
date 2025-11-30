@@ -311,12 +311,21 @@ describe("serviceHealthChecker", () => {
       it("can abort in-flight requests", async () => {
         // Create checker
         const checker = new ServiceHealthChecker();
-        
+
         // Mock a slow backend response
         let resolveBackend: () => void;
         mockFetch.mockImplementation(() => {
           return new Promise((resolve) => {
-            resolveBackend = () => resolve({ ok: true, json: () => Promise.resolve({ services: [], summary: {}, timestamp: new Date().toISOString() }) });
+            resolveBackend = () =>
+              resolve({
+                ok: true,
+                json: () =>
+                  Promise.resolve({
+                    services: [],
+                    summary: {},
+                    timestamp: new Date().toISOString(),
+                  }),
+              });
           });
         });
 
@@ -326,7 +335,7 @@ describe("serviceHealthChecker", () => {
         // Give it time to start
         await vi.advanceTimersByTimeAsync(50);
 
-        // Abort 
+        // Abort
         checker.abort();
 
         // Resolve to allow cleanup
@@ -380,7 +389,7 @@ describe("serviceHealthChecker", () => {
         // Reset
         checker.reset();
 
-        // After reset, stats should be cleared  
+        // After reset, stats should be cleared
         const statsAfterReset = checker.getFailureStats();
         const fastApiStatsAfterReset = statsAfterReset.get("FastAPI Backend");
         expect(fastApiStatsAfterReset?.count).toBe(0);

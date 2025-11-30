@@ -3,9 +3,9 @@ dev_addr: 127.0.0.1:8001
 site_url: http://code.deepsynoptic.org/dsa110-contimg/
 repo_url: https://github.com/dsa110/dsa110-contimg
 docs_dir: docs
-exclude_docs:
-  - "archive/**"
-  - "ops/**"
+exclude_docs: |
+  archive/*
+  ops/*
 theme:
   name: material
   features:
