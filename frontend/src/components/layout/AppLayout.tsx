@@ -1,5 +1,6 @@
 import React from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
+import { ConnectionStatus } from "../common/ConnectionStatus";
 
 /**
  * Main application layout with navigation and content area.
@@ -21,6 +22,9 @@ const AppLayout: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      {/* Connection status banner (appears when offline/degraded) */}
+      <ConnectionStatus showDetails />
+
       {/* Header */}
       <header className="bg-slate-900 text-white px-6 py-3 flex items-center gap-8 shadow-md">
         <Link

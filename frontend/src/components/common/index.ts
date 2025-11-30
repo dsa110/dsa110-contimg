@@ -1,4 +1,5 @@
 export { default as Card } from "./Card";
+export { ConnectionStatus } from "./ConnectionStatus";
 export { default as CoordinateDisplay } from "./CoordinateDisplay";
 export { default as ImageThumbnail } from "./ImageThumbnail";
 export { default as LoadingSpinner } from "./LoadingSpinner";
