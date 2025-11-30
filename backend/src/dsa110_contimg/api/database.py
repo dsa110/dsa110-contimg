@@ -27,14 +27,19 @@ class PoolConfig:
     
     @classmethod
     def from_env(cls) -> "PoolConfig":
-        """Create config from environment variables."""
+        """Create config from environment variables.
+        
+        Uses the same env vars as the rest of the pipeline:
+        - PIPELINE_PRODUCTS_DB
+        - PIPELINE_CAL_REGISTRY_DB
+        """
         return cls(
             products_db_path=os.getenv(
-                "DSA110_PRODUCTS_DB_PATH",
+                "PIPELINE_PRODUCTS_DB",
                 "/data/dsa110-contimg/state/products.sqlite3"
             ),
             cal_registry_db_path=os.getenv(
-                "DSA110_CAL_REGISTRY_DB_PATH",
+                "PIPELINE_CAL_REGISTRY_DB",
                 "/data/dsa110-contimg/state/cal_registry.sqlite3"
             ),
             timeout=float(os.getenv("DSA110_DB_TIMEOUT", "30.0")),
