@@ -216,7 +216,9 @@ export async function fetchWithRetry(
       const delay = calculateDelay(attempt, fullConfig);
       console.debug(
         `[fetchWithRetry] Network error for ${url}, ` +
-          `attempt ${attempt + 1}/${fullConfig.maxRetries + 1}, waiting ${delay}ms: ${lastError.message}`
+          `attempt ${attempt + 1}/${fullConfig.maxRetries + 1}, waiting ${delay}ms: ${
+            lastError.message
+          }`
       );
 
       await new Promise((resolve) => setTimeout(resolve, delay));

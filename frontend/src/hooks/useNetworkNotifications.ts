@@ -56,7 +56,8 @@ export function useNetworkNotifications(options: UseNetworkNotificationsOptions 
       addNotification({
         type: "success",
         title: "Connection Restored",
-        message: "Your connection to the server has been restored. Data will refresh automatically.",
+        message:
+          "Your connection to the server has been restored. Data will refresh automatically.",
         duration: notificationDuration,
       });
     }
