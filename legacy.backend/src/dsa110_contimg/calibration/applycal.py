@@ -113,7 +113,7 @@ def apply_to_target(
     for gaintable in gaintables:
         if "NON_SCIENCE" in gaintable:
             raise ValueError(
-                f":warning_sign::variation_selector-16:  STRICT SEPARATION VIOLATION: Attempting to apply NON_SCIENCE calibration table '{gaintable}' to production data.\n"
+                f":warning:  STRICT SEPARATION VIOLATION: Attempting to apply NON_SCIENCE calibration table '{gaintable}' to production data.\n"
                 f"   NON_SCIENCE tables (prefixed with 'NON_SCIENCE_*') are created by development tier calibration.\n"
                 f"   These tables CANNOT be applied to production/science data due to time-channel binning mismatches.\n"
                 f"   Use standard or high_precision tier calibration for production data."

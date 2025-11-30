@@ -81,9 +81,9 @@ def test_ms_quality():
     if "quality" in metrics:
         q = metrics["quality"]
         if q.get("has_critical_issues"):
-            print(f"\n  :warning_sign::variation_selector-16:  Critical Issues: {q.get('issues', [])}")
+            print(f"\n  :warning:  Critical Issues: {q.get('issues', [])}")
         if q.get("has_warnings"):
-            print(f"  :warning_sign::variation_selector-16:  Warnings: {q.get('warnings', [])}")
+            print(f"  :warning:  Warnings: {q.get('warnings', [])}")
         if not q.get("has_critical_issues") and not q.get("has_warnings"):
             print("\n  :check_mark: No issues or warnings")
 
@@ -136,9 +136,9 @@ def test_calibration_quality():
 
         qual = metrics.get("quality", {})
         if qual.get("has_issues"):
-            print(f"    :warning_sign::variation_selector-16:  Issues: {qual.get('issues', [])}")
+            print(f"    :warning:  Issues: {qual.get('issues', [])}")
         if qual.get("has_warnings"):
-            print(f"    :warning_sign::variation_selector-16:  Warnings: {qual.get('warnings', [])}")
+            print(f"    :warning:  Warnings: {qual.get('warnings', [])}")
 
     return passed
 
@@ -209,9 +209,9 @@ def test_image_quality():
 
     qual = metrics.get("quality", {})
     if qual.get("has_issues"):
-        print(f"\n  :warning_sign::variation_selector-16:  Issues: {qual.get('issues', [])}")
+        print(f"\n  :warning:  Issues: {qual.get('issues', [])}")
     if qual.get("has_warnings"):
-        print(f"  :warning_sign::variation_selector-16:  Warnings: {qual.get('warnings', [])}")
+        print(f"  :warning:  Warnings: {qual.get('warnings', [])}")
     if not qual.get("has_issues") and not qual.get("has_warnings"):
         print("\n  :check_mark: No issues or warnings")
 

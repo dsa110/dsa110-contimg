@@ -62,7 +62,7 @@ echo ":wrench: Generating TypeScript types..."
 if npx openapi-typescript "$OUTPUT_DIR/openapi.json" -o "$OUTPUT_DIR/api-types.ts" 2>/dev/null; then
     echo ":white_heavy_check_mark: TypeScript types generated at $OUTPUT_DIR/api-types.ts"
 else
-    echo ":warning_sign::variation_selector-16:  openapi-typescript not installed. Install with: npm install -D openapi-typescript"
+    echo ":warning:  openapi-typescript not installed. Install with: npm install -D openapi-typescript"
     echo "   Skipping TypeScript generation, but OpenAPI schema saved."
 fi
 

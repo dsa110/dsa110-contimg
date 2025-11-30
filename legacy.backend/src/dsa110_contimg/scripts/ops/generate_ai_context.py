@@ -113,7 +113,7 @@ class ContextGenerator:
             return commits[:20]  # Limit to most recent 20
 
         except Exception as e:
-            print(f"   :warning_sign::variation_selector-16:  Could not fetch git history: {e}")
+            print(f"   :warning:  Could not fetch git history: {e}")
             return []
 
     def identify_key_modules(self) -> List[Dict]:

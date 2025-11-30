@@ -43,7 +43,7 @@ echo ":check_mark: Using casa6 Node.js: $CURRENT_VERSION"
 # Clean up any zombie processes on port 3210
 if lsof -ti:3210 > /dev/null 2>&1; then
   PIDS=$(lsof -ti:3210)
-  echo ":warning_sign::variation_selector-16:  Found zombie process on port 3210 (PID: $PIDS)"
+  echo ":warning:  Found zombie process on port 3210 (PID: $PIDS)"
   echo ":hocho: Killing zombie process..."
   lsof -ti:3210 | xargs kill -9 2>/dev/null || true
   sleep 1

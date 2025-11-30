@@ -525,7 +525,7 @@ def add_calibrate_parser(
         choices=["development", "standard", "high_precision"],
         help=(
             "Use preset calibration quality tiers with explicit trade-offs.\n"
-            "  development: :warning_sign::variation_selector-16:  NON-SCIENCE - aggressive subsetting for code testing only\n"
+            "  development: :warning:  NON-SCIENCE - aggressive subsetting for code testing only\n"
             "  standard: Recommended for all science observations (full quality)\n"
             "  high_precision: Enhanced settings for maximum quality (slower)\n"
             "Individual flags override preset values."
@@ -827,10 +827,10 @@ def handle_calibrate(args: argparse.Namespace) -> int:
     if args.preset:
         logger.info(f"Applying quality tier: {args.preset}")
         if args.preset == "development":
-            # :warning_sign::variation_selector-16:  NON-SCIENCE QUALITY - For code testing only
+            # :warning:  NON-SCIENCE QUALITY - For code testing only
             logger.warning(
                 "=" * 80 + "\n"
-                ":warning_sign::variation_selector-16:  DEVELOPMENT TIER: NON-SCIENCE QUALITY\n"
+                ":warning:  DEVELOPMENT TIER: NON-SCIENCE QUALITY\n"
                 "   This tier uses aggressive subsetting and compromises calibration quality.\n"
                 "   NEVER use for actual science observations or ESE detection.\n"
                 "   Results will have reduced SNR, resolution, and accuracy.\n"
@@ -876,7 +876,7 @@ def handle_calibrate(args: argparse.Namespace) -> int:
         # Force unique naming to prevent accidental application to production data
         args.table_prefix_override = "NON_SCIENCE_DEVELOPMENT"
         logger.warning(
-            ":warning_sign::variation_selector-16:  STRICT SEPARATION: Development tier calibration tables will be prefixed with 'NON_SCIENCE_DEVELOPMENT'"
+            ":warning:  STRICT SEPARATION: Development tier calibration tables will be prefixed with 'NON_SCIENCE_DEVELOPMENT'"
         )
         logger.warning("   These tables CANNOT and MUST NOT be applied to production/science data")
 

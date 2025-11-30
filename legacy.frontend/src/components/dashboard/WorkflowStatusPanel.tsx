@@ -77,7 +77,7 @@ function StageCard({ stage, isBottleneck, onClick }: StageCardProps) {
           )}
           {isBottleneck && (
             <Typography variant="caption" display="block" color="warning.main">
-              :warning_sign::variation_selector-16: Bottleneck detected
+              :warning: Bottleneck detected
             </Typography>
           )}
         </Box>

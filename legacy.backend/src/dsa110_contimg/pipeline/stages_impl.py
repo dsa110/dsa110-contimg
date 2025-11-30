@@ -153,12 +153,12 @@ class CatalogSetupStage(PipelineStage):
                     if dec_change > dec_change_threshold:
                         dec_change_detected = True
                         logger.warning(
-                            f":warning_sign::variation_selector-16:  DECLINATION CHANGE DETECTED: "
+                            f":warning:  DECLINATION CHANGE DETECTED: "
                             f"{previous_dec:.6f}° → {dec_center:.6f}° "
                             f"(Δ = {dec_change:.6f}° > {dec_change_threshold:.6f}° threshold)"
                         )
                         logger.warning(
-                            ":warning_sign::variation_selector-16:  Telescope pointing has changed significantly. "
+                            ":warning:  Telescope pointing has changed significantly. "
                             "Catalogs will be rebuilt for new declination strip."
                         )
 

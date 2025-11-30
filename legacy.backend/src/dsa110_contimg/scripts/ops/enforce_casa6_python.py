@@ -62,7 +62,7 @@ def fix_shebang(file_path: Path) -> bool:
 
         return False
     except Exception as e:
-        print(f":warning_sign::variation_selector-16:  Error fixing {file_path}: {e}")
+        print(f":warning:  Error fixing {file_path}: {e}")
         return False
 
 
@@ -112,7 +112,7 @@ def add_version_guard(file_path: Path) -> bool:
         print(f":white_heavy_check_mark: Added guard to: {file_path}")
         return True
     except Exception as e:
-        print(f":warning_sign::variation_selector-16:  Error adding guard to {file_path}: {e}")
+        print(f":warning:  Error adding guard to {file_path}: {e}")
         return False
 
 

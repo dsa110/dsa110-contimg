@@ -27,7 +27,8 @@ describe("StatCard", () => {
 
     it("renders the value", () => {
       renderWithRouter(defaultProps);
-      expect(screen.getByText("1234")).toBeInTheDocument();
+      // Default formatNumber=true, so 1234 becomes "1,234"
+      expect(screen.getByText("1,234")).toBeInTheDocument();
     });
 
     it("renders subtitle when provided", () => {
@@ -36,8 +37,8 @@ describe("StatCard", () => {
     });
 
     it("renders icon when provided", () => {
-      renderWithRouter({ ...defaultProps, icon: "📊" });
-      expect(screen.getByText("📊")).toBeInTheDocument();
+      renderWithRouter({ ...defaultProps, icon: ":bar_chart:" });
+      expect(screen.getByText(":bar_chart:")).toBeInTheDocument();
     });
 
     it("applies custom className", () => {
@@ -118,14 +119,16 @@ describe("StatCard", () => {
 
     it("hides value when loading", () => {
       renderWithRouter({ ...defaultProps, isLoading: true });
-      expect(screen.queryByText("1234")).not.toBeInTheDocument();
+      expect(screen.queryByText("1,234")).not.toBeInTheDocument();
     });
   });
 
   describe("error state", () => {
     it("shows error message when error is provided", () => {
       renderWithRouter({ ...defaultProps, error: "Failed to load" });
-      expect(screen.getByText("Failed to load")).toBeInTheDocument();
+      // Error shows dash with title attribute containing the error
+      expect(screen.getByText("—")).toBeInTheDocument();
+      expect(screen.getByTitle("Failed to load")).toBeInTheDocument();
     });
   });
 

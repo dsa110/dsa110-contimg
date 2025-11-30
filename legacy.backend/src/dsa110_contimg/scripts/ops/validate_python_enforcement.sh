@@ -27,7 +27,7 @@ echo "Test 2: Attempt import with system Python (should fail)..."
 if /usr/bin/python3 -c "import sys; sys.path.insert(0, '$SRC_DIR'); import dsa110_contimg" 2>&1 | grep -q "CRITICAL ERROR"; then
     echo "   :white_heavy_check_mark: PASS: System Python correctly rejected"
 else
-    echo "   :warning_sign::variation_selector-16:  WARNING: System Python was not rejected (may be expected if guard not loaded)"
+    echo "   :warning:  WARNING: System Python was not rejected (may be expected if guard not loaded)"
 fi
 
 # Test 3: Check entry point script

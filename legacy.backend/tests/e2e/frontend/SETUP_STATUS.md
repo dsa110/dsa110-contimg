@@ -9,7 +9,7 @@
 - Fixtures configured
 - Test suites ready
 
-:warning_sign::variation_selector-16: **Browser Installation**: Issue on Ubuntu 18.04
+:warning: **Browser Installation**: Issue on Ubuntu 18.04
 
 - Playwright doesn't support browser installation on Ubuntu 18.04
 - Need to use system browser or Docker

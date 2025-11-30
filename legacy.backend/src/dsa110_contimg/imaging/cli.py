@@ -122,7 +122,7 @@ def main(argv: Optional[list] = None) -> None:
         default="standard",
         help=(
             "Imaging quality tier with explicit trade-offs.\n"
-            "  development: :warning_sign::variation_selector-16:  NON-SCIENCE - coarser resolution, fewer iterations\n"
+            "  development: :warning:  NON-SCIENCE - coarser resolution, fewer iterations\n"
             "  standard: Recommended for all science observations (full quality)\n"
             "  high_precision: Enhanced settings for maximum quality (slower)\n"
             "Default: standard"

@@ -46,7 +46,7 @@ class RefactorAnalyzer:
             try:
                 self._analyze_file(py_file)
             except Exception as e:
-                print(f"   :warning_sign::variation_selector-16:  Failed to analyze {py_file}: {e}")
+                print(f"   :warning:  Failed to analyze {py_file}: {e}")
 
     def _should_ignore(self, path: Path) -> bool:
         """Check if path should be ignored."""

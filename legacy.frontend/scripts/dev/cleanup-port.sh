@@ -7,7 +7,7 @@ echo ":left-pointing_magnifying_glass: Checking for processes on port $PORT..."
 
 if lsof -ti:$PORT > /dev/null 2>&1; then
     PIDS=$(lsof -ti:$PORT)
-    echo ":warning_sign::variation_selector-16:  Found processes on port $PORT: $PIDS"
+    echo ":warning:  Found processes on port $PORT: $PIDS"
     echo ":hocho: Killing processes..."
     lsof -ti:$PORT | xargs kill -9 2>/dev/null
     echo ":white_heavy_check_mark: Port $PORT is now free"

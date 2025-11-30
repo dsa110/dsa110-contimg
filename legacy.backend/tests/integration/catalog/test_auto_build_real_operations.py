@@ -54,7 +54,7 @@ def test_auto_build_detects_missing_databases():
                 )
             else:
                 # If catalog doesn't exist but we're within coverage, it's just missing
-                print(f":warning_sign::variation_selector-16:  {catalog_type.upper()}: missing (within coverage for dec={dec_deg}°)")
+                print(f":warning:  {catalog_type.upper()}: missing (within coverage for dec={dec_deg}°)")
 
 
 def test_auto_build_respects_coverage_limits():
@@ -109,7 +109,7 @@ def test_auto_build_function_callable():
         print(f":white_heavy_check_mark: Auto-build function executed (result: {result})")
     except Exception as e:
         # Expected if catalog source files don't exist
-        print(f":warning_sign::variation_selector-16:  Auto-build function callable but failed (expected): {type(e).__name__}")
+        print(f":warning:  Auto-build function callable but failed (expected): {type(e).__name__}")
         print("   This is expected if catalog source files are not available")
 
 
@@ -192,7 +192,7 @@ def run_all_tests():
         print("\n:white_heavy_check_mark: All auto-build integration tests passed!")
         return 0
     else:
-        print(f"\n:warning_sign::variation_selector-16:  {total - passed} test(s) failed")
+        print(f"\n:warning:  {total - passed} test(s) failed")
         return 1
 
 

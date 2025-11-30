@@ -175,7 +175,7 @@ def _run_all_integration_tests():
         print("\n:white_heavy_check_mark: All integration tests passed!")
         return 0
     else:
-        print(f"\n:warning_sign::variation_selector-16:  {total - passed} test(s) failed")
+        print(f"\n:warning:  {total - passed} test(s) failed")
         return 1
 
 

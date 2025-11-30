@@ -62,7 +62,7 @@ Tests API status endpoint with real database:
    - `get_catalog_coverage_status()` - :white_heavy_check_mark:
    - `plot_catalog_coverage()` - :white_heavy_check_mark:
 
-### :warning_sign::variation_selector-16: Expected Limitations
+### :warning: Expected Limitations
 
 1. **FIRST and RAX catalog source files not available:**
    - Tests fail when trying to auto-build FIRST/RAX databases
@@ -84,7 +84,7 @@ Tests API status endpoint with real database:
 - Visualization function availability
 - NVSS query integration
 
-### :warning_sign::variation_selector-16: Partially Tested
+### :warning: Partially Tested
 
 - Auto-build with FIRST/RAX (requires source files)
 - Full pipeline integration (requires additional dependencies)

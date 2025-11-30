@@ -84,7 +84,7 @@ python scripts/generate_ai_context.py \
   --output .ai-context.json
 ```
 
-**:warning_sign::variation_selector-16: Important:** Don't run these on the massive parent directory - scope to:
+**:warning: Important:** Don't run these on the massive parent directory - scope to:
 
 - `backend/src/dsa110_contimg/` for code analysis
 - `backend/docs/` for doc audits

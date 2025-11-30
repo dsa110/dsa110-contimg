@@ -152,7 +152,7 @@ function status() {
         if health_check; then
             echo -e "${GREEN}Health:${NC} :white_heavy_check_mark: Responding"
         else
-            echo -e "${RED}Health:${NC} :warning_sign::variation_selector-16: Not responding"
+            echo -e "${RED}Health:${NC} :warning: Not responding"
         fi
         
         # Show resource usage

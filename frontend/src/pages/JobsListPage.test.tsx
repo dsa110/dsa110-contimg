@@ -212,7 +212,7 @@ describe("JobsListPage", () => {
     it("displays relative time for started_at", () => {
       renderPage();
       // Should show relative time like "X months ago" or a date - use getAllByText
-      const matches = screen.getAllByText(/ago|2024|\\d{1,2}\\/\\d{1,2}/i);
+      const matches = screen.getAllByText(/ago|2024|\d{1,2}\/\d{1,2}/i);
       expect(matches.length).toBeGreaterThan(0);
     });
   });

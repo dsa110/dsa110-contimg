@@ -63,7 +63,7 @@ describe("API Contract Tests", () => {
       apiAvailable = true;
       console.log(":white_heavy_check_mark: API available at", API_BASE);
     } catch (error) {
-      console.warn(":warning_sign::variation_selector-16: API not available at", API_BASE, "- skipping contract tests");
+      console.warn(":warning: API not available at", API_BASE, "- skipping contract tests");
       console.warn("   Error:", error instanceof Error ? error.message : error);
     }
   });

@@ -158,7 +158,7 @@ const ServiceStatus = () => {
           <span className="service-name">Status</span>
           <span className="status-dot degraded"></span>
           <span className="service-error" title="Data may be stale">
-            ⏱
+            :hourglass:
           </span>
         </div>
       )}

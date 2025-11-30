@@ -164,7 +164,7 @@ def check_missing_catalog_databases(
 
             if not exists:
                 logger_instance.warning(
-                    f":warning_sign::variation_selector-16:  {catalog_type.upper()} catalog database is missing for declination {dec_deg:.2f}°, "
+                    f":warning:  {catalog_type.upper()} catalog database is missing for declination {dec_deg:.2f}°, "
                     f"but should exist (within coverage limits: {dec_min:.1f}° to {dec_max:.1f}°)."
                 )
 
@@ -318,13 +318,13 @@ def build_nvss_strip_db(
     coverage_limits = CATALOG_COVERAGE_LIMITS.get("nvss", {})
     if dec_center < coverage_limits.get("dec_min", -90.0):
         logger.warning(
-            f":warning_sign::variation_selector-16:  Declination {dec_center:.2f}° is outside NVSS coverage "
+            f":warning:  Declination {dec_center:.2f}° is outside NVSS coverage "
             f"(southern limit: {coverage_limits.get('dec_min', -40.0)}°). "
             f"Database may be empty or have very few sources."
         )
     if dec_center > coverage_limits.get("dec_max", 90.0):
         logger.warning(
-            f":warning_sign::variation_selector-16:  Declination {dec_center:.2f}° is outside NVSS coverage "
+            f":warning:  Declination {dec_center:.2f}° is outside NVSS coverage "
             f"(northern limit: {coverage_limits.get('dec_max', 90.0)}°). "
             f"Database may be empty or have very few sources."
         )
@@ -339,7 +339,7 @@ def build_nvss_strip_db(
     # Warn if result is empty
     if len(df_strip) == 0:
         logger.warning(
-            f":warning_sign::variation_selector-16:  No NVSS sources found in declination range [{dec_min:.2f}°, {dec_max:.2f}°]. "
+            f":warning:  No NVSS sources found in declination range [{dec_min:.2f}°, {dec_max:.2f}°]. "
             f"This may indicate declination {dec_center:.2f}° is outside NVSS coverage limits "
             f"(southern limit: {coverage_limits.get('dec_min', -40.0)}°)."
         )
@@ -536,13 +536,13 @@ def build_first_strip_db(
     coverage_limits = CATALOG_COVERAGE_LIMITS.get("first", {})
     if dec_center < coverage_limits.get("dec_min", -90.0):
         logger.warning(
-            f":warning_sign::variation_selector-16:  Declination {dec_center:.2f}° is outside FIRST coverage "
+            f":warning:  Declination {dec_center:.2f}° is outside FIRST coverage "
             f"(southern limit: {coverage_limits.get('dec_min', -40.0)}°). "
             f"Database may be empty or have very few sources."
         )
     if dec_center > coverage_limits.get("dec_max", 90.0):
         logger.warning(
-            f":warning_sign::variation_selector-16:  Declination {dec_center:.2f}° is outside FIRST coverage "
+            f":warning:  Declination {dec_center:.2f}° is outside FIRST coverage "
             f"(northern limit: {coverage_limits.get('dec_max', 90.0)}°). "
             f"Database may be empty or have very few sources."
         )
@@ -588,7 +588,7 @@ def build_first_strip_db(
     if len(df_strip) == 0:
         coverage_limits = CATALOG_COVERAGE_LIMITS.get("first", {})
         logger.warning(
-            f":warning_sign::variation_selector-16:  No FIRST sources found in declination range [{dec_min:.2f}°, {dec_max:.2f}°]. "
+            f":warning:  No FIRST sources found in declination range [{dec_min:.2f}°, {dec_max:.2f}°]. "
             f"This may indicate declination {dec_center:.2f}° is outside FIRST coverage limits "
             f"(southern limit: {coverage_limits.get('dec_min', -40.0)}°)."
         )
@@ -808,13 +808,13 @@ def build_rax_strip_db(
     coverage_limits = CATALOG_COVERAGE_LIMITS.get("rax", {})
     if dec_center < coverage_limits.get("dec_min", -90.0):
         logger.warning(
-            f":warning_sign::variation_selector-16:  Declination {dec_center:.2f}° is outside RACS coverage "
+            f":warning:  Declination {dec_center:.2f}° is outside RACS coverage "
             f"(southern limit: {coverage_limits.get('dec_min', -90.0)}°). "
             f"Database may be empty or have very few sources."
         )
     if dec_center > coverage_limits.get("dec_max", 90.0):
         logger.warning(
-            f":warning_sign::variation_selector-16:  Declination {dec_center:.2f}° is outside RACS coverage "
+            f":warning:  Declination {dec_center:.2f}° is outside RACS coverage "
             f"(northern limit: {coverage_limits.get('dec_max', 49.9)}°). "
             f"Database may be empty or have very few sources."
         )
@@ -849,7 +849,7 @@ def build_rax_strip_db(
     if len(df_strip) == 0:
         coverage_limits = CATALOG_COVERAGE_LIMITS.get("rax", {})
         logger.warning(
-            f":warning_sign::variation_selector-16:  No RACS sources found in declination range [{dec_min:.2f}°, {dec_max:.2f}°]. "
+            f":warning:  No RACS sources found in declination range [{dec_min:.2f}°, {dec_max:.2f}°]. "
             f"This may indicate declination {dec_center:.2f}° is outside RACS coverage limits "
             f"(northern limit: {coverage_limits.get('dec_max', 49.9)}°)."
         )
@@ -1246,13 +1246,13 @@ def build_atnf_strip_db(
     coverage_limits = CATALOG_COVERAGE_LIMITS.get("atnf", {})
     if dec_center < coverage_limits.get("dec_min", -90.0):
         logger.warning(
-            f":warning_sign::variation_selector-16:  Declination {dec_center:.2f}° is outside typical ATNF coverage "
+            f":warning:  Declination {dec_center:.2f}° is outside typical ATNF coverage "
             f"(southern limit: {coverage_limits.get('dec_min', -90.0)}°). "
             f"Database may be empty or have very few sources."
         )
     if dec_center > coverage_limits.get("dec_max", 90.0):
         logger.warning(
-            f":warning_sign::variation_selector-16:  Declination {dec_center:.2f}° is outside typical ATNF coverage "
+            f":warning:  Declination {dec_center:.2f}° is outside typical ATNF coverage "
             f"(northern limit: {coverage_limits.get('dec_max', 90.0)}°). "
             f"Database may be empty or have very few sources."
         )
@@ -1300,7 +1300,7 @@ def build_atnf_strip_db(
         # Warn if result is empty
         if len(df_strip) == 0:
             logger.warning(
-                f":warning_sign::variation_selector-16:  No ATNF pulsars found in declination range [{dec_min:.2f}°, {dec_max:.2f}°]."
+                f":warning:  No ATNF pulsars found in declination range [{dec_min:.2f}°, {dec_max:.2f}°]."
             )
 
         # Apply flux threshold if specified (use 1400 MHz flux)

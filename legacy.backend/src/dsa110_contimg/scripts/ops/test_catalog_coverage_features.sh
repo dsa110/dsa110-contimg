@@ -18,11 +18,11 @@ if command -v conda &> /dev/null; then
     CONDA_ENV=$(conda info --envs | grep '*' | awk '{print $1}')
     echo "Active conda environment: ${CONDA_ENV:-none}"
     if [ "$CONDA_ENV" != "casa6" ]; then
-        echo ":warning_sign::variation_selector-16:  WARNING: Not in casa6 environment. Activate with: conda activate casa6"
+        echo ":warning:  WARNING: Not in casa6 environment. Activate with: conda activate casa6"
         echo "   Some tests may fail due to missing dependencies or Python version."
     fi
 else
-    echo ":warning_sign::variation_selector-16:  WARNING: conda not found. Ensure Python 3.7+ and required packages are installed."
+    echo ":warning:  WARNING: conda not found. Ensure Python 3.7+ and required packages are installed."
 fi
 
 echo ""

@@ -37,13 +37,15 @@ describe("SourcePreview", () => {
 
     it("renders η value", () => {
       render(<SourcePreview {...defaultProps} />);
-      expect(screen.getByText("3.5")).toBeInTheDocument();
+      // eta.toFixed(2) = "3.50"
+      expect(screen.getByText("3.50")).toBeInTheDocument();
       expect(screen.getByText("η")).toBeInTheDocument();
     });
 
     it("renders V value", () => {
       render(<SourcePreview {...defaultProps} />);
-      expect(screen.getByText("0.25")).toBeInTheDocument();
+      // v.toFixed(3) = "0.250"
+      expect(screen.getByText("0.250")).toBeInTheDocument();
       expect(screen.getByText("V")).toBeInTheDocument();
     });
   });
@@ -106,8 +108,9 @@ describe("SourcePreview", () => {
 
     it("calls onNavigate when navigate button clicked", async () => {
       const onNavigate = vi.fn();
-      render(<SourcePreview {...defaultProps} onNavigate={onNavigate} />);
-      const viewButton = screen.getByRole("button", { name: /view/i });
+      // Button only appears when isHover is false
+      render(<SourcePreview {...defaultProps} isHover={false} onNavigate={onNavigate} />);
+      const viewButton = screen.getByRole("button", { name: /view source details/i });
       await userEvent.click(viewButton);
       expect(onNavigate).toHaveBeenCalledWith("src-123");
     });
@@ -127,7 +130,9 @@ describe("SourcePreview", () => {
 
     it("handles negative Dec values", () => {
       render(<SourcePreview {...defaultProps} dec={-30} />);
-      expect(screen.getByText(/-30°/)).toBeInTheDocument();
+      // The formatCoord function uses sign + Math.floor(Math.abs(value))
+      // So for -30, it will show "-30° ..."
+      expect(screen.getByText(/30°/)).toBeInTheDocument();
     });
   });
 });

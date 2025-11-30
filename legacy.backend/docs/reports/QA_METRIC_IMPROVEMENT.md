@@ -108,7 +108,7 @@ With shorter solints (e.g., `solint='60s'`), the metric will compute meaningful
 per-antenna temporal scatter and provide even better diagnostics:
 
 - Low per-antenna scatter (~20-30°) → stable atmospheric corrections :white_heavy_check_mark:
-- High per-antenna scatter (>50°) → actual calibration instability :warning_sign::variation_selector-16:
+- High per-antenna scatter (>50°) → actual calibration instability :warning:
 
 ## Related Documentation
 
