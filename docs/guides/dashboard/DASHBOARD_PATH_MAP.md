@@ -42,19 +42,19 @@ uvicorn dsa110_contimg.api:app --host 0.0.0.0 --port 8000 --reload
 cd /data/dsa110-contimg/frontend
 source /opt/miniforge/etc/profile.d/conda.sh
 conda activate casa6
-npm run dev -- --host 0.0.0.0 --port 5173
+npm run dev
 ```
 
 ### Step 3: Access Dashboard
 
-Open in browser: **http://localhost:5173**
+Open in browser: **http://localhost:3000**
 
 ## Quick Navigation Commands
 
 ### From docs/ directory:
 
 ```bash
-cd ../frontend && conda activate casa6 && npm run dev -- --host 0.0.0.0 --port 5173
+cd ../frontend && conda activate casa6 && npm run dev
 ```
 
 ### From project root:

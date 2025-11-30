@@ -7,8 +7,8 @@ import {
   Card,
   CoordinateDisplay,
   ImageThumbnail,
-  LoadingSpinner,
   Modal,
+  PageSkeleton,
   QAMetrics,
 } from "../components/common";
 import { AladinLiteViewer, GifPlayer } from "../components/widgets";
@@ -86,7 +86,7 @@ const ImageDetailPage: React.FC = () => {
   }, [image, imageId, addRecentImage]);
 
   if (isLoading) {
-    return <LoadingSpinner label="Loading image details..." />;
+    return <PageSkeleton variant="detail" showHeader showSidebar />;
   }
 
   if (error) {
@@ -257,21 +257,25 @@ const ImageDetailPage: React.FC = () => {
           {/* Animated FITS Cutout Visualization */}
           {showGifPlayer && (
             <Card title="Animated Cutout" subtitle="Time-lapse visualization">
-              <GifPlayer
-                src={`${import.meta.env.VITE_API_URL || "/api"}/images/${encodedImageId}/animation`}
-                width="100%"
-                height={400}
-                autoPlay={false}
-                loop={true}
-                speed={1}
-                showFrameCounter={true}
-                showTimeline={true}
-                // TODO: Remove debug logging or use a debug utility that can be disabled in production
-                onFrameChange={(frameIndex, totalFrames) => {
-                  console.debug(`Animation frame: ${frameIndex + 1}/${totalFrames}`);
-                }}
-                className="rounded-lg overflow-hidden"
-              />
+              <WidgetErrorBoundary widgetName="Animation Player" minHeight={400}>
+                <GifPlayer
+                  src={`${
+                    import.meta.env.VITE_API_URL || "/api"
+                  }/images/${encodedImageId}/animation`}
+                  width="100%"
+                  height={400}
+                  autoPlay={false}
+                  loop={true}
+                  speed={1}
+                  showFrameCounter={true}
+                  showTimeline={true}
+                  // TODO: Remove debug logging or use a debug utility that can be disabled in production
+                  onFrameChange={(frameIndex, totalFrames) => {
+                    console.debug(`Animation frame: ${frameIndex + 1}/${totalFrames}`);
+                  }}
+                  className="rounded-lg overflow-hidden"
+                />
+              </WidgetErrorBoundary>
             </Card>
           )}
 
@@ -349,13 +353,15 @@ const ImageDetailPage: React.FC = () => {
               />
               {showSkyViewer && (
                 <div className="mt-4">
-                  <AladinLiteViewer
-                    raDeg={imageData.pointing_ra_deg}
-                    decDeg={imageData.pointing_dec_deg}
-                    fov={0.5}
-                    height={250}
-                    className="rounded-lg overflow-hidden"
-                  />
+                  <WidgetErrorBoundary widgetName="Sky Viewer" minHeight={250}>
+                    <AladinLiteViewer
+                      raDeg={imageData.pointing_ra_deg}
+                      decDeg={imageData.pointing_dec_deg}
+                      fov={0.5}
+                      height={250}
+                      className="rounded-lg overflow-hidden"
+                    />
+                  </WidgetErrorBoundary>
                 </div>
               )}
             </Card>
