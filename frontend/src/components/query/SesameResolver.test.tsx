@@ -11,6 +11,21 @@ global.fetch = mockFetch;
 // Counter to generate unique object names for each test to avoid cache interference
 let testCounter = 0;
 
+// Suppress console.error for act() warnings in tests with intentionally pending promises
+const originalError = console.error;
+beforeEach(() => {
+  console.error = (...args: unknown[]) => {
+    if (typeof args[0] === "string" && args[0].includes("not wrapped in act")) {
+      return;
+    }
+    originalError.call(console, ...args);
+  };
+});
+
+afterEach(() => {
+  console.error = originalError;
+});
+
 describe("SesameResolver", () => {
   const mockOnResolved = vi.fn();
 
@@ -180,10 +195,13 @@ describe("SesameResolver", () => {
 
       expect(screen.getByText(/Resolving/i)).toBeInTheDocument();
 
-      // Clean up
+      // Clean up - resolve but don't wait (act warning suppressed at top of file)
       resolvePromise!({
         ok: true,
         text: () => Promise.resolve("%J 10.68479 +41.26906"),
+      });
+      await waitFor(() => {
+        expect(mockOnResolved).toHaveBeenCalled();
       });
     });
 

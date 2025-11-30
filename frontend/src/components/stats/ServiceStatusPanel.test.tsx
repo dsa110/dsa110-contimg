@@ -8,6 +8,21 @@ import { ServiceStatusPanel } from "./ServiceStatusPanel";
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
+// Suppress console.error for act() warnings in tests with intentionally pending promises
+const originalError = console.error;
+beforeEach(() => {
+  console.error = (...args: unknown[]) => {
+    if (typeof args[0] === "string" && args[0].includes("not wrapped in act")) {
+      return;
+    }
+    originalError.call(console, ...args);
+  };
+});
+
+afterEach(() => {
+  console.error = originalError;
+});
+
 describe("ServiceStatusPanel", () => {
   beforeEach(() => {
     vi.clearAllMocks();

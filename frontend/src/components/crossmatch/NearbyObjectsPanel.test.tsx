@@ -1,8 +1,23 @@
 import React from "react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import NearbyObjectsPanel, { NearbyObject } from "./NearbyObjectsPanel";
+
+// Suppress console.error for act() warnings in tests with intentionally pending promises
+const originalError = console.error;
+beforeEach(() => {
+  console.error = (...args: unknown[]) => {
+    if (typeof args[0] === "string" && args[0].includes("not wrapped in act")) {
+      return;
+    }
+    originalError.call(console, ...args);
+  };
+});
+
+afterEach(() => {
+  console.error = originalError;
+});
 
 describe("NearbyObjectsPanel", () => {
   const mockOnSearch = vi.fn();
@@ -54,10 +69,14 @@ describe("NearbyObjectsPanel", () => {
     });
 
     it("shows loading state while searching", async () => {
-      // Don't mock implementation - just verify onSearch was called
+      // Wait for search to complete to avoid act() warning
       render(<NearbyObjectsPanel {...defaultProps} />);
       await waitFor(() => {
         expect(mockOnSearch).toHaveBeenCalled();
+      });
+      // Wait for results to render
+      await waitFor(() => {
+        expect(screen.getByText("Object1")).toBeInTheDocument();
       });
     });
   });

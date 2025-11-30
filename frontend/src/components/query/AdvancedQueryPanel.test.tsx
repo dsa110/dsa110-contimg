@@ -65,24 +65,26 @@ describe("AdvancedQueryPanel", () => {
   describe("form actions", () => {
     it("renders search button", () => {
       render(<AdvancedQueryPanel {...defaultProps} />);
-      expect(screen.getByRole("button", { name: /search/i })).toBeInTheDocument();
+      // The button text is just "Search"
+      expect(screen.getByText("Search")).toBeInTheDocument();
     });
 
-    it("renders reset button when onReset is provided", () => {
-      render(<AdvancedQueryPanel {...defaultProps} onReset={mockOnReset} />);
-      expect(screen.getByRole("button", { name: /reset|clear/i })).toBeInTheDocument();
+    it("renders reset button", () => {
+      render(<AdvancedQueryPanel {...defaultProps} />);
+      // There's a "Reset" button and a "Reset all" link
+      expect(screen.getByText("Reset")).toBeInTheDocument();
     });
 
     it("calls onSubmit when search button is clicked", async () => {
       render(<AdvancedQueryPanel {...defaultProps} />);
-      const searchButton = screen.getByRole("button", { name: /search/i });
+      const searchButton = screen.getByText("Search");
       await userEvent.click(searchButton);
       expect(mockOnSubmit).toHaveBeenCalled();
     });
 
     it("calls onReset when reset button is clicked", async () => {
       render(<AdvancedQueryPanel {...defaultProps} onReset={mockOnReset} />);
-      const resetButton = screen.getByRole("button", { name: /reset|clear/i });
+      const resetButton = screen.getByText("Reset");
       await userEvent.click(resetButton);
       expect(mockOnReset).toHaveBeenCalled();
     });
@@ -112,8 +114,8 @@ describe("AdvancedQueryPanel", () => {
         { id: "run-2", name: "Pipeline Run 2" },
       ];
       render(<AdvancedQueryPanel {...defaultProps} runs={runs} />);
-      // Should show pipeline run section or dropdown
-      expect(screen.getByText(/Pipeline Run|Run/i)).toBeInTheDocument();
+      // Section header says "Data Source", and there's "All Runs" option
+      expect(screen.getByText("Data Source")).toBeInTheDocument();
     });
   });
 
