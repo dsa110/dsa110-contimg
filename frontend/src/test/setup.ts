@@ -1,5 +1,29 @@
 import "@testing-library/jest-dom";
 
+/**
+ * Test Setup and Conventions
+ * ==========================
+ *
+ * ESLint Warning Exceptions for Test Files:
+ * -----------------------------------------
+ * Test files intentionally use `any` type coercion for mock objects.
+ * This is necessary because:
+ *
+ * 1. Vitest's vi.mock() returns Mock<T> which doesn't include mock methods
+ *    like .mockReturnValue() in the original type signature.
+ *
+ * 2. Pattern: `(useHook as any).mockReturnValue({...})`
+ *    This allows accessing mock methods that TypeScript doesn't know about.
+ *
+ * 3. These `@typescript-eslint/no-explicit-any` warnings in test files
+ *    are ACCEPTABLE and should not be "fixed" by adding complex generic
+ *    type gymnastics that reduce test readability.
+ *
+ * If you see warnings like:
+ *   "Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any"
+ * in *.test.ts or *.test.tsx files, they can be safely ignored.
+ */
+
 // Mock ResizeObserver which is not available in jsdom
 global.ResizeObserver = class ResizeObserver {
   observe() {}

@@ -5,6 +5,21 @@ import reactHooks from "eslint-plugin-react-hooks";
 import storybook from "eslint-plugin-storybook";
 import unusedImports from "eslint-plugin-unused-imports";
 
+/**
+ * ESLint Configuration
+ *
+ * Note on Test File Warnings:
+ * ---------------------------
+ * Test files (*.test.ts, *.test.tsx) intentionally use `any` type coercion
+ * for Vitest mock objects. Warnings like:
+ *   "@typescript-eslint/no-explicit-any"
+ * in test files are ACCEPTABLE and documented in src/test/setup.ts.
+ *
+ * Pattern: `(useHook as any).mockReturnValue({...})`
+ * This is necessary because vi.mock() returns Mock<T> which doesn't expose
+ * mock methods in the original type signature.
+ */
+
 export default tseslint.config(
   js.configs.recommended,
   ...tseslint.configs.recommended,
