@@ -277,14 +277,14 @@ class AsyncImageRepository(ImageRepositoryInterface):
 # =============================================================================
 
 class AsyncMSRepository(MSRepositoryInterface):
-    """Async repository for querying Measurement Set data.
+    """Async repository for querying MS metadata.
     
     Implements MSRepositoryInterface with aiosqlite.
     """
     
     def __init__(self, db_path: Optional[str] = None):
         self.db_path = db_path or _get_default_db_path()
-        self.cal_db_path = CAL_REGISTRY_DB_PATH
+        self.cal_db_path = _get_cal_registry_path()
     
     async def get_metadata(self, ms_path: str) -> Optional[MSRecord]:
         """Get MS metadata by path."""
@@ -531,7 +531,7 @@ class AsyncJobRepository(JobRepositoryInterface):
     
     def __init__(self, db_path: Optional[str] = None):
         self.db_path = db_path or _get_default_db_path()
-        self.cal_db_path = CAL_REGISTRY_DB_PATH
+        self.cal_db_path = _get_cal_registry_path()
     
     async def get_by_run_id(self, run_id: str) -> Optional[JobRecord]:
         """Get job by run ID."""

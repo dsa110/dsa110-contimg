@@ -1,6 +1,8 @@
 from unittest.mock import MagicMock, patch
 import pytest
 import numpy as np
+import sys
+from types import ModuleType, SimpleNamespace
 
 
 def test_phase_to_meridian(monkeypatch):
@@ -15,8 +17,16 @@ def test_phase_to_meridian(monkeypatch):
     the heavy compute_and_set_uvw to avoid needing real antenna positions.
     """
     # Mock pandas before any imports that might need it
-    import sys
-    sys.modules['pandas'] = MagicMock()
+    # Must create a proper module with __spec__ to satisfy astropy's importlib checks
+    mock_pandas = ModuleType('pandas')
+    mock_pandas.__spec__ = SimpleNamespace(
+        name='pandas',
+        origin='mock',
+        loader=None,
+        submodule_search_locations=None
+    )
+    mock_pandas.__version__ = '2.0.0'
+    sys.modules['pandas'] = mock_pandas
     
     # Now import the module
     from dsa110_contimg.conversion import helpers_coordinates
