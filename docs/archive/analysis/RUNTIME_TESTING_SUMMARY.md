@@ -13,7 +13,7 @@
    - ✅ Uvicorn running
 
 2. **Frontend Server (Vite)**
-   - ✅ Started on http://localhost:5173
+   - ✅ Started on http://localhost:3000
    - ✅ React app loading
    - ✅ Navigation working
 

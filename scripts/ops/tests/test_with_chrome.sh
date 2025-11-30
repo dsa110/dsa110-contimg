@@ -4,7 +4,7 @@
 
 set -e
 
-FRONTEND_URL="http://localhost:5173/operations"
+FRONTEND_URL="http://localhost:3000/operations"
 CHROME_USER_DATA_DIR="/tmp/chrome-test-$$"
 
 echo "=========================================="
@@ -13,7 +13,7 @@ echo "=========================================="
 echo ""
 
 # Check if frontend is running
-if ! curl -s -f "http://localhost:5173" > /dev/null 2>&1; then
+if ! curl -s -f "http://localhost:3000" > /dev/null 2>&1; then
     echo "Error: Frontend server is not running"
     exit 1
 fi

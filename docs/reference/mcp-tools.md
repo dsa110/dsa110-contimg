@@ -222,7 +222,7 @@ perplexity-server_recency_filter(filter="week")
 
 ```python
 # Navigate to a page
-browser_navigate(url="http://localhost:5173/dashboard")
+browser_navigate(url="http://localhost:3000/dashboard")
 
 # Take accessibility snapshot (better than screenshot for automation)
 browser_snapshot()
@@ -550,7 +550,7 @@ testing or separate knowledge domains.
 # - evaluate: Execute JavaScript in page context
 
 # Example E2E test workflow:
-# 1. navigate(url="http://localhost:5173/dashboard")
+# 1. navigate(url="http://localhost:3000/dashboard")
 # 2. click(selector="button[data-testid='submit']")
 # 3. fill(selector="input[name='query']", value="test")
 # 4. screenshot(path="test-result.png")

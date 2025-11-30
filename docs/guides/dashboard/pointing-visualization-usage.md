@@ -7,7 +7,7 @@
 
 ## Quick Start
 
-1. **Access Dashboard**: Navigate to `http://localhost:5173/` (or your frontend
+1. **Access Dashboard**: Navigate to `http://localhost:3000/` (or your frontend
    URL)
 2. **View Visualization**: The pointing visualization appears on the main
    dashboard
@@ -132,7 +132,7 @@
 **Check 1: Frontend Server**
 
 ```bash
-curl http://localhost:5173
+curl http://localhost:3000
 ```
 
 Should return HTML. If not, start frontend:

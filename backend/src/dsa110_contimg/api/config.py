@@ -33,16 +33,30 @@ class ConfigError(Exception):
 @dataclass
 class DatabaseConfig:
     """Database connection settings."""
-    products_path: Path = field(default_factory=lambda: Path("/data/dsa110-contimg/state/products.db"))
-    cal_registry_path: Path = field(default_factory=lambda: Path("/data/dsa110-contimg/state/cal_registry.db"))
-    hdf5_path: Path = field(default_factory=lambda: Path("/data/dsa110-contimg/state/hdf5_index.db"))
-    ingest_path: Path = field(default_factory=lambda: Path("/data/dsa110-contimg/state/ingest.db"))
+    products_path: Path = field(default_factory=lambda: Path("/data/dsa110-contimg/state/products.sqlite3"))
+    cal_registry_path: Path = field(default_factory=lambda: Path("/data/dsa110-contimg/state/cal_registry.sqlite3"))
+    hdf5_path: Path = field(default_factory=lambda: Path("/data/dsa110-contimg/state/hdf5.sqlite3"))
+    ingest_path: Path = field(default_factory=lambda: Path("/data/dsa110-contimg/state/ingest.sqlite3"))
+    data_registry_path: Path = field(default_factory=lambda: Path("/data/dsa110-contimg/state/data_registry.sqlite3"))
     connection_timeout: float = 30.0
+    
+    @classmethod
+    def from_env(cls) -> "DatabaseConfig":
+        """Create config from environment variables."""
+        base_dir = Path(os.getenv("DSA110_STATE_DIR", "/data/dsa110-contimg/state"))
+        return cls(
+            products_path=Path(os.getenv("PIPELINE_PRODUCTS_DB", str(base_dir / "products.sqlite3"))),
+            cal_registry_path=Path(os.getenv("PIPELINE_CAL_REGISTRY_DB", str(base_dir / "cal_registry.sqlite3"))),
+            hdf5_path=Path(os.getenv("PIPELINE_HDF5_DB", str(base_dir / "hdf5.sqlite3"))),
+            ingest_path=Path(os.getenv("PIPELINE_INGEST_DB", str(base_dir / "ingest.sqlite3"))),
+            data_registry_path=Path(os.getenv("PIPELINE_DATA_REGISTRY_DB", str(base_dir / "data_registry.sqlite3"))),
+            connection_timeout=float(os.getenv("DB_CONNECTION_TIMEOUT", "30.0")),
+        )
     
     def validate(self) -> List[str]:
         """Validate database configuration. Returns list of errors."""
         errors = []
-        for db_name in ["products", "cal_registry", "hdf5", "ingest"]:
+        for db_name in ["products", "cal_registry", "hdf5", "ingest", "data_registry"]:
             path = getattr(self, f"{db_name}_path")
             if not path.parent.exists():
                 errors.append(f"Database directory does not exist: {path.parent}")
@@ -214,7 +228,7 @@ class APIConfig:
             host=os.getenv("DSA110_HOST", "0.0.0.0"),
             port=int(os.getenv("DSA110_PORT", "8000")),
             workers=int(os.getenv("DSA110_WORKERS", "4" if is_production else "1")),
-            database=DatabaseConfig(),
+            database=DatabaseConfig.from_env(),
             redis=RedisConfig.from_env(),
             auth=AuthConfig.from_env(),
             rate_limit=RateLimitConfig.from_env(),

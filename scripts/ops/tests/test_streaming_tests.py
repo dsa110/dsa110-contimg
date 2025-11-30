@@ -33,7 +33,7 @@ def test_stream_017_loading_states():
         print(f"   :check: Request completed in {elapsed:.0f}ms (should be ~2000ms)")
         print(f"   :check: Status: {response.status_code}")
         print("\n   MANUAL VERIFICATION REQUIRED:")
-        print("   - Open browser to http://localhost:5173/streaming")
+        print("   - Open browser to http://localhost:3000/streaming")
         print("   - Click 'Start' or 'Configure' button")
         print("   - Verify loading spinner/indicator appears")
         return True
@@ -61,7 +61,7 @@ def test_stream_018_error_handling():
         if e.response.status_code == 500:
             print(f"   :check: Error correctly returned: {e.response.status_code}")
             print("\n   MANUAL VERIFICATION REQUIRED:")
-            print("   - Open browser to http://localhost:5173/streaming")
+            print("   - Open browser to http://localhost:3000/streaming")
             print("   - Trigger an API call (refresh page, click button)")
             print("   - Verify error notification/alert displays")
             return True
@@ -101,7 +101,7 @@ def test_stream_019_configuration_validation():
             except:
                 pass
             print("\n   MANUAL VERIFICATION REQUIRED:")
-            print("   - Open browser to http://localhost:5173/streaming")
+            print("   - Open browser to http://localhost:3000/streaming")
             print("   - Click 'Configure' button")
             print("   - Submit form with invalid data")
             print("   - Verify validation errors display")
@@ -136,7 +136,7 @@ def test_stream_020_realtime_updates():
             print(f"   :check: Broadcast sent successfully")
             print(f"   :check: Response: {result.get('message', '')}")
             print("\n   MANUAL VERIFICATION REQUIRED:")
-            print("   - Open browser to http://localhost:5173/streaming")
+            print("   - Open browser to http://localhost:3000/streaming")
             print("   - Ensure WebSocket connection is established")
             print("   - Run this test script")
             print("   - Verify status updates automatically in frontend")

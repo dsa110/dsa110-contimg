@@ -2,7 +2,7 @@ import React, { useCallback, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useJobs } from "../hooks/useQueries";
 import { relativeTime } from "../utils/relativeTime";
-import { LoadingSpinner, SortableTableHeader, useTableSort } from "../components/common";
+import { PageSkeleton, SortableTableHeader, useTableSort } from "../components/common";
 import { useSelectionStore } from "../stores/appStore";
 
 interface JobItem {
@@ -51,7 +51,7 @@ const JobsListPage: React.FC = () => {
   } = useTableSort<JobItem>(jobs as JobItem[] | undefined, "started_at", "desc");
 
   if (isLoading) {
-    return <LoadingSpinner label="Loading jobs..." />;
+    return <PageSkeleton variant="table" rows={8} showHeader />;
   }
 
   if (error) {

@@ -61,10 +61,10 @@ class TestDatabaseConfig:
         """Test default database paths are set."""
         config = DatabaseConfig()
         
-        assert config.products_path.name == "products.db"
-        assert config.cal_registry_path.name == "cal_registry.db"
-        assert config.hdf5_path.name == "hdf5_index.db"
-        assert config.ingest_path.name == "ingest.db"
+        assert config.products_path.name == "products.sqlite3"
+        assert config.cal_registry_path.name == "cal_registry.sqlite3"
+        assert config.hdf5_path.name == "hdf5.sqlite3"
+        assert config.ingest_path.name == "ingest.sqlite3"
 
     def test_default_timeout(self):
         """Test default connection timeout."""
@@ -75,17 +75,17 @@ class TestDatabaseConfig:
     def test_custom_paths(self):
         """Test custom database paths."""
         config = DatabaseConfig(
-            products_path=Path("/custom/products.db"),
-            cal_registry_path=Path("/custom/cal.db"),
+            products_path=Path("/custom/products.sqlite3"),
+            cal_registry_path=Path("/custom/cal.sqlite3"),
         )
         
-        assert config.products_path == Path("/custom/products.db")
-        assert config.cal_registry_path == Path("/custom/cal.db")
+        assert config.products_path == Path("/custom/products.sqlite3")
+        assert config.cal_registry_path == Path("/custom/cal.sqlite3")
 
     def test_validate_missing_directories(self):
         """Test validation returns errors for missing directories."""
         config = DatabaseConfig(
-            products_path=Path("/nonexistent/dir/products.db"),
+            products_path=Path("/nonexistent/dir/products.sqlite3"),
         )
         errors = config.validate()
         
@@ -96,10 +96,11 @@ class TestDatabaseConfig:
         """Test validation passes for existing directories."""
         with tempfile.TemporaryDirectory() as tmpdir:
             config = DatabaseConfig(
-                products_path=Path(tmpdir) / "products.db",
-                cal_registry_path=Path(tmpdir) / "cal.db",
-                hdf5_path=Path(tmpdir) / "hdf5.db",
-                ingest_path=Path(tmpdir) / "ingest.db",
+                products_path=Path(tmpdir) / "products.sqlite3",
+                cal_registry_path=Path(tmpdir) / "cal.sqlite3",
+                hdf5_path=Path(tmpdir) / "hdf5.sqlite3",
+                ingest_path=Path(tmpdir) / "ingest.sqlite3",
+                data_registry_path=Path(tmpdir) / "data_registry.sqlite3",
             )
             errors = config.validate()
         

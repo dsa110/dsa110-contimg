@@ -22,7 +22,7 @@ All three next steps have been completed successfully. The pointing visualizatio
 - Process ID: 2151109
 - Port: 5173 (standard Vite dev port)
 - Server responding: ✅ Yes
-- Accessible at: `http://localhost:5173`
+- Accessible at: `http://localhost:3000`
 
 **Note:** Attempted to start new dev server but encountered Node.js version issue (16.20.2 vs required 20.19+). However, existing server is functional.
 
@@ -170,7 +170,7 @@ Pointing Monitor → Database → API → Frontend Hook → Component → Visual
 
 ## Visualization Display
 
-When viewing the dashboard at `http://localhost:5173/`, the pointing visualization will show:
+When viewing the dashboard at `http://localhost:3000/`, the pointing visualization will show:
 
 1. **Current Pointing**: Green marker at latest position
 2. **Historical Trail**: Blue line connecting past positions
@@ -229,7 +229,7 @@ sqlite3 /data/dsa110-contimg/state/products.sqlite3 \
   "SELECT COUNT(*) FROM pointing_history;"
 
 # Check frontend
-curl http://localhost:5173
+curl http://localhost:3000
 ```
 
 ---

@@ -16,10 +16,13 @@ from dataclasses import dataclass
 
 from astropy.io import fits
 
+from .config import get_config
 
-# Database path configuration
-DEFAULT_DB_PATH = "/data/dsa110-contimg/state/products.sqlite3"
-CAL_REGISTRY_DB_PATH = "/data/dsa110-contimg/state/cal_registry.sqlite3"
+
+# Get database paths from configuration
+_config = get_config()
+DEFAULT_DB_PATH = str(_config.database.products_path)
+CAL_REGISTRY_DB_PATH = str(_config.database.cal_registry_path)
 
 
 @dataclass

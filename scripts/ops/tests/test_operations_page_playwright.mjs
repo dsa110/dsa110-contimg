@@ -12,7 +12,7 @@ import { chromium } from 'playwright';
   
   try {
     console.log('Navigating to Operations page...');
-    await page.goto('http://localhost:5173/operations', { waitUntil: 'networkidle' });
+    await page.goto('http://localhost:3000/operations', { waitUntil: 'networkidle' });
     
     console.log('Waiting for React to render...');
     // Wait for React to hydrate - look for common React/React Query indicators

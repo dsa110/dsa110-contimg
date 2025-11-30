@@ -5,7 +5,7 @@
 
 ## Test Environment
 
-- **Frontend**: Running on http://localhost:5173
+- **Frontend**: Running on http://localhost:3000
 - **Backend**: Running on http://localhost:8000 (uvicorn)
 - **Browser**: Chrome (via Cursor browser extension)
 
@@ -13,7 +13,7 @@
 
 ### ✅ Frontend Server
 - **Status**: RUNNING
-- **URL**: http://localhost:5173
+- **URL**: http://localhost:3000
 - **Status**: Successfully started and serving pages
 
 ### ✅ Backend Server
@@ -25,7 +25,7 @@
 ### ✅ Navigation Testing
 
 #### Dashboard Page
-- **URL**: http://localhost:5173/dashboard
+- **URL**: http://localhost:3000/dashboard
 - **Status**: ✅ LOADS
 - **Observations**:
   - Page loads successfully
@@ -33,7 +33,7 @@
   - Shows "Loading pipeline status..." (expected - backend may not have data)
 
 #### Sources Page
-- **URL**: http://localhost:5173/sources
+- **URL**: http://localhost:3000/sources
 - **Status**: ✅ LOADS
 - **Observations**:
   - Page loads successfully
@@ -42,7 +42,7 @@
   - Navigation works correctly
 
 #### Source Detail Page
-- **URL**: http://localhost:5173/sources/NVSS%20J123456+420312
+- **URL**: http://localhost:3000/sources/NVSS%20J123456+420312
 - **Status**: ⏳ TESTING
 - **Expected Behavior**:
   - Should load SourceDetailPage component
@@ -50,7 +50,7 @@
   - Should display error if source not found (expected without database)
 
 #### Image Detail Page
-- **URL**: http://localhost:5173/images/1
+- **URL**: http://localhost:3000/images/1
 - **Status**: ⏳ TESTING
 - **Expected Behavior**:
   - Should load ImageDetailPage component

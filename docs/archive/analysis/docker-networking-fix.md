@@ -42,7 +42,7 @@ docker run -d --name contimg-frontend \
 
 ✅ **API Proxy Working**: Direct curl test confirms proxy forwards requests correctly
 ```bash
-curl "http://localhost:5173/api/ms?scan=true&scan_dir=/stage/dsa110-contimg/ms&limit=1"
+curl "http://localhost:3000/api/ms?scan=true&scan_dir=/stage/dsa110-contimg/ms&limit=1"
 # Returns: {"items": [...], "total": 9}
 ```
 

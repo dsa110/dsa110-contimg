@@ -2,7 +2,8 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import ProvenanceStrip from "../components/provenance/ProvenanceStrip";
 import ErrorDisplay from "../components/errors/ErrorDisplay";
-import { Card, CoordinateDisplay, LoadingSpinner, QAMetrics } from "../components/common";
+import { WidgetErrorBoundary } from "../components/errors";
+import { Card, CoordinateDisplay, PageSkeleton, QAMetrics } from "../components/common";
 import { AladinLiteViewer, LightCurveChart } from "../components/widgets";
 import { CatalogOverlayPanel } from "../components/catalogs";
 import { NearbyObjectsPanel, NearbyObject } from "../components/crossmatch";
@@ -120,7 +121,7 @@ const SourceDetailPage: React.FC = () => {
   }, [source]);
 
   if (isLoading) {
-    return <LoadingSpinner label="Loading source details..." />;
+    return <PageSkeleton variant="detail" showHeader showSidebar />;
   }
 
   if (error) {
@@ -322,14 +323,16 @@ const SourceDetailPage: React.FC = () => {
             }
           >
             {showSkyViewer && (
-              <AladinLiteViewer
-                raDeg={sourceData.ra_deg}
-                decDeg={sourceData.dec_deg}
-                fov={0.1}
-                height={300}
-                sourceName={sourceData.name || `Source ${sourceData.id}`}
-                className="rounded-lg overflow-hidden"
-              />
+              <WidgetErrorBoundary widgetName="Sky Viewer" minHeight={300}>
+                <AladinLiteViewer
+                  raDeg={sourceData.ra_deg}
+                  decDeg={sourceData.dec_deg}
+                  fov={0.1}
+                  height={300}
+                  sourceName={sourceData.name || `Source ${sourceData.id}`}
+                  className="rounded-lg overflow-hidden"
+                />
+              </WidgetErrorBoundary>
             )}
           </Card>
 
@@ -374,23 +377,25 @@ const SourceDetailPage: React.FC = () => {
           {/* Light Curve Chart */}
           {lightCurveData.length > 1 && (
             <Card title="Light Curve" subtitle={`${lightCurveData.length} measurements`}>
-              <LightCurveChart
-                data={lightCurveData}
-                height={300}
-                yAxisLabel="Flux"
-                xAxisLabel="Observation Date"
-                enableZoom={true}
-                showErrorBars={true}
-                onPointClick={(point) => {
-                  // Find the corresponding image and select it
-                  const img = sourceData.contributing_images?.find(
-                    (i) => i.created_at === point.time
-                  );
-                  if (img) {
-                    setSelectedImageId(img.image_id);
-                  }
-                }}
-              />
+              <WidgetErrorBoundary widgetName="Light Curve Chart" minHeight={300}>
+                <LightCurveChart
+                  data={lightCurveData}
+                  height={300}
+                  yAxisLabel="Flux"
+                  xAxisLabel="Observation Date"
+                  enableZoom={true}
+                  showErrorBars={true}
+                  onPointClick={(point) => {
+                    // Find the corresponding image and select it
+                    const img = sourceData.contributing_images?.find(
+                      (i) => i.created_at === point.time
+                    );
+                    if (img) {
+                      setSelectedImageId(img.image_id);
+                    }
+                  }}
+                />
+              </WidgetErrorBoundary>
             </Card>
           )}
 

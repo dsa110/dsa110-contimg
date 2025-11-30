@@ -51,8 +51,8 @@ All static testing has been completed successfully. The implementation is ready 
 3. Frontend dev server running (`npm run dev`)
 
 ### Test URLs
-- Source Detail: `http://localhost:5173/sources/{sourceId}`
-- Image Detail: `http://localhost:5173/images/{imageId}`
+- Source Detail: `http://localhost:3000/sources/{sourceId}`
+- Image Detail: `http://localhost:3000/images/{imageId}`
 
 ### Test Checklist
 - [ ] Navigate to source detail page

@@ -90,7 +90,7 @@ apply, and imaging jobs on Measurement Sets. It provides:
    npm run dev
    ```
 
-3. Navigate to `http://localhost:5173/control`
+3. Navigate to `http://localhost:3000/control`
 
 ### Running a Calibration Job
 

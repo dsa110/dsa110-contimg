@@ -51,14 +51,14 @@ Detailed guide for Docker-based testing:
 #### Docker-Based Testing (Ubuntu 18.x - Recommended)
 
 1. Docker installed and running
-2. Frontend running on `http://localhost:5173` (or use docker-compose)
+2. Frontend running on `http://localhost:3000` (or use docker-compose)
 3. Backend API running on `http://localhost:8010` (or use docker-compose)
 4. User added to docker group: `sudo usermod -aG docker $USER`
 
 #### Local Testing (if Node.js 22+ available)
 
 1. Node.js 22+ and npm installed
-2. Frontend running on `http://localhost:5173`
+2. Frontend running on `http://localhost:3000`
 3. Backend API running on `http://localhost:8010`
 4. Playwright installed:
    `npm install -D @playwright/test && npx playwright install`

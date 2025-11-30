@@ -221,7 +221,7 @@ jobs:
 
       - name: Run all E2E tests
         env:
-          FRONTEND_BASE_URL: http://localhost:5173
+          FRONTEND_BASE_URL: http://localhost:3000
           API_URL: http://localhost:8000
           PLAYWRIGHT_HEADLESS: true
         run: |

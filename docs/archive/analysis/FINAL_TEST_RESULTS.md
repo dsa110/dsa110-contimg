@@ -26,7 +26,7 @@
 
 ### 3. Frontend Server
 - **Status**: ✅ RUNNING
-- **URL**: http://localhost:5173
+- **URL**: http://localhost:3000
 - **Response**: HTML served correctly
 - **Page Title**: "DSA-110 Continuum Imaging Pipeline"
 

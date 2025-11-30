@@ -80,7 +80,7 @@ npm run dev -- --host 0.0.0.0 --port 5173
 
 ### Step 4: Verify Setup
 
-1. Open `http://localhost:5173` in browser
+1. Open `http://localhost:3000` in browser
 2. Check browser console for errors
 3. Verify API connection (should see data loading)
 

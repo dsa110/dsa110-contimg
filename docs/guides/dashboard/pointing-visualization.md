@@ -265,7 +265,7 @@ Pointing Monitor :arrow_right: Database :arrow_right: API :arrow_right: Frontend
 
 ### Manual Testing
 
-1. Navigate to dashboard: `http://localhost:5173/`
+1. Navigate to dashboard: `http://localhost:3000/`
 2. Verify pointing visualization appears
 3. Check status indicators
 4. Hover over points to see coordinates

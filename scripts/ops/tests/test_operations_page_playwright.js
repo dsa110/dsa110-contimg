@@ -8,7 +8,7 @@ const { chromium } = require("playwright");
 
   try {
     console.log("Navigating to Operations page...");
-    await page.goto("http://localhost:5173/operations", { waitUntil: "networkidle" });
+    await page.goto("http://localhost:3000/operations", { waitUntil: "networkidle" });
 
     console.log("Page loaded. Taking screenshot...");
     await page.screenshot({ path: "operations_page.png", fullPage: true });

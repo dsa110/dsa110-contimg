@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { useSources } from "../hooks/useQueries";
-import { LoadingSpinner, SortableTableHeader, useTableSort, Modal } from "../components/common";
+import { PageSkeleton, SortableTableHeader, useTableSort, Modal } from "../components/common";
 import { AdvancedQueryPanel, SourceQueryParams } from "../components/query";
 import { EtaVPlot, SourcePoint } from "../components/variability";
 import {
@@ -161,7 +161,7 @@ const SourcesListPage: React.FC = () => {
   }, [sources]);
 
   if (isLoading) {
-    return <LoadingSpinner label="Loading sources..." />;
+    return <PageSkeleton variant="table" rows={8} showHeader />;
   }
 
   if (error) {

@@ -20,8 +20,8 @@ sudo fuser -k 8000/tcp
 ## :globe_with_meridians: URLs
 
 - **API**: http://localhost:8000
-- **Dashboard**: http://localhost:5173 (dev) / http://localhost:3000 (Docker)
-- **Control Panel**: http://localhost:5173/control
+- **Dashboard**: http://localhost:3000 (dev) / http://localhost:3000 (Docker)
+- **Control Panel**: http://localhost:3000/control
 
 ## :satellite: API Endpoints
 
@@ -179,7 +179,7 @@ sqlite3 /data/dsa110-contimg/state/products.sqlite3 \
 curl -f http://localhost:8000/api/status || echo "API down"
 
 # Check dashboard health (dev mode)
-curl -f http://localhost:5173 || echo "Dashboard down"
+curl -f http://localhost:3000 || echo "Dashboard down"
 
 # Check ports
 netstat -tlnp | grep -E ":(8000|5173)"
@@ -227,7 +227,7 @@ sudo fuser -k 8000/tcp
 ./scripts/manage-services.sh start api
 
 # 2. Open control panel
-# Navigate to http://localhost:5173/control
+# Navigate to http://localhost:3000/control
 
 # 3. Calibrate calibrator MS
 # Select MS :arrow_right: Calibrate tab :arrow_right: Set field=0, refant=103 :arrow_right: Run

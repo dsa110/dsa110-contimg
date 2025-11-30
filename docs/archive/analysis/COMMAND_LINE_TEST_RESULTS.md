@@ -23,7 +23,7 @@ npm run dev
 ### 2. Server Health Checks
 ```bash
 # Frontend server check
-curl http://localhost:5173
+curl http://localhost:3000
 
 # Backend server check
 curl http://localhost:8000/api/status
@@ -56,7 +56,7 @@ curl http://localhost:8000/openapi.json | python3 -m json.tool
 
 ### ✅ Frontend Dev Server
 - **Status**: RUNNING
-- **URL**: http://localhost:5173
+- **URL**: http://localhost:3000
 - **Response**: HTML served successfully
 
 ### ✅ Backend Server

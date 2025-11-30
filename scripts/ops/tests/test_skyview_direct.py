@@ -269,7 +269,7 @@ def main():
     
     print("\n  :bullet: To test full functionality, start API container:")
     print("    cd ops/docker && docker-compose up -d api")
-    print("  :bullet: Then access SkyView page at: http://localhost:5173/skyview")
+    print("  :bullet: Then access SkyView page at: http://localhost:3000/skyview")
     print()
 
 

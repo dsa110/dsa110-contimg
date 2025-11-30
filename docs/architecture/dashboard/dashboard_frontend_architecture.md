@@ -521,7 +521,7 @@ export const darkTheme = createTheme({
 
 ```bash
 npm run dev
-# Available at http://localhost:5173
+# Available at http://localhost:3000
 ```
 
 **Features:**

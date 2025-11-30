@@ -358,10 +358,112 @@ REDIS_PORT=6379
 
 ### Key Files
 
-| Purpose        | Path                             |
-| -------------- | -------------------------------- |
-| API client     | `src/api/client.ts`              |
-| Query hooks    | `src/hooks/useQueries.ts`        |
-| Router         | `src/router.tsx`                 |
-| State stores   | `src/stores/appStore.ts`         |
-| Error mappings | `src/constants/errorMappings.ts` |
+| Purpose            | Path                             |
+| ------------------ | -------------------------------- |
+| API client         | `src/api/client.ts`              |
+| Resilience modules | `src/api/resilience/`            |
+| Query hooks        | `src/hooks/useQueries.ts`        |
+| Custom hooks       | `src/hooks/use*.ts`              |
+| Router             | `src/router.tsx`                 |
+| Route constants    | `src/constants/routes.ts`        |
+| State stores       | `src/stores/appStore.ts`         |
+| Error mappings     | `src/constants/errorMappings.ts` |
+| API types          | `src/types/api.ts`               |
+| Error boundaries   | `src/components/errors/`         |
+
+---
+
+## 10. Code Architecture Patterns
+
+### Type System
+
+All API response types are centralized in `src/types/api.ts`:
+
+```typescript
+// Base entity with common fields
+interface BaseEntity {
+  id: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+// Mixin types for composition
+interface WithProvenance {
+  job_id?: string;
+  run_id?: string;
+  ms_path?: string;
+  cal_table?: string;
+}
+
+interface WithCoordinates {
+  ra_deg: number;
+  dec_deg: number;
+}
+
+// Entity types compose mixins
+interface ImageSummary extends BaseEntity, WithProvenance { ... }
+interface SourceDetail extends BaseEntity, WithCoordinates, WithProvenance { ... }
+```
+
+### Route Constants
+
+Routes are centralized in `src/constants/routes.ts`:
+
+```typescript
+export const ROUTES = {
+  HOME: "/",
+  IMAGES: {
+    LIST: "/images",
+    DETAIL: (id: string) => `/images/${encodeURIComponent(id)}`,
+  },
+  SOURCES: {
+    LIST: "/sources",
+    DETAIL: (id: string) => `/sources/${encodeURIComponent(id)}`,
+  },
+  // ...
+} as const;
+```
+
+### API Client Resilience
+
+The API client uses a modular resilience layer in `src/api/resilience/`:
+
+```
+src/api/resilience/
+├── types.ts          # RetryConfig, CircuitBreakerConfig
+├── circuit-breaker.ts # Circuit breaker state machine
+├── retry.ts          # Retry logic with exponential backoff
+└── index.ts          # Barrel exports
+```
+
+### Custom Hooks
+
+Complex page logic is extracted into focused hooks:
+
+| Hook                 | Purpose                             |
+| -------------------- | ----------------------------------- |
+| `useUrlFilterState`  | URL-based filter state for sharing  |
+| `useSourceFiltering` | Source list filtering logic         |
+| `useImageDetail`     | Image detail page data & operations |
+
+### Error Boundaries
+
+Error boundaries wrap visualization widgets to prevent crashes:
+
+```tsx
+<WidgetErrorBoundary widgetName="FITS Viewer" minHeight={500}>
+  <FitsViewer ... />
+</WidgetErrorBoundary>
+```
+
+### Loading States
+
+Consistent skeleton loading using `PageSkeleton`:
+
+```tsx
+if (isLoading) {
+  return <PageSkeleton variant="detail" showHeader showSidebar />;
+}
+```
+
+Variants: `list`, `detail`, `cards`, `table`

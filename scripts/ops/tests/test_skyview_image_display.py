@@ -190,7 +190,7 @@ def main():
     if passed == total:
         print("\n:check: All tests passed! Images should display in SkyView.")
         print("\nTo verify in browser:")
-        print("  1. Navigate to: http://localhost:5173/skyview")
+        print("  1. Navigate to: http://localhost:3000/skyview")
         print("  2. Select an image from the ImageBrowser")
         print("  3. Verify JS9 displays the image")
     else:

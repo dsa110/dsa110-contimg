@@ -5,7 +5,7 @@
 set -e
 
 BASE_URL="http://localhost:8000"
-FRONTEND_URL="http://localhost:5173"
+FRONTEND_URL="http://localhost:3000"
 
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'

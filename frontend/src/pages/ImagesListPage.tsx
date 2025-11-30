@@ -1,7 +1,7 @@
 import React, { useMemo, useCallback, useState } from "react";
 import { Link } from "react-router-dom";
 import { useImages } from "../hooks/useQueries";
-import { LoadingSpinner, SortableTableHeader, useTableSort } from "../components/common";
+import { PageSkeleton, SortableTableHeader, useTableSort } from "../components/common";
 import { BulkDownloadPanel } from "../components/download";
 import { FitsViewerGrid } from "../components/fits";
 import { FilterPanel, FilterConfig, FilterValues } from "../components/filters";
@@ -119,7 +119,7 @@ const ImagesListPage: React.FC = () => {
   }, [selectedIds, sortedImages]);
 
   if (isLoading) {
-    return <LoadingSpinner label="Loading images..." />;
+    return <PageSkeleton variant="table" rows={8} showHeader />;
   }
 
   if (error) {

@@ -20,7 +20,7 @@ conda activate casa6
 npm run dev -- --host 0.0.0.0 --port 5173
 ```
 
-**Access:** http://localhost:5173
+**Access:** http://localhost:3000
 
 **Tech Stack:** React 18 + TypeScript + Vite + Material-UI + React Query +
 Plotly.js + AG Grid
@@ -32,7 +32,7 @@ Plotly.js + AG Grid
 Open your browser to:
 
 ```text
-http://localhost:5173
+http://localhost:3000
 ```
 
 The dashboard will automatically redirect to `/dashboard`.
@@ -180,7 +180,7 @@ FITS image viewer and sky navigation (integration in progress):
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      Browser (localhost:5173)                │
+│                      Browser (localhost:3000)                │
 │  ┌───────────────────────────────────────────────────────┐  │
 │  │  React App (TypeScript)                               │  │
 │  │  ├── Navigation (React Router)                        │  │
@@ -401,7 +401,7 @@ export default defineConfig({
 3. **Test frontend:**
 
    ```bash
-   curl http://localhost:5173
+   curl http://localhost:3000
    ```
 
 4. **Check browser console (F12) for errors**

@@ -172,7 +172,7 @@ console.log(store.context.workflowHistory.length); // Should be 1
 
 1. **Navigate to source detail page**
    ```
-   http://localhost:5173/sources/{sourceId}
+   http://localhost:3000/sources/{sourceId}
    ```
 
 2. **Test Features:**
@@ -245,7 +245,7 @@ console.log(store.context.workflowHistory.length); // Should be 1
 
 1. **Navigate to image detail page**
    ```
-   http://localhost:5173/images/{imageId}
+   http://localhost:3000/images/{imageId}
    ```
 
 2. **Test Features:**

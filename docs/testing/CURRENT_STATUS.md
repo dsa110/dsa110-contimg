@@ -36,7 +36,7 @@ needs refinement.**
 
 **Use the comprehensive test plan to verify features:**
 
-1. Open dashboard: http://localhost:5173
+1. Open dashboard: http://localhost:3000
 2. Follow test cases in `docs/testing/COMPREHENSIVE_TESTING_PLAN.md`
 3. Execute each test case manually
 4. Document results

@@ -799,7 +799,7 @@ For runbooks, alert configurations, and disaster recovery procedures, see:
 ## Next Steps
 
 - **Frontend Integration**: View tasks in dashboard at
-  `http://localhost:5173/absurd` (dev) or your configured production URL
+  `http://localhost:3000/absurd` (dev) or your configured production URL
 - **Advanced Workflows**: Chain multiple tasks with dependency management
 - **Custom Executors**: Add new task types in `absurd/adapter.py`
 - **Monitoring**: Set up Grafana dashboards for metrics visualization

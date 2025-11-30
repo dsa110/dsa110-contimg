@@ -46,13 +46,13 @@ Expected output:
 ```text
   VITE v5.x.x  ready in xxx ms
 
-  :heavy_round-tipped_rightwards_arrow:  Local:   http://localhost:5173/
+  :heavy_round-tipped_rightwards_arrow:  Local:   http://localhost:3000/
   :heavy_round-tipped_rightwards_arrow:  Network: http://192.168.x.x:5173/
 ```
 
 ## Accessing the Control Panel
 
-1. Open browser to `http://localhost:5173`
+1. Open browser to `http://localhost:3000`
 2. Click "Control" in the navigation bar
 3. You should see:
    - Left side: MS picker and operation tabs

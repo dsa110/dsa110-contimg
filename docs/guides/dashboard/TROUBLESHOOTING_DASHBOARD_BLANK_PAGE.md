@@ -122,7 +122,7 @@ lsof -i :8000
 curl http://127.0.0.1:8000/api/health
 
 # Test through Vite proxy
-curl http://localhost:5173/api/health
+curl http://localhost:3000/api/health
 ```
 
 **Start backend:**
