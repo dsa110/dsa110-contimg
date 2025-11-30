@@ -447,6 +447,7 @@ Complex page logic is extracted into focused hooks:
 | `useSourceFiltering` | Source list filtering logic         | ✅ Integrated |
 
 All hooks are fully integrated:
+
 - `useImageDetail` in `ImageDetailPage` - handles delete, rating, recent items
 - `useUrlFilterState` in `SourcesListPage` - shareable/bookmarkable filter URLs
 - `useSourceFiltering` in `SourcesListPage` - centralized filtering logic
