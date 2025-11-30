@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { fetchProvenanceData } from "../api/client";
 import { ProvenanceStripProps } from "../types/provenance";
 
@@ -35,7 +35,7 @@ const useProvenance = (runId?: string, options: UseProvenanceOptions = {}): UseP
   const [loading, setLoading] = useState<boolean>(!skip && !!runId);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     if (!runId) {
       setError("Run ID is required to fetch provenance data.");
       setLoading(false);
@@ -54,11 +54,8 @@ const useProvenance = (runId?: string, options: UseProvenanceOptions = {}): UseP
     } finally {
       setLoading(false);
     }
-  };
+  }, [runId]);
 
-  // TODO: Wrap fetchData in useCallback with [runId] dependency to include it here,
-  // or use a ref-based pattern. Current omission is intentional to prevent infinite loops
-  // since fetchData references state setters that change on each render.
   useEffect(() => {
     if (skip || !runId) {
       setLoading(false);
@@ -66,8 +63,7 @@ const useProvenance = (runId?: string, options: UseProvenanceOptions = {}): UseP
     }
 
     fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [runId, skip]);
+  }, [runId, skip, fetchData]);
 
   const refetch = () => {
     if (runId && !skip) {

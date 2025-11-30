@@ -49,7 +49,8 @@ def pytest_configure(config):
     
     # Force reload of repositories module to pick up new config
     # (it caches DEFAULT_DB_PATH at import time)
-    if "dsa110_contimg.api.repositories" in sys.modules:
+    # Only reload if both parent and child modules are already loaded
+    if "dsa110_contimg.api" in sys.modules and "dsa110_contimg.api.repositories" in sys.modules:
         importlib.reload(sys.modules["dsa110_contimg.api.repositories"])
 
 
