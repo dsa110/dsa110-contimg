@@ -135,9 +135,12 @@ describe("useProvenance", () => {
     it("fetches when skip changes from true to false", async () => {
       mockFetchProvenanceData.mockResolvedValueOnce(mockProvenance);
 
-      const { result, rerender } = renderHook(({ skip }) => useProvenance("run-123", { skip }), {
-        initialProps: { skip: true },
-      });
+      const { result: _result, rerender } = renderHook(
+        ({ skip }) => useProvenance("run-123", { skip }),
+        {
+          initialProps: { skip: true },
+        }
+      );
 
       expect(mockFetchProvenanceData).not.toHaveBeenCalled();
 
