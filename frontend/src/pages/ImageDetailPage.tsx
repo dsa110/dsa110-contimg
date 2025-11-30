@@ -18,6 +18,7 @@ import { relativeTime } from "../utils/relativeTime";
 import type { ErrorResponse } from "../types/errors";
 import { useImage } from "../hooks/useQueries";
 import { usePreferencesStore } from "../stores/appStore";
+import apiClient, { noRetry } from "../api/client";
 
 /**
  * Detail page for a single image.
@@ -33,14 +34,21 @@ const ImageDetailPage: React.FC = () => {
   const encodedImageId = imageId ? encodeURIComponent(imageId) : "";
   const [showRatingCard, setShowRatingCard] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleDeleteImage = async () => {
-    const baseUrl = import.meta.env.VITE_API_URL || "/api";
+    setIsDeleting(true);
+    setDeleteError(null);
     try {
-      await fetch(`${baseUrl}/images/${encodedImageId}`, { method: "DELETE" });
+      // Use noRetry for delete operations - they should not be retried automatically
+      await apiClient.delete(`/images/${encodedImageId}`, noRetry());
       window.location.href = "/images";
     } catch (e) {
+      const message = e instanceof Error ? e.message : "Failed to delete image";
       console.error("Failed to delete image:", e);
+      setDeleteError(message);
+      setIsDeleting(false);
     }
   };
 
@@ -58,14 +66,14 @@ const ImageDetailPage: React.FC = () => {
     tagId: string;
     notes: string;
   }) => {
-    const baseUrl = import.meta.env.VITE_API_URL || "/api";
-    await fetch(`${baseUrl}/images/${rating.itemId}/rating`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(rating),
-    });
-    // Refresh image data
-    refetch();
+    try {
+      await apiClient.post(`/images/${rating.itemId}/rating`, rating);
+      // Refresh image data
+      refetch();
+    } catch (e) {
+      console.error("Failed to submit rating:", e);
+      // Could add user-facing error handling here
+    }
   };
 
   // Track in recent items when image loads
@@ -177,22 +185,30 @@ const ImageDetailPage: React.FC = () => {
           {/* Delete Confirmation Modal */}
           <Modal
             isOpen={showDeleteModal}
-            onClose={() => setShowDeleteModal(false)}
+            onClose={() => {
+              setShowDeleteModal(false);
+              setDeleteError(null);
+            }}
             title="Delete Image"
             size="sm"
             footer={
               <div className="flex justify-end gap-2">
                 <button
-                  onClick={() => setShowDeleteModal(false)}
-                  className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded hover:bg-gray-200"
+                  onClick={() => {
+                    setShowDeleteModal(false);
+                    setDeleteError(null);
+                  }}
+                  disabled={isDeleting}
+                  className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded hover:bg-gray-200 disabled:opacity-50"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDeleteImage}
-                  className="px-4 py-2 text-sm text-white bg-red-600 rounded hover:bg-red-700"
+                  disabled={isDeleting}
+                  className="px-4 py-2 text-sm text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  Delete
+                  {isDeleting ? "Deleting..." : "Delete"}
                 </button>
               </div>
             }
@@ -201,6 +217,11 @@ const ImageDetailPage: React.FC = () => {
               Are you sure you want to delete <strong>{filename}</strong>? This action cannot be
               undone.
             </p>
+            {deleteError && (
+              <p className="mt-3 text-sm text-red-600 bg-red-50 p-2 rounded">
+                Error: {deleteError}
+              </p>
+            )}
           </Modal>
         </div>
 

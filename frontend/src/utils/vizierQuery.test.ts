@@ -101,21 +101,24 @@ describe("vizierQuery", () => {
       expect(result.error).toBeUndefined();
     });
 
-    it("should handle network errors", async () => {
-      mockFetch.mockRejectedValueOnce(new Error("Network error"));
+    it("should handle abort errors", async () => {
+      // AbortError should propagate as it indicates user cancellation
+      const abortError = new DOMException("Aborted", "AbortError");
+      mockFetch.mockRejectedValueOnce(abortError);
 
       const result = await queryCatalog(mockCatalog, 180, 45, 0.1);
 
       expect(result.sources).toHaveLength(0);
       expect(result.error).toBeDefined();
-      expect(result.error).toContain("Network error");
+      expect(result.error).toContain("Aborted");
     });
 
     it("should handle HTTP errors", async () => {
-      mockFetch.mockResolvedValueOnce({
+      // Use 400 Bad Request which is not retried (unlike 500 which triggers retry)
+      mockFetch.mockResolvedValue({
         ok: false,
-        status: 500,
-        statusText: "Internal Server Error",
+        status: 400,
+        statusText: "Bad Request",
       });
 
       const result = await queryCatalog(mockCatalog, 180, 45, 0.1);

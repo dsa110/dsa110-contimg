@@ -2,21 +2,35 @@ import React from "react";
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AppLayout from "./AppLayout";
 
-// Helper to render with router
+// Create a test QueryClient
+const createTestQueryClient = () =>
+  new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false,
+      },
+    },
+  });
+
+// Helper to render with router and query client
 const renderWithRouter = (path = "/") => {
+  const queryClient = createTestQueryClient();
   return render(
-    <MemoryRouter initialEntries={[path]}>
-      <Routes>
-        <Route path="/" element={<AppLayout />}>
-          <Route index element={<div>Home Content</div>} />
-          <Route path="images" element={<div>Images Content</div>} />
-          <Route path="sources" element={<div>Sources Content</div>} />
-          <Route path="jobs" element={<div>Jobs Content</div>} />
-        </Route>
-      </Routes>
-    </MemoryRouter>
+    <QueryClientProvider client={queryClient}>
+      <MemoryRouter initialEntries={[path]}>
+        <Routes>
+          <Route path="/" element={<AppLayout />}>
+            <Route index element={<div>Home Content</div>} />
+            <Route path="images" element={<div>Images Content</div>} />
+            <Route path="sources" element={<div>Sources Content</div>} />
+            <Route path="jobs" element={<div>Jobs Content</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>
   );
 };
 

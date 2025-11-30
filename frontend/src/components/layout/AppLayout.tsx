@@ -1,12 +1,16 @@
 import React from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { ConnectionStatus } from "../common/ConnectionStatus";
+import { useNetworkNotifications } from "../../hooks/useNetworkNotifications";
 
 /**
  * Main application layout with navigation and content area.
  */
 const AppLayout: React.FC = () => {
   const location = useLocation();
+
+  // Enable network status notifications (shows toasts on connect/disconnect)
+  useNetworkNotifications();
 
   const navItems = [
     { path: "/", label: "Home" },
