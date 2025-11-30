@@ -11,7 +11,13 @@
 /**
  * Service status result from health check
  */
-export type ServiceStatusValue = "running" | "stopped" | "degraded" | "error" | "checking" | "unknown";
+export type ServiceStatusValue =
+  | "running"
+  | "stopped"
+  | "degraded"
+  | "error"
+  | "checking"
+  | "unknown";
 
 export interface ServiceHealthResult {
   name: string;

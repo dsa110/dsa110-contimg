@@ -199,10 +199,68 @@ export function ServiceStatusPanel() {
         </div>
       </div>
 
-      {/* API Error Banner */}
-      {apiError && (
-        <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-500/10 border border-yellow-200 dark:border-yellow-500/30 rounded text-yellow-800 dark:text-yellow-400 text-sm">
-          <strong>⚠ Warning:</strong> {apiError}
+      {/* Diagnostics Banner */}
+      {apiAvailable === false && (
+        <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-500/10 border border-yellow-200 dark:border-yellow-500/30 rounded text-sm">
+          <div className="flex items-start gap-2">
+            <span className="text-yellow-600 dark:text-yellow-400 font-medium">
+              ⚠ Backend API Unavailable
+            </span>
+          </div>
+          <p className="mt-1 text-yellow-700 dark:text-yellow-300">
+            Using client-side probes as fallback. Some services (e.g., Redis) cannot be checked
+            directly from the browser.
+          </p>
+          {diagnostics && (
+            <details className="mt-2">
+              <summary className="cursor-pointer text-yellow-600 dark:text-yellow-400 text-xs">
+                View diagnostics ({diagnostics.backendAttempts} backend attempt
+                {diagnostics.backendAttempts !== 1 ? "s" : ""})
+              </summary>
+              <div className="mt-2 p-2 bg-yellow-100/50 dark:bg-yellow-900/20 rounded text-xs font-mono">
+                {diagnostics.backendError && (
+                  <p className="text-red-600 dark:text-red-400">
+                    Error: {diagnostics.backendError}
+                  </p>
+                )}
+                {diagnostics.individualProbes.length > 0 && (
+                  <div className="mt-1">
+                    <p className="text-yellow-800 dark:text-yellow-200">
+                      Individual probe results:
+                    </p>
+                    <ul className="ml-2 mt-1 space-y-0.5">
+                      {diagnostics.individualProbes.map((probe, i) => (
+                        <li
+                          key={i}
+                          className={
+                            probe.success
+                              ? "text-green-600 dark:text-green-400"
+                              : "text-red-600 dark:text-red-400"
+                          }
+                        >
+                          {probe.service}: {probe.success ? "✓" : "✗"} ({probe.source})
+                          {probe.error && <span className="text-gray-500"> - {probe.error}</span>}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </details>
+          )}
+        </div>
+      )}
+
+      {/* API Available Indicator */}
+      {apiAvailable === true && (
+        <div className="mb-4 p-2 bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/30 rounded text-xs text-green-700 dark:text-green-400 flex items-center gap-2">
+          <span>✓ Backend API connected</span>
+          {diagnostics && diagnostics.backendAttempts > 1 && (
+            <span className="text-green-600 dark:text-green-500">
+              (recovered after {diagnostics.backendAttempts} attempt
+              {diagnostics.backendAttempts !== 1 ? "s" : ""})
+            </span>
+          )}
         </div>
       )}
 
@@ -214,7 +272,8 @@ export function ServiceStatusPanel() {
               <th className="pb-2 font-medium">Port</th>
               <th className="pb-2 font-medium">Status</th>
               <th className="pb-2 font-medium">Response</th>
-              <th className="pb-2 font-medium hidden md:table-cell">Description</th>
+              <th className="pb-2 font-medium hidden md:table-cell">Source</th>
+              <th className="pb-2 font-medium hidden lg:table-cell">Description</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -223,7 +282,12 @@ export function ServiceStatusPanel() {
                 key={service.port}
                 className="text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50"
               >
-                <td className="py-3 font-medium text-gray-900 dark:text-white">{service.name}</td>
+                <td className="py-3 font-medium text-gray-900 dark:text-white">
+                  <div className="flex items-center gap-2">
+                    {service.name}
+                    <FailureBadge count={service.failureCount} />
+                  </div>
+                </td>
                 <td className="py-3">
                   <code className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-blue-600 dark:text-blue-400 text-xs">
                     {service.port}
@@ -237,7 +301,10 @@ export function ServiceStatusPanel() {
                     ? `${service.responseTime.toFixed(0)}ms`
                     : "—"}
                 </td>
-                <td className="py-3 text-gray-400 dark:text-gray-500 text-xs hidden md:table-cell">
+                <td className="py-3 hidden md:table-cell">
+                  <SourceBadge source={service.source} />
+                </td>
+                <td className="py-3 text-gray-400 dark:text-gray-500 text-xs hidden lg:table-cell">
                   {service.description}
                   {service.error && (
                     <span className="ml-2 text-red-500 dark:text-red-400" title={service.error}>
@@ -259,12 +326,33 @@ export function ServiceStatusPanel() {
           </summary>
           <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800/50 rounded text-gray-600 dark:text-gray-400 text-xs space-y-1">
             <p>
-              Health checks are performed <strong>server-side</strong> by the FastAPI backend,
-              ensuring accurate results regardless of browser security restrictions.
+              Health checks are primarily performed <strong>server-side</strong> by the FastAPI
+              backend, with client-side fallback probing when the backend is unavailable.
             </p>
-            <p>• HTTP services checked via their health endpoints</p>
-            <p>• Redis checked using native PING/PONG protocol</p>
-            <p>• Status refreshes automatically every 30 seconds</p>
+            <p>
+              <strong>Data sources:</strong>
+            </p>
+            <p>
+              • <span className="text-blue-600 dark:text-blue-400">API</span> — Results from backend
+              health checker (most reliable)
+            </p>
+            <p>
+              • <span className="text-purple-600 dark:text-purple-400">Direct</span> — Client-side
+              HTTP probe (may fail due to CORS)
+            </p>
+            <p>
+              • <span className="text-gray-500">Cached</span> — Recent result from cache (5s TTL)
+            </p>
+            <p>
+              • <span className="text-yellow-600 dark:text-yellow-400">Unknown</span> — Service
+              cannot be probed (e.g., Redis)
+            </p>
+            <p className="mt-2">
+              <strong>Resilience features:</strong>
+            </p>
+            <p>• Retry with exponential backoff (3 attempts, 500ms-5s delays)</p>
+            <p>• Consecutive failure tracking (×N badge)</p>
+            <p>• Auto-refresh every 30 seconds</p>
             <p>
               • Managed by systemd with auto-restart via{" "}
               <code className="text-blue-600 dark:text-blue-400">/usr/local/bin/claim-port.sh</code>
