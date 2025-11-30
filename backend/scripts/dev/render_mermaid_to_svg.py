@@ -8,11 +8,11 @@ import sys
 
 MERMAID_CODE = """flowchart TB
     subgraph Backend["backend/"]
-        Root["Root Files<br/>README.md, pyproject.toml<br/>setup.py, scripts/"]
+        Root["Root Files<br/>README.md, pyproject.toml"]
         
         subgraph Src["src/dsa110_contimg/"]
             API["api/<br/>REST API Layer<br/>app.py, routes.py<br/>schemas.py, repositories.py"]
-            Conversion["conversion/<br/>UVH5 :arrow_right: MS<br/>cli.py, strategies/<br/>streaming/"]
+            Conversion["conversion/<br/>UVH5 → MS<br/>cli.py, strategies/<br/>streaming/"]
             Calibration["calibration/<br/>Calibration Routines<br/>applycal.py, flagging.py<br/>refant_selection.py"]
             Imaging["imaging/<br/>Imaging Pipeline<br/>cli.py, fast_imaging.py<br/>spw_imaging.py"]
             Database["database/<br/>Data Persistence<br/>models.py, repositories.py<br/>jobs.py, products.py"]
@@ -30,8 +30,11 @@ MERMAID_CODE = """flowchart TB
             Fixtures["fixtures/<br/>Test Data<br/>writers.py"]
         end
         
-        Docs["docs/<br/>Documentation<br/>runbooks/"]
-        Scripts["scripts/<br/>Utility Scripts<br/>run_api.py, health_check.py"]
+        subgraph Scripts["scripts/"]
+            Ops["ops/<br/>run_api.py, health_check.py"]
+            Dev["dev/<br/>render_mermaid_to_svg.py"]
+            Testing["testing/<br/>test_api_endpoints.sh"]
+        end
     end
     
     API --> Database

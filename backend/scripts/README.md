@@ -29,11 +29,13 @@ python -m uvicorn dsa110_contimg.api.app:app --host 0.0.0.0 --port 8000
 
 Scripts for development, documentation generation, and one-time fixes.
 
-| Script                          | Description                                        |
-| ------------------------------- | -------------------------------------------------- |
-| `generate_structure_diagram.py` | Generate Mermaid diagrams from directory structure |
-| `render_mermaid_to_svg.py`      | Render Mermaid diagrams to SVG                     |
-| `fix_schemas.py`                | One-time schema migration/fix utility              |
+| Script                     | Description                           |
+| -------------------------- | ------------------------------------- |
+| `render_mermaid_to_svg.py` | Render Mermaid diagrams to SVG        |
+| `fix_schemas.py`           | One-time schema migration/fix utility |
+
+> **Note:** For directory structure diagrams, use the root-level script:
+> `python scripts/generate_structure_diagram.py`
 
 ### `testing/` - Test Utilities
 

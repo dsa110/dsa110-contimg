@@ -1064,3 +1064,61 @@ async def clear_cache(
         "status": "cleared",
         "keys_deleted": deleted,
     }
+
+
+# =============================================================================
+# Service Status Endpoints
+# =============================================================================
+
+services_router = APIRouter(prefix="/services", tags=["services"])
+
+
+@services_router.get("/status")
+async def get_services_status():
+    """
+    Get health status of all monitored services.
+    
+    Performs server-side health checks for all dependent services,
+    bypassing browser CORS/CSP restrictions. Returns accurate status
+    for HTTP services (Vite, Grafana, FastAPI, MkDocs, Prometheus)
+    and non-HTTP services (Redis).
+    
+    This endpoint is designed to be called by the frontend's
+    ServiceStatusPanel component.
+    """
+    from .services import check_all_services
+    
+    results = await check_all_services()
+    
+    running_count = sum(1 for r in results if r.status.value == "running")
+    
+    return {
+        "services": [r.to_dict() for r in results],
+        "summary": {
+            "total": len(results),
+            "running": running_count,
+            "stopped": len(results) - running_count,
+        },
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+    }
+
+
+@services_router.get("/status/{port}")
+async def get_service_status_by_port(port: int):
+    """
+    Get health status of a specific service by port number.
+    
+    Args:
+        port: Port number of the service to check
+    """
+    from .services import MONITORED_SERVICES, check_service
+    
+    service = next((s for s in MONITORED_SERVICES if s.port == port), None)
+    if not service:
+        raise HTTPException(
+            status_code=404,
+            detail={"error": f"No monitored service on port {port}"},
+        )
+    
+    result = await check_service(service)
+    return result.to_dict()

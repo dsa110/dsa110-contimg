@@ -64,6 +64,7 @@ def is_ip_allowed(client_ip: str, allowed_networks: list) -> bool:
 
 from .errors import validation_failed, internal_error
 from .routes import (
+    services_router,
     images_router,
     ms_router,
     sources_router,
@@ -75,6 +76,8 @@ from .routes import (
     stats_router,
     cache_router,
 )
+from .rate_limit import limiter, rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 
 
 def create_app() -> FastAPI:
@@ -110,6 +113,10 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     
+    # Configure rate limiting
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
+    
     # Register API routers
     app.include_router(images_router, prefix="/api")
     app.include_router(ms_router, prefix="/api")
@@ -121,6 +128,7 @@ def create_app() -> FastAPI:
     app.include_router(logs_router, prefix="/api")
     app.include_router(stats_router, prefix="/api")
     app.include_router(cache_router, prefix="/api")
+    app.include_router(services_router, prefix="/api")
     
     # Register exception handlers
     @app.exception_handler(ValidationError)
