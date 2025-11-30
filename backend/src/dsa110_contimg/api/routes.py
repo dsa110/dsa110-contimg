@@ -1029,10 +1029,15 @@ async def get_stats():
     reducing the need for multiple API calls from the dashboard.
     """
     import sqlite3
-    from .repositories import get_db_connection, DEFAULT_DB_PATH, CAL_REGISTRY_DB_PATH
+    from .repositories import get_db_connection
+    from .config import get_config
+    
+    config = get_config()
+    products_db_path = str(config.database.products_path)
+    cal_registry_db_path = str(config.database.cal_registry_path)
     
     try:
-        conn = get_db_connection(DEFAULT_DB_PATH)
+        conn = get_db_connection(products_db_path)
         
         # Get all counts in one query
         stats = {}
@@ -1114,8 +1119,8 @@ async def get_stats():
         
         # Cal table count (separate database)
         try:
-            if os.path.exists(CAL_REGISTRY_DB_PATH):
-                cal_conn = get_db_connection(CAL_REGISTRY_DB_PATH)
+            if os.path.exists(cal_registry_db_path):
+                cal_conn = get_db_connection(cal_registry_db_path)
                 cursor = cal_conn.execute("SELECT COUNT(*) as cnt FROM caltables")
                 stats["cal_tables"] = {"total": cursor.fetchone()["cnt"] or 0}
                 cal_conn.close()
