@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useCallback, useState } from "react";
 import FitsViewerControls, { FitsViewerControlsValues } from "./FitsViewerControls";
-import type { JS9Image, JS9Region, JS9MouseEvent, JS9ColorMap, JS9Scale } from "../../types/js9.d";
+import type { JS9Image, JS9Region, JS9MouseEvent } from "../../types/js9.d";
 
 // Note: JS9 global is declared in src/types/js9.d.ts
 

@@ -48,9 +48,6 @@ export function useNetworkNotifications(options: UseNetworkNotificationsOptions 
     hasApiConnectivity: boolean;
   } | null>(null);
 
-  // Notification ID tracking to prevent duplicates
-  const activeNotificationRef = useRef<string | null>(null);
-
   const handleReconnect = useCallback(() => {
     if (showOnlineNotification) {
       addNotification({
