@@ -19,7 +19,11 @@ import gc
 import os
 import sys
 import pytest
-from typing import Generator
+import importlib
+from typing import Generator, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from fastapi.testclient import TestClient
 
 
 def pytest_configure(config):
@@ -42,11 +46,11 @@ def pytest_configure(config):
         reset_engines()
     except ImportError:
         pass
-
-
-# Import after clearing caches
-from fastapi.testclient import TestClient
-from dsa110_contimg.api.app import create_app
+    
+    # Force reload of repositories module to pick up new config
+    # (it caches DEFAULT_DB_PATH at import time)
+    if "dsa110_contimg.api.repositories" in sys.modules:
+        importlib.reload(sys.modules["dsa110_contimg.api.repositories"])
 
 
 # Track whether CASA C++ code was ever loaded during the test session.
@@ -138,11 +142,13 @@ def pytest_unconfigure(config):
 @pytest.fixture(scope="session")
 def app():
     """Create application instance for testing."""
+    from dsa110_contimg.api.app import create_app
     return create_app()
 
 
 @pytest.fixture(scope="session")
-def client(app) -> Generator[TestClient, None, None]:
+def client(app) -> "Generator[TestClient, None, None]":
     """Create a test client for the API."""
+    from fastapi.testclient import TestClient
     with TestClient(app) as client:
         yield client
