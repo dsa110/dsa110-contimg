@@ -21,6 +21,9 @@ class MockImageRecord:
     beam_major_arcsec: float = 5.0
     beam_minor_arcsec: float = 4.0
     beam_pa_deg: float = 45.0
+    qa_metrics: Optional[dict] = None
+    qa_flags: Optional[List[dict]] = None
+    qa_timestamp: Optional[float] = None
 
 
 @dataclass
@@ -31,6 +34,9 @@ class MockMSRecord:
     stage: str = "calibrated"
     status: str = "completed"
     cal_applied: int = 1
+    qa_metrics: Optional[dict] = None
+    qa_flags: Optional[List[dict]] = None
+    qa_timestamp: Optional[float] = None
 
 
 @dataclass
@@ -41,6 +47,9 @@ class MockJobRecord:
     input_ms_path: str = "/data/input.ms"
     cal_table_path: str = "/data/cal.tbl"
     output_image_id: str = "img-001"
+    qa_flags: Optional[List[dict]] = None
+    queue_status: Optional[str] = None
+    config: Optional[dict] = None
 
 
 @dataclass
@@ -67,24 +76,24 @@ class TestQAService:
         """Test that image QA contains required fields."""
         image = MockImageRecord()
         result = qa_service.build_image_qa(image)
-        
+
         assert "image_id" in result
         assert "qa_grade" in result
         assert "qa_summary" in result
-        assert "metrics" in result
-    
+        assert "quality_metrics" in result
+
     def test_build_image_qa_metrics_structure(self, qa_service):
         """Test metrics structure in image QA."""
         image = MockImageRecord()
         result = qa_service.build_image_qa(image)
-        
-        metrics = result["metrics"]
+
+        metrics = result["quality_metrics"]
         assert "rms_noise" in metrics
         assert "dynamic_range" in metrics
         assert "beam_major_arcsec" in metrics
         assert "beam_minor_arcsec" in metrics
         assert "beam_pa_deg" in metrics
-    
+
     def test_build_image_qa_uses_image_values(self, qa_service):
         """Test that QA uses actual image values."""
         image = MockImageRecord(
@@ -93,11 +102,11 @@ class TestQAService:
             noise_jy=0.005
         )
         result = qa_service.build_image_qa(image)
-        
+
         assert result["image_id"] == "custom-id"
         assert result["qa_grade"] == "C"
-        assert result["metrics"]["rms_noise"] == 0.005
-    
+        assert result["quality_metrics"]["rms_noise"] == 0.005
+
     def test_build_ms_qa_returns_dict(self, qa_service):
         """Test that build_ms_qa returns a dictionary."""
         ms = MockMSRecord()
@@ -159,13 +168,13 @@ class TestImageService:
     def test_get_image_calls_repo(self, image_service, mock_repo):
         """Test get_image delegates to repository."""
         mock_repo.get_by_id.return_value = MockImageRecord()
-        result = image_service.get_image("img-001")
+        _ = image_service.get_image("img-001")
         mock_repo.get_by_id.assert_called_once_with("img-001")
-    
+
     def test_list_images_calls_repo(self, image_service, mock_repo):
         """Test list_images delegates to repository."""
         mock_repo.list_all.return_value = [MockImageRecord()]
-        result = image_service.list_images(limit=50, offset=10)
+        _ = image_service.list_images(limit=50, offset=10)
         mock_repo.list_all.assert_called_once_with(limit=50, offset=10)
     
     def test_build_provenance_links_structure(self, image_service):

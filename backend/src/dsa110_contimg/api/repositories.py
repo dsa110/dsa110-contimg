@@ -738,10 +738,18 @@ class JobRepository:
                         started_at=datetime.fromtimestamp(row["processed_at"]) if safe_row_get(row, "processed_at") else None,
                     )
 
-                    job_cursor = conn.execute(
-                        "SELECT * FROM jobs WHERE run_id = ? ORDER BY created_at DESC LIMIT 1",
-                        (run_id,)
-                    )
+                    # Check if run_id column exists in jobs table before querying
+                    try:
+                        job_cursor = conn.execute(
+                            "SELECT * FROM jobs WHERE run_id = ? ORDER BY created_at DESC LIMIT 1",
+                            (run_id,)
+                        )
+                    except sqlite3.OperationalError:
+                        # run_id column doesn't exist, try querying by ms_path instead
+                        job_cursor = conn.execute(
+                            "SELECT * FROM jobs WHERE ms_path = ? ORDER BY created_at DESC LIMIT 1",
+                            (row["path"],)
+                        )
                     job_row = job_cursor.fetchone()
                     if job_row:
                         record.queue_status = job_row["status"]
@@ -783,15 +791,16 @@ class JobRepository:
         if stage in ["calibrated"]:
             return "warn"
         return "fail"
+
     def list_all(self, limit: int = 100, offset: int = 0) -> list[JobRecord]:
         """Get all jobs with pagination."""
         conn = get_db_connection(self.db_path)
         try:
             cursor = conn.execute(
                 """
-                SELECT DISTINCT path, processed_at, stage, status, 
+                SELECT DISTINCT path, processed_at, stage, status,
                        pointing_ra_deg, pointing_dec_deg, ra_deg, dec_deg
-                FROM ms_index 
+                FROM ms_index
                 WHERE processed_at IS NOT NULL
                 ORDER BY processed_at DESC
                 LIMIT ? OFFSET ?
@@ -801,50 +810,18 @@ class JobRepository:
             records = []
             for row in cursor.fetchall():
                 run_id = self._generate_run_id_from_path(row["path"])
+                processed_at = safe_row_get(row, "processed_at")
+                started_at = (
+                    datetime.fromtimestamp(processed_at)
+                    if processed_at else None
+                )
                 records.append(JobRecord(
                     run_id=run_id,
                     input_ms_path=row["path"],
                     phase_center_ra=safe_row_get(row, "pointing_ra_deg") or safe_row_get(row, "ra_deg"),
                     phase_center_dec=safe_row_get(row, "pointing_dec_deg") or safe_row_get(row, "dec_deg"),
                     qa_grade=self._stage_to_qa_grade(safe_row_get(row, "stage"), safe_row_get(row, "status")),
-                    started_at=datetime.fromtimestamp(row["processed_at"]) if safe_row_get(row, "processed_at") else None,
-                ))
-            return records
-        finally:
-            conn.close()
-    
-    def _generate_run_id_from_path(self, ms_path: str) -> str:
-        """Generate run ID from MS path."""
-        basename = Path(ms_path).stem
-        if "T" in basename:
-            timestamp_part = basename.split("T")[0] + "-" + basename.split("T")[1].replace(":", "").split(".")[0]
-            return f"job-{timestamp_part}"
-        return f"job-{basename}"
-    def list_all(self, limit: int = 100, offset: int = 0) -> list[JobRecord]:
-        """Get all jobs with pagination."""
-        conn = get_db_connection(self.db_path)
-        try:
-            cursor = conn.execute(
-                """
-                SELECT DISTINCT path, processed_at, stage, status, 
-                       pointing_ra_deg, pointing_dec_deg, ra_deg, dec_deg
-                FROM ms_index 
-                WHERE processed_at IS NOT NULL
-                ORDER BY processed_at DESC
-                LIMIT ? OFFSET ?
-                """,
-                (limit, offset)
-            )
-            records = []
-            for row in cursor.fetchall():
-                run_id = self._generate_run_id_from_path(row["path"])
-                records.append(JobRecord(
-                    run_id=run_id,
-                    input_ms_path=row["path"],
-                    phase_center_ra=safe_row_get(row, "pointing_ra_deg") or safe_row_get(row, "ra_deg"),
-                    phase_center_dec=safe_row_get(row, "pointing_dec_deg") or safe_row_get(row, "dec_deg"),
-                    qa_grade=self._stage_to_qa_grade(safe_row_get(row, "stage"), safe_row_get(row, "status")),
-                    started_at=datetime.fromtimestamp(row["processed_at"]) if safe_row_get(row, "processed_at") else None,
+                    started_at=started_at,
                 ))
             return records
         finally:
