@@ -7,7 +7,8 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BACKEND_DIR="$(dirname "$SCRIPT_DIR")"
+# Navigate up two levels: ops/ -> scripts/ -> backend/
+BACKEND_DIR="$(dirname "$(dirname "$SCRIPT_DIR")")"
 PORT="${API_PORT:-8000}"
 
 echo "[run-api] Ensuring port $PORT is available..."

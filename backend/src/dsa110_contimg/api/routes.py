@@ -13,9 +13,10 @@ from pathlib import Path
 from typing import Optional
 from urllib.parse import unquote, quote
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import JSONResponse, FileResponse
 
+from .auth import require_write_access, AuthContext
 from .errors import (
     ErrorEnvelope,
     image_not_found,
@@ -566,12 +567,17 @@ async def get_job_logs(
 
 
 @jobs_router.post("/{run_id}/rerun")
-async def rerun_job(run_id: str):
+async def rerun_job(
+    run_id: str,
+    auth: AuthContext = Depends(require_write_access),
+):
     """
     Re-run a pipeline job.
     
     Creates a new job based on the configuration of the specified job.
     Returns the new job's run_id.
+    
+    Requires authentication with write access.
     """
     try:
         # Get original job
@@ -929,7 +935,10 @@ async def get_cache_stats():
 
 
 @cache_router.post("/invalidate/{pattern}")
-async def invalidate_cache(pattern: str):
+async def invalidate_cache(
+    pattern: str,
+    auth: AuthContext = Depends(require_write_access),
+):
     """
     Invalidate cache keys matching pattern.
     
@@ -938,7 +947,7 @@ async def invalidate_cache(pattern: str):
     - `images:list:*` - All image list cache entries
     - `stats` - Stats cache entry
     
-    Requires admin access (enforced by IP filtering).
+    Requires authentication with write access.
     """
     deleted = cache_manager.invalidate(pattern)
     return {
@@ -948,11 +957,14 @@ async def invalidate_cache(pattern: str):
 
 
 @cache_router.post("/clear")
-async def clear_cache():
+async def clear_cache(
+    auth: AuthContext = Depends(require_write_access),
+):
     """
     Clear all cache entries.
     
     Use with caution - will temporarily increase database load.
+    Requires authentication with write access.
     """
     deleted = cache_manager.invalidate("*")
     return {

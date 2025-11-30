@@ -6,18 +6,16 @@ between modules.
 
 ## Location
 
-The script is located at: `backend/scripts/dev/generate_structure_diagram.py`
+The script is located at: `scripts/generate_structure_diagram.py`
+
+(A copy also exists at `backend/scripts/dev/generate_structure_diagram.py` for backend-specific use.)
 
 ## Usage
 
-Run from the repository root or backend directory:
+Run from the repository root:
 
 ```bash
-# From repository root
-python backend/scripts/dev/generate_structure_diagram.py <directory_path> [output.svg]
-
-# From backend directory
-python scripts/dev/generate_structure_diagram.py <directory_path> [output.svg]
+python scripts/generate_structure_diagram.py <directory_path> [output.svg]
 ```
 
 ### Examples
@@ -25,20 +23,19 @@ python scripts/dev/generate_structure_diagram.py <directory_path> [output.svg]
 **Generate diagram for backend:**
 
 ```bash
-cd /data/dsa110-contimg
-python backend/scripts/dev/generate_structure_diagram.py backend docs/architecture/diagrams/backend_structure.svg
+python scripts/generate_structure_diagram.py /data/dsa110-contimg/backend backend_structure.svg
 ```
 
 **Generate diagram for frontend:**
 
 ```bash
-python backend/scripts/dev/generate_structure_diagram.py frontend docs/architecture/diagrams/frontend_structure.svg
+python scripts/generate_structure_diagram.py /data/dsa110-contimg/frontend frontend_structure.svg
 ```
 
-**Generate diagram for any directory:**
+**Generate diagram for docs:**
 
 ```bash
-python backend/scripts/dev/generate_structure_diagram.py docs docs/architecture/diagrams/docs_structure.svg
+python scripts/generate_structure_diagram.py /data/dsa110-contimg/docs docs_structure.svg
 ```
 
 ## Features
