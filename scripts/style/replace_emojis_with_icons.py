@@ -48,8 +48,8 @@ class EmojiToIconMapper:
             ":heavy_multiplication_x::variation_selector-16:": ":cross:",
             ":black_question_mark_ornament:": ":question:",
             ":white_question_mark_ornament:": ":question:",
-            ":warning:": ":warning:",  # Warning sign with variation selector
-            ":warning:": ":warning:",  # Warning sign without variation selector
+            "⚠️": ":warning:",  # Warning sign with variation selector
+            "⚠": ":warning:",  # Warning sign without variation selector
             ":warning_sign::variation_selector-16:": ":warning:",
             ":warning_sign:": ":warning:",
             ":large_red_circle:": ":red_circle:",
@@ -112,7 +112,7 @@ class EmojiToIconMapper:
             
             # Time/Calendar
             ":alarm:": ":alarm:",
-            ":hourglass:": ":hourglass:",  # Hourglass emoji
+            "⏱": ":hourglass:",  # Hourglass emoji
             ":stopwatch::variation_selector-16:": ":stopwatch:",
             ":stopwatch:": ":stopwatch:",
             ":timer::variation_selector-16:": ":timer:",
@@ -123,8 +123,8 @@ class EmojiToIconMapper:
             ":spiral_calendar_pad:": ":calendar_pad:",
             
             # Arrows/Direction
-            ":arrow_right:": ":arrow_right:",
-            ":arrow_right:": ":arrow_right:",
+            "➡️": ":arrow_right:",
+            "➡": ":arrow_right:",
             ":arrow_left::variation_selector-16:": ":arrow_left:",
             ":arrow_left:": ":arrow_left:",
             ":arrow_up::variation_selector-16:": ":arrow_up:",
