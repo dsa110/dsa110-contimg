@@ -9,9 +9,11 @@ export const formatRA = (raDeg: number, precision: number = 2): string => {
   const totalMinutes = (totalHours - hours) * 60;
   const minutes = Math.floor(totalMinutes);
   const seconds = (totalMinutes - minutes) * 60;
+  // For 0 precision, padStart should be 2 (for "00"), otherwise precision + 3 (for "00.XX")
+  const padLength = precision === 0 ? 2 : precision + 3;
   return `${hours.toString().padStart(2, "0")}h ${minutes.toString().padStart(2, "0")}m ${seconds
     .toFixed(precision)
-    .padStart(precision + 3, "0")}s`;
+    .padStart(padLength, "0")}s`;
 };
 
 /**
@@ -26,9 +28,11 @@ export const formatDec = (decDeg: number, precision: number = 1): string => {
   const totalArcmin = (absDec - degrees) * 60;
   const arcmin = Math.floor(totalArcmin);
   const arcsec = (totalArcmin - arcmin) * 60;
+  // For 0 precision, padStart should be 2 (for "00"), otherwise precision + 3 (for "00.X")
+  const padLength = precision === 0 ? 2 : precision + 3;
   return `${sign}${degrees.toString().padStart(2, "0")}° ${arcmin
     .toString()
-    .padStart(2, "0")}′ ${arcsec.toFixed(precision).padStart(precision + 3, "0")}″`;
+    .padStart(2, "0")}′ ${arcsec.toFixed(precision).padStart(padLength, "0")}″`;
 };
 
 /**

@@ -387,6 +387,53 @@ export const CelestialMap: React.FC<CelestialMapProps> = ({
     backgroundColor,
   ]);
 
+  // Add custom markers to the map
+  const addMarkers = useCallback(
+    (
+      celestial: NonNullable<typeof window.Celestial>,
+      markerList: CelestialMarker[],
+      onClick?: (marker: CelestialMarker) => void
+    ) => {
+      // Remove existing custom markers
+      celestial.add({
+        type: "raw",
+        callback: (error: unknown) => {
+          if (error) {
+            console.error("Error adding markers:", error);
+            return;
+          }
+        },
+        redraw: () => {
+          // This function is called during each redraw
+          const container = document.getElementById(containerId);
+          if (!container) return;
+
+          const canvas = container.querySelector("canvas");
+          if (!canvas) return;
+
+          const ctx = canvas.getContext("2d");
+          if (!ctx) return;
+
+          // Draw each marker
+          markerList.forEach((marker) => {
+            // Convert RA/Dec to screen coordinates using celestial's projection
+            // Note: This is a simplified approach; in production you'd use celestial's projection
+            const ra = marker.ra;
+            const dec = marker.dec;
+
+            // For now, we'll rely on celestial's built-in catalog system
+            // This is a placeholder for custom rendering
+            // Suppress unused variable warnings for the placeholder
+            void ra;
+            void dec;
+            void onClick;
+          });
+        },
+      });
+    },
+    [containerId]
+  );
+
   // Load d3-celestial library dynamically
   useEffect(() => {
     const loadCelestial = async () => {
@@ -466,7 +513,7 @@ export const CelestialMap: React.FC<CelestialMapProps> = ({
     return () => {
       // Cleanup if needed
     };
-  }, [isLoaded, buildConfig, markers, onMarkerClick, onReady]);
+  }, [isLoaded, buildConfig, markers, onMarkerClick, onReady, addMarkers]);
 
   // Update markers when they change
   useEffect(() => {
@@ -475,47 +522,7 @@ export const CelestialMap: React.FC<CelestialMapProps> = ({
     const celestial = celestialRef.current;
     addMarkers(celestial, markers, onMarkerClick);
     celestial.redraw();
-  }, [isLoaded, markers, onMarkerClick]);
-
-  // Add custom markers to the map
-  const addMarkers = (
-    celestial: NonNullable<typeof window.Celestial>,
-    markerList: CelestialMarker[],
-    onClick?: (marker: CelestialMarker) => void
-  ) => {
-    // Remove existing custom markers
-    celestial.add({
-      type: "raw",
-      callback: (error: unknown) => {
-        if (error) {
-          console.error("Error adding markers:", error);
-          return;
-        }
-      },
-      redraw: () => {
-        // This function is called during each redraw
-        const container = document.getElementById(containerId);
-        if (!container) return;
-
-        const canvas = container.querySelector("canvas");
-        if (!canvas) return;
-
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-
-        // Draw each marker
-        markerList.forEach((marker) => {
-          // Convert RA/Dec to screen coordinates using celestial's projection
-          // Note: This is a simplified approach; in production you'd use celestial's projection
-          const ra = marker.ra;
-          const dec = marker.dec;
-
-          // For now, we'll rely on celestial's built-in catalog system
-          // This is a placeholder for custom rendering
-        });
-      },
-    });
-  };
+  }, [isLoaded, markers, onMarkerClick, addMarkers]);
 
   if (error) {
     return (

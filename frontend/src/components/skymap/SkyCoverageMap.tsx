@@ -1,6 +1,9 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import * as d3 from "d3";
 import { geoAitoff, geoHammer, geoMollweide } from "d3-geo-projection";
+
+/** Projection type options */
+type ProjectionType = "aitoff" | "mollweide" | "hammer" | "mercator";
 
 export interface Pointing {
   id: string;
@@ -188,41 +191,90 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
     useState<GeoJSONCollection<ConstellationLinesFeature> | null>(null);
   const [constellationBounds, setConstellationBounds] =
     useState<GeoJSONCollection<ConstellationBoundsFeature> | null>(null);
+  const [constellationLoadError, setConstellationLoadError] = useState<string | null>(null);
+  const [isLoadingConstellations, setIsLoadingConstellations] = useState(false);
 
-  // Parse constellation options
-  const constOptions: ConstellationOptions =
-    typeof showConstellations === "object"
-      ? showConstellations
-      : showConstellations
-      ? { names: true, lines: true, bounds: true } // Default to full constellation display
+  // Memoize constellation options to prevent unnecessary re-renders
+  const constOptions = useMemo<ConstellationOptions>(() => {
+    if (typeof showConstellations === "object") {
+      return showConstellations;
+    }
+    return showConstellations
+      ? { names: true, lines: true, bounds: true }
       : { names: false, lines: false, bounds: false };
+  }, [showConstellations]);
 
   // Load constellation data from d3-celestial JSON files
   useEffect(() => {
-    if (!constOptions.names && !constOptions.lines && !constOptions.bounds) return;
+    const needsNames = constOptions.names && !constellationNames;
+    const needsLines = constOptions.lines && !constellationLines;
+    const needsBounds = constOptions.bounds && !constellationBounds;
+
+    if (!needsNames && !needsLines && !needsBounds) return;
+
+    let isCancelled = false;
+    setIsLoadingConstellations(true);
+    setConstellationLoadError(null);
 
     const loadData = async () => {
       try {
-        if (constOptions.names && !constellationNames) {
-          const resp = await fetch("/celestial-data/constellations.json");
-          const data = await resp.json();
-          setConstellationNames(data);
+        const fetchPromises: Promise<void>[] = [];
+
+        if (needsNames) {
+          fetchPromises.push(
+            fetch("/celestial-data/constellations.json")
+              .then((resp) => {
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                return resp.json();
+              })
+              .then((data) => {
+                if (!isCancelled) setConstellationNames(data);
+              })
+          );
         }
-        if (constOptions.lines && !constellationLines) {
-          const resp = await fetch("/celestial-data/constellations.lines.json");
-          const data = await resp.json();
-          setConstellationLines(data);
+        if (needsLines) {
+          fetchPromises.push(
+            fetch("/celestial-data/constellations.lines.json")
+              .then((resp) => {
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                return resp.json();
+              })
+              .then((data) => {
+                if (!isCancelled) setConstellationLines(data);
+              })
+          );
         }
-        if (constOptions.bounds && !constellationBounds) {
-          const resp = await fetch("/celestial-data/constellations.bounds.json");
-          const data = await resp.json();
-          setConstellationBounds(data);
+        if (needsBounds) {
+          fetchPromises.push(
+            fetch("/celestial-data/constellations.bounds.json")
+              .then((resp) => {
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                return resp.json();
+              })
+              .then((data) => {
+                if (!isCancelled) setConstellationBounds(data);
+              })
+          );
         }
+
+        await Promise.all(fetchPromises);
       } catch (err) {
-        console.error("Failed to load constellation data:", err);
+        if (!isCancelled) {
+          const message = err instanceof Error ? err.message : "Unknown error";
+          setConstellationLoadError(`Failed to load constellation data: ${message}`);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsLoadingConstellations(false);
+        }
       }
     };
+
     loadData();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [
     constOptions.names,
     constOptions.lines,
@@ -797,7 +849,7 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
             Projection:
             <select
               value={selectedProjection}
-              onChange={(e) => setSelectedProjection(e.target.value as any)}
+              onChange={(e) => setSelectedProjection(e.target.value as ProjectionType)}
               className="ml-2 px-2 py-1 border border-gray-300 rounded text-sm"
             >
               <option value="aitoff">Aitoff</option>
@@ -812,7 +864,23 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
       </div>
 
       {/* SVG Map */}
-      <svg ref={svgRef} width={width} height={height} className="rounded-lg shadow-md" />
+      <div className="relative">
+        <svg ref={svgRef} width={width} height={height} className="rounded-lg shadow-md" />
+
+        {/* Constellation loading indicator */}
+        {isLoadingConstellations && (
+          <div className="absolute top-2 right-2 bg-gray-800/80 text-white text-xs px-2 py-1 rounded">
+            Loading constellations...
+          </div>
+        )}
+
+        {/* Constellation load error */}
+        {constellationLoadError && (
+          <div className="absolute top-2 right-2 bg-red-800/80 text-white text-xs px-2 py-1 rounded">
+            {constellationLoadError}
+          </div>
+        )}
+      </div>
 
       {/* Tooltip */}
       {hoveredPointing && (

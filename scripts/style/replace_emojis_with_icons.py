@@ -120,8 +120,8 @@ class EmojiToIconMapper:
             ":spiral_calendar_pad:": ":calendar_pad:",
             
             # Arrows/Direction
-            ":arrow_right:": ":arrow_right:",
-            ":arrow_right:": ":arrow_right:",
+            "➡️": ":arrow_right:",
+            "➡": ":arrow_right:",
             ":arrow_left::variation_selector-16:": ":arrow_left:",
             ":arrow_left:": ":arrow_left:",
             ":arrow_up::variation_selector-16:": ":arrow_up:",
