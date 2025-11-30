@@ -26,6 +26,8 @@ export default defineConfig({
     outDir: "dist",
     // Generate sourcemaps for debugging
     sourcemap: true,
+    // Report compressed chunk sizes for bundle analysis
+    reportCompressedSize: true,
     rollupOptions: {
       output: {
         manualChunks: {

@@ -9,6 +9,7 @@
     "dev": "node scripts/ensure-port.cjs && vite",
     "start": "node scripts/ensure-port.cjs && vite",
     "build": "vite build",
+    "build:analyze": "vite build --mode analyze 2>&1 | tee build-report.txt && echo 'Bundle report saved to build-report.txt'",
     "preview": "vite preview",
     "test": "vitest",
     "test:run": "vitest run",

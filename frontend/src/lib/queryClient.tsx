@@ -11,17 +11,18 @@ import { DEFAULT_RETRY_CONFIG } from "../api/client";
  * @returns Delay in milliseconds
  */
 function calculateRetryDelay(attemptIndex: number): number {
-  const baseDelay = DEFAULT_RETRY_CONFIG.baseDelayMs;
+  const baseDelay = DEFAULT_RETRY_CONFIG.initialDelayMs;
   const maxDelay = DEFAULT_RETRY_CONFIG.maxDelayMs;
   const multiplier = DEFAULT_RETRY_CONFIG.backoffMultiplier;
-  const jitter = DEFAULT_RETRY_CONFIG.jitterFactor;
+  // Add ~10% jitter to prevent thundering herd
+  const jitterFactor = 0.1;
 
   // Exponential backoff: baseDelay * multiplier^attempt
   const exponentialDelay = baseDelay * Math.pow(multiplier, attemptIndex);
   const clampedDelay = Math.min(exponentialDelay, maxDelay);
 
   // Add jitter to prevent thundering herd (synchronized retries)
-  const jitterAmount = clampedDelay * jitter * Math.random();
+  const jitterAmount = clampedDelay * jitterFactor * Math.random();
 
   return Math.floor(clampedDelay + jitterAmount);
 }
