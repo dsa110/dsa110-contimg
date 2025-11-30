@@ -1,6 +1,18 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import apiClient from "../api/client";
-import type { ProvenanceStripProps } from "../types/provenance";
+import type {
+  ImageSummary,
+  ImageDetail,
+  SourceSummary,
+  SourceDetail,
+  MSMetadata,
+  JobSummary,
+  JobDetail,
+  ProvenanceStripProps,
+} from "../types";
+
+// Re-export types for backward compatibility with existing imports
+export type { ImageSummary, ImageDetail, SourceSummary, SourceDetail, MSMetadata, JobSummary, JobDetail };
 
 // =============================================================================
 // Query Keys - centralized for cache invalidation
@@ -25,67 +37,6 @@ export const queryKeys = {
   job: (runId: string) => ["jobs", runId] as const,
   jobProvenance: (runId: string) => ["jobs", runId, "provenance"] as const,
 };
-
-// =============================================================================
-// Types for API responses
-// =============================================================================
-
-export interface ImageSummary {
-  id: string;
-  path: string;
-  qa_grade: "good" | "warn" | "fail" | null;
-  created_at: string;
-  run_id?: string;
-}
-
-export interface ImageDetail extends ImageSummary {
-  ms_path?: string;
-  cal_table?: string;
-  provenance?: ProvenanceStripProps;
-}
-
-export interface SourceSummary {
-  id: string;
-  name: string;
-  ra_deg: number;
-  dec_deg: number;
-  image_id?: string;
-  num_images?: number; // count of contributing images
-}
-
-export interface SourceDetail extends SourceSummary {
-  flux_jy?: number;
-  peak_flux?: number;
-  integrated_flux?: number;
-  provenance?: ProvenanceStripProps;
-}
-
-export interface MSMetadata {
-  path: string;
-  cal_table?: string;
-  scan_id?: string;
-  num_channels?: number;
-  integration_time_s?: number;
-  pointing_ra_deg?: number;
-  pointing_dec_deg?: number;
-  created_at?: string;
-  qa_grade?: "good" | "warn" | "fail" | null;
-  calibrator_matches?: Array<{ type: string; cal_table: string }>;
-  provenance?: ProvenanceStripProps;
-}
-
-export interface JobSummary {
-  run_id: string;
-  status: "pending" | "running" | "completed" | "failed";
-  started_at?: string;
-  finished_at?: string;
-}
-
-export interface JobDetail extends JobSummary {
-  logs_url?: string;
-  config?: Record<string, unknown>;
-  provenance?: ProvenanceStripProps;
-}
 
 // =============================================================================
 // Images hooks

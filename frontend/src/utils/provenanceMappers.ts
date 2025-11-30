@@ -1,56 +1,15 @@
-import type { ProvenanceStripProps } from "../types/provenance";
+import type {
+  ProvenanceStripProps,
+  ImageDetail,
+  MSMetadata,
+  SourceDetail,
+  CalibratorMatch,
+} from "../types";
 
-/**
- * Response shapes from backend API endpoints.
- * These represent the data structures returned by the API.
- */
-
-export interface ImageDetailResponse {
-  id: string;
-  path: string;
-  ms_path?: string;
-  cal_table?: string;
-  pointing_ra_deg?: number | null;
-  pointing_dec_deg?: number | null;
-  qa_grade?: "good" | "warn" | "fail" | null;
-  qa_summary?: string;
-  run_id?: string;
-  created_at?: string;
-  // QA metrics fields
-  noise_jy?: number;
-  dynamic_range?: number;
-  beam_major_arcsec?: number;
-  beam_minor_arcsec?: number;
-  beam_pa_deg?: number;
-  peak_flux_jy?: number;
-}
-
-export interface MSDetailResponse {
-  path: string;
-  pointing_ra_deg?: number | null;
-  pointing_dec_deg?: number | null;
-  calibrator_matches?: Array<{ cal_table: string; type: string }>;
-  qa_grade?: "good" | "warn" | "fail" | null;
-  qa_summary?: string;
-  run_id?: string;
-  created_at?: string;
-}
-
-export interface SourceDetailResponse {
-  id: string;
-  name?: string;
-  ra_deg: number;
-  dec_deg: number;
-  contributing_images?: Array<{
-    image_id: string;
-    path: string;
-    ms_path?: string;
-    qa_grade?: "good" | "warn" | "fail" | null;
-    created_at?: string;
-    flux_jy?: number;
-  }>;
-  latest_image_id?: string;
-}
+// Re-export types for backward compatibility
+export type { ImageDetail as ImageDetailResponse };
+export type { MSMetadata as MSDetailResponse };
+export type { SourceDetail as SourceDetailResponse };
 
 /**
  * Maps an image detail API response to ProvenanceStripProps.
