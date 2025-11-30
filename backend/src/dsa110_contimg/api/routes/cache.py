@@ -4,6 +4,8 @@ Cache routes.
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter, Depends
 
 from ..auth import require_write_access, AuthContext
@@ -13,7 +15,7 @@ router = APIRouter(prefix="/cache", tags=["cache"])
 
 
 @router.get("")
-async def get_cache_stats():
+async def get_cache_stats() -> dict[str, Any]:
     """
     Get Redis cache statistics.
     """

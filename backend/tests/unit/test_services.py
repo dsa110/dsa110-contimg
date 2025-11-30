@@ -459,14 +459,73 @@ class TestMSService:
         from dsa110_contimg.api.services.ms_service import MSService
         return MSService(repository=mock_repo)
     
-    def test_get_ms_calls_repo(self, ms_service, mock_repo):
-        """Test get_ms delegates to repository."""
-        mock_repo.get_by_path.return_value = MockMSRecord()
-        ms_service.get_ms("/data/test.ms")
-        mock_repo.get_by_path.assert_called_once_with("/data/test.ms")
+    def test_get_metadata_calls_repo(self, ms_service, mock_repo):
+        """Test get_metadata delegates to repository."""
+        mock_repo.get_metadata.return_value = MockMSRecord()
+        ms_service.get_metadata("/data/test.ms")
+        mock_repo.get_metadata.assert_called_once_with("/data/test.ms")
     
-    def test_list_ms_calls_repo(self, ms_service, mock_repo):
-        """Test list_ms delegates to repository."""
-        mock_repo.list_all.return_value = [MockMSRecord()]
-        ms_service.list_ms(limit=100, offset=0)
-        mock_repo.list_all.assert_called_once_with(limit=100, offset=0)
+    def test_get_pointing_prefers_explicit(self, ms_service):
+        """Test get_pointing prefers explicit pointing over derived."""
+        ms = MagicMock()
+        ms.pointing_ra_deg = 10.0
+        ms.pointing_dec_deg = 20.0
+        ms.ra_deg = 1.0
+        ms.dec_deg = 2.0
+        
+        ra, dec = ms_service.get_pointing(ms)
+        assert ra == 10.0
+        assert dec == 20.0
+    
+    def test_get_pointing_falls_back_to_derived(self, ms_service):
+        """Test get_pointing falls back to derived coordinates."""
+        ms = MagicMock()
+        ms.pointing_ra_deg = None
+        ms.pointing_dec_deg = None
+        ms.ra_deg = 1.0
+        ms.dec_deg = 2.0
+        
+        ra, dec = ms_service.get_pointing(ms)
+        assert ra == 1.0
+        assert dec == 2.0
+    
+    def test_get_primary_cal_table_with_tables(self, ms_service):
+        """Test get_primary_cal_table returns first table."""
+        ms = MagicMock()
+        ms.calibrator_tables = [
+            {"cal_table": "/data/cal1.tbl"},
+            {"cal_table": "/data/cal2.tbl"},
+        ]
+        
+        result = ms_service.get_primary_cal_table(ms)
+        assert result == "/data/cal1.tbl"
+    
+    def test_get_primary_cal_table_empty(self, ms_service):
+        """Test get_primary_cal_table handles empty list."""
+        ms = MagicMock()
+        ms.calibrator_tables = []
+        
+        result = ms_service.get_primary_cal_table(ms)
+        assert result is None
+    
+    def test_get_primary_cal_table_none(self, ms_service):
+        """Test get_primary_cal_table handles None."""
+        ms = MagicMock()
+        ms.calibrator_tables = None
+        
+        result = ms_service.get_primary_cal_table(ms)
+        assert result is None
+    
+    def test_build_provenance_links_structure(self, ms_service):
+        """Test provenance links structure."""
+        ms = MagicMock()
+        ms.path = "/data/test.ms"
+        ms.run_id = "run-001"
+        ms.imagename = "image-001"
+        
+        result = ms_service.build_provenance_links(ms)
+        
+        assert "logs_url" in result
+        assert "qa_url" in result
+        assert "ms_url" in result
+        assert "image_url" in result
