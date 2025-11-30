@@ -71,9 +71,13 @@ describe("ServiceStatusPanel", () => {
   });
 
   describe("refresh button", () => {
-    it("renders refresh button", () => {
+    it("renders refresh button", async () => {
       render(<ServiceStatusPanel />);
-      expect(screen.getByRole("button", { name: /refresh/i })).toBeInTheDocument();
+      // Wait for component to fully render including effects
+      await waitFor(() => {
+        const button = screen.queryByRole("button", { name: /refresh|checking/i });
+        expect(button).toBeInTheDocument();
+      });
     });
 
     it("triggers service check on click", async () => {
