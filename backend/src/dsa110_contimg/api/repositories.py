@@ -118,8 +118,17 @@ def get_db_connection(db_path: str = DEFAULT_DB_PATH) -> sqlite3.Connection:
     return conn
 
 
-def safe_row_get(row: sqlite3.Row, key: str, default=None):
-    """Safely get a value from a sqlite3.Row object."""
+def safe_row_get(row: sqlite3.Row, key: str, default: Optional[any] = None) -> any:
+    """Safely get a value from a sqlite3.Row object.
+    
+    Args:
+        row: The SQLite row to extract value from
+        key: The column name to retrieve
+        default: Default value if key doesn't exist
+        
+    Returns:
+        The value at the given key, or default if not found
+    """
     try:
         return row[key]
     except (KeyError, IndexError):

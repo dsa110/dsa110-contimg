@@ -160,3 +160,77 @@ class JobListResponse(BaseModel):
     status: Literal["pending", "running", "completed", "failed"] = Field(..., description="Job status")
     started_at: Optional[datetime] = Field(None, description="Job start time")
     finished_at: Optional[datetime] = Field(None, description="Job completion time")
+
+
+# =============================================================================
+# QA Response Models
+# =============================================================================
+
+class QAMetrics(BaseModel):
+    """Common QA metrics for any entity."""
+    noise_jy: Optional[float] = Field(None, description="RMS noise in Jy")
+    dynamic_range: Optional[float] = Field(None, description="Dynamic range")
+    n_sources: Optional[int] = Field(None, description="Number of detected sources")
+    peak_flux_jy: Optional[float] = Field(None, description="Peak flux in Jy")
+
+
+class QAReportResponse(BaseModel):
+    """Response model for QA report endpoints."""
+    entity_id: str = Field(..., description="ID of the entity (image, MS, job)")
+    entity_type: Literal["image", "ms", "job", "source"] = Field(..., description="Type of entity")
+    qa_grade: Optional[Literal["good", "warn", "fail"]] = Field(None, description="Overall QA grade")
+    qa_summary: Optional[str] = Field(None, description="Brief QA summary")
+    metrics: Optional[QAMetrics] = Field(None, description="Detailed QA metrics")
+    warnings: list[str] = Field(default_factory=list, description="QA warnings")
+    flags: list[str] = Field(default_factory=list, description="QA flags")
+
+
+# =============================================================================
+# Lightcurve and Variability Response Models
+# =============================================================================
+
+class LightcurvePoint(BaseModel):
+    """A single point in a lightcurve."""
+    mjd: float = Field(..., description="Modified Julian Date")
+    flux_jy: float = Field(..., description="Flux density in Jy")
+    flux_err_jy: Optional[float] = Field(None, description="Flux uncertainty in Jy")
+    image_id: Optional[str] = Field(None, description="Source image ID")
+
+
+class LightcurveResponse(BaseModel):
+    """Response model for lightcurve endpoint."""
+    source_id: str = Field(..., description="Source identifier")
+    data_points: list[LightcurvePoint] = Field(default_factory=list, description="Lightcurve data")
+
+
+class VariabilityResponse(BaseModel):
+    """Response model for variability endpoint."""
+    source_id: str = Field(..., description="Source identifier")
+    source_name: Optional[str] = Field(None, description="Source name")
+    n_epochs: int = Field(..., description="Number of epochs")
+    mean_flux_jy: Optional[float] = Field(None, description="Mean flux in Jy")
+    std_flux_jy: Optional[float] = Field(None, description="Standard deviation of flux")
+    variability_index: Optional[float] = Field(None, description="Variability index (std/mean)")
+    modulation_index: Optional[float] = Field(None, description="Modulation index")
+    chi_squared: Optional[float] = Field(None, description="Chi-squared statistic")
+    is_variable: bool = Field(False, description="Whether source is classified as variable")
+    min_flux_jy: Optional[float] = Field(None, description="Minimum flux")
+    max_flux_jy: Optional[float] = Field(None, description="Maximum flux")
+    mjd_range: Optional[list[float]] = Field(None, description="[min_mjd, max_mjd]")
+
+
+# =============================================================================
+# Stats Response Models
+# =============================================================================
+
+class DashboardStats(BaseModel):
+    """Response model for dashboard statistics."""
+    total_images: int = Field(..., description="Total number of images")
+    total_sources: int = Field(..., description="Total number of sources")
+    total_jobs: int = Field(..., description="Total number of jobs")
+    total_ms: int = Field(..., description="Total number of measurement sets")
+    recent_images: int = Field(0, description="Images from last 24 hours")
+    recent_jobs: int = Field(0, description="Jobs from last 24 hours")
+    qa_good: int = Field(0, description="Images with good QA grade")
+    qa_warn: int = Field(0, description="Images with warning QA grade")
+    qa_fail: int = Field(0, description="Images with failed QA grade")

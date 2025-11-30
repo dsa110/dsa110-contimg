@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { StatCardGrid } from "../components/summary";
-import { SkyCoverageMap } from "../components/skymap";
+import { SkyCoverageMap, type Pointing } from "../components/skymap";
 import { StatsDashboard, ServiceStatusPanel } from "../components/stats";
 import { useImages, useSources, useJobs } from "../hooks/useQueries";
 import type { ImageSummary } from "../types";
@@ -94,18 +94,24 @@ const HomePage: React.FC = () => {
   ];
 
   // Build pointing data for sky coverage from images
-  const pointings = React.useMemo(() => {
+  const pointings: Pointing[] = React.useMemo(() => {
     if (!images) return [];
     return images
       .filter((img: ImageSummary) => img.pointing_ra_deg != null && img.pointing_dec_deg != null)
-      .map((img: ImageSummary) => ({
-        id: img.id,
-        ra: img.pointing_ra_deg as number,
-        dec: img.pointing_dec_deg as number,
-        label: img.path?.split("/").pop() || img.id,
-        status:
-          img.qa_grade === "good" ? "completed" : img.qa_grade === "fail" ? "failed" : "scheduled",
-      }));
+      .map(
+        (img: ImageSummary): Pointing => ({
+          id: img.id,
+          ra: img.pointing_ra_deg as number,
+          dec: img.pointing_dec_deg as number,
+          label: img.path?.split("/").pop() || img.id,
+          status:
+            img.qa_grade === "good"
+              ? "completed"
+              : img.qa_grade === "fail"
+              ? "failed"
+              : "scheduled",
+        })
+      );
   }, [images]);
 
   return (
@@ -152,9 +158,8 @@ const HomePage: React.FC = () => {
         <section className="mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Sky Coverage</h2>
           <div className="card p-4">
-            {/* TODO: Fix pointings type to match SkyCoverageMapProps['pointings'] */}
             <SkyCoverageMap
-              pointings={pointings as any}
+              pointings={pointings}
               height={350}
               showGalacticPlane
               showEcliptic
