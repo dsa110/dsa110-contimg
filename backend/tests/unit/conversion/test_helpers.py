@@ -14,13 +14,13 @@ def test_phase_to_meridian(monkeypatch):
     The function is complex and calls pyuvdata internals, so we patch
     the heavy compute_and_set_uvw to avoid needing real antenna positions.
     """
-    # Import first so we have the module reference
-    from dsa110_contimg.conversion import helpers_coordinates
-    
-    # Patch all the heavy dependencies in the actual module
-    with patch.object(helpers_coordinates, "set_antenna_positions"):
-        with patch.object(helpers_coordinates, "_ensure_antenna_diameters"):
-            with patch.object(helpers_coordinates, "compute_and_set_uvw"):
+    # Patch all the heavy dependencies before import
+    with patch("dsa110_contimg.conversion.helpers_antenna.set_antenna_positions"):
+        with patch("dsa110_contimg.conversion.helpers_antenna._ensure_antenna_diameters"):
+            with patch("dsa110_contimg.conversion.helpers_coordinates.compute_and_set_uvw"):
+                # Import after patches are applied
+                from dsa110_contimg.conversion.helpers_coordinates import phase_to_meridian
+                
                 # Mock the UVData object with required attributes
                 mock_uvdata = MagicMock()
                 mock_uvdata.time_array = np.array([2460000.5, 2460000.6])  # Two unique times
@@ -31,7 +31,7 @@ def test_phase_to_meridian(monkeypatch):
                 mock_uvdata.Nblts = 2
                 
                 # Call the function
-                helpers_coordinates.phase_to_meridian(mock_uvdata)
+                phase_to_meridian(mock_uvdata)
 
                 # Assert that phase centers were added for each unique time
                 assert mock_uvdata._add_phase_center.call_count == 2
