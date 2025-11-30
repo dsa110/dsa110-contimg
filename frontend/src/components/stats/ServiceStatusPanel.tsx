@@ -1,84 +1,27 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import {
+  ServiceHealthChecker,
+  ServiceHealthResult,
+  CheckDiagnostics,
+  DEFAULT_SERVICES,
+} from "../../utils/serviceHealthChecker";
 
 /**
- * Service status as returned by the backend API.
- */
-interface ServiceStatusResponse {
-  name: string;
-  port: number;
-  description: string;
-  status: "running" | "stopped" | "degraded" | "error" | "checking";
-  responseTime: number;
-  lastChecked: string;
-  error: string | null;
-  details: Record<string, unknown> | null;
-}
-
-/**
- * Full response from /api/services/status endpoint.
- */
-interface ServicesStatusResponse {
-  services: ServiceStatusResponse[];
-  summary: {
-    total: number;
-    running: number;
-    stopped: number;
-  };
-  timestamp: string;
-}
-
-/**
- * Internal service state with parsed dates.
+ * Internal service state for the panel
  */
 interface ServiceStatus {
   name: string;
   port: number;
   description: string;
-  status: "running" | "stopped" | "degraded" | "error" | "checking";
+  status: "running" | "stopped" | "degraded" | "error" | "checking" | "unknown";
   responseTime?: number;
   lastChecked?: Date;
   error?: string;
   details?: Record<string, unknown>;
-}
-
-// Fallback service definitions for initial state
-const SERVICES_FALLBACK: Omit<ServiceStatus, "status" | "responseTime" | "lastChecked">[] = [
-  { name: "Vite Dev Server", port: 3000, description: "Frontend development server with HMR" },
-  { name: "Grafana", port: 3030, description: "Metrics visualization dashboards" },
-  { name: "Redis", port: 6379, description: "API response caching" },
-  { name: "FastAPI Backend", port: 8000, description: "REST API for pipeline data" },
-  { name: "MkDocs", port: 8001, description: "Documentation server (dev only)" },
-  { name: "Prometheus", port: 9090, description: "Metrics collection and storage" },
-];
-
-/**
- * Fetch service status from the backend API.
- * The backend performs server-side health checks, bypassing browser CORS/CSP restrictions.
- */
-async function fetchServicesStatus(): Promise<ServicesStatusResponse | null> {
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
-
-    const response = await fetch("/api/services/status", {
-      method: "GET",
-      signal: controller.signal,
-      headers: {
-        Accept: "application/json",
-      },
-    });
-    clearTimeout(timeout);
-
-    if (!response.ok) {
-      console.warn(`Services status API returned ${response.status}`);
-      return null;
-    }
-
-    return await response.json();
-  } catch (err) {
-    console.warn("Failed to fetch services status:", err);
-    return null;
-  }
+  /** Source of the health check result */
+  source?: "backend-api" | "client-probe" | "cached" | "fallback";
+  /** Consecutive failure count */
+  failureCount?: number;
 }
 
 function StatusBadge({ status, error }: { status: ServiceStatus["status"]; error?: string }) {
@@ -93,6 +36,8 @@ function StatusBadge({ status, error }: { status: ServiceStatus["status"]; error
       "bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-500/20 dark:text-orange-400 dark:border-orange-500/30",
     checking:
       "bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-500/20 dark:text-blue-400 dark:border-blue-500/30 animate-pulse",
+    unknown:
+      "bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-500/20 dark:text-gray-400 dark:border-gray-500/30",
   };
 
   const labels: Record<ServiceStatus["status"], string> = {
@@ -101,6 +46,7 @@ function StatusBadge({ status, error }: { status: ServiceStatus["status"]; error
     degraded: "◐ Degraded",
     error: "⚠ Error",
     checking: "◌ Checking...",
+    unknown: "? Unknown",
   };
 
   return (
@@ -113,49 +59,111 @@ function StatusBadge({ status, error }: { status: ServiceStatus["status"]; error
   );
 }
 
+/**
+ * Badge showing the source of health check data
+ */
+function SourceBadge({ source }: { source?: ServiceStatus["source"] }) {
+  if (!source) return null;
+
+  const styles: Record<NonNullable<ServiceStatus["source"]>, string> = {
+    "backend-api": "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400",
+    "client-probe": "bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400",
+    cached: "bg-gray-50 text-gray-500 dark:bg-gray-500/10 dark:text-gray-400",
+    fallback: "bg-yellow-50 text-yellow-600 dark:bg-yellow-500/10 dark:text-yellow-400",
+  };
+
+  const labels: Record<NonNullable<ServiceStatus["source"]>, string> = {
+    "backend-api": "API",
+    "client-probe": "Direct",
+    cached: "Cached",
+    fallback: "Unknown",
+  };
+
+  return (
+    <span className={`px-1.5 py-0.5 text-[10px] rounded ${styles[source]}`}>{labels[source]}</span>
+  );
+}
+
+/**
+ * Failure indicator badge
+ */
+function FailureBadge({ count }: { count?: number }) {
+  if (!count || count === 0) return null;
+
+  const severity = count >= 3 ? "text-red-500" : count >= 2 ? "text-orange-500" : "text-yellow-500";
+
+  return (
+    <span className={`text-[10px] ${severity}`} title={`${count} consecutive failure(s)`}>
+      ×{count}
+    </span>
+  );
+}
+
 export function ServiceStatusPanel() {
+  // Create health checker instance (memoized)
+  const healthChecker = useMemo(() => new ServiceHealthChecker(), []);
+
   const [services, setServices] = useState<ServiceStatus[]>(
-    SERVICES_FALLBACK.map((s) => ({ ...s, status: "checking" as const }))
+    DEFAULT_SERVICES.map((s) => ({
+      name: s.name,
+      port: s.port,
+      description: s.description,
+      status: "checking" as const,
+    }))
   );
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [apiError, setApiError] = useState<string | null>(null);
+  const [apiAvailable, setApiAvailable] = useState<boolean | null>(null);
+  const [diagnostics, setDiagnostics] = useState<CheckDiagnostics | null>(null);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      healthChecker.abort();
+    };
+  }, [healthChecker]);
 
   const checkAllServices = useCallback(async () => {
     setIsRefreshing(true);
-    setApiError(null);
 
-    const result = await fetchServicesStatus();
+    try {
+      const result = await healthChecker.checkAllServices();
 
-    if (result) {
-      // Transform API response to internal state
-      const updatedServices: ServiceStatus[] = result.services.map((svc) => ({
+      // Transform results to internal state
+      const updatedServices: ServiceStatus[] = result.results.map((svc: ServiceHealthResult) => ({
         name: svc.name,
         port: svc.port,
         description: svc.description,
         status: svc.status,
         responseTime: svc.responseTime,
-        lastChecked: new Date(svc.lastChecked),
-        error: svc.error || undefined,
-        details: svc.details || undefined,
+        lastChecked: svc.lastChecked,
+        error: svc.error,
+        details: svc.details,
+        source: svc.source,
+        failureCount: svc.failureCount,
       }));
+
       setServices(updatedServices);
-      setLastRefresh(new Date(result.timestamp));
-    } else {
-      // API failed - mark all services as unknown/error
-      setApiError("Could not reach the backend API. Status unknown.");
+      setLastRefresh(new Date());
+      setApiAvailable(result.apiAvailable);
+      setDiagnostics(result.diagnostics);
+    } catch (err) {
+      console.error("Health check failed:", err);
+      // On complete failure, mark everything as unknown
       setServices((prev) =>
         prev.map((s) => ({
           ...s,
-          status: s.port === 8000 ? ("stopped" as const) : ("error" as const),
-          error: "Backend API unavailable",
+          status: "unknown" as const,
+          error: "Health check failed",
+          source: "fallback" as const,
         }))
       );
-      setLastRefresh(new Date());
+      setApiAvailable(false);
+      setDiagnostics(null);
     }
 
     setIsRefreshing(false);
-  }, []);
+  }, [healthChecker]);
 
   useEffect(() => {
     checkAllServices();
