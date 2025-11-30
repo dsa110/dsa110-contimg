@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, Query
 
 from ..dependencies import get_async_source_service, get_async_image_repository
 from ..exceptions import RecordNotFoundError, ValidationError
-from ..async_repositories import AsyncImageRepository
+from ..repositories import AsyncImageRepository
 from ..schemas import SourceDetailResponse, SourceListResponse, ContributingImage
 from ..services.async_services import AsyncSourceService
 
