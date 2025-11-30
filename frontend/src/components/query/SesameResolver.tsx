@@ -1,4 +1,9 @@
 import React, { useState, useCallback, useRef } from "react";
+import {
+  fetchWithRetry,
+  parseExternalServiceError,
+  DEFAULT_EXTERNAL_RETRY_CONFIG,
+} from "../../utils/fetchWithRetry";
 
 export interface SesameResolverProps {
   /** Callback when coordinates are resolved */

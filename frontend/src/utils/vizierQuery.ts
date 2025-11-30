@@ -173,6 +173,7 @@ function parseVOTableResponse(
 
 /**
  * Query a single VizieR catalog with cone search (rate-limited).
+ * Uses retry with exponential backoff for reliability.
  */
 export async function queryCatalog(
   catalog: CatalogDefinition,
@@ -196,12 +197,16 @@ export async function queryCatalog(
         QUERY: query,
       });
 
-      const response = await fetch(`${VIZIER_TAP_URL}?${params}`, {
-        signal,
-        headers: {
-          Accept: "application/xml",
+      const response = await fetchWithRetry(
+        `${VIZIER_TAP_URL}?${params}`,
+        {
+          signal,
+          headers: {
+            Accept: "application/xml",
+          },
         },
-      });
+        RATE_LIMITED_RETRY_CONFIG
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -225,7 +230,7 @@ export async function queryCatalog(
         sources: [],
         count: 0,
         truncated: false,
-        error: err instanceof Error ? err.message : "Query failed",
+        error: parseExternalServiceError(err, "VizieR"),
       };
     }
   });
