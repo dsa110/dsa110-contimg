@@ -1,6 +1,6 @@
 /**
  * Type declarations for Aladin Lite v3
- * 
+ *
  * This provides TypeScript type safety for the Aladin Lite sky viewer library.
  * Note: These are partial declarations based on the API we actually use.
  * For full API documentation, see: https://aladin.cds.unistra.fr/AladinLite/doc/
@@ -19,10 +19,7 @@ declare module "aladin-lite" {
     /**
      * Create an Aladin instance in the specified container
      */
-    aladin(
-      container: HTMLElement | string,
-      options?: AladinOptions
-    ): AladinInstance;
+    aladin(container: HTMLElement | string, options?: AladinOptions): AladinInstance;
 
     /**
      * Create a catalog
@@ -32,11 +29,7 @@ declare module "aladin-lite" {
     /**
      * Create a source marker
      */
-    source(
-      ra: number,
-      dec: number,
-      data?: { name?: string; [key: string]: any }
-    ): AladinSource;
+    source(ra: number, dec: number, data?: { name?: string; [key: string]: any }): AladinSource;
   }
 
   /**
