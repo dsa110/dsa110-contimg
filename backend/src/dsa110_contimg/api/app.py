@@ -68,6 +68,7 @@ from .routes import (
     ms_router,
     sources_router,
     jobs_router,
+    queue_router,
     qa_router,
     cal_router,
     logs_router,
@@ -114,6 +115,7 @@ def create_app() -> FastAPI:
     app.include_router(ms_router, prefix="/api")
     app.include_router(sources_router, prefix="/api")
     app.include_router(jobs_router, prefix="/api")
+    app.include_router(queue_router, prefix="/api")
     app.include_router(qa_router, prefix="/api")
     app.include_router(cal_router, prefix="/api")
     app.include_router(logs_router, prefix="/api")

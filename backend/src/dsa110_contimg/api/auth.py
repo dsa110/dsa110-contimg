@@ -150,11 +150,12 @@ def create_jwt(
     except ImportError:
         raise ImportError("PyJWT required for JWT creation: pip install PyJWT")
     
-    now = datetime.utcnow()
+    # Use time.time() for consistent timestamps (PyJWT uses time.time() internally)
+    now = int(time.time())
     payload = {
         "sub": subject,
-        "iat": int(now.timestamp()),  # Integer timestamps for PyJWT compatibility
-        "exp": int((now + timedelta(hours=expiry_hours)).timestamp()),
+        "iat": now,
+        "exp": now + (expiry_hours * 3600),
         "scopes": scopes or ["read"],
     }
     

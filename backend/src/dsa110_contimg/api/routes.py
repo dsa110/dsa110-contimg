@@ -48,6 +48,7 @@ images_router = APIRouter(prefix="/images", tags=["images"])
 ms_router = APIRouter(prefix="/ms", tags=["measurement-sets"])
 sources_router = APIRouter(prefix="/sources", tags=["sources"])
 jobs_router = APIRouter(prefix="/jobs", tags=["jobs"])
+queue_router = APIRouter(prefix="/queue", tags=["queue"])
 qa_router = APIRouter(prefix="/qa", tags=["qa"])
 cal_router = APIRouter(prefix="/cal", tags=["calibration"])
 logs_router = APIRouter(prefix="/logs", tags=["logs"])
@@ -575,10 +576,13 @@ async def rerun_job(
     Re-run a pipeline job.
     
     Creates a new job based on the configuration of the specified job.
-    Returns the new job's run_id.
+    The job is queued for background execution via Redis Queue.
+    Returns the job ID for status tracking.
     
     Requires authentication with write access.
     """
+    from .job_queue import job_queue, rerun_pipeline_job
+    
     try:
         # Get original job
         original_job = job_repo.get_by_run_id(run_id)
@@ -588,17 +592,24 @@ async def rerun_job(
                 detail=internal_error(f"Job {run_id} not found").to_dict(),
             )
         
-        # Create new run_id with timestamp
-        from datetime import datetime
-        new_run_id = f"{run_id.rsplit('_', 1)[0]}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+        # Enqueue the rerun job
+        job_id = job_queue.enqueue(
+            rerun_pipeline_job,
+            original_run_id=run_id,
+            config=None,  # Could accept config overrides from request body
+            meta={
+                "original_run_id": run_id,
+                "requested_by": auth.key_id or "unknown",
+                "auth_method": auth.method,
+            },
+        )
         
-        # Queue the new job (placeholder - actual implementation depends on job queue system)
-        # For now, return the new run_id indicating the job was accepted
         return {
             "status": "queued",
+            "job_id": job_id,
             "original_run_id": run_id,
-            "new_run_id": new_run_id,
-            "message": f"Job {run_id} queued for re-run as {new_run_id}",
+            "message": f"Job {run_id} queued for re-run",
+            "queue_connected": job_queue.is_connected,
         }
     except HTTPException:
         raise
@@ -917,6 +928,88 @@ async def get_stats():
             status_code=500,
             detail=internal_error(f"Failed to retrieve stats: {str(e)}").to_dict(),
         )
+
+
+# =============================================================================
+# Queue Management Endpoints
+# =============================================================================
+
+
+@queue_router.get("")
+async def get_queue_stats():
+    """
+    Get job queue statistics.
+    
+    Returns information about the queue including connection status,
+    job counts by status, and queue configuration.
+    """
+    from .job_queue import job_queue
+    return job_queue.get_queue_stats()
+
+
+@queue_router.get("/jobs")
+async def list_queued_jobs(
+    status: Optional[str] = Query(None, description="Filter by status: queued, started, finished, failed"),
+    limit: int = Query(50, le=200, description="Maximum number of jobs to return"),
+):
+    """
+    List jobs in the queue.
+    
+    Returns jobs optionally filtered by status.
+    """
+    from .job_queue import job_queue, JobStatus
+    
+    status_filter = None
+    if status:
+        try:
+            status_filter = JobStatus(status.lower())
+        except ValueError:
+            raise HTTPException(
+                status_code=400,
+                detail={"error": f"Invalid status: {status}. Valid values: queued, started, finished, failed"},
+            )
+    
+    jobs = job_queue.list_jobs(status=status_filter, limit=limit)
+    return [job.to_dict() for job in jobs]
+
+
+@queue_router.get("/jobs/{job_id}")
+async def get_queued_job(job_id: str):
+    """
+    Get status and details of a specific queued job.
+    """
+    from .job_queue import job_queue
+    
+    job_info = job_queue.get_job(job_id)
+    if not job_info:
+        raise HTTPException(
+            status_code=404,
+            detail={"error": f"Job {job_id} not found"},
+        )
+    
+    return job_info.to_dict()
+
+
+@queue_router.post("/jobs/{job_id}/cancel")
+async def cancel_queued_job(
+    job_id: str,
+    auth: AuthContext = Depends(require_write_access),
+):
+    """
+    Cancel a queued job.
+    
+    Requires authentication with write access.
+    """
+    from .job_queue import job_queue
+    
+    success = job_queue.cancel(job_id)
+    if not success:
+        raise HTTPException(
+            status_code=404,
+            detail={"error": f"Job {job_id} not found or could not be canceled"},
+        )
+    
+    return {"status": "canceled", "job_id": job_id}
 
 
 # =============================================================================
