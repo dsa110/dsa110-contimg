@@ -10,7 +10,7 @@ from urllib.parse import unquote
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from ..dependencies import get_source_service, get_source_repository, get_image_repository
-from ..errors import source_not_found, internal_error
+from ..exceptions import RecordNotFoundError
 from ..repositories import SourceRepository, ImageRepository
 from ..schemas import SourceDetailResponse, SourceListResponse, ContributingImage
 from ..services.source_service import SourceService
@@ -27,24 +27,18 @@ async def list_sources(
     """
     List all sources with summary info.
     """
-    try:
-        sources = service.list_sources(limit=limit, offset=offset)
-        return [
-            SourceListResponse(
-                id=src.id,
-                name=src.name,
-                ra_deg=src.ra_deg,
-                dec_deg=src.dec_deg,
-                num_images=len(src.contributing_images) if src.contributing_images else 0,
-                image_id=src.latest_image_id,
-            )
-            for src in sources
-        ]
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=internal_error(f"Failed to list sources: {str(e)}").to_dict(),
+    sources = service.list_sources(limit=limit, offset=offset)
+    return [
+        SourceListResponse(
+            id=src.id,
+            name=src.name,
+            ra_deg=src.ra_deg,
+            dec_deg=src.dec_deg,
+            num_images=len(src.contributing_images) if src.contributing_images else 0,
+            image_id=src.latest_image_id,
         )
+        for src in sources
+    ]
 
 
 @router.get("/{source_id}", response_model=SourceDetailResponse)
@@ -54,35 +48,27 @@ async def get_source_detail(
 ):
     """
     Get detailed information about an astronomical source.
+    
+    Raises:
+        RecordNotFoundError: If source is not found
     """
-    try:
-        source = service.get_source(source_id)
-        if not source:
-            raise HTTPException(
-                status_code=404,
-                detail=source_not_found(source_id).to_dict(),
-            )
-        
-        contributing_images = []
-        if source.contributing_images:
-            for img_dict in source.contributing_images:
-                contributing_images.append(ContributingImage(**img_dict))
-        
-        return SourceDetailResponse(
-            id=source.id,
-            name=source.name,
-            ra_deg=source.ra_deg,
-            dec_deg=source.dec_deg,
-            contributing_images=contributing_images,
-            latest_image_id=source.latest_image_id,
-        )
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=internal_error(f"Failed to retrieve source: {str(e)}").to_dict(),
-        )
+    source = service.get_source(source_id)
+    if not source:
+        raise RecordNotFoundError("Source", source_id)
+    
+    contributing_images = []
+    if source.contributing_images:
+        for img_dict in source.contributing_images:
+            contributing_images.append(ContributingImage(**img_dict))
+    
+    return SourceDetailResponse(
+        id=source.id,
+        name=source.name,
+        ra_deg=source.ra_deg,
+        dec_deg=source.dec_deg,
+        contributing_images=contributing_images,
+        latest_image_id=source.latest_image_id,
+    )
 
 
 @router.get("/{source_id}/lightcurve")
@@ -125,26 +111,18 @@ async def get_source_variability(
 ):
     """
     Get variability analysis for a source.
+    
+    Raises:
+        RecordNotFoundError: If source is not found
     """
-    try:
-        source = service.get_source(source_id)
-        if not source:
-            raise HTTPException(
-                status_code=404,
-                detail=source_not_found(source_id).to_dict(),
-            )
-        
-        # Get lightcurve data
-        epochs = service.get_lightcurve(source_id)
-        
-        return service.calculate_variability(source, epochs)
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=internal_error(f"Failed to calculate variability: {str(e)}").to_dict(),
-        )
+    source = service.get_source(source_id)
+    if not source:
+        raise RecordNotFoundError("Source", source_id)
+    
+    # Get lightcurve data
+    epochs = service.get_lightcurve(source_id)
+    
+    return service.calculate_variability(source, epochs)
 
 
 @router.get("/{source_id}/qa")
@@ -155,41 +133,34 @@ async def get_source_qa(
 ):
     """
     Get QA report for a source.
+    
+    Raises:
+        RecordNotFoundError: If source is not found
     """
-    try:
-        source = service.get_source(source_id)
-        if not source:
-            raise HTTPException(
-                status_code=404,
-                detail=source_not_found(source_id).to_dict(),
-            )
-        
-        # Get associated images for QA summary
-        images = []
-        if hasattr(image_repo, 'get_for_source'):
-            images = image_repo.get_for_source(source_id)
-        
-        qa_grades = [
-            img.qa_grade for img in images 
-            if hasattr(img, 'qa_grade') and img.qa_grade
-        ]
-        
-        return {
-            "source_id": source_id,
-            "source_name": source.name,
-            "n_images": len(images) if images else 0,
-            "qa_grades": qa_grades,
-            "overall_grade": max(qa_grades) if qa_grades else None,
-            "flags": [],
-            "metrics": {
-                "ra_deg": source.ra_deg,
-                "dec_deg": source.dec_deg,
-            },
-        }
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=internal_error(f"Failed to retrieve source QA: {str(e)}").to_dict(),
-        )
+    source = service.get_source(source_id)
+    if not source:
+        raise RecordNotFoundError("Source", source_id)
+    
+    # Get associated images for QA summary
+    images = []
+    if hasattr(image_repo, 'get_for_source'):
+        images = image_repo.get_for_source(source_id)
+    
+    qa_grades = [
+        img.qa_grade for img in images 
+        if hasattr(img, 'qa_grade') and img.qa_grade
+    ]
+    
+    return {
+        "source_id": source_id,
+        "source_name": source.name,
+        "n_images": len(images) if images else 0,
+        "qa_grades": qa_grades,
+        "overall_grade": max(qa_grades) if qa_grades else None,
+        "flags": [],
+        "metrics": {
+            "ra_deg": source.ra_deg,
+            "dec_deg": source.dec_deg,
+        },
+    }
+

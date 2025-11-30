@@ -250,13 +250,18 @@ class TestErrorContentValidation:
         assert response.status_code == 404
         
         data = response.json()
-        assert "detail" in data
-        # Detail should be displayable
-        detail = data["detail"]
-        if isinstance(detail, dict):
-            assert "message" in detail or "code" in detail
+        # New exception format uses error, message, details structure
+        assert "message" in data or "detail" in data
+        # Message should be displayable
+        if "message" in data:
+            assert isinstance(data["message"], str)
+            assert len(data["message"]) > 0
         else:
-            assert isinstance(detail, str)
+            detail = data["detail"]
+            if isinstance(detail, dict):
+                assert "message" in detail or "code" in detail
+            else:
+                assert isinstance(detail, str)
 
     def test_validation_error_has_field_info(self, client):
         """Test validation errors identify the problem field."""
