@@ -53,6 +53,17 @@ jobs:
           pip install pytest pytest-cov pytest-xdist pytest-timeout pytest-mock httpx
           pip install -e "backend/[dev]"
 
+      - name: Initialize test databases
+        env:
+          PYTHONPATH: backend/src
+        run: |
+          python -c "
+          from dsa110_contimg.database.session import init_database
+          for db in ['products', 'cal_registry', 'hdf5', 'ingest', 'data_registry']:
+              init_database(db)
+              print(f'Initialized {db} database')
+          "
+
       - name: Run impacted tests (fail-fast)
         env:
           PYTHONPATH: backend/src
@@ -92,6 +103,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest pytest-cov pytest-mock httpx
           pip install -e "backend/[dev]"
+
+      - name: Initialize test databases
+        env:
+          PYTHONPATH: backend/src
+        run: |
+          python -c "
+          from dsa110_contimg.database.session import init_database
+          for db in ['products', 'cal_registry', 'hdf5', 'ingest', 'data_registry']:
+              init_database(db)
+              print(f'Initialized {db} database')
+          "
 
       - name: Run unit tests with mocking
         env:
