@@ -14,9 +14,9 @@ def test_phase_to_meridian(monkeypatch):
     The function is complex and calls pyuvdata internals, so we patch
     the heavy compute_and_set_uvw to avoid needing real antenna positions.
     """
-    # Patch all the heavy dependencies before import
-    with patch("dsa110_contimg.conversion.helpers_antenna.set_antenna_positions"):
-        with patch("dsa110_contimg.conversion.helpers_antenna._ensure_antenna_diameters"):
+    # Patch dependencies where they're used (in helpers_coordinates module)
+    with patch("dsa110_contimg.conversion.helpers_coordinates.set_antenna_positions"):
+        with patch("dsa110_contimg.conversion.helpers_coordinates._ensure_antenna_diameters"):
             with patch("dsa110_contimg.conversion.helpers_coordinates.compute_and_set_uvw"):
                 # Import after patches are applied
                 from dsa110_contimg.conversion.helpers_coordinates import phase_to_meridian
