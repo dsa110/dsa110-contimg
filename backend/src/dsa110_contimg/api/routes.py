@@ -433,6 +433,40 @@ async def list_jobs(
 
 
 
+@jobs_router.get("/{run_id}")
+async def get_job_detail(run_id: str):
+    """
+    Get detailed information about a pipeline job.
+    
+    Returns job status, timing, and related resource links.
+    """
+    try:
+        job = job_repo.get_by_run_id(run_id)
+        if not job:
+            raise HTTPException(
+                status_code=404,
+                detail=internal_error(f"Job {run_id} not found").to_dict(),
+            )
+        
+        return {
+            "run_id": job.run_id,
+            "status": "completed" if job.qa_grade else "pending",
+            "started_at": job.started_at,
+            "finished_at": getattr(job, "finished_at", None),
+            "logs_url": f"/api/logs/{run_id}",
+            "qa_url": f"/api/qa/job/{run_id}",
+            "config": getattr(job, "config", None),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=internal_error(f"Failed to retrieve job: {str(e)}").to_dict(),
+        )
+
+
+
 @jobs_router.get("/{run_id}/provenance", response_model=ProvenanceResponse)
 async def get_job_provenance(run_id: str):
     """
