@@ -14,15 +14,19 @@ import aiosqlite
 
 
 @dataclass
-class DatabaseConfig:
-    """Database configuration."""
+class PoolConfig:
+    """Configuration for the database connection pool.
+    
+    Note: This is specifically for the async connection pool. For the
+    comprehensive database configuration, see config.DatabaseConfig.
+    """
     
     products_db_path: str = "/data/dsa110-contimg/state/products.sqlite3"
     cal_registry_db_path: str = "/data/dsa110-contimg/state/cal_registry.sqlite3"
     timeout: float = 30.0
     
     @classmethod
-    def from_env(cls) -> "DatabaseConfig":
+    def from_env(cls) -> "PoolConfig":
         """Create config from environment variables."""
         return cls(
             products_db_path=os.getenv(
@@ -45,8 +49,8 @@ class DatabasePool:
     lifecycle management.
     """
     
-    def __init__(self, config: Optional[DatabaseConfig] = None):
-        self.config = config or DatabaseConfig.from_env()
+    def __init__(self, config: Optional[PoolConfig] = None):
+        self.config = config or PoolConfig.from_env()
         self._products_conn: Optional[aiosqlite.Connection] = None
         self._cal_conn: Optional[aiosqlite.Connection] = None
     

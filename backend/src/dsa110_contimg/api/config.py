@@ -145,6 +145,22 @@ class RateLimitConfig:
 
 
 @dataclass
+class PaginationConfig:
+    """Pagination default settings."""
+    default_limit: int = 100
+    max_limit: int = 1000
+    default_offset: int = 0
+    
+    @classmethod
+    def from_env(cls) -> "PaginationConfig":
+        """Create config from environment variables."""
+        return cls(
+            default_limit=int(os.getenv("DSA110_PAGINATION_DEFAULT", "100")),
+            max_limit=int(os.getenv("DSA110_PAGINATION_MAX", "1000")),
+        )
+
+
+@dataclass
 class CORSConfig:
     """CORS settings."""
     allowed_origins: List[str] = field(default_factory=list)
@@ -203,6 +219,7 @@ class APIConfig:
     redis: RedisConfig = field(default_factory=RedisConfig.from_env)
     auth: AuthConfig = field(default_factory=AuthConfig.from_env)
     rate_limit: RateLimitConfig = field(default_factory=RateLimitConfig.from_env)
+    pagination: PaginationConfig = field(default_factory=PaginationConfig.from_env)
     cors: CORSConfig = field(default_factory=CORSConfig.from_env)
     logging: LoggingConfig = field(default_factory=LoggingConfig.from_env)
     
