@@ -5,11 +5,11 @@
 
 ## Core Services
 
-| Service                           | Purpose                      | Port  |
-| --------------------------------- | ---------------------------- | ----- |
-| `contimg-api.service`             | FastAPI backend              | 8000  |
-| `dsa110-contimg-dashboard.service`| Production frontend          | 3210  |
-| `contimg-stream.service`          | Real-time data ingest        | -     |
+| Service                            | Purpose               | Port |
+| ---------------------------------- | --------------------- | ---- |
+| `contimg-api.service`              | FastAPI backend       | 8000 |
+| `dsa110-contimg-dashboard.service` | Production frontend   | 3210 |
+| `contimg-stream.service`           | Real-time data ingest | -    |
 
 ### Quick Commands
 
@@ -82,10 +82,23 @@ sudo journalctl -u contimg-pointing-monitor.service -f
 
 ## Service Files
 
-- `contimg-pointing-monitor.service` - Pointing monitor service that watches
-  `/data/incoming/` for new HDF5 files
+### Active Services
+
+- `contimg-api.service` - FastAPI backend API (port 8000)
+- `dsa110-contimg-dashboard.service` - Production frontend via vite preview
+  (port 3210)
+- `contimg-stream.service` - Real-time HDF5 → MS streaming converter
+- `contimg-docs.service` - MkDocs documentation server (port 8001)
+- `contimg-pointing-monitor.service` - Pointing monitor daemon
+
+### Support Files
+
 - `contimg.env` - Environment variables used by all contimg services
 - `deploy_service.sh` - Helper script to deploy service files
+
+### Deprecated (do not use)
+
+- `dsa110-contimg-api.service.deprecated` - Legacy duplicate of contimg-api
 
 ## Important Notes
 

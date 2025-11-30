@@ -2,13 +2,13 @@
 
 ## TL;DR - What to Use
 
-| I want to...                     | Command                                           |
-| -------------------------------- | ------------------------------------------------- |
-| **Start everything (dev)**       | Open workspace in VS Code (auto-runs preflight)   |
-| **Run frontend (dev)**           | `cd frontend && npm run dev`                      |
-| **Run API (dev)**                | VS Code Task: "Backend: Start API Server"         |
-| **Check system health**          | `./scripts/preflight-check.sh`                    |
-| **Start production services**    | `sudo systemctl start contimg-api dsa110-contimg-dashboard` |
+| I want to...                  | Command                                                     |
+| ----------------------------- | ----------------------------------------------------------- |
+| **Start everything (dev)**    | Open workspace in VS Code (auto-runs preflight)             |
+| **Run frontend (dev)**        | `cd frontend && npm run dev`                                |
+| **Run API (dev)**             | VS Code Task: "Backend: Start API Server"                   |
+| **Check system health**       | `./scripts/preflight-check.sh`                              |
+| **Start production services** | `sudo systemctl start contimg-api dsa110-contimg-dashboard` |
 
 ---
 
@@ -37,13 +37,13 @@
 
 ## Port Assignments
 
-| Port | Service              | Environment  |
-| ---- | -------------------- | ------------ |
-| 3000 | Frontend dev server  | Development  |
-| 3210 | Dashboard production | Production   |
-| 6006 | Storybook            | Development  |
-| 8000 | API (FastAPI)        | Both         |
-| 8001 | MkDocs               | Optional     |
+| Port | Service              | Environment |
+| ---- | -------------------- | ----------- |
+| 3000 | Frontend dev server  | Development |
+| 3210 | Dashboard production | Production  |
+| 6006 | Storybook            | Development |
+| 8000 | API (FastAPI)        | Both        |
+| 8001 | MkDocs               | Optional    |
 
 ---
 
@@ -59,6 +59,7 @@ npm run dev          # Start Vite dev server on :3000
 Or use VS Code Task: **"Frontend: Dev Server"**
 
 Features:
+
 - Hot module reload
 - Proxies `/api/*` → `localhost:8000`
 - Source maps enabled
@@ -66,18 +67,21 @@ Features:
 ### Backend Development
 
 The API service is usually already running via systemd. Check with:
+
 ```bash
 sudo systemctl status contimg-api
 ```
 
 To run manually with hot-reload:
+
 ```bash
 conda activate casa6
 cd /data/dsa110-contimg/backend/src
 uvicorn dsa110_contimg.api.app:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Or use VS Code Task: **"Backend: Start API Server"** (auto-detects if systemd is running)
+Or use VS Code Task: **"Backend: Start API Server"** (auto-detects if systemd is
+running)
 
 ---
 
@@ -85,12 +89,12 @@ Or use VS Code Task: **"Backend: Start API Server"** (auto-detects if systemd is
 
 ### Core Services
 
-| Service File                      | Purpose                    | Canonical? |
-| --------------------------------- | -------------------------- | ---------- |
-| `contimg-api.service`             | FastAPI backend            | ✅ Yes     |
-| `dsa110-contimg-dashboard.service`| Frontend (vite preview)    | ✅ Yes     |
-| `contimg-stream.service`          | Real-time data ingest      | ✅ Yes     |
-| `dsa110-contimg-api.service`      | *Legacy duplicate*         | ❌ Deprecated |
+| Service File                       | Purpose                 | Canonical?    |
+| ---------------------------------- | ----------------------- | ------------- |
+| `contimg-api.service`              | FastAPI backend         | ✅ Yes        |
+| `dsa110-contimg-dashboard.service` | Frontend (vite preview) | ✅ Yes        |
+| `contimg-stream.service`           | Real-time data ingest   | ✅ Yes        |
+| `dsa110-contimg-api.service`       | _Legacy duplicate_      | ❌ Deprecated |
 
 ### Start/Stop Commands
 
@@ -124,14 +128,14 @@ dsa110-contimg-dashboard.service
 
 Available via `Terminal > Run Task` or `Ctrl+Shift+P > Tasks: Run Task`:
 
-| Task                        | What it does                              |
-| --------------------------- | ----------------------------------------- |
-| 🔍 Preflight Check          | Validates environment (runs on folder open) |
-| 🚀 Start All Services       | Runs preflight (placeholder for more)     |
-| Frontend: Dev Server        | Starts Vite on :3000                      |
-| Backend: Start API Server   | Starts uvicorn or confirms systemd running |
-| Backend: Run Tests          | pytest in backend/                        |
-| Docs: Serve MkDocs          | MkDocs dev server on :8001                |
+| Task                      | What it does                                |
+| ------------------------- | ------------------------------------------- |
+| 🔍 Preflight Check        | Validates environment (runs on folder open) |
+| 🚀 Start All Services     | Runs preflight (placeholder for more)       |
+| Frontend: Dev Server      | Starts Vite on :3000                        |
+| Backend: Start API Server | Starts uvicorn or confirms systemd running  |
+| Backend: Run Tests        | pytest in backend/                          |
+| Docs: Serve MkDocs        | MkDocs dev server on :8001                  |
 
 ---
 
@@ -170,11 +174,11 @@ sudo systemctl daemon-reload
 
 ## File Locations
 
-| What                    | Where                                          |
-| ----------------------- | ---------------------------------------------- |
-| Service files (source)  | `/data/dsa110-contimg/ops/systemd/`            |
-| Service files (active)  | `/etc/systemd/system/`                         |
-| Environment config      | `/data/dsa110-contimg/ops/systemd/contimg.env` |
-| Service logs            | `/data/dsa110-contimg/state/logs/`             |
-| Frontend source         | `/data/dsa110-contimg/frontend/`               |
-| Backend source          | `/data/dsa110-contimg/backend/src/`            |
+| What                   | Where                                          |
+| ---------------------- | ---------------------------------------------- |
+| Service files (source) | `/data/dsa110-contimg/ops/systemd/`            |
+| Service files (active) | `/etc/systemd/system/`                         |
+| Environment config     | `/data/dsa110-contimg/ops/systemd/contimg.env` |
+| Service logs           | `/data/dsa110-contimg/state/logs/`             |
+| Frontend source        | `/data/dsa110-contimg/frontend/`               |
+| Backend source         | `/data/dsa110-contimg/backend/src/`            |

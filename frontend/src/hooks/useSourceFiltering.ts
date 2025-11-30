@@ -36,7 +36,10 @@ export interface AdvancedFilterParams {
 /**
  * Combined filter options.
  */
-export interface SourceFilterOptions extends ConeSearchParams, FluxFilterParams, AdvancedFilterParams {}
+export interface SourceFilterOptions
+  extends ConeSearchParams,
+    FluxFilterParams,
+    AdvancedFilterParams {}
 
 /**
  * Calculate angular distance between two points (simplified).
@@ -74,16 +77,7 @@ export function useSourceFiltering(
   sources: SourceSummary[] | undefined,
   options: SourceFilterOptions
 ) {
-  const {
-    ra,
-    dec,
-    radius,
-    minFlux,
-    maxFlux,
-    name,
-    minImages,
-    variableOnly,
-  } = options;
+  const { ra, dec, radius, minFlux, maxFlux, name, minImages, variableOnly } = options;
 
   const result = useMemo(() => {
     if (!sources) {
@@ -117,8 +111,8 @@ export function useSourceFiltering(
     // Apply name search
     if (name && name.trim()) {
       const term = name.toLowerCase().trim();
-      filtered = filtered.filter((s) =>
-        s.name?.toLowerCase().includes(term) || s.id.toLowerCase().includes(term)
+      filtered = filtered.filter(
+        (s) => s.name?.toLowerCase().includes(term) || s.id.toLowerCase().includes(term)
       );
     }
 

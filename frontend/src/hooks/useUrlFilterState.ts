@@ -74,37 +74,43 @@ export function useUrlFilterState() {
   /**
    * Parse current URL params into filter state.
    */
-  const filters = useMemo((): UrlFilterState => ({
-    ra: parseNumber(searchParams.get("ra")),
-    dec: parseNumber(searchParams.get("dec")),
-    radius: parseNumber(searchParams.get("radius")),
-    minFlux: parseNumber(searchParams.get("minFlux")),
-    maxFlux: parseNumber(searchParams.get("maxFlux")),
-    minImages: parseNumber(searchParams.get("minImages")),
-    name: searchParams.get("name") ?? undefined,
-    tab: searchParams.get("tab") ?? undefined,
-    variable: parseBoolean(searchParams.get("variable")),
-  }), [searchParams]);
+  const filters = useMemo(
+    (): UrlFilterState => ({
+      ra: parseNumber(searchParams.get("ra")),
+      dec: parseNumber(searchParams.get("dec")),
+      radius: parseNumber(searchParams.get("radius")),
+      minFlux: parseNumber(searchParams.get("minFlux")),
+      maxFlux: parseNumber(searchParams.get("maxFlux")),
+      minImages: parseNumber(searchParams.get("minImages")),
+      name: searchParams.get("name") ?? undefined,
+      tab: searchParams.get("tab") ?? undefined,
+      variable: parseBoolean(searchParams.get("variable")),
+    }),
+    [searchParams]
+  );
 
   /**
    * Update filter state in URL.
    * Only updates provided keys, preserves others.
    */
-  const setFilters = useCallback((updates: Partial<UrlFilterState>) => {
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
+  const setFilters = useCallback(
+    (updates: Partial<UrlFilterState>) => {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
 
-      Object.entries(updates).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== "") {
-          next.set(key, String(value));
-        } else {
-          next.delete(key);
-        }
+        Object.entries(updates).forEach(([key, value]) => {
+          if (value !== undefined && value !== null && value !== "") {
+            next.set(key, String(value));
+          } else {
+            next.delete(key);
+          }
+        });
+
+        return next;
       });
-
-      return next;
-    });
-  }, [setSearchParams]);
+    },
+    [setSearchParams]
+  );
 
   /**
    * Clear all filters from URL.
@@ -117,9 +123,7 @@ export function useUrlFilterState() {
    * Check if any filters are active.
    */
   const hasActiveFilters = useMemo(() => {
-    return Object.values(filters).some(
-      (v) => v !== undefined && v !== null && v !== ""
-    );
+    return Object.values(filters).some((v) => v !== undefined && v !== null && v !== "");
   }, [filters]);
 
   return {

@@ -38,34 +38,30 @@ The project is organized into several directories:
 
 ## Getting Started
 
+> **📖 For a complete guide to dev vs production services, see
+> [docs/ops/SERVICES.md](../docs/ops/SERVICES.md)**
+
 To get started with the project, follow these steps:
 
-1. **Clone the repository**:
-
-   ```
-   git clone <repository-url>
-   cd frontend
-   ```
-
-2. **Install dependencies**:
+1. **Install dependencies**:
 
    ```
    npm install
    ```
 
-3. **Run the development server**:
+2. **Run the development server** (port 3000):
 
    ```
    npm run dev
    ```
 
-4. **Build the project**:
+3. **Build for production**:
 
    ```
    npm run build
    ```
 
-5. **Run Storybook** (component development):
+4. **Run Storybook** (component development, port 6006):
    ```
    npm run storybook
    ```
