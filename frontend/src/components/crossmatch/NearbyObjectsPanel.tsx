@@ -68,8 +68,12 @@ const NearbyObjectsPanel: React.FC<NearbyObjectsPanelProps> = ({
   }, [raDeg, decDeg, radius, onSearch, excludeId]);
 
   // Auto-search on mount
+  // TODO: Either add performSearch to deps (requires useCallback with stable deps)
+  // or use a ref-based approach to avoid stale closure. Current behavior is intentional
+  // to only run on mount, but ESLint flags the missing dependency.
   useEffect(() => {
     performSearch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSort = useCallback((key: SortKey) => {

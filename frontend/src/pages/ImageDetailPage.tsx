@@ -236,6 +236,7 @@ const ImageDetailPage: React.FC = () => {
                 speed={1}
                 showFrameCounter={true}
                 showTimeline={true}
+                // TODO: Remove debug logging or use a debug utility that can be disabled in production
                 onFrameChange={(frameIndex, totalFrames) => {
                   console.debug(`Animation frame: ${frameIndex + 1}/${totalFrames}`);
                 }}

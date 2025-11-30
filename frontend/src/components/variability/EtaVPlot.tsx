@@ -303,6 +303,8 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
     chart.off("click");
 
     // Event handlers
+    // TODO: Import ECElementEvent from 'echarts' and type params properly
+    // ECharts event params have complex union types that may need custom interface
     chart.on("mouseover", (params: any) => {
       if (params.componentType === "series" && params.data?.source) {
         const event = params.event?.event;
@@ -317,6 +319,7 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
       setHoverSource(null);
     });
 
+    // TODO: Type params as ECElementEvent or custom EtaVPlotClickEvent
     chart.on("click", (params: any) => {
       if (params.componentType === "series" && params.data?.source) {
         setSelectedSource(params.data.source);

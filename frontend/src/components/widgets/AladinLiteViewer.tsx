@@ -52,6 +52,8 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [currentFov, setCurrentFov] = useState(fov);
   const [shouldLoad, setShouldLoad] = useState(false);
+  // TODO: Extend AladinInstance interface to include destroy() and setFoV() methods
+  // These methods exist in Aladin Lite but are not in the base type definition
   const destroyInstance = useCallback(() => {
     if (aladinRef.current && typeof (aladinRef.current as any).destroy === "function") {
       (aladinRef.current as any).destroy();
@@ -114,6 +116,9 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
   }, [destroyInstance, error, raDeg, decDeg, survey, showFullscreen, shouldLoad]);
 
   // Update position when coordinates change
+  // TODO: currentFov and sourceName are referenced but not in deps array.
+  // This is intentional - we only want to reposition on coordinate changes,
+  // not on FOV/name changes. Consider restructuring if this causes issues.
   useEffect(() => {
     if (aladinRef.current) {
       aladinRef.current.gotoRaDec(raDeg, decDeg);
@@ -138,6 +143,7 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
       aladinRef.current.decreaseZoom();
       setCurrentFov((prev) => {
         const next = Math.min(180, prev * 2);
+        // TODO: Add setFoV to AladinInstance interface
         if (typeof (aladinRef.current as any).setFoV === "function") {
           (aladinRef.current as any).setFoV(next);
         }

@@ -94,6 +94,8 @@ const HomePage: React.FC = () => {
   // Build pointing data for sky coverage from images
   const pointings = React.useMemo(() => {
     if (!images) return [];
+    // TODO: Import and use Image type from api/client.ts instead of 'any'
+    // The images array should be typed as Image[] from the useImages hook
     return images
       .filter((img: any) => img.pointing_ra_deg != null && img.pointing_dec_deg != null)
       .map((img: any) => ({
@@ -150,6 +152,7 @@ const HomePage: React.FC = () => {
         <section className="mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4">Sky Coverage</h2>
           <div className="card p-4">
+            {/* TODO: Fix pointings type to match SkyCoverageMapProps['pointings'] */}
             <SkyCoverageMap
               pointings={pointings as any}
               height={350}

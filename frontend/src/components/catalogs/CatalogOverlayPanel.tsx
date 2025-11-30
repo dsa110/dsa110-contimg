@@ -17,6 +17,7 @@ export interface CatalogOverlayPanelProps {
   /** Callback with queried sources for overlay rendering */
   onSourcesLoaded?: (sources: Map<string, CatalogSource[]>) => void;
   /** Reference to Aladin Lite instance for overlay rendering */
+  // TODO: Replace 'any' with proper AladinInstance type from @types/aladin-lite or create custom type definition
   aladinRef?: React.RefObject<any>;
   /** Custom class name */
   className?: string;
@@ -43,6 +44,7 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
   const [lastQueryRadius, setLastQueryRadius] = useState<number>(searchRadius);
 
   const abortControllerRef = useRef<AbortController | null>(null);
+  // TODO: Replace 'any' with AladinCatalogLayer type when Aladin Lite types are available
   const overlayLayersRef = useRef<Map<string, any>>(new Map());
 
   // Clear results when radius changes
@@ -125,6 +127,8 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
     return () => {
       abortControllerRef.current?.abort();
     };
+    // TODO: Wrap aladinRef, clearAllOverlays, queryResults, renderCatalogOverlay in useCallback
+    // with stable dependencies to include them here without causing infinite loops
   }, [enabledCatalogs, centerRa, centerDec, radiusInput]);
 
   // Notify parent of loaded sources
@@ -154,6 +158,7 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
       }
 
       // Create new catalog layer
+      // TODO: Create type definitions for Aladin Lite's window.A global (A.catalog, A.source methods)
       const catalogLayer = (window as any).A?.catalog({
         name: catalog.name,
         sourceSize: 12,

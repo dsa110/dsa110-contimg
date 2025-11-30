@@ -12,6 +12,9 @@ export interface CatalogSource {
   catalog: string;
   magnitude?: number;
   flux?: number;
+  // TODO: Replace index signature with specific optional fields from VizieR catalogs
+  // e.g., properMotionRA?: number, properMotionDec?: number, redshift?: number
+  // This allows for catalog-specific extra fields while maintaining type safety
   [key: string]: any;
 }
 

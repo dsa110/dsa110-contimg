@@ -56,6 +56,9 @@ const useProvenance = (runId?: string, options: UseProvenanceOptions = {}): UseP
     }
   };
 
+  // TODO: Wrap fetchData in useCallback with [runId] dependency to include it here,
+  // or use a ref-based pattern. Current omission is intentional to prevent infinite loops
+  // since fetchData references state setters that change on each render.
   useEffect(() => {
     if (skip || !runId) {
       setLoading(false);
@@ -63,6 +66,7 @@ const useProvenance = (runId?: string, options: UseProvenanceOptions = {}): UseP
     }
 
     fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [runId, skip]);
 
   const refetch = () => {
