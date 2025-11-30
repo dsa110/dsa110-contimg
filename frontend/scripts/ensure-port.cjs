@@ -124,6 +124,41 @@ function getProcessInfo(pid) {
 }
 
 /**
+ * Check if a process is safe to kill (only vite/node dev server processes)
+ */
+function isSafeToKill(pid) {
+  try {
+    const cmdline = execSync(`ps -p ${pid} -o args= 2>/dev/null`, {
+      encoding: "utf8",
+    }).trim();
+    // Only kill node/vite processes, not sshd, bash, or other system processes
+    const safePatterns = [/vite/i, /node.*dev/i, /npm.*dev/i, /esbuild/i];
+    const dangerousPatterns = [/sshd/i, /bash/i, /zsh/i, /systemd/i, /init/i];
+
+    // Check if it matches dangerous patterns first
+    for (const pattern of dangerousPatterns) {
+      if (pattern.test(cmdline)) {
+        log(`Skipping PID ${pid} (${cmdline.slice(0, 50)}...) - system process`);
+        return false;
+      }
+    }
+
+    // Check if it matches safe patterns
+    for (const pattern of safePatterns) {
+      if (pattern.test(cmdline)) {
+        return true;
+      }
+    }
+
+    // If we can't determine, skip it to be safe
+    log(`Skipping PID ${pid} (${cmdline.slice(0, 50)}...) - not a recognized dev server`);
+    return false;
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
  * Main function to ensure port is available
  */
 async function ensurePortAvailable() {
@@ -139,10 +174,12 @@ async function ensurePortAvailable() {
       log(`  PID ${pid}: ${name}`);
     }
 
-    // Kill ALL of them immediately
-    log(`Killing all processes on port ${PORT}...`);
+    // Kill only SAFE processes (dev servers, not system processes)
+    log(`Killing dev server processes on port ${PORT}...`);
     for (const pid of pids) {
-      killProcess(pid);
+      if (isSafeToKill(pid)) {
+        killProcess(pid);
+      }
     }
 
     // Also try pkill for any node processes that might be hanging
@@ -169,9 +206,11 @@ async function ensurePortAvailable() {
     // Check for any new processes that appeared
     const currentPids = getPidsOnPort(PORT);
     if (currentPids.length > 0) {
-      log(`Found lingering processes: ${currentPids.join(", ")}, killing...`);
+      log(`Found lingering processes: ${currentPids.join(", ")}, checking...`);
       for (const pid of currentPids) {
-        killProcess(pid);
+        if (isSafeToKill(pid)) {
+          killProcess(pid);
+        }
       }
     }
 

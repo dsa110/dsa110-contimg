@@ -163,13 +163,9 @@ class TestJWT:
         """Created JWT should be decodable."""
         secret = "testsecret123"
         with patch.dict(os.environ, {"DSA110_JWT_SECRET": secret}):
-            # Reimport to pick up the new env var
-            from dsa110_contimg.api import auth
-            from importlib import reload
-            reload(auth)
-            
-            token = auth.create_jwt("testuser", scopes=["read", "write"])
-            claims = auth.decode_jwt(token)
+            # Functions now read env dynamically, no reload needed
+            token = create_jwt("testuser", scopes=["read", "write"])
+            claims = decode_jwt(token)
             
             assert claims is not None
             assert claims["sub"] == "testuser"
@@ -242,14 +238,10 @@ class TestAuthDisabled:
     async def test_auth_disabled_allows_all(self):
         """Disabled auth should allow all requests."""
         with patch.dict(os.environ, {"DSA110_AUTH_DISABLED": "true"}):
-            # Need to reimport to pick up env change
-            from dsa110_contimg.api import auth
-            from importlib import reload
-            reload(auth)
-            
             # Create mock request
             mock_request = MagicMock()
             
-            ctx = await auth.get_auth_context(mock_request, None, None)
+            # Functions now read env dynamically
+            ctx = await get_auth_context(mock_request, None, None)
             assert ctx.authenticated is True
             assert ctx.method == "disabled"

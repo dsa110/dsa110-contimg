@@ -119,14 +119,13 @@ def decode_jwt(token: str) -> Optional[dict]:
     
     try:
         import jwt
-        payload = jwt.decode(token, jwt_secret, algorithms=[JWT_ALGORITHM])
-        
-        # Check expiration
-        exp = payload.get("exp")
-        if exp and datetime.utcnow().timestamp() > exp:
-            logger.debug("JWT token expired")
-            return None
-        
+        # Add leeway to handle clock skew between token creation and verification
+        payload = jwt.decode(
+            token, 
+            jwt_secret, 
+            algorithms=[JWT_ALGORITHM],
+            leeway=timedelta(seconds=10),  # Allow 10 seconds of clock skew
+        )
         return payload
     except ImportError:
         logger.warning("PyJWT not installed - JWT auth disabled")
@@ -176,7 +175,7 @@ async def get_auth_context(
     3. No authentication
     """
     # Check if auth is disabled (development mode)
-    if AUTH_DISABLED:
+    if is_auth_disabled():
         logger.debug("Authentication disabled via DSA110_AUTH_DISABLED")
         return AuthContext(authenticated=True, method="disabled")
     
