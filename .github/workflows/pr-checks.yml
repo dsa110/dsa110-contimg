@@ -32,6 +32,9 @@ jobs:
   python-checks:
     name: Python Code Quality & Tests
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash -el {0}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -40,41 +43,29 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           miniforge-version: latest
+          environment-file: ops/docker/environment.yml
           activate-environment: casa6
           python-version: "3.11"
-
-      - name: Create casa6 conda environment
-        run: |
-          conda env create -f ops/docker/environment.yml
-          conda activate casa6
+          auto-activate-base: false
 
       - name: Install dependencies
         working-directory: ./backend
-        run: |
-          conda activate casa6
-          pip install -e ".[dev]"
+        run: pip install -e ".[dev]"
 
       - name: Run linting (flake8)
-        run: |
-          conda activate casa6
-          /opt/miniforge/envs/casa6/bin/flake8 backend/src/ --max-line-length=88 --extend-ignore=E203,W503 || true
+        run: flake8 backend/src/ --max-line-length=88 --extend-ignore=E203,W503 || true
 
       - name: Run type checking (mypy)
-        run: |
-          conda activate casa6
-          /opt/miniforge/envs/casa6/bin/mypy backend/src/ --ignore-missing-imports --no-strict-optional || true
+        run: mypy backend/src/ --ignore-missing-imports --no-strict-optional || true
 
       - name: Run security scanning (bandit)
-        run: |
-          conda activate casa6
-          /opt/miniforge/envs/casa6/bin/bandit -r backend/src/ -f screen -ll --skip B101,B601 || true
+        run: bandit -r backend/src/ -f screen -ll --skip B101,B601 || true
 
       - name: Run unit tests with coverage
         env:
           PYTHONPATH: backend/src
         run: |
-          conda activate casa6
-          /opt/miniforge/envs/casa6/bin/pytest backend/tests/unit/ \
+          pytest backend/tests/unit/ \
             --cov=backend/src \
             --cov-report=xml \
             --cov-report=term \
@@ -84,16 +75,13 @@ jobs:
       - name: Run backend unit tests (including diagnostics/mosaic)
         env:
           PYTHONPATH: backend/src
-        run: |
-          conda activate casa6
-          /opt/miniforge/envs/casa6/bin/pytest backend/tests/unit/ -v
+        run: pytest backend/tests/unit/ -v
 
       - name: Check coverage thresholds
         env:
           PYTHONPATH: backend/src
         run: |
-          conda activate casa6
-          /opt/miniforge/envs/casa6/bin/pytest backend/tests/unit/ \
+          pytest backend/tests/unit/ \
             --cov=backend/src \
             --cov-report=term \
             --cov-fail-under=60
@@ -141,6 +129,9 @@ jobs:
     name: Integration Tests
     runs-on: ubuntu-latest
     if: contains(github.event.pull_request.changed_files, 'src/') || github.event_name == 'push'
+    defaults:
+      run:
+        shell: bash -el {0}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -149,30 +140,21 @@ jobs:
         uses: conda-incubator/setup-miniconda@v3
         with:
           miniforge-version: latest
+          environment-file: ops/docker/environment.yml
           activate-environment: casa6
           python-version: "3.11"
-
-      - name: Create casa6 conda environment
-        run: |
-          conda env create -f ops/docker/environment.yml
-          conda activate casa6
+          auto-activate-base: false
 
       - name: Install dependencies
         working-directory: ./backend
-        run: |
-          conda activate casa6
-          pip install -e ".[dev]"
+        run: pip install -e ".[dev]"
 
       - name: Run integration tests
         env:
           PYTHONPATH: backend/src
-        run: |
-          conda activate casa6
-          /opt/miniforge/envs/casa6/bin/pytest backend/tests/integration/ -v -m "not slow" || true
+        run: pytest backend/tests/integration/ -v -m "not slow" || true
 
       - name: Run backend integration tests (API)
         env:
           PYTHONPATH: backend/src
-        run: |
-          conda activate casa6
-          /opt/miniforge/envs/casa6/bin/pytest backend/tests/integration/ -v -m "not slow" || true
+        run: pytest backend/tests/integration/ -v -m "not slow" || true

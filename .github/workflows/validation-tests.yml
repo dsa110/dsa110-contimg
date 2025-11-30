@@ -137,7 +137,9 @@ jobs:
     name: Validation Tests (Casa6 Environment)
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.test_type == 'validation' || github.event.inputs.test_type == 'full' }}
-
+    defaults:
+      run:
+        shell: bash -el {0}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -145,23 +147,22 @@ jobs:
       - name: Set up Conda
         uses: conda-incubator/setup-miniconda@v3
         with:
-          miniconda-version: "latest"
+          miniforge-version: latest
           channels: conda-forge
           channel-priority: strict
           activate-environment: casa6
           environment-file: ops/docker/environment.yml
+          auto-activate-base: false
 
       - name: Activate environment and verify installation
-        shell: bash -l {0}
         run: |
           set -euo pipefail
-          conda activate casa6
           export PYTHONPATH="${GITHUB_WORKSPACE}/backend/src:${PYTHONPATH:-}"
 
           # Verify conda environment and key packages
-          echo ":check: Conda environment activated"
+          echo "✓ Conda environment activated"
           python --version
-          python -c "import casa; print(f'CASA version: {casa.__version__}')" || echo ":warning: CASA import check skipped"
+          python -c "import casatools; print(f'CASA tools installed')" || echo "⚠ CASA import check skipped"
           python -c "import pyuvdata; print(f'pyuvdata version: {pyuvdata.__version__}')"
 
           echo ":check: Environment validation complete"
@@ -171,7 +172,9 @@ jobs:
     name: Integration Tests (Synthetic Data)
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.test_type == 'integration' || github.event.inputs.test_type == 'full' }}
-
+    defaults:
+      run:
+        shell: bash -el {0}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -179,17 +182,16 @@ jobs:
       - name: Set up Conda
         uses: conda-incubator/setup-miniconda@v3
         with:
-          miniconda-version: "latest"
+          miniforge-version: latest
           channels: conda-forge
           channel-priority: strict
           activate-environment: casa6
           environment-file: ops/docker/environment.yml
+          auto-activate-base: false
 
       - name: Generate synthetic test data
-        shell: bash -l {0}
         run: |
           set -euo pipefail
-          conda activate casa6
           export PYTHONPATH="${GITHUB_WORKSPACE}/backend/src:${PYTHONPATH:-}"
 
           # Generate multiple test scenarios
@@ -216,10 +218,8 @@ jobs:
             --subbands 8
 
       - name: Test pipeline with different scenarios
-        shell: bash -l {0}
         run: |
           set -euo pipefail
-          conda activate casa6
           export PYTHONPATH="${GITHUB_WORKSPACE}/backend/src:${PYTHONPATH:-}"
 
           # Test each scenario
@@ -246,7 +246,9 @@ jobs:
     name: Performance Benchmarks
     runs-on: ubuntu-latest
     if: ${{ github.event.inputs.test_type == 'full' }}
-
+    defaults:
+      run:
+        shell: bash -el {0}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -254,17 +256,16 @@ jobs:
       - name: Set up Conda
         uses: conda-incubator/setup-miniconda@v3
         with:
-          miniconda-version: "latest"
+          miniforge-version: latest
           channels: conda-forge
           channel-priority: strict
           activate-environment: casa6
           environment-file: ops/docker/environment.yml
+          auto-activate-base: false
 
       - name: Run performance benchmarks
-        shell: bash -l {0}
         run: |
           set -euo pipefail
-          conda activate casa6
           export PYTHONPATH="${GITHUB_WORKSPACE}/backend/src:${PYTHONPATH:-}"
 
           # Install additional performance testing dependencies
