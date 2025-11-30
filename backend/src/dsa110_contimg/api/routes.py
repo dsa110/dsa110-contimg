@@ -183,6 +183,72 @@ async def get_image_provenance(image_id: str):
             detail=internal_error(f"Failed to retrieve image provenance: {str(e)}").to_dict(),
         )
 
+
+@images_router.get("/{image_id}/qa")
+async def get_image_qa_detail(image_id: str):
+    """
+    Get detailed QA report for an image.
+    
+    Returns quality assessment metrics including:
+    - QA grade and summary
+    - Noise and dynamic range measurements
+    - Beam parameters
+    - Source extraction statistics
+    - Known issues and flags
+    """
+    try:
+        image = image_repo.get_by_id(image_id)
+        if not image:
+            raise HTTPException(
+                status_code=404,
+                detail=image_not_found(image_id).to_dict(),
+            )
+        
+        # Build comprehensive QA report
+        qa_report = {
+            "image_id": image_id,
+            "qa_grade": image.qa_grade,
+            "qa_summary": image.qa_summary,
+            "quality_metrics": {
+                "noise_rms_jy": image.noise_jy,
+                "dynamic_range": image.dynamic_range,
+                "theoretical_noise_jy": getattr(image, 'theoretical_noise_jy', None),
+                "noise_ratio": (
+                    image.noise_jy / image.theoretical_noise_jy 
+                    if hasattr(image, 'theoretical_noise_jy') and image.theoretical_noise_jy 
+                    else None
+                ),
+            },
+            "beam": {
+                "major_arcsec": image.beam_major_arcsec,
+                "minor_arcsec": image.beam_minor_arcsec,
+                "pa_deg": image.beam_pa_deg,
+            },
+            "source_stats": {
+                "n_sources": getattr(image, 'n_sources', None),
+                "peak_flux_jy": getattr(image, 'peak_flux_jy', None),
+            },
+            "flags": [],  # TODO: Retrieve from qa_flags table
+            "warnings": [],
+        }
+        
+        # Add warnings based on metrics
+        if image.noise_jy and image.noise_jy > 0.01:  # 10 mJy
+            qa_report["warnings"].append("High noise level detected")
+        if image.dynamic_range and image.dynamic_range < 100:
+            qa_report["warnings"].append("Low dynamic range")
+        
+        return qa_report
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=internal_error(f"Failed to retrieve image QA: {str(e)}").to_dict(),
+        )
+
+
 @images_router.get("/{image_id}/fits")
 async def download_image_fits(image_id: str):
     """Download the FITS file for an image."""
@@ -439,13 +505,143 @@ async def get_source_lightcurve(
 
 @sources_router.get("/{source_id}/variability")
 async def get_source_variability(source_id: str):
-    """Get variability analysis for a source."""
-    # TODO: Implement variability analysis
-    return {
-        "source_id": source_id,
-        "variability_index": None,
-        "message": "Variability endpoint stub",
-    }
+    """
+    Get variability analysis for a source.
+    
+    Returns variability metrics including:
+    - Variability index (V)
+    - Modulation index (m)
+    - Chi-squared statistics
+    - Flux statistics (mean, std, min, max)
+    """
+    try:
+        source = source_repo.get_by_id(source_id)
+        if not source:
+            raise HTTPException(
+                status_code=404,
+                detail=source_not_found(source_id).to_dict(),
+            )
+        
+        # Get lightcurve data for variability calculation
+        epochs = lightcurve_repo.get_for_source(source_id) if hasattr(lightcurve_repo, 'get_for_source') else []
+        
+        if not epochs or len(epochs) < 2:
+            return {
+                "source_id": source_id,
+                "source_name": source.name,
+                "n_epochs": len(epochs) if epochs else 0,
+                "variability_index": None,
+                "modulation_index": None,
+                "chi_squared": None,
+                "chi_squared_reduced": None,
+                "is_variable": None,
+                "flux_stats": None,
+                "message": "Insufficient epochs for variability analysis (need at least 2)",
+            }
+        
+        # Calculate variability metrics
+        fluxes = [e.flux_jy for e in epochs if e.flux_jy is not None]
+        errors = [e.flux_err_jy for e in epochs if e.flux_err_jy is not None]
+        
+        if len(fluxes) < 2:
+            return {
+                "source_id": source_id,
+                "source_name": source.name,
+                "n_epochs": len(epochs),
+                "variability_index": None,
+                "message": "Insufficient flux measurements",
+            }
+        
+        import statistics
+        mean_flux = statistics.mean(fluxes)
+        std_flux = statistics.stdev(fluxes) if len(fluxes) > 1 else 0
+        
+        # Variability index V = std / mean
+        variability_index = std_flux / mean_flux if mean_flux > 0 else None
+        
+        # Modulation index m = std / mean (same as V for simple case)
+        modulation_index = variability_index
+        
+        # Chi-squared test for variability
+        chi_squared = None
+        chi_squared_reduced = None
+        if errors and len(errors) == len(fluxes):
+            chi_squared = sum(
+                ((f - mean_flux) / e) ** 2 
+                for f, e in zip(fluxes, errors) if e > 0
+            )
+            dof = len(fluxes) - 1
+            chi_squared_reduced = chi_squared / dof if dof > 0 else None
+        
+        # Simple variability classification
+        is_variable = variability_index is not None and variability_index > 0.1
+        
+        return {
+            "source_id": source_id,
+            "source_name": source.name,
+            "n_epochs": len(epochs),
+            "variability_index": round(variability_index, 4) if variability_index else None,
+            "modulation_index": round(modulation_index, 4) if modulation_index else None,
+            "chi_squared": round(chi_squared, 2) if chi_squared else None,
+            "chi_squared_reduced": round(chi_squared_reduced, 2) if chi_squared_reduced else None,
+            "is_variable": is_variable,
+            "flux_stats": {
+                "mean_jy": round(mean_flux, 6),
+                "std_jy": round(std_flux, 6),
+                "min_jy": round(min(fluxes), 6),
+                "max_jy": round(max(fluxes), 6),
+            },
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=internal_error(f"Failed to calculate variability: {str(e)}").to_dict(),
+        )
+
+
+@sources_router.get("/{source_id}/qa")
+async def get_source_qa(source_id: str):
+    """
+    Get QA report for a source.
+    
+    Returns quality assessment metrics and flags.
+    """
+    try:
+        source = source_repo.get_by_id(source_id)
+        if not source:
+            raise HTTPException(
+                status_code=404,
+                detail=source_not_found(source_id).to_dict(),
+            )
+        
+        # Get associated images for QA summary
+        images = image_repo.get_for_source(source_id) if hasattr(image_repo, 'get_for_source') else []
+        
+        qa_grades = [img.qa_grade for img in images if hasattr(img, 'qa_grade') and img.qa_grade]
+        
+        return {
+            "source_id": source_id,
+            "source_name": source.name,
+            "n_images": len(images) if images else 0,
+            "qa_grades": qa_grades,
+            "overall_grade": max(qa_grades) if qa_grades else None,
+            "flags": [],  # TODO: Implement source-level QA flags
+            "metrics": {
+                "ra_deg": source.ra_deg,
+                "dec_deg": source.dec_deg,
+                "peak_flux_jy": source.peak_flux_jy,
+                "integrated_flux_jy": source.integrated_flux_jy,
+            },
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=internal_error(f"Failed to retrieve source QA: {str(e)}").to_dict(),
+        )
 
 
 # =============================================================================

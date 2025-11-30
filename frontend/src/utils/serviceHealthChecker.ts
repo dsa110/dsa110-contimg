@@ -475,8 +475,7 @@ export class ServiceHealthChecker {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-      // Combine abort signals
-      const combinedSignal = signal;
+      // Forward abort from parent signal
       signal.addEventListener("abort", () => controller.abort());
 
       const response = await fetch(url, {

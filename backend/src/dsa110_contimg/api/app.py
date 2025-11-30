@@ -117,18 +117,37 @@ def create_app() -> FastAPI:
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
     
-    # Register API routers
-    app.include_router(images_router, prefix="/api")
-    app.include_router(ms_router, prefix="/api")
-    app.include_router(sources_router, prefix="/api")
-    app.include_router(jobs_router, prefix="/api")
-    app.include_router(queue_router, prefix="/api")
-    app.include_router(qa_router, prefix="/api")
-    app.include_router(cal_router, prefix="/api")
-    app.include_router(logs_router, prefix="/api")
-    app.include_router(stats_router, prefix="/api")
-    app.include_router(cache_router, prefix="/api")
-    app.include_router(services_router, prefix="/api")
+    # API version prefix
+    api_prefix = "/api/v1"
+    
+    # Also register at /api for backwards compatibility
+    legacy_prefix = "/api"
+    
+    # Register API routers with versioned prefix
+    app.include_router(images_router, prefix=api_prefix, tags=["Images"])
+    app.include_router(ms_router, prefix=api_prefix, tags=["Measurement Sets"])
+    app.include_router(sources_router, prefix=api_prefix, tags=["Sources"])
+    app.include_router(jobs_router, prefix=api_prefix, tags=["Jobs"])
+    app.include_router(queue_router, prefix=api_prefix, tags=["Queue"])
+    app.include_router(qa_router, prefix=api_prefix, tags=["Quality Assurance"])
+    app.include_router(cal_router, prefix=api_prefix, tags=["Calibration"])
+    app.include_router(logs_router, prefix=api_prefix, tags=["Logs"])
+    app.include_router(stats_router, prefix=api_prefix, tags=["Statistics"])
+    app.include_router(cache_router, prefix=api_prefix, tags=["Cache"])
+    app.include_router(services_router, prefix=api_prefix, tags=["Services"])
+    
+    # Legacy /api routes for backwards compatibility
+    app.include_router(images_router, prefix=legacy_prefix, include_in_schema=False)
+    app.include_router(ms_router, prefix=legacy_prefix, include_in_schema=False)
+    app.include_router(sources_router, prefix=legacy_prefix, include_in_schema=False)
+    app.include_router(jobs_router, prefix=legacy_prefix, include_in_schema=False)
+    app.include_router(queue_router, prefix=legacy_prefix, include_in_schema=False)
+    app.include_router(qa_router, prefix=legacy_prefix, include_in_schema=False)
+    app.include_router(cal_router, prefix=legacy_prefix, include_in_schema=False)
+    app.include_router(logs_router, prefix=legacy_prefix, include_in_schema=False)
+    app.include_router(stats_router, prefix=legacy_prefix, include_in_schema=False)
+    app.include_router(cache_router, prefix=legacy_prefix, include_in_schema=False)
+    app.include_router(services_router, prefix=legacy_prefix, include_in_schema=False)
     
     # Register exception handlers
     @app.exception_handler(ValidationError)
@@ -158,11 +177,12 @@ def create_app() -> FastAPI:
     
     # Health check endpoint (always allowed, before IP check)
     @app.get("/api/health")
+    @app.get("/api/v1/health")
     async def health_check(detailed: bool = False):
         """Health check endpoint for monitoring.
         
         Args:
-            detailed: If True, include database and disk space checks
+            detailed: If True, include database, Redis, and disk space checks
         """
         import shutil
         from pathlib import Path
@@ -170,6 +190,8 @@ def create_app() -> FastAPI:
         response = {
             "status": "healthy",
             "service": "dsa110-contimg-api",
+            "version": "1.0.0",
+            "api_version": "v1",
             "timestamp": datetime.utcnow().isoformat() + "Z",
         }
         
@@ -195,6 +217,26 @@ def create_app() -> FastAPI:
                 db_status["error"] = "Could not check databases"
             response["databases"] = db_status
             
+            # Check Redis connectivity
+            redis_status = {"status": "unknown"}
+            try:
+                import redis
+                redis_url = os.getenv("DSA110_REDIS_URL", "redis://localhost:6379")
+                r = redis.from_url(redis_url, socket_timeout=2.0)
+                if r.ping():
+                    info = r.info("server")
+                    redis_status = {
+                        "status": "ok",
+                        "version": info.get("redis_version", "unknown"),
+                    }
+                else:
+                    redis_status = {"status": "error", "message": "ping failed"}
+            except redis.ConnectionError:
+                redis_status = {"status": "unavailable", "message": "connection failed"}
+            except Exception as e:
+                redis_status = {"status": "error", "message": str(e)[:50]}
+            response["redis"] = redis_status
+            
             # Check disk space
             disk_status = {}
             for path_str in ["/data/dsa110-contimg/state", "/stage/dsa110-contimg"]:
@@ -212,12 +254,15 @@ def create_app() -> FastAPI:
             response["disk"] = disk_status
             
             # Check if any component is unhealthy
-            has_errors = any(
+            has_db_errors = any(
                 v != "ok" for v in db_status.values() if isinstance(v, str)
-            ) or any(
+            )
+            has_disk_errors = any(
                 d.get("status") == "critical" for d in disk_status.values() if isinstance(d, dict)
             )
-            if has_errors:
+            redis_unavailable = redis_status.get("status") not in ["ok", "unavailable"]
+            
+            if has_db_errors or has_disk_errors or redis_unavailable:
                 response["status"] = "degraded"
         
         return response
