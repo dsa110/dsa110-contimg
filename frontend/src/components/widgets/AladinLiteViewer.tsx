@@ -21,6 +21,10 @@ export interface AladinLiteViewerProps {
   showFullscreen?: boolean;
 }
 
+/**
+ * Extended interface for Aladin Lite instance.
+ * Includes methods that exist in the library but are not in the base type definition.
+ */
 interface AladinInstance {
   gotoRaDec: (ra: number, dec: number) => void;
   setFoV: (fov: number) => void;
@@ -29,7 +33,8 @@ interface AladinInstance {
   increaseZoom: () => void;
   decreaseZoom: () => void;
   toggleFullscreen: () => void;
-  destroy?: () => void;
+  /** Cleanup method to destroy the Aladin instance */
+  destroy: () => void;
 }
 
 /**
@@ -52,13 +57,12 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [currentFov, setCurrentFov] = useState(fov);
   const [shouldLoad, setShouldLoad] = useState(false);
-  // TODO: Extend AladinInstance interface to include destroy() and setFoV() methods
-  // These methods exist in Aladin Lite but are not in the base type definition
+
   const destroyInstance = useCallback(() => {
-    if (aladinRef.current && typeof (aladinRef.current as any).destroy === "function") {
-      (aladinRef.current as any).destroy();
+    if (aladinRef.current) {
+      aladinRef.current.destroy();
+      aladinRef.current = null;
     }
-    aladinRef.current = null;
   }, []);
 
   // Initialize Aladin viewer

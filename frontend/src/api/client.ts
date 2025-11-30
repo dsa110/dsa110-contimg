@@ -10,6 +10,8 @@
 import axios, { AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from "axios";
 import type { ProvenanceStripProps } from "../types/provenance";
 import type { ErrorResponse } from "../types/errors";
+import { config } from "../config";
+import { logger } from "../utils/logger";
 import {
   canMakeRequest,
   recordSuccess,
@@ -38,8 +40,8 @@ interface RetryableRequestConfig extends InternalAxiosRequestConfig {
 // =============================================================================
 
 const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || "/api",
-  timeout: 10000,
+  baseURL: config.api.baseUrl,
+  timeout: config.api.timeout,
 });
 
 /**
@@ -84,7 +86,7 @@ apiClient.interceptors.response.use(
       config.__retryCount++;
 
       const delay = calculateBackoffDelay(config.__retryCount - 1, retryConfig);
-      console.debug(
+      logger.debug(
         `API retry ${config.__retryCount}/${retryConfig.maxRetries} for ${config.url} after ${delay}ms`
       );
 

@@ -178,22 +178,3 @@ export interface JobDetail extends JobSummary {
   config?: Record<string, unknown>;
   provenance?: ProvenanceStripProps;
 }
-
-// =============================================================================
-// API Response Aliases (for backward compatibility)
-// =============================================================================
-
-/**
- * @deprecated Use ImageDetail instead
- */
-export type ImageDetailResponse = ImageDetail;
-
-/**
- * @deprecated Use MSMetadata instead
- */
-export type MSDetailResponse = MSMetadata;
-
-/**
- * @deprecated Use SourceDetail instead
- */
-export type SourceDetailResponse = SourceDetail;

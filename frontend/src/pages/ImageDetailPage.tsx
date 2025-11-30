@@ -19,6 +19,7 @@ import { relativeTime } from "../utils/relativeTime";
 import type { ErrorResponse, ImageDetail } from "../types";
 import { useImageDetail } from "../hooks/useImageDetail";
 import { ROUTES } from "../constants/routes";
+import { config } from "../config";
 
 /**
  * Detail page for a single image.
@@ -115,7 +116,7 @@ const ImageDetailPage: React.FC = () => {
           <Card title="Actions">
             <div className="flex flex-col gap-2">
               <a
-                href={`${import.meta.env.VITE_API_URL || "/api"}/images/${encodedImageId}/fits`}
+                href={`${config.api.baseUrl}/images/${encodedImageId}/fits`}
                 target="_blank"
                 rel="noreferrer"
                 className="btn btn-primary text-center"
@@ -203,8 +204,8 @@ const ImageDetailPage: React.FC = () => {
               <WidgetErrorBoundary widgetName="FITS Viewer" minHeight={500}>
                 <FitsViewer
                   fitsUrl={`${
-                    import.meta.env.VITE_API_URL || "/api"
-                  }/images/${encodedImageId}/fits`}
+                    config.api.baseUrl
+                  }}/images/${encodedImageId}/gif`}}
                   displayId={`fits-${encodedImageId}`}
                   width={600}
                   height={500}

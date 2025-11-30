@@ -27,10 +27,6 @@ export type {
   // Job types
   JobSummary,
   JobDetail,
-  // Deprecated aliases
-  ImageDetailResponse,
-  MSDetailResponse,
-  SourceDetailResponse,
 } from "./api";
 
 // Error types
@@ -38,3 +34,6 @@ export type { ErrorResponse, ErrorSeverity, MappedError } from "./errors";
 
 // Provenance types
 export type { ProvenanceStripProps } from "./provenance";
+
+// Note: Deprecated type aliases (ImageDetailResponse, MSDetailResponse, SourceDetailResponse)
+// have been removed. Use ImageDetail, MSMetadata, and SourceDetail instead.

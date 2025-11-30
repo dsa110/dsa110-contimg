@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { config } from "../../config";
 
 export interface ImageThumbnailProps {
   /** Image ID for fetching thumbnail */
@@ -31,7 +32,7 @@ const ImageThumbnail: React.FC<ImageThumbnailProps> = ({
   size = "md",
   onClick,
   expandable = true,
-  apiUrl = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api",
+  apiUrl = config.api.baseUrl,
 }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);

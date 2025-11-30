@@ -14,10 +14,10 @@ interface State {
 
 /**
  * Global application error boundary.
- * 
+ *
  * Catches unhandled errors in the React component tree and displays
  * a user-friendly fallback UI instead of crashing the entire application.
- * 
+ *
  * Usage:
  *   <AppErrorBoundary>
  *     <App />
@@ -41,9 +41,9 @@ export class AppErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo): void {
     // Log error details
-    logger.error('Unhandled application error', error);
-    logger.error('Component stack', { componentStack: errorInfo.componentStack });
-    
+    logger.error("Unhandled application error", error);
+    logger.error("Component stack", { componentStack: errorInfo.componentStack });
+
     // Call custom error handler if provided
     this.props.onError?.(error, errorInfo);
   }
@@ -72,14 +72,12 @@ export class AppErrorBoundary extends Component<Props, State> {
           <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
             <div className="text-center">
               <div className="text-6xl mb-4">⚠️</div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-4">
-                Something went wrong
-              </h1>
+              <h1 className="text-2xl font-bold text-gray-900 mb-4">Something went wrong</h1>
               <p className="text-gray-600 mb-6">
-                An unexpected error occurred in the application. This has been logged
-                and we'll look into it.
+                An unexpected error occurred in the application. This has been logged and we'll look
+                into it.
               </p>
-              
+
               {import.meta.env.DEV && this.state.error && (
                 <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded text-left">
                   <p className="font-mono text-sm text-red-800 break-all">
@@ -92,7 +90,7 @@ export class AppErrorBoundary extends Component<Props, State> {
                   )}
                 </div>
               )}
-              
+
               <div className="flex gap-3 justify-center">
                 <button
                   onClick={this.handleReset}

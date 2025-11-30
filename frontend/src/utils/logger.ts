@@ -1,16 +1,16 @@
 /**
  * Centralized Logging Utility
- * 
+ *
  * Provides environment-aware logging that can be configured per environment.
  * In production, debug logs are suppressed while errors are always logged.
- * 
+ *
  * Usage:
  *   import { logger } from '@/utils/logger';
  *   logger.debug('API retry attempt', { attempt: 1, url });
  *   logger.error('Failed to load image', error);
  */
 
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+type LogLevel = "debug" | "info" | "warn" | "error";
 
 interface LogContext {
   [key: string]: unknown;
@@ -21,12 +21,12 @@ interface LogContext {
  */
 function isEnabled(level: LogLevel): boolean {
   const isDev = import.meta.env.DEV;
-  
+
   // In production, only log warnings and errors
-  if (!isDev && (level === 'debug' || level === 'info')) {
+  if (!isDev && (level === "debug" || level === "info")) {
     return false;
   }
-  
+
   return true;
 }
 
@@ -37,7 +37,7 @@ function formatMessage(message: string, context?: LogContext): string {
   if (!context || Object.keys(context).length === 0) {
     return message;
   }
-  
+
   return `${message} ${JSON.stringify(context)}`;
 }
 
@@ -45,7 +45,7 @@ function formatMessage(message: string, context?: LogContext): string {
  * Log a debug message
  */
 function debug(message: string, context?: LogContext): void {
-  if (isEnabled('debug')) {
+  if (isEnabled("debug")) {
     // eslint-disable-next-line no-console
     console.debug(`[DEBUG] ${formatMessage(message, context)}`);
   }
@@ -55,7 +55,7 @@ function debug(message: string, context?: LogContext): void {
  * Log an info message
  */
 function info(message: string, context?: LogContext): void {
-  if (isEnabled('info')) {
+  if (isEnabled("info")) {
     // eslint-disable-next-line no-console
     console.info(`[INFO] ${formatMessage(message, context)}`);
   }
@@ -65,7 +65,7 @@ function info(message: string, context?: LogContext): void {
  * Log a warning message
  */
 function warn(message: string, context?: LogContext): void {
-  if (isEnabled('warn')) {
+  if (isEnabled("warn")) {
     console.warn(`[WARN] ${formatMessage(message, context)}`);
   }
 }
@@ -74,7 +74,7 @@ function warn(message: string, context?: LogContext): void {
  * Log an error message
  */
 function error(message: string, errorOrContext?: Error | LogContext): void {
-  if (isEnabled('error')) {
+  if (isEnabled("error")) {
     if (errorOrContext instanceof Error) {
       console.error(`[ERROR] ${message}`, errorOrContext);
     } else {

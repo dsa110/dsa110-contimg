@@ -31,8 +31,10 @@ const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
  * is served from /dsa110-contimg/ subdirectory.
  */
 
+import { config } from "./config";
+
 // Detect if running on GitHub Pages (production build with base path)
-const basename = import.meta.env.BASE_URL;
+const basename = config.app.basePath;
 
 export const router = createBrowserRouter(
   [
