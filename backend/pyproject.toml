@@ -1,33 +1,45 @@
-[tool]
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
 name = "dsa110_contimg"
 version = "0.1.0"
 description = "DSA-110 Continuum Imaging Pipeline"
-authors = ["Your Name <youremail@example.com>"]
-license = "MIT"
+authors = [
+    {name = "DSA-110 Team", email = "dsa110@caltech.edu"}
+]
+license = {text = "MIT"}
+requires-python = ">=3.11"
+readme = "README.md"
 
-[build-system]
-requires = ["setuptools", "wheel"]
-build-backend = "setuptools.build_meta"
+dependencies = [
+    "pyuvdata==3.2.4",
+    "numpy",
+    "astropy",
+    "pyuvsim",
+    "fastapi>=0.109.0",
+    "pydantic>=2.5.0",
+    "uvicorn>=0.27.0",
+    "sqlalchemy>=2.0.0",
+    "alembic>=1.16.0",
+]
 
-[tool.poetry.dependencies]
-python = "^3.11"
-pyuvdata = "3.2.4"
-numpy = "*"
-astropy = "*"
-pyuvsim = "*"
-fastapi = "^0.109.0"
-pydantic = "^2.5.0"
-uvicorn = "^0.27.0"
-sqlalchemy = "^2.0.0"
-alembic = "^1.16.0"
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-cov",
+    "pytest-asyncio",
+    "httpx",
+    "black",
+    "flake8",
+]
 
-[tool.poetry.dev-dependencies]
-pytest = "*"
-pytest-cov = "*"
-pytest-asyncio = "*"
-httpx = "*"
-black = "*"
-flake8 = "*"
+[project.scripts]
+dsa110-cli = "dsa110_contimg.conversion.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -44,7 +56,3 @@ filterwarnings = [
     # Ignore NumPy reload warning from astropy (occurs when CASA imports numpy separately)
     "ignore:The NumPy module was reloaded:UserWarning",
 ]
-
-[tool.poetry.scripts]
-dsa110-cli = "dsa110_contimg.conversion.cli:main"
-run-api = "scripts.ops.run_api:main"

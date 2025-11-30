@@ -149,7 +149,7 @@ The diagrams can be used in:
 - Presentations
 - Project onboarding materials
 
-For more details, see `backend/STRUCTURE_DIAGRAM_README.md`.
+For more details, see `docs/dev/STRUCTURE_DIAGRAM_README.md`.
 
 ## Services and Components
 

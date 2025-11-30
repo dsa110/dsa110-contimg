@@ -12,16 +12,16 @@ build/
 htmlcov/
 
 # IDE & Editor
-.cursor/
 .vscode/
 .idea/
 *.swp
 *.swo
 
+# Cursor AI - ignore all except rules
+.cursor/*
+!.cursor/rules/
+
 # Environment
 .env
 .venv/
 venv/
-
-# Cursor AI rules (keep specific rule files)
-.cursor/rules/codacy.mdc

@@ -4,10 +4,20 @@ A generalized script that automatically analyzes any directory structure and
 generates a Mermaid flowchart diagram showing the organization and relationships
 between modules.
 
+## Location
+
+The script is located at: `backend/scripts/dev/generate_structure_diagram.py`
+
 ## Usage
 
+Run from the repository root or backend directory:
+
 ```bash
-python scripts/generate_structure_diagram.py <directory_path> [output.svg]
+# From repository root
+python backend/scripts/dev/generate_structure_diagram.py <directory_path> [output.svg]
+
+# From backend directory
+python scripts/dev/generate_structure_diagram.py <directory_path> [output.svg]
 ```
 
 ### Examples
@@ -15,20 +25,20 @@ python scripts/generate_structure_diagram.py <directory_path> [output.svg]
 **Generate diagram for backend:**
 
 ```bash
-python scripts/generate_structure_diagram.py /data/dsa110-contimg/backend docs/diagrams/backend_structure.svg
+cd /data/dsa110-contimg
+python backend/scripts/dev/generate_structure_diagram.py backend docs/architecture/diagrams/backend_structure.svg
 ```
 
 **Generate diagram for frontend:**
 
 ```bash
-python scripts/generate_structure_diagram.py /data/dsa110-contimg/frontend docs/diagrams/frontend_structure.svg
+python backend/scripts/dev/generate_structure_diagram.py frontend docs/architecture/diagrams/frontend_structure.svg
 ```
 
 **Generate diagram for any directory:**
 
 ```bash
-python scripts/generate_structure_diagram.py /data/dsa110-contimg/docs docs/diagrams/docs_structure.svg
-python scripts/generate_structure_diagram.py /data/dsa110-contimg/scripts docs/diagrams/scripts_structure.svg
+python backend/scripts/dev/generate_structure_diagram.py docs docs/architecture/diagrams/docs_structure.svg
 ```
 
 ## Features
@@ -50,10 +60,10 @@ python scripts/generate_structure_diagram.py /data/dsa110-contimg/scripts docs/d
 - **Relationship Detection**: Automatically detects common pipeline
   relationships:
 
-  - `conversion :arrow_right: calibration :arrow_right: imaging :arrow_right: photometry :arrow_right: catalog`
-  - `api :arrow_right: database`, `api :arrow_right: conversion`
-  - `pipeline :arrow_right: conversion/calibration/imaging`
-  - `utils :arrow_right: conversion/calibration/imaging`
+  - `conversion → calibration → imaging → photometry → catalog`
+  - `api → database`, `api → conversion`
+  - `pipeline → conversion/calibration/imaging`
+  - `utils → conversion/calibration/imaging`
 
 - **Color Coding**: Different modules get different colors for easy
   identification
@@ -92,3 +102,8 @@ You can also use the Mermaid source directly in:
 - GitHub/GitLab markdown (renders automatically)
 - Mermaid Live Editor: https://mermaid.live/
 - VS Code with Mermaid extension
+
+## Related
+
+- [Architecture Diagrams](../architecture/diagrams/) - Generated diagrams
+- [Backend Structure](../architecture/BACKEND_STRUCTURE.md) - Backend documentation

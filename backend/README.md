@@ -33,7 +33,10 @@ Full documentation is available in the [`docs/`](../docs/) directory:
 # Install dependencies
 pip install -e .
 
-# Start the API server
+# Start the API server (recommended - handles port reservation)
+python scripts/ops/run_api.py
+
+# Or use uvicorn directly
 python -m uvicorn dsa110_contimg.api.app:app --host 0.0.0.0 --port 8000
 
 # Check health
@@ -42,6 +45,8 @@ curl http://localhost:8000/api/health
 # View API docs
 open http://localhost:8000/api/docs
 ```
+
+See [scripts/README.md](scripts/README.md) for all available utility scripts.
 
 ## Project Structure
 
