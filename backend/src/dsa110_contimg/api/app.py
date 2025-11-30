@@ -63,6 +63,7 @@ def is_ip_allowed(client_ip: str, allowed_networks: list) -> bool:
         return False
 
 from .errors import validation_failed, internal_error
+from .middleware import add_exception_handlers
 from .routes import (
     images_router,
     ms_router,
@@ -167,7 +168,10 @@ def create_app() -> FastAPI:
     # WebSocket routes for real-time updates
     app.include_router(ws_router, prefix="/api/v1", tags=["WebSocket"])
     
-    # Register exception handlers
+    # Register custom exception handlers for DSA110APIError hierarchy
+    add_exception_handlers(app)
+    
+    # Register exception handlers for Pydantic validation
     @app.exception_handler(ValidationError)
     async def validation_exception_handler(request: Request, exc: ValidationError):
         """Handle Pydantic validation errors with standardized envelope."""

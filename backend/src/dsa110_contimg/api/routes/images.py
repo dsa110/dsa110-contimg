@@ -14,7 +14,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse
 
 from ..dependencies import get_image_service, get_image_repository
-from ..errors import image_not_found, internal_error
+from ..exceptions import (
+    RecordNotFoundError,
+    FileNotAccessibleError,
+    DatabaseError,
+)
 from ..repositories import ImageRepository
 from ..schemas import ImageDetailResponse, ImageListResponse, ProvenanceResponse
 from ..services.image_service import ImageService
@@ -32,24 +36,21 @@ async def list_images(
     List all images with summary info.
     
     Returns a paginated list of images with basic metadata.
+    
+    Raises:
+        DatabaseError: If database query fails
     """
-    try:
-        images = service.list_images(limit=limit, offset=offset)
-        return [
-            ImageListResponse(
-                id=str(img.id),
-                path=img.path,
-                qa_grade=img.qa_grade,
-                created_at=datetime.fromtimestamp(img.created_at) if img.created_at else None,
-                run_id=img.run_id,
-            )
-            for img in images
-        ]
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=internal_error(f"Failed to list images: {str(e)}").to_dict(),
+    images = service.list_images(limit=limit, offset=offset)
+    return [
+        ImageListResponse(
+            id=str(img.id),
+            path=img.path,
+            qa_grade=img.qa_grade,
+            created_at=datetime.fromtimestamp(img.created_at) if img.created_at else None,
+            run_id=img.run_id,
         )
+        for img in images
+    ]
 
 
 @router.get("/{image_id}", response_model=ImageDetailResponse)
@@ -59,34 +60,26 @@ async def get_image_detail(
 ):
     """
     Get detailed information about an image.
+    
+    Raises:
+        RecordNotFoundError: If image is not found
     """
-    try:
-        image = service.get_image(image_id)
-        if not image:
-            raise HTTPException(
-                status_code=404,
-                detail=image_not_found(image_id).to_dict(),
-            )
-        
-        return ImageDetailResponse(
-            id=str(image.id),
-            path=image.path,
-            ms_path=image.ms_path,
-            cal_table=image.cal_table,
-            pointing_ra_deg=image.center_ra_deg,
-            pointing_dec_deg=image.center_dec_deg,
-            qa_grade=image.qa_grade,
-            qa_summary=image.qa_summary,
-            run_id=image.run_id,
-            created_at=datetime.fromtimestamp(image.created_at) if image.created_at else None,
-        )
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=internal_error(f"Failed to retrieve image: {str(e)}").to_dict(),
-        )
+    image = service.get_image(image_id)
+    if not image:
+        raise RecordNotFoundError("Image", image_id)
+    
+    return ImageDetailResponse(
+        id=str(image.id),
+        path=image.path,
+        ms_path=image.ms_path,
+        cal_table=image.cal_table,
+        pointing_ra_deg=image.center_ra_deg,
+        pointing_dec_deg=image.center_dec_deg,
+        qa_grade=image.qa_grade,
+        qa_summary=image.qa_summary,
+        run_id=image.run_id,
+        created_at=datetime.fromtimestamp(image.created_at) if image.created_at else None,
+    )
 
 
 @router.get("/{image_id}/provenance", response_model=ProvenanceResponse)
@@ -96,38 +89,30 @@ async def get_image_provenance(
 ):
     """
     Get provenance information for an image.
+    
+    Raises:
+        RecordNotFoundError: If image is not found
     """
-    try:
-        image = service.get_image(image_id)
-        if not image:
-            raise HTTPException(
-                status_code=404,
-                detail=image_not_found(image_id).to_dict(),
-            )
-        
-        links = service.build_provenance_links(image)
-        
-        return ProvenanceResponse(
-            run_id=image.run_id,
-            ms_path=image.ms_path,
-            cal_table=image.cal_table,
-            pointing_ra_deg=image.center_ra_deg,
-            pointing_dec_deg=image.center_dec_deg,
-            qa_grade=image.qa_grade,
-            qa_summary=image.qa_summary,
-            logs_url=links["logs_url"],
-            qa_url=links["qa_url"],
-            ms_url=links["ms_url"],
-            image_url=links["image_url"],
-            created_at=datetime.fromtimestamp(image.created_at) if image.created_at else None,
-        )
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=internal_error(f"Failed to retrieve image provenance: {str(e)}").to_dict(),
-        )
+    image = service.get_image(image_id)
+    if not image:
+        raise RecordNotFoundError("Image", image_id)
+    
+    links = service.build_provenance_links(image)
+    
+    return ProvenanceResponse(
+        run_id=image.run_id,
+        ms_path=image.ms_path,
+        cal_table=image.cal_table,
+        pointing_ra_deg=image.center_ra_deg,
+        pointing_dec_deg=image.center_dec_deg,
+        qa_grade=image.qa_grade,
+        qa_summary=image.qa_summary,
+        logs_url=links["logs_url"],
+        qa_url=links["qa_url"],
+        ms_url=links["ms_url"],
+        image_url=links["image_url"],
+        created_at=datetime.fromtimestamp(image.created_at) if image.created_at else None,
+    )
 
 
 @router.get("/{image_id}/qa")
@@ -137,23 +122,15 @@ async def get_image_qa_detail(
 ):
     """
     Get detailed QA report for an image.
+    
+    Raises:
+        RecordNotFoundError: If image is not found
     """
-    try:
-        image = service.get_image(image_id)
-        if not image:
-            raise HTTPException(
-                status_code=404,
-                detail=image_not_found(image_id).to_dict(),
-            )
-        
-        return service.build_qa_report(image)
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=internal_error(f"Failed to retrieve image QA: {str(e)}").to_dict(),
-        )
+    image = service.get_image(image_id)
+    if not image:
+        raise RecordNotFoundError("Image", image_id)
+    
+    return service.build_qa_report(image)
 
 
 @router.get("/{image_id}/fits")
@@ -161,31 +138,23 @@ async def download_image_fits(
     image_id: str,
     service: ImageService = Depends(get_image_service),
 ):
-    """Download the FITS file for an image."""
-    try:
-        image = service.get_image(image_id)
-        if not image:
-            raise HTTPException(
-                status_code=404,
-                detail=image_not_found(image_id).to_dict(),
-            )
-        
-        valid, error = service.validate_fits_file(image)
-        if not valid:
-            raise HTTPException(
-                status_code=404,
-                detail=internal_error(error).to_dict(),
-            )
-        
-        return FileResponse(
-            path=image.path,
-            media_type="application/fits",
-            filename=service.get_fits_filename(image),
-        )
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=internal_error(f"Failed to download FITS: {str(e)}").to_dict(),
-        )
+    """
+    Download the FITS file for an image.
+    
+    Raises:
+        RecordNotFoundError: If image is not found
+        FileNotAccessibleError: If FITS file is not accessible
+    """
+    image = service.get_image(image_id)
+    if not image:
+        raise RecordNotFoundError("Image", image_id)
+    
+    valid, error = service.validate_fits_file(image)
+    if not valid:
+        raise FileNotAccessibleError(image.path, "read")
+    
+    return FileResponse(
+        path=image.path,
+        media_type="application/fits",
+        filename=service.get_fits_filename(image),
+    )
