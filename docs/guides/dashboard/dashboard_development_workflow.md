@@ -435,7 +435,7 @@ npm install
 npm run dev -- --port 5174
 
 # Or kill process using port
-lsof -ti:5173 | xargs kill
+lsof -ti:3000 | xargs kill
 ```
 
 ---

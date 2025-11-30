@@ -186,7 +186,7 @@ if [[ $RETRY_COUNT -eq $MAX_RETRIES ]]; then
 fi
 
 # Check frontend
-FRONTEND_URL="http://localhost:5173"
+FRONTEND_URL="http://localhost:3000"
 RETRY_COUNT=0
 
 while [[ $RETRY_COUNT -lt $MAX_RETRIES ]]; do
@@ -228,7 +228,7 @@ echo "Mode: $MODE"
 echo "Services deployed: ${SERVICES[*]}"
 echo ""
 echo "Access points:"
-echo "  - Frontend: http://localhost:5173"
+echo "  - Frontend: http://localhost:3000"
 echo "  - API:      http://localhost:${CONTIMG_API_PORT}"
 echo ""
 echo "Useful commands:"
@@ -239,7 +239,7 @@ echo "  - Status:       docker-compose ps"
 echo ""
 if [[ "$MODE" == "streaming" ]] || [[ "$MODE" == "both" ]]; then
   echo "Streaming service can be controlled via the dashboard at:"
-  echo "  http://localhost:5173/streaming"
+  echo "  http://localhost:3000/streaming"
   echo ""
 fi
 

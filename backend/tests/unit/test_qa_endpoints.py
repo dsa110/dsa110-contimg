@@ -14,6 +14,19 @@ from fastapi.testclient import TestClient
 from dsa110_contimg.api.app import create_app
 
 
+def assert_error_response(data: dict, context: str = ""):
+    """Assert that a response contains a valid error structure.
+    
+    Supports both old format (detail field) and new format (error/message/details).
+    """
+    # New exception format uses error, message, details
+    has_new_format = "message" in data and "error" in data
+    # Old format uses detail
+    has_old_format = "detail" in data
+    
+    assert has_new_format or has_old_format, f"{context} Response should have error structure: {data}"
+
+
 @pytest.fixture
 def client():
     """Create a test client for the API."""
@@ -38,7 +51,7 @@ class TestImageQAEndpoint:
         
         assert response.status_code == 404
         data = response.json()
-        assert "detail" in data
+        assert_error_response(data, "image QA 404")
 
     def test_image_qa_legacy_route(self, client):
         """Test /api/images/{id}/qa legacy route works."""

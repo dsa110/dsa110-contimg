@@ -47,7 +47,7 @@ Expected output:
   VITE v5.x.x  ready in xxx ms
 
   :heavy_round-tipped_rightwards_arrow:  Local:   http://localhost:3000/
-  :heavy_round-tipped_rightwards_arrow:  Network: http://192.168.x.x:5173/
+  :heavy_round-tipped_rightwards_arrow:  Network: http://192.168.x.x:3000/
 ```
 
 ## Accessing the Control Panel

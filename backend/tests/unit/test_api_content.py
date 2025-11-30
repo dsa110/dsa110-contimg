@@ -13,6 +13,19 @@ from fastapi.testclient import TestClient
 from dsa110_contimg.api.app import create_app
 
 
+def assert_error_response(data: dict, context: str = ""):
+    """Assert that a response contains a valid error structure.
+    
+    Supports both old format (detail field) and new format (error/message/details).
+    """
+    # New exception format uses error, message, details
+    has_new_format = "message" in data and "error" in data
+    # Old format uses detail
+    has_old_format = "detail" in data
+    
+    assert has_new_format or has_old_format, f"{context} Response should have error structure: {data}"
+
+
 @pytest.fixture
 def client():
     """Create a test client for the API."""

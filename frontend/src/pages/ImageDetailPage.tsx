@@ -16,7 +16,7 @@ import { FitsViewer } from "../components/fits";
 import { RatingCard, RatingTag } from "../components/rating";
 import { mapProvenanceFromImageDetail } from "../utils/provenanceMappers";
 import { relativeTime } from "../utils/relativeTime";
-import type { ErrorResponse } from "../types";
+import type { ErrorResponse, ImageDetail } from "../types";
 import { useImageDetail } from "../hooks/useImageDetail";
 import { ROUTES } from "../constants/routes";
 
@@ -276,7 +276,13 @@ const ImageDetailPage: React.FC = () => {
                       }
                     : undefined
                 }
-                onSubmit={handleRatingSubmit}
+                onSubmit={(rating) =>
+                  submitRating({
+                    confidence: rating.confidence,
+                    tagId: rating.tagId,
+                    notes: rating.notes,
+                  })
+                }
               />
             </Card>
           )}
