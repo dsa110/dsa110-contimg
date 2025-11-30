@@ -139,31 +139,28 @@ def create_app() -> FastAPI:
     # Also register at /api for backwards compatibility
     legacy_prefix = "/api"
     
+    # Define routers with their tags for cleaner registration
+    api_routers = [
+        (images_router, "Images"),
+        (ms_router, "Measurement Sets"),
+        (sources_router, "Sources"),
+        (jobs_router, "Jobs"),
+        (queue_router, "Queue"),
+        (qa_router, "Quality Assurance"),
+        (cal_router, "Calibration"),
+        (logs_router, "Logs"),
+        (stats_router, "Statistics"),
+        (cache_router, "Cache"),
+        (services_router, "Services"),
+    ]
+    
     # Register API routers with versioned prefix
-    app.include_router(images_router, prefix=api_prefix, tags=["Images"])
-    app.include_router(ms_router, prefix=api_prefix, tags=["Measurement Sets"])
-    app.include_router(sources_router, prefix=api_prefix, tags=["Sources"])
-    app.include_router(jobs_router, prefix=api_prefix, tags=["Jobs"])
-    app.include_router(queue_router, prefix=api_prefix, tags=["Queue"])
-    app.include_router(qa_router, prefix=api_prefix, tags=["Quality Assurance"])
-    app.include_router(cal_router, prefix=api_prefix, tags=["Calibration"])
-    app.include_router(logs_router, prefix=api_prefix, tags=["Logs"])
-    app.include_router(stats_router, prefix=api_prefix, tags=["Statistics"])
-    app.include_router(cache_router, prefix=api_prefix, tags=["Cache"])
-    app.include_router(services_router, prefix=api_prefix, tags=["Services"])
+    for router, tag in api_routers:
+        app.include_router(router, prefix=api_prefix, tags=[tag])
     
     # Legacy /api routes for backwards compatibility
-    app.include_router(images_router, prefix=legacy_prefix, include_in_schema=False)
-    app.include_router(ms_router, prefix=legacy_prefix, include_in_schema=False)
-    app.include_router(sources_router, prefix=legacy_prefix, include_in_schema=False)
-    app.include_router(jobs_router, prefix=legacy_prefix, include_in_schema=False)
-    app.include_router(queue_router, prefix=legacy_prefix, include_in_schema=False)
-    app.include_router(qa_router, prefix=legacy_prefix, include_in_schema=False)
-    app.include_router(cal_router, prefix=legacy_prefix, include_in_schema=False)
-    app.include_router(logs_router, prefix=legacy_prefix, include_in_schema=False)
-    app.include_router(stats_router, prefix=legacy_prefix, include_in_schema=False)
-    app.include_router(cache_router, prefix=legacy_prefix, include_in_schema=False)
-    app.include_router(services_router, prefix=legacy_prefix, include_in_schema=False)
+    for router, _ in api_routers:
+        app.include_router(router, prefix=legacy_prefix, include_in_schema=False)
     
     # WebSocket routes for real-time updates
     app.include_router(ws_router, prefix="/api/v1", tags=["WebSocket"])
@@ -242,9 +239,9 @@ def create_app() -> FastAPI:
             # Check Redis connectivity
             redis_status = {"status": "unknown"}
             try:
-                import redis
+                import redis as redis_module
                 redis_url = os.getenv("DSA110_REDIS_URL", "redis://localhost:6379")
-                r = redis.from_url(redis_url, socket_timeout=2.0)
+                r = redis_module.from_url(redis_url, socket_timeout=2.0)
                 if r.ping():
                     info = r.info("server")
                     redis_status = {
@@ -253,10 +250,11 @@ def create_app() -> FastAPI:
                     }
                 else:
                     redis_status = {"status": "error", "message": "ping failed"}
-            except redis.ConnectionError:
-                redis_status = {"status": "unavailable", "message": "connection failed"}
+            except ImportError:
+                redis_status = {"status": "unavailable", "message": "redis module not installed"}
             except Exception as e:
-                redis_status = {"status": "error", "message": str(e)[:50]}
+                # Catch all redis-related exceptions (ConnectionError, etc.)
+                redis_status = {"status": "unavailable", "message": str(e)[:50]}
             response["redis"] = redis_status
             
             # Check disk space

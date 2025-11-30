@@ -21,8 +21,31 @@ import sys
 import pytest
 from typing import Generator
 
-from fastapi.testclient import TestClient
 
+def pytest_configure(config):
+    """
+    Clear config caches at test session start.
+    
+    This ensures environment variables set in CI are respected by clearing
+    any cached configurations from module import time.
+    """
+    # Clear API config cache if already imported
+    try:
+        from dsa110_contimg.api.config import get_config
+        get_config.cache_clear()
+    except ImportError:
+        pass
+    
+    # Reset database session engines to pick up new paths
+    try:
+        from dsa110_contimg.database.session import reset_engines
+        reset_engines()
+    except ImportError:
+        pass
+
+
+# Import after clearing caches
+from fastapi.testclient import TestClient
 from dsa110_contimg.api.app import create_app
 
 
