@@ -164,7 +164,7 @@ describe("EtaVPlot", () => {
     it("has accessible chart region", () => {
       render(<EtaVPlot {...defaultProps} />);
       // Chart should be in a region or have appropriate role
-      const chartContainer = document.querySelector(
+      const _chartContainer = document.querySelector(
         '[role="img"], [aria-label*="plot"], [aria-label*="chart"]'
       );
       // If no explicit role, at least the container should exist
