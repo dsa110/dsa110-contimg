@@ -178,7 +178,7 @@ def main():
     print(":check: Synthetic image generation complete!")
     print("=" * 60)
     print(f"\nImages created in: {IMAGES_DIR}")
-    print(f"Access SkyView at: http://localhost:5173/skyview")
+    print(f"Access SkyView at: http://localhost:3000/skyview")
     print()
 
     return 0
