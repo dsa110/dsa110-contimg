@@ -141,6 +141,46 @@ async def get_image_detail(image_id: str):
         )
 
 
+
+
+@images_router.get("/{image_id}/provenance", response_model=ProvenanceResponse)
+async def get_image_provenance(image_id: str):
+    """
+    Get provenance information for an image.
+    
+    Returns the pipeline context including input MS, calibration,
+    and links to related resources.
+    """
+    try:
+        image = image_repo.get_by_id(image_id)
+        if not image:
+            raise HTTPException(
+                status_code=404,
+                detail=image_not_found(image_id).to_dict(),
+            )
+        
+        return ProvenanceResponse(
+            run_id=image.run_id,
+            ms_path=image.ms_path,
+            cal_table=image.cal_table,
+            pointing_ra_deg=image.center_ra_deg,
+            pointing_dec_deg=image.center_dec_deg,
+            qa_grade=image.qa_grade,
+            qa_summary=image.qa_summary,
+            logs_url=f"/api/logs/{image.run_id}" if image.run_id else None,
+            qa_url=f"/api/qa/image/{image_id}",
+            ms_url=f"/api/ms/{quote(image.ms_path, safe='')}/metadata" if image.ms_path else None,
+            image_url=f"/api/images/{image_id}",
+            created_at=datetime.fromtimestamp(image.created_at) if image.created_at else None,
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=internal_error(f"Failed to retrieve image provenance: {str(e)}").to_dict(),
+        )
+
 @images_router.get("/{image_id}/fits")
 async def download_image_fits(image_id: str):
     """Download the FITS file for an image."""
