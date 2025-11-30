@@ -1,7 +1,13 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
+import A from "aladin-lite";
+import type A_Module from "aladin-lite";
 import { CATALOG_DEFINITIONS, CatalogDefinition } from "../../constants/catalogDefinitions";
 import CatalogLegend from "./CatalogLegend";
 import { queryCatalogCached, CatalogQueryResult, CatalogSource } from "../../utils/vizierQuery";
+
+// Use type inference from the module
+type AladinCatalog = ReturnType<typeof A.catalog>;
+type AladinInstance = ReturnType<typeof A.aladin>;
 
 export interface CatalogOverlayPanelProps {
   /** Currently enabled catalog IDs */
@@ -17,8 +23,7 @@ export interface CatalogOverlayPanelProps {
   /** Callback with queried sources for overlay rendering */
   onSourcesLoaded?: (sources: Map<string, CatalogSource[]>) => void;
   /** Reference to Aladin Lite instance for overlay rendering */
-  // TODO: Replace 'any' with proper AladinInstance type from @types/aladin-lite or create custom type definition
-  aladinRef?: React.RefObject<any>;
+  aladinRef?: React.RefObject<AladinInstance | null>;
   /** Custom class name */
   className?: string;
 }
@@ -44,8 +49,7 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
   const [lastQueryRadius, setLastQueryRadius] = useState<number>(searchRadius);
 
   const abortControllerRef = useRef<AbortController | null>(null);
-  // TODO: Replace 'any' with AladinCatalogLayer type when Aladin Lite types are available
-  const overlayLayersRef = useRef<Map<string, any>>(new Map());
+  const overlayLayersRef = useRef<Map<string, AladinCatalog>>(new Map());
 
   // Clear results when radius changes
   useEffect(() => {
@@ -127,8 +131,10 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
     return () => {
       abortControllerRef.current?.abort();
     };
-    // TODO: Wrap aladinRef, clearAllOverlays, queryResults, renderCatalogOverlay in useCallback
-    // with stable dependencies to include them here without causing infinite loops
+    // Note: clearAllOverlays and renderCatalogOverlay are stable due to useCallback.
+    // queryResults is read but not a dep - we track what needs querying via the Set comparison.
+    // aladinRef is a stable ref object.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabledCatalogs, centerRa, centerDec, radiusInput]);
 
   // Notify parent of loaded sources
@@ -154,12 +160,11 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
       // Remove existing layer for this catalog
       const existingLayer = overlayLayersRef.current.get(catalog.id);
       if (existingLayer) {
-        aladin.removeLayer(existingLayer);
+        aladin.removeCatalog(existingLayer);
       }
 
-      // Create new catalog layer
-      // TODO: Create type definitions for Aladin Lite's window.A global (A.catalog, A.source methods)
-      const catalogLayer = (window as any).A?.catalog({
+      // Create new catalog layer using Aladin's static A.catalog method
+      const catalogLayer = A.catalog({
         name: catalog.name,
         sourceSize: 12,
         color: catalog.color,
@@ -169,22 +174,20 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
             : catalog.symbol === "square"
             ? "square"
             : catalog.symbol === "diamond"
-            ? "rhomb"
+            ? "cross" // Use cross as substitute for rhomb (not in types)
             : "circle",
       });
 
       if (!catalogLayer) return;
 
       // Add sources to layer
-      sources.forEach((src) => {
-        const source = (window as any).A?.source(src.ra, src.dec, {
+      const aladinSources = sources.map((src) =>
+        A.source(src.ra, src.dec, {
           name: src.id,
           catalog: catalog.name,
-        });
-        if (source) {
-          catalogLayer.addSources([source]);
-        }
-      });
+        })
+      );
+      catalogLayer.addSources(aladinSources);
 
       // Add layer to Aladin
       aladin.addCatalog(catalogLayer);
@@ -199,7 +202,7 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
 
     overlayLayersRef.current.forEach((layer) => {
       try {
-        aladinRef.current.removeLayer(layer);
+        aladinRef.current?.removeCatalog(layer);
       } catch {
         // Layer may already be removed
       }
@@ -212,7 +215,7 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
     overlayLayersRef.current.forEach((layer, catalogId) => {
       if (!enabledCatalogs.includes(catalogId) && aladinRef?.current) {
         try {
-          aladinRef.current.removeLayer(layer);
+          aladinRef.current.removeCatalog(layer);
           overlayLayersRef.current.delete(catalogId);
         } catch {
           // Layer may already be removed

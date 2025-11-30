@@ -257,22 +257,28 @@ class TestSourceService:
         from dsa110_contimg.api.services.async_services import AsyncSourceService
         return AsyncSourceService(repository=mock_repo)
     
-    def test_get_source_calls_repo(self, source_service, mock_repo):
+    @pytest.mark.asyncio
+    async def test_get_source_calls_repo(self, source_service, mock_repo):
         """Test get_source delegates to repository."""
-        mock_repo.get_by_id.return_value = MockSourceRecord()
-        source_service.get_source("src-001")
+        from unittest.mock import AsyncMock
+        mock_repo.get_by_id = AsyncMock(return_value=MockSourceRecord())
+        await source_service.get_source("src-001")
         mock_repo.get_by_id.assert_called_once_with("src-001")
     
-    def test_list_sources_calls_repo(self, source_service, mock_repo):
+    @pytest.mark.asyncio
+    async def test_list_sources_calls_repo(self, source_service, mock_repo):
         """Test list_sources delegates to repository."""
-        mock_repo.list_all.return_value = [MockSourceRecord()]
-        source_service.list_sources(limit=25, offset=5)
+        from unittest.mock import AsyncMock
+        mock_repo.list_all = AsyncMock(return_value=[MockSourceRecord()])
+        await source_service.list_sources(limit=25, offset=5)
         mock_repo.list_all.assert_called_once_with(limit=25, offset=5)
     
-    def test_get_lightcurve_calls_repo(self, source_service, mock_repo):
+    @pytest.mark.asyncio
+    async def test_get_lightcurve_calls_repo(self, source_service, mock_repo):
         """Test get_lightcurve delegates to repository."""
-        mock_repo.get_lightcurve.return_value = []
-        source_service.get_lightcurve("src-001", start_mjd=59000.0, end_mjd=60000.0)
+        from unittest.mock import AsyncMock
+        mock_repo.get_lightcurve = AsyncMock(return_value=[])
+        await source_service.get_lightcurve("src-001", start_mjd=59000.0, end_mjd=60000.0)
         mock_repo.get_lightcurve.assert_called_once_with("src-001", 59000.0, 60000.0)
     
     def test_calculate_variability_insufficient_epochs(self, source_service):
@@ -380,16 +386,20 @@ class TestJobService:
         from dsa110_contimg.api.services.async_services import AsyncJobService
         return AsyncJobService(repository=mock_repo)
     
-    def test_get_job_calls_repo(self, job_service, mock_repo):
+    @pytest.mark.asyncio
+    async def test_get_job_calls_repo(self, job_service, mock_repo):
         """Test get_job delegates to repository."""
-        mock_repo.get_by_run_id.return_value = MockJobRecord()
-        job_service.get_job("run-001")
+        from unittest.mock import AsyncMock
+        mock_repo.get_by_run_id = AsyncMock(return_value=MockJobRecord())
+        await job_service.get_job("run-001")
         mock_repo.get_by_run_id.assert_called_once_with("run-001")
     
-    def test_list_jobs_calls_repo(self, job_service, mock_repo):
+    @pytest.mark.asyncio
+    async def test_list_jobs_calls_repo(self, job_service, mock_repo):
         """Test list_jobs delegates to repository."""
-        mock_repo.list_all.return_value = [MockJobRecord()]
-        job_service.list_jobs(limit=20, offset=0)
+        from unittest.mock import AsyncMock
+        mock_repo.list_all = AsyncMock(return_value=[MockJobRecord()])
+        await job_service.list_jobs(limit=20, offset=0)
         mock_repo.list_all.assert_called_once_with(limit=20, offset=0)
     
     def test_get_job_status_completed(self, job_service):
@@ -472,10 +482,12 @@ class TestMSService:
         from dsa110_contimg.api.services.async_services import AsyncMSService
         return AsyncMSService(repository=mock_repo)
     
-    def test_get_metadata_calls_repo(self, ms_service, mock_repo):
-        """Test get_metadata delegates to repository."""
-        mock_repo.get_metadata.return_value = MockMSRecord()
-        ms_service.get_metadata("/data/test.ms")
+    @pytest.mark.asyncio
+    async def test_get_metadata_calls_repo(self, ms_service, mock_repo):
+        """Test get_ms_metadata delegates to repository."""
+        from unittest.mock import AsyncMock
+        mock_repo.get_metadata = AsyncMock(return_value=MockMSRecord())
+        await ms_service.get_ms_metadata("/data/test.ms")
         mock_repo.get_metadata.assert_called_once_with("/data/test.ms")
     
     def test_get_pointing_prefers_explicit(self, ms_service):
