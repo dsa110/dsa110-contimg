@@ -1,0 +1,66 @@
+{
+  "metadata": {
+    "db_path": "/tmp/tmp6tqzo5wb/test_benchmark.db",
+    "num_requests": 1000,
+    "concurrency": 50,
+    "timestamp": "2025-11-30T16:29:38.568681"
+  },
+  "results": [
+    {
+      "strategy": "Single Shared Connection (Current)",
+      "throughput": 941.1,
+      "timing_ms": {
+        "min": 35.08,
+        "max": 90.43,
+        "mean": 51.43,
+        "median": 49.78,
+        "p95": 59.88,
+        "p99": 81.7,
+        "std_dev": 5.75
+      },
+      "errors": 0
+    },
+    {
+      "strategy": "No Pooling (New Connection Each Request)",
+      "throughput": 291.7,
+      "timing_ms": {
+        "min": 39.77,
+        "max": 243.21,
+        "mean": 167.88,
+        "median": 168.35,
+        "p95": 203.23,
+        "p99": 217.57,
+        "std_dev": 22.73
+      },
+      "errors": 0
+    },
+    {
+      "strategy": "Connection Pool (2-5 connections)",
+      "throughput": 560.8,
+      "timing_ms": {
+        "min": 1.68,
+        "max": 115.18,
+        "mean": 87.13,
+        "median": 91.39,
+        "p95": 103.92,
+        "p99": 109.08,
+        "std_dev": 18.85
+      },
+      "errors": 0
+    },
+    {
+      "strategy": "Connection Pool (5-20 connections)",
+      "throughput": 371.2,
+      "timing_ms": {
+        "min": 34.79,
+        "max": 195.73,
+        "mean": 132.16,
+        "median": 137.55,
+        "p95": 160.23,
+        "p99": 171.77,
+        "std_dev": 27.51
+      },
+      "errors": 0
+    }
+  ]
+}

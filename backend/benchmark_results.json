@@ -1,0 +1,234 @@
+{
+  "metadata": {
+    "base_url": "http://localhost:8889",
+    "num_requests": 500,
+    "concurrency": 50,
+    "timestamp": "2025-11-30T16:25:33.120307"
+  },
+  "sync_results": {
+    "/api/v1/health": {
+      "endpoint": "/api/v1/health",
+      "total_requests": 500,
+      "successful_requests": 500,
+      "failed_requests": 0,
+      "error_rate": "0.00%",
+      "timing_ms": {
+        "min": 4.27,
+        "max": 479.92,
+        "mean": 58.07,
+        "median": 40.87,
+        "p95": 154.1,
+        "p99": 330.97,
+        "std_dev": 59.74
+      },
+      "throughput": {
+        "requests_per_second": 283.29,
+        "total_duration_seconds": 1.76
+      }
+    },
+    "/api/v1/images": {
+      "endpoint": "/api/v1/images",
+      "total_requests": 500,
+      "successful_requests": 500,
+      "failed_requests": 0,
+      "error_rate": "0.00%",
+      "timing_ms": {
+        "min": 42.54,
+        "max": 348.31,
+        "mean": 261.71,
+        "median": 263.68,
+        "p95": 306.09,
+        "p99": 327.54,
+        "std_dev": 34.92
+      },
+      "throughput": {
+        "requests_per_second": 181.82,
+        "total_duration_seconds": 2.75
+      }
+    },
+    "/api/v1/sources": {
+      "endpoint": "/api/v1/sources",
+      "total_requests": 500,
+      "successful_requests": 500,
+      "failed_requests": 0,
+      "error_rate": "0.00%",
+      "timing_ms": {
+        "min": 9.9,
+        "max": 293.95,
+        "mean": 164.78,
+        "median": 175.82,
+        "p95": 226.77,
+        "p99": 258.34,
+        "std_dev": 52.67
+      },
+      "throughput": {
+        "requests_per_second": 264.79,
+        "total_duration_seconds": 1.89
+      }
+    },
+    "/api/v1/jobs": {
+      "endpoint": "/api/v1/jobs",
+      "total_requests": 500,
+      "successful_requests": 500,
+      "failed_requests": 0,
+      "error_rate": "0.00%",
+      "timing_ms": {
+        "min": 26.75,
+        "max": 336.46,
+        "mean": 234.61,
+        "median": 245.43,
+        "p95": 300.46,
+        "p99": 325.28,
+        "std_dev": 55.51
+      },
+      "throughput": {
+        "requests_per_second": 197.27,
+        "total_duration_seconds": 2.53
+      }
+    },
+    "/api/v1/stats": {
+      "endpoint": "/api/v1/stats",
+      "total_requests": 500,
+      "successful_requests": 500,
+      "failed_requests": 0,
+      "error_rate": "0.00%",
+      "timing_ms": {
+        "min": 7.66,
+        "max": 480.52,
+        "mean": 98.4,
+        "median": 74.84,
+        "p95": 252.18,
+        "p99": 385.52,
+        "std_dev": 80.43
+      },
+      "throughput": {
+        "requests_per_second": 278.68,
+        "total_duration_seconds": 1.79
+      }
+    }
+  },
+  "async_results": {
+    "/api/v1/health": {
+      "endpoint": "/api/v1/health",
+      "total_requests": 500,
+      "successful_requests": 500,
+      "failed_requests": 0,
+      "error_rate": "0.00%",
+      "timing_ms": {
+        "min": 15.96,
+        "max": 542.57,
+        "mean": 121.98,
+        "median": 95.61,
+        "p95": 303.18,
+        "p99": 497.03,
+        "std_dev": 102.48
+      },
+      "throughput": {
+        "requests_per_second": 356.49,
+        "total_duration_seconds": 1.4
+      }
+    },
+    "/api/v1/images": {
+      "endpoint": "/api/v1/images",
+      "total_requests": 500,
+      "successful_requests": 500,
+      "failed_requests": 0,
+      "error_rate": "0.00%",
+      "timing_ms": {
+        "min": 99.35,
+        "max": 401.88,
+        "mean": 276.77,
+        "median": 275.11,
+        "p95": 371.58,
+        "p99": 392.03,
+        "std_dev": 53.58
+      },
+      "throughput": {
+        "requests_per_second": 175.41,
+        "total_duration_seconds": 2.85
+      }
+    },
+    "/api/v1/sources": {
+      "endpoint": "/api/v1/sources",
+      "total_requests": 500,
+      "successful_requests": 500,
+      "failed_requests": 0,
+      "error_rate": "0.00%",
+      "timing_ms": {
+        "min": 82.5,
+        "max": 341.09,
+        "mean": 203.2,
+        "median": 199.34,
+        "p95": 299.51,
+        "p99": 326.01,
+        "std_dev": 56.51
+      },
+      "throughput": {
+        "requests_per_second": 235.84,
+        "total_duration_seconds": 2.12
+      }
+    },
+    "/api/v1/jobs": {
+      "endpoint": "/api/v1/jobs",
+      "total_requests": 500,
+      "successful_requests": 500,
+      "failed_requests": 0,
+      "error_rate": "0.00%",
+      "timing_ms": {
+        "min": 105.21,
+        "max": 363.35,
+        "mean": 251.8,
+        "median": 253.17,
+        "p95": 324.17,
+        "p99": 342.12,
+        "std_dev": 46.46
+      },
+      "throughput": {
+        "requests_per_second": 192.06,
+        "total_duration_seconds": 2.6
+      }
+    },
+    "/api/v1/stats": {
+      "endpoint": "/api/v1/stats",
+      "total_requests": 500,
+      "successful_requests": 500,
+      "failed_requests": 0,
+      "error_rate": "0.00%",
+      "timing_ms": {
+        "min": 104.26,
+        "max": 263.85,
+        "mean": 188.36,
+        "median": 184.98,
+        "p95": 246.04,
+        "p99": 257.44,
+        "std_dev": 32.13
+      },
+      "throughput": {
+        "requests_per_second": 253.72,
+        "total_duration_seconds": 1.97
+      }
+    }
+  },
+  "comparisons": {
+    "/api/v1/health": {
+      "throughput_improvement_pct": 25.84,
+      "mean_time_improvement_pct": -110.04
+    },
+    "/api/v1/images": {
+      "throughput_improvement_pct": -3.53,
+      "mean_time_improvement_pct": -5.75
+    },
+    "/api/v1/sources": {
+      "throughput_improvement_pct": -10.93,
+      "mean_time_improvement_pct": -23.32
+    },
+    "/api/v1/jobs": {
+      "throughput_improvement_pct": -2.64,
+      "mean_time_improvement_pct": -7.33
+    },
+    "/api/v1/stats": {
+      "throughput_improvement_pct": -8.96,
+      "mean_time_improvement_pct": -91.41
+    }
+  }
+}
