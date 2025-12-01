@@ -97,14 +97,14 @@ def file_lock(lock_path: Path, timeout: float = 300.0, poll_interval: float = 1.
                 fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
                 lock_file.close()
                 logger.debug(f"Released lock: {lock_path}")
-            except Exception as e:
+            except OSError as e:
                 logger.warning(f"Error releasing lock {lock_path}: {e}")
 
             # Clean up lock file if empty or stale
             try:
                 if lock_path.exists() and lock_path.stat().st_size == 0:
                     lock_path.unlink()
-            except Exception:
+            except OSError:
                 pass
 
 
@@ -134,7 +134,7 @@ def check_lock(lock_path: Path) -> tuple[bool, Optional[str]]:
             except (ValueError, OSError):
                 # PID invalid or process doesn't exist - stale lock
                 return False, None
-    except Exception:
+    except OSError:
         return False, None
 
 

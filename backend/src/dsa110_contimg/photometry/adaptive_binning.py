@@ -146,7 +146,7 @@ def _try_adjacent_misfits(
                         bin_width=len(series),
                     )
                 )
-        except Exception:
+        except (ValueError, RuntimeError):
             # Skip if measurement fails
             continue
 
@@ -244,7 +244,7 @@ def adaptive_bin_channels(
                         # Not detected - add back to pool for next iteration
                         new_all_channels.extend(slice_channels)
 
-                except Exception:
+                except (ValueError, RuntimeError):
                     # Measurement failed - add back to pool
                     new_all_channels.extend(slice_channels)
 

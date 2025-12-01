@@ -162,7 +162,7 @@ def validate_time_mjd(mjd: float, year_range: Tuple[int, int] = DEFAULT_YEAR_RAN
         t = Time(mjd, format="mjd")
         year = t.datetime.year
         return year_range[0] <= year <= year_range[1]
-    except Exception:
+    except (ValueError, OverflowError):
         return False
 
 
@@ -293,9 +293,9 @@ def extract_ms_time_range(
         finally:
             try:
                 msmd.close()
-            except Exception:
+            except (OSError, RuntimeError):
                 pass
-    except Exception as e:
+    except (OSError, RuntimeError) as e:
         logger.debug(f"Failed to open msmetadata for {ms_path}: {e}")
 
     # Method 2: msmetadata.timesforscans() - returns seconds, needs epoch conversion
@@ -327,9 +327,9 @@ def extract_ms_time_range(
         finally:
             try:
                 msmd.close()
-            except Exception:
+            except (OSError, RuntimeError):
                 pass
-    except Exception:
+    except (OSError, RuntimeError, ImportError):
         pass
 
     # Method 3: Main table TIME column - seconds, needs epoch conversion

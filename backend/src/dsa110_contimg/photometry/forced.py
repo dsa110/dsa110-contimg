@@ -511,7 +511,7 @@ def measure_forced_peak(
         def _to_arcsec(v: float) -> float:
             try:
                 val = float(v)
-            except Exception:
+            except (TypeError, ValueError):
                 return float("nan")
             return val if val > 2.0 else val * 3600.0
 
@@ -775,7 +775,7 @@ def _measure_cluster(
         model = fitted_model(xx, yy)
         chisq_total = (((cutout_data[good] - model[good]) / cutout_noise[good]) ** 2).sum()
         dof_total = int(good.sum() - len(positions))
-    except Exception:
+    except (RuntimeError, ValueError, np.linalg.LinAlgError):
         # Fit failed, return NaN results
         return [
             ForcedPhotometryResult(

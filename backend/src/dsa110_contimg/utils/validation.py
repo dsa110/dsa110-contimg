@@ -176,7 +176,7 @@ def validate_ms(
 
     try:
         table  # ensure symbol exists
-    except Exception:
+    except NameError:
         raise ValidationError(["Cannot import casacore.tables. Is CASA installed?"])
 
     try:
@@ -312,7 +312,7 @@ def validate_ms_for_calibration(
                     outriggers = get_outrigger_antennas(list(all_antennas))
                     if outriggers:
                         suggestions.append(f"Available outriggers: {outriggers}")
-                except Exception:
+                except (ValueError, KeyError, IndexError):
                     pass
 
                 error_msg = (
@@ -351,7 +351,7 @@ def validate_ms_for_calibration(
             unflagged_fraction = np.sum(~flags) / flags.size if flags.size > 0 else 0
             if unflagged_fraction < 0.1:
                 warnings.append(f"Very little unflagged data: {unflagged_fraction * 100:.1f}%")
-    except Exception:
+    except (OSError, RuntimeError, KeyError):
         pass  # Non-fatal check
 
     return warnings

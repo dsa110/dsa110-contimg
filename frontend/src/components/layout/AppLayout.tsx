@@ -6,6 +6,7 @@ import { NAV_ITEMS, ROUTES, isRouteActive } from "../../constants/routes";
 
 /**
  * Main application layout with navigation and content area.
+ * Uses GitHub-inspired dark theme optimized for astronomers.
  */
 const AppLayout: React.FC = () => {
   const location = useLocation();
@@ -14,15 +15,25 @@ const AppLayout: React.FC = () => {
   useNetworkNotifications();
 
   return (
-    <div className="min-h-screen flex flex-col bg-gray-50">
+    <div
+      className="min-h-screen flex flex-col"
+      style={{ backgroundColor: "var(--color-bg-default)" }}
+    >
       {/* Connection status banner (appears when offline/degraded) */}
       <ConnectionStatus showDetails />
 
-      {/* Header */}
-      <header className="bg-slate-900 text-white px-6 py-3 flex items-center gap-8 shadow-md">
+      {/* Header - Dark surface */}
+      <header
+        className="px-6 py-3 flex items-center gap-8 shadow-md"
+        style={{
+          backgroundColor: "var(--color-bg-paper)",
+          borderBottom: "1px solid var(--color-border)",
+        }}
+      >
         <Link
           to={ROUTES.HOME}
-          className="text-white no-underline font-bold text-xl hover:text-cyan-300 transition-colors"
+          className="no-underline font-bold text-xl transition-colors"
+          style={{ color: "var(--color-primary)" }}
         >
           DSA-110 Pipeline
         </Link>
@@ -31,11 +42,15 @@ const AppLayout: React.FC = () => {
             <Link
               key={item.path}
               to={item.path}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                isRouteActive(location.pathname, item.path)
-                  ? "bg-slate-700 text-cyan-300"
-                  : "text-gray-300 hover:bg-slate-800 hover:text-white"
-              }`}
+              className="px-4 py-2 rounded-md text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: isRouteActive(location.pathname, item.path)
+                  ? "var(--color-bg-surface)"
+                  : "transparent",
+                color: isRouteActive(location.pathname, item.path)
+                  ? "var(--color-primary)"
+                  : "var(--color-text-secondary)",
+              }}
             >
               {item.label}
             </Link>
@@ -48,9 +63,16 @@ const AppLayout: React.FC = () => {
         <Outlet />
       </main>
 
-      {/* Footer */}
-      <footer className="bg-slate-900 text-gray-400 px-6 py-3 text-center text-sm">
-        DSA-110 Continuum Imaging Pipeline :bullet: Deep Synoptic Array
+      {/* Footer - Dark surface */}
+      <footer
+        className="px-6 py-3 text-center text-sm"
+        style={{
+          backgroundColor: "var(--color-bg-paper)",
+          color: "var(--color-text-secondary)",
+          borderTop: "1px solid var(--color-border)",
+        }}
+      >
+        DSA-110 Continuum Imaging Pipeline • Deep Synoptic Array
       </footer>
     </div>
   );

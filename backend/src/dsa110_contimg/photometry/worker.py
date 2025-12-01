@@ -67,7 +67,7 @@ class PhotometryBatchWorker:
             if row["params"]:
                 try:
                     params = json.loads(row["params"])
-                except Exception:
+                except (json.JSONDecodeError, TypeError):
                     params = {}
 
             items = conn.execute(
@@ -112,7 +112,7 @@ class PhotometryBatchWorker:
                 """
             ).fetchall()
             return {row[0]: row[1] for row in counts}
-        except Exception:
+        except sqlite3.Error:
             logger.debug("Failed to fetch photometry batch status", exc_info=True)
             return {}
         finally:
@@ -151,7 +151,7 @@ class PhotometryBatchWorker:
             start_time = time.time()
             try:
                 run_batch_photometry_job(batch_id, fits_paths, coordinates, params, self.products_db_path)
-            except Exception:
+            except (OSError, ValueError, RuntimeError):
                 logger.exception(f"Batch photometry job {batch_id} failed")
             duration = time.time() - start_time
             logger.info(

@@ -298,7 +298,7 @@ def calculate_region_statistics(
                 from astropy.wcs import WCS
 
                 wcs = WCS(header)
-            except Exception:
+            except (ValueError, KeyError, ImportError):
                 wcs = None
 
             # Create mask for region

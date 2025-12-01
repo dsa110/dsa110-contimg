@@ -33,7 +33,7 @@ try:
     user_site = site.getusersitepackages()
     if user_site and user_site not in sys.path:
         sys.path.insert(0, user_site)
-except Exception:
+except (AttributeError, TypeError):
     pass  # Ignore if site module fails
 
 
@@ -75,7 +75,7 @@ def _check_aegean_available() -> Tuple[bool, Optional[str]]:
             return True, None
     except FileNotFoundError:
         pass
-    except Exception:
+    except (subprocess.SubprocessError, OSError):
         pass
 
     # Method 2: Check command-line script (in ~/.local/bin)
@@ -94,7 +94,7 @@ def _check_aegean_available() -> Tuple[bool, Optional[str]]:
             # Exit code 120 is normal for --version (it shows version then exits)
             if result.returncode in (0, 120) or "Aegean" in result.stdout:
                 return True, None
-    except Exception:
+    except (subprocess.SubprocessError, OSError):
         pass
 
     # Method 3: Check if module can be imported (for programmatic use)
@@ -132,7 +132,7 @@ def _check_bane_available() -> Tuple[bool, Optional[str]]:
             return True, None
     except FileNotFoundError:
         pass
-    except Exception:
+    except (subprocess.SubprocessError, OSError):
         pass
 
     # Method 2: Check Python module via -m flag
@@ -153,7 +153,7 @@ def _check_bane_available() -> Tuple[bool, Optional[str]]:
         )
         if result.returncode == 0:
             return True, None
-    except Exception:
+    except (subprocess.SubprocessError, OSError):
         pass
 
     # Method 2b: Check command-line script (in ~/.local/bin)
@@ -171,7 +171,7 @@ def _check_bane_available() -> Tuple[bool, Optional[str]]:
             )
             if result.returncode == 0:
                 return True, None
-    except Exception:
+    except (subprocess.SubprocessError, OSError):
         pass
 
     # Method 3: Check if module can be imported (for programmatic use)
@@ -276,7 +276,7 @@ def _get_bane_command() -> List[str]:
         )
         if result.returncode == 0:
             return [python_exe, "-m", "AegeanTools.CLI.BANE"]
-    except Exception:
+    except (subprocess.SubprocessError, OSError):
         pass
 
     # Try command-line script in ~/.local/bin
@@ -292,7 +292,7 @@ def _get_bane_command() -> List[str]:
             )
             if result.returncode == 0:
                 return [bane_script]
-    except Exception:
+    except (subprocess.SubprocessError, OSError):
         pass
 
     # Try command-line tool (if in PATH)
@@ -305,7 +305,7 @@ def _get_bane_command() -> List[str]:
         )
         if result.returncode == 0:
             return ["BANE"]
-    except Exception:
+    except (subprocess.SubprocessError, OSError):
         pass
 
     # Fallback: try Python module anyway
@@ -384,7 +384,7 @@ def _get_aegean_command() -> List[str]:
             # Exit code 120 is normal for --version
             if result.returncode in (0, 120) or "Aegean" in result.stdout:
                 return [aegean_script]
-    except Exception:
+    except (subprocess.SubprocessError, OSError):
         pass
 
     # Try command-line tool (if in PATH)
@@ -398,7 +398,7 @@ def _get_aegean_command() -> List[str]:
         # Exit code 120 is normal for --version
         if result.returncode in (0, 120) or "Aegean" in result.stdout:
             return ["aegean"]
-    except Exception:
+    except (subprocess.SubprocessError, OSError):
         pass
 
     # Fallback: try script path anyway
@@ -708,5 +708,5 @@ def measure_with_aegean(
 
             try:
                 shutil.rmtree(temp_dir_obj, ignore_errors=True)
-            except Exception:
+            except OSError:
                 pass  # Ignore cleanup errors

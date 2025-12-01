@@ -329,21 +329,21 @@ def estimate_ms_size(ms_path: str) -> dict:
         try:
             with table(f"{ms_path}::ANTENNA", readonly=True) as ant_tb:
                 n_antennas = ant_tb.nrows()
-        except Exception:
+        except (OSError, RuntimeError):
             n_antennas = 0
 
         # Get field count
         try:
             with table(f"{ms_path}::FIELD", readonly=True) as field_tb:
                 n_fields = field_tb.nrows()
-        except Exception:
+        except (OSError, RuntimeError):
             n_fields = 0
 
         # Get SPW count
         try:
             with table(f"{ms_path}::SPECTRAL_WINDOW", readonly=True) as spw_tb:
                 n_spws = spw_tb.nrows()
-        except Exception:
+        except (OSError, RuntimeError):
             n_spws = 1
 
         # Rough memory estimate: DATA + FLAG + MODEL_DATA + CORRECTED_DATA
@@ -411,7 +411,7 @@ def get_ms_metadata_cached(ms_path: str, mtime: float) -> Dict[str, Any]:  # noq
         with table(f"{ms_path}::SPECTRAL_WINDOW", readonly=True) as spw:
             metadata["chan_freq"] = spw.getcol("CHAN_FREQ")
             metadata["nspw"] = spw.nrows()
-    except Exception:
+    except (OSError, RuntimeError, KeyError):
         metadata["chan_freq"] = np.array([])
         metadata["nspw"] = 0
 
@@ -425,7 +425,7 @@ def get_ms_metadata_cached(ms_path: str, mtime: float) -> Dict[str, Any]:  # noq
             )
             metadata["field_names"] = fld.getcol("NAME").tolist()
             metadata["nfields"] = fld.nrows()
-    except Exception:
+    except (OSError, RuntimeError, KeyError):
         metadata["phase_dir"] = np.array([])
         metadata["field_names"] = []
         metadata["nfields"] = 0
@@ -435,7 +435,7 @@ def get_ms_metadata_cached(ms_path: str, mtime: float) -> Dict[str, Any]:  # noq
         with table(f"{ms_path}::ANTENNA", readonly=True) as ant:
             metadata["antenna_names"] = ant.getcol("NAME").tolist()
             metadata["nantennas"] = ant.nrows()
-    except Exception:
+    except (OSError, RuntimeError, KeyError):
         metadata["antenna_names"] = []
         metadata["nantennas"] = 0
 
