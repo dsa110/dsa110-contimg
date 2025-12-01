@@ -15,7 +15,14 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 # Prefer conda environment for pybind11 and other packages
 if(DEFINED ENV{CONDA_PREFIX})
   list(INSERT CMAKE_PREFIX_PATH 0 "$ENV{CONDA_PREFIX}")
+  # Prioritize conda libraries to avoid conflicts with system libraries
+  # This suppresses warnings about libpthread.so conflicts
+  link_directories(BEFORE "$ENV{CONDA_PREFIX}/lib")
 endif()
+
+# Suppress warnings about implicit link directory conflicts
+# The conda sysroot libraries may conflict with system libraries but this is expected
+set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS ON CACHE BOOL "" FORCE)
 
 # Allow callers to override the staged EveryBeam artifacts location
 set(EVERYBEAM_ROOT "${PROJECT_SOURCE_DIR}/../everybeam"
