@@ -89,10 +89,16 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
   const [expandedSections, setExpandedSections] = useState<Set<string>>(
     new Set(["cone", "filters"])
   );
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
-  const [raInput, setRaInput] = useState<string>(initialParams?.ra?.toString() ?? "");
-  const [decInput, setDecInput] = useState<string>(initialParams?.dec?.toString() ?? "");
-  const debounceTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [validationErrors, setValidationErrors] = useState<
+    Record<string, string>
+  >({});
+  const [raInput, setRaInput] = useState<string>(
+    initialParams?.ra?.toString() ?? ""
+  );
+  const [decInput, setDecInput] = useState<string>(
+    initialParams?.dec?.toString() ?? ""
+  );
+  const debounceTimeoutRef = React.useRef<number | null>(null);
 
   // Parse URL hash into params
   const parseUrlHash = useCallback((): Partial<SourceQueryParams> => {
@@ -142,29 +148,61 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
           break;
         // Flux filters
         case "min_flux_min":
-          urlParams.minFlux = { ...urlParams.minFlux, min: parseFloat(decoded), type: "peak" };
+          urlParams.minFlux = {
+            ...urlParams.minFlux,
+            min: parseFloat(decoded),
+            type: "peak",
+          };
           break;
         case "min_flux_max":
-          urlParams.minFlux = { ...urlParams.minFlux, max: parseFloat(decoded), type: "peak" };
+          urlParams.minFlux = {
+            ...urlParams.minFlux,
+            max: parseFloat(decoded),
+            type: "peak",
+          };
           break;
         case "max_flux_min":
-          urlParams.maxFlux = { ...urlParams.maxFlux, min: parseFloat(decoded), type: "peak" };
+          urlParams.maxFlux = {
+            ...urlParams.maxFlux,
+            min: parseFloat(decoded),
+            type: "peak",
+          };
           break;
         case "max_flux_max":
-          urlParams.maxFlux = { ...urlParams.maxFlux, max: parseFloat(decoded), type: "peak" };
+          urlParams.maxFlux = {
+            ...urlParams.maxFlux,
+            max: parseFloat(decoded),
+            type: "peak",
+          };
           break;
         // Variability filters
         case "eta_min":
-          urlParams.eta = { ...urlParams.eta, min: parseFloat(decoded), type: "peak" };
+          urlParams.eta = {
+            ...urlParams.eta,
+            min: parseFloat(decoded),
+            type: "peak",
+          };
           break;
         case "eta_max":
-          urlParams.eta = { ...urlParams.eta, max: parseFloat(decoded), type: "peak" };
+          urlParams.eta = {
+            ...urlParams.eta,
+            max: parseFloat(decoded),
+            type: "peak",
+          };
           break;
         case "v_min":
-          urlParams.v = { ...urlParams.v, min: parseFloat(decoded), type: "peak" };
+          urlParams.v = {
+            ...urlParams.v,
+            min: parseFloat(decoded),
+            type: "peak",
+          };
           break;
         case "v_max":
-          urlParams.v = { ...urlParams.v, max: parseFloat(decoded), type: "peak" };
+          urlParams.v = {
+            ...urlParams.v,
+            max: parseFloat(decoded),
+            type: "peak",
+          };
           break;
       }
     });
@@ -186,18 +224,27 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
     }
     if (params.newSource) parts.push("new_source=true");
     if (params.noSiblings) parts.push("no_siblings=true");
-    if (params.runName) parts.push(`run_name=${encodeURIComponent(params.runName)}`);
+    if (params.runName)
+      parts.push(`run_name=${encodeURIComponent(params.runName)}`);
     if (params.includeTags.length > 0) {
-      parts.push(`include_tags=${params.includeTags.map(encodeURIComponent).join(",")}`);
+      parts.push(
+        `include_tags=${params.includeTags.map(encodeURIComponent).join(",")}`
+      );
     }
     if (params.excludeTags.length > 0) {
-      parts.push(`exclude_tags=${params.excludeTags.map(encodeURIComponent).join(",")}`);
+      parts.push(
+        `exclude_tags=${params.excludeTags.map(encodeURIComponent).join(",")}`
+      );
     }
     // Flux filters
-    if (params.minFlux?.min != null) parts.push(`min_flux_min=${params.minFlux.min}`);
-    if (params.minFlux?.max != null) parts.push(`min_flux_max=${params.minFlux.max}`);
-    if (params.maxFlux?.min != null) parts.push(`max_flux_min=${params.maxFlux.min}`);
-    if (params.maxFlux?.max != null) parts.push(`max_flux_max=${params.maxFlux.max}`);
+    if (params.minFlux?.min != null)
+      parts.push(`min_flux_min=${params.minFlux.min}`);
+    if (params.minFlux?.max != null)
+      parts.push(`min_flux_max=${params.minFlux.max}`);
+    if (params.maxFlux?.min != null)
+      parts.push(`max_flux_min=${params.maxFlux.min}`);
+    if (params.maxFlux?.max != null)
+      parts.push(`max_flux_max=${params.maxFlux.max}`);
     // Variability filters
     if (params.eta?.min != null) parts.push(`eta_min=${params.eta.min}`);
     if (params.eta?.max != null) parts.push(`eta_max=${params.eta.max}`);
@@ -206,37 +253,45 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
 
     const newHash = parts.length > 0 ? `#${parts.join("&")}` : "";
     if (window.location.hash !== newHash) {
-      window.history.replaceState(null, "", newHash || window.location.pathname);
+      window.history.replaceState(
+        null,
+        "",
+        newHash || window.location.pathname
+      );
     }
   }, []);
 
   // Validate params
-  const validateParams = useCallback((params: SourceQueryParams): Record<string, string> => {
-    const errors: Record<string, string> = {};
+  const validateParams = useCallback(
+    (params: SourceQueryParams): Record<string, string> => {
+      const errors: Record<string, string> = {};
 
-    // Coordinate validation
-    if (params.ra != null && (params.ra < 0 || params.ra > 360)) {
-      errors.ra = "RA must be between 0 and 360 degrees";
-    }
-    if (params.dec != null && (params.dec < -90 || params.dec > 90)) {
-      errors.dec = "Dec must be between -90 and 90 degrees";
-    }
-    if (params.radius != null && params.radius < 0) {
-      errors.radius = "Radius must be non-negative";
-    }
+      // Coordinate validation
+      if (params.ra != null && (params.ra < 0 || params.ra > 360)) {
+        errors.ra = "RA must be between 0 and 360 degrees";
+      }
+      if (params.dec != null && (params.dec < -90 || params.dec > 90)) {
+        errors.dec = "Dec must be between -90 and 90 degrees";
+      }
+      if (params.radius != null && params.radius < 0) {
+        errors.radius = "Radius must be non-negative";
+      }
 
-    // Cone search completeness
-    if (
-      (params.ra != null || params.dec != null || params.radius != null) &&
-      (params.ra == null || params.dec == null || params.radius == null)
-    ) {
-      if (params.ra == null) errors.ra = "RA required for cone search";
-      if (params.dec == null) errors.dec = "Dec required for cone search";
-      if (params.radius == null) errors.radius = "Radius required for cone search";
-    }
+      // Cone search completeness
+      if (
+        (params.ra != null || params.dec != null || params.radius != null) &&
+        (params.ra == null || params.dec == null || params.radius == null)
+      ) {
+        if (params.ra == null) errors.ra = "RA required for cone search";
+        if (params.dec == null) errors.dec = "Dec required for cone search";
+        if (params.radius == null)
+          errors.radius = "Radius required for cone search";
+      }
 
-    return errors;
-  }, []);
+      return errors;
+    },
+    []
+  );
 
   // Load from URL hash on mount (only if URL sync is enabled)
   useEffect(() => {
@@ -272,11 +327,17 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
       updates.radius = initRadius;
       hasUpdates = true;
     }
-    if (initMinFluxMin !== undefined && initMinFluxMin !== params.minFlux?.min) {
+    if (
+      initMinFluxMin !== undefined &&
+      initMinFluxMin !== params.minFlux?.min
+    ) {
       updates.minFlux = { min: initMinFluxMin, type: "peak" };
       hasUpdates = true;
     }
-    if (initMaxFluxMax !== undefined && initMaxFluxMax !== params.maxFlux?.max) {
+    if (
+      initMaxFluxMax !== undefined &&
+      initMaxFluxMax !== params.maxFlux?.max
+    ) {
       updates.maxFlux = { max: initMaxFluxMax, type: "peak" };
       hasUpdates = true;
     }
@@ -364,7 +425,8 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
     if (params.v?.min != null || params.v?.max != null) count++;
     if (params.snrMin?.min != null || params.snrMin?.max != null) count++;
     if (params.snrMax?.min != null || params.snrMax?.max != null) count++;
-    if (params.datapoints?.min != null || params.datapoints?.max != null) count++;
+    if (params.datapoints?.min != null || params.datapoints?.max != null)
+      count++;
     if (params.newSource) count++;
     if (params.noSiblings) count++;
     if (params.includeTags.length > 0) count++;
@@ -375,7 +437,11 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
 
   const hasValidationErrors = Object.keys(validationErrors).length > 0;
 
-  const renderSection = (id: string, title: string, children: React.ReactNode) => {
+  const renderSection = (
+    id: string,
+    title: string,
+    children: React.ReactNode
+  ) => {
     const isExpanded = expandedSections.has(id);
     return (
       <div className="border-b border-gray-200">
@@ -393,7 +459,12 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
             stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 9l-7 7-7-7"
+            />
           </svg>
         </button>
         {isExpanded && <div className="p-4 space-y-4">{children}</div>}
@@ -407,7 +478,9 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
         <h4 className="text-lg font-semibold flex items-center gap-2">
           Source Query
           {activeFilterCount > 0 && (
-            <span className="badge badge-primary">{activeFilterCount} filters</span>
+            <span className="badge badge-primary">
+              {activeFilterCount} filters
+            </span>
           )}
         </h4>
         <button
@@ -429,7 +502,10 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
             <select
               value={params.runName || ""}
               onChange={(e) =>
-                setParams((prev) => ({ ...prev, runName: e.target.value || undefined }))
+                setParams((prev) => ({
+                  ...prev,
+                  runName: e.target.value || undefined,
+                }))
               }
               className="form-select w-full"
             >
@@ -473,10 +549,14 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
                     }
                   }}
                   placeholder="180.0 or 12:00:00"
-                  className={`form-control ${validationErrors.ra ? "border-red-500" : ""}`}
+                  className={`form-control ${
+                    validationErrors.ra ? "border-red-500" : ""
+                  }`}
                 />
                 {validationErrors.ra && (
-                  <p className="text-xs text-red-500 mt-1">{validationErrors.ra}</p>
+                  <p className="text-xs text-red-500 mt-1">
+                    {validationErrors.ra}
+                  </p>
                 )}
               </div>
               <div className="form-group">
@@ -501,10 +581,14 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
                     }
                   }}
                   placeholder="+45.0 or +45:00:00"
-                  className={`form-control ${validationErrors.dec ? "border-red-500" : ""}`}
+                  className={`form-control ${
+                    validationErrors.dec ? "border-red-500" : ""
+                  }`}
                 />
                 {validationErrors.dec && (
-                  <p className="text-xs text-red-500 mt-1">{validationErrors.dec}</p>
+                  <p className="text-xs text-red-500 mt-1">
+                    {validationErrors.dec}
+                  </p>
                 )}
               </div>
             </div>
@@ -518,16 +602,22 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
                   onChange={(e) =>
                     setParams((prev) => ({
                       ...prev,
-                      radius: e.target.value ? parseFloat(e.target.value) : undefined,
+                      radius: e.target.value
+                        ? parseFloat(e.target.value)
+                        : undefined,
                     }))
                   }
                   placeholder="2"
                   min={0}
                   step={0.1}
-                  className={`form-control ${validationErrors.radius ? "border-red-500" : ""}`}
+                  className={`form-control ${
+                    validationErrors.radius ? "border-red-500" : ""
+                  }`}
                 />
                 {validationErrors.radius && (
-                  <p className="text-xs text-red-500 mt-1">{validationErrors.radius}</p>
+                  <p className="text-xs text-red-500 mt-1">
+                    {validationErrors.radius}
+                  </p>
                 )}
               </div>
               <div className="form-group">
@@ -577,7 +667,9 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
               maxFlux: params.maxFlux,
               avgFlux: params.avgFlux,
             }}
-            onChange={(fluxValues) => setParams((prev) => ({ ...prev, ...fluxValues }))}
+            onChange={(fluxValues) =>
+              setParams((prev) => ({ ...prev, ...fluxValues }))
+            }
           />
         )}
 
@@ -592,7 +684,9 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
               vs: params.vs,
               m: params.m,
             }}
-            onChange={(varValues) => setParams((prev) => ({ ...prev, ...varValues }))}
+            onChange={(varValues) =>
+              setParams((prev) => ({ ...prev, ...varValues }))
+            }
           />
         )}
 
@@ -613,7 +707,9 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
                         ...prev,
                         snrMin: {
                           ...prev.snrMin,
-                          min: e.target.value ? Number(e.target.value) : undefined,
+                          min: e.target.value
+                            ? Number(e.target.value)
+                            : undefined,
                         },
                       }))
                     }
@@ -628,7 +724,9 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
                         ...prev,
                         snrMin: {
                           ...prev.snrMin,
-                          max: e.target.value ? Number(e.target.value) : undefined,
+                          max: e.target.value
+                            ? Number(e.target.value)
+                            : undefined,
                         },
                       }))
                     }
@@ -648,7 +746,9 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
                         ...prev,
                         snrMax: {
                           ...prev.snrMax,
-                          min: e.target.value ? Number(e.target.value) : undefined,
+                          min: e.target.value
+                            ? Number(e.target.value)
+                            : undefined,
                         },
                       }))
                     }
@@ -663,7 +763,9 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
                         ...prev,
                         snrMax: {
                           ...prev.snrMax,
-                          max: e.target.value ? Number(e.target.value) : undefined,
+                          max: e.target.value
+                            ? Number(e.target.value)
+                            : undefined,
                         },
                       }))
                     }
@@ -685,7 +787,9 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
                       ...prev,
                       datapoints: {
                         ...prev.datapoints,
-                        min: e.target.value ? Number(e.target.value) : undefined,
+                        min: e.target.value
+                          ? Number(e.target.value)
+                          : undefined,
                       },
                     }))
                   }
@@ -701,7 +805,9 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
                       ...prev,
                       datapoints: {
                         ...prev.datapoints,
-                        max: e.target.value ? Number(e.target.value) : undefined,
+                        max: e.target.value
+                          ? Number(e.target.value)
+                          : undefined,
                       },
                     }))
                   }
@@ -723,21 +829,35 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
               <input
                 type="checkbox"
                 checked={params.newSource || false}
-                onChange={(e) => setParams((prev) => ({ ...prev, newSource: e.target.checked }))}
+                onChange={(e) =>
+                  setParams((prev) => ({
+                    ...prev,
+                    newSource: e.target.checked,
+                  }))
+                }
                 className="w-4 h-4 text-vast-green rounded"
               />
               <span>New source</span>
-              <span className="text-gray-400 text-sm">(appeared after first observation)</span>
+              <span className="text-gray-400 text-sm">
+                (appeared after first observation)
+              </span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input
                 type="checkbox"
                 checked={params.noSiblings || false}
-                onChange={(e) => setParams((prev) => ({ ...prev, noSiblings: e.target.checked }))}
+                onChange={(e) =>
+                  setParams((prev) => ({
+                    ...prev,
+                    noSiblings: e.target.checked,
+                  }))
+                }
                 className="w-4 h-4 text-vast-green rounded"
               />
               <span>No siblings</span>
-              <span className="text-gray-400 text-sm">(no multi-component islands)</span>
+              <span className="text-gray-400 text-sm">
+                (no multi-component islands)
+              </span>
             </label>
           </div>
         )}
@@ -750,8 +870,12 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
             availableTags={availableTags}
             includeTags={params.includeTags}
             excludeTags={params.excludeTags}
-            onIncludeChange={(tags) => setParams((prev) => ({ ...prev, includeTags: tags }))}
-            onExcludeChange={(tags) => setParams((prev) => ({ ...prev, excludeTags: tags }))}
+            onIncludeChange={(tags) =>
+              setParams((prev) => ({ ...prev, includeTags: tags }))
+            }
+            onExcludeChange={(tags) =>
+              setParams((prev) => ({ ...prev, excludeTags: tags }))
+            }
           />
         )}
       </div>
@@ -769,13 +893,19 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
 
       {/* Action Buttons */}
       <div className="p-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-2">
-        <button type="button" onClick={handleReset} className="btn btn-secondary">
+        <button
+          type="button"
+          onClick={handleReset}
+          className="btn btn-secondary"
+        >
           Reset
         </button>
         <button
           type="button"
           onClick={handleSubmit}
-          className={`btn btn-primary ${hasValidationErrors ? "opacity-75" : ""}`}
+          className={`btn btn-primary ${
+            hasValidationErrors ? "opacity-75" : ""
+          }`}
           disabled={hasValidationErrors}
         >
           Search

@@ -66,7 +66,8 @@ function calculateDelay(
   }
 
   // Exponential backoff: baseDelay * multiplier^attempt
-  const exponentialDelay = config.baseDelayMs * Math.pow(config.backoffMultiplier, attempt);
+  const exponentialDelay =
+    config.baseDelayMs * Math.pow(config.backoffMultiplier, attempt);
   const clampedDelay = Math.min(exponentialDelay, config.maxDelayMs);
 
   // Add jitter to prevent thundering herd
@@ -109,7 +110,10 @@ function createTimeoutSignal(
   externalSignal?: AbortSignal
 ): { signal: AbortSignal; cleanup: () => void } {
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(new Error("Request timeout")), timeoutMs);
+  const timeoutId = setTimeout(
+    () => controller.abort(new Error("Request timeout")),
+    timeoutMs
+  );
 
   // If there's an external signal, abort when it aborts
   const onExternalAbort = () => {
@@ -160,15 +164,21 @@ export async function fetchWithRetry(
   options: RequestInit = {},
   config: Partial<RetryConfig> = {}
 ): Promise<Response> {
-  const fullConfig: RetryConfig = { ...DEFAULT_EXTERNAL_RETRY_CONFIG, ...config };
-  const externalSignal = options.signal;
+  const fullConfig: RetryConfig = {
+    ...DEFAULT_EXTERNAL_RETRY_CONFIG,
+    ...config,
+  };
+  const externalSignal = options.signal ?? undefined;
 
   let lastError: Error | null = null;
   let lastResponse: Response | null = null;
 
   for (let attempt = 0; attempt <= fullConfig.maxRetries; attempt++) {
     // Create timeout signal for this attempt
-    const { signal, cleanup } = createTimeoutSignal(fullConfig.timeoutMs, externalSignal);
+    const { signal, cleanup } = createTimeoutSignal(
+      fullConfig.timeoutMs,
+      externalSignal
+    );
 
     try {
       const response = await fetch(url, {
@@ -185,11 +195,17 @@ export async function fetchWithRetry(
 
       // Retryable error - store response and calculate delay
       lastResponse = response;
-      const delay = calculateDelay(attempt, fullConfig, response.headers.get("Retry-After"));
+      const delay = calculateDelay(
+        attempt,
+        fullConfig,
+        response.headers.get("Retry-After")
+      );
 
       logger.debug(
         `[fetchWithRetry] Retryable status ${response.status} for ${url}, ` +
-          `attempt ${attempt + 1}/${fullConfig.maxRetries + 1}, waiting ${delay}ms`
+          `attempt ${attempt + 1}/${
+            fullConfig.maxRetries + 1
+          }, waiting ${delay}ms`
       );
 
       await new Promise((resolve) => setTimeout(resolve, delay));
@@ -203,7 +219,9 @@ export async function fetchWithRetry(
 
       // Check if it's our timeout
       if (err instanceof Error && err.message === "Request timeout") {
-        lastError = new Error(`Request timeout after ${fullConfig.timeoutMs}ms`);
+        lastError = new Error(
+          `Request timeout after ${fullConfig.timeoutMs}ms`
+        );
       } else if (err instanceof Error) {
         lastError = err;
       } else {
@@ -218,9 +236,9 @@ export async function fetchWithRetry(
       const delay = calculateDelay(attempt, fullConfig);
       logger.debug(
         `[fetchWithRetry] Network error for ${url}, ` +
-          `attempt ${attempt + 1}/${fullConfig.maxRetries + 1}, waiting ${delay}ms: ${
-            lastError.message
-          }`
+          `attempt ${attempt + 1}/${
+            fullConfig.maxRetries + 1
+          }, waiting ${delay}ms: ${lastError.message}`
       );
 
       await new Promise((resolve) => setTimeout(resolve, delay));
@@ -235,13 +253,19 @@ export async function fetchWithRetry(
     );
   }
 
-  throw lastError || new Error(`Request failed after ${fullConfig.maxRetries + 1} attempts`);
+  throw (
+    lastError ||
+    new Error(`Request failed after ${fullConfig.maxRetries + 1} attempts`)
+  );
 }
 
 /**
  * Parse common error responses and return user-friendly messages.
  */
-export function parseExternalServiceError(error: unknown, serviceName: string): string {
+export function parseExternalServiceError(
+  error: unknown,
+  serviceName: string
+): string {
   if (error instanceof DOMException && error.name === "AbortError") {
     return "Request was cancelled";
   }
