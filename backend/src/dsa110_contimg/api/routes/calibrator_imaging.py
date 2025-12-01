@@ -65,6 +65,12 @@ def get_products_db_path() -> str:
     return str(config.database.products_path)
 
 
+def get_calibrators_db_path_from_config() -> str:
+    """Get calibrators database path from config."""
+    config = get_config()
+    return str(config.database.calibrators_path)
+
+
 def get_incoming_dir() -> str:
     """Get incoming HDF5 directory."""
     return os.getenv("PIPELINE_INCOMING_DIR", "/data/incoming")
