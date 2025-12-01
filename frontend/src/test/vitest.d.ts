@@ -3,7 +3,7 @@
 
 /**
  * Type augmentation for Vitest to include @testing-library/jest-dom matchers.
- * 
+ *
  * This file extends Vitest's Assertion interface with the custom matchers
  * provided by @testing-library/jest-dom, such as:
  * - toBeInTheDocument()
@@ -11,7 +11,7 @@
  * - toHaveClass()
  * - toBeVisible()
  * - etc.
- * 
+ *
  * This is imported via the test setup file.
  */
 
