@@ -482,7 +482,7 @@ describe("FilterPanel", () => {
     });
 
     it("handles unknown filter type gracefully", () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+       
       const unknownFilters = [{ id: "unknown", label: "Unknown", type: "unknown" as any }];
 
       render(<FilterPanel filters={unknownFilters} values={{}} onChange={mockOnChange} />);

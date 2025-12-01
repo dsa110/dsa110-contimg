@@ -77,6 +77,16 @@ export default tseslint.config(
     },
   },
   {
+    // Test file specific rules
+    files: ["**/*.test.{ts,tsx}", "**/test/**/*.{ts,tsx}"],
+    rules: {
+      // Test wrapper components don't need display names
+      "react/display-name": "off",
+      // Test files commonly use any for mocking
+      "@typescript-eslint/no-explicit-any": "off",
+    },
+  },
+  {
     ignores: ["dist/**", "node_modules/**", "*.cjs"],
   }
 );
