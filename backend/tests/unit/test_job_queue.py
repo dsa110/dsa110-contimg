@@ -5,7 +5,7 @@ Unit tests for the job queue module.
 import os
 import sys
 import pytest
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch, MagicMock, AsyncMock
 from datetime import datetime
 
 # Import directly from the module to avoid app initialization issues
