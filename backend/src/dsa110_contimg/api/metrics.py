@@ -28,6 +28,7 @@ import os
 import sqlite3
 from typing import Optional
 
+from .config import get_config
 from prometheus_client import Counter, Gauge, Histogram, Info
 
 logger = logging.getLogger(__name__)
@@ -164,7 +165,8 @@ def sync_gauges_from_database(db_path: str = DEFAULT_DB_PATH) -> dict:
             logger.warning(f"Database not found: {db_path}")
             return {"error": "database not found"}
         
-        conn = sqlite3.connect(db_path, timeout=10.0)
+        config = get_config()
+        conn = sqlite3.connect(db_path, timeout=config.timeouts.db_metrics_sync)
         conn.row_factory = sqlite3.Row
         
         # MS counts by stage

@@ -62,6 +62,7 @@ def is_ip_allowed(client_ip: str, allowed_networks: list) -> bool:
     except ValueError:
         return False
 
+from .config import get_config
 from .middleware import add_exception_handlers
 from .exceptions import ValidationError as DSA110ValidationError
 from .routes import (
