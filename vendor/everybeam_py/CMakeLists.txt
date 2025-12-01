@@ -1,9 +1,21 @@
 cmake_minimum_required(VERSION 3.18)
+
+# Suppress deprecation warning for FindPythonLibsNew used by older pybind11
+# This is needed when system pybind11 uses legacy Python finding approach
+if(POLICY CMP0148)
+  cmake_policy(SET CMP0148 OLD)
+endif()
+
 project(everybeam_py LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+# Prefer conda environment for pybind11 and other packages
+if(DEFINED ENV{CONDA_PREFIX})
+  list(INSERT CMAKE_PREFIX_PATH 0 "$ENV{CONDA_PREFIX}")
+endif()
 
 # Allow callers to override the staged EveryBeam artifacts location
 set(EVERYBEAM_ROOT "${PROJECT_SOURCE_DIR}/../everybeam"
