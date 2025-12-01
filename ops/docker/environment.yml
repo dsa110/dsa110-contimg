@@ -31,3 +31,8 @@ dependencies:
       - uncertainties
       - structlog
       - astroquery
+      # casangi visualization tools for MS inspection
+      - git+https://github.com/casangi/casagui.git@main
+      - bokeh>=3.0
+      - panel
+      - holoviews

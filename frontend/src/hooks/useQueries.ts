@@ -39,6 +39,8 @@ export const queryKeys = {
   // MS (Measurement Sets)
   ms: (path: string) => ["ms", path] as const,
   msProvenance: (path: string) => ["ms", path, "provenance"] as const,
+  msRaster: (path: string) => ["ms", path, "raster"] as const,
+  msAntennas: (path: string) => ["ms", path, "antennas"] as const,
 
   // Jobs
   jobs: ["jobs"] as const,

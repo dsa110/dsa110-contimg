@@ -3,6 +3,8 @@ import { useParams, Link } from "react-router-dom";
 import ProvenanceStrip from "../components/provenance/ProvenanceStrip";
 import ErrorDisplay from "../components/errors/ErrorDisplay";
 import { Card, CoordinateDisplay, QAMetrics } from "../components/common";
+import { MsRasterPlot } from "../components/ms";
+import { AntennaLayoutWidget } from "../components/antenna";
 import { mapProvenanceFromMSDetail } from "../utils/provenanceMappers";
 import { relativeTime } from "../utils/relativeTime";
 import type { ErrorResponse } from "../types/errors";
@@ -169,6 +171,24 @@ const MSDetailPage: React.FC = () => {
                 />
               </Card>
             )}
+
+          {/* Visibility Raster Plot */}
+          <Card title="Visibility Plot" subtitle="Inspect visibility data quality">
+            <MsRasterPlot
+              msPath={ms.path}
+              width={700}
+              height={450}
+            />
+          </Card>
+
+          {/* Antenna Layout */}
+          <Card title="Antenna Layout" subtitle="Array configuration and flagging status">
+            <AntennaLayoutWidget
+              msPath={ms.path}
+              height={250}
+              showLegend
+            />
+          </Card>
 
           {/* Calibrator matches */}
           {ms.calibrator_matches && ms.calibrator_matches.length > 0 && (

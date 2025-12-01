@@ -234,3 +234,69 @@ class DashboardStats(BaseModel):
     qa_good: int = Field(0, description="Images with good QA grade")
     qa_warn: int = Field(0, description="Images with warning QA grade")
     qa_fail: int = Field(0, description="Images with failed QA grade")
+
+
+# =============================================================================
+# MS Visualization Response Models (casangi integration)
+# =============================================================================
+
+class RasterPlotParams(BaseModel):
+    """Parameters for visibility raster plot request."""
+    xaxis: Literal["time", "baseline", "frequency"] = Field(
+        "time", description="X-axis dimension"
+    )
+    yaxis: Literal["amp", "phase", "real", "imag"] = Field(
+        "amp", description="Visibility component to plot"
+    )
+    colormap: str = Field("viridis", description="Matplotlib/Bokeh colormap name")
+    width: int = Field(800, ge=200, le=2000, description="Plot width in pixels")
+    height: int = Field(600, ge=200, le=2000, description="Plot height in pixels")
+    spw: Optional[int] = Field(None, ge=0, description="Spectral window to plot (None=all)")
+    antenna: Optional[str] = Field(None, description="Antenna selection (e.g., '0~10')")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "xaxis": "time",
+                "yaxis": "amp",
+                "colormap": "viridis",
+                "width": 800,
+                "height": 600,
+                "spw": 0,
+                "antenna": None,
+            }
+        }
+
+
+class AntennaInfo(BaseModel):
+    """Information about a single antenna in the array."""
+    id: int = Field(..., description="Antenna ID (0-indexed)")
+    name: str = Field(..., description="Antenna name (e.g., 'DSA-001')")
+    x_m: float = Field(..., description="East position in meters (local ENU)")
+    y_m: float = Field(..., description="North position in meters (local ENU)")
+    flagged_pct: float = Field(
+        0.0, ge=0.0, le=100.0, 
+        description="Percentage of data flagged for this antenna"
+    )
+    baseline_count: int = Field(0, ge=0, description="Number of baselines involving this antenna")
+
+
+class AntennaLayoutResponse(BaseModel):
+    """Response model for antenna layout endpoint."""
+    antennas: list[AntennaInfo] = Field(..., description="List of antenna positions and stats")
+    array_center_lon: float = Field(..., description="Array center longitude (degrees)")
+    array_center_lat: float = Field(..., description="Array center latitude (degrees)")
+    total_baselines: int = Field(..., description="Total number of baselines")
+    
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "antennas": [
+                    {"id": 0, "name": "DSA-001", "x_m": 0.0, "y_m": 0.0, "flagged_pct": 5.2, "baseline_count": 109},
+                    {"id": 1, "name": "DSA-002", "x_m": 10.5, "y_m": 0.0, "flagged_pct": 0.0, "baseline_count": 109},
+                ],
+                "array_center_lon": -118.2817,
+                "array_center_lat": 37.2339,
+                "total_baselines": 5995,
+            }
+        }
