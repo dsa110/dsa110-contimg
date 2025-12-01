@@ -28,9 +28,34 @@ vi.mock("../components/common", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../components/common")>();
   return {
     ...actual,
-    PageSkeleton: vi.fn(() => <div data-testid="page-skeleton">Loading...</div>),
+    PageSkeleton: vi.fn(() => (
+      <div data-testid="page-skeleton">Loading...</div>
+    )),
   };
 });
+
+// Mock ECharts to prevent DOM rendering issues in tests
+vi.mock("echarts", () => ({
+  init: vi.fn(() => ({
+    setOption: vi.fn(),
+    resize: vi.fn(),
+    dispose: vi.fn(),
+    on: vi.fn(),
+    off: vi.fn(),
+    getOption: vi.fn(() => ({})),
+  })),
+  use: vi.fn(),
+  registerTheme: vi.fn(),
+}));
+
+// Mock echarts-for-react component
+vi.mock("echarts-for-react", () => ({
+  default: vi.fn(({ style, ...props }) => (
+    <div data-testid="echarts-mock" style={style} {...props}>
+      ECharts Mock
+    </div>
+  )),
+}));
 
 import { useSources } from "../hooks/useQueries";
 
@@ -123,7 +148,9 @@ describe("SourcesListPage", () => {
 
     it("renders page heading", () => {
       renderPage();
-      expect(screen.getByRole("heading", { name: /sources/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("heading", { name: /sources/i })
+      ).toBeInTheDocument();
     });
 
     it("renders sources in table", () => {
@@ -160,7 +187,9 @@ describe("SourcesListPage", () => {
       renderPage();
 
       // Use more specific query - the tab button says "Variability Plot"
-      const variabilityTab = screen.getByRole("button", { name: /variability plot/i });
+      const variabilityTab = screen.getByRole("button", {
+        name: /variability plot/i,
+      });
       await user.click(variabilityTab);
 
       // Variability view should show different content (like eta/v plot)

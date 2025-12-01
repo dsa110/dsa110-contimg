@@ -7,11 +7,27 @@ UVW precision, antenna positions, and other quality checks.
 These tests use mocks to avoid CASA dependencies and import issues.
 The validation functions are accessed through the helpers module to avoid
 circular import issues.
+
+NOTE: These tests require casacore to be installed because the helpers module
+imports casacore.tables at module level. The tests are skipped in CI environments
+that don't have CASA packages (e.g., standard Python without conda).
 """
 
 import numpy as np
 import pytest
 from unittest.mock import MagicMock, patch
+
+# Check if casacore is available - skip all tests in this module if not
+try:
+    import casacore.tables  # noqa: F401
+    HAS_CASACORE = True
+except ImportError:
+    HAS_CASACORE = False
+
+pytestmark = pytest.mark.skipif(
+    not HAS_CASACORE,
+    reason="casacore not available - these tests require CASA packages"
+)
 
 # Import test fixtures
 from tests.fixtures import (

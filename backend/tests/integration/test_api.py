@@ -1,8 +1,12 @@
 """
 Integration tests for the DSA-110 API.
 
-These tests make actual HTTP requests to test endpoints end-to-end.
-They require the API to be running and accessible.
+These tests use FastAPI's TestClient for in-process testing without requiring
+an external server. This approach is more robust for CI environments and provides
+faster test execution.
+
+For true end-to-end testing with an external server, set TEST_USE_EXTERNAL_SERVER=1
+and ensure the API is running at TEST_API_URL.
 
 Run with:
     pytest tests/integration/ -v --tb=short
@@ -11,16 +15,35 @@ Run with:
 import os
 import pytest
 from datetime import datetime
-from httpx import AsyncClient
+from typing import Generator
 
 # Test configuration
+USE_EXTERNAL_SERVER = os.getenv("TEST_USE_EXTERNAL_SERVER", "0") == "1"
 API_BASE_URL = os.getenv("TEST_API_URL", "http://localhost:8000")
 TEST_API_KEY = os.getenv("TEST_API_KEY", "test-key-for-integration")
 
 
+@pytest.fixture(scope="module")
+def app():
+    """Create the FastAPI application for testing."""
+    from dsa110_contimg.api.app import create_app
+    return create_app()
+
+
+@pytest.fixture(scope="module")
+def test_client(app) -> Generator:
+    """Create a test client using FastAPI's TestClient.
+    
+    This runs the API in-process without requiring an external server.
+    """
+    from fastapi.testclient import TestClient
+    with TestClient(app, base_url="http://testserver") as client:
+        yield client
+
+
 @pytest.fixture
 def api_url():
-    """Get API base URL."""
+    """Get API base URL (for external server tests)."""
     return API_BASE_URL
 
 
@@ -33,22 +56,18 @@ def auth_headers():
 class TestHealthEndpoint:
     """Tests for the health check endpoint."""
     
-    @pytest.mark.asyncio
-    async def test_health_returns_ok(self, api_url):
+    def test_health_returns_ok(self, test_client):
         """Health endpoint should return healthy status."""
-        async with AsyncClient() as client:
-            response = await client.get(f"{api_url}/api/health")
+        response = test_client.get("/api/health")
         
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "healthy"
         assert "timestamp" in data
     
-    @pytest.mark.asyncio
-    async def test_health_has_service_name(self, api_url):
+    def test_health_has_service_name(self, test_client):
         """Health response should include service name."""
-        async with AsyncClient() as client:
-            response = await client.get(f"{api_url}/api/health")
+        response = test_client.get("/api/health")
         
         data = response.json()
         assert "service" in data
@@ -58,34 +77,28 @@ class TestHealthEndpoint:
 class TestImagesEndpoint:
     """Tests for the images endpoints."""
     
-    @pytest.mark.asyncio
-    async def test_list_images_returns_list(self, api_url):
+    def test_list_images_returns_list(self, test_client):
         """GET /images should return a list."""
-        async with AsyncClient() as client:
-            response = await client.get(f"{api_url}/api/images")
+        response = test_client.get("/api/images")
         
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)
     
-    @pytest.mark.asyncio
-    async def test_list_images_with_pagination(self, api_url):
+    def test_list_images_with_pagination(self, test_client):
         """GET /images should support pagination."""
-        async with AsyncClient() as client:
-            response = await client.get(
-                f"{api_url}/api/images",
-                params={"limit": 5, "offset": 0}
-            )
+        response = test_client.get(
+            "/api/images",
+            params={"limit": 5, "offset": 0}
+        )
         
         assert response.status_code == 200
         data = response.json()
         assert len(data) <= 5
     
-    @pytest.mark.asyncio
-    async def test_get_nonexistent_image(self, api_url):
+    def test_get_nonexistent_image(self, test_client):
         """GET /images/{id} should return 404 for missing image."""
-        async with AsyncClient() as client:
-            response = await client.get(f"{api_url}/api/images/nonexistent_image_id")
+        response = test_client.get("/api/images/nonexistent_image_id")
         
         assert response.status_code == 404
 
@@ -93,21 +106,17 @@ class TestImagesEndpoint:
 class TestSourcesEndpoint:
     """Tests for the sources endpoints."""
     
-    @pytest.mark.asyncio
-    async def test_list_sources_returns_list(self, api_url):
+    def test_list_sources_returns_list(self, test_client):
         """GET /sources should return a list."""
-        async with AsyncClient() as client:
-            response = await client.get(f"{api_url}/api/sources")
+        response = test_client.get("/api/sources")
         
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)
     
-    @pytest.mark.asyncio
-    async def test_get_nonexistent_source(self, api_url):
+    def test_get_nonexistent_source(self, test_client):
         """GET /sources/{id} should return 404 for missing source."""
-        async with AsyncClient() as client:
-            response = await client.get(f"{api_url}/api/sources/nonexistent_source_id")
+        response = test_client.get("/api/sources/nonexistent_source_id")
         
         assert response.status_code == 404
 
@@ -115,29 +124,23 @@ class TestSourcesEndpoint:
 class TestJobsEndpoint:
     """Tests for the jobs endpoints."""
     
-    @pytest.mark.asyncio
-    async def test_list_jobs_returns_list(self, api_url):
+    def test_list_jobs_returns_list(self, test_client):
         """GET /jobs should return a list."""
-        async with AsyncClient() as client:
-            response = await client.get(f"{api_url}/api/jobs")
+        response = test_client.get("/api/jobs")
         
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)
     
-    @pytest.mark.asyncio
-    async def test_get_nonexistent_job(self, api_url):
+    def test_get_nonexistent_job(self, test_client):
         """GET /jobs/{id} should return 404 for missing job."""
-        async with AsyncClient() as client:
-            response = await client.get(f"{api_url}/api/jobs/nonexistent_run_id")
+        response = test_client.get("/api/jobs/nonexistent_run_id")
         
         assert response.status_code == 404
     
-    @pytest.mark.asyncio
-    async def test_rerun_job_requires_auth(self, api_url):
+    def test_rerun_job_requires_auth(self, test_client):
         """POST /jobs/{id}/rerun should require authentication."""
-        async with AsyncClient() as client:
-            response = await client.post(f"{api_url}/api/jobs/some_run_id/rerun")
+        response = test_client.post("/api/jobs/some_run_id/rerun")
         
         # Should get 401 without auth header
         assert response.status_code == 401
@@ -146,32 +149,26 @@ class TestJobsEndpoint:
 class TestQueueEndpoint:
     """Tests for the queue endpoints."""
     
-    @pytest.mark.asyncio
-    async def test_queue_stats(self, api_url):
+    def test_queue_stats(self, test_client):
         """GET /queue should return queue stats."""
-        async with AsyncClient() as client:
-            response = await client.get(f"{api_url}/api/queue")
+        response = test_client.get("/api/queue")
         
         assert response.status_code == 200
         data = response.json()
         assert "connected" in data
         assert "queue_name" in data
     
-    @pytest.mark.asyncio
-    async def test_list_queued_jobs(self, api_url):
+    def test_list_queued_jobs(self, test_client):
         """GET /queue/jobs should return job list."""
-        async with AsyncClient() as client:
-            response = await client.get(f"{api_url}/api/queue/jobs")
+        response = test_client.get("/api/queue/jobs")
         
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)
     
-    @pytest.mark.asyncio
-    async def test_queue_job_not_found(self, api_url):
+    def test_queue_job_not_found(self, test_client):
         """GET /queue/jobs/{id} should return 404 for missing job."""
-        async with AsyncClient() as client:
-            response = await client.get(f"{api_url}/api/queue/jobs/nonexistent_job")
+        response = test_client.get("/api/queue/jobs/nonexistent_job")
         
         assert response.status_code == 404
 
@@ -179,29 +176,23 @@ class TestQueueEndpoint:
 class TestCacheEndpoint:
     """Tests for the cache endpoints."""
     
-    @pytest.mark.asyncio
-    async def test_cache_stats(self, api_url):
+    def test_cache_stats(self, test_client):
         """GET /cache should return cache stats."""
-        async with AsyncClient() as client:
-            response = await client.get(f"{api_url}/api/cache")
+        response = test_client.get("/api/cache")
         
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, dict)
     
-    @pytest.mark.asyncio
-    async def test_cache_invalidate_requires_auth(self, api_url):
+    def test_cache_invalidate_requires_auth(self, test_client):
         """POST /cache/invalidate requires auth."""
-        async with AsyncClient() as client:
-            response = await client.post(f"{api_url}/api/cache/invalidate/test")
+        response = test_client.post("/api/cache/invalidate/test")
         
         assert response.status_code == 401
     
-    @pytest.mark.asyncio
-    async def test_cache_clear_requires_auth(self, api_url):
+    def test_cache_clear_requires_auth(self, test_client):
         """POST /cache/clear requires auth."""
-        async with AsyncClient() as client:
-            response = await client.post(f"{api_url}/api/cache/clear")
+        response = test_client.post("/api/cache/clear")
         
         assert response.status_code == 401
 
@@ -209,15 +200,13 @@ class TestCacheEndpoint:
 class TestCORSHeaders:
     """Tests for CORS headers."""
     
-    @pytest.mark.asyncio
-    async def test_cors_headers_present(self, api_url):
+    def test_cors_headers_present(self, test_client):
         """API should include CORS headers."""
-        async with AsyncClient() as client:
-            # Test that CORS headers are present on a regular GET request
-            response = await client.get(
-                f"{api_url}/api/health",
-                headers={"Origin": "http://localhost:3000"}
-            )
+        # Test that CORS headers are present on a regular GET request
+        response = test_client.get(
+            "/api/health",
+            headers={"Origin": "http://localhost:3000"}
+        )
         
         # Check that the request succeeds and CORS is configured
         assert response.status_code == 200
@@ -229,11 +218,9 @@ class TestCORSHeaders:
 class TestStatsEndpoint:
     """Tests for the stats endpoints."""
     
-    @pytest.mark.asyncio
-    async def test_stats_returns_data(self, api_url):
+    def test_stats_returns_data(self, test_client):
         """GET /stats should return statistics."""
-        async with AsyncClient() as client:
-            response = await client.get(f"{api_url}/api/stats")
+        response = test_client.get("/api/stats")
         
         assert response.status_code == 200
         data = response.json()
@@ -243,21 +230,17 @@ class TestStatsEndpoint:
 class TestOpenAPI:
     """Tests for OpenAPI documentation."""
     
-    @pytest.mark.asyncio
-    async def test_openapi_json(self, api_url):
+    def test_openapi_json(self, test_client):
         """OpenAPI JSON should be available."""
-        async with AsyncClient() as client:
-            response = await client.get(f"{api_url}/api/openapi.json")
+        response = test_client.get("/api/openapi.json")
         
         assert response.status_code == 200
         data = response.json()
         assert "openapi" in data
         assert "paths" in data
     
-    @pytest.mark.asyncio
-    async def test_docs_page(self, api_url):
+    def test_docs_page(self, test_client):
         """Docs page should be accessible."""
-        async with AsyncClient() as client:
-            response = await client.get(f"{api_url}/api/docs")
+        response = test_client.get("/api/docs")
         
         assert response.status_code == 200
