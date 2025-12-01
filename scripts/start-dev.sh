@@ -30,7 +30,7 @@ NC='\033[0m'
 # Handle --stop
 if [[ "${1:-}" == "--stop" ]]; then
     echo -e "${BLUE}Stopping development servers...${NC}"
-    pkill -f "vite" 2>/dev/null && echo -e "${GREEN}✓${NC} Frontend stopped" || true
+    pkill -f "node.*vite" 2>/dev/null && echo -e "${GREEN}✓${NC} Frontend stopped" || true
     pkill -f "uvicorn.*dsa110_contimg" 2>/dev/null && echo -e "${GREEN}✓${NC} Backend stopped" || true
     sleep 1
     echo -e "${GREEN}Done.${NC}"
@@ -48,7 +48,7 @@ echo ""
 echo -e "${YELLOW}[1/4] Checking for issues...${NC}"
 
 # Kill zombie npm/vite processes not listening on expected port
-ZOMBIE_VITE=$(pgrep -f "vite" 2>/dev/null | while read pid; do
+ZOMBIE_VITE=$(pgrep -f "node.*vite" 2>/dev/null | while read pid; do
     if ! ss -tlnp 2>/dev/null | grep -q "pid=$pid"; then
         echo $pid
     fi
