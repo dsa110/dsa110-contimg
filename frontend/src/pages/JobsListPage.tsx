@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useJobs } from "../hooks/useQueries";
 import { relativeTime } from "../utils/relativeTime";
 import { PageSkeleton, SortableTableHeader, useTableSort } from "../components/common";
+import { SimpleErrorAlert } from "../components/errors";
 import { useSelectionStore } from "../stores/appStore";
 import { config } from "../config";
 
@@ -56,11 +57,7 @@ const JobsListPage: React.FC = () => {
   }
 
   if (error) {
-    return (
-      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-        Failed to load jobs: {error.message}
-      </div>
-    );
+    return <SimpleErrorAlert message={`Failed to load jobs: ${error.message}`} />;
   }
 
   const getStatusBadgeClass = (status: string) => {

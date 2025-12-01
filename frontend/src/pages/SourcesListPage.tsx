@@ -4,7 +4,7 @@ import { useSources } from "../hooks/useQueries";
 import { useUrlFilterState } from "../hooks/useUrlFilterState";
 import { useSourceFiltering } from "../hooks/useSourceFiltering";
 import { PageSkeleton, SortableTableHeader, useTableSort, Modal } from "../components/common";
-import { WidgetErrorBoundary } from "../components/errors";
+import { WidgetErrorBoundary, SimpleErrorAlert } from "../components/errors";
 import { AdvancedQueryPanel, SourceQueryParams } from "../components/query";
 import { EtaVPlot, SourcePoint } from "../components/variability";
 import {
@@ -202,11 +202,7 @@ const SourcesListPage: React.FC = () => {
   }
 
   if (error) {
-    return (
-      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-        Failed to load sources: {error.message}
-      </div>
-    );
+    return <SimpleErrorAlert message={`Failed to load sources: ${error.message}`} />;
   }
 
   return (

@@ -2,7 +2,7 @@ import React, { useMemo, useCallback, useState } from "react";
 import { Link } from "react-router-dom";
 import { useImages } from "../hooks/useQueries";
 import { PageSkeleton, SortableTableHeader, useTableSort } from "../components/common";
-import { WidgetErrorBoundary } from "../components/errors";
+import { WidgetErrorBoundary, SimpleErrorAlert } from "../components/errors";
 import { BulkDownloadPanel } from "../components/download";
 import { config } from "../config";
 import { FitsViewerGrid } from "../components/fits";
@@ -125,11 +125,7 @@ const ImagesListPage: React.FC = () => {
   }
 
   if (error) {
-    return (
-      <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-        Failed to load images: {error.message}
-      </div>
-    );
+    return <SimpleErrorAlert message={`Failed to load images: ${error.message}`} />;
   }
 
   return (
