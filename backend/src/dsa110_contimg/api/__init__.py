@@ -7,40 +7,28 @@ This package provides the REST API for the pipeline, including:
 - Measurement Set metadata endpoints
 - Source catalog and lightcurve endpoints
 - Job provenance and logging endpoints
-- Standardized error handling
+- Standardized error handling via exceptions module
 """
 
-from .errors import (
-    ErrorCode,
-    ErrorEnvelope,
-    make_error,
-    cal_table_missing,
-    cal_apply_failed,
-    image_not_found,
-    ms_not_found,
-    source_not_found,
-    validation_failed,
-    db_unavailable,
-    internal_error,
-)
 from .app import app, create_app
+from .exceptions import (
+    DSA110APIError,
+    RecordNotFoundError,
+    ValidationError,
+    DatabaseConnectionError,
+    FileNotAccessibleError,
+    ProcessingError,
+)
 
 __all__ = [
     # App
     "app",
     "create_app",
-    # Error utilities
-    "ErrorCode",
-    "ErrorEnvelope",
-    "make_error",
-    "cal_table_missing",
-    "cal_apply_failed",
-    "image_not_found",
-    "ms_not_found",
-    "source_not_found",
-    "validation_failed",
-    "db_unavailable",
-    "internal_error",
+    # Exception classes
+    "DSA110APIError",
+    "RecordNotFoundError",
+    "ValidationError",
+    "DatabaseConnectionError",
+    "FileNotAccessibleError",
+    "ProcessingError",
 ]
-
-# This file initializes the API module.
