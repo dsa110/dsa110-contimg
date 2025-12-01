@@ -37,6 +37,21 @@ class SampleImage:
     qa_summary: str = "Good image quality"
     run_id: str = field(default_factory=lambda: f"run_{uuid.uuid4().hex[:8]}")
     created_at: float = field(default_factory=lambda: datetime.now().timestamp())
+    type: str = "continuum"  # Required by ImageRecord
+    beam_major_arcsec: Optional[float] = 5.0
+    beam_minor_arcsec: Optional[float] = 4.0
+    beam_pa_deg: Optional[float] = 45.0
+    noise_jy: Optional[float] = 0.001
+    pbcor: int = 0
+    format: str = "fits"
+    dynamic_range: Optional[float] = 1000.0
+    field_name: Optional[str] = "test_field"
+    imsize_x: Optional[int] = 2048
+    imsize_y: Optional[int] = 2048
+    cellsize_arcsec: Optional[float] = 1.0
+    freq_ghz: Optional[float] = 1.4
+    bandwidth_mhz: Optional[float] = 250.0
+    integration_sec: Optional[float] = 300.0
 
 
 @dataclass
@@ -169,7 +184,22 @@ def create_products_schema(conn: sqlite3.Connection) -> None:
             qa_grade TEXT,
             qa_summary TEXT,
             run_id TEXT,
-            created_at REAL
+            created_at REAL,
+            type TEXT DEFAULT 'continuum',
+            beam_major_arcsec REAL,
+            beam_minor_arcsec REAL,
+            beam_pa_deg REAL,
+            noise_jy REAL,
+            pbcor INTEGER DEFAULT 0,
+            format TEXT DEFAULT 'fits',
+            dynamic_range REAL,
+            field_name TEXT,
+            imsize_x INTEGER,
+            imsize_y INTEGER,
+            cellsize_arcsec REAL,
+            freq_ghz REAL,
+            bandwidth_mhz REAL,
+            integration_sec REAL
         );
         
         CREATE TABLE IF NOT EXISTS sources (
