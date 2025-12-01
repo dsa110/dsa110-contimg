@@ -37,7 +37,7 @@ from dsa110_contimg.database.calibrators import (
 )
 from dsa110_contimg.database.hdf5_index import query_subband_groups
 
-from ..database import DatabasePool, get_db_pool
+from ..config import get_config
 from ..exceptions import (
     RecordNotFoundError,
     DatabaseQueryError,
@@ -50,30 +50,34 @@ router = APIRouter(prefix="/calibrator-imaging", tags=["calibrator-imaging"])
 
 
 # =============================================================================
-# Configuration
+# Configuration - use centralized config with env var overrides
 # =============================================================================
 
-# Database paths
-HDF5_DB_PATH = os.getenv(
-    "PIPELINE_HDF5_DB",
-    "/data/dsa110-contimg/state/hdf5.sqlite3"
-)
-PRODUCTS_DB_PATH = os.getenv(
-    "PIPELINE_PRODUCTS_DB",
-    "/data/dsa110-contimg/state/products.sqlite3"
-)
-INCOMING_DIR = os.getenv(
-    "PIPELINE_INCOMING_DIR",
-    "/data/incoming"
-)
-OUTPUT_MS_DIR = os.getenv(
-    "PIPELINE_OUTPUT_MS_DIR",
-    "/stage/dsa110-contimg/ms"
-)
-OUTPUT_IMAGES_DIR = os.getenv(
-    "PIPELINE_OUTPUT_IMAGES_DIR",
-    "/stage/dsa110-contimg/images"
-)
+def get_hdf5_db_path() -> str:
+    """Get HDF5 database path from config."""
+    config = get_config()
+    return str(config.database.hdf5_path)
+
+
+def get_products_db_path() -> str:
+    """Get products database path from config."""
+    config = get_config()
+    return str(config.database.products_path)
+
+
+def get_incoming_dir() -> str:
+    """Get incoming HDF5 directory."""
+    return os.getenv("PIPELINE_INCOMING_DIR", "/data/incoming")
+
+
+def get_output_ms_dir() -> str:
+    """Get output MS directory."""
+    return os.getenv("PIPELINE_OUTPUT_MS_DIR", "/stage/dsa110-contimg/ms")
+
+
+def get_output_images_dir() -> str:
+    """Get output images directory."""
+    return os.getenv("PIPELINE_OUTPUT_IMAGES_DIR", "/stage/dsa110-contimg/images")
 
 
 # =============================================================================
@@ -305,19 +309,16 @@ async def get_calibrator_transits(
     for transit in all_transits:
         transit_iso = transit.iso
         
-        # Check for HDF5 data within ±30 minutes of transit
-        window_start = (transit - 30 * 60 * u.s).iso if hasattr(transit, 'iso') else str(transit)
-        window_end = (transit + 30 * 60 * u.s).iso if hasattr(transit, 'iso') else str(transit)
-        
         try:
             import astropy.units as u
             window_start = (transit - 30 * u.min).iso
             window_end = (transit + 30 * u.min).iso
             
             # Query HDF5 database for subband groups
-            if os.path.exists(HDF5_DB_PATH):
+            hdf5_db = get_hdf5_db_path()
+            if os.path.exists(hdf5_db):
                 groups = query_subband_groups(
-                    HDF5_DB_PATH,
+                    hdf5_db,
                     window_start,
                     window_end,
                     tolerance_s=1.0,
@@ -381,13 +382,14 @@ async def get_calibrator_observations(
     except Exception as e:
         raise APIValidationError(f"Invalid transit time: {e}")
     
-    if not os.path.exists(HDF5_DB_PATH):
-        logger.warning(f"HDF5 database not found at {HDF5_DB_PATH}")
+    hdf5_db = get_hdf5_db_path()
+    if not os.path.exists(hdf5_db):
+        logger.warning(f"HDF5 database not found at {hdf5_db}")
         return []
     
     try:
         groups = query_subband_groups(
-            HDF5_DB_PATH,
+            hdf5_db,
             window_start,
             window_end,
             tolerance_s=1.0,
@@ -489,10 +491,11 @@ async def _run_ms_generation(
     
     try:
         # Determine output path
+        output_ms_dir = get_output_ms_dir()
         if output_name:
-            ms_path = os.path.join(OUTPUT_MS_DIR, f"{output_name}.ms")
+            ms_path = os.path.join(output_ms_dir, f"{output_name}.ms")
         else:
-            ms_path = os.path.join(OUTPUT_MS_DIR, f"{calibrator_name}_{observation_id}.ms")
+            ms_path = os.path.join(output_ms_dir, f"{calibrator_name}_{observation_id}.ms")
         
         # In a real implementation, this would call the conversion pipeline
         # For now, we simulate the conversion
@@ -637,7 +640,8 @@ async def _run_imaging(
         await asyncio.sleep(5)
         
         ms_basename = os.path.basename(ms_path).replace(".ms", "")
-        image_path = os.path.join(OUTPUT_IMAGES_DIR, f"{ms_basename}.image.fits")
+        output_images_dir = get_output_images_dir()
+        image_path = os.path.join(output_images_dir, f"{ms_basename}.image.fits")
         
         update_job(
             job_id,
@@ -713,12 +717,74 @@ async def get_photometry(
 
 @router.get("/health")
 async def health_check():
-    """Check health of calibrator imaging API."""
+    """Check health of calibrator imaging API with configuration details."""
+    hdf5_db = get_hdf5_db_path()
+    products_db = get_products_db_path()
+    calibrators_db = str(get_calibrators_db_path())
+    incoming_dir = get_incoming_dir()
+    output_ms_dir = get_output_ms_dir()
+    output_images_dir = get_output_images_dir()
+    
+    # Check each path
+    hdf5_exists = os.path.exists(hdf5_db)
+    products_exists = os.path.exists(products_db)
+    calibrators_exists = os.path.exists(calibrators_db)
+    incoming_exists = os.path.exists(incoming_dir)
+    ms_dir_exists = os.path.exists(output_ms_dir)
+    images_dir_exists = os.path.exists(output_images_dir)
+    
+    # Count HDF5 files in incoming
+    hdf5_file_count = 0
+    if incoming_exists:
+        try:
+            hdf5_file_count = len([f for f in os.listdir(incoming_dir) if f.endswith('.hdf5')])
+        except Exception:
+            pass
+    
+    # Count MS files in output
+    ms_file_count = 0
+    if ms_dir_exists:
+        try:
+            ms_file_count = len([f for f in os.listdir(output_ms_dir) if f.endswith('.ms')])
+        except Exception:
+            pass
+    
+    all_ok = all([hdf5_exists, calibrators_exists, incoming_exists, ms_dir_exists, images_dir_exists])
+    
     return {
-        "status": "healthy",
-        "hdf5_db_exists": os.path.exists(HDF5_DB_PATH),
-        "calibrators_db_exists": os.path.exists(str(get_calibrators_db_path())),
-        "incoming_dir_exists": os.path.exists(INCOMING_DIR),
-        "output_ms_dir_exists": os.path.exists(OUTPUT_MS_DIR),
-        "output_images_dir_exists": os.path.exists(OUTPUT_IMAGES_DIR),
+        "status": "healthy" if all_ok else "degraded",
+        "configuration": {
+            "hdf5_db": {
+                "path": hdf5_db,
+                "exists": hdf5_exists,
+            },
+            "products_db": {
+                "path": products_db,
+                "exists": products_exists,
+            },
+            "calibrators_db": {
+                "path": calibrators_db,
+                "exists": calibrators_exists,
+            },
+            "incoming_dir": {
+                "path": incoming_dir,
+                "exists": incoming_exists,
+                "hdf5_file_count": hdf5_file_count if incoming_exists else None,
+            },
+            "output_ms_dir": {
+                "path": output_ms_dir,
+                "exists": ms_dir_exists,
+                "ms_file_count": ms_file_count if ms_dir_exists else None,
+            },
+            "output_images_dir": {
+                "path": output_images_dir,
+                "exists": images_dir_exists,
+            },
+        },
+        # Legacy flat fields for backward compatibility
+        "hdf5_db_exists": hdf5_exists,
+        "calibrators_db_exists": calibrators_exists,
+        "incoming_dir_exists": incoming_exists,
+        "output_ms_dir_exists": ms_dir_exists,
+        "output_images_dir_exists": images_dir_exists,
     }

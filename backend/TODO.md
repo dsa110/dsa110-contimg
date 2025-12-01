@@ -56,9 +56,19 @@
 
 ### Low Priority
 
-- [ ] **WebSocket Improvements** - Add reconnection logic, heartbeat
-- [ ] **Cache Optimization** - Redis cache for expensive queries
-- [ ] **Metrics Dashboard** - Grafana dashboard for Prometheus metrics
+- [x] **WebSocket Improvements** - Added heartbeat tracking, reconnection tokens,
+      and disconnect reasons. Added `DisconnectReason` enum, `ConnectionState` enum,
+      `record_heartbeat()`, `check_heartbeat()`, `generate_reconnect_token()` methods.
+      Updated `/ws/jobs` and `/ws/pipeline` endpoints with heartbeat monitoring.
+      Added 14 new WebSocket tests (39 total).
+- [x] **Cache Optimization** - Redis cache for expensive queries. Added comprehensive
+      test suite for cache module with 41 tests covering: CacheManager, cache key
+      generation, @cached decorator, TTL configuration, blacklist handling, error
+      handling, and singleton pattern.
+- [x] **Metrics Dashboard** - Grafana dashboard for Prometheus metrics. Added
+      `ops/grafana/dsa110-pipeline-dashboard.json` with 20 panels covering pipeline
+      overview, processing throughput, data quality, and pipeline stages. Added
+      39 unit tests for the metrics module.
 
 ---
 
