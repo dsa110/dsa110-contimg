@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { AppErrorBoundary } from "./AppErrorBoundary";
 import { useState } from "react";
+import { logger } from "../../utils/logger";
 
 /**
  * AppErrorBoundary catches React errors and displays a user-friendly fallback UI.
@@ -88,9 +89,7 @@ export const WithOnErrorCallback: Story = {
     <AppErrorBoundary
       onError={(error, errorInfo) => {
         // Demo: In real app, send to error tracking service
-        // Using console.info here since this is intentional demo logging
-        // eslint-disable-next-line no-console
-        console.info("Error caught:", error, "Stack:", errorInfo.componentStack);
+        logger.info("Error caught:", error, "Stack:", errorInfo.componentStack);
       }}
     >
       <ErrorThrower />

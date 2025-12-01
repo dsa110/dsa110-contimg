@@ -2,7 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from "react";
 import { CATALOG_DEFINITIONS, CatalogDefinition } from "../../constants/catalogDefinitions";
 import CatalogLegend from "./CatalogLegend";
 import { queryCatalogCached, CatalogQueryResult, CatalogSource } from "../../utils/vizierQuery";
-import type { AladinCatalog, AladinInstance } from "aladin-lite";
+import type { AladinCatalog, AladinInstance, AladinStatic } from "aladin-lite";
 
 export interface CatalogOverlayPanelProps {
   /** Currently enabled catalog IDs */
@@ -152,16 +152,15 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
 
       const aladin = aladinRef.current;
 
-      // Remove existing layer for this catalog
       const existingLayer = overlayLayersRef.current.get(catalog.id);
       if (existingLayer) {
         aladin.removeCatalog(existingLayer);
       }
 
-      // Create new catalog layer using Aladin's static A.catalog method
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const A = (window as any).A;
-      const catalogLayer = A?.catalog({
+      const globalAladin = (window as Window & { A?: AladinStatic }).A;
+      if (!globalAladin) return;
+
+      const catalogLayer = globalAladin.catalog({
         name: catalog.name,
         sourceSize: 12,
         color: catalog.color,
@@ -179,7 +178,7 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
 
       // Add sources to layer
       const aladinSources = sources.map((src) =>
-        A.source(src.ra, src.dec, {
+        globalAladin.source(src.ra, src.dec, {
           name: src.id,
           catalog: catalog.name,
         })
