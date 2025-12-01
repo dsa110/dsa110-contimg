@@ -85,7 +85,12 @@ function getPidsOnPort(port) {
 }
 
 /**
- * Check if port is available by trying to bind to it
+ * Check if port is available by trying to bind to it.
+ *
+ * IMPORTANT: We bind to 0.0.0.0 (all interfaces), not just 127.0.0.1,
+ * because Vite uses --host 0.0.0.0. If we only check 127.0.0.1, we might
+ * miss a process bound to 0.0.0.0:port, causing a race condition where
+ * our check passes but Vite fails with "port already in use".
  */
 function isPortAvailable(port) {
   return new Promise((resolve) => {
@@ -95,7 +100,8 @@ function isPortAvailable(port) {
       server.close();
       resolve(true);
     });
-    server.listen(port, "127.0.0.1");
+    // Bind to 0.0.0.0 to match Vite's --host 0.0.0.0 binding
+    server.listen(port, "0.0.0.0");
   });
 }
 

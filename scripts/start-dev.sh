@@ -13,6 +13,24 @@
 # Ports:
 #   3000 - Frontend (Vite with HMR)
 #   8000 - Backend (Uvicorn with auto-reload)
+#
+# ## Troubleshooting: "The service is no longer running" (esbuild)
+#
+# If you see this error in the browser after restarting the dev server:
+#
+#   [plugin:vite:esbuild] The service is no longer running
+#   /data/dsa110-contimg/frontend/src/...
+#
+# This likely indicates esbuild's child process was terminated abruptly.
+# The fix is implemented in frontend/scripts/ensure-port.cjs which uses
+# graceful shutdown (SIGTERM) before force-killing (SIGKILL).
+#
+# If the error persists:
+#   1. Run: ./start-dev.sh --stop
+#   2. Wait 2-3 seconds
+#   3. Run: ./start-dev.sh
+#
+# See ensure-port.cjs header comments for technical details.
 # =============================================================================
 
 set -e
