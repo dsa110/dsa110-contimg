@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import * as echarts from "echarts";
+import type * as echarts from "echarts";
 import type { ECElementEvent } from "echarts";
+import { loadEcharts } from "../../lib/loadEcharts";
 import VariabilityControls, { VariabilityControlsValues } from "./VariabilityControls";
 import SourcePreview from "./SourcePreview";
 
@@ -60,6 +61,7 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
 }) => {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<echarts.ECharts | null>(null);
+  const [echartsReady, setEchartsReady] = useState(false);
 
   // Control state
   const [controls, setControls] = useState<VariabilityControlsValues>({
@@ -179,11 +181,21 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
     [controls.colorBy, colorMaxValues]
   );
 
-  // Initialize chart
+  // Initialize chart with lazy-loaded ECharts
   useEffect(() => {
     if (!chartRef.current) return;
 
-    chartInstance.current = echarts.init(chartRef.current);
+    let mounted = true;
+
+    const initChart = async () => {
+      const echartsModule = await loadEcharts();
+      if (!mounted || !chartRef.current) return;
+      
+      chartInstance.current = echartsModule.init(chartRef.current);
+      setEchartsReady(true);
+    };
+
+    initChart();
 
     const handleResize = () => {
       chartInstance.current?.resize();
@@ -191,6 +203,7 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
     window.addEventListener("resize", handleResize);
 
     return () => {
+      mounted = false;
       window.removeEventListener("resize", handleResize);
       chartInstance.current?.dispose();
     };
@@ -198,7 +211,7 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
 
   // Update chart
   useEffect(() => {
-    if (!chartInstance.current || isLoading) return;
+    if (!chartInstance.current || !echartsReady || isLoading) return;
 
     const candidateIds = new Set(candidates.map((c) => c.id));
 

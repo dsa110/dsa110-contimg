@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
+import { logger } from "../../utils/logger";
 
 /**
  * Configuration for CelestialMap - mirrors d3-celestial config structure
@@ -399,7 +400,7 @@ export const CelestialMap: React.FC<CelestialMapProps> = ({
         type: "raw",
         callback: (error: unknown) => {
           if (error) {
-            console.error("Error adding markers:", error);
+            logger.error("Error adding celestial markers", { error });
             return;
           }
         },

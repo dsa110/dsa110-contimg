@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from "react";
+import { logger } from "../../utils/logger";
 
 export type ConfidenceLevel = "true" | "false" | "unsure";
 
@@ -107,7 +108,7 @@ const RatingCard: React.FC<RatingCardProps> = ({
       setNewTagDescription("");
       setShowNewTagForm(false);
     } catch (error) {
-      console.error("Failed to create tag:", error);
+      logger.error("Failed to create tag", error instanceof Error ? error : { error });
     }
   }, [newTagName, newTagDescription, onCreateTag]);
 

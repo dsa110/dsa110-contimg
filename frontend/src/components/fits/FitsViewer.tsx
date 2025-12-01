@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useCallback, useState } from "react";
 import FitsViewerControls, { FitsViewerControlsValues } from "./FitsViewerControls";
 import type { JS9Image, JS9Region, JS9MouseEvent } from "../../types/js9.d";
 import { VIEWER_TIMEOUTS } from "../../constants/astronomical";
+import { logger } from "../../utils/logger";
 
 // Note: JS9 global is declared in src/types/js9.d.ts
 
@@ -244,7 +245,7 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
       // Toggle crosshair
       window.JS9.SetParam("crosshair", controls.showCrosshair, { display: displayId });
     } catch (err) {
-      console.warn("Failed to apply JS9 settings:", err);
+      logger.warn("Failed to apply JS9 settings", { error: err, displayId });
     }
   }, [controls, isJS9Ready, isLoading, displayId]);
 

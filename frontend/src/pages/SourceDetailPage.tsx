@@ -10,6 +10,7 @@ import { NearbyObjectsPanel, NearbyObject } from "../components/crossmatch";
 import type { LightCurveDataPoint } from "../components/widgets";
 import { mapProvenanceFromSourceDetail, SourceDetailResponse } from "../utils/provenanceMappers";
 import { relativeTime } from "../utils/relativeTime";
+import { logger } from "../utils/logger";
 import type { ErrorResponse } from "../types/errors";
 import type { ProvenanceStripProps } from "../types/provenance";
 import { useSource } from "../hooks/useQueries";
@@ -84,7 +85,7 @@ const SourceDetailPage: React.FC = () => {
         }
       }
     } catch (e) {
-      console.warn("SIMBAD query failed:", e);
+      logger.warn("SIMBAD query failed", { error: e });
     }
 
     return results;

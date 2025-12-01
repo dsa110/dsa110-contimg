@@ -10,6 +10,7 @@ import { useImage } from "./useQueries";
 import { usePreferencesStore } from "../stores/appStore";
 import apiClient, { noRetry } from "../api/client";
 import { ROUTES } from "../constants/routes";
+import { logger } from "../utils/logger";
 
 /**
  * State for delete operation.
@@ -91,7 +92,7 @@ export function useImageDetail(imageId: string | undefined) {
       window.location.href = ROUTES.IMAGES.LIST;
     } catch (e) {
       const message = e instanceof Error ? e.message : "Failed to delete image";
-      console.error("Failed to delete image:", e);
+      logger.error("Failed to delete image", e instanceof Error ? e : { error: e });
       setDeleteState((s) => ({ ...s, isDeleting: false, error: message }));
     }
   }, [imageId]);
@@ -111,7 +112,7 @@ export function useImageDetail(imageId: string | undefined) {
         // Refresh image data to show updated rating
         refetch();
       } catch (e) {
-        console.error("Failed to submit rating:", e);
+        logger.error("Failed to submit rating", e instanceof Error ? e : { error: e });
         throw e;
       }
     },

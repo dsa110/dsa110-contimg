@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useEffect } from "react";
 import FitsViewer, { FitsViewerProps } from "./FitsViewer";
+import { logger } from "../../utils/logger";
 
 /** Props passed to individual FitsViewer cells, excluding grid-managed properties */
 type FitsViewerCellProps = Omit<
@@ -68,7 +69,7 @@ const FitsViewerGrid: React.FC<FitsViewerGridProps> = ({
         }
       }
     } catch (err) {
-      console.warn("Failed to sync views:", err);
+      logger.warn("Failed to sync views", { error: err });
     }
   }, [syncEnabled, fitsUrls.length]);
 

@@ -5,6 +5,7 @@ import {
   CheckDiagnostics,
   DEFAULT_SERVICES,
 } from "../../utils/serviceHealthChecker";
+import { logger } from "../../utils/logger";
 
 /**
  * Internal service state for the panel
@@ -148,7 +149,7 @@ export function ServiceStatusPanel() {
       setApiAvailable(result.apiAvailable);
       setDiagnostics(result.diagnostics);
     } catch (err) {
-      console.error("Health check failed:", err);
+      logger.error("Health check failed", err instanceof Error ? err : { error: err });
       // On complete failure, mark everything as unknown
       setServices((prev) =>
         prev.map((s) => ({
