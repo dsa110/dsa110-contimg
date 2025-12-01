@@ -29,7 +29,7 @@ declare module "aladin-lite" {
     /**
      * Create a source marker
      */
-    source(ra: number, dec: number, data?: { name?: string; [key: string]: any }): AladinSource;
+    source(ra: number, dec: number, data?: { name?: string; [key: string]: unknown }): AladinSource;
   }
 
   /**
@@ -128,12 +128,12 @@ declare module "aladin-lite" {
     /**
      * On event handler
      */
-    on(event: string, callback: (...args: any[]) => void): void;
+    on(event: string, callback: (...args: unknown[]) => void): void;
 
     /**
      * Off event handler
      */
-    off(event: string, callback?: (...args: any[]) => void): void;
+    off(event: string, callback?: (...args: unknown[]) => void): void;
   }
 
   /**
@@ -195,7 +195,7 @@ declare module "aladin-lite" {
     /** Declination in degrees */
     dec: number;
     /** Source data */
-    data: { name?: string; [key: string]: any };
+    data: { name?: string; [key: string]: unknown };
   }
 
   const A: AladinStatic;
