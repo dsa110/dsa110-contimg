@@ -283,12 +283,18 @@ def populate_products_db(
             """
             INSERT OR REPLACE INTO images 
             (id, path, ms_path, cal_table, center_ra_deg, center_dec_deg, 
-             qa_grade, qa_summary, run_id, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             qa_grade, qa_summary, run_id, created_at, type, beam_major_arcsec,
+             beam_minor_arcsec, beam_pa_deg, noise_jy, pbcor, format,
+             dynamic_range, field_name, imsize_x, imsize_y, cellsize_arcsec,
+             freq_ghz, bandwidth_mhz, integration_sec)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (img.id, img.path, img.ms_path, img.cal_table, img.center_ra_deg,
              img.center_dec_deg, img.qa_grade, img.qa_summary, img.run_id,
-             img.created_at)
+             img.created_at, img.type, img.beam_major_arcsec, img.beam_minor_arcsec,
+             img.beam_pa_deg, img.noise_jy, img.pbcor, img.format, img.dynamic_range,
+             img.field_name, img.imsize_x, img.imsize_y, img.cellsize_arcsec,
+             img.freq_ghz, img.bandwidth_mhz, img.integration_sec)
         )
     
     # Insert sources
