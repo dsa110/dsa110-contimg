@@ -423,6 +423,37 @@ class RAGFlowSync:
             "ragflow_docs": ragflow_count,
             "total_size_mb": db_stats["total_size"] / (1024 * 1024),
         }
+    
+    def get_parsing_progress(self) -> dict:
+        """Get parsing progress for all documents."""
+        statuses = {}
+        chunks = 0
+        tokens = 0
+        page = 1
+        
+        while True:
+            data = self._request(
+                "GET",
+                f"/datasets/{self.dataset_id}/documents",
+                params={"page": page, "page_size": 100}
+            )
+            docs = data.get("docs", [])
+            if not docs:
+                break
+            for d in docs:
+                run = d.get("run", "UNKNOWN")
+                statuses[run] = statuses.get(run, 0) + 1
+                chunks += d.get("chunk_count", 0)
+                tokens += d.get("token_count", 0)
+            page += 1
+        
+        total = sum(statuses.values())
+        return {
+            "statuses": statuses,
+            "total": total,
+            "chunks": chunks,
+            "tokens": tokens,
+        }
 
 
 def main():
@@ -436,6 +467,9 @@ def main():
     
     # status command
     subparsers.add_parser("status", help="Show sync status")
+    
+    # progress command
+    subparsers.add_parser("progress", help="Show parsing progress")
     
     # clear command
     subparsers.add_parser("clear", help="Clear local sync state (doesn't affect RAGFlow)")
@@ -467,6 +501,21 @@ def main():
         print(f"Synced (tracked): {status['synced_files']}")
         print(f"RAGFlow docs:    {status['ragflow_docs']}")
         print(f"Total size:      {status['total_size_mb']:.2f} MB")
+    
+    elif args.command == "progress":
+        print("RAGFlow Parsing Progress")
+        print("=" * 50)
+        progress = syncer.get_parsing_progress()
+        total = progress["total"]
+        
+        for status, count in sorted(progress["statuses"].items()):
+            pct = 100 * count / total if total else 0
+            bar = "█" * int(pct / 5) + "░" * (20 - int(pct / 5))
+            print(f"  {status:10} {bar} {count:4} ({pct:.1f}%)")
+        
+        print(f"\nTotal: {total} documents")
+        print(f"Chunks: {progress['chunks']:,}")
+        print(f"Tokens: {progress['tokens']:,}")
         
     elif args.command == "clear":
         syncer.db.clear_all()
