@@ -45,6 +45,7 @@ jobs:
         run: |
           set -euo pipefail
           export PYTHONPATH="${GITHUB_WORKSPACE}/src:${PYTHONPATH:-}"
+          export DSA110_SKIP_PYTHON_CHECK=1
           pytest tests/unit/ -v -x --maxfail=1
 
   unit-tests:
@@ -71,6 +72,7 @@ jobs:
         run: |
           set -euo pipefail
           export PYTHONPATH="${GITHUB_WORKSPACE}/src:${PYTHONPATH:-}"
+          export DSA110_SKIP_PYTHON_CHECK=1
           pytest tests/unit/ -v \
             --cov=src/dsa110_contimg \
             --cov-report=xml \
@@ -175,7 +177,8 @@ jobs:
             --start-time "2025-11-05T14:00:00" \
             --duration-minutes 3.0 \
             --flux-jy 10.0 \
-            --subbands 8
+            --subbands 16 \
+            --template-free
             
           # Weak calibrator case
           python src/dsa110_contimg/simulation/make_synthetic_uvh5.py \
@@ -185,7 +188,8 @@ jobs:
             --start-time "2025-11-05T15:00:00" \
             --duration-minutes 3.0 \
             --flux-jy 0.5 \
-            --subbands 8
+            --subbands 16 \
+            --template-free
 
       - name: Test pipeline with different scenarios
         shell: bash -l {0}
