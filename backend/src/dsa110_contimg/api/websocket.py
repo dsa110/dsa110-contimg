@@ -17,6 +17,8 @@ from dataclasses import dataclass, field
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
 from fastapi.websockets import WebSocketState
 
+from .config import get_config
+
 
 logger = logging.getLogger(__name__)
 
@@ -196,9 +198,10 @@ async def websocket_job_updates(
         while True:
             try:
                 # Wait for messages (ping/pong, subscriptions, etc.)
+                config = get_config()
                 data = await asyncio.wait_for(
                     websocket.receive_json(),
-                    timeout=30.0,  # Send ping every 30s
+                    timeout=config.timeouts.websocket_ping,
                 )
                 
                 # Handle client messages

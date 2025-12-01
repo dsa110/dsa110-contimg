@@ -205,6 +205,46 @@ class LoggingConfig:
         )
 
 
+@dataclass
+class TimeoutConfig:
+    """Timeout settings for various operations.
+    
+    Centralizes all timeout values to avoid magic numbers scattered
+    throughout the codebase.
+    """
+    # Database connections
+    db_connection: float = 30.0      # Main database connection timeout
+    db_quick_check: float = 2.0      # Quick health check timeout
+    db_metrics_sync: float = 10.0    # Metrics sync timeout
+    
+    # WebSocket operations
+    websocket_ping: float = 30.0     # WebSocket ping interval
+    websocket_pong: float = 10.0     # WebSocket pong wait timeout
+    
+    # External service checks
+    service_health_check: float = 5.0  # Health check for external services
+    http_request: float = 30.0         # Default HTTP request timeout
+    
+    # Background tasks
+    background_poll: float = 30.0    # Background task polling interval
+    startup_retry_base: float = 0.5  # Base delay for startup retries (exponential backoff)
+    
+    @classmethod
+    def from_env(cls) -> "TimeoutConfig":
+        """Create config from environment variables."""
+        return cls(
+            db_connection=float(os.getenv("DSA110_TIMEOUT_DB_CONNECTION", "30.0")),
+            db_quick_check=float(os.getenv("DSA110_TIMEOUT_DB_QUICK", "2.0")),
+            db_metrics_sync=float(os.getenv("DSA110_TIMEOUT_DB_METRICS", "10.0")),
+            websocket_ping=float(os.getenv("DSA110_TIMEOUT_WS_PING", "30.0")),
+            websocket_pong=float(os.getenv("DSA110_TIMEOUT_WS_PONG", "10.0")),
+            service_health_check=float(os.getenv("DSA110_TIMEOUT_HEALTH_CHECK", "5.0")),
+            http_request=float(os.getenv("DSA110_TIMEOUT_HTTP", "30.0")),
+            background_poll=float(os.getenv("DSA110_TIMEOUT_BACKGROUND_POLL", "30.0")),
+            startup_retry_base=float(os.getenv("DSA110_TIMEOUT_STARTUP_RETRY", "0.5")),
+        )
+
+
 @dataclass 
 class APIConfig:
     """Main API configuration."""
@@ -222,6 +262,7 @@ class APIConfig:
     pagination: PaginationConfig = field(default_factory=PaginationConfig.from_env)
     cors: CORSConfig = field(default_factory=CORSConfig.from_env)
     logging: LoggingConfig = field(default_factory=LoggingConfig.from_env)
+    timeouts: TimeoutConfig = field(default_factory=TimeoutConfig.from_env)
     
     # Feature flags
     enable_swagger: bool = True
@@ -251,6 +292,7 @@ class APIConfig:
             rate_limit=RateLimitConfig.from_env(),
             cors=CORSConfig.from_env(),
             logging=LoggingConfig.from_env(),
+            timeouts=TimeoutConfig.from_env(),
             enable_swagger=os.getenv("DSA110_ENABLE_SWAGGER", "true").lower() == "true",
             enable_metrics=os.getenv("DSA110_ENABLE_METRICS", "true").lower() == "true",
             enable_profiling=os.getenv("DSA110_ENABLE_PROFILING", "false").lower() == "true" and not is_production,
