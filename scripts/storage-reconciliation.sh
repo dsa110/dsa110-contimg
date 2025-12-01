@@ -46,6 +46,9 @@ done
 source /opt/miniforge/etc/profile.d/conda.sh
 conda activate casa6
 
+# Change to backend directory so imports work
+cd /data/dsa110-contimg/backend/src
+
 # Create log directory if needed
 mkdir -p "$LOG_DIR"
 

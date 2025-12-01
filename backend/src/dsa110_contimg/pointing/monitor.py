@@ -146,14 +146,17 @@ def calculate_elevation(
     Returns:
         Elevation in degrees
     """
+    from astropy.coordinates import AltAz
+    
     if utc_time is None:
         utc_time = datetime.utcnow()
     if location is None:
         location = DSA110_LOCATION
     
-    t = Time(utc_time, scale='utc', location=location)
+    t = Time(utc_time, scale='utc')
     coord = SkyCoord(ra=ra_deg * u.deg, dec=dec_deg * u.deg, frame='icrs')
-    altaz = coord.transform_to('altaz')
+    altaz_frame = AltAz(obstime=t, location=location)
+    altaz = coord.transform_to(altaz_frame)
     return float(altaz.alt.deg)
 
 
