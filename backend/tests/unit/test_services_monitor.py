@@ -403,13 +403,15 @@ class TestCheckRedisService:
         mock_writer.close = MagicMock()
         mock_writer.wait_closed = AsyncMock()
         
-        with patch("asyncio.open_connection", return_value=(mock_reader, mock_writer)):
-            with patch("asyncio.wait_for", side_effect=lambda coro, timeout: coro):
-                result = await check_redis_service(redis_service)
-                
-                assert result.status == ServiceStatus.RUNNING
-                assert result.details == {"response": "PONG"}
-                assert result.error is None
+        async def mock_open_connection(*args, **kwargs):
+            return (mock_reader, mock_writer)
+        
+        with patch("asyncio.open_connection", mock_open_connection):
+            result = await check_redis_service(redis_service)
+            
+            assert result.status == ServiceStatus.RUNNING
+            assert result.details == {"response": "PONG"}
+            assert result.error is None
 
     @pytest.mark.asyncio
     async def test_redis_unexpected_response(self, redis_service):
@@ -423,18 +425,23 @@ class TestCheckRedisService:
         mock_writer.close = MagicMock()
         mock_writer.wait_closed = AsyncMock()
         
-        with patch("asyncio.open_connection", return_value=(mock_reader, mock_writer)):
-            with patch("asyncio.wait_for", side_effect=lambda coro, timeout: coro):
-                result = await check_redis_service(redis_service)
-                
-                assert result.status == ServiceStatus.DEGRADED
-                assert "Unexpected response" in result.error
+        async def mock_open_connection(*args, **kwargs):
+            return (mock_reader, mock_writer)
+        
+        with patch("asyncio.open_connection", mock_open_connection):
+            result = await check_redis_service(redis_service)
+            
+            assert result.status == ServiceStatus.DEGRADED
+            assert "Unexpected response" in result.error
 
     @pytest.mark.asyncio
     async def test_redis_timeout(self, redis_service):
         """Redis timeout should return ERROR status."""
-        with patch("asyncio.wait_for", side_effect=asyncio.TimeoutError()):
-            result = await check_redis_service(redis_service)
+        async def mock_open_connection(*args, **kwargs):
+            await asyncio.sleep(10)  # Will be interrupted by timeout
+        
+        with patch("asyncio.open_connection", mock_open_connection):
+            result = await check_redis_service(redis_service, timeout=0.001)
             
             assert result.status == ServiceStatus.ERROR
             assert result.error == "Connection timeout"
@@ -442,7 +449,10 @@ class TestCheckRedisService:
     @pytest.mark.asyncio
     async def test_redis_connection_refused(self, redis_service):
         """Redis connection refused should return STOPPED status."""
-        with patch("asyncio.wait_for", side_effect=ConnectionRefusedError()):
+        async def mock_open_connection(*args, **kwargs):
+            raise ConnectionRefusedError()
+        
+        with patch("asyncio.open_connection", mock_open_connection):
             result = await check_redis_service(redis_service)
             
             assert result.status == ServiceStatus.STOPPED
@@ -451,7 +461,10 @@ class TestCheckRedisService:
     @pytest.mark.asyncio
     async def test_redis_os_error(self, redis_service):
         """Redis OSError should return STOPPED status."""
-        with patch("asyncio.wait_for", side_effect=OSError("Network unreachable")):
+        async def mock_open_connection(*args, **kwargs):
+            raise OSError("Network unreachable")
+        
+        with patch("asyncio.open_connection", mock_open_connection):
             result = await check_redis_service(redis_service)
             
             assert result.status == ServiceStatus.STOPPED
@@ -460,7 +473,10 @@ class TestCheckRedisService:
     @pytest.mark.asyncio
     async def test_redis_connection_error(self, redis_service):
         """Redis ConnectionError should return ERROR status."""
-        with patch("asyncio.wait_for", side_effect=ConnectionError("Lost connection")):
+        async def mock_open_connection(*args, **kwargs):
+            raise ConnectionError("Lost connection")
+        
+        with patch("asyncio.open_connection", mock_open_connection):
             result = await check_redis_service(redis_service)
             
             assert result.status == ServiceStatus.ERROR
@@ -469,7 +485,10 @@ class TestCheckRedisService:
     @pytest.mark.asyncio
     async def test_redis_unicode_error(self, redis_service):
         """Redis UnicodeDecodeError should return ERROR status."""
-        with patch("asyncio.wait_for", side_effect=UnicodeDecodeError("utf-8", b"", 0, 1, "invalid")):
+        async def mock_open_connection(*args, **kwargs):
+            raise UnicodeDecodeError("utf-8", b"", 0, 1, "invalid")
+        
+        with patch("asyncio.open_connection", mock_open_connection):
             result = await check_redis_service(redis_service)
             
             assert result.status == ServiceStatus.ERROR
@@ -501,9 +520,10 @@ class TestCheckTcpService:
         mock_writer.close = MagicMock()
         mock_writer.wait_closed = AsyncMock()
         
-        with patch("asyncio.wait_for") as mock_wait_for:
-            mock_wait_for.return_value = (mock_reader, mock_writer)
-            
+        async def mock_open_connection(*args, **kwargs):
+            return (mock_reader, mock_writer)
+        
+        with patch("asyncio.open_connection", mock_open_connection):
             result = await check_tcp_service(tcp_service)
             
             assert result.status == ServiceStatus.RUNNING
@@ -513,8 +533,12 @@ class TestCheckTcpService:
     @pytest.mark.asyncio
     async def test_tcp_timeout(self, tcp_service):
         """TCP timeout should return ERROR status."""
-        with patch("asyncio.wait_for", side_effect=asyncio.TimeoutError()):
-            result = await check_tcp_service(tcp_service)
+        async def mock_open_connection(*args, **kwargs):
+            await asyncio.sleep(10)  # Will be interrupted by timeout
+        
+        with patch("asyncio.open_connection", mock_open_connection):
+            # Use a very short timeout to trigger asyncio.TimeoutError
+            result = await check_tcp_service(tcp_service, timeout=0.001)
             
             assert result.status == ServiceStatus.ERROR
             assert result.error == "Connection timeout"
@@ -522,7 +546,10 @@ class TestCheckTcpService:
     @pytest.mark.asyncio
     async def test_tcp_connection_refused(self, tcp_service):
         """TCP connection refused should return STOPPED status."""
-        with patch("asyncio.wait_for", side_effect=ConnectionRefusedError()):
+        async def mock_open_connection(*args, **kwargs):
+            raise ConnectionRefusedError()
+        
+        with patch("asyncio.open_connection", mock_open_connection):
             result = await check_tcp_service(tcp_service)
             
             assert result.status == ServiceStatus.STOPPED
@@ -531,7 +558,10 @@ class TestCheckTcpService:
     @pytest.mark.asyncio
     async def test_tcp_os_error(self, tcp_service):
         """TCP OSError should return STOPPED status."""
-        with patch("asyncio.wait_for", side_effect=OSError("Network down")):
+        async def mock_open_connection(*args, **kwargs):
+            raise OSError("Network down")
+        
+        with patch("asyncio.open_connection", mock_open_connection):
             result = await check_tcp_service(tcp_service)
             
             assert result.status == ServiceStatus.STOPPED
@@ -540,7 +570,10 @@ class TestCheckTcpService:
     @pytest.mark.asyncio
     async def test_tcp_connection_error(self, tcp_service):
         """TCP ConnectionError should return ERROR status."""
-        with patch("asyncio.wait_for", side_effect=ConnectionError("Reset by peer")):
+        async def mock_open_connection(*args, **kwargs):
+            raise ConnectionResetError("Reset by peer")
+        
+        with patch("asyncio.open_connection", mock_open_connection):
             result = await check_tcp_service(tcp_service)
             
             assert result.status == ServiceStatus.ERROR

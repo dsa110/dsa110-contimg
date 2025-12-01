@@ -1,5 +1,4 @@
-/// <reference path="./vitest.d.ts" />
-import "@testing-library/jest-dom";
+import "@testing-library/jest-dom/vitest";
 
 /**
  * Test Setup and Conventions
