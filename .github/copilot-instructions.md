@@ -2,12 +2,17 @@
 
 # !!! IMPORTANT READ THIS FIRST !!!
 
-We are undergoing a major refactoring, and this document contains the *old* code structure. The *new* version we are migrating to is outlined as an instructive guide located at:
+**We are undergoing a major refactoring, and this document contains the _old_ code structure. The _new_ version we are migrating to is outlined as an instructive guide located at:**
 
 ```
 /data/dsa110-contimg/dsa110-contimg-complexity-reduction-guide.md
 ```
+
 and
+
+```
+/data/dsa110-contimg/dsa110-contimg-complexity-reduction-additional-notes.md
+```
 
 ## Project Overview
 
