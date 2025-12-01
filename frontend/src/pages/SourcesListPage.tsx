@@ -4,6 +4,7 @@ import { useSources } from "../hooks/useQueries";
 import { useUrlFilterState } from "../hooks/useUrlFilterState";
 import { useSourceFiltering } from "../hooks/useSourceFiltering";
 import { PageSkeleton, SortableTableHeader, useTableSort, Modal } from "../components/common";
+import { WidgetErrorBoundary } from "../components/errors";
 import { AdvancedQueryPanel, SourceQueryParams } from "../components/query";
 import { EtaVPlot, SourcePoint } from "../components/variability";
 import {
@@ -328,11 +329,13 @@ const SourcesListPage: React.FC = () => {
         /* Variability Plot Tab */
         <div className="card p-4">
           {variabilityData.length > 0 ? (
-            <EtaVPlot
-              sources={variabilityData}
-              onSourceSelect={(sourceId) => (window.location.href = `/sources/${sourceId}`)}
-              height={500}
-            />
+            <WidgetErrorBoundary widgetName="Variability Plot" minHeight={500}>
+              <EtaVPlot
+                sources={variabilityData}
+                onSourceSelect={(sourceId) => (window.location.href = `/sources/${sourceId}`)}
+                height={500}
+              />
+            </WidgetErrorBoundary>
           ) : (
             <p className="text-gray-500 text-center py-8">
               No variability data available. Sources need η and V values to display the variability

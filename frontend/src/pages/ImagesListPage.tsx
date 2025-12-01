@@ -2,6 +2,7 @@ import React, { useMemo, useCallback, useState } from "react";
 import { Link } from "react-router-dom";
 import { useImages } from "../hooks/useQueries";
 import { PageSkeleton, SortableTableHeader, useTableSort } from "../components/common";
+import { WidgetErrorBoundary } from "../components/errors";
 import { BulkDownloadPanel } from "../components/download";
 import { config } from "../config";
 import { FitsViewerGrid } from "../components/fits";
@@ -174,13 +175,15 @@ const ImagesListPage: React.FC = () => {
         <div className="mb-6">
           <div className="card p-4">
             <h3 className="text-lg font-semibold mb-4">Image Comparison</h3>
-            <FitsViewerGrid
-              fitsUrls={comparisonUrls}
-              labels={comparisonLabels}
-              columns={selectedIds.length <= 2 ? 2 : selectedIds.length <= 3 ? 3 : 4}
-              viewerSize={350}
-              syncViews
-            />
+            <WidgetErrorBoundary widgetName="FITS Comparison" minHeight={350}>
+              <FitsViewerGrid
+                fitsUrls={comparisonUrls}
+                labels={comparisonLabels}
+                columns={selectedIds.length <= 2 ? 2 : selectedIds.length <= 3 ? 3 : 4}
+                viewerSize={350}
+                syncViews
+              />
+            </WidgetErrorBoundary>
           </div>
         </div>
       )}
