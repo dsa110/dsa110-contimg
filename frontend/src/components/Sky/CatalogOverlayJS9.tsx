@@ -102,7 +102,7 @@ export default function CatalogOverlayJS9({
       overlayRef.current = [];
 
       // Add new overlays for each source
-      overlayData.sources.forEach((source: CatalogSource, idx: number) => {
+      overlayData.sources.forEach((source: CatalogSourceWithType, idx: number) => {
         try {
           // Convert RA/Dec to pixel coordinates using JS9 WCS
           const wcs = window.JS9.GetWCS(display.im.id, source.ra_deg * 15, source.dec_deg);
@@ -165,19 +165,6 @@ export default function CatalogOverlayJS9({
       overlayRef.current = [];
     };
   }, [displayId, overlayData, visible, onSourceClick]);
-
-  const getCatalogColor = (catalogType: string): string => {
-    switch (catalogType?.toLowerCase()) {
-      case "nvss":
-        return "#2196F3"; // Blue
-      case "vlass":
-        return "#4CAF50"; // Green
-      case "first":
-        return "#F44336"; // Red
-      default:
-        return "#FFC107"; // Amber
-    }
-  };
 
   if (isLoading) {
     return (
