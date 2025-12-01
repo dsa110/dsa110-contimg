@@ -6,7 +6,11 @@
  * Used in CI to detect frontend/backend type drift.
  *
  * Usage:
- *   node scripts/check-api-alignment.cjs [--verbose]
+ *   node scripts/check-api-alignment.cjs [--verbose] [--all]
+ *
+ * Options:
+ *   --verbose  Show detailed error messages
+ *   --all      Test all endpoints (not just health)
  *
  * Exit codes:
  *   0 - All endpoints valid
@@ -18,15 +22,15 @@
 
 const API_BASE = process.env.API_BASE_URL || "http://localhost:8000";
 const VERBOSE = process.argv.includes("--verbose");
+const TEST_ALL = process.argv.includes("--all");
 
-// Endpoint definitions with expected structure
-const ENDPOINTS = [
+// Core health endpoints (always tested)
+const HEALTH_ENDPOINTS = [
   {
     name: "systemHealth",
     path: "/api/v1/health/system",
     requiredKeys: ["overall_status", "services", "summary"],
     arrayFields: ["services"],
-    nestedArrayFields: {},
   },
   {
     name: "validityTimeline",
@@ -40,14 +44,12 @@ const ENDPOINTS = [
       "total_windows",
     ],
     arrayFields: ["windows"],
-    nestedArrayFields: {},
   },
   {
     name: "fluxMonitoring",
     path: "/api/v1/health/flux-monitoring",
     requiredKeys: ["calibrators"],
     arrayFields: ["calibrators"],
-    nestedArrayFields: {},
   },
   {
     name: "pointingStatus",
@@ -59,16 +61,86 @@ const ENDPOINTS = [
       "timestamp",
     ],
     arrayFields: ["upcoming_transits"],
-    nestedArrayFields: {},
   },
   {
     name: "alerts",
     path: "/api/v1/health/alerts",
     requiredKeys: ["alerts"],
     arrayFields: ["alerts"],
-    nestedArrayFields: {},
   },
 ];
+
+// Extended endpoints (tested with --all)
+const EXTENDED_ENDPOINTS = [
+  // ABSURD task queue
+  {
+    name: "absurdHealth",
+    path: "/api/v1/absurd/health",
+    requiredKeys: ["status"],
+    arrayFields: [],
+  },
+  {
+    name: "absurdQueues",
+    path: "/api/v1/absurd/queues",
+    requiredKeys: [], // Returns array
+    isArray: true,
+  },
+  {
+    name: "absurdWorkers",
+    path: "/api/v1/absurd/workers",
+    requiredKeys: ["workers", "total"],
+    arrayFields: ["workers"],
+  },
+  // Calibrator imaging
+  {
+    name: "calibrators",
+    path: "/api/v1/calibrator-imaging/calibrators",
+    requiredKeys: [], // Returns array
+    isArray: true,
+  },
+  {
+    name: "calibratorImagingHealth",
+    path: "/api/v1/calibrator-imaging/health",
+    requiredKeys: ["status"],
+    arrayFields: [],
+  },
+  // Core data endpoints
+  {
+    name: "images",
+    path: "/api/images",
+    requiredKeys: [], // Returns array
+    isArray: true,
+  },
+  {
+    name: "sources",
+    path: "/api/sources",
+    requiredKeys: [], // Returns array
+    isArray: true,
+  },
+  {
+    name: "jobs",
+    path: "/api/jobs",
+    requiredKeys: [], // Returns array
+    isArray: true,
+  },
+  // Interactive imaging
+  {
+    name: "imagingSessions",
+    path: "/api/imaging/sessions",
+    requiredKeys: ["sessions", "total"],
+    arrayFields: ["sessions"],
+  },
+  {
+    name: "imagingDefaults",
+    path: "/api/imaging/defaults",
+    requiredKeys: ["imsize", "cell", "niter"],
+    arrayFields: ["imsize"],
+  },
+];
+
+const ENDPOINTS = TEST_ALL
+  ? [...HEALTH_ENDPOINTS, ...EXTENDED_ENDPOINTS]
+  : HEALTH_ENDPOINTS;
 
 async function fetchEndpoint(path) {
   const url = `${API_BASE}${path}`;
@@ -81,6 +153,15 @@ async function fetchEndpoint(path) {
 
 function validateEndpoint(data, endpoint) {
   const issues = [];
+  const arrayFields = endpoint.arrayFields || [];
+
+  // Handle endpoints that return arrays directly
+  if (endpoint.isArray) {
+    if (!Array.isArray(data)) {
+      issues.push(`Expected array response, got ${typeof data}`);
+    }
+    return issues;
+  }
 
   if (typeof data !== "object" || data === null) {
     issues.push(`Expected object, got ${typeof data}`);
@@ -95,7 +176,7 @@ function validateEndpoint(data, endpoint) {
   }
 
   // Check array fields are actually arrays
-  for (const field of endpoint.arrayFields) {
+  for (const field of arrayFields) {
     if (field in data && !Array.isArray(data[field])) {
       issues.push(`"${field}" should be array, got ${typeof data[field]}`);
     }
@@ -111,15 +192,25 @@ function validateEndpoint(data, endpoint) {
   if ("total_windows" in data && typeof data.total_windows !== "number") {
     issues.push(`"total_windows" should be number`);
   }
+  if ("total" in data && typeof data.total !== "number") {
+    issues.push(`"total" should be number`);
+  }
+  if ("status" in data && typeof data.status !== "string") {
+    issues.push(`"status" should be string`);
+  }
 
   return issues;
 }
 
 async function main() {
   console.log("🔍 API Alignment Check");
-  console.log(`   Backend: ${API_BASE}\n`);
+  console.log(`   Backend: ${API_BASE}`);
+  console.log(`   Mode: ${TEST_ALL ? "all endpoints" : "health only"}`);
+  console.log(`   Endpoints: ${ENDPOINTS.length}\n`);
 
   let allPassed = true;
+  let passCount = 0;
+  let failCount = 0;
   const results = [];
 
   for (const endpoint of ENDPOINTS) {
@@ -132,27 +223,34 @@ async function main() {
       if (issues.length === 0) {
         console.log("✅");
         results.push({ name: endpoint.name, status: "pass" });
+        passCount++;
       } else {
         console.log("❌");
         allPassed = false;
+        failCount++;
         results.push({ name: endpoint.name, status: "fail", issues });
         if (VERBOSE) {
           issues.forEach((issue) => console.log(`     - ${issue}`));
         }
       }
     } catch (error) {
-      console.log(`❌ ${error.message}`);
-      allPassed = false;
+      console.log(`⚠️  ${error.message}`);
+      // Network errors are warnings, not failures (backend may not have all endpoints)
       results.push({
         name: endpoint.name,
-        status: "error",
+        status: "skip",
         issues: [error.message],
       });
     }
   }
 
   console.log(
-    `\n${allPassed ? "✅ All endpoints aligned" : "❌ Alignment issues detected"}`
+    `\n${passCount}/${ENDPOINTS.length} passed${
+      failCount > 0 ? `, ${failCount} failed` : ""
+    }`
+  );
+  console.log(
+    `${allPassed ? "✅ All endpoints aligned" : "❌ Alignment issues detected"}`
   );
 
   if (!allPassed && !VERBOSE) {

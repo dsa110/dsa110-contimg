@@ -21,6 +21,8 @@
     "test:alignment:live": "INTEGRATION_TEST=true vitest run src/api/alignment.test.ts",
     "test:alignment:check": "node scripts/check-api-alignment.cjs",
     "test:alignment:check:verbose": "node scripts/check-api-alignment.cjs --verbose",
+    "test:alignment:check:all": "node scripts/check-api-alignment.cjs --all",
+    "test:alignment:check:all:verbose": "node scripts/check-api-alignment.cjs --all --verbose",
     "type-check": "tsc --noEmit",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",

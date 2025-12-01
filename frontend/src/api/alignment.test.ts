@@ -531,9 +531,12 @@ const FIXTURES = {
 
   // --- Provenance fixture ---
   provenanceStrip: {
-    run_id: "run-abc123",
-    stages: [],
-    metadata: {},
+    runId: "run-abc123",
+    msPath: "/data/ms/observation.ms",
+    calTable: "bandpass.caltable",
+    qaGrade: "good",
+    qaSummary: "RMS 0.35 mJy, DR 1200",
+    createdAt: "2025-06-02T10:00:00Z",
   } satisfies ProvenanceStripProps,
 };
 
@@ -729,6 +732,254 @@ describe("Absurd API Type Alignment", () => {
         ["worker_id", "state", "task_count", "uptime_seconds"],
         "Worker"
       );
+    });
+  });
+
+  describe("WorkerListResponse", () => {
+    it("has workers array and summary counts", () => {
+      const data = FIXTURES.workerListResponse;
+
+      expect(Array.isArray(data.workers)).toBe(true);
+      expect(typeof data.total).toBe("number");
+      expect(typeof data.active).toBe("number");
+      expect(typeof data.idle).toBe("number");
+    });
+  });
+
+  describe("WorkerMetrics", () => {
+    it("has worker pool metrics", () => {
+      validateRequiredKeys<WorkerMetrics>(
+        FIXTURES.workerMetrics,
+        ["total_workers", "active_workers", "idle_workers"],
+        "WorkerMetrics"
+      );
+    });
+  });
+
+  describe("AbsurdMetrics", () => {
+    it("has throughput and latency metrics", () => {
+      const metrics = FIXTURES.absurdMetrics;
+
+      expect(typeof metrics.throughput_1min).toBe("number");
+      expect(typeof metrics.avg_execution_time_sec).toBe("number");
+      expect(typeof metrics.success_rate_1min).toBe("number");
+    });
+  });
+
+  describe("AbsurdHealth", () => {
+    it("has health status and alerts array", () => {
+      const health = FIXTURES.absurdHealth;
+
+      expect(["healthy", "degraded", "unhealthy"]).toContain(health.status);
+      expect(Array.isArray(health.alerts)).toBe(true);
+      expect(Array.isArray(health.warnings)).toBe(true);
+      expect(typeof health.database_available).toBe("boolean");
+    });
+  });
+
+  describe("WorkflowDetail", () => {
+    it("extends Workflow with tasks and dag_edges", () => {
+      const detail = FIXTURES.workflowDetail;
+
+      // Base workflow fields
+      expect(detail).toHaveProperty("workflow_id");
+      expect(detail).toHaveProperty("status");
+
+      // Detail-specific fields
+      expect(Array.isArray(detail.tasks)).toBe(true);
+      expect(Array.isArray(detail.dag_edges)).toBe(true);
+    });
+  });
+
+  describe("TaskListResponse", () => {
+    it("has tasks array and total count", () => {
+      const data = FIXTURES.taskListResponse;
+
+      expect(Array.isArray(data.tasks)).toBe(true);
+      expect(typeof data.total).toBe("number");
+    });
+  });
+});
+
+// =============================================================================
+// Calibrator Imaging API Type Alignment Tests
+// =============================================================================
+
+describe("Calibrator Imaging API Type Alignment", () => {
+  describe("CalibratorInfo", () => {
+    it("has required calibrator fields", () => {
+      validateRequiredKeys<CalibratorInfo>(
+        FIXTURES.calibratorInfo,
+        ["id", "name", "ra_deg", "dec_deg", "status"],
+        "CalibratorInfo"
+      );
+    });
+
+    it("flux_jy can be null", () => {
+      const cal = FIXTURES.calibratorInfo;
+      expect(cal.flux_jy === null || typeof cal.flux_jy === "number").toBe(
+        true
+      );
+    });
+  });
+
+  describe("TransitInfo", () => {
+    it("has transit time and data availability", () => {
+      validateRequiredKeys<TransitInfo>(
+        FIXTURES.transitInfo,
+        ["transit_time_iso", "transit_time_mjd", "has_data", "observation_ids"],
+        "TransitInfo"
+      );
+      expect(Array.isArray(FIXTURES.transitInfo.observation_ids)).toBe(true);
+    });
+  });
+
+  describe("ObservationInfo", () => {
+    it("has observation time window and files", () => {
+      validateRequiredKeys<ObservationInfo>(
+        FIXTURES.observationInfo,
+        [
+          "observation_id",
+          "start_time_iso",
+          "mid_time_iso",
+          "end_time_iso",
+          "file_paths",
+        ],
+        "ObservationInfo"
+      );
+      expect(Array.isArray(FIXTURES.observationInfo.file_paths)).toBe(true);
+    });
+  });
+
+  describe("Job Response Types", () => {
+    it("MSGenerationResponse has job_id and status", () => {
+      validateRequiredKeys<MSGenerationResponse>(
+        FIXTURES.msGenerationResponse,
+        ["job_id", "status"],
+        "MSGenerationResponse"
+      );
+    });
+
+    it("CalibrationResponse has job_id and status", () => {
+      validateRequiredKeys<CalibrationResponse>(
+        FIXTURES.calibrationResponse,
+        ["job_id", "status"],
+        "CalibrationResponse"
+      );
+    });
+
+    it("ImagingResponse has job_id and status", () => {
+      validateRequiredKeys<ImagingResponse>(
+        FIXTURES.imagingResponse,
+        ["job_id", "status"],
+        "ImagingResponse"
+      );
+    });
+  });
+
+  describe("JobInfo", () => {
+    it("has job status and timing fields", () => {
+      validateRequiredKeys<JobInfo>(
+        FIXTURES.jobInfo,
+        ["job_id", "job_type", "status", "created_at"],
+        "JobInfo"
+      );
+      expect(["pending", "running", "completed", "failed"]).toContain(
+        FIXTURES.jobInfo.status
+      );
+    });
+  });
+
+  describe("PhotometryResult", () => {
+    it("has source position and flux measurements", () => {
+      validateRequiredKeys<PhotometryResult>(
+        FIXTURES.photometryResult,
+        [
+          "source_name",
+          "ra_deg",
+          "dec_deg",
+          "peak_flux_jy",
+          "integrated_flux_jy",
+          "snr",
+        ],
+        "PhotometryResult"
+      );
+    });
+  });
+
+  describe("HealthStatus", () => {
+    it("has status and path existence flags", () => {
+      const health = FIXTURES.calibratorImagingHealthStatus;
+
+      expect(["healthy", "degraded"]).toContain(health.status);
+      expect(typeof health.hdf5_db_exists).toBe("boolean");
+      expect(typeof health.incoming_dir_exists).toBe("boolean");
+    });
+  });
+});
+
+// =============================================================================
+// Interactive Imaging API Type Alignment Tests
+// =============================================================================
+
+describe("Interactive Imaging API Type Alignment", () => {
+  describe("ImagingSession", () => {
+    it("has session identifiers and state", () => {
+      validateRequiredKeys<ImagingSession>(
+        FIXTURES.imagingSession,
+        ["id", "port", "url", "ms_path", "imagename", "is_alive"],
+        "ImagingSession"
+      );
+    });
+  });
+
+  describe("ImagingSessionsResponse", () => {
+    it("has sessions array and availability info", () => {
+      const data = FIXTURES.imagingSessionsResponse;
+
+      expect(Array.isArray(data.sessions)).toBe(true);
+      expect(typeof data.total).toBe("number");
+      expect(typeof data.available_ports).toBe("number");
+    });
+  });
+
+  describe("ImagingDefaults", () => {
+    it("has CASA tclean parameters", () => {
+      const defaults = FIXTURES.imagingDefaults;
+
+      expect(Array.isArray(defaults.imsize)).toBe(true);
+      expect(typeof defaults.cell).toBe("string");
+      expect(typeof defaults.niter).toBe("number");
+      expect(typeof defaults.robust).toBe("number");
+    });
+  });
+
+  describe("InteractiveCleanResponse", () => {
+    it("has session_id and url", () => {
+      validateRequiredKeys<InteractiveCleanResponse>(
+        FIXTURES.interactiveCleanResponse,
+        ["session_id", "url", "status", "ms_path", "imagename"],
+        "InteractiveCleanResponse"
+      );
+    });
+  });
+});
+
+// =============================================================================
+// Provenance Type Alignment Tests
+// =============================================================================
+
+describe("Provenance API Type Alignment", () => {
+  describe("ProvenanceStripProps", () => {
+    it("has optional provenance fields", () => {
+      const prov = FIXTURES.provenanceStrip;
+
+      // All fields are optional, but if present should be correct types
+      if (prov.runId) expect(typeof prov.runId).toBe("string");
+      if (prov.msPath) expect(typeof prov.msPath).toBe("string");
+      if (prov.qaGrade) {
+        expect(["good", "warn", "fail", null]).toContain(prov.qaGrade);
+      }
     });
   });
 });
