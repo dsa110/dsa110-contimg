@@ -30,17 +30,28 @@ from .ms_fixtures import (
 )
 
 from .database_fixtures import (
+    # Schema functions
+    create_products_schema,
+    create_cal_registry_schema,
+    # Data classes
     SampleImage,
     SampleSource,
     SampleJob,
     SampleCalTable,
+    SampleMSIndex,
+    SamplePhotometry,
+    # Sample data generators
     sample_image_records,
     sample_source_records,
     sample_job_records,
-    sample_cal_table_records,
-    create_test_products_db,
-    create_test_cal_registry_db,
-    create_test_database_environment,
+    sample_caltable_records,
+    sample_ms_index_records,
+    sample_photometry_records,
+    # Population functions
+    populate_products_db,
+    populate_cal_registry_db,
+    create_populated_products_db,
+    create_populated_cal_registry_db,
 )
 
 from .writers import (
@@ -67,17 +78,24 @@ __all__ = [
     "mock_ms_table_access",
     "create_temp_ms_directory",
     # Database fixtures
+    "create_products_schema",
+    "create_cal_registry_schema",
     "SampleImage",
     "SampleSource",
     "SampleJob",
     "SampleCalTable",
+    "SampleMSIndex",
+    "SamplePhotometry",
     "sample_image_records",
     "sample_source_records",
     "sample_job_records",
-    "sample_cal_table_records",
-    "create_test_products_db",
-    "create_test_cal_registry_db",
-    "create_test_database_environment",
+    "sample_caltable_records",
+    "sample_ms_index_records",
+    "sample_photometry_records",
+    "populate_products_db",
+    "populate_cal_registry_db",
+    "create_populated_products_db",
+    "create_populated_cal_registry_db",
     # Writers
     "PyuvdataMonolithicWriter",
     "PyuvdataWriter",
