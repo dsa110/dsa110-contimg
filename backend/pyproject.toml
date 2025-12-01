@@ -64,9 +64,9 @@ filterwarnings = [
     # casaconfig uses legacy API that will be updated in future CASA releases
     "ignore:is_resource is deprecated:DeprecationWarning",
     # Ignore astropy indent deprecation (internal to astropy FITS handling)
-    "ignore:The indent function is deprecated:AstropyDeprecationWarning",
+    "ignore:The indent function is deprecated:astropy.utils.exceptions.AstropyDeprecationWarning",
     # Ignore FITS header validation warnings in truncated file tests
-    "ignore:Error validating header for HDU:VerifyWarning",
+    "ignore:Error validating header for HDU:astropy.io.fits.verify.VerifyWarning",
     # Ignore unawaited coroutine warnings from logging during async exception tests
     "ignore:coroutine 'open_connection' was never awaited:RuntimeWarning",
 ]
