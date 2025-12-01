@@ -121,7 +121,7 @@ jobs:
     name: Frontend Code Quality & Tests
     runs-on: ubuntu-latest
     timeout-minutes: 20
-    if: contains(github.event.pull_request.changed_files, 'frontend/') || github.event_name == 'push'
+    # Note: Workflow-level paths filter already restricts when this runs
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -155,7 +155,7 @@ jobs:
     name: Integration Tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    if: contains(github.event.pull_request.changed_files, 'src/') || github.event_name == 'push'
+    # Note: Workflow-level paths filter already restricts when this runs
     defaults:
       run:
         shell: bash -el {0}
