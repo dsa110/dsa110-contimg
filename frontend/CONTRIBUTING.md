@@ -20,18 +20,18 @@ npm run storybook
 
 ## Where to Find Things
 
-| What you're looking for | Where to look |
-|------------------------|---------------|
-| Page components (routes) | `src/pages/` |
-| Reusable UI components | `src/components/common/` |
+| What you're looking for     | Where to look               |
+| --------------------------- | --------------------------- |
+| Page components (routes)    | `src/pages/`                |
+| Reusable UI components      | `src/components/common/`    |
 | Feature-specific components | `src/components/{feature}/` |
-| Custom React hooks | `src/hooks/` |
-| API client & data fetching | `src/api/` |
-| TypeScript types | `src/types/` |
-| Utility functions | `src/utils/` |
-| Test setup & utilities | `src/testing/` |
-| E2E tests (Playwright) | `e2e/` |
-| Build configuration | `config/build/` |
+| Custom React hooks          | `src/hooks/`                |
+| API client & data fetching  | `src/api/`                  |
+| TypeScript types            | `src/types/`                |
+| Utility functions           | `src/utils/`                |
+| Test setup & utilities      | `src/testing/`              |
+| E2E tests (Playwright)      | `e2e/`                      |
+| Build configuration         | `config/build/`             |
 
 ## Component Organization
 
@@ -94,19 +94,18 @@ npm run test:e2e
 
 ## Key Libraries
 
-| Library | Purpose | Docs |
-|---------|---------|------|
-| React Query | Server state management | [tanstack.com/query](https://tanstack.com/query) |
-| React Router | Client-side routing | [reactrouter.com](https://reactrouter.com) |
-| Zustand | Client state management | [zustand-demo.pmnd.rs](https://zustand-demo.pmnd.rs) |
-| Tailwind CSS | Utility-first CSS | [tailwindcss.com](https://tailwindcss.com) |
-| Vitest | Unit testing | [vitest.dev](https://vitest.dev) |
-| Playwright | E2E testing | [playwright.dev](https://playwright.dev) |
-| Storybook | Component development | [storybook.js.org](https://storybook.js.org) |
+| Library      | Purpose                 | Docs                                                 |
+| ------------ | ----------------------- | ---------------------------------------------------- |
+| React Query  | Server state management | [tanstack.com/query](https://tanstack.com/query)     |
+| React Router | Client-side routing     | [reactrouter.com](https://reactrouter.com)           |
+| Zustand      | Client state management | [zustand-demo.pmnd.rs](https://zustand-demo.pmnd.rs) |
+| Tailwind CSS | Utility-first CSS       | [tailwindcss.com](https://tailwindcss.com)           |
+| Vitest       | Unit testing            | [vitest.dev](https://vitest.dev)                     |
+| Playwright   | E2E testing             | [playwright.dev](https://playwright.dev)             |
+| Storybook    | Component development   | [storybook.js.org](https://storybook.js.org)         |
 
 ## Getting Help
 
 - Check the [Architecture docs](docs/ARCHITECTURE.md)
 - Browse existing components in Storybook (`npm run storybook`)
 - Look at similar components for patterns to follow
-
