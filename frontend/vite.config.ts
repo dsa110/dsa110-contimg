@@ -11,13 +11,20 @@ export default defineConfig({
   // Base path for GitHub Pages deployment (repo name + dashboard subdirectory)
   // Use "/" for local dev and E2E tests (VITE_E2E_TEST=true), "/dsa110-contimg/dashboard/" for production
   base:
-    process.env.GITHUB_ACTIONS && !process.env.VITE_E2E_TEST ? "/dsa110-contimg/dashboard/" : "/",
+    process.env.GITHUB_ACTIONS && !process.env.VITE_E2E_TEST
+      ? "/dsa110-contimg/dashboard/"
+      : "/",
   server: {
     port: 3000,
     strictPort: true, // Fail if port 3000 is occupied
     open: false, // Disabled to prevent SSH disconnection issues
     host: "127.0.0.1", // Bind only to localhost
-    allowedHosts: ["localhost", ".trycloudflare.com", ".ngrok-free.app", ".ngrok-free.dev"],
+    allowedHosts: [
+      "localhost",
+      ".trycloudflare.com",
+      ".ngrok-free.app",
+      ".ngrok-free.dev",
+    ],
     proxy: {
       "/api": {
         target: "http://127.0.0.1:8000",
@@ -66,7 +73,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "jsdom",
-    setupFiles: ["./src/test/setup.ts"],
+    setupFiles: ["./src/testing/setup.ts"],
     exclude: ["**/node_modules/**", "**/dist/**", "**/e2e/**"],
     typecheck: {
       tsconfig: "./tsconfig.test.json",
