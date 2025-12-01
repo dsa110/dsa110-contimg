@@ -2,28 +2,29 @@ Metadata-Version: 2.4
 Name: dsa110_contimg
 Version: 0.1.0
 Summary: DSA-110 Continuum Imaging Pipeline
-Home-page: https://github.com/yourusername/dsa110_contimg
-Author: Your Name
-Author-email: your.email@example.com
-Classifier: Programming Language :: Python :: 3
-Classifier: License :: OSI Approved :: MIT License
-Classifier: Operating System :: OS Independent
+Author-email: DSA-110 Team <dsa110@caltech.edu>
+License: MIT
 Requires-Python: >=3.11
 Description-Content-Type: text/markdown
+Requires-Dist: pyuvdata==3.2.4
 Requires-Dist: numpy
 Requires-Dist: astropy
-Requires-Dist: pyuvdata==3.2.4
 Requires-Dist: pyuvsim
-Requires-Dist: casa6
-Dynamic: author
-Dynamic: author-email
-Dynamic: classifier
-Dynamic: description
-Dynamic: description-content-type
-Dynamic: home-page
-Dynamic: requires-dist
-Dynamic: requires-python
-Dynamic: summary
+Requires-Dist: fastapi>=0.109.0
+Requires-Dist: pydantic>=2.5.0
+Requires-Dist: uvicorn>=0.27.0
+Requires-Dist: sqlalchemy>=2.0.0
+Requires-Dist: alembic>=1.16.0
+Requires-Dist: aiosqlite>=0.19.0
+Requires-Dist: slowapi>=0.1.9
+Requires-Dist: prometheus-client>=0.20.0
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: pytest-cov; extra == "dev"
+Requires-Dist: pytest-asyncio; extra == "dev"
+Requires-Dist: httpx; extra == "dev"
+Requires-Dist: black; extra == "dev"
+Requires-Dist: flake8; extra == "dev"
 
 # DSA-110 Continuum Imaging Pipeline
 
@@ -34,13 +35,36 @@ visibility data from UVH5 (HDF5) format into CASA Measurement Sets for
 calibration and imaging. The pipeline processes data from the DSA-110 telescope,
 which generates multiple subband files per observation.
 
+## Documentation
+
+Full documentation is available in the [`docs/`](../docs/) directory:
+
+- **[Backend Structure](../docs/architecture/BACKEND_STRUCTURE.md)** - Detailed
+  directory structure and module organization
+- **[API Implementation Summary](../docs/reference/API_IMPLEMENTATION_SUMMARY.md)** -
+  API endpoints and data sources
+- **[API Reference](../docs/reference/api.md)** - Full API documentation
+- **[Security Guide](../docs/reference/security.md)** - Access control
+  configuration
+- **[MS Writers Reference](../docs/architecture/pipeline/ms-writers.md)** -
+  Writer strategies documentation
+- **[Next Steps / Roadmap](../docs/dev/NEXT_STEPS.md)** - Project status and
+  roadmap
+- **[Troubleshooting Runbook](../docs/troubleshooting/runbooks/troubleshooting_common_scenarios.md)** -
+  Common issues and solutions
+- **[Architecture Diagrams](../docs/architecture/diagrams/)** - Visual structure
+  diagrams
+
 ## Quick Start
 
 ```bash
 # Install dependencies
 pip install -e .
 
-# Start the API server
+# Start the API server (recommended - handles port reservation)
+python scripts/ops/run_api.py
+
+# Or use uvicorn directly
 python -m uvicorn dsa110_contimg.api.app:app --host 0.0.0.0 --port 8000
 
 # Check health
@@ -49,6 +73,8 @@ curl http://localhost:8000/api/health
 # View API docs
 open http://localhost:8000/api/docs
 ```
+
+See [scripts/README.md](scripts/README.md) for all available utility scripts.
 
 ## Project Structure
 

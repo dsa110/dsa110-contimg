@@ -267,7 +267,9 @@ class TestRerunPipelineJob:
                 
                 with patch("dsa110_contimg.api.job_queue.db_create_job", return_value=1):
                     with patch("dsa110_contimg.api.job_queue.db_update_job_status"):
-                        result = rerun_pipeline_job("original_run_20231201_120000")
+                        # Mock the stages_impl import that happens inside the function
+                        with patch.dict('sys.modules', {'dsa110_contimg.pipeline.stages_impl': MagicMock()}):
+                            result = rerun_pipeline_job("original_run_20231201_120000")
         
         assert result["original_run_id"] == "original_run_20231201_120000"
         # new_run_id format is: base_id_rerun_timestamp where base_id is everything before the last underscore

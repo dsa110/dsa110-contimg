@@ -207,13 +207,19 @@ class TestExtractCalibrationQA:
 
     def test_handles_missing_image_path(self):
         """Test extract_image_qa handles missing image path."""
-        from dsa110_contimg.api.batch.qa import extract_image_qa
+        # Mock casatools.image since it's imported inside extract_image_qa
+        mock_image_class = MagicMock()
+        mock_image_instance = MagicMock()
+        mock_image_class.return_value = mock_image_instance
         
-        result = extract_image_qa(
-            "/path/to/ms",
-            job_id=123,
-            image_path="/nonexistent/path/image.fits",
-        )
+        with patch.dict('sys.modules', {'casatools': MagicMock(image=mock_image_class)}):
+            from dsa110_contimg.api.batch.qa import extract_image_qa
+            
+            result = extract_image_qa(
+                "/path/to/ms",
+                job_id=123,
+                image_path="/nonexistent/path/image.fits",
+            )
         
         assert result["overall_quality"] == "unknown"
         assert result["ms_path"] == "/path/to/ms"
