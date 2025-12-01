@@ -86,7 +86,9 @@ export function useImageProvenance(imageId: string | undefined) {
   return useQuery({
     queryKey: queryKeys.imageProvenance(imageId ?? ""),
     queryFn: async () => {
-      const response = await apiClient.get<ProvenanceStripProps>(`/images/${imageId}/provenance`);
+      const response = await apiClient.get<ProvenanceStripProps>(
+        `/images/${imageId}/provenance`
+      );
       return response.data;
     },
     enabled: !!imageId,
@@ -117,7 +119,9 @@ export function useSource(sourceId: string | undefined) {
   return useQuery({
     queryKey: queryKeys.source(sourceId ?? ""),
     queryFn: async () => {
-      const response = await apiClient.get<SourceDetail>(`/sources/${sourceId}`);
+      const response = await apiClient.get<SourceDetail>(
+        `/sources/${sourceId}`
+      );
       return response.data;
     },
     enabled: !!sourceId,
@@ -137,7 +141,9 @@ export function useMS(path: string | undefined) {
     queryKey: queryKeys.ms(path ?? ""),
     queryFn: async () => {
       const encodedPath = encodeURIComponent(path ?? "");
-      const response = await apiClient.get<MSMetadata>(`/ms/${encodedPath}/metadata`);
+      const response = await apiClient.get<MSMetadata>(
+        `/ms/${encodedPath}/metadata`
+      );
       return response.data;
     },
     enabled: !!path,
@@ -152,7 +158,9 @@ export function useMSProvenance(path: string | undefined) {
     queryKey: queryKeys.msProvenance(path ?? ""),
     queryFn: async () => {
       const encodedPath = encodeURIComponent(path ?? "");
-      const response = await apiClient.get<ProvenanceStripProps>(`/ms/${encodedPath}/provenance`);
+      const response = await apiClient.get<ProvenanceStripProps>(
+        `/ms/${encodedPath}/provenance`
+      );
       return response.data;
     },
     enabled: !!path,
@@ -197,7 +205,9 @@ export function useJobProvenance(runId: string | undefined) {
   return useQuery({
     queryKey: queryKeys.jobProvenance(runId ?? ""),
     queryFn: async () => {
-      const response = await apiClient.get<ProvenanceStripProps>(`/jobs/${runId}/provenance`);
+      const response = await apiClient.get<ProvenanceStripProps>(
+        `/jobs/${runId}/provenance`
+      );
       return response.data;
     },
     enabled: !!runId,

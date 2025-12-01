@@ -1,7 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import AntennaLayoutWidget, { AntennaInfo, AntennaLayoutResponse } from "./AntennaLayoutWidget";
+import AntennaLayoutWidget, {
+  AntennaInfo,
+  AntennaLayoutResponse,
+} from "./AntennaLayoutWidget";
 
 // Create a properly typed mock function
 const mockGet = vi.fn();
@@ -19,9 +22,30 @@ describe("AntennaLayoutWidget", () => {
 
   const mockAntennaData: AntennaLayoutResponse = {
     antennas: [
-      { id: 0, name: "DSA-001", x_m: 0, y_m: 0, flagged_pct: 5.0, baseline_count: 109 },
-      { id: 1, name: "DSA-002", x_m: 100, y_m: 0, flagged_pct: 25.0, baseline_count: 109 },
-      { id: 2, name: "DSA-003", x_m: 0, y_m: 50, flagged_pct: 60.0, baseline_count: 109 },
+      {
+        id: 0,
+        name: "DSA-001",
+        x_m: 0,
+        y_m: 0,
+        flagged_pct: 5.0,
+        baseline_count: 109,
+      },
+      {
+        id: 1,
+        name: "DSA-002",
+        x_m: 100,
+        y_m: 0,
+        flagged_pct: 25.0,
+        baseline_count: 109,
+      },
+      {
+        id: 2,
+        name: "DSA-003",
+        x_m: 0,
+        y_m: 50,
+        flagged_pct: 60.0,
+        baseline_count: 109,
+      },
     ],
     array_center_lon: -118.2817,
     array_center_lat: 37.2339,
@@ -110,7 +134,9 @@ describe("AntennaLayoutWidget", () => {
     renderComponent();
 
     await waitFor(() => {
-      expect(screen.getByText(/failed to load antenna data/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/failed to load antenna data/i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -121,7 +147,9 @@ describe("AntennaLayoutWidget", () => {
     renderComponent();
 
     await waitFor(() => {
-      expect(screen.getByText(/no antenna data available/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/no antenna data available/i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -164,7 +192,7 @@ describe("AntennaLayoutWidget", () => {
   it("encodes MS path in API request", async () => {
     const pathWithSpaces = "/data/path with spaces/test.ms";
     mockGet.mockResolvedValue({ data: mockAntennaData });
-    
+
     render(
       <QueryClientProvider client={queryClient}>
         <AntennaLayoutWidget msPath={pathWithSpaces} />
@@ -217,11 +245,15 @@ describe("AntennaLayoutWidget", () => {
     await waitFor(() => {
       // From mock data: 1 good (<20%), 1 moderate (25%), 1 severe (60%)
       // Find the "Good" count
-      const goodLabel = screen.getByText("1", { selector: "dd.text-green-600" });
+      const goodLabel = screen.getByText("1", {
+        selector: "dd.text-green-600",
+      });
       expect(goodLabel).toBeInTheDocument();
 
       // Find the "Flagged" count (severe)
-      const flaggedLabel = screen.getByText("1", { selector: "dd.text-red-600" });
+      const flaggedLabel = screen.getByText("1", {
+        selector: "dd.text-red-600",
+      });
       expect(flaggedLabel).toBeInTheDocument();
     });
   });

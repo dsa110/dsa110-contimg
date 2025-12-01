@@ -95,7 +95,9 @@ const MsRasterPlot: React.FC<MsRasterPlotProps> = ({
       width: width.toString(),
       height: height.toString(),
     });
-    return `${config.api.baseUrl}/ms/${encodedPath}/raster?${params.toString()}`;
+    return `${
+      config.api.baseUrl
+    }/ms/${encodedPath}/raster?${params.toString()}`;
   }, [msPath, xaxis, yaxis, colormap, width, height]);
 
   /**
@@ -111,7 +113,9 @@ const MsRasterPlot: React.FC<MsRasterPlotProps> = ({
    */
   const handleImageError = useCallback(() => {
     setIsLoading(false);
-    setError("Failed to load visibility plot. The MS may be invalid or inaccessible.");
+    setError(
+      "Failed to load visibility plot. The MS may be invalid or inaccessible."
+    );
   }, []);
 
   /**
@@ -126,23 +130,32 @@ const MsRasterPlot: React.FC<MsRasterPlotProps> = ({
   /**
    * Handle axis change.
    */
-  const handleXAxisChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setXAxis(e.target.value as RasterXAxis);
-    setIsLoading(true);
-    setError(null);
-  }, []);
+  const handleXAxisChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setXAxis(e.target.value as RasterXAxis);
+      setIsLoading(true);
+      setError(null);
+    },
+    []
+  );
 
-  const handleYAxisChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setYAxis(e.target.value as RasterYAxis);
-    setIsLoading(true);
-    setError(null);
-  }, []);
+  const handleYAxisChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setYAxis(e.target.value as RasterYAxis);
+      setIsLoading(true);
+      setError(null);
+    },
+    []
+  );
 
-  const handleColormapChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setColormap(e.target.value);
-    setIsLoading(true);
-    setError(null);
-  }, []);
+  const handleColormapChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setColormap(e.target.value);
+      setIsLoading(true);
+      setError(null);
+    },
+    []
+  );
 
   return (
     <div className={`ms-raster-plot ${className}`}>
@@ -150,7 +163,10 @@ const MsRasterPlot: React.FC<MsRasterPlotProps> = ({
       <div className="flex flex-wrap gap-4 mb-4 items-center">
         {/* X-axis selector */}
         <div className="flex items-center gap-2">
-          <label htmlFor="xaxis-select" className="text-sm font-medium text-gray-700">
+          <label
+            htmlFor="xaxis-select"
+            className="text-sm font-medium text-gray-700"
+          >
             X-Axis:
           </label>
           <select
@@ -169,7 +185,10 @@ const MsRasterPlot: React.FC<MsRasterPlotProps> = ({
 
         {/* Y-axis selector */}
         <div className="flex items-center gap-2">
-          <label htmlFor="yaxis-select" className="text-sm font-medium text-gray-700">
+          <label
+            htmlFor="yaxis-select"
+            className="text-sm font-medium text-gray-700"
+          >
             Component:
           </label>
           <select
@@ -188,7 +207,10 @@ const MsRasterPlot: React.FC<MsRasterPlotProps> = ({
 
         {/* Colormap selector */}
         <div className="flex items-center gap-2">
-          <label htmlFor="colormap-select" className="text-sm font-medium text-gray-700">
+          <label
+            htmlFor="colormap-select"
+            className="text-sm font-medium text-gray-700"
+          >
             Colormap:
           </label>
           <select
@@ -259,7 +281,9 @@ const MsRasterPlot: React.FC<MsRasterPlotProps> = ({
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 />
               </svg>
-              <span className="mt-2 text-sm text-gray-600">Generating plot...</span>
+              <span className="mt-2 text-sm text-gray-600">
+                Generating plot...
+              </span>
             </div>
           </div>
         )}
@@ -300,15 +324,17 @@ const MsRasterPlot: React.FC<MsRasterPlotProps> = ({
           alt={`Visibility ${Y_AXIS_LABELS[yaxis]} vs ${X_AXIS_LABELS[xaxis]}`}
           onLoad={handleImageLoad}
           onError={handleImageError}
-          className={`block max-w-full h-auto ${isLoading || error ? "invisible" : ""}`}
+          className={`block max-w-full h-auto ${
+            isLoading || error ? "invisible" : ""
+          }`}
           style={{ maxHeight: height }}
         />
       </div>
 
       {/* Plot description */}
       <p className="mt-2 text-xs text-gray-500">
-        Showing {Y_AXIS_LABELS[yaxis].toLowerCase()} vs {X_AXIS_LABELS[xaxis].toLowerCase()}.
-        Data averaged over polarizations.
+        Showing {Y_AXIS_LABELS[yaxis].toLowerCase()} vs{" "}
+        {X_AXIS_LABELS[xaxis].toLowerCase()}. Data averaged over polarizations.
       </p>
     </div>
   );

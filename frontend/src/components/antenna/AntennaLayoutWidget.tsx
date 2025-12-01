@@ -40,7 +40,8 @@ interface AntennaLayoutWidgetProps {
 /**
  * Query key for antenna positions.
  */
-export const antennaQueryKey = (msPath: string) => ["ms", msPath, "antennas"] as const;
+export const antennaQueryKey = (msPath: string) =>
+  ["ms", msPath, "antennas"] as const;
 
 /**
  * Hook to fetch antenna positions for an MS.
@@ -50,7 +51,9 @@ export function useAntennaPositions(msPath: string | undefined) {
     queryKey: antennaQueryKey(msPath ?? ""),
     queryFn: async () => {
       const encodedPath = encodeURIComponent(msPath ?? "");
-      const response = await apiClient.get<AntennaLayoutResponse>(`/ms/${encodedPath}/antennas`);
+      const response = await apiClient.get<AntennaLayoutResponse>(
+        `/ms/${encodedPath}/antennas`
+      );
       return response.data;
     },
     enabled: !!msPath,
@@ -149,7 +152,9 @@ const AntennaLayoutWidget: React.FC<AntennaLayoutWidgetProps> = ({
                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
               />
             </svg>
-            <span className="mt-2 text-sm text-gray-500">Loading antenna positions...</span>
+            <span className="mt-2 text-sm text-gray-500">
+              Loading antenna positions...
+            </span>
           </div>
         </div>
       </div>
@@ -174,7 +179,9 @@ const AntennaLayoutWidget: React.FC<AntennaLayoutWidgetProps> = ({
                 d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <p className="mt-2 text-sm text-red-600">Failed to load antenna data</p>
+            <p className="mt-2 text-sm text-red-600">
+              Failed to load antenna data
+            </p>
           </div>
         </div>
       </div>
@@ -204,7 +211,12 @@ const AntennaLayoutWidget: React.FC<AntennaLayoutWidgetProps> = ({
             style={{ maxWidth: "100%" }}
           >
             {/* Grid lines */}
-            <g className="grid-lines" stroke="#374151" strokeWidth={0.5} strokeDasharray="4,4">
+            <g
+              className="grid-lines"
+              stroke="#374151"
+              strokeWidth={0.5}
+              strokeDasharray="4,4"
+            >
               {/* Horizontal center line */}
               <line
                 x1={viewBox.minX}
@@ -239,7 +251,9 @@ const AntennaLayoutWidget: React.FC<AntennaLayoutWidgetProps> = ({
                   className="transition-all duration-150 hover:r-[${markerRadius * 1.3}]"
                 >
                   <title>
-                    {`${antenna.name}\nFlagged: ${antenna.flagged_pct.toFixed(1)}%\nBaselines: ${antenna.baseline_count}`}
+                    {`${antenna.name}\nFlagged: ${antenna.flagged_pct.toFixed(
+                      1
+                    )}%\nBaselines: ${antenna.baseline_count}`}
                   </title>
                 </circle>
                 {/* Antenna label (only show for sparse arrays or on hover) */}
@@ -274,7 +288,9 @@ const AntennaLayoutWidget: React.FC<AntennaLayoutWidgetProps> = ({
               textAnchor="middle"
               fill="#9CA3AF"
               fontSize={markerRadius * 1.2}
-              transform={`rotate(-90, ${viewBox.minX + 15}, ${viewBox.minY + viewBox.height / 2})`}
+              transform={`rotate(-90, ${viewBox.minX + 15}, ${
+                viewBox.minY + viewBox.height / 2
+              })`}
             >
               North (m)
             </text>
@@ -284,7 +300,9 @@ const AntennaLayoutWidget: React.FC<AntennaLayoutWidgetProps> = ({
         {/* Legend */}
         {showLegend && (
           <div className="flex-shrink-0 w-32">
-            <h4 className="text-xs font-medium text-gray-700 mb-2">Flagging Status</h4>
+            <h4 className="text-xs font-medium text-gray-700 mb-2">
+              Flagging Status
+            </h4>
             <div className="space-y-1.5">
               <div className="flex items-center gap-2">
                 <span className="w-3 h-3 rounded-full bg-green-500" />
@@ -305,11 +323,15 @@ const AntennaLayoutWidget: React.FC<AntennaLayoutWidgetProps> = ({
               <dl className="space-y-1">
                 <div className="flex justify-between">
                   <dt className="text-xs text-gray-500">Antennas</dt>
-                  <dd className="text-xs font-medium text-gray-900">{data.antennas.length}</dd>
+                  <dd className="text-xs font-medium text-gray-900">
+                    {data.antennas.length}
+                  </dd>
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-xs text-gray-500">Baselines</dt>
-                  <dd className="text-xs font-medium text-gray-900">{data.total_baselines}</dd>
+                  <dd className="text-xs font-medium text-gray-900">
+                    {data.total_baselines}
+                  </dd>
                 </div>
                 <div className="flex justify-between">
                   <dt className="text-xs text-gray-500">Good</dt>

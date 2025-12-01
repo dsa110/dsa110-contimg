@@ -26,7 +26,9 @@ const MSDetailPage: React.FC = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-pulse text-gray-500">Loading Measurement Set details...</div>
+        <div className="animate-pulse text-gray-500">
+          Loading Measurement Set details...
+        </div>
       </div>
     );
   }
@@ -34,7 +36,10 @@ const MSDetailPage: React.FC = () => {
   if (error) {
     return (
       <div className="max-w-4xl mx-auto p-6">
-        <ErrorDisplay error={error as unknown as ErrorResponse} onRetry={() => refetch()} />
+        <ErrorDisplay
+          error={error as unknown as ErrorResponse}
+          onRetry={() => refetch()}
+        />
       </div>
     );
   }
@@ -68,7 +73,10 @@ const MSDetailPage: React.FC = () => {
     <div className="max-w-6xl mx-auto p-6">
       {/* Header */}
       <div className="mb-6">
-        <Link to="/images" className="text-sm text-gray-500 hover:text-gray-700 mb-2 inline-block">
+        <Link
+          to="/images"
+          className="text-sm text-gray-500 hover:text-gray-700 mb-2 inline-block"
+        >
           Back to Images
         </Link>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">{filename}</h1>
@@ -98,7 +106,9 @@ const MSDetailPage: React.FC = () => {
                 className="btn btn-primary"
                 onClick={() =>
                   window.open(
-                    `${config.api.baseUrl}/ms/${encodeURIComponent(msPath ?? "")}/download`,
+                    `${config.api.baseUrl}/ms/${encodeURIComponent(
+                      msPath ?? ""
+                    )}/download`,
                     "_blank"
                   )
                 }
@@ -109,7 +119,10 @@ const MSDetailPage: React.FC = () => {
                 type="button"
                 className="btn btn-secondary"
                 onClick={() =>
-                  window.open(`/viewer/carta?ms=${encodeURIComponent(msPath ?? "")}`, "_blank")
+                  window.open(
+                    `/viewer/carta?ms=${encodeURIComponent(msPath ?? "")}`,
+                    "_blank"
+                  )
                 }
               >
                 Open in CARTA
@@ -130,7 +143,9 @@ const MSDetailPage: React.FC = () => {
             <dl className="space-y-3">
               {ms.created_at && (
                 <div>
-                  <dt className="text-xs text-gray-500 uppercase tracking-wide">Created</dt>
+                  <dt className="text-xs text-gray-500 uppercase tracking-wide">
+                    Created
+                  </dt>
                   <dd className="text-sm text-gray-900">
                     {relativeTime(ms.created_at)}
                     <span className="text-gray-500 block text-xs">
@@ -141,7 +156,9 @@ const MSDetailPage: React.FC = () => {
               )}
               {ms.run_id && (
                 <div>
-                  <dt className="text-xs text-gray-500 uppercase tracking-wide">Pipeline Run</dt>
+                  <dt className="text-xs text-gray-500 uppercase tracking-wide">
+                    Pipeline Run
+                  </dt>
                   <dd className="text-sm">
                     <Link
                       to={`/jobs/${ms.run_id}`}
@@ -173,21 +190,19 @@ const MSDetailPage: React.FC = () => {
             )}
 
           {/* Visibility Raster Plot */}
-          <Card title="Visibility Plot" subtitle="Inspect visibility data quality">
-            <MsRasterPlot
-              msPath={ms.path}
-              width={700}
-              height={450}
-            />
+          <Card
+            title="Visibility Plot"
+            subtitle="Inspect visibility data quality"
+          >
+            <MsRasterPlot msPath={ms.path} width={700} height={450} />
           </Card>
 
           {/* Antenna Layout */}
-          <Card title="Antenna Layout" subtitle="Array configuration and flagging status">
-            <AntennaLayoutWidget
-              msPath={ms.path}
-              height={250}
-              showLegend
-            />
+          <Card
+            title="Antenna Layout"
+            subtitle="Array configuration and flagging status"
+          >
+            <AntennaLayoutWidget msPath={ms.path} height={250} showLegend />
           </Card>
 
           {/* Calibrator matches */}
@@ -200,7 +215,10 @@ const MSDetailPage: React.FC = () => {
             >
               <div className="space-y-3">
                 {ms.calibrator_matches.map((cal, index) => (
-                  <div key={index} className="p-3 rounded-lg border border-gray-200 bg-gray-50">
+                  <div
+                    key={index}
+                    className="p-3 rounded-lg border border-gray-200 bg-gray-50"
+                  >
                     <div className="flex items-start justify-between">
                       <div>
                         <span
@@ -251,8 +269,12 @@ const MSDetailPage: React.FC = () => {
           <Card title="Metadata">
             <dl className="grid grid-cols-1 gap-4">
               <div>
-                <dt className="text-xs text-gray-500 uppercase tracking-wide">Full Path</dt>
-                <dd className="font-mono text-sm text-gray-900 break-all">{ms.path}</dd>
+                <dt className="text-xs text-gray-500 uppercase tracking-wide">
+                  Full Path
+                </dt>
+                <dd className="font-mono text-sm text-gray-900 break-all">
+                  {ms.path}
+                </dd>
               </div>
             </dl>
           </Card>

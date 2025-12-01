@@ -51,7 +51,9 @@ describe("MsRasterPlot", () => {
   it("renders refresh button", () => {
     renderComponent();
 
-    expect(screen.getByRole("button", { name: /refresh/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /refresh/i })
+    ).toBeInTheDocument();
   });
 
   it("builds correct image URL with default params", () => {
@@ -178,7 +180,9 @@ describe("MsRasterPlot", () => {
     renderComponent();
 
     expect(screen.getByText(/amplitude/i)).toBeInTheDocument();
-    expect(screen.getByText(/averaged over polarizations/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/averaged over polarizations/i)
+    ).toBeInTheDocument();
   });
 
   it("applies custom className", () => {
