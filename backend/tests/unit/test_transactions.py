@@ -13,6 +13,10 @@ from dsa110_contimg.api.database import (
     async_transaction,
     transactional_connection,
     async_transactional_connection,
+    SyncDatabasePool,
+    PoolConfig,
+    get_sync_db_pool,
+    close_sync_db_pool,
 )
 
 
@@ -231,3 +235,160 @@ class TestAsyncTransactionalConnection:
         cursor = verify_conn.execute("SELECT COUNT(*) FROM items")
         assert cursor.fetchone()[0] == 0
         verify_conn.close()
+
+
+class TestSyncDatabasePool:
+    """Tests for the synchronous database connection pool."""
+    
+    @pytest.fixture
+    def temp_db_paths(self, tmp_path):
+        """Create temporary database files."""
+        products_db = tmp_path / "products.sqlite3"
+        cal_db = tmp_path / "cal_registry.sqlite3"
+        
+        # Initialize products database
+        conn = sqlite3.connect(str(products_db))
+        conn.execute("CREATE TABLE items (id INTEGER PRIMARY KEY, name TEXT)")
+        conn.commit()
+        conn.close()
+        
+        # Initialize cal_registry database
+        conn = sqlite3.connect(str(cal_db))
+        conn.execute("CREATE TABLE tables (id INTEGER PRIMARY KEY, path TEXT)")
+        conn.commit()
+        conn.close()
+        
+        return str(products_db), str(cal_db)
+    
+    @pytest.fixture
+    def pool_config(self, temp_db_paths):
+        """Create pool config with temporary paths."""
+        products_path, cal_path = temp_db_paths
+        return PoolConfig(
+            products_db_path=products_path,
+            cal_registry_db_path=cal_path,
+            timeout=10.0,
+        )
+    
+    def test_pool_reuses_connection(self, pool_config):
+        """Test that pool reuses the same connection."""
+        pool = SyncDatabasePool(pool_config)
+        
+        with pool.products_db() as conn1:
+            conn1.execute("INSERT INTO items (name) VALUES ('test1')")
+            conn1.commit()
+        
+        with pool.products_db() as conn2:
+            # Should be the same connection object
+            assert conn1 is conn2
+            cursor = conn2.execute("SELECT COUNT(*) FROM items")
+            assert cursor.fetchone()[0] == 1
+        
+        pool.close()
+    
+    def test_pool_reconnects_after_close(self, pool_config):
+        """Test that pool creates new connection after explicit close."""
+        pool = SyncDatabasePool(pool_config)
+        
+        with pool.products_db() as conn1:
+            conn1.execute("INSERT INTO items (name) VALUES ('test')")
+            conn1.commit()
+        
+        # Close connections
+        pool.close()
+        
+        # Should get a new connection
+        with pool.products_db() as conn2:
+            assert conn1 is not conn2
+            # Data should still be there (persisted to disk)
+            cursor = conn2.execute("SELECT COUNT(*) FROM items")
+            assert cursor.fetchone()[0] == 1
+        
+        pool.close()
+    
+    def test_pool_cal_registry_db(self, pool_config):
+        """Test pool cal_registry_db context manager."""
+        pool = SyncDatabasePool(pool_config)
+        
+        with pool.cal_registry_db() as conn:
+            conn.execute("INSERT INTO tables (path) VALUES ('/path/to/table')")
+            conn.commit()
+            cursor = conn.execute("SELECT COUNT(*) FROM tables")
+            assert cursor.fetchone()[0] == 1
+        
+        pool.close()
+    
+    def test_pool_uses_row_factory(self, pool_config):
+        """Test that connections use sqlite3.Row factory."""
+        pool = SyncDatabasePool(pool_config)
+        
+        with pool.products_db() as conn:
+            conn.execute("INSERT INTO items (name) VALUES ('test')")
+            conn.commit()
+            cursor = conn.execute("SELECT * FROM items")
+            row = cursor.fetchone()
+            # Row should support dict-like access
+            assert row['name'] == 'test'
+            assert row['id'] == 1
+        
+        pool.close()
+    
+    def test_pool_wal_mode_enabled(self, pool_config):
+        """Test that connections have WAL mode enabled."""
+        pool = SyncDatabasePool(pool_config)
+        
+        with pool.products_db() as conn:
+            cursor = conn.execute("PRAGMA journal_mode")
+            mode = cursor.fetchone()[0]
+            assert mode.lower() == 'wal'
+        
+        pool.close()
+
+
+class TestGlobalSyncPool:
+    """Tests for global sync pool management functions."""
+    
+    def test_get_sync_db_pool_returns_singleton(self, monkeypatch, tmp_path):
+        """Test that get_sync_db_pool returns the same instance."""
+        # Reset global state
+        import dsa110_contimg.api.database as db_module
+        db_module._sync_db_pool = None
+        
+        # Set up temp paths
+        products_db = tmp_path / "products.sqlite3"
+        cal_db = tmp_path / "cal_registry.sqlite3"
+        products_db.touch()
+        cal_db.touch()
+        
+        monkeypatch.setenv("PIPELINE_PRODUCTS_DB", str(products_db))
+        monkeypatch.setenv("PIPELINE_CAL_REGISTRY_DB", str(cal_db))
+        
+        pool1 = get_sync_db_pool()
+        pool2 = get_sync_db_pool()
+        
+        assert pool1 is pool2
+        
+        close_sync_db_pool()
+    
+    def test_close_sync_db_pool(self, monkeypatch, tmp_path):
+        """Test that close_sync_db_pool clears the global pool."""
+        # Reset global state
+        import dsa110_contimg.api.database as db_module
+        db_module._sync_db_pool = None
+        
+        products_db = tmp_path / "products.sqlite3"
+        cal_db = tmp_path / "cal_registry.sqlite3"
+        products_db.touch()
+        cal_db.touch()
+        
+        monkeypatch.setenv("PIPELINE_PRODUCTS_DB", str(products_db))
+        monkeypatch.setenv("PIPELINE_CAL_REGISTRY_DB", str(cal_db))
+        
+        pool1 = get_sync_db_pool()
+        close_sync_db_pool()
+        pool2 = get_sync_db_pool()
+        
+        # After closing, should get a new instance
+        assert pool1 is not pool2
+        
+        close_sync_db_pool()

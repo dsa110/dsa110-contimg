@@ -11,7 +11,7 @@ from pyuvdata import utils as uvutils
 
 try:  # pyuvdata>=3.2: faster uvw calculator
     from pyuvdata.utils.phasing import calc_uvw as _PU_CALC_UVW  # type: ignore
-except Exception:  # pragma: no cover - fallback
+except (ImportError, AttributeError):  # pragma: no cover - fallback
     _PU_CALC_UVW = None
 
 from dsa110_contimg.conversion.helpers_antenna import (
@@ -282,7 +282,9 @@ def compute_and_set_uvw(uvdata, pt_dec: u.Quantity) -> None:
             app_ra_unique[i] = float(new_app_ra[0])
             app_dec_unique[i] = float(new_app_dec[0])
             frame_pa_unique[i] = float(new_frame_pa[0])
-        except Exception:
+        except (ValueError, IndexError, TypeError):
+            # ValueError: coordinate transformation failures
+            # IndexError: array access issues, TypeError: type conversion
             app_ra_unique[i] = float(ra_icrs.to_value(u.rad))
             app_dec_unique[i] = float(dec_icrs.to_value(u.rad))
             frame_pa_unique[i] = 0.0

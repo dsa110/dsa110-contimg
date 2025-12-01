@@ -40,8 +40,10 @@ def cleanup_casa_file_handles() -> None:
                         tool_instance.close()
                     if hasattr(tool_instance, "done"):
                         tool_instance.done()
-            except Exception:
+            except (RuntimeError, OSError, AttributeError):
                 # Individual tool cleanup failures are non-fatal
+                # RuntimeError: CASA internal errors, OSError: file issues,
+                # AttributeError: missing methods
                 pass
 
         logger.debug("CASA file handles cleanup completed")
@@ -122,7 +124,7 @@ def set_telescope_identity(
     tel_name = name or _os.getenv("PIPELINE_TELESCOPE_NAME", "DSA_110")
     try:
         setattr(uv, "telescope_name", tel_name)
-    except Exception:
+    except (AttributeError, TypeError):
         pass
 
     try:
@@ -143,7 +145,7 @@ def set_telescope_identity(
             ],
             dtype=float,
         )
-    except Exception:
+    except (AttributeError, TypeError):
         pass
 
     # Populate geodetic lat/lon/alt in radians/meters if available
@@ -153,7 +155,7 @@ def set_telescope_identity(
             float(_loc.lon.to_value(u.rad)),
             float(_loc.height.to_value(u.m)),
         )
-    except Exception:
+    except (AttributeError, TypeError):
         pass
     # And in degrees where convenient
     try:
@@ -162,7 +164,7 @@ def set_telescope_identity(
             float(_loc.lon.to_value(u.deg)),
             float(_loc.height.to_value(u.m)),
         )
-    except Exception:
+    except (AttributeError, TypeError):
         pass
 
     # Mirror onto uv.telescope sub-object when present
@@ -170,7 +172,7 @@ def set_telescope_identity(
     if tel is not None:
         try:
             setattr(tel, "name", tel_name)
-        except Exception:
+        except (AttributeError, TypeError):
             pass
         try:
             setattr(
@@ -185,7 +187,7 @@ def set_telescope_identity(
                     dtype=float,
                 ),
             )
-        except Exception:
+        except (AttributeError, TypeError):
             pass
         try:
             setattr(
@@ -197,7 +199,7 @@ def set_telescope_identity(
                     float(_loc.height.to_value(u.m)),
                 ),
             )
-        except Exception:
+        except (AttributeError, TypeError):
             pass
         try:
             setattr(
@@ -209,7 +211,7 @@ def set_telescope_identity(
                     float(_loc.height.to_value(u.m)),
                 ),
             )
-        except Exception:
+        except (AttributeError, TypeError):
             pass
 
     logger.debug(

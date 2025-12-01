@@ -19,8 +19,14 @@
       api/ and database/ modules (api/database.py, api/routes/imaging.py,
       api/services/bokeh_sessions.py, database/products.py,
       database/calibrators.py, database/session.py)
+- [x] **Connection Pooling** - Added SyncDatabasePool with connection reuse,
+      get_sync_db_pool(), close_sync_db_pool(); 7 new tests
+- [x] **Narrow Conversion Exception Handlers** - 35+ handlers narrowed in
+      conversion/ module (helpers_telescope.py, helpers_coordinates.py,
+      helpers_validation.py, helpers_model.py, merge_spws.py, ms_utils.py,
+      strategies/direct_subband.py)
 
-**Status**: 943 unit tests passing, 72% coverage
+**Status**: 950 unit tests passing, 72% coverage
 
 ---
 
@@ -28,10 +34,9 @@
 
 ### High Priority
 
-- [ ] **Connection Pooling** - Add sync connection pool for better resource
-      usage
-- [ ] **Narrow More Exception Handlers** - ~90 remaining `except Exception:`
-      instances in conversion/, calibration/, photometry/, catalog/, utils/
+- [ ] **Narrow More Exception Handlers** - ~65 remaining `except Exception:`
+      instances in streaming_converter.py, calibration/, photometry/,
+      catalog/, utils/, imaging/, absurd/
 
 ### Medium Priority
 

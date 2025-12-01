@@ -99,14 +99,14 @@ class DirectSubbandWriter(MSWriter):
                     for p in self.file_list:
                         try:
                             est_needed += max(0, os.path.getsize(p))
-                        except Exception:
+                        except OSError:
                             pass
                     est_needed = int(est_needed * 2.0)
                     du = shutil.disk_usage(str(tmpfs_root))
                     free_bytes = int(du.free)
                     if free_bytes > est_needed:
                         use_tmpfs = True
-                except Exception:
+                except OSError:
                     use_tmpfs = False
 
         if use_tmpfs:
@@ -140,8 +140,10 @@ class DirectSubbandWriter(MSWriter):
                         group_pt_dec = pt_dec
                     if np.isfinite(mid_mjd) and mid_mjd > 0:
                         mid_times.append(mid_mjd)
-                except Exception:
+                except (OSError, KeyError, ValueError, RuntimeError):
                     # Fallback: read first file fully if peek fails
+                    # OSError: file issues, KeyError: missing metadata,
+                    # ValueError: invalid data, RuntimeError: HDF5 errors
                     if group_pt_dec is None:
                         try:
                             from pyuvdata import UVData
@@ -163,7 +165,9 @@ class DirectSubbandWriter(MSWriter):
                             mid_mjd = Time(float(np.mean(temp_uv.time_array)), format="jd").mjd
                             mid_times.append(mid_mjd)
                             del temp_uv
-                        except Exception:
+                        except (OSError, ValueError, RuntimeError):
+                            # OSError: file issues, ValueError: invalid data,
+                            # RuntimeError: HDF5/pyuvdata errors
                             pass
 
             if group_pt_dec is not None and len(mid_times) > 0:
@@ -174,7 +178,7 @@ class DirectSubbandWriter(MSWriter):
                     f"Dec={group_pt_dec.to(u.deg).value:.6f}° "
                     f"(MJD={group_mid_mjd:.6f})"
                 )
-        except Exception as e:
+        except (OSError, ValueError, RuntimeError) as e:
             logger.warning(f"Failed to compute shared pointing declination: {e}")
             logger.info("Falling back to per-subband pointing declination")
             group_pt_dec = None
@@ -365,7 +369,7 @@ class DirectSubbandWriter(MSWriter):
                 shutil.move(src_path, dst_path)
                 ms_stage_path = ms_final_path
                 logger.info(f"Moved staged MS to final location: {ms_final_path}")
-            except Exception:
+            except OSError:
                 # If move failed, try copytree (for directory MS)
                 if ms_final_path.exists():
                     shutil.rmtree(ms_final_path, ignore_errors=True)
@@ -493,7 +497,8 @@ def _write_ms_subband_part(
             uv,
             os.getenv("PIPELINE_TELESCOPE_NAME", "DSA_110"),
         )
-    except Exception:
+    except (AttributeError, TypeError, ValueError):
+        # AttributeError/TypeError: UVData attr issues, ValueError: coord conversion
         pass
 
     part_out_path = Path(part_out)
@@ -583,7 +588,7 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
                     group_pt_dec = pt_dec
                 if np.isfinite(mid_mjd) and mid_mjd > 0:
                     mid_times.append(mid_mjd)
-            except Exception:
+            except (OSError, KeyError, ValueError, RuntimeError):
                 # Fallback: read file fully if peek fails
                 try:
                     from pyuvdata import UVData
@@ -604,7 +609,7 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
                     if np.isfinite(mid_mjd) and mid_mjd > 0:
                         mid_times.append(mid_mjd)
                     del temp_uv
-                except Exception:
+                except (OSError, ValueError, RuntimeError):
                     pass
 
         if group_pt_dec is not None and len(mid_times) > 0:
@@ -614,7 +619,7 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
                 f"Dec={group_pt_dec.to(u.deg).value:.6f}° "
                 f"(MJD={group_mid_mjd:.6f})"
             )
-    except Exception:
+    except (OSError, ValueError, RuntimeError):
         # Fallback: per-subband pointing declination
         pass
 

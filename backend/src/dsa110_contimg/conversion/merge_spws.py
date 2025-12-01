@@ -128,8 +128,9 @@ def merge_spws(
             with table(ms_out, nomodify=False) as tb:
                 if "SIGMA_SPECTRUM" in tb.colnames():
                     tb.removecols(["SIGMA_SPECTRUM"])
-        except Exception:
+        except (RuntimeError, OSError):
             # Non-fatal: continue if removal fails
+            # RuntimeError: CASA table errors, OSError: file access issues
             pass
 
     # Fix telescope name to avoid listobs() errors with custom telescope names
@@ -145,8 +146,9 @@ def merge_spws(
             tb_obs.putcol("TELESCOPE_NAME", ["OVRO"])
         tb_obs.close()
         tb_obs.done()  # Required: casatools.table needs both close() and done()
-    except Exception:
+    except (RuntimeError, OSError, ImportError):
         # Non-fatal: telescope name fix is cosmetic
+        # RuntimeError: CASA errors, OSError: file issues, ImportError: casatools
         pass
 
     return ms_out
@@ -201,7 +203,8 @@ def get_spw_count(ms_path: str) -> Optional[int]:
     try:
         with table(f"{ms_path}::SPECTRAL_WINDOW", nomodify=True) as spw:
             return spw.nrows()
-    except Exception:
+    except (RuntimeError, OSError):
+        # RuntimeError: CASA table errors, OSError: file access issues
         return None
 
 

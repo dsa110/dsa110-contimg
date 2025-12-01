@@ -15,7 +15,7 @@ import dsa110_contimg.conversion.helpers as _helpers
 
 try:
     from astropy.coordinates import angular_separation  # type: ignore
-except Exception:  # pragma: no cover - fallback for older astropy
+except (ImportError, AttributeError):  # pragma: no cover - fallback for older astropy
 
     def angular_separation(ra1, dec1, ra2, dec2):
         import numpy as _np
@@ -155,8 +155,9 @@ def validate_phase_center_coherence(ms_path: str, tolerance_arcsec: float = 1.0)
                                         f"This is correct for meridian-tracking phasing."
                                     )
                                     return  # Skip strict coherence check for time-dependent phasing
-                except Exception:
+                except (KeyError, IndexError, TypeError, RuntimeError):
                     # If we can't determine time span, fall through to normal check
+                    # KeyError: missing columns, IndexError: array access, RuntimeError: CASA errors
                     pass
 
                 # Multiple fields - check they are coherent (for fixed phase centers)
@@ -662,6 +663,7 @@ def validate_reference_antenna_stability(ms_path: str, refant_list: list = None)
                 ant_names = ant_tb.getcol("NAME")
                 if len(ant_names) > 0:
                     return ant_names[0]
-        except Exception:
+        except (RuntimeError, OSError, KeyError):
+            # RuntimeError: CASA errors, OSError: file issues, KeyError: missing columns
             pass
         raise RuntimeError(f"Could not select reference antenna for {ms_path}") from e

@@ -90,7 +90,8 @@ def _ensure_imaging_columns_exist(ms_path: str) -> None:
                         "Continuing with existing columns."
                     )
                     return
-        except Exception:
+        except (RuntimeError, OSError):
+            # RuntimeError: CASA table errors, OSError: file access issues
             pass
 
         # Columns don't exist - this is a critical failure
@@ -175,7 +176,8 @@ def _ensure_imaging_columns_populated(ms_path: str) -> None:
                         elif _np.any(val != 0):
                             # Column has non-zero data - it's been populated
                             has_valid_data = True
-                    except Exception:
+                    except (RuntimeError, KeyError, IndexError):
+                        # RuntimeError: CASA errors, KeyError: missing col, IndexError: bad row
                         needs_init = True
 
                 # If column already has valid non-zero data, skip initialization
@@ -254,11 +256,11 @@ def _populate_column_row_by_row(
             if (val is None) or (getattr(val, "shape", None) != data_shape):
                 tb.putcell(col, r, _np.zeros(data_shape, dtype=data_dtype))
                 fixed += 1
-        except Exception:
+        except (RuntimeError, KeyError, IndexError):
             try:
                 tb.putcell(col, r, _np.zeros(data_shape, dtype=data_dtype))
                 fixed += 1
-            except Exception as e2:
+            except (RuntimeError, OSError) as e2:
                 errors += 1
                 if len(error_examples) < 5:
                     error_examples.append(f"row {r}: {e2}")
@@ -290,7 +292,7 @@ def _ensure_flag_and_weight_spectrum(ms_path: str) -> None:
         import numpy as _np
 
         _tb = _casatables.table
-    except Exception:
+    except ImportError:
         return
 
     try:
@@ -302,7 +304,8 @@ def _ensure_flag_and_weight_spectrum(ms_path: str) -> None:
             for i in range(nrow):
                 try:
                     data = tb.getcell("DATA", i)
-                except Exception:
+                except (RuntimeError, KeyError, IndexError):
+                    # RuntimeError: CASA errors, KeyError: missing col, IndexError: bad row
                     continue
                 target_shape = getattr(data, "shape", None)
                 if not target_shape or len(target_shape) != 2:
@@ -313,7 +316,7 @@ def _ensure_flag_and_weight_spectrum(ms_path: str) -> None:
                     f = tb.getcell("FLAG", i)
                     if f is None or getattr(f, "shape", None) != (nchan, npol):
                         raise RuntimeError("FLAG shape mismatch")
-                except Exception:
+                except (RuntimeError, KeyError, IndexError):
                     tb.putcell("FLAG", i, _np.zeros((nchan, npol), dtype=bool))
                 # WEIGHT_SPECTRUM
                 if has_ws:
@@ -324,13 +327,13 @@ def _ensure_flag_and_weight_spectrum(ms_path: str) -> None:
                             npol,
                         ):
                             raise RuntimeError("WS shape mismatch")
-                    except Exception:
+                    except (RuntimeError, KeyError, IndexError):
                         try:
                             w = tb.getcell("WEIGHT", i)
                             w = _np.asarray(w).reshape(-1)
                             if w.size != npol:
                                 w = _np.ones((npol,), dtype=float)
-                        except Exception:
+                        except (RuntimeError, KeyError, IndexError):
                             w = _np.ones((npol,), dtype=float)
                         ws = _np.repeat(w[_np.newaxis, :], nchan, axis=0)
                         tb.putcell("WEIGHT_SPECTRUM", i, ws)
@@ -338,9 +341,11 @@ def _ensure_flag_and_weight_spectrum(ms_path: str) -> None:
             if has_ws and ws_bad:
                 try:
                     tb.removecols(["WEIGHT_SPECTRUM"])
-                except Exception:
+                except (RuntimeError, OSError):
+                    # RuntimeError: CASA errors, OSError: file issues
                     pass
-    except Exception:
+    except (RuntimeError, OSError, ImportError):
+        # RuntimeError: CASA errors, OSError: file issues, ImportError: casacore
         return
 
 
@@ -357,9 +362,9 @@ def _initialize_weights(ms_path: str) -> None:
         # NOTE: When wtmode='weight', initweights initializes WEIGHT_SPECTRUM from WEIGHT column
         # dowtsp=True creates/updates WEIGHT_SPECTRUM column
         _initweights(vis=ms_path, wtmode="weight", dowtsp=True)
-    except Exception:
+    except (RuntimeError, OSError):
         # Non-fatal: initweights can fail on edge cases; downstream tools may
-        # still work
+        # still work. RuntimeError: CASA errors, OSError: file issues
         pass
 
 
@@ -393,8 +398,9 @@ def _fix_mount_type_in_ms(ms_path: str) -> None:
                 else:
                     fixed.append("alt-az")
             ant_table.putcol("MOUNT", fixed)
-    except Exception:
+    except (RuntimeError, OSError, ImportError):
         # Non-fatal normalization
+        # RuntimeError: CASA errors, OSError: file issues, ImportError: casacore
         pass
 
 
@@ -528,8 +534,10 @@ def _fix_field_phase_centers_from_times(ms_path: str) -> None:
                     field_table.putcol("PHASE_DIR", phase_dir)
                 if has_ref_dir:
                     field_table.putcol("REFERENCE_DIR", ref_dir)
-    except Exception:
+    except (RuntimeError, OSError, ValueError, KeyError):
         # Non-fatal: if fixing fails, log warning but don't crash
+        # RuntimeError: CASA errors, OSError: file issues,
+        # ValueError: time conversion, KeyError: missing columns
         import logging
 
         logger = logging.getLogger(__name__)
@@ -553,7 +561,7 @@ def _ensure_observation_table_valid(ms_path: str) -> None:
         import numpy as _np
 
         _tb = _casatables.table
-    except Exception:
+    except ImportError:
         return
 
     try:
@@ -590,8 +598,9 @@ def _ensure_observation_table_valid(ms_path: str) -> None:
 
                 logger.info(f"Created default OBSERVATION row in {ms_path}")
 
-    except Exception:
+    except (RuntimeError, OSError, KeyError):
         # Non-fatal: best-effort fix only
+        # RuntimeError: CASA errors, OSError: file issues, KeyError: missing columns
         import logging
 
         logger = logging.getLogger(__name__)
@@ -615,7 +624,7 @@ def _fix_observation_id_column(ms_path: str) -> None:
         import numpy as _np
 
         _tb = _casatables.table
-    except Exception:
+    except ImportError:
         return
 
     try:
@@ -645,8 +654,9 @@ def _fix_observation_id_column(ms_path: str) -> None:
 
                 logger.info(f"Fixed {n_negative} negative OBSERVATION_ID values in {ms_path}")
 
-    except Exception:
+    except (RuntimeError, OSError, KeyError):
         # Non-fatal: best-effort fix only
+        # RuntimeError: CASA errors, OSError: file issues, KeyError: missing columns
         import logging
 
         logger = logging.getLogger(__name__)
@@ -679,7 +689,7 @@ def _fix_observation_time_range(ms_path: str) -> None:
             detect_casa_time_format,
             validate_time_mjd,
         )
-    except Exception:
+    except ImportError:
         return
 
     try:
@@ -759,8 +769,10 @@ def _fix_observation_time_range(ms_path: str) -> None:
             f"{t0_sec:.1f} to {t1_sec:.1f} seconds "
             f"({start_mjd:.8f} to {end_mjd:.8f} MJD)"
         )
-    except Exception:
+    except (RuntimeError, OSError, KeyError, ValueError):
         # Non-fatal: best-effort fix only
+        # RuntimeError: CASA errors, OSError: file issues,
+        # KeyError: missing columns, ValueError: time conversion
         import logging
 
         logger = logging.getLogger(__name__)

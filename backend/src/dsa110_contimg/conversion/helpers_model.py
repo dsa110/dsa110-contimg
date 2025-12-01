@@ -29,7 +29,7 @@ def primary_beam_response(
     """Primary beam response using the DSA-110 analytic approximation."""
     try:
         from astropy.coordinates import angular_separation  # type: ignore
-    except Exception:
+    except (ImportError, AttributeError):
         # Fallback implementation
         def angular_separation(ra1, dec1, ra2, dec2):
             ra1 = np.asarray(ra1, dtype=float)
@@ -114,7 +114,8 @@ def set_model_column(
                 corr = tb.getcol("CORRECTED_DATA")
                 if not np.any(corr):
                     tb.putcol("CORRECTED_DATA", tb.getcol("DATA"))
-            except Exception:  # pragma: no cover - best effort
+            except (RuntimeError, KeyError):  # pragma: no cover - best effort
+                # RuntimeError: CASA table errors, KeyError: missing column
                 pass
 
         if "WEIGHT_SPECTRUM" in tb.colnames():
