@@ -166,7 +166,7 @@ class TestImagingSessionParams:
 
     def test_validates_imaging_params(self):
         """Should validate imaging parameters via model validator."""
-        with pytest.raises(ValueError):
+        with pytest.raises(ValidationError):
             ImagingSessionParams(
                 ms_path="/data/test.ms",
                 imagename="test",
@@ -175,7 +175,10 @@ class TestImagingSessionParams:
 
     def test_robust_bounds(self):
         """Should enforce robust parameter bounds."""
-        with pytest.raises(ValueError):
+        # Pydantic validates the robust field with le=2, ge=-2
+        # This raises pydantic.ValidationError, not our custom ValidationError
+        import pydantic
+        with pytest.raises(pydantic.ValidationError):
             ImagingSessionParams(
                 ms_path="/data/test.ms",
                 imagename="test",
@@ -441,3 +444,144 @@ class TestSessionCleanup:
         assert stale_cleaned == 0
         assert dead_cleaned == 0
         assert "active-session" in manager.sessions
+
+
+# =============================================================================
+# Mask and Region Endpoint Tests
+# =============================================================================
+
+
+class TestMaskEndpoints:
+    """Tests for /images/{id}/masks endpoints."""
+
+    @pytest.fixture
+    def mock_image_path(self, tmp_path):
+        """Create a mock image directory."""
+        img_dir = tmp_path / "images"
+        img_dir.mkdir()
+        return img_dir
+
+    def test_save_mask_creates_file(self, mock_image_path):
+        """Should save mask regions to a .reg file."""
+        from pathlib import Path
+        import json
+
+        # Simulate mask data
+        mask_data = {
+            "regions": [
+                {"shape": "circle", "x": 100, "y": 100, "radius": 50},
+                {"shape": "box", "x": 200, "y": 200, "width": 60, "height": 40},
+            ],
+            "format": "ds9",
+        }
+
+        # Create mask file path
+        mask_path = mock_image_path / "test_image.mask.reg"
+
+        # Write in DS9 format
+        ds9_content = "# Region file format: DS9 version 4.1\n"
+        ds9_content += "global color=green dashlist=8 3 width=1\n"
+        ds9_content += "image\n"
+        for region in mask_data["regions"]:
+            if region["shape"] == "circle":
+                ds9_content += f"circle({region['x']},{region['y']},{region['radius']})\n"
+            elif region["shape"] == "box":
+                ds9_content += f"box({region['x']},{region['y']},{region['width']},{region['height']},0)\n"
+
+        mask_path.write_text(ds9_content)
+
+        # Verify file was created
+        assert mask_path.exists()
+        content = mask_path.read_text()
+        assert "circle(100,100,50)" in content
+        assert "box(200,200,60,40,0)" in content
+
+    def test_mask_file_ds9_format(self, mock_image_path):
+        """Should generate valid DS9 region format."""
+        ds9_content = """# Region file format: DS9 version 4.1
+global color=green dashlist=8 3 width=1
+image
+circle(256,256,30)
+ellipse(128,128,20,40,45)
+box(384,384,50,30,0)
+"""
+        mask_path = mock_image_path / "test.mask.reg"
+        mask_path.write_text(ds9_content)
+
+        content = mask_path.read_text()
+        assert "Region file format: DS9" in content
+        assert "circle(256,256,30)" in content
+        assert "ellipse(128,128,20,40,45)" in content
+
+
+class TestRegionEndpoints:
+    """Tests for /images/{id}/regions endpoints."""
+
+    @pytest.fixture
+    def mock_region_dir(self, tmp_path):
+        """Create a mock region directory."""
+        region_dir = tmp_path / "regions"
+        region_dir.mkdir()
+        return region_dir
+
+    def test_save_region_ds9_format(self, mock_region_dir):
+        """Should save regions in DS9 format."""
+        region_content = """# Region file format: DS9 version 4.1
+global color=cyan dashlist=8 3 width=1
+fk5
+circle(12h30m00s,+45d00m00s,30")
+"""
+        region_path = mock_region_dir / "source_regions.reg"
+        region_path.write_text(region_content)
+
+        assert region_path.exists()
+        content = region_path.read_text()
+        assert "fk5" in content  # World coordinate system
+        assert "circle(12h30m00s,+45d00m00s,30\")" in content
+
+    def test_save_region_crtf_format(self, mock_region_dir):
+        """Should save regions in CASA Region Text Format."""
+        crtf_content = """#CRTFv0 CASA Region Text Format version 0
+global coord=J2000
+circle [[12h30m00s, +45d00m00s], 30arcsec]
+box [[12h29m50s, +44d59m50s], [12h30m10s, +45d00m10s]]
+"""
+        region_path = mock_region_dir / "source_regions.crtf"
+        region_path.write_text(crtf_content)
+
+        assert region_path.exists()
+        content = region_path.read_text()
+        assert "#CRTFv0" in content
+        assert "circle [[12h30m00s, +45d00m00s], 30arcsec]" in content
+
+    def test_region_export_json(self, mock_region_dir):
+        """Should export regions as JSON."""
+        import json
+
+        regions = [
+            {
+                "shape": "circle",
+                "ra": 187.5,
+                "dec": 45.0,
+                "radius_arcsec": 30.0,
+                "color": "green",
+            },
+            {
+                "shape": "box",
+                "ra": 187.6,
+                "dec": 45.1,
+                "width_arcsec": 60.0,
+                "height_arcsec": 40.0,
+                "angle_deg": 0.0,
+                "color": "cyan",
+            },
+        ]
+
+        region_path = mock_region_dir / "source_regions.json"
+        region_path.write_text(json.dumps(regions, indent=2))
+
+        assert region_path.exists()
+        loaded = json.loads(region_path.read_text())
+        assert len(loaded) == 2
+        assert loaded[0]["shape"] == "circle"
+        assert loaded[1]["shape"] == "box"

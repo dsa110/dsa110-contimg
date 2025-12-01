@@ -143,11 +143,12 @@ class TestJobsRoutes:
         """Test GET /api/jobs/{run_id}/provenance returns 404 for unknown job.
         
         Note: The actual endpoint is /api/jobs/{run_id}/provenance, not /api/jobs/{id}.
-        For unit tests without a database, we expect 404 for unknown run IDs.
+        The API creates synthetic job records from MS paths - job-001 matches obs_0001.ms
+        in test fixtures, so use a completely non-matching ID.
         """
-        response = client.get("/api/jobs/job-001/provenance")
+        response = client.get("/api/jobs/job-nonexistent-xyz/provenance")
         
-        # Without a test database, expect 404 for unknown job
+        # With test database, job-nonexistent-xyz won't match any MS path
         assert response.status_code == 404
         data = response.json()
         assert_error_response(data)
