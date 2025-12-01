@@ -58,4 +58,7 @@ filterwarnings = [
     "ignore:.*pkg_resources.*:DeprecationWarning",
     # Ignore NumPy reload warning from astropy (occurs when CASA imports numpy separately)
     "ignore:The NumPy module was reloaded:UserWarning",
+    # Ignore importlib.resources.is_resource deprecation from casaconfig
+    # casaconfig uses legacy API that will be updated in future CASA releases
+    "ignore:is_resource is deprecated:DeprecationWarning",
 ]
