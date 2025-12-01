@@ -9,14 +9,30 @@ import { logger } from "../../utils/logger";
 import { findDisplay } from "../../utils/js9";
 import type { CatalogSource } from "../../api/types";
 
-declare global {
-  interface Window {}
+/** Extended CatalogSource with catalog_type for color coding */
+interface CatalogSourceWithType extends CatalogSource {
+  catalog_type?: string;
+  source_id?: string;
 }
 
 /** JS9 Overlay reference type */
 interface JS9Overlay {
   remove?: () => void;
   onclick?: () => void;
+}
+
+/** Helper function to get color based on catalog type */
+function getCatalogColor(catalogType: string | undefined): string {
+  switch (catalogType?.toLowerCase()) {
+    case "nvss":
+      return "#2196F3"; // Blue
+    case "vlass":
+      return "#4CAF50"; // Green
+    case "first":
+      return "#F44336"; // Red
+    default:
+      return "#FFC107"; // Amber
+  }
 }
 
 interface CatalogOverlayJS9Props {
@@ -147,7 +163,6 @@ export default function CatalogOverlayJS9({
         }
       });
       overlayRef.current = [];
-    };
     };
   }, [displayId, overlayData, visible, onSourceClick]);
 
