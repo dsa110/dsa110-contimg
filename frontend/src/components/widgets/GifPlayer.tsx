@@ -293,6 +293,10 @@ const GifPlayer: React.FC<GifPlayerProps> = ({
               max={frames.length - 1}
               value={currentFrame}
               onChange={handleSeek}
+              aria-label="Animation timeline"
+              aria-valuemin={0}
+              aria-valuemax={frames.length - 1}
+              aria-valuenow={currentFrame}
               className="w-full h-1 bg-gray-600 rounded-lg appearance-none cursor-pointer accent-blue-500"
             />
           )}
@@ -304,6 +308,7 @@ const GifPlayer: React.FC<GifPlayerProps> = ({
               onClick={handleFirstFrame}
               className="p-1.5 text-gray-300 hover:text-white transition-colors"
               title="First frame"
+              aria-label="Go to first frame"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
@@ -314,6 +319,7 @@ const GifPlayer: React.FC<GifPlayerProps> = ({
               onClick={handlePrevFrame}
               className="p-1.5 text-gray-300 hover:text-white transition-colors"
               title="Previous frame"
+              aria-label="Go to previous frame"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M6 6h2v12H6zm10 12l-6.5-6L16 6v12z" />
@@ -324,6 +330,8 @@ const GifPlayer: React.FC<GifPlayerProps> = ({
               onClick={handlePlayPause}
               className="p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-full transition-colors"
               title={isPlaying ? "Pause" : "Play"}
+              aria-label={isPlaying ? "Pause animation" : "Play animation"}
+              aria-pressed={isPlaying}
             >
               {isPlaying ? (
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -340,6 +348,7 @@ const GifPlayer: React.FC<GifPlayerProps> = ({
               onClick={handleNextFrame}
               className="p-1.5 text-gray-300 hover:text-white transition-colors"
               title="Next frame"
+              aria-label="Go to next frame"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l6.5-6L8 7v-2zm10 0v12h-2V5h2z" />
@@ -350,6 +359,7 @@ const GifPlayer: React.FC<GifPlayerProps> = ({
               onClick={handleLastFrame}
               className="p-1.5 text-gray-300 hover:text-white transition-colors"
               title="Last frame"
+              aria-label="Go to last frame"
             >
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
