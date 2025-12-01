@@ -49,6 +49,8 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
 # Filter warnings from third-party packages we can't control
 filterwarnings = [
     # Ignore pkg_resources deprecation warnings from casaconfig (CASA dependency)
@@ -61,4 +63,10 @@ filterwarnings = [
     # Ignore importlib.resources.is_resource deprecation from casaconfig
     # casaconfig uses legacy API that will be updated in future CASA releases
     "ignore:is_resource is deprecated:DeprecationWarning",
+    # Ignore astropy indent deprecation (internal to astropy FITS handling)
+    "ignore:The indent function is deprecated:AstropyDeprecationWarning",
+    # Ignore FITS header validation warnings in truncated file tests
+    "ignore:Error validating header for HDU:VerifyWarning",
+    # Ignore unawaited coroutine warnings from logging during async exception tests
+    "ignore:coroutine 'open_connection' was never awaited:RuntimeWarning",
 ]
