@@ -119,7 +119,7 @@ def main() -> int:
     ap.add_argument('--products-db', default='state/db/products.sqlite3')
     ap.add_argument('--name', default='0834+555')
     ap.add_argument('--vla-db', default='state/catalogs/vla_calibrators.sqlite3')
-    ap.add_argument('--master-db', default='state/db/master_sources.sqlite3')
+    ap.add_argument('--master-db', default='state/catalogs/master_sources.sqlite3')
     ap.add_argument('--mosaic-name', default=None, help='Mosaic name (default: transit_0834_555_YYYYMMDD)')
     ap.add_argument('--mosaic-output', default=None, help='Output mosaic base path (.img)')
     ap.add_argument('--imsize', type=int, default=2048)

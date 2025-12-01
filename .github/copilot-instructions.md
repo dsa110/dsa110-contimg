@@ -218,22 +218,23 @@ antpos = np.array([df_itrf['x_m'], df_itrf['y_m'], df_itrf['z_m']]).T  # (nants,
 
 ```python
 from dsa110_contimg.conversion.helpers_coordinates import phase_to_meridian
-from dsa110_contimg.utils.constants import OVRO_LOCATION
+from dsa110_contimg.utils.constants import DSA110_LOCATION
 
 # Phase visibilities to meridian (standard for DSA-110)
 phase_to_meridian(uvdata)
 
-# OVRO location (used for LST calculations)
-OVRO_LOCATION  # astropy EarthLocation object
+# DSA-110 telescope location (used for LST calculations)
+DSA110_LOCATION  # astropy EarthLocation object
 ```
 
 ### Constants
 
 ```python
 from dsa110_contimg.utils.constants import (
-    OVRO_LOCATION,      # Telescope location
-    DSA110_LATITUDE,    # Observatory latitude
-    DSA110_LONGITUDE,   # Observatory longitude
+    DSA110_LOCATION,    # Telescope location (EarthLocation)
+    DSA110_LATITUDE,    # Observatory latitude (degrees)
+    DSA110_LONGITUDE,   # Observatory longitude (degrees)
+    # Note: OVRO_LOCATION is deprecated - use DSA110_LOCATION instead
 )
 ```
 
@@ -244,8 +245,8 @@ The pipeline uses **direct MS table writing** via the `writers` module:
 ```python
 from dsa110_contimg.conversion.strategies.writers import get_writer
 
-# Get writer class (recommended: 'parallel-subband' for production)
-writer_cls = get_writer('parallel-subband')  # Or 'pyuvdata' for testing
+# Get writer class for production (always use 'parallel-subband' or 'direct-subband')
+writer_cls = get_writer('parallel-subband')  # Or 'direct-subband' (same writer)
 writer_instance = writer_cls(uvdata, output_path, **writer_kwargs)
 writer_type = writer_instance.write()  # Returns writer type string
 
@@ -254,6 +255,10 @@ from dsa110_contimg.conversion.strategies.direct_subband import DirectSubbandWri
 writer = DirectSubbandWriter(uvdata, output_path, file_list=file_list)
 writer.write()
 ```
+
+**IMPORTANT**: The `pyuvdata` writer is **test-only** and will raise an error
+if requested via `get_writer('pyuvdata')`. For testing purposes only, import
+from `backend/tests/fixtures/writers.py`.
 
 **Expected visibility shape**: `(nblt, nfreq, npol)`
 
@@ -386,7 +391,7 @@ python -m dsa110_contimg.conversion.cli single \
 - `--calibrator NAME` - Auto-find transit time for calibrator
 - `--skip-existing` - Skip groups with existing MS files
 - `--no-rename-calibrator-fields` - Disable auto calibrator detection
-- `--writer {parallel-subband,pyuvdata}` - MS writing strategy
+- `--writer {parallel-subband,direct-subband,auto}` - MS writing strategy (all use DirectSubbandWriter)
 - `--scratch-dir PATH` - Temp file location
 
 **Python API (alternative):**
@@ -557,16 +562,27 @@ historical context (gitignored, not committed):
 
 ## Database Locations
 
-All SQLite databases are in `/data/dsa110-contimg/state/`:
+SQLite databases are organized in `/data/dsa110-contimg/state/`:
+
+**Runtime databases** (`state/` root and `state/db/`):
 
 - `products.sqlite3` - Product registry (MS, images, photometry)
 - `ingest.sqlite3` - Streaming queue management
 - `hdf5.sqlite3` - HDF5 file index
 - `cal_registry.sqlite3` - Calibration table registry
-- `calibrator_registry.sqlite3` - Known calibrators
-- `master_sources.sqlite3` - Source catalog (NVSS, FIRST, RAX)
+- `data_registry.sqlite3` - Data product tracking
 - `docsearch.sqlite3` - Local documentation search index
 - `embedding_cache.sqlite3` - Cached OpenAI embeddings
+
+**Survey catalogs** (`state/catalogs/`):
+
+- `nvss_dec+XX.X.sqlite3` - NVSS sources by declination strip
+- `first_dec+XX.X.sqlite3` - FIRST survey sources
+- `vlass_dec+XX.X.sqlite3` - VLASS sources
+- `atnf_dec+XX.X.sqlite3` - ATNF pulsar catalog
+- `rax_dec+XX.X.sqlite3` - RAX sources
+- `vla_calibrators.sqlite3` - VLA calibrator catalog
+- `master_sources.sqlite3` - Combined crossmatch of NVSS/FIRST/VLASS (~1.6M sources, 108MB)
 
 Use WAL mode for concurrent access. Connection timeouts are set to 30 seconds.
 
