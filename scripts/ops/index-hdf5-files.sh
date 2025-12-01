@@ -9,7 +9,7 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Default paths
 INPUT_DIR="${CONTIMG_INPUT_DIR:-/data/incoming}"
-HDF5_DB="${HDF5_DB_PATH:-/data/dsa110-contimg/state/hdf5.sqlite3}"
+HDF5_DB="${HDF5_DB_PATH:-/data/dsa110-contimg/state/db/hdf5.sqlite3}"
 MAX_FILES="${MAX_FILES:-}"  # No limit by default
 FORCE_RESCAN="${FORCE_RESCAN:-false}"
 

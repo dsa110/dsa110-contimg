@@ -14,7 +14,7 @@ Usage:
     
     # With custom paths
     python migrate_sqlite_to_postgres.py \
-        --sqlite /data/dsa110-contimg/state/products.sqlite3 \
+        --sqlite /data/dsa110-contimg/state/db/products.sqlite3 \
         --pg-host localhost --pg-port 5432 \
         --pg-database dsa110 --pg-user dsa110
 
@@ -320,7 +320,7 @@ def main():
     )
     parser.add_argument(
         "--sqlite",
-        default="/data/dsa110-contimg/state/products.sqlite3",
+        default="/data/dsa110-contimg/state/db/products.sqlite3",
         help="Path to SQLite database",
     )
     parser.add_argument(

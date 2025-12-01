@@ -82,7 +82,7 @@ class DatabaseConfig:
             backend=backend,
             sqlite_path=os.getenv(
                 f"{prefix}_SQLITE_PATH",
-                os.getenv("PIPELINE_PRODUCTS_DB", "/data/dsa110-contimg/state/products.sqlite3")
+                os.getenv("PIPELINE_PRODUCTS_DB", "/data/dsa110-contimg/state/db/products.sqlite3")
             ),
             sqlite_timeout=float(os.getenv(f"{prefix}_SQLITE_TIMEOUT", "30.0")),
             pg_host=os.getenv(f"{prefix}_PG_HOST", "localhost"),

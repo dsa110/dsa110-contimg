@@ -39,11 +39,11 @@ logger = logging.getLogger(__name__)
 
 # Default database paths
 DEFAULT_DB_PATHS = {
-    "products": Path("/data/dsa110-contimg/state/products.sqlite3"),
-    "cal_registry": Path("/data/dsa110-contimg/state/cal_registry.sqlite3"),
-    "hdf5": Path("/data/dsa110-contimg/state/hdf5.sqlite3"),
-    "ingest": Path("/data/dsa110-contimg/state/ingest.sqlite3"),
-    "data_registry": Path("/data/dsa110-contimg/state/data_registry.sqlite3"),
+    "products": Path("/data/dsa110-contimg/state/db/products.sqlite3"),
+    "cal_registry": Path("/data/dsa110-contimg/state/db/cal_registry.sqlite3"),
+    "hdf5": Path("/data/dsa110-contimg/state/db/hdf5.sqlite3"),
+    "ingest": Path("/data/dsa110-contimg/state/db/ingest.sqlite3"),
+    "data_registry": Path("/data/dsa110-contimg/state/db/data_registry.sqlite3"),
 }
 
 # Expected schemas for each database

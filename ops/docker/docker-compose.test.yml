@@ -51,7 +51,7 @@ services:
       - /scratch:/scratch
     environment:
       - PYTHONPATH=/app/src
-      - PIPELINE_PRODUCTS_DB=/app/state/products.sqlite3
+      - PIPELINE_PRODUCTS_DB=/app/state/db/products.sqlite3
     profiles:
       - test-api
 

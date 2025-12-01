@@ -7,7 +7,7 @@
 # Configuration (env overrides):
 #   DRY_RUN=true|false                # Default: true (no deletion)
 #   LOG_FILE=/data/dsa110-contimg/state/logs/cleanup_old_data.log
-#   PRODUCTS_DB=/data/dsa110-contimg/state/products.sqlite3
+#   PRODUCTS_DB=/data/dsa110-contimg/state/db/products.sqlite3
 #   HDF5_ROOT=/data/incoming
 #   MS_SCIENCE_ROOT=/data/dsa110-contimg/ms/science
 #   MS_CAL_ROOT=/data/dsa110-contimg/ms/calibrators
@@ -27,7 +27,7 @@ set -euo pipefail
 
 DRY_RUN=${DRY_RUN:-true}
 LOG_FILE=${LOG_FILE:-/data/dsa110-contimg/state/logs/cleanup_old_data.log}
-PRODUCTS_DB=${PRODUCTS_DB:-/data/dsa110-contimg/state/products.sqlite3}
+PRODUCTS_DB=${PRODUCTS_DB:-/data/dsa110-contimg/state/db/products.sqlite3}
 
 HDF5_ROOT=${HDF5_ROOT:-/data/incoming}
 MS_SCIENCE_ROOT=${MS_SCIENCE_ROOT:-/data/dsa110-contimg/ms/science}

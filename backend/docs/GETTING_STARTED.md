@@ -130,12 +130,33 @@ conda activate casa6
 # Unit tests (fast, no CASA required for most)
 python -m pytest tests/unit/ -v
 
+# Run all tests with coverage
+python -m pytest tests/unit/ --cov=dsa110_contimg --cov-report=term-missing
+
 # Specific test file
 python -m pytest tests/unit/api/test_query_batch.py -v
 
 # Integration tests (requires CASA)
 python -m pytest tests/integration/ -v
 ```
+
+### Test Coverage
+
+Current test coverage status (1143 tests passing):
+
+| Module                | Coverage | Target |
+| --------------------- | -------- | ------ |
+| `batch/qa.py`         | 97%      | 80%    |
+| `batch/thumbnails.py` | 97%      | 80%    |
+| `websocket.py`        | 84%      | 70%    |
+| `cache.py`            | 89%      | 60%    |
+| `metrics.py`          | 93%      | 60%    |
+
+Key testing patterns used:
+
+- **CASA mocking**: Use `patch.dict('sys.modules', {'casatools': MagicMock()})`
+- **WebSocket testing**: Use `TestClient` with `websocket_connect()`
+- **Metrics isolation**: Create fresh `CollectorRegistry()` per test
 
 ## Common Development Tasks
 

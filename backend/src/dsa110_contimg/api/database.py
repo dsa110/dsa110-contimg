@@ -23,8 +23,8 @@ class PoolConfig:
     comprehensive database configuration, see config.DatabaseConfig.
     """
     
-    products_db_path: str = "/data/dsa110-contimg/state/products.sqlite3"
-    cal_registry_db_path: str = "/data/dsa110-contimg/state/cal_registry.sqlite3"
+    products_db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3"
+    cal_registry_db_path: str = "/data/dsa110-contimg/state/db/cal_registry.sqlite3"
     timeout: float = 30.0
     
     @classmethod
@@ -38,11 +38,11 @@ class PoolConfig:
         return cls(
             products_db_path=os.getenv(
                 "PIPELINE_PRODUCTS_DB",
-                "/data/dsa110-contimg/state/products.sqlite3"
+                "/data/dsa110-contimg/state/db/products.sqlite3"
             ),
             cal_registry_db_path=os.getenv(
                 "PIPELINE_CAL_REGISTRY_DB",
-                "/data/dsa110-contimg/state/cal_registry.sqlite3"
+                "/data/dsa110-contimg/state/db/cal_registry.sqlite3"
             ),
             timeout=float(os.getenv("DSA110_DB_TIMEOUT", "30.0")),
         )

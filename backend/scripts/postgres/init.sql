@@ -1,5 +1,5 @@
 -- PostgreSQL Schema for DSA-110 Continuum Imaging Pipeline
--- Converted from SQLite schema in /data/dsa110-contimg/state/products.sqlite3
+-- Converted from SQLite schema in /data/dsa110-contimg/state/db/products.sqlite3
 --
 -- Run with: psql -U dsa110 -d dsa110 -f init.sql
 -- Or automatically via Docker init.d

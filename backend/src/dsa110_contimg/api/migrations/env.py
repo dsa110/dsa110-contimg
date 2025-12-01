@@ -24,7 +24,7 @@ def get_database_url():
     """Get the database URL for migrations."""
     db_path = os.environ.get(
         "PIPELINE_PRODUCTS_DB",
-        "/data/dsa110-contimg/state/products.sqlite3"
+        "/data/dsa110-contimg/state/db/products.sqlite3"
     )
     return f"sqlite:///{db_path}"
 

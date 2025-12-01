@@ -57,7 +57,7 @@ services:
       - DSA110_DB_PG_POOL_MIN=2
       - DSA110_DB_PG_POOL_MAX=10
       # Keep SQLite path for fallback/comparison
-      - PIPELINE_PRODUCTS_DB=/app/state/products.sqlite3
+      - PIPELINE_PRODUCTS_DB=/app/state/db/products.sqlite3
       - PIPELINE_STATE_DIR=/app/state
     restart: unless-stopped
     depends_on:

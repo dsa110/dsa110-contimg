@@ -145,8 +145,8 @@ pipeline_info.info({
 # Database Sync Functions
 # =============================================================================
 
-DEFAULT_DB_PATH = "/data/dsa110-contimg/state/products.sqlite3"
-CAL_REGISTRY_DB_PATH = "/data/dsa110-contimg/state/cal_registry.sqlite3"
+DEFAULT_DB_PATH = "/data/dsa110-contimg/state/db/products.sqlite3"
+CAL_REGISTRY_DB_PATH = "/data/dsa110-contimg/state/db/cal_registry.sqlite3"
 
 
 def sync_gauges_from_database(db_path: str = DEFAULT_DB_PATH) -> dict:

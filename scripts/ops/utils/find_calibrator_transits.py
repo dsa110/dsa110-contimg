@@ -40,7 +40,7 @@ Examples:
     )
     parser.add_argument(
         "--hdf5-db",
-        default="/data/dsa110-contimg/state/hdf5.sqlite3",
+        default="/data/dsa110-contimg/state/db/hdf5.sqlite3",
         help="Path to HDF5 database (default: %(default)s)",
     )
     parser.add_argument(
