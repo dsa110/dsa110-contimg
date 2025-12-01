@@ -70,11 +70,11 @@ class DatabasePool:
                 # Test if connection is still valid
                 await existing_conn.execute("SELECT 1")
                 return existing_conn
-            except Exception:
+            except (sqlite3.Error, ValueError):
                 # Connection is dead, create new one
                 try:
                     await existing_conn.close()
-                except Exception:
+                except (sqlite3.Error, ValueError):
                     pass
         
         conn = await aiosqlite.connect(

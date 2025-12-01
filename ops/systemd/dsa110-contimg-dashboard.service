@@ -39,9 +39,9 @@ ProtectSystem=strict
 ProtectHome=true
 ReadWritePaths=/data/dsa110-contimg/state/logs /data/dsa110-contimg/frontend
 
-# Logging
-StandardOutput=append:/data/dsa110-contimg/state/logs/dsa110-contimg-dashboard.out
-StandardError=append:/data/dsa110-contimg/state/logs/dsa110-contimg-dashboard.err
+# Logging (use 'file:' for systemd 237 compatibility; 'append:' requires 240+)
+StandardOutput=file:/data/dsa110-contimg/state/logs/dsa110-contimg-dashboard.out
+StandardError=file:/data/dsa110-contimg/state/logs/dsa110-contimg-dashboard.err
 
 [Install]
 WantedBy=multi-user.target

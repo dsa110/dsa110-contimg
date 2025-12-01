@@ -380,6 +380,7 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
     return (
       <div className="border-b border-gray-200">
         <button
+          type="button"
           onClick={() => toggleSection(id)}
           className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors"
         >
@@ -768,6 +769,7 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
           Reset
         </button>
         <button
+          type="button"
           onClick={handleSubmit}
           className={`btn btn-primary ${hasValidationErrors ? "opacity-75" : ""}`}
           disabled={hasValidationErrors}
