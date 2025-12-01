@@ -64,6 +64,9 @@ export const ROUTES = {
     /** QA report for MS */
     QA_MS: (path: string) => `/qa/ms/${encodeURIComponent(path)}` as const,
   },
+
+  /** Calibrator Imaging Test */
+  CALIBRATOR_IMAGING: "/calibrator-imaging",
 } as const;
 
 /**
@@ -76,6 +79,7 @@ export const NAV_ITEMS = [
   { path: ROUTES.SOURCES.LIST, label: "Sources" },
   { path: ROUTES.JOBS.LIST, label: "Jobs" },
   { path: ROUTES.WORKFLOWS.LIST, label: "Workflows" },
+  { path: ROUTES.CALIBRATOR_IMAGING, label: "Cal Test" },
 ] as const;
 
 /**

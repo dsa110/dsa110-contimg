@@ -50,7 +50,9 @@
 - [x] **PostgreSQL Testing** - Test with real PostgreSQL database. Verified
       PostgreSQL 16 container connectivity, adapter creation, and query execution.
       All 58 database adapter tests pass. 15 tables created via init.sql.
-- [ ] **N+1 Query Optimization** - Profile and optimize list endpoints
+- [x] **N+1 Query Optimization** - Optimized `AsyncImageRepository.list_all()`
+      to batch fetch QA grades from ms_index in a single query instead of N+1
+      queries per image. Added 8 optimization tests in `test_query_optimization.py`.
 
 ### Low Priority
 

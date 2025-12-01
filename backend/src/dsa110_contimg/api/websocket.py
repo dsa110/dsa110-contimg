@@ -5,12 +5,18 @@ Provides WebSocket endpoints for:
 - Job status updates
 - Pipeline progress notifications
 - Live log streaming
+
+Features:
+- Server-initiated heartbeat for connection health monitoring
+- Automatic reconnection hints on graceful disconnect
+- Topic-based pub/sub messaging
 """
 
 import asyncio
 import json
 import logging
 from datetime import datetime
+from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Set
 from dataclasses import dataclass, field
 
@@ -27,6 +33,15 @@ logger = logging.getLogger(__name__)
 ws_router = APIRouter(prefix="/ws", tags=["websocket"])
 
 
+class DisconnectReason(str, Enum):
+    """Reasons for WebSocket disconnection."""
+    NORMAL = "normal"
+    TIMEOUT = "timeout"
+    ERROR = "error"
+    SERVER_SHUTDOWN = "server_shutdown"
+    CLIENT_GONE = "client_gone"
+
+
 @dataclass
 class ConnectionInfo:
     """Information about a WebSocket connection."""
@@ -34,6 +49,9 @@ class ConnectionInfo:
     subscriptions: Set[str] = field(default_factory=set)
     connected_at: datetime = field(default_factory=datetime.utcnow)
     user_id: Optional[str] = None
+    last_heartbeat: datetime = field(default_factory=datetime.utcnow)
+    missed_heartbeats: int = 0
+    reconnect_token: Optional[str] = None
 
 
 class ConnectionManager:
@@ -42,36 +60,175 @@ class ConnectionManager:
     
     Supports subscription-based messaging where clients can subscribe
     to specific topics (e.g., "job:123", "pipeline:imaging").
+    
+    Features:
+    - Server-initiated heartbeat for connection health monitoring
+    - Graceful disconnect with reason codes and reconnection hints
+    - Topic-based pub/sub messaging
     """
+    
+    # Heartbeat settings
+    HEARTBEAT_INTERVAL = 30  # seconds
+    MAX_MISSED_HEARTBEATS = 3  # disconnect after this many missed
     
     def __init__(self):
         self.active_connections: Dict[str, ConnectionInfo] = {}
         self._lock = asyncio.Lock()
+        self._heartbeat_task: Optional[asyncio.Task] = None
     
     async def connect(
         self,
         websocket: WebSocket,
         client_id: str,
         user_id: Optional[str] = None,
-    ) -> None:
-        """Accept a new WebSocket connection."""
+        reconnect_token: Optional[str] = None,
+    ) -> str:
+        """Accept a new WebSocket connection.
+        
+        Args:
+            websocket: The WebSocket instance
+            client_id: Unique identifier for this connection
+            user_id: Optional user identifier
+            reconnect_token: Token from previous connection for session resumption
+            
+        Returns:
+            New reconnect token for future reconnections
+        """
+        import uuid
         await websocket.accept()
+        
+        # Generate new reconnect token
+        new_token = str(uuid.uuid4())
         
         async with self._lock:
             self.active_connections[client_id] = ConnectionInfo(
                 websocket=websocket,
                 user_id=user_id,
+                reconnect_token=new_token,
             )
         
         logger.info(f"WebSocket connected: {client_id}")
+        return new_token
     
-    async def disconnect(self, client_id: str) -> None:
-        """Remove a WebSocket connection."""
+    async def disconnect(
+        self,
+        client_id: str,
+        reason: DisconnectReason = DisconnectReason.NORMAL,
+        send_close: bool = True,
+    ) -> None:
+        """Remove a WebSocket connection with reason.
+        
+        Args:
+            client_id: The client to disconnect
+            reason: Reason for disconnection
+            send_close: Whether to send close frame to client
+        """
         async with self._lock:
-            if client_id in self.active_connections:
+            info = self.active_connections.get(client_id)
+            if info:
+                if send_close:
+                    try:
+                        if info.websocket.client_state == WebSocketState.CONNECTED:
+                            # Send disconnect message with reconnection info
+                            await info.websocket.send_json({
+                                "type": "disconnect",
+                                "reason": reason.value,
+                                "reconnect_token": info.reconnect_token,
+                                "can_reconnect": reason != DisconnectReason.ERROR,
+                                "timestamp": datetime.utcnow().isoformat() + "Z",
+                            })
+                    except (RuntimeError, ConnectionError):
+                        pass  # Connection already closed
                 del self.active_connections[client_id]
         
-        logger.info(f"WebSocket disconnected: {client_id}")
+        logger.info(f"WebSocket disconnected: {client_id} (reason: {reason.value})")
+    
+    async def handle_heartbeat_response(self, client_id: str) -> None:
+        """Handle heartbeat response from client, resetting missed count."""
+        async with self._lock:
+            if client_id in self.active_connections:
+                self.active_connections[client_id].last_heartbeat = datetime.utcnow()
+                self.active_connections[client_id].missed_heartbeats = 0
+    
+    async def send_heartbeat(self, client_id: str) -> bool:
+        """Send heartbeat to a specific client.
+        
+        Returns True if heartbeat was sent successfully.
+        """
+        async with self._lock:
+            info = self.active_connections.get(client_id)
+        
+        if not info:
+            return False
+        
+        try:
+            if info.websocket.client_state == WebSocketState.CONNECTED:
+                await info.websocket.send_json({
+                    "type": "heartbeat",
+                    "timestamp": datetime.utcnow().isoformat() + "Z",
+                })
+                async with self._lock:
+                    if client_id in self.active_connections:
+                        self.active_connections[client_id].missed_heartbeats += 1
+                return True
+        except (RuntimeError, ConnectionError):
+            await self.disconnect(client_id, DisconnectReason.CLIENT_GONE, send_close=False)
+        
+        return False
+    
+    async def check_connection_health(self) -> List[str]:
+        """Check all connections and disconnect unhealthy ones.
+        
+        Returns list of disconnected client IDs.
+        """
+        disconnected = []
+        
+        async with self._lock:
+            connections = list(self.active_connections.items())
+        
+        for client_id, info in connections:
+            if info.missed_heartbeats >= self.MAX_MISSED_HEARTBEATS:
+                await self.disconnect(client_id, DisconnectReason.TIMEOUT)
+                disconnected.append(client_id)
+        
+        return disconnected
+    
+    async def start_heartbeat_loop(self) -> None:
+        """Start the background heartbeat task."""
+        if self._heartbeat_task is None or self._heartbeat_task.done():
+            self._heartbeat_task = asyncio.create_task(self._heartbeat_loop())
+            logger.info("WebSocket heartbeat loop started")
+    
+    async def stop_heartbeat_loop(self) -> None:
+        """Stop the background heartbeat task."""
+        if self._heartbeat_task and not self._heartbeat_task.done():
+            self._heartbeat_task.cancel()
+            try:
+                await self._heartbeat_task
+            except asyncio.CancelledError:
+                pass
+            logger.info("WebSocket heartbeat loop stopped")
+    
+    async def _heartbeat_loop(self) -> None:
+        """Background task that sends heartbeats to all connections."""
+        while True:
+            try:
+                await asyncio.sleep(self.HEARTBEAT_INTERVAL)
+                
+                # Send heartbeats to all connections
+                async with self._lock:
+                    client_ids = list(self.active_connections.keys())
+                
+                for client_id in client_ids:
+                    await self.send_heartbeat(client_id)
+                
+                # Check for unhealthy connections
+                await self.check_connection_health()
+                
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.error(f"Error in heartbeat loop: {e}")
     
     async def subscribe(self, client_id: str, topic: str) -> bool:
         """Subscribe a client to a topic."""
@@ -107,7 +264,7 @@ class ConnectionManager:
                 return True
         except (RuntimeError, ConnectionError) as e:
             logger.error(f"Error sending to {client_id}: {e}")
-            await self.disconnect(client_id)
+            await self.disconnect(client_id, DisconnectReason.ERROR)
         
         return False
     
@@ -138,7 +295,7 @@ class ConnectionManager:
                     sent_count += 1
             except (RuntimeError, ConnectionError) as e:
                 logger.error(f"Error broadcasting to {client_id}: {e}")
-                await self.disconnect(client_id)
+                await self.disconnect(client_id, DisconnectReason.ERROR)
         
         return sent_count
     

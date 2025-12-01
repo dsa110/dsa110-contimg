@@ -14,6 +14,9 @@ const JobsListPage = lazy(() => import("./pages/JobsListPage"));
 const InteractiveImagingPage = lazy(
   () => import("./pages/InteractiveImagingPage")
 );
+const CalibratorImagingPage = lazy(
+  () => import("./pages/CalibratorImagingPage")
+);
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const WorkflowsPage = lazy(() => import("./pages/WorkflowsPage"));
 
@@ -93,6 +96,14 @@ export const router = createBrowserRouter(
           element: (
             <Suspense fallback={<PageSkeleton variant="list" />}>
               <InteractiveImagingPage />
+            </Suspense>
+          ),
+        },
+        {
+          path: "calibrator-imaging",
+          element: (
+            <Suspense fallback={<PageSkeleton variant="list" />}>
+              <CalibratorImagingPage />
             </Suspense>
           ),
         },
