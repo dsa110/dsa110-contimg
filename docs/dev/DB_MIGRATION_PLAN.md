@@ -23,9 +23,9 @@ state; keep them separate from the DB migration work.
    - Verify file counts and checksums (e.g., `find ... -name '*.sqlite3' -print0 | xargs -0 sha256sum` on both).
 3. **Update configuration (env-first)**
    - Set `PIPELINE_STATE_DIR=/data/dsa110-contimg/state`
-   - Set `PIPELINE_QUEUE_DB=/data/dsa110-contimg/state/ingest.sqlite3`
-   - Set `PIPELINE_PRODUCTS_DB=/data/dsa110-contimg/state/products.sqlite3`
-   - Set `CAL_REGISTRY_DB=/data/dsa110-contimg/state/cal_registry.sqlite3`
+   - Set `PIPELINE_QUEUE_DB=/data/dsa110-contimg/state/db/ingest.sqlite3`
+   - Set `PIPELINE_PRODUCTS_DB=/data/dsa110-contimg/state/db/products.sqlite3`
+   - Set `CAL_REGISTRY_DB=/data/dsa110-contimg/state/db/cal_registry.sqlite3`
    - For legacy scripts, also set `CATALOG_DB_DIR=/data/dsa110-contimg/state/catalogs`
    - Update `ops/systemd/contimg.env` to match (queue/products/registry vars).
 4. **Code touch-up (post-env)**

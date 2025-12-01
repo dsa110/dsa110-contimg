@@ -128,7 +128,7 @@ def check_cal_registry():
 def check_hdf5_index():
     """Check HDF5 index database."""
     print("\n=== Checking HDF5 Index ===")
-    db_path = Path("state/hdf5.sqlite3")
+    db_path = Path("state/db/hdf5.sqlite3")
 
     if not db_path.exists():
         print(f":cross: HDF5 index not found at {db_path}")

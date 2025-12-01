@@ -13,12 +13,12 @@ Pipeline API, connecting the stub implementations to real data sources.
 
 The API now queries data from the following SQLite databases:
 
-- **`/data/dsa110-contimg/state/products.sqlite3`** - Main product registry
+- **`/data/dsa110-contimg/state/db/products.sqlite3`** - Main product registry
   - `ms_index` table - Measurement Set metadata
   - `images` table - Image metadata
   - `photometry` table - Source photometry data
   - `batch_jobs` table - Pipeline job records
-- **`/data/dsa110-contimg/state/cal_registry.sqlite3`** - Calibration registry
+- **`/data/dsa110-contimg/state/db/cal_registry.sqlite3`** - Calibration registry
   - `caltables` table - Calibration table metadata
 
 ## Implemented Endpoints

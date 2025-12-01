@@ -173,7 +173,7 @@ sudo systemctl restart dsa110-api.service  # Restart
 ### Database locked errors
 
 ```bash
-sqlite3 /data/dsa110-contimg/state/products.sqlite3 "PRAGMA journal_mode=WAL;"
+sqlite3 /data/dsa110-contimg/state/db/products.sqlite3 "PRAGMA journal_mode=WAL;"
 ```
 
 ### CORS errors in frontend
@@ -183,7 +183,7 @@ Update `allow_origins` in `backend/src/dsa110_contimg/api/app.py`
 ### Verify database state
 
 ```bash
-sqlite3 /data/dsa110-contimg/state/products.sqlite3 "
+sqlite3 /data/dsa110-contimg/state/db/products.sqlite3 "
 SELECT 'MS:', COUNT(*) FROM ms_index;
 SELECT 'Images:', COUNT(*) FROM images;
 SELECT 'Photometry:', COUNT(*) FROM photometry;

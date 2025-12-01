@@ -115,16 +115,16 @@ echo $PYTHONPATH
 
 ```bash
 # List recent jobs
-sqlite3 /data/dsa110-contimg/state/products.sqlite3 \
+sqlite3 /data/dsa110-contimg/state/db/products.sqlite3 \
   "SELECT id, type, status, datetime(created_at, 'unixepoch')
    FROM jobs ORDER BY id DESC LIMIT 10;"
 
 # View job logs
-sqlite3 /data/dsa110-contimg/state/products.sqlite3 \
+sqlite3 /data/dsa110-contimg/state/db/products.sqlite3 \
   "SELECT logs FROM jobs WHERE id=1;"
 
 # Clear failed jobs
-sqlite3 /data/dsa110-contimg/state/products.sqlite3 \
+sqlite3 /data/dsa110-contimg/state/db/products.sqlite3 \
   "DELETE FROM jobs WHERE status='failed';"
 ```
 
@@ -246,7 +246,7 @@ sudo fuser -k 8000/tcp
 curl http://localhost:8000/api/jobs | jq '.items[] | {id, type, status}'
 
 # Via database
-sqlite3 state/products.sqlite3 \
+sqlite3 state/db/products.sqlite3 \
   "SELECT id, type, status FROM jobs ORDER BY id DESC LIMIT 5;"
 
 # Via service script (check if running)

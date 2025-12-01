@@ -359,7 +359,7 @@ from pathlib import Path
 
 # Initialize orchestrator
 orchestrator = MosaicOrchestrator(
-    products_db_path=Path("state/products.sqlite3")
+    products_db_path=Path("state/db/products.sqlite3")
 )
 
 # List available transits with quality metrics
@@ -393,7 +393,7 @@ from dsa110_contimg.mosaic.orchestrator import MosaicOrchestrator
 from pathlib import Path
 
 orchestrator = MosaicOrchestrator(
-    products_db_path=Path("state/products.sqlite3")
+    products_db_path=Path("state/db/products.sqlite3")
 )
 
 # Process all transits with quality filters

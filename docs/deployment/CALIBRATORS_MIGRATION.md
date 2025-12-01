@@ -51,13 +51,13 @@ Or manually:
 ```bash
 # Dry-run first
 python backend/src/dsa110_contimg/database/migrate_calibrators.py \
-    --products-db state/products.sqlite3 \
+    --products-db state/db/products.sqlite3 \
     --calibrators-db state/db/calibrators.sqlite3 \
     --dry-run
 
 # Actual migration
 python backend/src/dsa110_contimg/database/migrate_calibrators.py \
-    --products-db state/products.sqlite3 \
+    --products-db state/db/products.sqlite3 \
     --calibrators-db state/db/calibrators.sqlite3
 ```
 
@@ -101,7 +101,7 @@ If issues are detected:
 ```bash
 # Restore from backup
 BACKUP_DIR="state/backups/YYYYMMDD_HHMMSS"  # Use actual backup directory
-cp "$BACKUP_DIR/products.sqlite3.backup" state/products.sqlite3
+cp "$BACKUP_DIR/products.sqlite3.backup" state/db/products.sqlite3
 cp "$BACKUP_DIR/calibrators.sqlite3.backup" state/db/calibrators.sqlite3
 
 # Revert code changes (if needed)

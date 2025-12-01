@@ -179,7 +179,7 @@ class TestDatabaseError:
         err = DatabaseError(
             "Query failed",
             db_name="products",
-            db_path="/data/state/products.sqlite3",
+            db_path="/data/state/db/products.sqlite3",
             operation="insert",
             table_name="images",
         )
@@ -206,7 +206,7 @@ class TestDatabaseError:
         """Test DatabaseConnectionError specifics."""
         err = DatabaseConnectionError(
             db_name="ingest",
-            db_path="/data/state/ingest.sqlite3",
+            db_path="/data/state/db/ingest.sqlite3",
             reason="Permission denied",
         )
         

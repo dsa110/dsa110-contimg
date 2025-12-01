@@ -54,7 +54,7 @@ python scripts/fix_schemas.py --fix
 ls -la /data/dsa110-contimg/state/*.lock
 
 # Check for processes holding the database
-lsof /data/dsa110-contimg/state/products.sqlite3
+lsof /data/dsa110-contimg/state/db/products.sqlite3
 ```
 
 **Fix:**
@@ -67,7 +67,7 @@ python scripts/fix_schemas.py --clear-locks
 rm /data/dsa110-contimg/state/products.lock
 
 # Force WAL checkpoint
-sqlite3 /data/dsa110-contimg/state/products.sqlite3 "PRAGMA wal_checkpoint(TRUNCATE);"
+sqlite3 /data/dsa110-contimg/state/db/products.sqlite3 "PRAGMA wal_checkpoint(TRUNCATE);"
 ```
 
 ### Large WAL Files
@@ -88,7 +88,7 @@ ls -lh /data/dsa110-contimg/state/*.sqlite3-wal
 
 ```bash
 # Checkpoint the WAL
-sqlite3 /data/dsa110-contimg/state/products.sqlite3 "PRAGMA wal_checkpoint(TRUNCATE);"
+sqlite3 /data/dsa110-contimg/state/db/products.sqlite3 "PRAGMA wal_checkpoint(TRUNCATE);"
 
 # Or run fix_schemas which includes this
 python scripts/fix_schemas.py --fix
@@ -468,10 +468,10 @@ echo "=== Recovery Complete ==="
 
 ```bash
 # Backup
-sqlite3 /data/dsa110-contimg/state/products.sqlite3 ".backup /backup/products_$(date +%Y%m%d).sqlite3"
+sqlite3 /data/dsa110-contimg/state/db/products.sqlite3 ".backup /backup/products_$(date +%Y%m%d).sqlite3"
 
 # Restore
-sqlite3 /data/dsa110-contimg/state/products.sqlite3 ".restore /backup/products_20251129.sqlite3"
+sqlite3 /data/dsa110-contimg/state/db/products.sqlite3 ".restore /backup/products_20251129.sqlite3"
 ```
 
 ## Monitoring

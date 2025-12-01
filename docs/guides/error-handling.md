@@ -268,7 +268,7 @@ cat /data/dsa110-contimg/state/logs/pipeline.log | jq 'select(.group_id == "2025
 ### Check Queue Failures
 
 ```bash
-sqlite3 /data/dsa110-contimg/state/ingest.sqlite3 \
+sqlite3 /data/dsa110-contimg/state/db/ingest.sqlite3 \
   "SELECT group_id, error_type, error_message, retry_count
    FROM ingest_queue
    WHERE state = 'failed'

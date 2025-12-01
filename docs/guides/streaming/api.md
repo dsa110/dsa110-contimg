@@ -108,8 +108,8 @@ Get the current streaming service configuration.
 {
   "input_dir": "/data/incoming",
   "output_dir": "/stage/dsa110-contimg/ms",
-  "queue_db": "state/ingest.sqlite3",
-  "registry_db": "state/cal_registry.sqlite3",
+  "queue_db": "state/db/ingest.sqlite3",
+  "registry_db": "state/db/cal_registry.sqlite3",
   "scratch_dir": "/stage/dsa110-contimg",
   "expected_subbands": 16,
   "chunk_duration": 5.0,

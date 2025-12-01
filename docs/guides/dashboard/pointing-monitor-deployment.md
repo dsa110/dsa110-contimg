@@ -92,7 +92,7 @@ sudo journalctl -u contimg-pointing-monitor.service -f
 cat /data/dsa110-contimg/state/pointing-monitor-status.json | jq
 
 # Check database entries
-sqlite3 /data/dsa110-contimg/state/products.sqlite3 \
+sqlite3 /data/dsa110-contimg/state/db/products.sqlite3 \
   "SELECT COUNT(*) FROM pointing_history;"
 ```
 
@@ -145,7 +145,7 @@ cat /data/dsa110-contimg/state/pointing-monitor-status.json | jq .healthy
   "healthy": true,
   "issues": [],
   "watch_dir": "/data/incoming",
-  "products_db": "/data/dsa110-contimg/state/products.sqlite3",
+  "products_db": "/data/dsa110-contimg/state/db/products.sqlite3",
   "metrics": {
     "files_processed": 1234,
     "files_succeeded": 1230,
@@ -193,16 +193,16 @@ tail -f /data/dsa110-contimg/state/logs/pointing-monitor.err
 
 ```bash
 # Count total pointing entries
-sqlite3 /data/dsa110-contimg/state/products.sqlite3 \
+sqlite3 /data/dsa110-contimg/state/db/products.sqlite3 \
   "SELECT COUNT(*) FROM pointing_history;"
 
 # Recent pointing entries
-sqlite3 /data/dsa110-contimg/state/products.sqlite3 \
+sqlite3 /data/dsa110-contimg/state/db/products.sqlite3 \
   "SELECT timestamp, ra_deg, dec_deg FROM pointing_history \
    ORDER BY timestamp DESC LIMIT 10;"
 
 # Pointing coverage by declination
-sqlite3 /data/dsa110-contimg/state/products.sqlite3 \
+sqlite3 /data/dsa110-contimg/state/db/products.sqlite3 \
   "SELECT dec_deg, COUNT(*) as count FROM pointing_history \
    GROUP BY ROUND(dec_deg, 1) ORDER BY dec_deg;"
 ```
@@ -226,7 +226,7 @@ ls -la /opt/miniforge/envs/casa6/bin/python
 # Test manual execution
 /opt/miniforge/envs/casa6/bin/python -m dsa110_contimg.pointing.monitor \
   /data/incoming \
-  /data/dsa110-contimg/state/products.sqlite3 \
+  /data/dsa110-contimg/state/db/products.sqlite3 \
   --status-file /tmp/test-status.json
 ```
 
@@ -248,11 +248,11 @@ ls -la /opt/miniforge/envs/casa6/bin/python
 
 **3. Database errors**
 
-- Check database exists: `ls -la /data/dsa110-contimg/state/products.sqlite3`
+- Check database exists: `ls -la /data/dsa110-contimg/state/db/products.sqlite3`
 - Check database permissions:
-  `ls -la /data/dsa110-contimg/state/products.sqlite3`
+  `ls -la /data/dsa110-contimg/state/db/products.sqlite3`
 - Test database access:
-  `sqlite3 /data/dsa110-contimg/state/products.sqlite3 "SELECT 1;"`
+  `sqlite3 /data/dsa110-contimg/state/db/products.sqlite3 "SELECT 1;"`
 
 **4. High error rate**
 
@@ -305,18 +305,18 @@ For testing or troubleshooting:
 # Basic execution
 /opt/miniforge/envs/casa6/bin/python -m dsa110_contimg.pointing.monitor \
   /data/incoming \
-  /data/dsa110-contimg/state/products.sqlite3
+  /data/dsa110-contimg/state/db/products.sqlite3
 
 # With status file
 /opt/miniforge/envs/casa6/bin/python -m dsa110_contimg.pointing.monitor \
   /data/incoming \
-  /data/dsa110-contimg/state/products.sqlite3 \
+  /data/dsa110-contimg/state/db/products.sqlite3 \
   --status-file /tmp/pointing-monitor-status.json
 
 # Debug mode
 /opt/miniforge/envs/casa6/bin/python -m dsa110_contimg.pointing.monitor \
   /data/incoming \
-  /data/dsa110-contimg/state/products.sqlite3 \
+  /data/dsa110-contimg/state/db/products.sqlite3 \
   --log-level DEBUG
 ```
 
@@ -327,7 +327,7 @@ To process historical files:
 ```bash
 /opt/miniforge/envs/casa6/bin/python -m dsa110_contimg.pointing.backfill_pointing \
   /data/incoming \
-  /data/dsa110-contimg/state/products.sqlite3 \
+  /data/dsa110-contimg/state/db/products.sqlite3 \
   --start-date 2025-10-01 \
   --end-date 2025-10-23
 ```
@@ -423,13 +423,13 @@ fi
 
 ```bash
 # Check database size
-du -h /data/dsa110-contimg/state/products.sqlite3
+du -h /data/dsa110-contimg/state/db/products.sqlite3
 
 # Vacuum database (reclaim space)
-sqlite3 /data/dsa110-contimg/state/products.sqlite3 "VACUUM;"
+sqlite3 /data/dsa110-contimg/state/db/products.sqlite3 "VACUUM;"
 
 # Analyze database (update statistics)
-sqlite3 /data/dsa110-contimg/state/products.sqlite3 "ANALYZE pointing_history;"
+sqlite3 /data/dsa110-contimg/state/db/products.sqlite3 "ANALYZE pointing_history;"
 ```
 
 ### Log Rotation

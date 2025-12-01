@@ -7,7 +7,7 @@ from pathlib import Path
 from dsa110_contimg.photometry.source import Source
 
 # Example 1: Create Source from database
-products_db = Path("state/products.sqlite3")
+products_db = Path("state/db/products.sqlite3")
 source_id = "NVSS J123456+420312"
 
 source = Source(

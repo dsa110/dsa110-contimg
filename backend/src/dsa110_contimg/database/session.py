@@ -35,11 +35,11 @@ Usage:
 
 Configuration:
     Database paths are read from environment variables with fallbacks:
-    - PIPELINE_PRODUCTS_DB -> /data/dsa110-contimg/state/products.sqlite3
-    - PIPELINE_CAL_REGISTRY_DB -> /data/dsa110-contimg/state/cal_registry.sqlite3
-    - PIPELINE_HDF5_DB -> /data/dsa110-contimg/state/hdf5.sqlite3
-    - PIPELINE_INGEST_DB -> /data/dsa110-contimg/state/ingest.sqlite3
-    - PIPELINE_DATA_REGISTRY_DB -> /data/dsa110-contimg/state/data_registry.sqlite3
+    - PIPELINE_PRODUCTS_DB -> /data/dsa110-contimg/state/db/products.sqlite3
+    - PIPELINE_CAL_REGISTRY_DB -> /data/dsa110-contimg/state/db/cal_registry.sqlite3
+    - PIPELINE_HDF5_DB -> /data/dsa110-contimg/state/db/hdf5.sqlite3
+    - PIPELINE_INGEST_DB -> /data/dsa110-contimg/state/db/ingest.sqlite3
+    - PIPELINE_DATA_REGISTRY_DB -> /data/dsa110-contimg/state/db/data_registry.sqlite3
 """
 
 from __future__ import annotations

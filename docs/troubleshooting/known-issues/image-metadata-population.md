@@ -263,7 +263,7 @@ from dsa110_contimg.database.products import ensure_products_db, extract_image_m
 from dsa110_contimg.api.image_utils import get_fits_path
 
 def backfill_metadata():
-    db_path = Path("/data/dsa110-contimg/state/products.sqlite3")
+    db_path = Path("/data/dsa110-contimg/state/db/products.sqlite3")
     with ensure_products_db(db_path) as conn:
         # Get all images without metadata
         rows = conn.execute("""

@@ -36,9 +36,9 @@ monitoring 10³-10⁴ sources per day.
 
 **Data Sources**
 
-- `/state/ingest.sqlite3` - Ingest queue, subband files, performance metrics
-- `/state/cal_registry.sqlite3` - Calibration tables and validity windows
-- `/state/products.sqlite3` - MS index, images, photometry, pointing history
+- `/state/db/ingest.sqlite3` - Ingest queue, subband files, performance metrics
+- `/state/db/cal_registry.sqlite3` - Calibration tables and validity windows
+- `/state/db/products.sqlite3` - MS index, images, photometry, pointing history
 - `/state/catalogs/master_sources.sqlite3` - NVSS/VLASS/FIRST crossmatch catalog
   (1.6M+ sources)
 - `/state/qa/` - Quality assurance plots (per-group subdirectories)

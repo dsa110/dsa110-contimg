@@ -258,7 +258,7 @@ RETENTION_IMAGES_DAYS=180
 RETENTION_FAILED_DAYS=7
 
 DRY_RUN=${DRY_RUN:-false}
-PRODUCTS_DB=/data/dsa110-contimg/state/products.sqlite3
+PRODUCTS_DB=/data/dsa110-contimg/state/db/products.sqlite3
 
 cleanup_old_files() {
   local file_type=$1

@@ -137,8 +137,8 @@ The streaming service uses these environment variables (with `CONTIMG_` prefix):
 | --------------------------- | -------------------------- | ---------------------------- | ---------------------------------- |
 | `CONTIMG_INPUT_DIR`         | Input directory            | `/data/incoming`             | `/data/incoming`                   |
 | `CONTIMG_OUTPUT_DIR`        | Output directory           | `/stage/dsa110-contimg/ms`   | `/data/ms`                         |
-| `CONTIMG_QUEUE_DB`          | Queue database             | `state/ingest.sqlite3`       | `/data/state/db/ingest.sqlite3`       |
-| `CONTIMG_REGISTRY_DB`       | Registry database          | `state/cal_registry.sqlite3` | `/data/state/db/cal_registry.sqlite3` |
+| `CONTIMG_QUEUE_DB`          | Queue database             | `state/db/ingest.sqlite3`       | `/data/state/db/ingest.sqlite3`       |
+| `CONTIMG_REGISTRY_DB`       | Registry database          | `state/db/cal_registry.sqlite3` | `/data/state/db/cal_registry.sqlite3` |
 | `CONTIMG_SCRATCH_DIR`       | Scratch directory          | `/stage/dsa110-contimg`      | `/stage/dsa110-contimg`            |
 | `CONTIMG_EXPECTED_SUBBANDS` | Expected subbands          | `16`                         | `16`                               |
 | `CONTIMG_CHUNK_MINUTES`     | Chunk duration (minutes)   | `5.0`                        | `5.0`                              |

@@ -19,7 +19,7 @@
 cd /data/dsa110-contimg
 conda activate casa6
 export PYTHONPATH=/data/dsa110-contimg/src
-export PIPELINE_PRODUCTS_DB=state/products.sqlite3
+export PIPELINE_PRODUCTS_DB=state/db/products.sqlite3
 
 # Start FastAPI server
 uvicorn dsa110_contimg.api.server:app --host 0.0.0.0 --port 8000 --reload
@@ -191,7 +191,7 @@ ls /stage/dsa110-contimg/ms/range_*/2025-*/*cal
 ### Checking Job Status from CLI
 
 ```bash
-sqlite3 state/products.sqlite3 \
+sqlite3 state/db/products.sqlite3 \
   "SELECT id, type, status, datetime(created_at, 'unixepoch')
    FROM jobs
    ORDER BY id DESC
@@ -201,14 +201,14 @@ sqlite3 state/products.sqlite3 \
 ### Viewing Full Logs
 
 ```bash
-sqlite3 state/products.sqlite3 \
+sqlite3 state/db/products.sqlite3 \
   "SELECT logs FROM jobs WHERE id=<JOB_ID>;" | less
 ```
 
 ### Clearing Failed Jobs
 
 ```bash
-sqlite3 state/products.sqlite3 \
+sqlite3 state/db/products.sqlite3 \
   "DELETE FROM jobs WHERE status='failed';"
 ```
 
@@ -221,7 +221,7 @@ sqlite3 state/products.sqlite3 \
 1. Check that backend is connected to correct database
 2. Verify `ms_index` table has entries:
    ```bash
-   sqlite3 state/products.sqlite3 "SELECT COUNT(*) FROM ms_index;"
+   sqlite3 state/db/products.sqlite3 "SELECT COUNT(*) FROM ms_index;"
    ```
 3. If empty, run conversion pipeline to populate MS entries
 

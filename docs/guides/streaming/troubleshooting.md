@@ -142,7 +142,7 @@ curl -X POST http://localhost:8010/api/streaming/config \
 **Database Locked:**
 
 ```bash
-sqlite3 state/ingest.sqlite3 "SELECT * FROM sqlite_master WHERE type='table';"
+sqlite3 state/db/ingest.sqlite3 "SELECT * FROM sqlite_master WHERE type='table';"
 docker-compose restart stream
 ```
 
@@ -163,7 +163,7 @@ ls -lh /data/incoming/*.hdf5 | head -10
 
 # Check queue status
 curl http://localhost:8010/api/streaming/metrics
-sqlite3 state/ingest.sqlite3 "SELECT state, COUNT(*) FROM ingest_queue GROUP BY state;"
+sqlite3 state/db/ingest.sqlite3 "SELECT state, COUNT(*) FROM ingest_queue GROUP BY state;"
 
 # Check worker logs
 docker-compose logs stream | grep -i "worker\|processing" | tail -20
@@ -194,10 +194,10 @@ curl -X POST http://localhost:8010/api/streaming/config \
 
 ```bash
 # Check stuck items
-sqlite3 state/ingest.sqlite3 "SELECT group_id, state, retry_count FROM ingest_queue WHERE state='in_progress';"
+sqlite3 state/db/ingest.sqlite3 "SELECT group_id, state, retry_count FROM ingest_queue WHERE state='in_progress';"
 
 # Reset stuck items (use with caution)
-sqlite3 state/ingest.sqlite3 "UPDATE ingest_queue SET state='pending' WHERE state='in_progress' AND retry_count < 3;"
+sqlite3 state/db/ingest.sqlite3 "UPDATE ingest_queue SET state='pending' WHERE state='in_progress' AND retry_count < 3;"
 
 # Restart service
 curl -X POST http://localhost:8010/api/streaming/restart
@@ -330,7 +330,7 @@ docker-compose logs stream | grep -i "worker"
 curl -X POST http://localhost:8010/api/streaming/stop
 
 # Clear queue (WARNING: loses pending work)
-sqlite3 state/ingest.sqlite3 "DELETE FROM ingest_queue WHERE state != 'completed';"
+sqlite3 state/db/ingest.sqlite3 "DELETE FROM ingest_queue WHERE state != 'completed';"
 
 # Reset configuration
 curl -X POST http://localhost:8010/api/streaming/config \
@@ -351,13 +351,13 @@ curl -X POST http://localhost:8010/api/streaming/start
 
 ```bash
 # Backup current database
-cp state/ingest.sqlite3 state/ingest.sqlite3.bak
+cp state/db/ingest.sqlite3 state/db/ingest.sqlite3.bak
 
 # Check integrity
-sqlite3 state/ingest.sqlite3 "PRAGMA integrity_check;"
+sqlite3 state/db/ingest.sqlite3 "PRAGMA integrity_check;"
 
 # If corrupt, recreate (loses history)
-rm state/ingest.sqlite3
+rm state/db/ingest.sqlite3
 curl -X POST http://localhost:8010/api/streaming/start
 ```
 

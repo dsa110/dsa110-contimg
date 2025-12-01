@@ -108,7 +108,7 @@ Mosaic CLI supports batch planning and building:
 ```bash
 # Plan a mosaic for a time range
 python -m dsa110_contimg.mosaic.cli plan \
-    --products-db state/products.sqlite3 \
+    --products-db state/db/products.sqlite3 \
     --name night_20251030 \
     --since 60300.0 \
     --until 60301.0 \
@@ -116,7 +116,7 @@ python -m dsa110_contimg.mosaic.cli plan \
 
 # Build the mosaic
 python -m dsa110_contimg.mosaic.cli build \
-    --products-db state/products.sqlite3 \
+    --products-db state/db/products.sqlite3 \
     --name night_20251030 \
     --output /stage/dsa110-contimg/mosaics/night_20251030.img
 ```

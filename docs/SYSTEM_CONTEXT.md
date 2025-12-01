@@ -28,7 +28,7 @@ astronomy data from the DSA-110 telescope.
 The system relies on direct SQLite interactions (no ORM) for performance and
 simplicity. It uses multiple separated databases to manage state.
 
-### **Products Database** (`state/products.sqlite3`)
+### **Products Database** (`state/db/products.sqlite3`)
 
 - **Managed by:** `backend/src/dsa110_contimg/database/products.py`
 - **Key Tables:**

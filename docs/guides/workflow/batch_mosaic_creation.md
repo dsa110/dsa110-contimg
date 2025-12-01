@@ -430,7 +430,7 @@ hitting `database is locked` warnings.
 
 ```bash
 # Query database for mosaic status
-/opt/miniforge/envs/casa6/bin/sqlite3 /data/dsa110-contimg/state/products.sqlite3 <<EOF
+/opt/miniforge/envs/casa6/bin/sqlite3 /data/dsa110-contimg/state/db/products.sqlite3 <<EOF
 SELECT
     group_id,
     stage,
@@ -447,7 +447,7 @@ EOF
 
 ```bash
 # List published mosaics
-/opt/miniforge/envs/casa6/bin/sqlite3 /data/dsa110-contimg/state/data_registry.sqlite3 <<EOF
+/opt/miniforge/envs/casa6/bin/sqlite3 /data/dsa110-contimg/state/db/data_registry.sqlite3 <<EOF
 SELECT
     data_id,
     status,

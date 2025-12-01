@@ -161,7 +161,7 @@ Should return JSON. If not, check API service.
 **Check Database:**
 
 ```bash
-sqlite3 /data/dsa110-contimg/state/products.sqlite3 \
+sqlite3 /data/dsa110-contimg/state/db/products.sqlite3 \
   "SELECT COUNT(*) FROM pointing_history;"
 ```
 

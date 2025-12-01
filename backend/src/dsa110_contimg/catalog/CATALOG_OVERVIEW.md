@@ -867,7 +867,7 @@ sources = query_sources(
 
 ### Cross-Match Database Table
 
-**Database**: `state/products.sqlite3`
+**Database**: `state/db/products.sqlite3`
 
 **Table**: `cross_matches`
 
@@ -911,7 +911,7 @@ CREATE INDEX idx_cross_matches_master ON cross_matches(master_catalog_id);
 import sqlite3
 import pandas as pd
 
-conn = sqlite3.connect("state/products.sqlite3")
+conn = sqlite3.connect("state/db/products.sqlite3")
 matches = pd.read_sql_query(
     "SELECT * FROM cross_matches WHERE catalog_type='nvss' AND match_quality='unique'",
     conn

@@ -216,7 +216,7 @@ Pointing Monitor :arrow_right: Database :arrow_right: API :arrow_right: Frontend
 2. **Check Database**: Verify pointing data exists
 
    ```bash
-   sqlite3 /data/dsa110-contimg/state/products.sqlite3 \
+   sqlite3 /data/dsa110-contimg/state/db/products.sqlite3 \
      "SELECT COUNT(*) FROM pointing_history;"
    ```
 
