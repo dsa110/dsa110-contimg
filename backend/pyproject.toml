@@ -7,7 +7,7 @@ name = "dsa110_contimg"
 version = "0.1.0"
 description = "DSA-110 Continuum Imaging Pipeline"
 authors = [
-    {name = "DSA-110 Team", email = "dsa110@caltech.edu"}
+    {name = "Jakob T. Faber", email = "jfaber@caltech.edu"}
 ]
 license = {text = "MIT"}
 requires-python = ">=3.11"
