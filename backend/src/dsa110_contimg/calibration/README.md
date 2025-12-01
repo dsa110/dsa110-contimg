@@ -59,5 +59,5 @@ UVH5 → MS → Calibration → Imaging
 
 Calibration tables are tracked in:
 
-- `/data/dsa110-contimg/state/cal_registry.sqlite3`
+- `/data/dsa110-contimg/state/db/cal_registry.sqlite3`
 - `/data/dsa110-contimg/state/calibrator_registry.sqlite3`

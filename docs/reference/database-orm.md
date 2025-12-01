@@ -26,11 +26,11 @@ All databases use SQLite with:
 
 | Database        | Path                                               | Description            |
 | --------------- | -------------------------------------------------- | ---------------------- |
-| `products`      | `/data/dsa110-contimg/state/products.sqlite3`      | MS, images, photometry |
-| `cal_registry`  | `/data/dsa110-contimg/state/cal_registry.sqlite3`  | Calibration tables     |
-| `hdf5`          | `/data/dsa110-contimg/state/hdf5.sqlite3`          | HDF5 file index        |
-| `ingest`        | `/data/dsa110-contimg/state/ingest.sqlite3`        | Streaming queue        |
-| `data_registry` | `/data/dsa110-contimg/state/data_registry.sqlite3` | Data products          |
+| `products`      | `/data/dsa110-contimg/state/db/products.sqlite3`      | MS, images, photometry |
+| `cal_registry`  | `/data/dsa110-contimg/state/db/cal_registry.sqlite3`  | Calibration tables     |
+| `hdf5`          | `/data/dsa110-contimg/state/db/hdf5.sqlite3`          | HDF5 file index        |
+| `ingest`        | `/data/dsa110-contimg/state/db/ingest.sqlite3`        | Streaming queue        |
+| `data_registry` | `/data/dsa110-contimg/state/db/data_registry.sqlite3` | Data products          |
 
 Paths can be overridden via environment variables (e.g.,
 `PIPELINE_PRODUCTS_DB`).

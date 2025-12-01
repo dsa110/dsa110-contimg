@@ -535,7 +535,7 @@ def migrate_products_db(db_path: Path):
     print(f":check: Migrated {db_path}")
 
 if __name__ == "__main__":
-    migrate_products_db(Path("/data/dsa110-contimg/state/products.sqlite3"))
+    migrate_products_db(Path("/data/dsa110-contimg/state/db/products.sqlite3"))
 ```
 
 ---

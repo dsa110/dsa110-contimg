@@ -118,9 +118,9 @@ variables:
 | Variable                     | Description                        | Default                                     | Example                            |
 | ---------------------------- | ---------------------------------- | ------------------------------------------- | ---------------------------------- |
 | `PIPELINE_STATE_DIR`         | Base state directory               | `"state"`                                   | `/data/dsa110-contimg/state`       |
-| `CAL_REGISTRY_DB`            | Calibration registry database path | `{PIPELINE_STATE_DIR}/cal_registry.sqlite3` | `/data/state/cal_registry.sqlite3` |
-| `PIPELINE_QUEUE_DB`          | Queue database path                | `{PIPELINE_STATE_DIR}/ingest.sqlite3`       | `/data/state/ingest.sqlite3`       |
-| `PIPELINE_PRODUCTS_DB`       | Products database path             | `{PIPELINE_STATE_DIR}/products.sqlite3`     | `/data/state/products.sqlite3`     |
+| `CAL_REGISTRY_DB`            | Calibration registry database path | `{PIPELINE_STATE_DIR}/cal_registry.sqlite3` | `/data/state/db/cal_registry.sqlite3` |
+| `PIPELINE_QUEUE_DB`          | Queue database path                | `{PIPELINE_STATE_DIR}/ingest.sqlite3`       | `/data/state/db/ingest.sqlite3`       |
+| `PIPELINE_PRODUCTS_DB`       | Products database path             | `{PIPELINE_STATE_DIR}/products.sqlite3`     | `/data/state/db/products.sqlite3`     |
 | `PIPELINE_EXPECTED_SUBBANDS` | Expected subbands (for API)        | `16`                                        | `16`                               |
 
 **Validation:**
@@ -137,8 +137,8 @@ The streaming service uses these environment variables (with `CONTIMG_` prefix):
 | --------------------------- | -------------------------- | ---------------------------- | ---------------------------------- |
 | `CONTIMG_INPUT_DIR`         | Input directory            | `/data/incoming`             | `/data/incoming`                   |
 | `CONTIMG_OUTPUT_DIR`        | Output directory           | `/stage/dsa110-contimg/ms`   | `/data/ms`                         |
-| `CONTIMG_QUEUE_DB`          | Queue database             | `state/ingest.sqlite3`       | `/data/state/ingest.sqlite3`       |
-| `CONTIMG_REGISTRY_DB`       | Registry database          | `state/cal_registry.sqlite3` | `/data/state/cal_registry.sqlite3` |
+| `CONTIMG_QUEUE_DB`          | Queue database             | `state/ingest.sqlite3`       | `/data/state/db/ingest.sqlite3`       |
+| `CONTIMG_REGISTRY_DB`       | Registry database          | `state/cal_registry.sqlite3` | `/data/state/db/cal_registry.sqlite3` |
 | `CONTIMG_SCRATCH_DIR`       | Scratch directory          | `/stage/dsa110-contimg`      | `/stage/dsa110-contimg`            |
 | `CONTIMG_EXPECTED_SUBBANDS` | Expected subbands          | `16`                         | `16`                               |
 | `CONTIMG_CHUNK_MINUTES`     | Chunk duration (minutes)   | `5.0`                        | `5.0`                              |

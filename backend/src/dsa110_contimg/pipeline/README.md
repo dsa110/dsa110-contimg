@@ -62,6 +62,6 @@ class MyStage(PipelineStage):
 
 Pipeline state is tracked in the products database:
 
-- `/data/dsa110-contimg/state/products.sqlite3`
+- `/data/dsa110-contimg/state/db/products.sqlite3`
 
 Job status visible via API: `GET /api/v1/jobs/`

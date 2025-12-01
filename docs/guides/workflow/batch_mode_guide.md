@@ -283,8 +283,8 @@ published mosaic:
 from dsa110_contimg.mosaic.orchestrator import MosaicOrchestrator
 
 orchestrator = MosaicOrchestrator(
-    products_db="/data/dsa110-contimg/state/products.sqlite3",
-    cal_registry_db="/data/dsa110-contimg/state/cal_registry.sqlite3"
+    products_db="/data/dsa110-contimg/state/db/products.sqlite3",
+    cal_registry_db="/data/dsa110-contimg/state/db/cal_registry.sqlite3"
 )
 
 # Create mosaic centered on calibrator transit

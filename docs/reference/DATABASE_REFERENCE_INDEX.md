@@ -55,7 +55,7 @@ example queries.
 ```python
 import sqlite3
 
-conn = sqlite3.connect('/data/dsa110-contimg/state/products.sqlite3')
+conn = sqlite3.connect('/data/dsa110-contimg/state/db/products.sqlite3')
 conn.row_factory = sqlite3.Row
 
 # Recent MS files
@@ -73,7 +73,7 @@ for row in rows:
 ### Find Complete Subband Groups
 
 ```python
-conn = sqlite3.connect('/data/dsa110-contimg/state/hdf5.sqlite3')
+conn = sqlite3.connect('/data/dsa110-contimg/state/db/hdf5.sqlite3')
 
 # Find groups with all 16 subbands
 complete = conn.execute('''
@@ -89,7 +89,7 @@ complete = conn.execute('''
 ### Check Streaming Queue
 
 ```python
-conn = sqlite3.connect('/data/dsa110-contimg/state/ingest.sqlite3')
+conn = sqlite3.connect('/data/dsa110-contimg/state/db/ingest.sqlite3')
 
 # Current queue status
 status = conn.execute('''
@@ -103,7 +103,7 @@ status = conn.execute('''
 
 ```python
 import time
-conn = sqlite3.connect('/data/dsa110-contimg/state/cal_registry.sqlite3')
+conn = sqlite3.connect('/data/dsa110-contimg/state/db/cal_registry.sqlite3')
 
 # Active bandpass tables
 now = time.time()
@@ -125,7 +125,7 @@ import sqlite3
 
 # Always use WAL mode for concurrent access
 conn = sqlite3.connect(
-    '/data/dsa110-contimg/state/products.sqlite3',
+    '/data/dsa110-contimg/state/db/products.sqlite3',
     timeout=30.0
 )
 conn.execute('PRAGMA journal_mode=WAL')
