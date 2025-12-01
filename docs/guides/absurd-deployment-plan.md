@@ -1,7 +1,7 @@
 # ABSURD Workflow Manager Deployment Plan
 
 **Date:** 2025-12-01  
-**Status:** Planning  
+**Status:** Deployed (services pending activation)  
 **Target:** Deploy durable workflow manager to `frontend/` and `backend/`
 **Last Verified:** 2025-12-01 (Pre-flight check passed)
 
