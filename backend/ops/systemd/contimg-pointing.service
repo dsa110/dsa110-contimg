@@ -1,0 +1,38 @@
+[Unit]
+Description=DSA-110 Pointing Monitor - Track calibrator transits
+Documentation=file:///data/dsa110-contimg/backend/src/dsa110_contimg/pointing/README.md
+After=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/data/dsa110-contimg/backend
+
+# Environment configuration
+EnvironmentFile=-/data/dsa110-contimg/backend/.env
+
+# Conda environment activation and monitor execution
+ExecStart=/bin/bash -c 'source /home/ubuntu/miniconda3/etc/profile.d/conda.sh && conda activate casa6 && exec python -m dsa110_contimg.pointing.monitor --status-file /data/dsa110-contimg/state/pointing_status.json --log-file /data/dsa110-contimg/state/logs/pointing-monitor.log --update-interval 60'
+
+# Graceful shutdown (monitor handles SIGTERM)
+ExecStop=/bin/kill -SIGTERM $MAINPID
+TimeoutStopSec=30
+
+# Restart policy (restart on failure, but not too aggressively)
+Restart=on-failure
+RestartSec=30
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+# Logging (also goes to --log-file)
+StandardOutput=append:/data/dsa110-contimg/state/logs/pointing-monitor.log
+StandardError=append:/data/dsa110-contimg/state/logs/pointing-monitor.log
+
+# Resource limits (lightweight service)
+LimitNOFILE=1024
+MemoryMax=512M
+CPUQuota=50%
+
+[Install]
+WantedBy=multi-user.target

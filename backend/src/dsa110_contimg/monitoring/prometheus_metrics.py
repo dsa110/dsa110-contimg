@@ -259,4 +259,4 @@ async def collect_all_metrics(
         help_text="Unix timestamp of last metrics collection",
     )
     
-    return exporter
+    return exporter.format_prometheus()

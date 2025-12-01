@@ -256,3 +256,241 @@ def record_calibration_quality(snr: float):
     """Record calibration quality metrics."""
     if snr and snr > 0:
         calibration_snr_histogram.observe(snr)
+
+
+# =============================================================================
+# Calibrator Monitoring Metrics
+# =============================================================================
+
+calibrator_flux_ratio_gauge = Gauge(
+    'dsa110_calibrator_flux_ratio',
+    'Ratio of observed to catalog flux for calibrators',
+    ['calibrator'],
+)
+
+calibrator_phase_rms_gauge = Gauge(
+    'dsa110_calibrator_phase_rms_deg',
+    'Phase RMS from calibration solutions in degrees',
+    ['calibrator'],
+)
+
+calibrator_measurement_count_gauge = Gauge(
+    'dsa110_calibrator_measurement_count',
+    'Number of monitoring measurements per calibrator',
+    ['calibrator'],
+)
+
+calibrator_is_stable_gauge = Gauge(
+    'dsa110_calibrator_is_stable',
+    'Calibrator stability status (1=stable, 0=unstable)',
+    ['calibrator'],
+)
+
+monitoring_alerts_counter = Counter(
+    'dsa110_monitoring_alerts_total',
+    'Total monitoring alerts generated',
+    ['severity'],  # severity: info, warning, critical
+)
+
+# =============================================================================
+# Validity Window Metrics
+# =============================================================================
+
+validity_active_sets_gauge = Gauge(
+    'dsa110_validity_active_sets',
+    'Number of active calibration sets with valid windows',
+)
+
+validity_hours_until_expiry_gauge = Gauge(
+    'dsa110_validity_hours_until_expiry',
+    'Hours until the nearest validity window expires',
+)
+
+validity_expiring_soon_gauge = Gauge(
+    'dsa110_validity_expiring_soon_count',
+    'Number of validity windows expiring soon',
+)
+
+validity_expired_gauge = Gauge(
+    'dsa110_validity_expired_count',
+    'Number of expired validity windows',
+)
+
+
+def sync_calibrator_metrics_from_database(db_path: str = DEFAULT_DB_PATH) -> dict:
+    """
+    Sync calibrator monitoring metrics from database.
+    
+    Call this periodically to update calibrator gauges.
+    
+    Returns dict with sync results for logging.
+    """
+    results = {}
+    
+    try:
+        if not os.path.exists(db_path):
+            return {"error": "database not found"}
+        
+        conn = sqlite3.connect(db_path, timeout=10.0)
+        conn.row_factory = sqlite3.Row
+        
+        # Check if calibration_monitoring table exists
+        table_exists = conn.execute("""
+            SELECT name FROM sqlite_master 
+            WHERE type='table' AND name='calibration_monitoring'
+        """).fetchone()
+        
+        if not table_exists:
+            conn.close()
+            return {"error": "calibration_monitoring table not initialized"}
+        
+        # Get latest flux ratios per calibrator
+        cursor = conn.execute("""
+            SELECT calibrator_name, 
+                   AVG(flux_ratio) as mean_ratio,
+                   AVG(phase_rms_deg) as mean_phase_rms,
+                   COUNT(*) as n_measurements,
+                   MIN(flux_ratio) as min_ratio,
+                   MAX(flux_ratio) as max_ratio
+            FROM calibration_monitoring
+            WHERE mjd >= (SELECT MAX(mjd) - 7 FROM calibration_monitoring)
+            GROUP BY calibrator_name
+        """)
+        
+        for row in cursor.fetchall():
+            calibrator = row['calibrator_name']
+            mean_ratio = row['mean_ratio']
+            mean_phase_rms = row['mean_phase_rms']
+            n_measurements = row['n_measurements']
+            min_ratio = row['min_ratio']
+            max_ratio = row['max_ratio']
+            
+            if mean_ratio is not None:
+                calibrator_flux_ratio_gauge.labels(calibrator=calibrator).set(mean_ratio)
+            if mean_phase_rms is not None:
+                calibrator_phase_rms_gauge.labels(calibrator=calibrator).set(mean_phase_rms)
+            
+            calibrator_measurement_count_gauge.labels(calibrator=calibrator).set(n_measurements)
+            
+            # Stability check: ratio within 10% of 1.0 and small spread
+            is_stable = (
+                mean_ratio is not None
+                and 0.9 <= mean_ratio <= 1.1
+                and (max_ratio - min_ratio) < 0.2
+            )
+            calibrator_is_stable_gauge.labels(calibrator=calibrator).set(1 if is_stable else 0)
+            
+            results[calibrator] = {
+                'flux_ratio': mean_ratio,
+                'phase_rms': mean_phase_rms,
+                'n_measurements': n_measurements,
+                'is_stable': is_stable,
+            }
+        
+        conn.close()
+        results['status'] = 'success'
+        
+    except sqlite3.Error as e:
+        logger.error(f"Calibrator metrics sync failed: {e}")
+        results['status'] = 'error'
+        results['error'] = str(e)
+    
+    return results
+
+
+def sync_validity_window_metrics(registry_db_path: str = CAL_REGISTRY_DB_PATH) -> dict:
+    """
+    Sync validity window metrics from calibration registry.
+    
+    Returns dict with sync results for logging.
+    """
+    results = {}
+    
+    try:
+        if not os.path.exists(registry_db_path):
+            return {"error": "registry database not found"}
+        
+        from astropy.time import Time
+        
+        now_mjd = Time.now().mjd
+        warning_threshold_mjd = now_mjd + (2.0 / 24.0)  # 2 hours ahead
+        
+        conn = sqlite3.connect(registry_db_path, timeout=10.0)
+        conn.row_factory = sqlite3.Row
+        
+        # Count active sets
+        active_sets = conn.execute("""
+            SELECT COUNT(DISTINCT set_name) as count
+            FROM caltables
+            WHERE status = 'active'
+              AND (valid_start_mjd IS NULL OR valid_start_mjd <= ?)
+              AND (valid_end_mjd IS NULL OR valid_end_mjd >= ?)
+        """, (now_mjd, now_mjd)).fetchone()['count']
+        
+        validity_active_sets_gauge.set(active_sets)
+        results['active_sets'] = active_sets
+        
+        # Find nearest expiry
+        nearest_expiry = conn.execute("""
+            SELECT MIN(valid_end_mjd) as nearest
+            FROM caltables
+            WHERE status = 'active'
+              AND valid_end_mjd IS NOT NULL
+              AND valid_end_mjd >= ?
+        """, (now_mjd,)).fetchone()['nearest']
+        
+        if nearest_expiry:
+            hours_until = (nearest_expiry - now_mjd) * 24
+            validity_hours_until_expiry_gauge.set(hours_until)
+            results['hours_until_expiry'] = hours_until
+        else:
+            validity_hours_until_expiry_gauge.set(0)
+        
+        # Count expiring soon (within 2 hours)
+        expiring_soon = conn.execute("""
+            SELECT COUNT(DISTINCT set_name) as count
+            FROM caltables
+            WHERE status = 'active'
+              AND valid_end_mjd IS NOT NULL
+              AND valid_end_mjd <= ?
+              AND valid_end_mjd >= ?
+        """, (warning_threshold_mjd, now_mjd)).fetchone()['count']
+        
+        validity_expiring_soon_gauge.set(expiring_soon)
+        results['expiring_soon'] = expiring_soon
+        
+        # Count expired
+        expired = conn.execute("""
+            SELECT COUNT(DISTINCT set_name) as count
+            FROM caltables
+            WHERE status = 'active'
+              AND valid_end_mjd IS NOT NULL
+              AND valid_end_mjd < ?
+        """, (now_mjd,)).fetchone()['count']
+        
+        validity_expired_gauge.set(expired)
+        results['expired'] = expired
+        
+        conn.close()
+        results['status'] = 'success'
+        
+    except Exception as e:
+        logger.error(f"Validity window metrics sync failed: {e}")
+        results['status'] = 'error'
+        results['error'] = str(e)
+    
+    return results
+
+
+def sync_all_monitoring_metrics() -> dict:
+    """
+    Sync all monitoring-related metrics.
+    
+    Call this periodically to update all monitoring gauges.
+    """
+    results = {
+        'calibrators': sync_calibrator_metrics_from_database(),
+        'validity_windows': sync_validity_window_metrics(),
+        'database': sync_gauges_from_database(),
+    }
+    return results
