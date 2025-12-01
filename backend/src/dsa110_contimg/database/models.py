@@ -182,10 +182,10 @@ class Photometry(ProductsBase):
 
 class HDF5FileIndexProducts(ProductsBase):
     """
-    HDF5 file index in products database (duplicate for cross-referencing).
+    HDF5 file index in products domain.
     
-    Note: Primary HDF5 index is in hdf5.sqlite3. This is a local copy
-    in products.sqlite3 for convenience.
+    Tracks raw UVH5 subband files for quick lookup and grouping.
+    Used by the streaming converter to find complete observation groups.
     """
     __tablename__ = "hdf5_file_index"
     

@@ -285,19 +285,18 @@ UNIFIED_SCHEMA = """
 -- DSA-110 Continuum Imaging Pipeline: Unified Database Schema
 -- =============================================================================
 -- 
--- This schema consolidates 5+ separate databases into a single unified
--- database (pipeline.sqlite3) for simpler operations and queries.
+-- All pipeline data is stored in a single unified database (pipeline.sqlite3)
+-- for simpler operations, atomic transactions, and cross-domain queries.
 --
--- Migrated from:
---   - products.sqlite3 (ms_index, images, photometry, etc.)
---   - cal_registry.sqlite3 (caltables)
---   - ingest.sqlite3 (queue, performance metrics)
---   - calibrators.sqlite3 (bandpass_calibrators, vla_calibrators)
---   - hdf5.sqlite3 (file index)
+-- Table Domains:
+--   - Products: ms_index, images, photometry, transients
+--   - Calibration: calibration_tables, calibrator_transits
+--   - HDF5: hdf5_files, pointing_history
+--   - Queue: processing_queue, performance_metrics
 -- =============================================================================
 
 -- ---------------------------------------------------------------------------
--- Core Products Tables (from products.sqlite3)
+-- Products Domain
 -- ---------------------------------------------------------------------------
 
 -- Measurement Set index with processing stage tracking
@@ -381,7 +380,7 @@ CREATE INDEX IF NOT EXISTS idx_photometry_source ON photometry(source_id);
 CREATE INDEX IF NOT EXISTS idx_photometry_coords ON photometry(ra_deg, dec_deg);
 
 -- ---------------------------------------------------------------------------
--- Calibration Tables (from cal_registry.sqlite3)
+-- Calibration Domain
 -- ---------------------------------------------------------------------------
 
 -- Calibration table registry
@@ -472,7 +471,7 @@ CREATE INDEX IF NOT EXISTS idx_transits_mjd ON calibrator_transits(transit_mjd D
 CREATE INDEX IF NOT EXISTS idx_transits_has_data ON calibrator_transits(has_data);
 
 -- ---------------------------------------------------------------------------
--- HDF5 File Index (from hdf5.sqlite3)
+-- HDF5 Domain
 -- ---------------------------------------------------------------------------
 
 -- Raw HDF5 file tracking
@@ -513,7 +512,7 @@ CREATE TABLE IF NOT EXISTS pointing_history (
 CREATE INDEX IF NOT EXISTS idx_pointing_time ON pointing_history(timestamp_mjd);
 
 -- ---------------------------------------------------------------------------
--- Processing Queue (from ingest.sqlite3)
+-- Queue Domain
 -- ---------------------------------------------------------------------------
 
 -- Ingest/processing queue with state machine
