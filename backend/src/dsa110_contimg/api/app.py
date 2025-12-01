@@ -78,7 +78,7 @@ def is_ip_allowed(client_ip: str, allowed_networks: list, special_hosts: set = N
 
 from .config import get_config
 from .middleware import add_exception_handlers
-from .exceptions import ValidationError as DSA110ValidationError
+from .exceptions import ValidationError as DSA110ValidationError, ProcessingError
 from .routes import (
     images_router,
     ms_router,
@@ -273,7 +273,7 @@ def create_app() -> FastAPI:
         ]
         # Convert to our custom ValidationError
         error_msg = "; ".join(f"{e['field']}: {e['message']}" for e in errors)
-        custom_exc = DSA110ValidationError(
+        custom_exc = ProcessingError(
             message=error_msg,
             details={"validation_errors": errors}
         )

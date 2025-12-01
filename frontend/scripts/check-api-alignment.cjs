@@ -72,22 +72,22 @@ const HEALTH_ENDPOINTS = [
 
 // Extended endpoints (tested with --all)
 const EXTENDED_ENDPOINTS = [
-  // ABSURD task queue
+  // ABSURD task queue - registered at /absurd (not /api/v1/absurd)
   {
     name: "absurdHealth",
-    path: "/api/v1/absurd/health",
+    path: "/absurd/health",
     requiredKeys: ["status"],
     arrayFields: [],
   },
   {
     name: "absurdQueues",
-    path: "/api/v1/absurd/queues",
+    path: "/absurd/queues",
     requiredKeys: [], // Returns array
     isArray: true,
   },
   {
     name: "absurdWorkers",
-    path: "/api/v1/absurd/workers",
+    path: "/absurd/workers",
     requiredKeys: ["workers", "total"],
     arrayFields: ["workers"],
   },
@@ -107,32 +107,32 @@ const EXTENDED_ENDPOINTS = [
   // Core data endpoints
   {
     name: "images",
-    path: "/api/images",
+    path: "/api/v1/images",
     requiredKeys: [], // Returns array
     isArray: true,
   },
   {
     name: "sources",
-    path: "/api/sources",
+    path: "/api/v1/sources",
     requiredKeys: [], // Returns array
     isArray: true,
   },
   {
     name: "jobs",
-    path: "/api/jobs",
+    path: "/api/v1/jobs",
     requiredKeys: [], // Returns array
     isArray: true,
   },
   // Interactive imaging
   {
     name: "imagingSessions",
-    path: "/api/imaging/sessions",
+    path: "/api/v1/imaging/sessions",
     requiredKeys: ["sessions", "total"],
     arrayFields: ["sessions"],
   },
   {
     name: "imagingDefaults",
-    path: "/api/imaging/defaults",
+    path: "/api/v1/imaging/defaults",
     requiredKeys: ["imsize", "cell", "niter"],
     arrayFields: ["imsize"],
   },

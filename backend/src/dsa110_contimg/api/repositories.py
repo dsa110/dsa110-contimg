@@ -701,6 +701,7 @@ class AsyncSourceRepository(SourceRepositoryInterface):
                 """
                 SELECT source_id, ra_deg, dec_deg, COUNT(*) as num_images
                 FROM photometry
+                WHERE source_id IS NOT NULL
                 GROUP BY source_id
                 ORDER BY source_id
                 LIMIT ? OFFSET ?
@@ -730,6 +731,7 @@ class AsyncSourceRepository(SourceRepositoryInterface):
             query = """
                 SELECT mjd, flux_jy, flux_err_jy, peak_jyb, peak_err_jyb, snr, image_path
                 FROM photometry
+                WHERE source_id IS NOT NULL
                 WHERE source_id = ?
             """
             params: List[Any] = [source_id]
@@ -777,6 +779,7 @@ class AsyncSourceRepository(SourceRepositoryInterface):
                     f"""
                     SELECT source_id, ra_deg, dec_deg, COUNT(*) as num_images
                     FROM photometry
+                WHERE source_id IS NOT NULL
                     WHERE source_id IN ({placeholders})
                     GROUP BY source_id
                     """,
