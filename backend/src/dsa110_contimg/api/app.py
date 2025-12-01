@@ -94,6 +94,7 @@ from .routes import (
     imaging_router,
     absurd_router,
     calibrator_imaging_router,
+    health_router,
 )
 from .rate_limit import limiter, rate_limit_exceeded_handler
 from .websocket import ws_router
@@ -241,6 +242,7 @@ def create_app() -> FastAPI:
         (services_router, "Services"),
         (imaging_router, "Interactive Imaging"),
         (calibrator_imaging_router, "Calibrator Imaging"),
+        (health_router, "Health Monitoring"),
     ]
     
     # Register API routers with versioned prefix

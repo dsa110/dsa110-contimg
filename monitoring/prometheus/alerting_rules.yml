@@ -1,0 +1,116 @@
+# Prometheus Alerting Rules for DSA-110 Continuum Imaging Pipeline
+#
+# These rules define alert conditions that will be evaluated by Prometheus
+# and routed to Alertmanager for notification dispatch.
+#
+# Installation:
+#   1. Add this file to your Prometheus rules directory
+#   2. Update prometheus.yml to include: rule_files: ["alerting_rules.yml"]
+#   3. Configure Alertmanager for your notification channels
+
+groups:
+  - name: contimg_storage
+    rules:
+      # Alert when storage sync drops below 95%
+      - alert: StorageSyncLow
+        expr: contimg_storage_sync_percentage < 95
+        for: 5m
+        labels:
+          severity: warning
+          service: contimg
+          component: storage
+        annotations:
+          summary: "Storage synchronization below threshold"
+          description: "HDF5 storage sync is at {{ $value | printf \"%.1f\" }}%, below 95% threshold. Files may not be indexed."
+          runbook_url: "https://dsa110-contimg.readthedocs.io/troubleshooting/storage-sync"
+
+      # Alert when storage sync is critically low
+      - alert: StorageSyncCritical
+        expr: contimg_storage_sync_percentage < 80
+        for: 5m
+        labels:
+          severity: critical
+          service: contimg
+          component: storage
+        annotations:
+          summary: "Storage synchronization critically low"
+          description: "HDF5 storage sync is at {{ $value | printf \"%.1f\" }}%, significantly below threshold. Immediate investigation required."
+          runbook_url: "https://dsa110-contimg.readthedocs.io/troubleshooting/storage-sync"
+
+      # Alert when many orphaned files detected
+      - alert: OrphanedFilesHigh
+        expr: (contimg_storage_files_on_disk - contimg_storage_files_indexed) > 1000
+        for: 10m
+        labels:
+          severity: warning
+          service: contimg
+          component: storage
+        annotations:
+          summary: "High number of orphaned files"
+          description: "{{ $value }} files on disk are not indexed in the database."
+
+  - name: contimg_services
+    rules:
+      # API service down
+      - alert: ContimagAPIDown
+        expr: contimg_systemd_service_status{service="contimg-api"} != 1
+        for: 1m
+        labels:
+          severity: critical
+          service: contimg
+          component: api
+        annotations:
+          summary: "Contimg API service is down"
+          description: "The contimg-api systemd service is not running. The web UI and API will be unavailable."
+          runbook_url: "https://dsa110-contimg.readthedocs.io/troubleshooting/service-down"
+
+      # Streaming service down
+      - alert: ContimagStreamDown
+        expr: contimg_systemd_service_status{service="contimg-stream"} != 1
+        for: 1m
+        labels:
+          severity: critical
+          service: contimg
+          component: streaming
+        annotations:
+          summary: "Contimg streaming service is down"
+          description: "The contimg-stream systemd service is not running. Real-time data ingestion is stopped."
+          runbook_url: "https://dsa110-contimg.readthedocs.io/troubleshooting/service-down"
+
+      # RAGFlow container issues
+      - alert: RAGFlowContainerDown
+        expr: contimg_docker_container_status{container="ragflow-ragflow-1"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          service: contimg
+          component: ragflow
+        annotations:
+          summary: "RAGFlow container is down"
+          description: "The RAGFlow documentation search container is not running."
+
+      # Elasticsearch container issues  
+      - alert: ElasticsearchContainerDown
+        expr: contimg_docker_container_status{container="ragflow-elasticsearch01-1"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          service: contimg
+          component: ragflow
+        annotations:
+          summary: "Elasticsearch container is down"
+          description: "The Elasticsearch container (RAGFlow dependency) is not running."
+
+  - name: contimg_collection
+    rules:
+      # Metrics collection failing
+      - alert: MetricsCollectionSlow
+        expr: contimg_metrics_collection_duration_seconds > 30
+        for: 5m
+        labels:
+          severity: warning
+          service: contimg
+          component: monitoring
+        annotations:
+          summary: "Metrics collection is slow"
+          description: "Metrics collection is taking {{ $value | printf \"%.1f\" }}s, which may indicate system performance issues."

@@ -30,9 +30,13 @@ class MetricValue:
     """A single metric value with labels."""
     name: str
     value: float
-    labels: Dict[str, str]
+    labels: Dict[str, str] = None  # type: ignore
     help_text: str = ""
     metric_type: str = "gauge"
+    
+    def __post_init__(self):
+        if self.labels is None:
+            self.labels = {}
 
 
 class PrometheusExporter:
@@ -46,6 +50,10 @@ class PrometheusExporter:
     def clear(self):
         """Clear all metrics."""
         self.metrics = []
+    
+    def add_metric(self, metric: MetricValue):
+        """Add a metric value directly."""
+        self.metrics.append(metric)
     
     def add_gauge(
         self,

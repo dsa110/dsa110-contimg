@@ -1,0 +1,95 @@
+# Alertmanager Configuration for DSA-110 Continuum Imaging Pipeline
+#
+# This configures notification routing and receivers for Prometheus alerts.
+#
+# Installation:
+#   1. Copy this file to your Alertmanager configuration directory
+#   2. Update webhook URLs and Slack tokens
+#   3. Restart Alertmanager
+
+global:
+  # Resolve timeout - after this duration with no alerts, alert is considered resolved
+  resolve_timeout: 5m
+  
+  # Slack API URL (uncomment and configure if using Slack)
+  # slack_api_url: 'https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK'
+
+# Notification templates
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Route tree - how alerts are routed to receivers
+route:
+  # Default receiver if no other matches
+  receiver: 'default-receiver'
+  
+  # Group alerts by service and alertname
+  group_by: ['service', 'alertname']
+  
+  # Wait this long before sending initial notification
+  group_wait: 30s
+  
+  # Wait this long between sending notification batches
+  group_interval: 5m
+  
+  # Wait this long before re-sending same alert
+  repeat_interval: 4h
+  
+  # Child routes for specific alert types
+  routes:
+    # Critical alerts go to pagerduty/oncall
+    - match:
+        severity: critical
+      receiver: 'critical-receiver'
+      continue: true  # Also send to default
+    
+    # Storage alerts go to storage team
+    - match:
+        component: storage
+      receiver: 'storage-alerts'
+      
+    # Service alerts
+    - match:
+        component: api
+      receiver: 'service-alerts'
+    - match:
+        component: streaming
+      receiver: 'service-alerts'
+
+# Inhibition rules - suppress certain alerts when others are firing
+inhibit_rules:
+  # If the API is down, don't also alert about slow metrics
+  - source_match:
+      alertname: 'ContimagAPIDown'
+    target_match:
+      alertname: 'MetricsCollectionSlow'
+    equal: ['service']
+
+# Notification receivers
+receivers:
+  - name: 'default-receiver'
+    webhook_configs:
+      # Generic webhook endpoint - replace with your endpoint
+      - url: 'http://localhost:8000/api/v1/calibrator-imaging/alerts/webhook'
+        send_resolved: true
+  
+  - name: 'critical-receiver'
+    # Uncomment and configure for Slack notifications
+    # slack_configs:
+    #   - channel: '#dsa110-alerts'
+    #     send_resolved: true
+    #     title: '{{ .Status | toUpper }}: {{ .CommonLabels.alertname }}'
+    #     text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+    webhook_configs:
+      - url: 'http://localhost:8000/api/v1/calibrator-imaging/alerts/webhook'
+        send_resolved: true
+  
+  - name: 'storage-alerts'
+    webhook_configs:
+      - url: 'http://localhost:8000/api/v1/calibrator-imaging/alerts/webhook'
+        send_resolved: true
+  
+  - name: 'service-alerts'
+    webhook_configs:
+      - url: 'http://localhost:8000/api/v1/calibrator-imaging/alerts/webhook'
+        send_resolved: true

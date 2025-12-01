@@ -866,3 +866,131 @@ async def services_health_check():
     )
     
     return report.to_dict()
+
+
+# =============================================================================
+# Prometheus Metrics Endpoint
+# =============================================================================
+
+@router.get("/metrics")
+async def prometheus_metrics():
+    """
+    Export metrics in Prometheus text format.
+    
+    Returns metrics for:
+    - Storage synchronization (files on disk vs indexed in database)
+    - Docker container status
+    - Systemd service status
+    
+    This endpoint can be scraped by Prometheus at regular intervals.
+    """
+    from fastapi.responses import PlainTextResponse
+    from dsa110_contimg.monitoring.prometheus_metrics import collect_all_metrics
+    
+    hdf5_db = get_hdf5_db_path()
+    incoming_dir = get_incoming_dir()
+    
+    metrics_text = await collect_all_metrics(hdf5_db, incoming_dir)
+    
+    return PlainTextResponse(content=metrics_text, media_type="text/plain; charset=utf-8")
+
+
+# =============================================================================
+# Alerts Endpoints
+# =============================================================================
+
+# Shared alert manager instance
+_alert_manager = None
+
+
+def get_alert_manager():
+    """Get or create the alert manager singleton."""
+    global _alert_manager
+    if _alert_manager is None:
+        from dsa110_contimg.monitoring.alerting import (
+            AlertManager,
+            create_default_alert_rules,
+        )
+        
+        # Get paths from config
+        hdf5_db = get_hdf5_db_path()
+        incoming_dir = get_incoming_dir()
+        alert_db = os.path.join(os.path.dirname(hdf5_db), "alerts.sqlite3")
+        
+        # Get notification URLs from env
+        slack_webhook = os.getenv("SLACK_WEBHOOK_URL")
+        generic_webhook = os.getenv("ALERT_WEBHOOK_URL")
+        
+        _alert_manager = AlertManager(
+            db_path=alert_db,
+            webhook_url=generic_webhook,
+            slack_webhook=slack_webhook,
+        )
+        
+        # Register default rules
+        rules = create_default_alert_rules(hdf5_db, incoming_dir)
+        for rule in rules:
+            _alert_manager.register_rule(rule)
+    
+    return _alert_manager
+
+
+@router.get("/alerts/active")
+async def get_active_alerts():
+    """
+    Get currently active (firing) alerts.
+    """
+    manager = get_alert_manager()
+    
+    # Evaluate rules to update state
+    new_alerts = manager.evaluate_rules()
+    
+    # Send notifications for any new alerts
+    if new_alerts:
+        await manager.send_notifications(new_alerts)
+    
+    active = manager.get_active_alerts()
+    return {
+        "active_alerts": [a.to_dict() for a in active],
+        "count": len(active),
+    }
+
+
+@router.get("/alerts/history")
+async def get_alert_history(
+    limit: int = Query(default=100, ge=1, le=1000, description="Maximum number of alerts to return"),
+    rule_name: Optional[str] = Query(default=None, description="Filter by rule name"),
+):
+    """
+    Get alert history from the database.
+    """
+    manager = get_alert_manager()
+    history = manager.get_alert_history(limit=limit, rule_name=rule_name)
+    return {
+        "alerts": history,
+        "count": len(history),
+    }
+
+
+@router.post("/alerts/evaluate")
+async def evaluate_alerts():
+    """
+    Manually trigger alert rule evaluation.
+    
+    This is useful for testing or forcing an immediate check.
+    Returns any new or changed alerts.
+    """
+    manager = get_alert_manager()
+    
+    # Evaluate all rules
+    alerts = manager.evaluate_rules()
+    
+    # Send notifications
+    if alerts:
+        await manager.send_notifications(alerts)
+    
+    return {
+        "evaluated": True,
+        "new_or_changed_alerts": [a.to_dict() for a in alerts],
+        "total_active": len(manager.get_active_alerts()),
+    }
