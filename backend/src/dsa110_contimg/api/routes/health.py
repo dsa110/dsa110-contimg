@@ -786,3 +786,120 @@ async def trigger_flux_monitoring_check(
             "error": str(e),
             "triggered_at": datetime.utcnow().isoformat() + "Z",
         }
+
+
+# ============================================================================
+# Pointing Status Endpoint
+# ============================================================================
+
+
+class TransitPrediction(BaseModel):
+    """Transit prediction for a calibrator."""
+    
+    calibrator: str
+    ra_deg: float
+    dec_deg: float
+    transit_utc: str
+    time_to_transit_sec: float
+    lst_at_transit: float
+    elevation_at_transit: float
+    status: str  # "in_progress", "upcoming", "scheduled"
+
+
+class PointingStatusResponse(BaseModel):
+    """Current pointing status and upcoming transits."""
+    
+    current_lst: float
+    current_lst_deg: float
+    active_calibrator: Optional[str] = None
+    upcoming_transits: List[TransitPrediction]
+    timestamp: str
+
+
+@router.get("/pointing", response_model=PointingStatusResponse)
+async def get_pointing_status() -> PointingStatusResponse:
+    """
+    Get current pointing status including LST and upcoming calibrator transits.
+    
+    This endpoint aggregates data from the pointing tracker and transit
+    prediction systems to provide a unified view for the health dashboard.
+    """
+    from astropy.time import Time
+    from astropy.coordinates import Longitude
+    import astropy.units as u
+    
+    try:
+        # Get current LST
+        now = Time.now()
+        
+        # DSA-110 location
+        dsa_longitude = -118.2819  # degrees West
+        lst = now.sidereal_time('apparent', longitude=dsa_longitude * u.deg)
+        current_lst_hours = lst.hour
+        current_lst_deg = lst.deg
+        
+        # Try to get upcoming transits
+        upcoming_transits = []
+        active_calibrator = None
+        
+        try:
+            from dsa110_contimg.pointing.monitor import get_all_upcoming_transits
+            from dsa110_contimg.pipeline.precompute import get_pointing_tracker
+            
+            # Get current pointing
+            tracker = get_pointing_tracker()
+            current_dec = tracker.current_dec if tracker else None
+            
+            # Get upcoming transits
+            transits_data = get_all_upcoming_transits(
+                target_dec_deg=current_dec,
+                hours_ahead=24,
+                max_transits=10,
+            )
+            
+            for t in transits_data.get("transits", []):
+                time_to_transit = t.get("time_to_transit_sec", t.get("seconds_until_transit", 0))
+                
+                # Determine status based on time to transit
+                if time_to_transit < 0:
+                    status = "in_progress"
+                    if not active_calibrator:
+                        active_calibrator = t.get("calibrator", t.get("name"))
+                elif time_to_transit < 1800:  # 30 minutes
+                    status = "upcoming"
+                else:
+                    status = "scheduled"
+                
+                upcoming_transits.append(TransitPrediction(
+                    calibrator=t.get("calibrator", t.get("name", "Unknown")),
+                    ra_deg=t.get("ra_deg", 0),
+                    dec_deg=t.get("dec_deg", 0),
+                    transit_utc=t.get("transit_utc", t.get("transit_time", now.iso)),
+                    time_to_transit_sec=time_to_transit,
+                    lst_at_transit=t.get("lst_at_transit", t.get("transit_lst_hours", 0)),
+                    elevation_at_transit=t.get("elevation_at_transit", t.get("max_elevation", 90)),
+                    status=status,
+                ))
+        except ImportError:
+            logger.warning("Pointing monitor not available, returning empty transits")
+        except Exception as e:
+            logger.warning(f"Failed to get transit data: {e}")
+        
+        return PointingStatusResponse(
+            current_lst=current_lst_hours,
+            current_lst_deg=current_lst_deg,
+            active_calibrator=active_calibrator,
+            upcoming_transits=upcoming_transits,
+            timestamp=now.iso,
+        )
+        
+    except Exception as e:
+        logger.exception("Failed to get pointing status")
+        # Return minimal valid response
+        return PointingStatusResponse(
+            current_lst=0.0,
+            current_lst_deg=0.0,
+            active_calibrator=None,
+            upcoming_transits=[],
+            timestamp=datetime.utcnow().isoformat() + "Z",
+        )
