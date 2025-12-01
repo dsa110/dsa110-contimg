@@ -175,7 +175,8 @@ def get_db_connection(db_path: Optional[str] = None) -> sqlite3.Connection:
     """
     if db_path is None:
         db_path = _get_default_db_path()
-    conn = sqlite3.connect(db_path, timeout=30.0)
+    config = get_config()
+    conn = sqlite3.connect(db_path, timeout=config.timeouts.db_connection)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     return conn

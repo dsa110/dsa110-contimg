@@ -229,6 +229,7 @@ def create_app() -> FastAPI:
         
         if detailed:
             # Check database connectivity
+            config = get_config()
             db_status = {}
             try:
                 from dsa110_contimg.database.session import get_db_path
@@ -237,7 +238,7 @@ def create_app() -> FastAPI:
                         db_path = Path(get_db_path(db_name))
                         if db_path.exists():
                             import sqlite3
-                            conn = sqlite3.connect(str(db_path), timeout=2.0)
+                            conn = sqlite3.connect(str(db_path), timeout=config.timeouts.db_quick_check)
                             conn.execute("SELECT 1")
                             conn.close()
                             db_status[db_name] = "ok"
@@ -254,7 +255,7 @@ def create_app() -> FastAPI:
             try:
                 import redis as redis_module
                 redis_url = os.getenv("DSA110_REDIS_URL", "redis://localhost:6379")
-                r = redis_module.from_url(redis_url, socket_timeout=2.0)
+                r = redis_module.from_url(redis_url, socket_timeout=config.timeouts.db_quick_check)
                 if r.ping():
                     info = r.info("server")
                     redis_status = {

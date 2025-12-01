@@ -309,3 +309,60 @@ class TestConfigError:
         error = ConfigError("Configuration failed")
         
         assert str(error) == "Configuration failed"
+
+
+class TestTimeoutConfig:
+    """Tests for TimeoutConfig dataclass."""
+
+    def test_default_values(self):
+        """Test default timeout configuration."""
+        from dsa110_contimg.api.config import TimeoutConfig
+        
+        config = TimeoutConfig()
+        
+        assert config.db_connection == 30.0
+        assert config.db_quick_check == 2.0
+        assert config.db_metrics_sync == 10.0
+        assert config.websocket_ping == 30.0
+        assert config.websocket_pong == 10.0
+        assert config.service_health_check == 5.0
+        assert config.http_request == 30.0
+        assert config.background_poll == 30.0
+        assert config.startup_retry_base == 0.5
+
+    def test_from_env_defaults(self):
+        """Test from_env uses defaults when env vars not set."""
+        from dsa110_contimg.api.config import TimeoutConfig
+        
+        with patch.dict(os.environ, {}, clear=True):
+            config = TimeoutConfig.from_env()
+        
+        assert config.db_connection == 30.0
+        assert config.websocket_ping == 30.0
+
+    def test_from_env_custom_values(self):
+        """Test from_env reads custom values from environment."""
+        from dsa110_contimg.api.config import TimeoutConfig
+        
+        env = {
+            "DSA110_TIMEOUT_DB_CONNECTION": "60.0",
+            "DSA110_TIMEOUT_DB_QUICK": "5.0",
+            "DSA110_TIMEOUT_WS_PING": "45.0",
+        }
+        with patch.dict(os.environ, env, clear=True):
+            config = TimeoutConfig.from_env()
+        
+        assert config.db_connection == 60.0
+        assert config.db_quick_check == 5.0
+        assert config.websocket_ping == 45.0
+        # Defaults for unset values
+        assert config.db_metrics_sync == 10.0
+
+    def test_integration_with_api_config(self):
+        """Test TimeoutConfig is included in APIConfig."""
+        from dsa110_contimg.api.config import APIConfig, TimeoutConfig
+        
+        config = APIConfig()
+        
+        assert hasattr(config, 'timeouts')
+        assert isinstance(config.timeouts, TimeoutConfig)
