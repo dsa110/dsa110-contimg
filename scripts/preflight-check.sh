@@ -79,6 +79,19 @@ check "Dashboard serves at :3210" "curl -sf http://localhost:3210/ >/dev/null"
 info "Dev server at :3000 - start with 'npm run dev'" "curl -sf http://localhost:3000/ >/dev/null"
 
 echo ""
+echo -e "${CYAN}┌─ Health Dashboard API Endpoints ──────┐${NC}"
+# These are the endpoints required by the Health Dashboard page
+if curl -sf http://localhost:8000/api/v1/health/system >/dev/null 2>&1; then
+    check "/health/system (SystemHealthPanel)" "curl -sf http://localhost:8000/api/v1/health/system"
+    check "/health/pointing (TransitWidget)" "curl -sf http://localhost:8000/api/v1/health/pointing"
+    check "/health/alerts (AlertsPanel)" "curl -sf http://localhost:8000/api/v1/health/alerts"
+    check "/health/flux-monitoring (CalibratorMonitoringPanel)" "curl -sf http://localhost:8000/api/v1/health/flux-monitoring"
+    check "/health/validity-windows/timeline (ValidityTimeline)" "curl -sf 'http://localhost:8000/api/v1/health/validity-windows/timeline?hours_back=24&hours_forward=48'"
+else
+    echo -e "${BLUE}ℹ${NC} API not running - skipping endpoint checks"
+fi
+
+echo ""
 echo -e "${CYAN}┌─ Databases ───────────────────────────┐${NC}"
 check "products.sqlite3 exists" "test -f /data/dsa110-contimg/state/db/products.sqlite3"
 check "hdf5.sqlite3 exists" "test -f /data/dsa110-contimg/state/db/hdf5.sqlite3"
@@ -124,4 +137,3 @@ echo -e "${CYAN}║${NC} ${DIM}Completed in ${DURATION}s${NC}                   
 echo -e "${CYAN}╚════════════════════════════════════════╝${NC}"
 
 exit $ERRORS
-

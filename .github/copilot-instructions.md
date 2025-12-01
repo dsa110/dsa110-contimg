@@ -126,6 +126,45 @@ conda activate casa6
 - `vendor/` - External dependencies (aocommon, everybeam)
 - `.ai/` - AI tool configurations (cursor, codex, gemini)
 
+## CRITICAL: Path and Database Rules
+
+**FORBIDDEN PATHS** - NEVER access files in these directories:
+
+- `.local/archive/` - Contains deprecated/legacy code and data
+- Any path containing `.local/archive` is strictly prohibited
+
+**DATABASE REQUIREMENTS**:
+
+- **ONLY SQLite databases** (`.sqlite3` extension) are permitted
+- All catalog databases MUST be in `/data/dsa110-contimg/state/catalogs/`
+- Never use CSV, text files, or other formats as primary data sources
+- Source data files (for building databases) go in `state/catalogs/sources/`
+
+**Path Enforcement**: The `dsa110_contimg.utils.path_enforcement` module
+provides validation:
+
+```python
+from dsa110_contimg.utils.path_enforcement import (
+    validate_path,           # Raises ForbiddenPathError if path is in .local/archive
+    validate_database_path,  # Ensures .sqlite3 extension
+    validate_catalog_database,  # Full catalog DB validation
+    is_forbidden_path,       # Check without raising
+)
+
+# Example usage
+validate_path("/some/path/file.py", context="my_function")
+validate_database_path("/data/dsa110-contimg/state/catalogs/vla.sqlite3")
+```
+
+**VLA Calibrator Database**: The pipeline uses a SQLite database of VLA
+calibrators at `/data/dsa110-contimg/state/catalogs/vla_calibrators.sqlite3`.
+To rebuild:
+
+```bash
+python -m dsa110_contimg.catalog.build_vla_calibrators \
+    --source /data/dsa110-contimg/state/catalogs/sources/vlacalibrators.txt
+```
+
 ## Critical Conversion Pipeline
 
 ### Subband File Patterns

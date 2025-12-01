@@ -77,7 +77,28 @@ frontend/
 > **📖 For a complete guide to dev vs production services, see
 > [docs/ops/SERVICES.md](../docs/ops/SERVICES.md)**
 
-To get started with the project, follow these steps:
+### Quick Start (Recommended)
+
+Use the startup script to start both frontend and backend:
+
+```bash
+# Start everything (auto-detects and fixes issues)
+../scripts/start-dev.sh
+
+# Stop all dev servers
+../scripts/start-dev.sh --stop
+```
+
+The script automatically:
+
+- Cleans up zombie processes
+- Ensures backend has `--reload` for code changes
+- Ensures frontend has HMR for instant updates
+- Verifies Health Dashboard endpoints are working
+
+### Manual Setup
+
+To get started manually, follow these steps:
 
 1. **Install dependencies**:
 
@@ -90,6 +111,9 @@ To get started with the project, follow these steps:
    ```bash
    npm run dev
    ```
+
+   > **Note**: The backend API server must also be running on port 8000 for
+   > full functionality. See `../scripts/start-dev.sh --backend`.
 
 3. **Build for production**:
 
