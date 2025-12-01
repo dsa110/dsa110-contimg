@@ -39,7 +39,7 @@ import { apiClient } from "../api/client";
 
 /** Job data from the search API (different from Job type) */
 interface SearchJob {
-  job_id: number;
+  job_id: string | number;
   job_type?: string;
   ms_path?: string;
   status?: string;
@@ -360,7 +360,16 @@ export default function UnifiedSearch({
   const results = useMemo(() => {
     if (query.trim().length < 2) return [];
 
-    const jobs = jobsData?.items || [];
+    const jobs: SearchJob[] =
+      jobsData?.items.map((job) => {
+        const params = (job.params as { ms_path?: string } | undefined) || {};
+        return {
+          job_id: job.id,
+          job_type: job.type,
+          status: job.status,
+          ms_path: params.ms_path,
+        };
+      }) || [];
     const images = imagesData?.items || [];
     const sources = sourcesData?.items || [];
     const mosaics = mosaicsData?.items || [];
