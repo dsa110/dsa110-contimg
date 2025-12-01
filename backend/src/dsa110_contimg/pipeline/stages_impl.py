@@ -1169,7 +1169,7 @@ class CalibrationSolveStage(PipelineStage):
 
         # Register calibration tables in registry database
         # CRITICAL: Registration is required for CalibrationStage to find tables via registry lookup
-        registry_db = context.config.paths.state_dir / "cal_registry.sqlite3"
+        registry_db = context.config.paths.pipeline_db
 
         try:
             from dsa110_contimg.database.registry import register_and_verify_caltables
@@ -1471,10 +1471,10 @@ class CalibrationStage(PipelineStage):
                 raise RuntimeError(f"Calibration application failed: {e}") from e
         else:
             # Lookup tables from registry by observation time (consistent with streaming mode)
-            registry_db = context.config.paths.state_dir / "cal_registry.sqlite3"
+            registry_db = context.config.paths.pipeline_db
             if not registry_db.exists():
-                # Try alternative location
-                registry_db = Path("/data/dsa110-contimg/state/db/cal_registry.sqlite3")
+                # Try default location
+                registry_db = Path("/data/dsa110-contimg/state/db/pipeline.sqlite3")
                 if not registry_db.exists():
                     error_msg = (
                         f"Cannot apply calibration: No calibration tables provided and "
@@ -1598,7 +1598,7 @@ class CalibrationStage(PipelineStage):
                         store_temporal_analysis_in_database,
                     )
 
-                    products_db = context.config.paths.state_dir / "products.sqlite3"
+                    products_db = context.config.paths.pipeline_db
                     store_temporal_analysis_in_database(
                         db_path=str(products_db),
                         ms_path=str(ms_path),
@@ -3995,7 +3995,7 @@ class TransientDetectionStage(PipelineStage):
         logger.info("Starting transient detection stage...")
 
         # Ensure tables exist
-        db_path = str(self.config.paths.state_dir / "products.sqlite3")
+        db_path = str(self.config.paths.pipeline_db)
         create_transient_detection_tables(db_path)
 
         # Get detected sources

@@ -30,39 +30,73 @@ class ConfigError(Exception):
     pass
 
 
+# Default unified pipeline database path
+_DEFAULT_PIPELINE_DB = Path("/data/dsa110-contimg/state/db/pipeline.sqlite3")
+
+
 @dataclass
 class DatabaseConfig:
-    """Database connection settings."""
-    # Primary databases are in state/db/ subdirectory
-    products_path: Path = field(default_factory=lambda: Path("/data/dsa110-contimg/state/db/products.sqlite3"))
-    cal_registry_path: Path = field(default_factory=lambda: Path("/data/dsa110-contimg/state/db/cal_registry.sqlite3"))
-    hdf5_path: Path = field(default_factory=lambda: Path("/data/dsa110-contimg/state/db/hdf5.sqlite3"))
-    ingest_path: Path = field(default_factory=lambda: Path("/data/dsa110-contimg/state/db/ingest.sqlite3"))
-    data_registry_path: Path = field(default_factory=lambda: Path("/data/dsa110-contimg/state/db/data_registry.sqlite3"))
-    calibrators_path: Path = field(default_factory=lambda: Path("/data/dsa110-contimg/state/db/calibrators.sqlite3"))
+    """Database connection settings.
+    
+    All domain databases have been consolidated into a single unified
+    pipeline.sqlite3 database. Legacy path properties are maintained
+    for backwards compatibility but all return the unified path.
+    """
+    # Unified pipeline database path
+    unified_path: Path = field(default_factory=lambda: _DEFAULT_PIPELINE_DB)
+    # Separate calibrators catalog (not part of unified DB)
+    calibrators_path: Path = field(default_factory=lambda: Path("/data/dsa110-contimg/state/catalogs/vla_calibrators.sqlite3"))
     connection_timeout: float = 30.0
+    
+    # Legacy properties - all return unified path for backwards compatibility
+    @property
+    def products_path(self) -> Path:
+        return self.unified_path
+    
+    @property
+    def cal_registry_path(self) -> Path:
+        return self.unified_path
+    
+    @property
+    def hdf5_path(self) -> Path:
+        return self.unified_path
+    
+    @property
+    def ingest_path(self) -> Path:
+        return self.unified_path
+    
+    @property
+    def data_registry_path(self) -> Path:
+        return self.unified_path
     
     @classmethod
     def from_env(cls) -> "DatabaseConfig":
-        """Create config from environment variables."""
-        base_dir = Path(os.getenv("DSA110_STATE_DIR", "/data/dsa110-contimg/state/db"))
+        """Create config from environment variables.
+        
+        Uses PIPELINE_DB for unified database, with fallback to legacy
+        PIPELINE_PRODUCTS_DB for backwards compatibility.
+        """
+        # Check unified env var first, then legacy
+        unified_db = os.getenv("PIPELINE_DB")
+        if not unified_db:
+            unified_db = os.getenv("PIPELINE_PRODUCTS_DB")
+        if not unified_db:
+            unified_db = str(_DEFAULT_PIPELINE_DB)
+        
         return cls(
-            products_path=Path(os.getenv("PIPELINE_PRODUCTS_DB", str(base_dir / "products.sqlite3"))),
-            cal_registry_path=Path(os.getenv("PIPELINE_CAL_REGISTRY_DB", str(base_dir / "cal_registry.sqlite3"))),
-            hdf5_path=Path(os.getenv("PIPELINE_HDF5_DB", str(base_dir / "hdf5.sqlite3"))),
-            ingest_path=Path(os.getenv("PIPELINE_INGEST_DB", str(base_dir / "ingest.sqlite3"))),
-            data_registry_path=Path(os.getenv("PIPELINE_DATA_REGISTRY_DB", str(base_dir / "data_registry.sqlite3"))),
-            calibrators_path=Path(os.getenv("PIPELINE_CALIBRATORS_DB", str(base_dir / "calibrators.sqlite3"))),
+            unified_path=Path(unified_db),
+            calibrators_path=Path(os.getenv(
+                "PIPELINE_CALIBRATORS_DB", 
+                "/data/dsa110-contimg/state/catalogs/vla_calibrators.sqlite3"
+            )),
             connection_timeout=float(os.getenv("DB_CONNECTION_TIMEOUT", "30.0")),
         )
     
     def validate(self) -> List[str]:
         """Validate database configuration. Returns list of errors."""
         errors = []
-        for db_name in ["products", "cal_registry", "hdf5", "ingest", "data_registry", "calibrators"]:
-            path = getattr(self, f"{db_name}_path")
-            if not path.parent.exists():
-                errors.append(f"Database directory does not exist: {path.parent}")
+        if not self.unified_path.parent.exists():
+            errors.append(f"Database directory does not exist: {self.unified_path.parent}")
         return errors
 
 

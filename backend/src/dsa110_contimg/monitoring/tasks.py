@@ -62,7 +62,7 @@ async def _execute_flux_monitoring_check(params: Dict[str, Any]) -> Dict[str, An
 
     calibrator = params.get("calibrator")
     create_alerts = params.get("create_alerts", True)
-    products_db = params.get("products_db", "/data/dsa110-contimg/state/db/products.sqlite3")
+    products_db = params.get("products_db", "/data/dsa110-contimg/state/db/pipeline.sqlite3")
 
     logger.info(f"Running flux monitoring check: calibrator={calibrator}")
 
@@ -154,7 +154,7 @@ async def _execute_validity_window_check(params: Dict[str, Any]) -> Dict[str, An
 
     warning_hours = params.get("warning_hours", 2)
     registry_db = params.get(
-        "registry_db", "/data/dsa110-contimg/state/db/cal_registry.sqlite3"
+        "registry_db", "/data/dsa110-contimg/state/db/pipeline.sqlite3"
     )
 
     logger.info(f"Checking validity windows (warning threshold: {warning_hours}h)")

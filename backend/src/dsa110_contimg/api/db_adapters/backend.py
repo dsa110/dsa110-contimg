@@ -19,16 +19,23 @@ from dataclasses import dataclass
 from typing import Any, AsyncIterator, Optional, Protocol, runtime_checkable
 
 
+# Default unified pipeline database path
+_DEFAULT_PIPELINE_DB = "/data/dsa110-contimg/state/db/pipeline.sqlite3"
+
+
 @dataclass
 class DatabaseConfig:
     """Database configuration for SQLite.
     
+    Uses unified pipeline.sqlite3 database for all domain data.
+    
     Example:
-        sqlite_path = "/path/to/database.db"
+        config = DatabaseConfig.from_env()
+        sqlite_path = config.sqlite_path  # Returns unified DB path
     """
     
     # SQLite settings
-    sqlite_path: str = ""
+    sqlite_path: str = _DEFAULT_PIPELINE_DB
     sqlite_timeout: float = 30.0
     
     @classmethod
@@ -37,13 +44,19 @@ class DatabaseConfig:
         
         Environment variables (with default prefix DSA110_DB):
         - {prefix}_SQLITE_PATH: SQLite database path
+        - PIPELINE_DB: Unified database path (fallback)
+        - PIPELINE_PRODUCTS_DB: Legacy env var (fallback)
         - {prefix}_SQLITE_TIMEOUT: Connection timeout (default: 30.0)
         """
+        # Check prefix-specific, then PIPELINE_DB, then legacy PIPELINE_PRODUCTS_DB
+        sqlite_path = os.getenv(f"{prefix}_SQLITE_PATH")
+        if not sqlite_path:
+            sqlite_path = os.getenv("PIPELINE_DB")
+        if not sqlite_path:
+            sqlite_path = os.getenv("PIPELINE_PRODUCTS_DB", _DEFAULT_PIPELINE_DB)
+        
         return cls(
-            sqlite_path=os.getenv(
-                f"{prefix}_SQLITE_PATH",
-                os.getenv("PIPELINE_PRODUCTS_DB", "/data/dsa110-contimg/state/db/products.sqlite3")
-            ),
+            sqlite_path=sqlite_path,
             sqlite_timeout=float(os.getenv(f"{prefix}_SQLITE_TIMEOUT", "30.0")),
         )
     

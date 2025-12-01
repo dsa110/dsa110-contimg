@@ -681,16 +681,10 @@ def _register_default_storage_locations(conn: sqlite3.Connection) -> None:
             "Original HDF5 files - never automatically removed",
         ),
         (
-            "products_db",
-            "state/db/products.sqlite3",
-            "Products database (relative to project root)",
-            "SQLite database tracking MS files, images, and mosaics",
-        ),
-        (
-            "registry_db",
-            "state/db/cal_registry.sqlite3",
-            "Calibration registry database (relative to project root)",
-            "SQLite database tracking calibration table validity windows",
+            "pipeline_db",
+            "state/db/pipeline.sqlite3",
+            "Unified pipeline database (relative to project root)",
+            "SQLite database tracking MS files, images, calibration, and all domain data",
         ),
     ]
 

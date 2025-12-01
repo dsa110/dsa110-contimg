@@ -145,8 +145,9 @@ pipeline_info.info({
 # Database Sync Functions
 # =============================================================================
 
-DEFAULT_DB_PATH = "/data/dsa110-contimg/state/db/products.sqlite3"
-CAL_REGISTRY_DB_PATH = "/data/dsa110-contimg/state/db/cal_registry.sqlite3"
+# Unified pipeline database path
+DEFAULT_DB_PATH = "/data/dsa110-contimg/state/db/pipeline.sqlite3"
+CAL_REGISTRY_DB_PATH = DEFAULT_DB_PATH  # All domains now in unified DB
 
 
 def sync_gauges_from_database(db_path: str = DEFAULT_DB_PATH) -> dict:

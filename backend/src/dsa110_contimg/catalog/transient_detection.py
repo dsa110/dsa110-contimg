@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 def create_transient_detection_tables(
-    db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/pipeline.sqlite3",
 ) -> bool:
     """Create database tables for transient detection.
 
@@ -320,7 +320,7 @@ def store_transient_candidates(
     candidates: List[Dict],
     baseline_catalog: str = "NVSS",
     mosaic_id: Optional[int] = None,
-    db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/pipeline.sqlite3",
 ) -> List[int]:
     """Store transient candidates in database.
 
@@ -394,7 +394,7 @@ def store_transient_candidates(
 def generate_transient_alerts(
     candidate_ids: List[int],
     alert_threshold_sigma: float = 7.0,
-    db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/pipeline.sqlite3",
 ) -> List[int]:
     """Generate alerts for high-priority transient candidates.
 
@@ -496,7 +496,7 @@ def get_transient_candidates(
     min_significance: float = 5.0,
     detection_types: Optional[List[str]] = None,
     limit: int = 100,
-    db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/pipeline.sqlite3",
 ) -> pd.DataFrame:
     """Query transient candidates from database.
 
@@ -536,7 +536,7 @@ def get_transient_alerts(
     alert_level: Optional[str] = None,
     acknowledged: bool = False,
     limit: int = 50,
-    db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/pipeline.sqlite3",
 ) -> pd.DataFrame:
     """Query transient alerts from database.
 
@@ -572,7 +572,7 @@ def acknowledge_alert(
     alert_id: int,
     acknowledged_by: str,
     notes: Optional[str] = None,
-    db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/pipeline.sqlite3",
 ) -> bool:
     """Mark alert as acknowledged by operator.
 
@@ -643,7 +643,7 @@ def classify_candidate(
     classification: str,
     classified_by: str,
     notes: Optional[str] = None,
-    db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/pipeline.sqlite3",
 ) -> bool:
     """Assign classification to transient candidate.
 
@@ -727,7 +727,7 @@ def update_follow_up_status(
     item_type: str,
     status: str,
     notes: Optional[str] = None,
-    db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/pipeline.sqlite3",
 ) -> bool:
     """Update follow-up observation status.
 
@@ -805,7 +805,7 @@ def add_notes(
     notes: str,
     username: str,
     append: bool = True,
-    db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/pipeline.sqlite3",
 ) -> bool:
     """Add or update notes for transient records.
 

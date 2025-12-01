@@ -11,15 +11,19 @@ Usage:
     # Simple session usage with context manager
     from dsa110_contimg.database.session import get_session
     
-    with get_session("products") as session:
+    with get_session("pipeline") as session:
         images = session.query(Image).filter_by(type="dirty").all()
         session.add(new_image)
         session.commit()
     
+    # Legacy database names are aliased to unified database
+    with get_session("products") as session:  # Same as "pipeline"
+        ...
+    
     # Scoped sessions for multi-threaded contexts
     from dsa110_contimg.database.session import get_scoped_session
     
-    Session = get_scoped_session("products")
+    Session = get_scoped_session("pipeline")
     session = Session()
     try:
         # do work
@@ -30,16 +34,18 @@ Usage:
     # Direct engine access for migrations
     from dsa110_contimg.database.session import get_engine
     
-    engine = get_engine("products")
+    engine = get_engine("pipeline")
     Base.metadata.create_all(engine)
 
 Configuration:
-    Database paths are read from environment variables with fallbacks:
-    - PIPELINE_PRODUCTS_DB -> /data/dsa110-contimg/state/db/products.sqlite3
-    - PIPELINE_CAL_REGISTRY_DB -> /data/dsa110-contimg/state/db/cal_registry.sqlite3
-    - PIPELINE_HDF5_DB -> /data/dsa110-contimg/state/db/hdf5.sqlite3
-    - PIPELINE_INGEST_DB -> /data/dsa110-contimg/state/db/ingest.sqlite3
-    - PIPELINE_DATA_REGISTRY_DB -> /data/dsa110-contimg/state/db/data_registry.sqlite3
+    The unified pipeline database is used for all domain data:
+    - PIPELINE_DB -> /data/dsa110-contimg/state/db/pipeline.sqlite3
+    
+    Legacy environment variables are supported for backwards compatibility:
+    - PIPELINE_PRODUCTS_DB, PIPELINE_CAL_REGISTRY_DB, etc. (all map to pipeline.sqlite3)
+    
+    Separate utility databases:
+    - docsearch, embedding_cache remain independent
 """
 
 from __future__ import annotations
@@ -65,13 +71,20 @@ logger = logging.getLogger(__name__)
 # Database Path Configuration
 # =============================================================================
 
-# Default database paths (can be overridden via environment variables)
+# Unified pipeline database path
+DEFAULT_PIPELINE_DB = "/data/dsa110-contimg/state/db/pipeline.sqlite3"
+
+# Default database paths - unified pipeline DB for domain data
 DEFAULT_DB_PATHS = {
-    "products": "/data/dsa110-contimg/state/db/products.sqlite3",
-    "cal_registry": "/data/dsa110-contimg/state/db/cal_registry.sqlite3",
-    "hdf5": "/data/dsa110-contimg/state/db/hdf5.sqlite3",
-    "ingest": "/data/dsa110-contimg/state/db/ingest.sqlite3",
-    "data_registry": "/data/dsa110-contimg/state/db/data_registry.sqlite3",
+    # Unified pipeline database (contains all domain tables)
+    "pipeline": DEFAULT_PIPELINE_DB,
+    # Legacy aliases - all map to unified database
+    "products": DEFAULT_PIPELINE_DB,
+    "cal_registry": DEFAULT_PIPELINE_DB,
+    "hdf5": DEFAULT_PIPELINE_DB,
+    "ingest": DEFAULT_PIPELINE_DB,
+    "data_registry": DEFAULT_PIPELINE_DB,
+    # Separate utility databases
     "docsearch": "/data/dsa110-contimg/state/docsearch.sqlite3",
     "embedding_cache": "/data/dsa110-contimg/state/embedding_cache.sqlite3",
 }
@@ -80,19 +93,30 @@ DEFAULT_DB_PATHS = {
 DATABASE_PATHS = DEFAULT_DB_PATHS
 
 # Environment variable names for database paths
+# All domain databases use PIPELINE_DB, with legacy fallbacks
 DB_ENV_VARS = {
+    "pipeline": "PIPELINE_DB",
+    "products": "PIPELINE_DB",  # Legacy: falls back to PIPELINE_PRODUCTS_DB
+    "cal_registry": "PIPELINE_DB",  # Legacy: falls back to PIPELINE_CAL_REGISTRY_DB
+    "hdf5": "PIPELINE_DB",
+    "ingest": "PIPELINE_DB",
+    "data_registry": "PIPELINE_DB",
+    "docsearch": "PIPELINE_DOCSEARCH_DB",
+    "embedding_cache": "PIPELINE_EMBEDDING_CACHE_DB",
+}
+
+# Legacy environment variable names (for backwards compatibility)
+_LEGACY_ENV_VARS = {
     "products": "PIPELINE_PRODUCTS_DB",
     "cal_registry": "PIPELINE_CAL_REGISTRY_DB",
     "hdf5": "PIPELINE_HDF5_DB",
     "ingest": "PIPELINE_INGEST_DB",
     "data_registry": "PIPELINE_DATA_REGISTRY_DB",
-    "docsearch": "PIPELINE_DOCSEARCH_DB",
-    "embedding_cache": "PIPELINE_EMBEDDING_CACHE_DB",
 }
 
 # Database name type for type hints
 DatabaseName = Literal[
-    "products", "cal_registry", "hdf5", "ingest", 
+    "pipeline", "products", "cal_registry", "hdf5", "ingest", 
     "data_registry", "docsearch", "embedding_cache"
 ]
 
@@ -115,10 +139,13 @@ def get_db_path(db_name: DatabaseName) -> str:
     """
     Get the database file path for a named database.
     
-    Checks environment variable first, then falls back to default path.
+    All domain databases (products, cal_registry, hdf5, ingest, data_registry)
+    now resolve to the unified pipeline.sqlite3 database.
+    
+    Checks PIPELINE_DB first, then legacy env vars for backwards compatibility.
     
     Args:
-        db_name: Name of the database ('products', 'cal_registry', etc.)
+        db_name: Name of the database ('pipeline', 'products', etc.)
         
     Returns:
         Absolute path to the SQLite database file
@@ -132,9 +159,28 @@ def get_db_path(db_name: DatabaseName) -> str:
             f"Valid names: {list(DEFAULT_DB_PATHS.keys())}"
         )
     
+    # Check primary env var
     env_var = DB_ENV_VARS.get(db_name)
     if env_var:
-        return os.environ.get(env_var, DEFAULT_DB_PATHS[db_name])
+        path = os.environ.get(env_var)
+        if path:
+            return path
+    
+    # Check legacy env var for backwards compatibility
+    legacy_var = _LEGACY_ENV_VARS.get(db_name)
+    if legacy_var:
+        path = os.environ.get(legacy_var)
+        if path:
+            # Log deprecation warning only once per process
+            if not getattr(get_db_path, f'_warned_{db_name}', False):
+                logger.warning(
+                    f"Using deprecated env var {legacy_var}. "
+                    f"Please use PIPELINE_DB instead."
+                )
+                setattr(get_db_path, f'_warned_{db_name}', True)
+            # Legacy env vars still point to unified DB
+            return DEFAULT_PIPELINE_DB
+    
     return DEFAULT_DB_PATHS[db_name]
 
 
@@ -196,6 +242,9 @@ def get_engine(
     - Foreign key enforcement
     - Optimized cache and mmap settings
     
+    Note: All domain databases (products, cal_registry, hdf5, ingest, data_registry)
+    share the same engine since they all point to pipeline.sqlite3.
+    
     Args:
         db_name: Name of the database
         in_memory: If True, create an in-memory database (for testing)
@@ -205,10 +254,12 @@ def get_engine(
         SQLAlchemy Engine instance
         
     Example:
-        engine = get_engine("products")
+        engine = get_engine("pipeline")
         Base.metadata.create_all(engine)
     """
-    cache_key = f"{db_name}:{'memory' if in_memory else 'file'}"
+    # Use actual file path as cache key to share engines for unified DB
+    db_path = get_db_path(db_name) if not in_memory else ":memory:"
+    cache_key = f"{db_path}:{'memory' if in_memory else 'file'}"
     
     with _lock:
         if cache_key in _engines:

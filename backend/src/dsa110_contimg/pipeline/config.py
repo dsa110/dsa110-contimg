@@ -24,19 +24,25 @@ class PathsConfig(BaseModel):
     state_dir: Path = Field(default=Path("state"), description="State directory for databases")
 
     @property
+    def pipeline_db(self) -> Path:
+        """Path to unified pipeline database."""
+        return self.state_dir / "db" / "pipeline.sqlite3"
+
+    # Legacy aliases - all point to unified pipeline database
+    @property
     def products_db(self) -> Path:
-        """Path to products database."""
-        return self.state_dir / "products.sqlite3"
+        """Path to products database (alias for pipeline_db)."""
+        return self.pipeline_db
 
     @property
     def registry_db(self) -> Path:
-        """Path to calibration registry database."""
-        return self.state_dir / "cal_registry.sqlite3"
+        """Path to calibration registry database (alias for pipeline_db)."""
+        return self.pipeline_db
 
     @property
     def queue_db(self) -> Path:
-        """Path to queue database."""
-        return self.state_dir / "ingest.sqlite3"
+        """Path to queue database (alias for pipeline_db)."""
+        return self.pipeline_db
 
     @property
     def synthetic_images_dir(self) -> Path:

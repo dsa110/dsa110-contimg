@@ -280,7 +280,7 @@ def get_calibrator_performance_metrics(
 
     Args:
         calibrator_name: Calibrator source name
-        db_path: Path to calibrator registry (checks products.sqlite3 for flux monitoring)
+        db_path: Path to pipeline database (unified database)
 
     Returns:
         Dictionary with metrics:
@@ -291,12 +291,12 @@ def get_calibrator_performance_metrics(
     """
     import sqlite3
 
-    # Check flux monitoring database
-    products_db = Path(db_path).parent / "products.sqlite3"
-    if not products_db.exists():
+    # Use provided db_path directly (unified database)
+    pipeline_db = Path(db_path)
+    if not pipeline_db.exists():
         return None
 
-    conn = sqlite3.connect(str(products_db))
+    conn = sqlite3.connect(str(pipeline_db))
     cur = conn.cursor()
 
     try:

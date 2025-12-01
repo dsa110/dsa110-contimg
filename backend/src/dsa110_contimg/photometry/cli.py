@@ -56,12 +56,12 @@ def _get_pipeline_db_path(cli_arg: str | None = None) -> Path:
     
     Priority order:
     1. CLI argument (if provided and not default)
-    2. Centralized settings (DatabaseSettings.unified_db)
+    2. Centralized settings (DatabaseSettings.path)
     3. Legacy environment variable PIPELINE_PRODUCTS_DB
     4. Default path state/db/pipeline.sqlite3
     """
     # Default values
-    default_path = "state/db/products.sqlite3"  # CLI default
+    default_path = "state/db/pipeline.sqlite3"  # CLI default (unified DB)
     unified_default = "/data/dsa110-contimg/state/db/pipeline.sqlite3"
     
     # If CLI arg provided and not the default, use it
@@ -72,13 +72,13 @@ def _get_pipeline_db_path(cli_arg: str | None = None) -> Path:
     try:
         from dsa110_contimg.config import get_settings
         settings = get_settings()
-        if hasattr(settings, 'database') and hasattr(settings.database, 'unified_db'):
-            return settings.database.unified_db
+        if hasattr(settings, 'database') and hasattr(settings.database, 'path'):
+            return settings.database.path
     except (ImportError, Exception):
         pass
     
     # Fall back to env var or new default
-    return Path(os.getenv("PIPELINE_PRODUCTS_DB", unified_default))
+    return Path(os.getenv("PIPELINE_DB", os.getenv("PIPELINE_PRODUCTS_DB", unified_default)))
 
 
 def _parse_coords_arg(coords_arg: str) -> List[Tuple[float, float]]:
@@ -797,8 +797,8 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument(
         "--products-db",
         type=str,
-        default="state/db/products.sqlite3",
-        help="Path to products database (default: state/db/products.sqlite3)",
+        default="state/db/pipeline.sqlite3",
+        help="Path to pipeline database (default: state/db/pipeline.sqlite3)",
     )
     sp.add_argument(
         "--min-sigma",
@@ -862,8 +862,8 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument(
         "--products-db",
         type=str,
-        default="state/db/products.sqlite3",
-        help="Path to products database for storing results (default: state/db/products.sqlite3)",
+        default="state/db/pipeline.sqlite3",
+        help="Path to pipeline database for storing results (default: state/db/pipeline.sqlite3)",
     )
     sp.add_argument(
         "--box",
@@ -909,8 +909,8 @@ def build_parser() -> argparse.ArgumentParser:
     sp.add_argument(
         "--products-db",
         type=str,
-        default="state/db/products.sqlite3",
-        help="Path to products database (default: state/db/products.sqlite3)",
+        default="state/db/pipeline.sqlite3",
+        help="Path to pipeline database (default: state/db/pipeline.sqlite3)",
     )
     sp.set_defaults(func=cmd_export)
 

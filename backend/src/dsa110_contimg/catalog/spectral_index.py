@@ -23,7 +23,7 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
-def create_spectral_indices_table(db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3"):
+def create_spectral_indices_table(db_path: str = "/data/dsa110-contimg/state/db/pipeline.sqlite3"):
     """Create spectral_indices table in products database.
 
     Table structure:
@@ -279,7 +279,7 @@ def store_spectral_index(
     n_frequencies: int = 2,
     fit_quality: Optional[str] = None,
     notes: Optional[str] = None,
-    db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/pipeline.sqlite3",
 ) -> Optional[int]:
     """Store spectral index in database.
 
@@ -372,7 +372,7 @@ def query_spectral_indices(
     alpha_max: Optional[float] = None,
     fit_quality: Optional[str] = None,
     limit: int = 1000,
-    db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/pipeline.sqlite3",
 ) -> List[Dict]:
     """Query spectral indices from database.
 
@@ -440,7 +440,7 @@ def query_spectral_indices(
 
 
 def get_spectral_index_for_source(
-    source_id: str, db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3"
+    source_id: str, db_path: str = "/data/dsa110-contimg/state/db/pipeline.sqlite3"
 ) -> Optional[Dict]:
     """Get spectral index for a specific source.
 
@@ -492,7 +492,7 @@ def calculate_and_store_from_catalogs(
     ra_deg: float,
     dec_deg: float,
     catalog_fluxes: Dict[str, Tuple[float, float, float]],
-    db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/pipeline.sqlite3",
 ) -> List[int]:
     """Calculate spectral indices from multiple catalog matches.
 
@@ -569,7 +569,7 @@ def calculate_and_store_from_catalogs(
 
 
 def get_spectral_index_statistics(
-    db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/pipeline.sqlite3",
 ) -> Dict:
     """Get statistics on spectral indices in database.
 

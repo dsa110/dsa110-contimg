@@ -215,15 +215,15 @@ def _track_calibration_provenance(
         # Extract quality metrics
         quality_metrics = _extract_quality_metrics(caltable_path)
 
-        # Determine registry DB path
+        # Determine registry DB path (unified pipeline database)
         if registry_db is None:
-            # Use default registry path logic
+            # Use unified pipeline database
             registry_db_path = PathLib(
                 os.environ.get(
-                    "CAL_REGISTRY_DB",
-                    os.path.join(
-                        os.environ.get("PIPELINE_STATE_DIR", "/data/dsa110-contimg/state"),
-                        "cal_registry.sqlite3",
+                    "PIPELINE_DB",
+                    os.environ.get(
+                        "CAL_REGISTRY_DB",  # Legacy fallback
+                        "/data/dsa110-contimg/state/db/pipeline.sqlite3",
                     ),
                 )
             )

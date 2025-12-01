@@ -17,7 +17,7 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
-def create_flux_monitoring_tables(db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3"):
+def create_flux_monitoring_tables(db_path: str = "/data/dsa110-contimg/state/db/pipeline.sqlite3"):
     """Create calibration_monitoring table in products database.
 
     Table structure:
@@ -144,7 +144,7 @@ def record_calibration_measurement(
     amp_rms: Optional[float] = None,
     flagged_fraction: Optional[float] = None,
     notes: Optional[str] = None,
-    db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/pipeline.sqlite3",
 ) -> Optional[int]:
     """Record a calibration flux measurement.
 
@@ -217,7 +217,7 @@ def record_calibration_measurement(
 def calculate_flux_trends(
     calibrator_name: Optional[str] = None,
     time_window_days: float = 7.0,
-    db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/pipeline.sqlite3",
 ) -> Dict[str, Dict]:
     """Calculate flux scale trends over specified time window.
 
@@ -333,7 +333,7 @@ def check_flux_stability(
     drift_threshold_percent: float = 20.0,
     time_window_days: float = 7.0,
     min_measurements: int = 3,
-    db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/pipeline.sqlite3",
 ) -> Tuple[bool, List[Dict]]:
     """Check flux calibration stability and detect issues.
 
@@ -392,7 +392,7 @@ def check_flux_stability(
 
 
 def create_flux_stability_alert(
-    issue: Dict, db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3"
+    issue: Dict, db_path: str = "/data/dsa110-contimg/state/db/pipeline.sqlite3"
 ) -> Optional[int]:
     """Create a flux stability alert in the database.
 
@@ -451,7 +451,7 @@ def get_recent_flux_alerts(
     days: float = 7.0,
     severity: Optional[str] = None,
     unresolved_only: bool = True,
-    db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/pipeline.sqlite3",
 ) -> List[Dict]:
     """Get recent flux stability alerts.
 
@@ -517,7 +517,7 @@ def run_flux_monitoring_check(
     time_window_days: float = 7.0,
     min_measurements: int = 3,
     create_alerts: bool = True,
-    db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3",
+    db_path: str = "/data/dsa110-contimg/state/db/pipeline.sqlite3",
 ) -> Tuple[bool, List[Dict]]:
     """Run flux monitoring check and optionally create alerts.
 
