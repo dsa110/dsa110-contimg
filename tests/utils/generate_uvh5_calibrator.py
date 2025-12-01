@@ -112,9 +112,7 @@ def generate_uvh5(
     # Telescope and phase center metadata
     uvd.telescope_name = "DSA_110_SYNTH"
     # ECEF coordinates approx. (OVRO-like); not critical for this synthetic dataset
-    uvd.telescope_location = np.array(
-        [-2514818.0, -3959582.0, 4389076.0], dtype=float
-    )  # OVRO ITRF
+    uvd.telescope_location = np.array([-2514818.0, -3959582.0, 4389076.0], dtype=float)  # OVRO ITRF
     uvd.telescope_location_lat_lon_alt = (
         0.650,
         -2.064,
@@ -151,9 +149,7 @@ def generate_uvh5(
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(
-        description="Generate synthetic calibrator UVH5 dataset"
-    )
+    ap = argparse.ArgumentParser(description="Generate synthetic calibrator UVH5 dataset")
     ap.add_argument("--output", required=True, help="Output .uvh5 path")
     ap.add_argument("--n-ants", type=int, default=16)
     ap.add_argument("--n-times", type=int, default=4)

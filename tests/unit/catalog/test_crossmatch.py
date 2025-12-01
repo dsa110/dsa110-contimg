@@ -164,9 +164,7 @@ class TestCrossMatchDataframes:
                 radius_arcsec=10.0,
             )
             # Should return empty DataFrame with expected columns
-            assert len(matches) == 0 or (
-                isinstance(matches, pd.DataFrame) and matches.empty
-            )
+            assert len(matches) == 0 or (isinstance(matches, pd.DataFrame) and matches.empty)
         except ValueError:
             # Expected behavior when catalog is empty
             pass
@@ -184,9 +182,7 @@ class TestCalculatePositionalOffsets:
             }
         )
 
-        dra_median, ddec_median, dra_madfm, ddec_madfm = calculate_positional_offsets(
-            matches
-        )
+        dra_median, ddec_median, dra_madfm, ddec_madfm = calculate_positional_offsets(matches)
 
         assert isinstance(dra_median, u.Quantity)
         assert isinstance(ddec_median, u.Quantity)
@@ -209,8 +205,8 @@ class TestCalculatePositionalOffsets:
                 "ignore", category=RuntimeWarning, message="invalid value encountered"
             )
             try:
-                dra_median, ddec_median, dra_madfm, ddec_madfm = (
-                    calculate_positional_offsets(matches)
+                dra_median, ddec_median, dra_madfm, ddec_madfm = calculate_positional_offsets(
+                    matches
                 )
                 # If it doesn't raise, check that results are NaN or invalid
                 assert np.isnan(dra_median.to(u.arcsec).value) or np.isnan(

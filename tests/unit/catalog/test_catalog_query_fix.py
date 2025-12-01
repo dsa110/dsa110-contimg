@@ -25,9 +25,7 @@ try:
 except TypeError as e:
     print(f"✗ Scalar input failed: {e}")
 except FileNotFoundError:
-    print(
-        "✓ Scalar input handled correctly (FileNotFoundError expected - no catalog file)"
-    )
+    print("✓ Scalar input handled correctly (FileNotFoundError expected - no catalog file)")
 except Exception as e:
     print(f"✗ Unexpected error: {e}")
 

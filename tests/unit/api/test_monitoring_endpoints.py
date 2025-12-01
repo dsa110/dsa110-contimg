@@ -270,9 +270,7 @@ def test_retry_all_with_max_attempts_filter(api_client):
         "dsa110_contimg.database.data_registry.trigger_auto_publish",
         return_value=True,
     ):
-        response = api_client.post(
-            "/api/monitoring/publish/retry-all?max_attempts=3&limit=10"
-        )
+        response = api_client.post("/api/monitoring/publish/retry-all?max_attempts=3&limit=10")
 
         assert response.status_code == 200
         data = response.json()

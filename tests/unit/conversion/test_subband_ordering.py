@@ -108,9 +108,7 @@ class TestSubbandSorting:
         files = []
         for sb_num in [15, 0, 8, 1, 9, 2, 10, 3, 11, 4, 12, 5, 13, 6, 14, 7]:
             # Alternate between two timestamps to test sorting
-            timestamp = (
-                "2025-10-29T13:54:17" if sb_num % 2 == 0 else "2025-10-29T13:54:18"
-            )
+            timestamp = "2025-10-29T13:54:17" if sb_num % 2 == 0 else "2025-10-29T13:54:18"
             files.append(f"{timestamp}_sb{sb_num:02d}.hdf5")
 
         def sort_by_subband(fpath):
@@ -123,16 +121,13 @@ class TestSubbandSorting:
 
         # Extract subband numbers from sorted files
         sorted_subbands = [
-            int(_extract_subband_code(os.path.basename(f)).replace("sb", ""))
-            for f in sorted_files
+            int(_extract_subband_code(os.path.basename(f)).replace("sb", "")) for f in sorted_files
         ]
 
         # Should be 0-15 in order
         expected = list(range(16))
         assert sorted_subbands == expected, (
-            f"Subbands not sorted correctly.\n"
-            f"Expected: {expected}\n"
-            f"Got: {sorted_subbands}"
+            f"Subbands not sorted correctly.\n" f"Expected: {expected}\n" f"Got: {sorted_subbands}"
         )
 
     def test_sort_handles_missing_subband(self):

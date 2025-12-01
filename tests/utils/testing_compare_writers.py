@@ -172,18 +172,14 @@ def main():
     ap = argparse.ArgumentParser(
         description="Compare pyuvdata.write_ms vs UVFITS import path on a tiny selection"
     )
-    ap.add_argument(
-        "--in", dest="in_dir", default="/data/incoming_test/2025-09-05T03-12-56_HDF5"
-    )
+    ap.add_argument("--in", dest="in_dir", default="/data/incoming_test/2025-09-05T03-12-56_HDF5")
     ap.add_argument("--out", dest="out_dir", default="/data/output/ms_compare")
     ap.add_argument("--start", default="2025-09-05 03:12:00")
     ap.add_argument("--end", default="2025-09-05 03:13:30")
     ap.add_argument("--times", type=int, default=1)
     ap.add_argument("--chans", type=int, default=16)
     ap.add_argument("--ants", type=int, default=8)
-    ap.add_argument(
-        "--scratch", default=None, help="Scratch dir for UVFITS path (e.g., /dev/shm)"
-    )
+    ap.add_argument("--scratch", default=None, help="Scratch dir for UVFITS path (e.g., /dev/shm)")
     args = ap.parse_args()
 
     os.makedirs(args.out_dir, exist_ok=True)
@@ -263,25 +259,17 @@ def main():
     out_ms_direct = os.path.join(args.out_dir, base + "_direct_tiny.ms")
     dt_direct = ms_write_direct(uv, out_ms_direct)
     sz_direct = dir_size_bytes(out_ms_direct)
-    print(
-        "[direct] time=%.2fs size=%.1f MB -> %s"
-        % (dt_direct, sz_direct / 1e6, out_ms_direct)
-    )
+    print("[direct] time=%.2fs size=%.1f MB -> %s" % (dt_direct, sz_direct / 1e6, out_ms_direct))
 
     # B) UVFITS -> CASA import path
     out_base_uvfits = os.path.join(args.out_dir, base + "_uvfits_tiny")
     if abs_positions is None:
         # fallback: use relative as-is (writer updates ANTENNA if counts match)
         abs_positions = np.asarray(uv.antenna_positions)  # type: ignore[attr-defined]
-    dt_uvfits = ms_write_uvfits(
-        uv, out_base_uvfits, abs_positions, scratch_dir=args.scratch
-    )
+    dt_uvfits = ms_write_uvfits(uv, out_base_uvfits, abs_positions, scratch_dir=args.scratch)
     out_ms_uvfits = out_base_uvfits + ".ms"
     sz_uvfits = dir_size_bytes(out_ms_uvfits)
-    print(
-        "[uvfits] time=%.2fs size=%.1f MB -> %s"
-        % (dt_uvfits, sz_uvfits / 1e6, out_ms_uvfits)
-    )
+    print("[uvfits] time=%.2fs size=%.1f MB -> %s" % (dt_uvfits, sz_uvfits / 1e6, out_ms_uvfits))
 
     return 0
 

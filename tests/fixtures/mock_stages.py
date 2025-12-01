@@ -50,9 +50,7 @@ class MockStage(PipelineStage):
 
         # Fail if configured to fail, or if we haven't exceeded fail_count
         if self.should_fail or self._call_count <= self.fail_count:
-            raise ValueError(
-                f"Mock failure in {self.name} (attempt {self._call_count})"
-            )
+            raise ValueError(f"Mock failure in {self.name} (attempt {self._call_count})")
 
         return context.with_output(f"{self.name}_output", f"value_{self.name}")
 

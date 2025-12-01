@@ -56,9 +56,7 @@ class TestProcessParallel:
             return x * 2
 
         items = [1, 2, 3, 4, 5]
-        result = process_parallel(
-            items, failing_func, max_workers=2, show_progress=False
-        )
+        result = process_parallel(items, failing_func, max_workers=2, show_progress=False)
         assert result[0] == 2  # 1 * 2
         assert result[1] == 4  # 2 * 2
         assert result[2] is None  # Failed
@@ -72,9 +70,7 @@ class TestProcessParallel:
             raise OSError("File not found")
 
         items = [1, 2]
-        result = process_parallel(
-            items, os_error_func, max_workers=2, show_progress=False
-        )
+        result = process_parallel(items, os_error_func, max_workers=2, show_progress=False)
         assert result[0] is None
         assert result[1] is None
 
@@ -85,9 +81,7 @@ class TestProcessParallel:
             raise MemoryError("Out of memory")
 
         items = [1]
-        result = process_parallel(
-            items, memory_error_func, max_workers=1, show_progress=False
-        )
+        result = process_parallel(items, memory_error_func, max_workers=1, show_progress=False)
         assert result[0] is None
 
     def test_runtime_error_handling(self):
@@ -97,9 +91,7 @@ class TestProcessParallel:
             raise RuntimeError("Runtime error")
 
         items = [1]
-        result = process_parallel(
-            items, runtime_error_func, max_workers=1, show_progress=False
-        )
+        result = process_parallel(items, runtime_error_func, max_workers=1, show_progress=False)
         assert result[0] is None
 
     def test_unexpected_exception_handling(self):
@@ -109,9 +101,7 @@ class TestProcessParallel:
             raise KeyError("Unexpected error")
 
         items = [1]
-        result = process_parallel(
-            items, unexpected_error_func, max_workers=1, show_progress=False
-        )
+        result = process_parallel(items, unexpected_error_func, max_workers=1, show_progress=False)
         assert result[0] is None
 
     @patch("dsa110_contimg.utils.parallel.get_progress_bar")
@@ -324,9 +314,7 @@ class TestMapParallel:
 
         a_list = [1, 2, 3]
         b_list = [4, 5, 6]
-        result = map_parallel(
-            failing_add, a_list, b_list, max_workers=2, show_progress=False
-        )
+        result = map_parallel(failing_add, a_list, b_list, max_workers=2, show_progress=False)
         assert result[0] == 5
         assert result[1] is None  # Failed
         assert result[2] == 9
@@ -373,9 +361,7 @@ class TestEdgeCases:
             raise RuntimeError("Always fails")
 
         items = [1, 2, 3]
-        result = process_parallel(
-            items, always_fail, max_workers=2, show_progress=False
-        )
+        result = process_parallel(items, always_fail, max_workers=2, show_progress=False)
         assert result == [None, None, None]
 
     def test_mixed_success_failure(self):
@@ -387,9 +373,7 @@ class TestEdgeCases:
             return x * 2
 
         items = [1, 2, 3, 4, 5]
-        result = process_parallel(
-            items, conditional_func, max_workers=2, show_progress=False
-        )
+        result = process_parallel(items, conditional_func, max_workers=2, show_progress=False)
         assert result[0] == 2  # 1 * 2
         assert result[1] is None  # Failed
         assert result[2] == 6  # 3 * 2
@@ -403,9 +387,7 @@ class TestEdgeCases:
             return None
 
         items = [1, 2, 3]
-        result = process_parallel(
-            items, return_none, max_workers=2, show_progress=False
-        )
+        result = process_parallel(items, return_none, max_workers=2, show_progress=False)
         assert result == [None, None, None]
 
     def test_large_input_list(self):

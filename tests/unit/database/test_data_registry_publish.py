@@ -115,9 +115,7 @@ def test_record_publish_failure_truncates_long_error(temp_registry_db):
 
 
 @pytest.mark.unit
-def test_trigger_auto_publish_checks_max_attempts(
-    temp_registry_db, sample_staging_file
-):
+def test_trigger_auto_publish_checks_max_attempts(temp_registry_db, sample_staging_file):
     """Test trigger_auto_publish rejects max attempts exceeded."""
     conn = ensure_data_registry_db(temp_registry_db)
 
@@ -148,9 +146,7 @@ def test_trigger_auto_publish_checks_max_attempts(
 
 
 @pytest.mark.unit
-def test_trigger_auto_publish_sets_publishing_status(
-    temp_registry_db, sample_staging_file
-):
+def test_trigger_auto_publish_sets_publishing_status(temp_registry_db, sample_staging_file):
     """Test trigger_auto_publish sets status to 'publishing'."""
     conn = ensure_data_registry_db(temp_registry_db)
 
@@ -182,9 +178,7 @@ def test_trigger_auto_publish_sets_publishing_status(
 
 
 @pytest.mark.unit
-def test_trigger_auto_publish_prevents_concurrent_access(
-    temp_registry_db, sample_staging_file
-):
+def test_trigger_auto_publish_prevents_concurrent_access(temp_registry_db, sample_staging_file):
     """Test BEGIN IMMEDIATE prevents concurrent publish attempts."""
     conn1 = ensure_data_registry_db(temp_registry_db)
     conn2 = ensure_data_registry_db(temp_registry_db)

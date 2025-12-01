@@ -126,9 +126,7 @@ def test_js9_integration():
             result = init_js9()
             print(f"✓ JS9 initialization function works (result: {result})")
         except Exception as e:
-            print(
-                f"⚠ JS9 initialization error (expected without IPython): {type(e).__name__}"
-            )
+            print(f"⚠ JS9 initialization error (expected without IPython): {type(e).__name__}")
 
         # Test get_js9_init_html
         from dsa110_contimg.qa.visualization.js9 import get_js9_init_html

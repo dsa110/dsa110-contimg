@@ -114,10 +114,7 @@ def partial_read_merge(files, n_times_keep=1, n_chan_keep=16, n_ants_keep=8):
             except Exception:
                 pass
             acc.append(tmp)
-        print(
-            "       selected: Ntimes=%d Nchan=%d Nbls=%d"
-            % (tmp.Ntimes, tmp.Nfreqs, tmp.Nbls)
-        )
+        print("       selected: Ntimes=%d Nchan=%d Nbls=%d" % (tmp.Ntimes, tmp.Nfreqs, tmp.Nbls))
         print("       read dt=%.2fs" % (time.time() - t0))
 
     if acc:

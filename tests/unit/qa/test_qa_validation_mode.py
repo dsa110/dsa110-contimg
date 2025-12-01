@@ -83,12 +83,8 @@ class TestValidatePipelineFastWithMode:
         from unittest.mock import patch
 
         with patch("dsa110_contimg.qa.fast_validation.Path.exists", return_value=True):
-            with patch(
-                "dsa110_contimg.qa.fast_validation._run_tier1_validation"
-            ) as mock_tier1:
-                with patch(
-                    "dsa110_contimg.qa.fast_validation._run_tier2_validation"
-                ) as mock_tier2:
+            with patch("dsa110_contimg.qa.fast_validation._run_tier1_validation") as mock_tier1:
+                with patch("dsa110_contimg.qa.fast_validation._run_tier2_validation") as mock_tier2:
                     with patch(
                         "dsa110_contimg.qa.fast_validation._run_tier3_validation"
                     ) as mock_tier3:

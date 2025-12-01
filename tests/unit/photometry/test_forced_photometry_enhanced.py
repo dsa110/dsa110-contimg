@@ -185,9 +185,7 @@ class TestMeasureForcedPeak:
         """Test basic peak measurement without beam info."""
         tmp_fits = create_test_fits()
         try:
-            result = measure_forced_peak(
-                tmp_fits, ra_deg=180.0, dec_deg=35.0, box_size_pix=5
-            )
+            result = measure_forced_peak(tmp_fits, ra_deg=180.0, dec_deg=35.0, box_size_pix=5)
             assert isinstance(result, ForcedPhotometryResult)
             assert result.ra_deg == 180.0
             assert result.dec_deg == 35.0
@@ -269,9 +267,7 @@ class TestMeasureForcedPeak:
 
     def test_missing_file(self):
         """Test handling of missing file."""
-        result = measure_forced_peak(
-            "/nonexistent/path/image.fits", ra_deg=180.0, dec_deg=35.0
-        )
+        result = measure_forced_peak("/nonexistent/path/image.fits", ra_deg=180.0, dec_deg=35.0)
         assert isinstance(result, ForcedPhotometryResult)
         assert np.isnan(result.peak_jyb)
         assert np.isnan(result.peak_err_jyb)
@@ -503,9 +499,7 @@ class TestSourceInjection:
 
         try:
             # Inject source
-            output_path = inject_source(
-                tmp_fits, ra_deg=180.0, dec_deg=35.0, flux_jy=0.01
-            )
+            output_path = inject_source(tmp_fits, ra_deg=180.0, dec_deg=35.0, flux_jy=0.01)
             assert output_path == tmp_fits
 
             # Measure again - should be brighter
@@ -767,9 +761,7 @@ class TestEdgeCases:
         """Test with very small cutout size."""
         tmp_fits = create_test_fits_with_beam()
         try:
-            result = measure_forced_peak(
-                tmp_fits, ra_deg=180.0, dec_deg=35.0, nbeam=0.5
-            )
+            result = measure_forced_peak(tmp_fits, ra_deg=180.0, dec_deg=35.0, nbeam=0.5)
             assert isinstance(result, ForcedPhotometryResult)
         finally:
             os.unlink(tmp_fits)
@@ -778,9 +770,7 @@ class TestEdgeCases:
         """Test with very large cutout size."""
         tmp_fits = create_test_fits_with_beam()
         try:
-            result = measure_forced_peak(
-                tmp_fits, ra_deg=180.0, dec_deg=35.0, nbeam=20.0
-            )
+            result = measure_forced_peak(tmp_fits, ra_deg=180.0, dec_deg=35.0, nbeam=20.0)
             assert isinstance(result, ForcedPhotometryResult)
             # Should clip to image bounds
         finally:
