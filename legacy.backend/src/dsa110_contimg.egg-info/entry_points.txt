@@ -1,0 +1,11 @@
+[console_scripts]
+dsa110-benchmark = dsa110_contimg.benchmark.cli:main
+dsa110-calibrate = dsa110_contimg.calibration.cli:main
+dsa110-contimg-convert-stream = dsa110_contimg.conversion.streaming.streaming_converter:main
+dsa110-contimg-streaming-mosaic = dsa110_contimg.mosaic.streaming_mosaic:main
+dsa110-convert = dsa110_contimg.conversion.cli:main
+dsa110-image = dsa110_contimg.imaging.cli:main
+dsa110-mosaic = dsa110_contimg.mosaic.cli:main
+dsa110-photometry = dsa110_contimg.photometry.cli:main
+dsa110-registry = dsa110_contimg.database.registry_cli:main
+dsa110-streaming = dsa110_contimg.conversion.streaming.streaming_converter:main

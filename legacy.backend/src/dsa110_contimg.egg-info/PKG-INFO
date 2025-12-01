@@ -1,0 +1,51 @@
+Metadata-Version: 2.4
+Name: dsa110-contimg
+Version: 0.1.0
+Summary: DSA-110 Continuum Imaging Pipeline
+Author: DSA-110 Team
+License: MIT
+Keywords: radio astronomy,imaging,calibration,CASA,DSA-110
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Science/Research
+Classifier: Topic :: Scientific/Engineering :: Astronomy
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.11
+Requires-Python: >=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: astropy>=5.0.0
+Requires-Dist: numpy>=1.20.0
+Requires-Dist: scipy>=1.7.0
+Requires-Dist: pandas>=1.5.0
+Requires-Dist: h5py>=3.7.0
+Requires-Dist: fastapi>=0.104.0
+Requires-Dist: uvicorn>=0.24.0
+Requires-Dist: pydantic>=2.0.0
+Requires-Dist: click>=8.1.0
+Requires-Dist: psutil>=5.9.0
+Requires-Dist: watchdog>=3.0.0
+Requires-Dist: typing-extensions>=4.0.0
+Requires-Dist: pyyaml>=6.0
+Requires-Dist: uncertainties>=3.2.0
+Requires-Dist: healpy>=1.16.0
+Requires-Dist: pygdsm>=1.5.0
+Provides-Extra: casa
+Provides-Extra: qa
+Requires-Dist: ragavi>=0.5.2; extra == "qa"
+Provides-Extra: dev
+Requires-Dist: pytest>=7.4.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.1.0; extra == "dev"
+Requires-Dist: pytest-xdist>=3.3.0; extra == "dev"
+Requires-Dist: pytest-timeout>=2.1.0; extra == "dev"
+Requires-Dist: pytest-mock>=3.11.0; extra == "dev"
+Requires-Dist: coverage>=7.2.0; extra == "dev"
+Requires-Dist: black>=23.0.0; extra == "dev"
+Requires-Dist: isort>=5.12.0; extra == "dev"
+Requires-Dist: flake8>=6.0.0; extra == "dev"
+Requires-Dist: pylint>=3.0.0; extra == "dev"
+Requires-Dist: pyflakes>=3.0.0; extra == "dev"
+Requires-Dist: mypy>=1.4.0; extra == "dev"
+Requires-Dist: pytest-benchmark>=4.0.0; extra == "dev"
+Requires-Dist: memory-profiler>=0.61.0; extra == "dev"
+Requires-Dist: httpx>=0.25.0; extra == "dev"
+Provides-Extra: all
+Requires-Dist: dsa110-contimg[dev]; extra == "all"
