@@ -1,6 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { fn } from "storybook/test";
-import { http, HttpResponse } from "msw";
+import { action } from "@storybook/addon-actions";
 import MaskToolbar from "./MaskToolbar";
 
 /**
@@ -61,29 +60,13 @@ masks are:
   args: {
     displayId: "JS9",
     imageId: "test-image-123",
-    onMaskSaved: fn(),
-    onModeChange: fn(),
+    onMaskSaved: action("onMaskSaved"),
+    onModeChange: action("onModeChange"),
   },
 } satisfies Meta<typeof MaskToolbar>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
-
-// MSW handlers
-const successHandler = http.post("*/images/*/masks", async () => {
-  await new Promise((r) => setTimeout(r, 500)); // Simulate network delay
-  return HttpResponse.json({
-    id: "mask-abc123",
-    path: "/stage/dsa110-contimg/images/test.mask.abc123.reg",
-    format: "ds9",
-    region_count: 3,
-    created_at: new Date().toISOString(),
-  });
-});
-
-const errorHandler = http.post("*/images/*/masks", () => {
-  return new HttpResponse("Failed to save mask: disk full", { status: 500 });
-});
 
 /**
  * Default mask toolbar
@@ -92,11 +75,6 @@ export const Default: Story = {
   args: {
     displayId: "JS9",
     imageId: "image-001",
-  },
-  parameters: {
-    msw: {
-      handlers: [successHandler],
-    },
   },
 };
 
@@ -107,34 +85,11 @@ export const WithSaveCallback: Story = {
   args: {
     displayId: "JS9",
     imageId: "image-002",
-    onMaskSaved: (maskPath) => {
-      console.log("Mask saved to:", maskPath);
-      alert(`Mask saved successfully!\n\nPath: ${maskPath}`);
-    },
   },
   parameters: {
-    msw: {
-      handlers: [successHandler],
-    },
-  },
-};
-
-/**
- * Error state when save fails
- */
-export const SaveError: Story = {
-  args: {
-    displayId: "JS9",
-    imageId: "image-error",
-  },
-  parameters: {
-    msw: {
-      handlers: [errorHandler],
-    },
     docs: {
       description: {
-        story:
-          "Demonstrates error handling when the backend fails to save the mask.",
+        story: "Check the Actions panel to see onMaskSaved events.",
       },
     },
   },
@@ -193,11 +148,6 @@ export const InImageDetailPage: Story = {
   args: {
     displayId: "JS9-detail",
     imageId: "obs-2025-01-15",
-  },
-  parameters: {
-    msw: {
-      handlers: [successHandler],
-    },
   },
 };
 

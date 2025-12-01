@@ -92,6 +92,7 @@ from .routes import (
     cache_router,
     services_router,
     imaging_router,
+    absurd_router,
 )
 from .rate_limit import limiter, rate_limit_exceeded_handler
 from .websocket import ws_router
@@ -108,8 +109,8 @@ async def lifespan(app: FastAPI):
     Application lifespan context manager.
     
     Handles:
-    - Startup: Initialize Bokeh session manager and cleanup loop
-    - Shutdown: Cleanup all active sessions
+    - Startup: Initialize Bokeh session manager, ABSURD client, and cleanup loop
+    - Shutdown: Cleanup all active sessions and close ABSURD client
     """
     import logging
     logger = logging.getLogger(__name__)
@@ -125,10 +126,39 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"Could not initialize Bokeh session manager: {e}")
     
+    # Initialize ABSURD workflow manager client
+    try:
+        from dsa110_contimg.absurd import AbsurdClient, AbsurdConfig
+        from .routes.absurd import init_absurd_client, shutdown_absurd_client
+        
+        config = AbsurdConfig.from_env()
+        if config.enabled:
+            await init_absurd_client(config)
+            app.state.absurd_enabled = True
+            logger.info(f"ABSURD client initialized (queue={config.queue_name})")
+        else:
+            app.state.absurd_enabled = False
+            logger.info("ABSURD disabled (ABSURD_ENABLED=false)")
+    except ImportError as e:
+        app.state.absurd_enabled = False
+        logger.warning(f"ABSURD module not available: {e}")
+    except Exception as e:
+        app.state.absurd_enabled = False
+        logger.warning(f"Could not initialize ABSURD client: {e}")
+    
     yield
     
     # Shutdown
     logger.info("Shutting down application")
+    
+    # Shutdown ABSURD client
+    try:
+        if getattr(app.state, 'absurd_enabled', False):
+            from .routes.absurd import shutdown_absurd_client
+            await shutdown_absurd_client()
+            logger.info("ABSURD client shutdown complete")
+    except Exception as e:
+        logger.warning(f"Error shutting down ABSURD client: {e}")
     
     try:
         await shutdown_session_manager()
@@ -218,6 +248,10 @@ def create_app() -> FastAPI:
     # Legacy /api routes for backwards compatibility
     for router, _ in api_routers:
         app.include_router(router, prefix=legacy_prefix, include_in_schema=False)
+    
+    # ABSURD workflow manager - registered at /absurd (not versioned)
+    # This is a separate subsystem with its own versioning
+    app.include_router(absurd_router, prefix="/absurd", tags=["ABSURD Workflows"])
     
     # WebSocket routes for real-time updates
     app.include_router(ws_router, prefix="/api/v1", tags=["WebSocket"])

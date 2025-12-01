@@ -91,13 +91,12 @@ export const WithSaveCallback: Story = {
   args: {
     displayId: "JS9",
     compact: false,
-    onSave: action("onSave-with-alert"),
   },
   parameters: {
     docs: {
       description: {
         story:
-          "When a save callback is provided, a Save button appears alongside Export.",
+          "When a save callback is provided, a Save button appears alongside Export. Check the Actions panel to see events.",
       },
     },
   },
