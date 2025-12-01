@@ -176,6 +176,12 @@ jobs:
           echo "✓ Environment validation complete"
           echo "Note: Comprehensive validation tests run in integration-tests job"
 
+      - name: Install backend dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          pip install -e "./backend"
+
   integration-tests:
     name: Integration Tests (Synthetic Data)
     runs-on: ubuntu-latest
@@ -197,6 +203,12 @@ jobs:
           activate-environment: casa6
           environment-file: ops/docker/environment.yml
           auto-activate-base: false
+
+      - name: Install backend dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          pip install -e "./backend"
 
       - name: Generate synthetic test data
         run: |
@@ -271,6 +283,12 @@ jobs:
           activate-environment: casa6
           environment-file: ops/docker/environment.yml
           auto-activate-base: false
+
+      - name: Install backend dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          pip install -e "./backend"
 
       - name: Run performance benchmarks
         run: |
