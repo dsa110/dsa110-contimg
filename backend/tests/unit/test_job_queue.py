@@ -299,7 +299,9 @@ class TestRerunPipelineJob:
                 
                 with patch("dsa110_contimg.api.job_queue.db_create_job", return_value=1):
                     with patch("dsa110_contimg.api.job_queue.db_update_job_status"):
-                        result = rerun_pipeline_job("test_run", config={"ms_path": "/data/new.ms"})
+                        # Mock the stages_impl import that happens inside the function
+                        with patch.dict('sys.modules', {'dsa110_contimg.pipeline.stages_impl': MagicMock()}):
+                            result = rerun_pipeline_job("test_run", config={"ms_path": "/data/new.ms"})
         
         # Config override should be applied
         assert result["config"]["ms_path"] == "/data/new.ms"

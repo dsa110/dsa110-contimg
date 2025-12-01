@@ -87,9 +87,10 @@ export const WithOnErrorCallback: Story = {
   render: () => (
     <AppErrorBoundary
       onError={(error, errorInfo) => {
-        console.log("Error caught:", error);
-        console.log("Component stack:", errorInfo.componentStack);
-        // In real app: send to error tracking service
+        // Demo: In real app, send to error tracking service
+        // Using console.info here since this is intentional demo logging
+        // eslint-disable-next-line no-console
+        console.info("Error caught:", error, "Stack:", errorInfo.componentStack);
       }}
     >
       <ErrorThrower />

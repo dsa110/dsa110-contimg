@@ -2,11 +2,7 @@ import React, { useState, useCallback, useEffect, useRef } from "react";
 import { CATALOG_DEFINITIONS, CatalogDefinition } from "../../constants/catalogDefinitions";
 import CatalogLegend from "./CatalogLegend";
 import { queryCatalogCached, CatalogQueryResult, CatalogSource } from "../../utils/vizierQuery";
-
-// Aladin types - using 'any' until proper npm types are available
-// The aladin-lite module is loaded via vendor scripts, not npm
-type AladinCatalog = any;
-type AladinInstance = any;
+import type { AladinCatalog, AladinInstance } from "aladin-lite";
 
 export interface CatalogOverlayPanelProps {
   /** Currently enabled catalog IDs */

@@ -359,7 +359,7 @@ describe("CatalogOverlayPanel", () => {
 
   describe("button accessibility", () => {
     it("has type=button on toggle button", async () => {
-      const user = userEvent.setup();
+      const _user = userEvent.setup();
       render(<CatalogOverlayPanel {...defaultProps} />);
 
       // The toggle button should have type="button" implicitly or explicitly

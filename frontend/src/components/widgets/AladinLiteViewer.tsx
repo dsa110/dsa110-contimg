@@ -120,9 +120,9 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
   }, [destroyInstance, error, raDeg, decDeg, survey, showFullscreen, shouldLoad]);
 
   // Update position when coordinates change
-  // TODO: currentFov and sourceName are referenced but not in deps array.
-  // This is intentional - we only want to reposition on coordinate changes,
-  // not on FOV/name changes. Consider restructuring if this causes issues.
+  // Note: currentFov and sourceName are intentionally not in deps array.
+  // We only want to reposition on coordinate changes, not on FOV/name changes.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (aladinRef.current) {
       aladinRef.current.gotoRaDec(raDeg, decDeg);
@@ -134,9 +134,7 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
       aladinRef.current.increaseZoom();
       setCurrentFov((prev) => {
         const next = Math.max(0.001, prev / 2);
-        if (typeof (aladinRef.current as any).setFoV === "function") {
-          (aladinRef.current as any).setFoV(next);
-        }
+        aladinRef.current?.setFoV(next);
         return next;
       });
     }
@@ -147,10 +145,7 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
       aladinRef.current.decreaseZoom();
       setCurrentFov((prev) => {
         const next = Math.min(180, prev * 2);
-        // TODO: Add setFoV to AladinInstance interface
-        if (typeof (aladinRef.current as any).setFoV === "function") {
-          (aladinRef.current as any).setFoV(next);
-        }
+        aladinRef.current?.setFoV(next);
         return next;
       });
     }
