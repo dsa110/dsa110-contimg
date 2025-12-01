@@ -1,83 +1,175 @@
-# API Client
+# API Module
 
-This directory contains the HTTP client and resilience patterns for backend communication.
+This module contains API client code and type alignment tests.
 
 ## Files
 
-| File             | Purpose                                  |
-| ---------------- | ---------------------------------------- |
-| `client.ts`      | Axios-based API client with interceptors |
-| `client.test.ts` | API client unit tests                    |
-| `resilience/`    | Circuit breaker and retry logic          |
+- `client.ts` - Axios-based API client with error handling and interceptors
+- `client.test.ts` - Unit tests for the API client
+- `health.ts` - Health monitoring API hooks (React Query)
+- `absurd.ts` - ABSURD task queue API functions
+- `alignment.test.ts` - **Type alignment tests** (critical for frontend/backend sync)
+- `resilience/` - Network resilience utilities
 
-## Usage
+## Type Alignment Tests
 
-```tsx
-import apiClient from "@/api/client";
+The `alignment.test.ts` file validates that frontend TypeScript types match
+actual backend API responses. This prevents issues like:
 
-// GET request
-const response = await apiClient.get("/sources");
+- Field name mismatches (`timeline_start` vs `window_start_iso`)
+- Type mismatches (array vs Record)
+- Missing optional fields
 
-// POST request
-await apiClient.post("/images/123/rating", { tagId: "good" });
+### Running Alignment Tests
 
-// DELETE request
-await apiClient.delete("/images/123");
+```bash
+# Unit tests with fixture data (fast, no backend needed)
+npm run test:alignment
+
+# Integration tests against live backend (requires backend on :8000)
+npm run test:alignment:live
+
+# Quick structural check against live API
+npm run test:alignment:check
+npm run test:alignment:check:verbose
 ```
 
-## Resilience Features
+### Automation Strategy
 
-The API client includes built-in resilience patterns:
+The alignment tests are automated at multiple levels:
 
-### Circuit Breaker
+#### 1. Compile-Time Validation (TypeScript)
 
-Prevents cascading failures when the backend is unhealthy:
+Fixtures use `satisfies` keyword to ensure they match TypeScript types:
 
-```tsx
-import { isCircuitOpen, getCircuitBreakerState } from "@/api/resilience";
-
-if (isCircuitOpen()) {
-  // Show fallback UI or cached data
-}
+```typescript
+const FIXTURES = {
+  systemHealth: {
+    overall_status: "healthy",
+    services: [{ name: "api", status: "running" }],
+    summary: { total: 1, running: 1 },
+  } satisfies SystemHealthReport, // ← Compile error if structure wrong
+};
 ```
 
-### Automatic Retry
+**When this catches issues:** Immediately when you change type definitions.
 
-Retries failed requests with exponential backoff:
+#### 2. Unit Tests (Vitest)
 
-- Retries on 5xx errors and network failures
-- Does NOT retry on 4xx client errors
-- Configurable max retries and delays
+Run with `npm run test:alignment` - no backend needed:
 
-### Disable Retry for Specific Requests
+- Validates fixtures have required keys
+- Checks array vs Record patterns
+- Documents expected field names
+- Fast (~2 seconds)
 
-```tsx
-import { noRetry } from "@/api/resilience";
+**When this catches issues:** In CI on every PR, locally during development.
 
-// This request won't be retried on failure
-await apiClient.post("/ratings", data, noRetry());
+#### 3. Integration Tests (Live Backend)
+
+Run with `npm run test:alignment:live`:
+
+- Fetches real API responses
+- Validates structure matches types
+- Catches backend-only changes
+
+**When this catches issues:** In CI with backend service, locally with backend running.
+
+#### 4. Quick API Check (Node.js Script)
+
+Run with `npm run test:alignment:check`:
+
+- Lightweight structural validation
+- No test framework overhead
+- Exit code 0/1 for CI
+- JSON output for parsing
+
+**When this catches issues:** Pre-commit hooks, CI health checks.
+
+### CI Integration
+
+The `.github/workflows/api-alignment.yml` workflow:
+
+1. **On PR** (paths: `frontend/src/types/**`, `frontend/src/api/**`):
+
+   - Runs TypeScript type check
+   - Runs alignment unit tests
+   - Comments on PR if type files changed
+
+2. **On Push** (master/master-dev):
+   - Same as PR checks
+   - Can trigger integration tests with backend service
+
+### When to Update Fixtures
+
+Update `alignment.test.ts` fixtures when:
+
+1. **Backend API changes** - Capture new response, update fixture
+2. **Frontend type changes** - Ensure fixtures still satisfy types
+3. **New endpoints added** - Add corresponding fixture and tests
+
+### Updating Fixtures from Live API
+
+```bash
+# Start backend
+cd ../backend && uvicorn dsa110_contimg.api.main:app --port 8000
+
+# Check current alignment
+npm run test:alignment:check:verbose
+
+# If changes needed, fetch live responses:
+curl http://localhost:8000/api/v1/health/system | jq '.' > /tmp/system.json
+
+# Update fixture in alignment.test.ts to match
 ```
 
-## Error Handling
+### Test Structure
 
-All errors are normalized to `ErrorResponse` shape:
+```
+Health API Type Alignment
+├── SystemHealthReport
+│   ├── services should be an array, not a Record
+│   ├── validates required fields
+│   └── summary has correct structure
+├── ValidityTimeline
+│   ├── uses correct field names
+│   └── windows array entries have correct field names
+├── FluxMonitoringSummary
+│   └── handles normal and empty responses
+├── PointingStatus
+└── AlertsResponse
 
-```tsx
-import type { ErrorResponse } from "@/types";
+Absurd API Type Alignment
+├── Task
+├── QueueStats
+└── Worker
 
-try {
-  await apiClient.get("/sources");
-} catch (error) {
-  const err = error as ErrorResponse;
-  console.log(err.message); // User-friendly message
-  console.log(err.status); // HTTP status code
-  console.log(err.errorCode); // Application error code
-}
+Core Data API Type Alignment
+├── ImageSummary / ImageDetail
+├── SourceSummary / SourceDetail
+├── MSMetadata
+└── JobSummary / JobDetail
+
+Common API Response Patterns
+├── arrays are arrays, not Records
+├── optional message field for uninitialized states
+└── ISO timestamps are strings, MJD values are numbers
+
+Live API Integration Tests (run with INTEGRATION_TEST=true)
+├── GET /api/v1/health/system
+├── GET /api/v1/health/validity-windows/timeline
+├── GET /api/v1/health/flux-monitoring
+├── GET /api/v1/health/pointing
+└── GET /api/v1/health/alerts
 ```
 
-## Configuration
+### Key Lessons Learned
 
-The client is configured via `src/config/index.ts`:
+1. **Arrays vs Records**: Backend often returns arrays with `name` or `id`
+   properties, not `Record<string, T>`. Always check API response structure.
 
-- `config.api.baseUrl` - API base URL (default: `/api`)
-- `config.api.timeout` - Request timeout in ms
+2. **Optional message fields**: Many endpoints return `{ data: [], message: "Not initialized" }`
+   when database tables are empty. Types should have optional `message` field.
+
+3. **Field naming conventions**: Backend uses `snake_case`, TypeScript types
+   should match exactly. Don't assume camelCase transformation.

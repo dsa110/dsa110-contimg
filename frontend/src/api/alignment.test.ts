@@ -47,6 +47,7 @@ import type {
   MSMetadata,
   JobSummary,
   JobDetail,
+  JobStatus,
   ProvenanceStripProps,
 } from "../types";
 
@@ -70,7 +71,9 @@ function validateRequiredKeys<T extends object>(
   for (const key of requiredKeys) {
     if (!(key in obj)) {
       throw new Error(
-        `${typeName}: Missing required key "${String(key)}". Got keys: ${Object.keys(obj).join(", ")}`
+        `${typeName}: Missing required key "${String(
+          key
+        )}". Got keys: ${Object.keys(obj).join(", ")}`
       );
     }
   }
@@ -419,7 +422,9 @@ describe("Absurd API Type Alignment", () => {
       const task = FIXTURES.task;
 
       // These fields CAN be null according to the type
-      expect(["string", "object"]).toContain(typeof task.created_at ?? "object");
+      const createdAtType =
+        task.created_at === null ? "object" : typeof task.created_at;
+      expect(["string", "object"]).toContain(createdAtType);
       expect(task.error).toBeNull(); // Explicitly null in fixture
     });
   });
@@ -509,13 +514,21 @@ describe.skipIf(!INTEGRATION_MODE)("Live API Integration Tests", () => {
   });
 
   it("GET /api/v1/health/validity-windows/timeline matches ValidityTimeline type", async () => {
-    const res = await fetch(`${API_BASE}/api/v1/health/validity-windows/timeline`);
+    const res = await fetch(
+      `${API_BASE}/api/v1/health/validity-windows/timeline`
+    );
     const data = await res.json();
 
     expect(res.ok).toBe(true);
     validateRequiredKeys<ValidityTimeline>(
       data,
-      ["timeline_start", "timeline_end", "current_time", "windows", "total_windows"],
+      [
+        "timeline_start",
+        "timeline_end",
+        "current_time",
+        "windows",
+        "total_windows",
+      ],
       "ValidityTimeline"
     );
   });
@@ -547,5 +560,216 @@ describe.skipIf(!INTEGRATION_MODE)("Live API Integration Tests", () => {
 
     expect(res.ok).toBe(true);
     expect("alerts" in data || "message" in data).toBe(true);
+  });
+});
+
+// =============================================================================
+// Core Data Types - Images, Sources, MS, Jobs
+// =============================================================================
+
+const CORE_FIXTURES = {
+  imageSummary: {
+    id: "img-12345",
+    path: "/data/images/2025-06-02/observation_001.fits",
+    qa_grade: "good",
+    created_at: "2025-06-02T10:00:00Z",
+    run_id: "run-abc123",
+    pointing_ra_deg: 202.78,
+    pointing_dec_deg: 30.51,
+  } satisfies ImageSummary,
+
+  imageDetail: {
+    id: "img-12345",
+    path: "/data/images/2025-06-02/observation_001.fits",
+    qa_grade: "good",
+    created_at: "2025-06-02T10:00:00Z",
+    run_id: "run-abc123",
+    pointing_ra_deg: 202.78,
+    pointing_dec_deg: 30.51,
+    ms_path: "/data/ms/2025-06-02/observation_001.ms",
+    cal_table: "/data/cal/bandpass.caltable",
+    qa_summary: "Clean image with no artifacts",
+    noise_jy: 0.0001,
+    dynamic_range: 10000,
+    beam_major_arcsec: 15.0,
+    beam_minor_arcsec: 10.0,
+    beam_pa_deg: 45.0,
+    peak_flux_jy: 1.5,
+  } satisfies ImageDetail,
+
+  sourceSummary: {
+    id: "src-001",
+    name: "3C286",
+    ra_deg: 202.78,
+    dec_deg: 30.51,
+    num_images: 5,
+    eta: 0.95,
+    v: 0.02,
+    peak_flux_jy: 14.5,
+  } satisfies SourceSummary,
+
+  sourceDetail: {
+    id: "src-001",
+    name: "3C286",
+    ra_deg: 202.78,
+    dec_deg: 30.51,
+    num_images: 5,
+    eta: 0.95,
+    v: 0.02,
+    peak_flux_jy: 14.5,
+    flux_jy: 14.5,
+    integrated_flux: 14.8,
+    contributing_images: [
+      {
+        image_id: "img-001",
+        path: "/data/images/obs1.fits",
+        qa_grade: "good",
+        flux_jy: 14.5,
+      },
+    ],
+    latest_image_id: "img-001",
+  } satisfies SourceDetail,
+
+  msMetadata: {
+    path: "/data/ms/2025-06-02/observation.ms",
+    cal_table: "/data/cal/bandpass.caltable",
+    scan_id: "scan_001",
+    num_channels: 16384,
+    integration_time_s: 12.88,
+    pointing_ra_deg: 202.78,
+    pointing_dec_deg: 30.51,
+    run_id: "run-abc",
+    qa_grade: "good",
+    calibrator_matches: [
+      { type: "bandpass", cal_table: "3C286_bp.caltable" },
+      { type: "gain", cal_table: "3C286_gain.caltable" },
+    ],
+  } satisfies MSMetadata,
+
+  jobSummary: {
+    run_id: "run-abc123",
+    status: "completed",
+    started_at: "2025-06-02T09:00:00Z",
+    finished_at: "2025-06-02T10:00:00Z",
+  } satisfies JobSummary,
+
+  jobDetail: {
+    run_id: "run-abc123",
+    status: "completed",
+    started_at: "2025-06-02T09:00:00Z",
+    finished_at: "2025-06-02T10:00:00Z",
+    logs_url: "/api/jobs/run-abc123/logs",
+    config: { wsclean_args: ["-niter", "10000"] },
+  } satisfies JobDetail,
+};
+
+describe("Core Data API Type Alignment", () => {
+  describe("ImageSummary / ImageDetail", () => {
+    it("ImageSummary has required fields", () => {
+      validateRequiredKeys<ImageSummary>(
+        CORE_FIXTURES.imageSummary,
+        ["id", "path", "qa_grade", "created_at"],
+        "ImageSummary"
+      );
+    });
+
+    it("ImageDetail extends ImageSummary with detail fields", () => {
+      const detail = CORE_FIXTURES.imageDetail;
+
+      // Has all summary fields
+      validateRequiredKeys<ImageSummary>(
+        detail,
+        ["id", "path", "qa_grade", "created_at"],
+        "ImageDetail (summary fields)"
+      );
+
+      // Has optional detail fields
+      expect(detail).toHaveProperty("noise_jy");
+      expect(detail).toHaveProperty("dynamic_range");
+      expect(detail).toHaveProperty("beam_major_arcsec");
+    });
+
+    it("qa_grade can be null", () => {
+      const validGrades: ImageSummary["qa_grade"][] = [
+        "good",
+        "warn",
+        "fail",
+        null,
+      ];
+      expect(validGrades).toContain(CORE_FIXTURES.imageSummary.qa_grade);
+    });
+  });
+
+  describe("SourceSummary / SourceDetail", () => {
+    it("SourceSummary has required coordinate fields", () => {
+      validateRequiredKeys<SourceSummary>(
+        CORE_FIXTURES.sourceSummary,
+        ["id", "ra_deg", "dec_deg"],
+        "SourceSummary"
+      );
+    });
+
+    it("SourceDetail has contributing_images array", () => {
+      const detail = CORE_FIXTURES.sourceDetail;
+
+      expect(Array.isArray(detail.contributing_images)).toBe(true);
+      expect(detail.contributing_images?.[0]).toHaveProperty("image_id");
+      expect(detail.contributing_images?.[0]).toHaveProperty("path");
+    });
+
+    it("variability metrics are numbers", () => {
+      const src = CORE_FIXTURES.sourceSummary;
+
+      expect(typeof src.eta).toBe("number");
+      expect(typeof src.v).toBe("number");
+    });
+  });
+
+  describe("MSMetadata", () => {
+    it("has required path field", () => {
+      validateRequiredKeys<MSMetadata>(
+        CORE_FIXTURES.msMetadata,
+        ["path"],
+        "MSMetadata"
+      );
+    });
+
+    it("calibrator_matches is array of {type, cal_table}", () => {
+      const ms = CORE_FIXTURES.msMetadata;
+
+      expect(Array.isArray(ms.calibrator_matches)).toBe(true);
+      expect(ms.calibrator_matches?.[0]).toHaveProperty("type");
+      expect(ms.calibrator_matches?.[0]).toHaveProperty("cal_table");
+    });
+  });
+
+  describe("JobSummary / JobDetail", () => {
+    it("JobSummary has required fields", () => {
+      validateRequiredKeys<JobSummary>(
+        CORE_FIXTURES.jobSummary,
+        ["run_id", "status"],
+        "JobSummary"
+      );
+    });
+
+    it("status is valid JobStatus value", () => {
+      const validStatuses: JobStatus[] = [
+        "pending",
+        "running",
+        "completed",
+        "failed",
+      ];
+      expect(validStatuses).toContain(CORE_FIXTURES.jobSummary.status);
+    });
+
+    it("JobDetail extends JobSummary", () => {
+      const detail = CORE_FIXTURES.jobDetail;
+
+      validateRequiredKeys<JobSummary>(
+        detail,
+        ["run_id", "status"],
+        "JobDetail (summary fields)"
+      );
+    });
   });
 });
