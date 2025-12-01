@@ -322,6 +322,8 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           className="text-sm text-blue-600 hover:text-blue-800"
+          aria-expanded={isExpanded}
+          aria-label={isExpanded ? "Hide catalog options" : "Show catalog options"}
         >
           {isExpanded ? "Hide" : "Show"} options
         </button>
@@ -364,6 +366,7 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
               type="button"
               onClick={handleSelectAll}
               className="text-xs text-blue-600 hover:text-blue-800"
+              aria-label={enabledCatalogs.length === CATALOG_DEFINITIONS.length ? "Deselect all catalogs" : "Select all catalogs"}
             >
               {enabledCatalogs.length === CATALOG_DEFINITIONS.length
                 ? "Deselect all"
@@ -376,6 +379,7 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
                 setQueryResults(new Map());
               }}
               className="text-xs text-gray-500 hover:text-red-500"
+              aria-label="Clear all catalog selections and results"
             >
               Clear
             </button>

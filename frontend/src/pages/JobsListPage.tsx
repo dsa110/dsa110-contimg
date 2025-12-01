@@ -93,6 +93,7 @@ const JobsListPage: React.FC = () => {
               type="button"
               onClick={() => handleBulkAction("rerun")}
               className="px-3 py-1.5 rounded text-sm font-medium bg-blue-600 text-white hover:bg-blue-700"
+              aria-label={`Rerun ${selectedIds.length} selected jobs`}
             >
               Rerun Selected
             </button>
@@ -100,6 +101,7 @@ const JobsListPage: React.FC = () => {
               type="button"
               onClick={() => handleBulkAction("cancel")}
               className="px-3 py-1.5 rounded text-sm font-medium bg-orange-600 text-white hover:bg-orange-700"
+              aria-label={`Cancel ${selectedIds.length} selected jobs`}
             >
               Cancel Selected
             </button>
@@ -107,6 +109,7 @@ const JobsListPage: React.FC = () => {
               type="button"
               onClick={() => handleBulkAction("export")}
               className="px-3 py-1.5 rounded text-sm font-medium bg-green-600 text-white hover:bg-green-700"
+              aria-label={`Export logs for ${selectedIds.length} selected jobs`}
             >
               Export Logs
             </button>
