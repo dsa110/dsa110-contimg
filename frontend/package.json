@@ -23,7 +23,8 @@
     "test:e2e:report": "playwright show-report",
     "lint": "eslint src/",
     "lint:fix": "eslint src/ --fix",
-    "storybook": "storybook dev -p 6006",
+    "storybook": "node scripts/ensure-storybook-port.cjs && storybook dev -p 6100 --no-open",
+    "storybook:open": "node scripts/ensure-storybook-port.cjs && storybook dev -p 6100",
     "build-storybook": "storybook build"
   },
   "dependencies": {
