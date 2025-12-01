@@ -90,8 +90,25 @@ See [Security Guide](../docs/reference/security.md) for configuration details.
 
 ## Installation
 
-To set up the project, ensure you have the required dependencies specified in
-`pyproject.toml`. You can install them using:
+### Prerequisites
+
+This project requires the `casa6` conda environment with CASA 6.7, pyuvdata, and
+related dependencies.
+
+```bash
+# Activate the environment (required for ALL operations)
+conda activate casa6
+
+# Verify CASA is available
+python -c "import casatools; print('CASA OK')"
+python -c "import pyuvdata; print('pyuvdata OK')"
+```
+
+See `ops/docker/environment.yml` for the full dependency specification.
+
+### Install the Package
+
+With the `casa6` environment activated:
 
 ```bash
 pip install -e .
