@@ -9,15 +9,15 @@
 export { useImage, useSources, useSource, useJobs, useJob } from "./useQueries";
 
 // Error handling hooks
-export { useErrorHandler } from "./useErrorHandler";
-export { useErrorMapping } from "./useErrorMapping";
+export { default as useErrorHandler } from "./useErrorHandler";
+export { default as useErrorMapping } from "./useErrorMapping";
 
 // Network hooks
 export { useNetworkNotifications } from "./useNetworkNotifications";
 export { useNetworkStatus } from "./useNetworkStatus";
 
 // Provenance hook
-export { useProvenance } from "./useProvenance";
+export { default as useProvenance } from "./useProvenance";
 
 // Page-specific hooks
 export { useImageDetail } from "./useImageDetail";

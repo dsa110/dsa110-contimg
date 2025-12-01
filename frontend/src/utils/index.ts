@@ -31,7 +31,7 @@ export {
 } from "./provenanceMappers";
 
 // Fetch utilities with retry
-export { fetchWithRetry, DEFAULT_RESILIENCE_CONFIG } from "./fetchWithRetry";
+export { fetchWithRetry, DEFAULT_EXTERNAL_RETRY_CONFIG } from "./fetchWithRetry";
 
 // Service health checker
 export {
@@ -50,7 +50,7 @@ export type {
 } from "./serviceHealthChecker";
 
 // VizieR query utilities
-export { queryCatalog, CATALOG_CONFIGS } from "./vizierQuery";
+export { queryCatalog } from "./vizierQuery";
 
 export type { CatalogSource, CatalogQueryResult } from "./vizierQuery";
 
