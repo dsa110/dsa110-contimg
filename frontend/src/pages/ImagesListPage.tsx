@@ -1,7 +1,11 @@
 import React, { useMemo, useCallback, useState } from "react";
 import { Link } from "react-router-dom";
 import { useImages } from "../hooks/useQueries";
-import { PageSkeleton, SortableTableHeader, useTableSort } from "../components/common";
+import {
+  PageSkeleton,
+  SortableTableHeader,
+  useTableSort,
+} from "../components/common";
 import { WidgetErrorBoundary, SimpleErrorAlert } from "../components/errors";
 import { BulkDownloadPanel } from "../components/download";
 import { config } from "../config";
@@ -51,7 +55,10 @@ const ImagesListPage: React.FC = () => {
   const selectAllImages = useSelectionStore((s) => s.selectAllImages);
   const clearImageSelection = useSelectionStore((s) => s.clearImageSelection);
 
-  const selectedIds = useMemo(() => Array.from(selectedImages), [selectedImages]);
+  const selectedIds = useMemo(
+    () => Array.from(selectedImages),
+    [selectedImages]
+  );
 
   const handleSelectionChange = useCallback(
     (ids: string[]) => {
@@ -64,11 +71,16 @@ const ImagesListPage: React.FC = () => {
     [clearImageSelection, selectAllImages]
   );
 
-  const handleBulkDownload = useCallback(async (ids: string[], format: string) => {
-    const baseUrl = config.api.baseUrl;
-    const url = `${baseUrl}/images/bulk-download?ids=${ids.join(",")}&format=${format}`;
-    window.open(url, "_blank", "noopener,noreferrer");
-  }, []);
+  const handleBulkDownload = useCallback(
+    async (ids: string[], format: string) => {
+      const baseUrl = config.api.baseUrl;
+      const url = `${baseUrl}/images/bulk-download?ids=${ids.join(
+        ","
+      )}&format=${format}`;
+      window.open(url, "_blank", "noopener,noreferrer");
+    },
+    []
+  );
 
   // Apply filters
   const filteredImages = useMemo(() => {
@@ -81,7 +93,9 @@ const ImagesListPage: React.FC = () => {
     if (filterValues.search && typeof filterValues.search === "string") {
       const term = filterValues.search.toLowerCase();
       result = result.filter(
-        (img) => img.path?.toLowerCase().includes(term) || img.id.toLowerCase().includes(term)
+        (img) =>
+          img.path?.toLowerCase().includes(term) ||
+          img.id.toLowerCase().includes(term)
       );
     }
 
@@ -89,12 +103,11 @@ const ImagesListPage: React.FC = () => {
   }, [images, filterValues]);
 
   // Apply sorting using the hook with filtered data
-  const {
-    sortColumn,
-    sortDirection,
-    handleSort,
-    sortedData: sortedImages,
-  } = useTableSort<ImageItem>(filteredImages, "created_at", "desc");
+  const { sortColumn, sortDirection, handleSort, sortedData } =
+    useTableSort<ImageItem>(filteredImages, "created_at", "desc");
+
+  // Ensure sortedImages is never undefined
+  const sortedImages = sortedData ?? [];
 
   // Prepare items for bulk download panel - must be before early returns
   const downloadItems = useMemo(
@@ -125,7 +138,9 @@ const ImagesListPage: React.FC = () => {
   }
 
   if (error) {
-    return <SimpleErrorAlert message={`Failed to load images: ${error.message}`} />;
+    return (
+      <SimpleErrorAlert message={`Failed to load images: ${error.message}`} />
+    );
   }
 
   return (
@@ -134,14 +149,18 @@ const ImagesListPage: React.FC = () => {
         <div className="flex items-center gap-4">
           <h1 className="text-2xl font-bold text-gray-900">Images</h1>
           {selectedIds.length > 0 && (
-            <span className="text-sm text-gray-500">{selectedIds.length} selected</span>
+            <span className="text-sm text-gray-500">
+              {selectedIds.length} selected
+            </span>
           )}
         </div>
         <div className="flex gap-2">
           {selectedIds.length >= 2 && selectedIds.length <= 4 && (
             <button
               type="button"
-              onClick={() => setViewMode(viewMode === "compare" ? "list" : "compare")}
+              onClick={() =>
+                setViewMode(viewMode === "compare" ? "list" : "compare")
+              }
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 viewMode === "compare"
                   ? "bg-purple-600 text-white"
@@ -175,7 +194,9 @@ const ImagesListPage: React.FC = () => {
               <FitsViewerGrid
                 fitsUrls={comparisonUrls}
                 labels={comparisonLabels}
-                columns={selectedIds.length <= 2 ? 2 : selectedIds.length <= 3 ? 3 : 4}
+                columns={
+                  selectedIds.length <= 2 ? 2 : selectedIds.length <= 3 ? 3 : 4
+                }
                 viewerSize={350}
                 syncViews
               />
@@ -204,11 +225,15 @@ const ImagesListPage: React.FC = () => {
                 <th className="w-10 px-3 py-3">
                   <input
                     type="checkbox"
-                    checked={selectedIds.length === sortedImages.length && sortedImages.length > 0}
+                    checked={
+                      selectedIds.length === sortedImages.length &&
+                      sortedImages.length > 0
+                    }
                     ref={(el) => {
                       if (el)
                         el.indeterminate =
-                          selectedIds.length > 0 && selectedIds.length < sortedImages.length;
+                          selectedIds.length > 0 &&
+                          selectedIds.length < sortedImages.length;
                     }}
                     onChange={() => {
                       if (selectedIds.length === sortedImages.length) {
@@ -250,7 +275,10 @@ const ImagesListPage: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {sortedImages.map((image) => (
-                <tr key={image.id} className={selectedImages.has(image.id) ? "bg-blue-50" : ""}>
+                <tr
+                  key={image.id}
+                  className={selectedImages.has(image.id) ? "bg-blue-50" : ""}
+                >
                   <td className="px-3">
                     <input
                       type="checkbox"
@@ -283,7 +311,9 @@ const ImagesListPage: React.FC = () => {
                     )}
                   </td>
                   <td className="text-right text-gray-500">
-                    {image.created_at ? new Date(image.created_at).toLocaleDateString() : "—"}
+                    {image.created_at
+                      ? new Date(image.created_at).toLocaleDateString()
+                      : "—"}
                   </td>
                 </tr>
               ))}

@@ -3,17 +3,29 @@ import { useParams, Link } from "react-router-dom";
 import { useJobProvenance, useRerunJob } from "../hooks/useQueries";
 import ProvenanceStrip from "../components/provenance/ProvenanceStrip";
 import ErrorDisplay from "../components/errors/ErrorDisplay";
-import { Card, CoordinateDisplay, QAMetrics, LoadingSpinner } from "../components/common";
+import {
+  Card,
+  CoordinateDisplay,
+  QAMetrics,
+  LoadingSpinner,
+} from "../components/common";
 import type { ErrorResponse } from "../types/errors";
 import { relativeTime } from "../utils/relativeTime";
 import { usePreferencesStore } from "../stores/appStore";
 
 type JobStatus = "pending" | "running" | "completed" | "failed";
 
-const statusConfig: Record<JobStatus, { bg: string; text: string; dot: string }> = {
+const statusConfig: Record<
+  JobStatus,
+  { bg: string; text: string; dot: string }
+> = {
   pending: { bg: "bg-gray-100", text: "text-gray-700", dot: "bg-gray-500" },
   running: { bg: "bg-blue-100", text: "text-blue-700", dot: "bg-blue-500" },
-  completed: { bg: "bg-green-100", text: "text-green-700", dot: "bg-green-500" },
+  completed: {
+    bg: "bg-green-100",
+    text: "text-green-700",
+    dot: "bg-green-500",
+  },
   failed: { bg: "bg-red-100", text: "text-red-700", dot: "bg-red-500" },
 };
 
@@ -22,10 +34,17 @@ const statusConfig: Record<JobStatus, { bg: string; text: string; dot: string }>
  */
 const JobDetailPage: React.FC = () => {
   const { runId } = useParams<{ runId: string }>();
-  const { data: provenance, isLoading, error, refetch } = useJobProvenance(runId);
+  const {
+    data: provenance,
+    isLoading,
+    error,
+    refetch,
+  } = useJobProvenance(runId);
   const addRecentJob = usePreferencesStore((state) => state.addRecentJob);
   const rerunMutation = useRerunJob();
-  const [rerunStatus, setRerunStatus] = useState<"idle" | "pending" | "success" | "error">("idle");
+  const [rerunStatus, setRerunStatus] = useState<
+    "idle" | "pending" | "success" | "error"
+  >("idle");
 
   // Handle re-running the job
   const handleRerunJob = useCallback(async () => {
@@ -58,7 +77,10 @@ const JobDetailPage: React.FC = () => {
   if (error) {
     return (
       <div className="max-w-4xl mx-auto p-6">
-        <ErrorDisplay error={error as unknown as ErrorResponse} onRetry={() => refetch()} />
+        <ErrorDisplay
+          error={error as unknown as ErrorResponse}
+          onRetry={() => refetch()}
+        />
       </div>
     );
   }
@@ -88,7 +110,10 @@ const JobDetailPage: React.FC = () => {
     <div className="max-w-6xl mx-auto p-6">
       {/* Header */}
       <div className="mb-6">
-        <Link to="/jobs" className="text-sm text-gray-500 hover:text-gray-700 mb-2 inline-block">
+        <Link
+          to="/jobs"
+          className="text-sm text-gray-500 hover:text-gray-700 mb-2 inline-block"
+        >
           Back to Jobs
         </Link>
         <div className="flex items-center gap-3 mb-2">
@@ -96,7 +121,10 @@ const JobDetailPage: React.FC = () => {
           <span
             className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium ${statusInfo.bg} ${statusInfo.text}`}
           >
-            <span className={`h-2.5 w-2.5 rounded-full ${statusInfo.dot}`} aria-hidden="true" />
+            <span
+              className={`h-2.5 w-2.5 rounded-full ${statusInfo.dot}`}
+              aria-hidden="true"
+            />
             <span className="capitalize">{status}</span>
           </span>
         </div>
@@ -113,14 +141,21 @@ const JobDetailPage: React.FC = () => {
               <div
                 className={`p-4 rounded-lg ${statusInfo.bg} flex items-center justify-center gap-2`}
               >
-                <span className={`h-3 w-3 rounded-full ${statusInfo.dot}`} aria-hidden="true" />
-                <span className={`text-lg font-semibold ${statusInfo.text} capitalize`}>
+                <span
+                  className={`h-3 w-3 rounded-full ${statusInfo.dot}`}
+                  aria-hidden="true"
+                />
+                <span
+                  className={`text-lg font-semibold ${statusInfo.text} capitalize`}
+                >
                   {status}
                 </span>
               </div>
               {provenance.createdAt && (
                 <div>
-                  <dt className="text-xs text-gray-500 uppercase tracking-wide">Started</dt>
+                  <dt className="text-xs text-gray-500 uppercase tracking-wide">
+                    Started
+                  </dt>
                   <dd className="text-sm text-gray-900">
                     {new Date(provenance.createdAt).toLocaleString()}
                     <span className="text-gray-500 ml-1">
@@ -146,7 +181,10 @@ const JobDetailPage: React.FC = () => {
                 </a>
               )}
               {provenance.imageUrl && (
-                <Link to={provenance.imageUrl} className="btn btn-primary text-center">
+                <Link
+                  to={provenance.imageUrl}
+                  className="btn btn-primary text-center"
+                >
                   View Output Image
                 </Link>
               )}
@@ -191,28 +229,33 @@ const JobDetailPage: React.FC = () => {
           {provenance.qaGrade && (
             <Card title="Quality Assessment">
               <QAMetrics
-                grade={provenance.qaGrade as "good" | "warn" | "fail" | undefined}
+                grade={
+                  provenance.qaGrade as "good" | "warn" | "fail" | undefined
+                }
                 summary={provenance.qaSummary}
               />
             </Card>
           )}
 
           {/* Pointing coordinates */}
-          {provenance.pointingRaDeg !== undefined && provenance.pointingDecDeg !== undefined && (
-            <Card title="Pointing">
-              <CoordinateDisplay
-                raDeg={provenance.pointingRaDeg}
-                decDeg={provenance.pointingDecDeg}
-                showDecimal
-              />
-            </Card>
-          )}
+          {provenance.pointingRaDeg != null &&
+            provenance.pointingDecDeg != null && (
+              <Card title="Pointing">
+                <CoordinateDisplay
+                  raDeg={provenance.pointingRaDeg}
+                  decDeg={provenance.pointingDecDeg}
+                  showDecimal
+                />
+              </Card>
+            )}
 
           {/* Input/Output details */}
           <Card title="Pipeline Details">
             <dl className="grid grid-cols-1 gap-4">
               <div>
-                <dt className="text-xs text-gray-500 uppercase tracking-wide">Run ID</dt>
+                <dt className="text-xs text-gray-500 uppercase tracking-wide">
+                  Run ID
+                </dt>
                 <dd className="font-mono text-sm text-gray-900 break-all">
                   {provenance.runId || runId}
                 </dd>
@@ -266,7 +309,9 @@ const JobDetailPage: React.FC = () => {
                     MS
                   </span>
                   <div>
-                    <div className="font-medium text-gray-900">Measurement Set</div>
+                    <div className="font-medium text-gray-900">
+                      Measurement Set
+                    </div>
                     <div className="text-xs text-gray-500">View MS details</div>
                   </div>
                 </Link>
@@ -280,8 +325,12 @@ const JobDetailPage: React.FC = () => {
                     IMG
                   </span>
                   <div>
-                    <div className="font-medium text-gray-900">Output Image</div>
-                    <div className="text-xs text-gray-500">View image details</div>
+                    <div className="font-medium text-gray-900">
+                      Output Image
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      View image details
+                    </div>
                   </div>
                 </Link>
               )}
@@ -313,7 +362,9 @@ const JobDetailPage: React.FC = () => {
                   </span>
                   <div>
                     <div className="font-medium text-gray-900">QA Report</div>
-                    <div className="text-xs text-gray-500">Quality assessment</div>
+                    <div className="text-xs text-gray-500">
+                      Quality assessment
+                    </div>
                   </div>
                 </a>
               )}

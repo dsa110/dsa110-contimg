@@ -75,7 +75,8 @@ export const absurdQueryKeys = {
   workflows: ["absurd", "workflows"] as const,
   workflowList: (params?: { status?: string }) =>
     ["absurd", "workflows", "list", params ?? {}] as const,
-  workflow: (workflowId: string) => ["absurd", "workflows", workflowId] as const,
+  workflow: (workflowId: string) =>
+    ["absurd", "workflows", workflowId] as const,
 
   // DLQ
   dlq: ["absurd", "dlq"] as const,
@@ -111,8 +112,8 @@ export function useTask(taskId: string | undefined) {
     queryKey: absurdQueryKeys.task(taskId ?? ""),
     queryFn: () => getTask(taskId!),
     enabled: !!taskId,
-    refetchInterval: (data) =>
-      data?.status === "claimed" ? 2000 : 10000, // Faster refresh for running tasks
+    refetchInterval: (query) =>
+      query.state.data?.status === "claimed" ? 2000 : 10000, // Faster refresh for running tasks
   });
 }
 
@@ -280,8 +281,8 @@ export function useWorkflow(workflowId: string | undefined) {
     queryKey: absurdQueryKeys.workflow(workflowId ?? ""),
     queryFn: () => getWorkflow(workflowId!),
     enabled: !!workflowId,
-    refetchInterval: (data) =>
-      data?.status === "running" ? 2000 : 10000,
+    refetchInterval: (query) =>
+      query.state.data?.status === "running" ? 2000 : 10000,
   });
 }
 
