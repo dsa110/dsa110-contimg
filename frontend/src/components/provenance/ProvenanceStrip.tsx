@@ -24,7 +24,7 @@ const ProvenanceStrip: React.FC<ProvenanceStripProps> = ({
     <span className="provenance-item">
       <strong>{label}</strong>{" "}
       {url ? (
-        <a href={url} target="_blank" rel="noreferrer">
+        <a href={url} target="_blank" rel="noopener noreferrer">
           {value}
         </a>
       ) : (

@@ -45,20 +45,37 @@ interface TimelineBarProps {
   totalWidth: number;
 }
 
-function TimelineBar({ entry, windowStartTime, windowEndTime, totalWidth }: TimelineBarProps) {
-  const startTime = new Date(entry.valid_start_iso).getTime();
-  const endTime = new Date(entry.valid_end_iso).getTime();
+function TimelineBar({
+  entry,
+  windowStartTime,
+  windowEndTime,
+  totalWidth,
+}: TimelineBarProps) {
+  const startTime = new Date(entry.start_iso).getTime();
+  const endTime = new Date(entry.end_iso).getTime();
   const windowDuration = windowEndTime - windowStartTime;
-  
-  const left = Math.max(0, ((startTime - windowStartTime) / windowDuration) * totalWidth);
-  const right = Math.min(totalWidth, ((endTime - windowStartTime) / windowDuration) * totalWidth);
+
+  const left = Math.max(
+    0,
+    ((startTime - windowStartTime) / windowDuration) * totalWidth
+  );
+  const right = Math.min(
+    totalWidth,
+    ((endTime - windowStartTime) / windowDuration) * totalWidth
+  );
   const width = Math.max(2, right - left);
-  
+
   return (
     <div
-      className={`absolute h-6 rounded ${getTableColor(entry.table_type)} opacity-80 hover:opacity-100 transition-opacity cursor-pointer`}
+      className={`absolute h-6 rounded ${getTableColor(
+        entry.table_type
+      )} opacity-80 hover:opacity-100 transition-opacity cursor-pointer`}
       style={{ left: `${left}%`, width: `${width}%` }}
-      title={`${entry.set_name} (${entry.table_type})\n${formatDate(entry.valid_start_iso)} ${formatTime(entry.valid_start_iso)} - ${formatTime(entry.valid_end_iso)}\n${entry.is_current ? "✓ Active" : ""}`}
+      title={`${entry.set_name} (${entry.table_type})\n${formatDate(
+        entry.start_iso
+      )} ${formatTime(entry.start_iso)} - ${formatTime(entry.end_iso)}\n${
+        entry.is_current ? "✓ Active" : ""
+      }`}
     >
       <span className="text-xs text-white px-1 truncate block leading-6">
         {entry.table_type}
@@ -72,60 +89,67 @@ export function ValidityWindowTimeline({
   hoursForward = 24,
   className = "",
 }: ValidityWindowTimelineProps) {
-  const { data, isLoading, error } = useValidityTimeline(hoursBack, hoursForward);
-  
+  const { data, isLoading, error } = useValidityTimeline(
+    hoursBack,
+    hoursForward
+  );
+
   const timeMarkers = useMemo(() => {
     if (!data) return [];
-    const start = new Date(data.window_start_iso).getTime();
-    const end = new Date(data.window_end_iso).getTime();
+    const start = new Date(data.timeline_start).getTime();
+    const end = new Date(data.timeline_end).getTime();
     const duration = end - start;
     const markers: { position: number; label: string; isNow: boolean }[] = [];
-    
+
     // Add markers every 6 hours
     const interval = 6 * 60 * 60 * 1000;
     let current = Math.ceil(start / interval) * interval;
-    
+
     while (current < end) {
       const position = ((current - start) / duration) * 100;
       const date = new Date(current);
       markers.push({
         position,
-        label: `${formatDate(date.toISOString())} ${formatTime(date.toISOString())}`,
+        label: `${formatDate(date.toISOString())} ${formatTime(
+          date.toISOString()
+        )}`,
         isNow: false,
       });
       current += interval;
     }
-    
+
     // Add "now" marker
-    const now = new Date(data.query_iso).getTime();
+    const now = new Date(data.current_time).getTime();
     const nowPosition = ((now - start) / duration) * 100;
     markers.push({
       position: nowPosition,
       label: "Now",
       isNow: true,
     });
-    
+
     return markers;
   }, [data]);
-  
+
   const groupedEntries = useMemo(() => {
-    if (!data?.entries) return new Map<string, ValidityTimelineEntry[]>();
+    if (!data?.windows) return new Map<string, ValidityTimelineEntry[]>();
     const groups = new Map<string, ValidityTimelineEntry[]>();
-    
-    for (const entry of data.entries) {
+
+    for (const entry of data.windows) {
       const key = entry.set_name;
       if (!groups.has(key)) {
         groups.set(key, []);
       }
       groups.get(key)!.push(entry);
     }
-    
+
     return groups;
   }, [data]);
-  
+
   if (isLoading) {
     return (
-      <div className={`bg-white dark:bg-gray-800 rounded-lg shadow p-4 ${className}`}>
+      <div
+        className={`bg-white dark:bg-gray-800 rounded-lg shadow p-4 ${className}`}
+      >
         <div className="animate-pulse">
           <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4" />
           <div className="h-32 bg-gray-200 dark:bg-gray-700 rounded" />
@@ -133,18 +157,22 @@ export function ValidityWindowTimeline({
       </div>
     );
   }
-  
+
   if (error) {
     return (
-      <div className={`bg-white dark:bg-gray-800 rounded-lg shadow p-4 ${className}`}>
+      <div
+        className={`bg-white dark:bg-gray-800 rounded-lg shadow p-4 ${className}`}
+      >
         <div className="text-red-500">Failed to load validity timeline</div>
       </div>
     );
   }
-  
-  if (!data || data.entries.length === 0) {
+
+  if (!data || data.windows.length === 0) {
     return (
-      <div className={`bg-white dark:bg-gray-800 rounded-lg shadow p-4 ${className}`}>
+      <div
+        className={`bg-white dark:bg-gray-800 rounded-lg shadow p-4 ${className}`}
+      >
         <h3 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">
           Calibration Validity Windows
         </h3>
@@ -154,12 +182,14 @@ export function ValidityWindowTimeline({
       </div>
     );
   }
-  
-  const windowStartTime = new Date(data.window_start_iso).getTime();
-  const windowEndTime = new Date(data.window_end_iso).getTime();
-  
+
+  const windowStartTime = new Date(data.timeline_start).getTime();
+  const windowEndTime = new Date(data.timeline_end).getTime();
+
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow p-4 ${className}`}>
+    <div
+      className={`bg-white dark:bg-gray-800 rounded-lg shadow p-4 ${className}`}
+    >
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
           Calibration Validity Windows
@@ -173,7 +203,7 @@ export function ValidityWindowTimeline({
           ))}
         </div>
       </div>
-      
+
       {/* Timeline */}
       <div className="relative">
         {/* Time axis */}
@@ -182,25 +212,35 @@ export function ValidityWindowTimeline({
             <div
               key={idx}
               className="absolute top-0 h-full flex flex-col items-center"
-              style={{ left: `${marker.position}%`, transform: "translateX(-50%)" }}
+              style={{
+                left: `${marker.position}%`,
+                transform: "translateX(-50%)",
+              }}
             >
               <div
-                className={`w-px h-3 ${marker.isNow ? "bg-red-500" : "bg-gray-400"}`}
+                className={`w-px h-3 ${
+                  marker.isNow ? "bg-red-500" : "bg-gray-400"
+                }`}
               />
               <span
-                className={`text-xs ${marker.isNow ? "text-red-500 font-bold" : "text-gray-500"}`}
+                className={`text-xs ${
+                  marker.isNow ? "text-red-500 font-bold" : "text-gray-500"
+                }`}
               >
                 {marker.label}
               </span>
             </div>
           ))}
         </div>
-        
+
         {/* Timeline rows */}
         <div className="space-y-2">
           {Array.from(groupedEntries.entries()).map(([setName, entries]) => (
             <div key={setName} className="flex items-center gap-2">
-              <div className="w-32 text-sm text-gray-600 dark:text-gray-400 truncate" title={setName}>
+              <div
+                className="w-32 text-sm text-gray-600 dark:text-gray-400 truncate"
+                title={setName}
+              >
                 {setName.split("_").slice(-2).join("_")}
               </div>
               <div className="flex-1 relative h-6 bg-gray-100 dark:bg-gray-700 rounded">
@@ -217,20 +257,24 @@ export function ValidityWindowTimeline({
             </div>
           ))}
         </div>
-        
+
         {/* Now line */}
         <div
           className="absolute top-6 bottom-0 w-px bg-red-500 z-10"
           style={{
-            left: `${((new Date(data.query_iso).getTime() - windowStartTime) / (windowEndTime - windowStartTime)) * 100}%`,
+            left: `${
+              ((new Date(data.current_time).getTime() - windowStartTime) /
+                (windowEndTime - windowStartTime)) *
+              100
+            }%`,
           }}
         />
       </div>
-      
+
       <div className="mt-4 text-xs text-gray-500 dark:text-gray-400">
-        {data.total_entries} calibration tables shown •{" "}
-        {formatDate(data.window_start_iso)} {formatTime(data.window_start_iso)} to{" "}
-        {formatDate(data.window_end_iso)} {formatTime(data.window_end_iso)}
+        {data.total_windows} calibration tables shown •{" "}
+        {formatDate(data.timeline_start)} {formatTime(data.timeline_start)} to{" "}
+        {formatDate(data.timeline_end)} {formatTime(data.timeline_end)}
       </div>
     </div>
   );

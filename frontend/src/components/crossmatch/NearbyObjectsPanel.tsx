@@ -255,7 +255,7 @@ const NearbyObjectsPanel: React.FC<NearbyObjectsPanelProps> = ({
                     <tr key={`${obj.database}-${obj.name}-${idx}`}>
                       <td>
                         {url ? (
-                          <a href={url} target="_blank" rel="noreferrer" className="link">
+                          <a href={url} target="_blank" rel="noopener noreferrer" className="link">
                             {obj.name}
                           </a>
                         ) : (

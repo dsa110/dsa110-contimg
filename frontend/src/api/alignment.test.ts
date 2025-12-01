@@ -1,0 +1,551 @@
+/**
+ * API/Frontend Type Alignment Tests
+ *
+ * These tests validate that backend API responses match frontend TypeScript types.
+ * They can be run in two modes:
+ *
+ * 1. Unit mode (default): Uses fixture data that mirrors real API responses
+ * 2. Integration mode: Runs against real backend (set INTEGRATION_TEST=true)
+ *
+ * The fixtures are derived from actual API responses and should be updated
+ * when the backend API changes.
+ */
+
+import { describe, it, expect } from "vitest";
+
+// Import ALL types that correspond to API responses
+import type {
+  SystemHealthReport,
+  ValidityTimeline,
+  ValidityTimelineEntry,
+  FluxMonitoringSummary,
+  PointingStatus,
+  AlertsResponse,
+  ActiveValidityWindows,
+  FluxHistory,
+  ServiceHealthStatus,
+} from "../types/health";
+
+import type {
+  Task,
+  TaskListResponse,
+  QueueStats,
+  Worker,
+  WorkerListResponse,
+  WorkerMetrics,
+  AbsurdMetrics,
+  AbsurdHealth,
+  Workflow,
+  WorkflowDetail,
+} from "../types/absurd";
+
+import type {
+  ImageSummary,
+  ImageDetail,
+  SourceSummary,
+  SourceDetail,
+  MSMetadata,
+  JobSummary,
+  JobDetail,
+  ProvenanceStripProps,
+} from "../types";
+
+// =============================================================================
+// Type-safe validation helpers
+// =============================================================================
+
+/**
+ * Validates that an object has all required keys of a type.
+ * Returns true if valid, throws descriptive error if not.
+ */
+function validateRequiredKeys<T extends object>(
+  obj: unknown,
+  requiredKeys: (keyof T)[],
+  typeName: string
+): obj is T {
+  if (typeof obj !== "object" || obj === null) {
+    throw new Error(`${typeName}: Expected object, got ${typeof obj}`);
+  }
+
+  for (const key of requiredKeys) {
+    if (!(key in obj)) {
+      throw new Error(
+        `${typeName}: Missing required key "${String(key)}". Got keys: ${Object.keys(obj).join(", ")}`
+      );
+    }
+  }
+
+  return true;
+}
+
+/**
+ * Validates array items against a validator function.
+ */
+function validateArray<T>(
+  arr: unknown,
+  itemValidator: (item: unknown, index: number) => item is T,
+  typeName: string
+): arr is T[] {
+  if (!Array.isArray(arr)) {
+    throw new Error(`${typeName}: Expected array, got ${typeof arr}`);
+  }
+
+  arr.forEach((item, index) => {
+    itemValidator(item, index);
+  });
+
+  return true;
+}
+
+// =============================================================================
+// Fixture data (mirrors actual API responses)
+// Update these when backend changes!
+// =============================================================================
+
+const FIXTURES = {
+  // --- Health API fixtures ---
+  systemHealth: {
+    overall_status: "healthy",
+    services: [
+      {
+        name: "uvicorn-api",
+        status: "running",
+        message: "HTTP 200 in 50ms",
+        response_time_ms: 50,
+      },
+      {
+        name: "streaming-converter",
+        status: "running",
+        message: "Active",
+      },
+    ],
+    docker_available: true,
+    systemd_available: true,
+    summary: {
+      total: 2,
+      running: 2,
+      healthy: 2,
+    },
+    checked_at: "2025-06-02T12:00:00Z",
+    timestamp: "2025-06-02T12:00:00Z",
+  } satisfies SystemHealthReport,
+
+  validityTimeline: {
+    timeline_start: "2025-06-01T12:00:00Z",
+    timeline_end: "2025-06-03T12:00:00Z",
+    current_time: "2025-06-02T12:00:00Z",
+    current_mjd: 60460.5,
+    windows: [
+      {
+        set_name: "3C286_60459",
+        table_type: "bandpass",
+        cal_field: "3C286",
+        refant: "2",
+        start_mjd: 60459.0,
+        end_mjd: 60461.0,
+        start_iso: "2025-06-01T00:00:00Z",
+        end_iso: "2025-06-03T00:00:00Z",
+        duration_hours: 48.0,
+        is_current: true,
+      },
+    ],
+    total_windows: 1,
+  } satisfies ValidityTimeline,
+
+  fluxMonitoring: {
+    calibrators: [
+      {
+        calibrator_name: "3C286",
+        n_measurements: 100,
+        latest_mjd: 60460.5,
+        latest_flux_ratio: 0.98,
+        mean_flux_ratio: 1.0,
+        flux_ratio_std: 0.02,
+        is_stable: true,
+        alerts_count: 0,
+      },
+    ],
+    total_measurements: 100,
+    total_alerts: 0,
+    last_check_time: "2025-06-02T12:00:00Z",
+  } satisfies FluxMonitoringSummary,
+
+  // Flux monitoring when table not initialized
+  fluxMonitoringEmpty: {
+    calibrators: [],
+    message: "Flux monitoring table not initialized",
+  } satisfies FluxMonitoringSummary,
+
+  pointingStatus: {
+    current_lst: 12.5,
+    current_lst_deg: 187.5,
+    active_calibrator: "3C286",
+    upcoming_transits: [
+      {
+        calibrator: "3C286",
+        ra_deg: 202.78,
+        dec_deg: 30.51,
+        transit_utc: "2025-06-02T14:00:00Z",
+        time_to_transit_sec: 7200,
+        lst_at_transit: 13.5,
+        elevation_at_transit: 75.0,
+        status: "upcoming",
+      },
+    ],
+    timestamp: "2025-06-02T12:00:00Z",
+  } satisfies PointingStatus,
+
+  alerts: {
+    alerts: [
+      {
+        id: 1,
+        alert_type: "flux_deviation",
+        severity: "warning",
+        calibrator_name: "3C48",
+        message: "Flux ratio deviation > 5%",
+        triggered_at: "2025-06-02T11:00:00Z",
+        acknowledged: false,
+      },
+    ],
+    total_count: 1,
+    unacknowledged_count: 1,
+  } satisfies AlertsResponse,
+
+  // Alerts when table not initialized
+  alertsEmpty: {
+    alerts: [],
+    message: "Monitoring alerts table not initialized",
+  } satisfies AlertsResponse,
+
+  // --- Absurd API fixtures ---
+  task: {
+    task_id: "task-123",
+    queue_name: "default",
+    task_name: "process_image",
+    params: { image_id: "img-456" },
+    priority: 0,
+    status: "completed",
+    created_at: "2025-06-02T10:00:00Z",
+    claimed_at: "2025-06-02T10:01:00Z",
+    completed_at: "2025-06-02T10:05:00Z",
+    result: { success: true },
+    error: null,
+    retry_count: 0,
+  } satisfies Task,
+
+  queueStats: {
+    queue_name: "default",
+    pending: 5,
+    claimed: 2,
+    completed: 100,
+    failed: 3,
+    cancelled: 1,
+    total: 111,
+  } satisfies QueueStats,
+
+  worker: {
+    worker_id: "worker-abc",
+    state: "active",
+    task_count: 50,
+    current_task_id: "task-789",
+    first_seen: "2025-06-01T00:00:00Z",
+    last_seen: "2025-06-02T12:00:00Z",
+    uptime_seconds: 129600,
+  } satisfies Worker,
+};
+
+// =============================================================================
+// Health API Type Alignment Tests
+// =============================================================================
+
+describe("Health API Type Alignment", () => {
+  describe("SystemHealthReport", () => {
+    it("services should be an array, not a Record", () => {
+      const data = FIXTURES.systemHealth;
+
+      // Key insight: services is an ARRAY with name property, not Record<name, status>
+      expect(Array.isArray(data.services)).toBe(true);
+      expect(data.services[0]).toHaveProperty("name");
+      expect(data.services[0]).toHaveProperty("status");
+    });
+
+    it("validates required fields", () => {
+      const data = FIXTURES.systemHealth;
+
+      validateRequiredKeys<SystemHealthReport>(
+        data,
+        ["overall_status", "services", "summary"],
+        "SystemHealthReport"
+      );
+
+      // Validate each service in array
+      data.services.forEach((svc, i) => {
+        validateRequiredKeys<ServiceHealthStatus>(
+          svc,
+          ["name", "status"],
+          `ServiceHealthStatus[${i}]`
+        );
+      });
+    });
+
+    it("summary has correct structure", () => {
+      const { summary } = FIXTURES.systemHealth;
+
+      expect(summary).toHaveProperty("total");
+      expect(typeof summary.total).toBe("number");
+    });
+  });
+
+  describe("ValidityTimeline", () => {
+    it("uses correct field names (timeline_start, not window_start_iso)", () => {
+      const data = FIXTURES.validityTimeline;
+
+      // These are the CORRECT field names from the API
+      expect(data).toHaveProperty("timeline_start");
+      expect(data).toHaveProperty("timeline_end");
+      expect(data).toHaveProperty("current_time");
+      expect(data).toHaveProperty("current_mjd");
+      expect(data).toHaveProperty("windows");
+      expect(data).toHaveProperty("total_windows");
+
+      // These would be WRONG (old field names that don't exist)
+      expect(data).not.toHaveProperty("window_start_iso");
+      expect(data).not.toHaveProperty("window_end_iso");
+      expect(data).not.toHaveProperty("entries");
+    });
+
+    it("windows array entries have correct field names", () => {
+      const entry = FIXTURES.validityTimeline.windows[0];
+
+      // Correct field names
+      expect(entry).toHaveProperty("start_iso");
+      expect(entry).toHaveProperty("end_iso");
+      expect(entry).toHaveProperty("start_mjd");
+      expect(entry).toHaveProperty("end_mjd");
+      expect(entry).toHaveProperty("duration_hours");
+
+      // Wrong field names (what we had before)
+      expect(entry).not.toHaveProperty("valid_start_iso");
+      expect(entry).not.toHaveProperty("valid_end_iso");
+    });
+  });
+
+  describe("FluxMonitoringSummary", () => {
+    it("handles normal response with calibrators", () => {
+      const data = FIXTURES.fluxMonitoring;
+
+      expect(Array.isArray(data.calibrators)).toBe(true);
+      expect(data.calibrators[0]).toHaveProperty("calibrator_name");
+      expect(data.calibrators[0]).toHaveProperty("is_stable");
+    });
+
+    it("handles empty response with message", () => {
+      const data = FIXTURES.fluxMonitoringEmpty;
+
+      expect(data.calibrators).toEqual([]);
+      expect(data.message).toBeDefined();
+    });
+
+    it("total_alerts may be undefined (optional)", () => {
+      // This ensures we use nullish coalescing when accessing total_alerts
+      const dataWithAlerts = FIXTURES.fluxMonitoring;
+      const dataEmpty = FIXTURES.fluxMonitoringEmpty;
+
+      expect(dataWithAlerts.total_alerts ?? 0).toBe(0);
+      expect(dataEmpty.total_alerts ?? 0).toBe(0); // undefined coalesces to 0
+    });
+  });
+
+  describe("PointingStatus", () => {
+    it("has required fields", () => {
+      const data = FIXTURES.pointingStatus;
+
+      validateRequiredKeys<PointingStatus>(
+        data,
+        ["current_lst", "current_lst_deg", "upcoming_transits", "timestamp"],
+        "PointingStatus"
+      );
+    });
+
+    it("upcoming_transits is an array", () => {
+      const data = FIXTURES.pointingStatus;
+
+      expect(Array.isArray(data.upcoming_transits)).toBe(true);
+    });
+  });
+
+  describe("AlertsResponse", () => {
+    it("handles normal response with alerts", () => {
+      const data = FIXTURES.alerts;
+
+      expect(Array.isArray(data.alerts)).toBe(true);
+      expect(data.alerts[0]).toHaveProperty("id");
+      expect(data.alerts[0]).toHaveProperty("severity");
+      expect(data.alerts[0]).toHaveProperty("acknowledged");
+    });
+
+    it("handles empty response with message", () => {
+      const data = FIXTURES.alertsEmpty;
+
+      expect(data.alerts).toEqual([]);
+      expect(data.message).toBeDefined();
+    });
+  });
+});
+
+// =============================================================================
+// Absurd API Type Alignment Tests
+// =============================================================================
+
+describe("Absurd API Type Alignment", () => {
+  describe("Task", () => {
+    it("validates required fields", () => {
+      validateRequiredKeys<Task>(
+        FIXTURES.task,
+        [
+          "task_id",
+          "queue_name",
+          "task_name",
+          "params",
+          "priority",
+          "status",
+          "retry_count",
+        ],
+        "Task"
+      );
+    });
+
+    it("nullable fields can be null", () => {
+      const task = FIXTURES.task;
+
+      // These fields CAN be null according to the type
+      expect(["string", "object"]).toContain(typeof task.created_at ?? "object");
+      expect(task.error).toBeNull(); // Explicitly null in fixture
+    });
+  });
+
+  describe("QueueStats", () => {
+    it("has all status counts", () => {
+      const stats = FIXTURES.queueStats;
+
+      expect(typeof stats.pending).toBe("number");
+      expect(typeof stats.claimed).toBe("number");
+      expect(typeof stats.completed).toBe("number");
+      expect(typeof stats.failed).toBe("number");
+      expect(typeof stats.cancelled).toBe("number");
+      expect(typeof stats.total).toBe("number");
+    });
+  });
+
+  describe("Worker", () => {
+    it("validates required fields", () => {
+      validateRequiredKeys<Worker>(
+        FIXTURES.worker,
+        ["worker_id", "state", "task_count", "uptime_seconds"],
+        "Worker"
+      );
+    });
+  });
+});
+
+// =============================================================================
+// Cross-cutting Type Patterns
+// =============================================================================
+
+describe("Common API Response Patterns", () => {
+  it("arrays are arrays, not Records (learned from services bug)", () => {
+    // The services field was incorrectly typed as Record<string, T> but API returns T[]
+    // This test documents the pattern to watch for
+
+    // CORRECT: arrays with 'name' or 'id' property
+    expect(Array.isArray(FIXTURES.systemHealth.services)).toBe(true);
+    expect(Array.isArray(FIXTURES.validityTimeline.windows)).toBe(true);
+    expect(Array.isArray(FIXTURES.fluxMonitoring.calibrators)).toBe(true);
+    expect(Array.isArray(FIXTURES.alerts.alerts)).toBe(true);
+    expect(Array.isArray(FIXTURES.pointingStatus.upcoming_transits)).toBe(true);
+  });
+
+  it("optional message field for uninitialized states", () => {
+    // Many endpoints return {data: [], message: "Not initialized"} when DB not ready
+    // Types should have optional message field
+
+    expect(FIXTURES.fluxMonitoringEmpty).toHaveProperty("message");
+    expect(FIXTURES.alertsEmpty).toHaveProperty("message");
+  });
+
+  it("ISO timestamps are strings, MJD values are numbers", () => {
+    const timeline = FIXTURES.validityTimeline;
+
+    // ISO timestamps
+    expect(typeof timeline.timeline_start).toBe("string");
+    expect(typeof timeline.current_time).toBe("string");
+
+    // MJD values
+    expect(typeof timeline.current_mjd).toBe("number");
+    expect(typeof timeline.windows[0].start_mjd).toBe("number");
+  });
+});
+
+// =============================================================================
+// Integration Test Mode (run with INTEGRATION_TEST=true)
+// =============================================================================
+
+const INTEGRATION_MODE = process.env.INTEGRATION_TEST === "true";
+
+describe.skipIf(!INTEGRATION_MODE)("Live API Integration Tests", () => {
+  const API_BASE = "http://localhost:8000";
+
+  it("GET /api/v1/health/system matches SystemHealthReport type", async () => {
+    const res = await fetch(`${API_BASE}/api/v1/health/system`);
+    const data = await res.json();
+
+    expect(res.ok).toBe(true);
+    validateRequiredKeys<SystemHealthReport>(
+      data,
+      ["overall_status", "services", "summary"],
+      "SystemHealthReport"
+    );
+    expect(Array.isArray(data.services)).toBe(true);
+  });
+
+  it("GET /api/v1/health/validity-windows/timeline matches ValidityTimeline type", async () => {
+    const res = await fetch(`${API_BASE}/api/v1/health/validity-windows/timeline`);
+    const data = await res.json();
+
+    expect(res.ok).toBe(true);
+    validateRequiredKeys<ValidityTimeline>(
+      data,
+      ["timeline_start", "timeline_end", "current_time", "windows", "total_windows"],
+      "ValidityTimeline"
+    );
+  });
+
+  it("GET /api/v1/health/flux-monitoring matches FluxMonitoringSummary type", async () => {
+    const res = await fetch(`${API_BASE}/api/v1/health/flux-monitoring`);
+    const data = await res.json();
+
+    expect(res.ok).toBe(true);
+    // Either has calibrators array or message for uninitialized
+    expect("calibrators" in data || "message" in data).toBe(true);
+  });
+
+  it("GET /api/v1/health/pointing matches PointingStatus type", async () => {
+    const res = await fetch(`${API_BASE}/api/v1/health/pointing`);
+    const data = await res.json();
+
+    expect(res.ok).toBe(true);
+    validateRequiredKeys<PointingStatus>(
+      data,
+      ["current_lst", "current_lst_deg", "upcoming_transits", "timestamp"],
+      "PointingStatus"
+    );
+  });
+
+  it("GET /api/v1/health/alerts matches AlertsResponse type", async () => {
+    const res = await fetch(`${API_BASE}/api/v1/health/alerts`);
+    const data = await res.json();
+
+    expect(res.ok).toBe(true);
+    expect("alerts" in data || "message" in data).toBe(true);
+  });
+});

@@ -6,13 +6,22 @@
 
 import React, { useState } from "react";
 import { useFluxMonitoring, useFluxHistory } from "../../api/health";
-import type { FluxMonitoringStatus, FluxHistoryPoint } from "../../types/health";
+import type {
+  FluxMonitoringStatus,
+  FluxHistoryPoint,
+} from "../../types/health";
 
 interface CalibratorMonitoringPanelProps {
   className?: string;
 }
 
-function StatusIndicator({ isStable, alertsCount }: { isStable: boolean; alertsCount: number }) {
+function StatusIndicator({
+  isStable,
+  alertsCount,
+}: {
+  isStable: boolean;
+  alertsCount: number;
+}) {
   if (alertsCount > 0) {
     return (
       <span className="flex items-center gap-1 text-red-600 dark:text-red-400">
@@ -37,7 +46,11 @@ function StatusIndicator({ isStable, alertsCount }: { isStable: boolean; alertsC
   );
 }
 
-function FluxRatioChart({ measurements }: { measurements: FluxHistoryPoint[] }) {
+function FluxRatioChart({
+  measurements,
+}: {
+  measurements: FluxHistoryPoint[];
+}) {
   if (measurements.length === 0) {
     return (
       <div className="h-32 flex items-center justify-center text-gray-500 dark:text-gray-400">
@@ -45,16 +58,16 @@ function FluxRatioChart({ measurements }: { measurements: FluxHistoryPoint[] }) 
       </div>
     );
   }
-  
+
   const minRatio = Math.min(...measurements.map((m) => m.flux_ratio));
   const maxRatio = Math.max(...measurements.map((m) => m.flux_ratio));
   const range = maxRatio - minRatio || 0.1;
   const padding = range * 0.1;
-  
+
   const chartMin = minRatio - padding;
   const chartMax = maxRatio + padding;
   const chartRange = chartMax - chartMin;
-  
+
   const width = 100;
   const height = 100;
   const points = measurements.map((m, i) => {
@@ -62,15 +75,19 @@ function FluxRatioChart({ measurements }: { measurements: FluxHistoryPoint[] }) 
     const y = height - ((m.flux_ratio - chartMin) / chartRange) * height;
     return `${x},${y}`;
   });
-  
+
   const pathD = `M ${points.join(" L ")}`;
-  
+
   // Reference line at 1.0
   const refY = height - ((1.0 - chartMin) / chartRange) * height;
-  
+
   return (
     <div className="h-32 relative">
-      <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-full" preserveAspectRatio="none">
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        className="w-full h-full"
+        preserveAspectRatio="none"
+      >
         {/* Reference line at 1.0 */}
         {refY >= 0 && refY <= height && (
           <line
@@ -96,13 +113,7 @@ function FluxRatioChart({ measurements }: { measurements: FluxHistoryPoint[] }) 
           const x = (i / (measurements.length - 1 || 1)) * width;
           const y = height - ((m.flux_ratio - chartMin) / chartRange) * height;
           return (
-            <circle
-              key={i}
-              cx={x}
-              cy={y}
-              r="2"
-              className="fill-blue-500"
-            />
+            <circle key={i} cx={x} cy={y} r="2" className="fill-blue-500" />
           );
         })}
       </svg>
@@ -137,7 +148,10 @@ function CalibratorCard({
         <span className="font-medium text-gray-900 dark:text-gray-100">
           {calibrator.calibrator_name}
         </span>
-        <StatusIndicator isStable={calibrator.is_stable} alertsCount={calibrator.alerts_count} />
+        <StatusIndicator
+          isStable={calibrator.is_stable}
+          alertsCount={calibrator.alerts_count}
+        />
       </div>
       <div className="grid grid-cols-2 gap-2 text-xs text-gray-600 dark:text-gray-400">
         <div>
@@ -161,39 +175,58 @@ function CalibratorCard({
   );
 }
 
-export function CalibratorMonitoringPanel({ className = "" }: CalibratorMonitoringPanelProps) {
+export function CalibratorMonitoringPanel({
+  className = "",
+}: CalibratorMonitoringPanelProps) {
   const { data: summary, isLoading, error } = useFluxMonitoring();
-  const [selectedCalibrator, setSelectedCalibrator] = useState<string | null>(null);
-  
-  const { data: history } = useFluxHistory(selectedCalibrator || "", 30, !!selectedCalibrator);
-  
+  const [selectedCalibrator, setSelectedCalibrator] = useState<string | null>(
+    null
+  );
+
+  const { data: history } = useFluxHistory(
+    selectedCalibrator || "",
+    30,
+    !!selectedCalibrator
+  );
+
   if (isLoading) {
     return (
-      <div className={`bg-white dark:bg-gray-800 rounded-lg shadow p-4 ${className}`}>
+      <div
+        className={`bg-white dark:bg-gray-800 rounded-lg shadow p-4 ${className}`}
+      >
         <div className="animate-pulse">
           <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-4" />
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-20 bg-gray-200 dark:bg-gray-700 rounded" />
+              <div
+                key={i}
+                className="h-20 bg-gray-200 dark:bg-gray-700 rounded"
+              />
             ))}
           </div>
         </div>
       </div>
     );
   }
-  
+
   if (error) {
     return (
-      <div className={`bg-white dark:bg-gray-800 rounded-lg shadow p-4 ${className}`}>
-        <div className="text-red-500">Failed to load calibrator monitoring data</div>
+      <div
+        className={`bg-white dark:bg-gray-800 rounded-lg shadow p-4 ${className}`}
+      >
+        <div className="text-red-500">
+          Failed to load calibrator monitoring data
+        </div>
       </div>
     );
   }
-  
+
   const calibrators = summary?.calibrators || [];
-  
+
   return (
-    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow p-4 ${className}`}>
+    <div
+      className={`bg-white dark:bg-gray-800 rounded-lg shadow p-4 ${className}`}
+    >
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
           Calibrator Flux Monitoring
@@ -202,7 +235,7 @@ export function CalibratorMonitoringPanel({ className = "" }: CalibratorMonitori
           {summary?.total_measurements || 0} total measurements
         </div>
       </div>
-      
+
       {calibrators.length === 0 ? (
         <div className="text-gray-500 dark:text-gray-400 text-center py-8">
           No calibrator monitoring data available
@@ -225,13 +258,15 @@ export function CalibratorMonitoringPanel({ className = "" }: CalibratorMonitori
               ))}
             </div>
           </div>
-          
+
           {/* Flux history chart */}
           <div>
             <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
               Flux Ratio History
               {selectedCalibrator && (
-                <span className="ml-2 text-blue-500">({selectedCalibrator})</span>
+                <span className="ml-2 text-blue-500">
+                  ({selectedCalibrator})
+                </span>
               )}
             </h4>
             {selectedCalibrator ? (
@@ -270,12 +305,17 @@ export function CalibratorMonitoringPanel({ className = "" }: CalibratorMonitori
           </div>
         </div>
       )}
-      
+
       {/* Alerts summary */}
-      {summary && summary.total_alerts > 0 && (
+      {summary && (summary.total_alerts ?? 0) > 0 && (
         <div className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
           <div className="flex items-center gap-2 text-red-700 dark:text-red-400">
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -284,7 +324,8 @@ export function CalibratorMonitoringPanel({ className = "" }: CalibratorMonitori
               />
             </svg>
             <span className="font-medium">
-              {summary.total_alerts} active alert{summary.total_alerts > 1 ? "s" : ""}
+              {summary.total_alerts ?? 0} active alert
+              {(summary.total_alerts ?? 0) > 1 ? "s" : ""}
             </span>
           </div>
         </div>
