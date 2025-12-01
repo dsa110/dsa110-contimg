@@ -1583,6 +1583,86 @@ psql dsa110_absurd -c "
 - `absurd_success_rate` - Success rate (0-1)
 - `absurd_error_rate` - Error rate (0-1)
 
+### Prometheus Metrics Endpoint
+
+The `/absurd/metrics` endpoint exports Prometheus-format metrics:
+
+```text
+# HELP absurd_tasks_total Total number of tasks by status
+# TYPE absurd_tasks_total counter
+absurd_tasks_total{status="spawned"} 1247
+absurd_tasks_total{status="claimed"} 1245
+absurd_tasks_total{status="completed"} 1220
+absurd_tasks_total{status="failed"} 23
+absurd_tasks_total{status="cancelled"} 5
+
+# HELP absurd_tasks_current Current number of tasks by status
+# TYPE absurd_tasks_current gauge
+absurd_tasks_current{status="pending"} 15
+absurd_tasks_current{status="claimed"} 2
+
+# HELP absurd_wait_time_seconds Task wait time in seconds
+# TYPE absurd_wait_time_seconds summary
+absurd_wait_time_seconds{quantile="0.5"} 1.2
+absurd_wait_time_seconds{quantile="0.95"} 5.8
+absurd_wait_time_seconds{quantile="0.99"} 12.3
+
+# HELP absurd_execution_time_seconds Task execution time in seconds
+# TYPE absurd_execution_time_seconds summary
+absurd_execution_time_seconds{quantile="0.5"} 120.5
+absurd_execution_time_seconds{quantile="0.95"} 890.2
+absurd_execution_time_seconds{quantile="0.99"} 1800.0
+
+# HELP absurd_throughput_per_minute Tasks completed per minute
+# TYPE absurd_throughput_per_minute gauge
+absurd_throughput_per_minute{window="1m"} 2.5
+absurd_throughput_per_minute{window="5m"} 2.8
+absurd_throughput_per_minute{window="15m"} 3.1
+```
+
+### Prometheus Scrape Configuration
+
+Add to `prometheus.yml`:
+
+```yaml
+scrape_configs:
+  - job_name: "absurd"
+    static_configs:
+      - targets: ["localhost:8000"]
+    metrics_path: "/absurd/metrics"
+    scrape_interval: 15s
+```
+
+### Grafana Dashboard
+
+Create dashboard with panels for:
+
+1. **Queue Overview** (Stat panels)
+
+   - Pending tasks
+   - Running tasks
+   - Completed (24h)
+   - Failed (24h)
+
+2. **Throughput** (Time series)
+
+   - Tasks/minute over time
+   - By task type
+
+3. **Latency** (Time series)
+
+   - Wait time p50/p95/p99
+   - Execution time p50/p95/p99
+
+4. **Success Rate** (Gauge)
+
+   - Current success rate
+   - Error rate trend
+
+5. **Task Breakdown** (Pie chart)
+   - By task type
+   - By status
+
 ### Alerts
 
 | Alert             | Condition                           | Severity |
@@ -1591,6 +1671,225 @@ psql dsa110_absurd -c "
 | High Failure Rate | `error_rate_5min > 0.10`            | Critical |
 | Slow Tasks        | `p95_execution_time > 2 * expected` | Warning  |
 | Worker Down       | No task claims for 5 min            | Critical |
+
+#### Alertmanager Rules
+
+```yaml
+groups:
+  - name: absurd
+    rules:
+      - alert: AbsurdQueueBacklog
+        expr: absurd_tasks_current{status="pending"} > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "ABSURD queue backlog detected"
+          description: "{{ $value }} pending tasks in queue"
+
+      - alert: AbsurdHighFailureRate
+        expr: absurd_error_rate{window="5m"} > 0.10
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "ABSURD high failure rate"
+          description: "{{ $value | humanizePercentage }} failure rate"
+
+      - alert: AbsurdWorkerDown
+        expr: increase(absurd_tasks_total{status="claimed"}[5m]) == 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "ABSURD worker not claiming tasks"
+          description: "No tasks claimed in last 5 minutes"
+```
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+#### 1. Worker Not Starting
+
+**Symptom:** `systemctl status contimg-absurd-worker` shows failed
+
+**Check:**
+
+```bash
+# View full logs
+journalctl -u contimg-absurd-worker -n 100 --no-pager
+
+# Common causes:
+# - Missing ABSURD_DATABASE_URL
+# - PostgreSQL not running
+# - asyncpg not installed
+# - Import errors in adapter.py
+```
+
+**Fix:**
+
+```bash
+# Verify environment
+cat /data/dsa110-contimg/ops/systemd/contimg.env | grep ABSURD
+
+# Test connection manually
+python -c "
+import asyncio
+import asyncpg
+
+async def test():
+    conn = await asyncpg.connect('postgresql://postgres@localhost/dsa110_absurd')
+    print('Connected!')
+    await conn.close()
+
+asyncio.run(test())
+"
+```
+
+#### 2. Tasks Stuck in "pending"
+
+**Symptom:** Tasks never transition to "claimed"
+
+**Check:**
+
+```bash
+# Is worker running?
+systemctl status contimg-absurd-worker
+
+# Is worker polling the correct queue?
+journalctl -u contimg-absurd-worker | grep "queue"
+
+# Check queue name matches
+grep ABSURD_QUEUE_NAME /data/dsa110-contimg/ops/systemd/contimg.env
+```
+
+**Fix:**
+
+```bash
+# Ensure queue names match
+export ABSURD_QUEUE_NAME=dsa110-pipeline
+sudo systemctl restart contimg-absurd-worker
+```
+
+#### 3. Tasks Failing Immediately
+
+**Symptom:** Tasks go directly to "failed" status
+
+**Check:**
+
+```bash
+# Get error message
+psql dsa110_absurd -c "
+  SELECT task_id, task_name, error
+  FROM absurd.tasks
+  WHERE status = 'failed'
+  ORDER BY completed_at DESC
+  LIMIT 5;
+"
+```
+
+**Common causes:**
+
+- Missing input files
+- Invalid parameters
+- Pipeline stage errors
+- CASA not available
+
+#### 4. Database Connection Errors
+
+**Symptom:** `asyncpg.exceptions.ConnectionDoesNotExistError`
+
+**Check:**
+
+```bash
+# PostgreSQL running?
+systemctl status postgresql
+
+# Database exists?
+psql -l | grep dsa110_absurd
+
+# Schema exists?
+psql dsa110_absurd -c "\dt absurd.*"
+```
+
+**Fix:**
+
+```bash
+# Recreate database if needed
+dropdb dsa110_absurd
+createdb dsa110_absurd
+psql dsa110_absurd < backend/src/dsa110_contimg/absurd/schema.sql
+```
+
+#### 5. API Returns 503 Service Unavailable
+
+**Symptom:** `/absurd/health` returns error
+
+**Check:**
+
+```bash
+# Is ABSURD enabled?
+curl http://localhost:8000/absurd/health
+
+# If disabled, enable it:
+export ABSURD_ENABLED=true
+sudo systemctl restart contimg-api
+```
+
+### Debug Mode
+
+Enable verbose logging for troubleshooting:
+
+```bash
+# Set log level
+export LOG_LEVEL=DEBUG
+
+# Or in Python
+import logging
+logging.getLogger('dsa110_contimg.absurd').setLevel(logging.DEBUG)
+```
+
+### Database Queries for Debugging
+
+```sql
+-- Task counts by status
+SELECT status, COUNT(*)
+FROM absurd.tasks
+GROUP BY status;
+
+-- Recent failed tasks
+SELECT task_id, task_name, error, completed_at
+FROM absurd.tasks
+WHERE status = 'failed'
+ORDER BY completed_at DESC
+LIMIT 10;
+
+-- Long-running tasks
+SELECT task_id, task_name,
+       EXTRACT(EPOCH FROM (NOW() - claimed_at)) as running_seconds
+FROM absurd.tasks
+WHERE status = 'claimed'
+ORDER BY claimed_at;
+
+-- Task timing statistics
+SELECT task_name,
+       COUNT(*) as count,
+       AVG(execution_time_sec) as avg_time,
+       PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY execution_time_sec) as p95_time
+FROM absurd.tasks
+WHERE status = 'completed'
+  AND completed_at > NOW() - INTERVAL '24 hours'
+GROUP BY task_name;
+
+-- Dead letter queue tasks
+SELECT task_id, task_name, attempt, error, created_at
+FROM absurd.tasks
+WHERE queue_name LIKE '%-dlq'
+ORDER BY created_at DESC;
+```
 
 ---
 
@@ -1606,8 +1905,62 @@ psql dsa110_absurd -c "
 
 ---
 
+## Quick Reference Commands
+
+### Service Management
+
+```bash
+# API server
+sudo systemctl start|stop|restart|status contimg-api
+
+# ABSURD worker
+sudo systemctl start|stop|restart|status contimg-absurd-worker
+
+# View logs
+journalctl -u contimg-absurd-worker -f
+journalctl -u contimg-api -f
+```
+
+### Database Operations
+
+```bash
+# Connect to database
+psql dsa110_absurd
+
+# Quick stats
+psql dsa110_absurd -c "SELECT * FROM absurd.get_queue_stats('dsa110-pipeline');"
+
+# Clear all tasks (DANGER - use only in dev)
+psql dsa110_absurd -c "TRUNCATE absurd.tasks;"
+```
+
+### API Testing
+
+```bash
+# Health check
+curl http://localhost:8000/absurd/health
+
+# Spawn task
+curl -X POST http://localhost:8000/absurd/tasks \
+  -H "Content-Type: application/json" \
+  -d '{"task_name": "validation", "params": {}}'
+
+# List pending tasks
+curl "http://localhost:8000/absurd/tasks?status=pending"
+
+# Get queue stats
+curl http://localhost:8000/absurd/queues/dsa110-pipeline/stats
+
+# Cancel task
+curl -X DELETE http://localhost:8000/absurd/tasks/{task_id}
+```
+
+---
+
 ## References
 
 - Legacy implementation: `legacy.backend/src/dsa110_contimg/absurd/`
 - Status docs: `.local/internal/docs/dev/status/2025-11/absurd_*.md`
 - Operations guide: `legacy.backend/docs/operations/absurd_operations_guide.md`
+- Executor roadmap: `.local/internal/docs/dev/status/2025-11/absurd_executor_roadmap.md`
+- Integration summary: `.local/internal/docs/dev/status/2025-11/absurd_integration_summary.md`
