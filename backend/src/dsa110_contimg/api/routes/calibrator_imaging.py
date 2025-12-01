@@ -313,12 +313,12 @@ async def get_calibrator_transits(
     transit_infos = []
     
     for transit in all_transits:
-        transit_iso = transit.iso
+        transit_iso = transit.isot  # Use T separator format for database queries
         
         try:
             import astropy.units as u
-            window_start = (transit - 30 * u.min).iso
-            window_end = (transit + 30 * u.min).iso
+            window_start = (transit - 30 * u.min).isot
+            window_end = (transit + 30 * u.min).isot
             
             # Query HDF5 database for subband groups
             hdf5_db = get_hdf5_db_path()
@@ -351,7 +351,7 @@ async def get_calibrator_transits(
             obs_ids = []
         
         transit_infos.append(TransitInfo(
-            transit_time_iso=transit.iso,
+            transit_time_iso=transit.isot,  # Use T separator for consistency
             transit_time_mjd=transit.mjd,
             has_data=has_data,
             num_subband_groups=num_groups,
@@ -383,8 +383,8 @@ async def get_calibrator_observations(
     try:
         import astropy.units as u
         transit = Time(transit_time_iso)
-        window_start = (transit - window_minutes * u.min).iso
-        window_end = (transit + window_minutes * u.min).iso
+        window_start = (transit - window_minutes * u.min).isot  # Use T separator for DB queries
+        window_end = (transit + window_minutes * u.min).isot
     except Exception as e:
         raise APIValidationError(f"Invalid transit time: {e}")
     
@@ -440,9 +440,9 @@ async def get_calibrator_observations(
             
             observations.append(ObservationInfo(
                 observation_id=obs_id,
-                start_time_iso=start_time.iso,
-                mid_time_iso=mid_time.iso,
-                end_time_iso=end_time.iso,
+                start_time_iso=start_time.isot,
+                mid_time_iso=mid_time.isot,
+                end_time_iso=end_time.isot,
                 num_subbands=len(group),
                 file_paths=group,
                 delta_from_transit_min=delta_min,

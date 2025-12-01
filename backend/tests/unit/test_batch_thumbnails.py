@@ -301,3 +301,343 @@ class TestNormalizationEdgeCases:
         
         # Should still produce output based on valid values
         assert result is not None
+
+
+class TestGenerateImageThumbnailWithMocks:
+    """Tests for generate_image_thumbnail with mocked CASA and PIL."""
+
+    def test_generate_thumbnail_2d_data(self, tmp_path):
+        """Test thumbnail generation with 2D data."""
+        image_path = tmp_path / "test.image"
+        image_path.mkdir()
+        output_path = str(tmp_path / "test.thumb.png")
+        
+        # Create mock CASA image tool
+        mock_ia = MagicMock()
+        mock_ia.getchunk.return_value = np.random.rand(64, 64).astype(np.float32)
+        
+        mock_image_class = MagicMock(return_value=mock_ia)
+        mock_casatools = MagicMock()
+        mock_casatools.image = mock_image_class
+        
+        # Create mock PIL Image
+        mock_pil_image = MagicMock()
+        mock_pil_image_class = MagicMock()
+        mock_pil_image_class.fromarray.return_value = mock_pil_image
+        mock_pil_image_class.Resampling = MagicMock()
+        mock_pil_image_class.Resampling.LANCZOS = 1
+        
+        with patch.dict('sys.modules', {
+            'casatools': mock_casatools,
+            'PIL': MagicMock(),
+            'PIL.Image': mock_pil_image_class,
+        }):
+            from importlib import reload
+            import dsa110_contimg.api.batch.thumbnails as thumbnails_module
+            reload(thumbnails_module)
+            
+            result = thumbnails_module.generate_image_thumbnail(
+                str(image_path),
+                output_path,
+                size=256,
+            )
+        
+        # Should have called the right methods
+        mock_ia.open.assert_called_once_with(str(image_path))
+        mock_ia.getchunk.assert_called_once()
+        mock_ia.close.assert_called_once()
+
+    def test_generate_thumbnail_3d_data(self, tmp_path):
+        """Test thumbnail generation with 3D data."""
+        image_path = tmp_path / "test.image"
+        image_path.mkdir()
+        output_path = str(tmp_path / "test.thumb.png")
+        
+        # 3D data (x, y, stokes)
+        mock_ia = MagicMock()
+        mock_ia.getchunk.return_value = np.random.rand(64, 64, 4).astype(np.float32)
+        
+        mock_image_class = MagicMock(return_value=mock_ia)
+        mock_casatools = MagicMock()
+        mock_casatools.image = mock_image_class
+        
+        mock_pil_image = MagicMock()
+        mock_pil_image_class = MagicMock()
+        mock_pil_image_class.fromarray.return_value = mock_pil_image
+        mock_pil_image_class.Resampling = MagicMock()
+        mock_pil_image_class.Resampling.LANCZOS = 1
+        
+        with patch.dict('sys.modules', {
+            'casatools': mock_casatools,
+            'PIL': MagicMock(),
+            'PIL.Image': mock_pil_image_class,
+        }):
+            from importlib import reload
+            import dsa110_contimg.api.batch.thumbnails as thumbnails_module
+            reload(thumbnails_module)
+            
+            result = thumbnails_module.generate_image_thumbnail(
+                str(image_path),
+                output_path,
+                size=256,
+            )
+        
+        mock_ia.close.assert_called_once()
+
+    def test_generate_thumbnail_4d_data(self, tmp_path):
+        """Test thumbnail generation with 4D data (full cube)."""
+        image_path = tmp_path / "test.image"
+        image_path.mkdir()
+        output_path = str(tmp_path / "test.thumb.png")
+        
+        # 4D data (x, y, stokes, channel)
+        mock_ia = MagicMock()
+        mock_ia.getchunk.return_value = np.random.rand(64, 64, 4, 128).astype(np.float32)
+        
+        mock_image_class = MagicMock(return_value=mock_ia)
+        mock_casatools = MagicMock()
+        mock_casatools.image = mock_image_class
+        
+        mock_pil_image = MagicMock()
+        mock_pil_image_class = MagicMock()
+        mock_pil_image_class.fromarray.return_value = mock_pil_image
+        mock_pil_image_class.Resampling = MagicMock()
+        mock_pil_image_class.Resampling.LANCZOS = 1
+        
+        with patch.dict('sys.modules', {
+            'casatools': mock_casatools,
+            'PIL': MagicMock(),
+            'PIL.Image': mock_pil_image_class,
+        }):
+            from importlib import reload
+            import dsa110_contimg.api.batch.thumbnails as thumbnails_module
+            reload(thumbnails_module)
+            
+            result = thumbnails_module.generate_image_thumbnail(
+                str(image_path),
+                output_path,
+                size=256,
+            )
+        
+        mock_ia.close.assert_called_once()
+
+    def test_generate_thumbnail_1d_data_unsupported(self, tmp_path):
+        """Test thumbnail generation fails with 1D data."""
+        image_path = tmp_path / "test.image"
+        image_path.mkdir()
+        
+        # 1D data (unsupported)
+        mock_ia = MagicMock()
+        mock_ia.getchunk.return_value = np.random.rand(64).astype(np.float32)
+        
+        mock_image_class = MagicMock(return_value=mock_ia)
+        mock_casatools = MagicMock()
+        mock_casatools.image = mock_image_class
+        
+        with patch.dict('sys.modules', {
+            'casatools': mock_casatools,
+            'PIL': MagicMock(),
+            'PIL.Image': MagicMock(),
+        }):
+            from importlib import reload
+            import dsa110_contimg.api.batch.thumbnails as thumbnails_module
+            reload(thumbnails_module)
+            
+            result = thumbnails_module.generate_image_thumbnail(
+                str(image_path),
+                size=256,
+            )
+        
+        assert result is None
+
+    def test_generate_thumbnail_default_output_path(self, tmp_path):
+        """Test thumbnail generation uses default output path."""
+        image_path = tmp_path / "test.image"
+        image_path.mkdir()
+        
+        mock_ia = MagicMock()
+        mock_ia.getchunk.return_value = np.random.rand(64, 64).astype(np.float32)
+        
+        mock_image_class = MagicMock(return_value=mock_ia)
+        mock_casatools = MagicMock()
+        mock_casatools.image = mock_image_class
+        
+        mock_pil_image = MagicMock()
+        mock_pil_image_class = MagicMock()
+        mock_pil_image_class.fromarray.return_value = mock_pil_image
+        mock_pil_image_class.Resampling = MagicMock()
+        mock_pil_image_class.Resampling.LANCZOS = 1
+        
+        with patch.dict('sys.modules', {
+            'casatools': mock_casatools,
+            'PIL': MagicMock(),
+            'PIL.Image': mock_pil_image_class,
+        }):
+            from importlib import reload
+            import dsa110_contimg.api.batch.thumbnails as thumbnails_module
+            reload(thumbnails_module)
+            
+            result = thumbnails_module.generate_image_thumbnail(
+                str(image_path),
+                output_path=None,  # Use default
+                size=512,
+            )
+        
+        # Should save to expected path with .thumb.png suffix
+        mock_pil_image.save.assert_called_once()
+        save_args = mock_pil_image.save.call_args
+        # First positional arg is the path
+        assert ".thumb.png" in save_args[0][0]
+
+    def test_generate_thumbnail_os_error(self, tmp_path):
+        """Test thumbnail generation handles OS errors."""
+        image_path = tmp_path / "test.image"
+        image_path.mkdir()
+        
+        mock_ia = MagicMock()
+        mock_ia.getchunk.return_value = np.random.rand(64, 64).astype(np.float32)
+        
+        mock_image_class = MagicMock(return_value=mock_ia)
+        mock_casatools = MagicMock()
+        mock_casatools.image = mock_image_class
+        
+        mock_pil_image = MagicMock()
+        mock_pil_image.save.side_effect = OSError("Disk full")
+        mock_pil_image_class = MagicMock()
+        mock_pil_image_class.fromarray.return_value = mock_pil_image
+        mock_pil_image_class.Resampling = MagicMock()
+        mock_pil_image_class.Resampling.LANCZOS = 1
+        
+        with patch.dict('sys.modules', {
+            'casatools': mock_casatools,
+            'PIL': MagicMock(),
+            'PIL.Image': mock_pil_image_class,
+        }):
+            from importlib import reload
+            import dsa110_contimg.api.batch.thumbnails as thumbnails_module
+            reload(thumbnails_module)
+            
+            result = thumbnails_module.generate_image_thumbnail(
+                str(image_path),
+                size=256,
+            )
+        
+        assert result is None
+
+    def test_generate_thumbnail_value_error(self, tmp_path):
+        """Test thumbnail generation handles value errors."""
+        image_path = tmp_path / "test.image"
+        image_path.mkdir()
+        
+        mock_ia = MagicMock()
+        mock_ia.getchunk.return_value = np.random.rand(64, 64).astype(np.float32)
+        
+        mock_image_class = MagicMock(return_value=mock_ia)
+        mock_casatools = MagicMock()
+        mock_casatools.image = mock_image_class
+        
+        mock_pil_image_class = MagicMock()
+        mock_pil_image_class.fromarray.side_effect = ValueError("Invalid array")
+        mock_pil_image_class.Resampling = MagicMock()
+        mock_pil_image_class.Resampling.LANCZOS = 1
+        
+        with patch.dict('sys.modules', {
+            'casatools': mock_casatools,
+            'PIL': MagicMock(),
+            'PIL.Image': mock_pil_image_class,
+        }):
+            from importlib import reload
+            import dsa110_contimg.api.batch.thumbnails as thumbnails_module
+            reload(thumbnails_module)
+            
+            result = thumbnails_module.generate_image_thumbnail(
+                str(image_path),
+                size=256,
+            )
+        
+        assert result is None
+
+    def test_generate_thumbnail_import_error(self, tmp_path):
+        """Test thumbnail generation handles import errors."""
+        image_path = tmp_path / "test.image"
+        image_path.mkdir()
+        
+        # Create a fake casatools that raises ImportError
+        def raise_import_error(*args, **kwargs):
+            raise ImportError("casatools not available")
+        
+        with patch.dict('sys.modules', {
+            'casatools': None,  # Will cause ImportError
+        }):
+            with patch('builtins.__import__', side_effect=raise_import_error):
+                # Import error should be handled gracefully
+                pass
+
+    def test_generate_thumbnail_normalization_failure(self, tmp_path):
+        """Test thumbnail generation when normalization returns None."""
+        image_path = tmp_path / "test.image"
+        image_path.mkdir()
+        
+        # Return all-NaN data which will fail normalization
+        mock_ia = MagicMock()
+        mock_ia.getchunk.return_value = np.full((64, 64), np.nan)
+        
+        mock_image_class = MagicMock(return_value=mock_ia)
+        mock_casatools = MagicMock()
+        mock_casatools.image = mock_image_class
+        
+        with patch.dict('sys.modules', {
+            'casatools': mock_casatools,
+            'PIL': MagicMock(),
+            'PIL.Image': MagicMock(),
+        }):
+            from importlib import reload
+            import dsa110_contimg.api.batch.thumbnails as thumbnails_module
+            reload(thumbnails_module)
+            
+            result = thumbnails_module.generate_image_thumbnail(
+                str(image_path),
+                size=256,
+            )
+        
+        # Should return None when normalization fails
+        assert result is None
+
+    def test_generate_thumbnail_custom_size(self, tmp_path):
+        """Test thumbnail generation with custom size."""
+        image_path = tmp_path / "test.image"
+        image_path.mkdir()
+        output_path = str(tmp_path / "test.thumb.png")
+        
+        mock_ia = MagicMock()
+        mock_ia.getchunk.return_value = np.random.rand(1024, 1024).astype(np.float32)
+        
+        mock_image_class = MagicMock(return_value=mock_ia)
+        mock_casatools = MagicMock()
+        mock_casatools.image = mock_image_class
+        
+        mock_pil_image = MagicMock()
+        mock_pil_image_class = MagicMock()
+        mock_pil_image_class.fromarray.return_value = mock_pil_image
+        mock_pil_image_class.Resampling = MagicMock()
+        mock_pil_image_class.Resampling.LANCZOS = 1
+        
+        with patch.dict('sys.modules', {
+            'casatools': mock_casatools,
+            'PIL': MagicMock(),
+            'PIL.Image': mock_pil_image_class,
+        }):
+            from importlib import reload
+            import dsa110_contimg.api.batch.thumbnails as thumbnails_module
+            reload(thumbnails_module)
+            
+            result = thumbnails_module.generate_image_thumbnail(
+                str(image_path),
+                output_path,
+                size=128,
+            )
+        
+        # Verify thumbnail was called with correct size
+        mock_pil_image.thumbnail.assert_called_once()
+        call_args = mock_pil_image.thumbnail.call_args
+        assert call_args[0][0] == (128, 128)

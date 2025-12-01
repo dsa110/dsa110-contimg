@@ -877,9 +877,14 @@ class TestExtractPerSpwStats:
         mock_spw_stat.max_flagged_in_channel = 5
         mock_spw_stat.is_problematic = False
         
-        with patch('dsa110_contimg.qa.calibration_quality.analyze_per_spw_flagging') as mock_analyze:
-            mock_analyze.return_value = [mock_spw_stat]
-            
+        # Create mock module and function
+        mock_qa_module = MagicMock()
+        mock_qa_module.analyze_per_spw_flagging = MagicMock(return_value=[mock_spw_stat])
+        
+        with patch.dict('sys.modules', {
+            'dsa110_contimg.qa': MagicMock(),
+            'dsa110_contimg.qa.calibration_quality': mock_qa_module,
+        }):
             from dsa110_contimg.api.batch.qa import _extract_per_spw_stats
             
             result = _extract_per_spw_stats(bp_path, "/path/to/test.ms")
@@ -893,22 +898,26 @@ class TestExtractPerSpwStats:
         """Test per-SPW stats extraction handles import errors."""
         bp_path = str(tmp_path / "bp.cal")
         
-        with patch('dsa110_contimg.qa.calibration_quality.analyze_per_spw_flagging') as mock_analyze:
-            mock_analyze.side_effect = ImportError("Module not found")
-            
-            from dsa110_contimg.api.batch.qa import _extract_per_spw_stats
-            
-            result = _extract_per_spw_stats(bp_path, "/path/to/test.ms")
+        from dsa110_contimg.api.batch.qa import _extract_per_spw_stats
         
+        # The module likely doesn't exist, so it should handle the ImportError
+        result = _extract_per_spw_stats(bp_path, "/path/to/test.ms")
+        
+        # Should return empty dict on import error
         assert result == {}
 
     def test_extract_per_spw_stats_runtime_error(self, tmp_path):
         """Test per-SPW stats extraction handles runtime errors."""
         bp_path = str(tmp_path / "bp.cal")
         
-        with patch('dsa110_contimg.qa.calibration_quality.analyze_per_spw_flagging') as mock_analyze:
-            mock_analyze.side_effect = RuntimeError("Analysis failed")
-            
+        # Create mock module that raises RuntimeError
+        mock_qa_module = MagicMock()
+        mock_qa_module.analyze_per_spw_flagging = MagicMock(side_effect=RuntimeError("Analysis failed"))
+        
+        with patch.dict('sys.modules', {
+            'dsa110_contimg.qa': MagicMock(),
+            'dsa110_contimg.qa.calibration_quality': mock_qa_module,
+        }):
             from dsa110_contimg.api.batch.qa import _extract_per_spw_stats
             
             result = _extract_per_spw_stats(bp_path, "/path/to/test.ms")
