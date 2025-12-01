@@ -1,9 +1,0 @@
-Job ID: job_1763243380_3532512
-Script: ./create_10min_mosaic.py
-Args: 
-Started: 2025-11-15T13:49:40-08:00
-Status: RUNNING
-PID: 3532512
-Exit code: 0
-Completed at: 2025-11-15T13:52:21-08:00
-Status: SUCCESS

@@ -1,9 +1,0 @@
-Job ID: job_1763239387_3063838
-Script: sleep
-Args: 5
-Started: 2025-11-15T12:43:08-08:00
-Status: RUNNING
-PID: 3063838
-Exit code: 0
-Completed at: 2025-11-15T12:43:14-08:00
-Status: SUCCESS
