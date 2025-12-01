@@ -1,0 +1,39 @@
+[Unit]
+Description=ABSURD Workflow Manager Scheduler
+Documentation=file:///data/dsa110-contimg/backend/docs/ops/absurd-service-activation.md
+After=network.target postgresql.service absurd-worker.service
+Wants=postgresql.service absurd-worker.service
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/data/dsa110-contimg/backend
+
+# Environment configuration
+EnvironmentFile=/data/dsa110-contimg/backend/.env
+
+# Conda environment activation and scheduler execution
+ExecStart=/bin/bash -c 'source /home/ubuntu/miniconda3/etc/profile.d/conda.sh && conda activate casa6 && exec python -m dsa110_contimg.absurd.scheduler'
+
+# Graceful shutdown
+ExecStop=/bin/kill -SIGTERM $MAINPID
+TimeoutStopSec=30
+
+# Restart policy
+Restart=on-failure
+RestartSec=10
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+# Logging
+StandardOutput=append:/data/dsa110-contimg/state/logs/absurd-scheduler.log
+StandardError=append:/data/dsa110-contimg/state/logs/absurd-scheduler.log
+
+# Resource limits (scheduler is lightweight)
+LimitNOFILE=4096
+MemoryMax=512M
+CPUQuota=50%
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,39 @@
+[Unit]
+Description=ABSURD Workflow Manager Worker
+Documentation=file:///data/dsa110-contimg/backend/docs/ops/absurd-service-activation.md
+After=network.target postgresql.service docker.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/data/dsa110-contimg/backend
+
+# Environment configuration
+EnvironmentFile=/data/dsa110-contimg/backend/.env
+
+# Conda environment activation and worker execution
+ExecStart=/bin/bash -c 'source /home/ubuntu/miniconda3/etc/profile.d/conda.sh && conda activate casa6 && exec python -m dsa110_contimg.absurd.worker'
+
+# Graceful shutdown
+ExecStop=/bin/kill -SIGTERM $MAINPID
+TimeoutStopSec=30
+
+# Restart policy
+Restart=on-failure
+RestartSec=10
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+# Logging
+StandardOutput=append:/data/dsa110-contimg/state/logs/absurd-worker.log
+StandardError=append:/data/dsa110-contimg/state/logs/absurd-worker.log
+
+# Resource limits
+LimitNOFILE=65536
+MemoryMax=8G
+CPUQuota=400%
+
+[Install]
+WantedBy=multi-user.target

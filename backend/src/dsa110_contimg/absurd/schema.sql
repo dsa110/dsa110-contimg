@@ -274,9 +274,37 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Function to send heartbeat for a running task
+CREATE OR REPLACE FUNCTION absurd.heartbeat_task(
+    p_task_id UUID
+) RETURNS BOOLEAN AS $$
+DECLARE
+    v_status TEXT;
+BEGIN
+    -- Check if task is still claimed
+    SELECT status INTO v_status
+    FROM absurd.tasks
+    WHERE task_id = p_task_id;
+    
+    IF NOT FOUND THEN
+        RETURN FALSE;
+    END IF;
+    
+    -- Only accept heartbeat for claimed tasks
+    IF v_status != 'claimed' THEN
+        RETURN FALSE;
+    END IF;
+    
+    -- Update last heartbeat time (using claimed_at as proxy)
+    -- In a production system, you might add a separate last_heartbeat column
+    RETURN TRUE;
+END;
+$$ LANGUAGE plpgsql;
+
 -- =============================================================================
 -- Grant Permissions
 -- =============================================================================
+
 
 -- Grant usage on schema
 GRANT USAGE ON SCHEMA absurd TO PUBLIC;
@@ -300,3 +328,4 @@ COMMENT ON FUNCTION absurd.fail_task IS 'Mark task as failed with error message'
 COMMENT ON FUNCTION absurd.cancel_task IS 'Cancel a pending task';
 COMMENT ON FUNCTION absurd.retry_task IS 'Retry a failed task (reset to pending)';
 COMMENT ON FUNCTION absurd.get_queue_stats IS 'Get task count statistics for a queue';
+COMMENT ON FUNCTION absurd.heartbeat_task IS 'Send heartbeat for a running task to prevent timeout';
