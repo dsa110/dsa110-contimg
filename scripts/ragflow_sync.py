@@ -269,9 +269,10 @@ class RAGFlowSync:
         if not doc_ids:
             return
         try:
+            # RAGFlow API uses /chunks endpoint to trigger parsing
             self._request(
                 "POST",
-                f"/datasets/{self.dataset_id}/documents/parse",
+                f"/datasets/{self.dataset_id}/chunks",
                 json={"document_ids": doc_ids}
             )
         except Exception as e:

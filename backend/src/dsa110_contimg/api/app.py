@@ -34,7 +34,11 @@ DEFAULT_ALLOWED_IPS = [
 
 
 def get_allowed_networks():
-    """Parse allowed IPs from environment or use defaults."""
+    """Parse allowed IPs from environment or use defaults.
+    
+    Also returns a set of special hostnames (like 'testclient') that should
+    be allowed, which cannot be parsed as IP networks.
+    """
     env_ips = os.getenv("DSA110_ALLOWED_IPS")
     if env_ips:
         ip_list = [ip.strip() for ip in env_ips.split(",")]
@@ -42,20 +46,30 @@ def get_allowed_networks():
         ip_list = DEFAULT_ALLOWED_IPS
     
     networks = []
+    special_hosts = set()
     for ip in ip_list:
         try:
             if "/" in ip:
                 networks.append(ipaddress.ip_network(ip, strict=False))
             else:
-                # Single IP - treat as /32 or /128
+                # Try as single IP - treat as /32 or /128
                 networks.append(ipaddress.ip_network(ip))
         except ValueError:
-            pass  # Skip invalid entries
-    return networks
+            # Not a valid IP/network - could be a hostname (e.g., 'testclient')
+            if ip:
+                special_hosts.add(ip.lower())
+    return networks, special_hosts
 
 
-def is_ip_allowed(client_ip: str, allowed_networks: list) -> bool:
-    """Check if client IP is in allowed networks."""
+def is_ip_allowed(client_ip: str, allowed_networks: list, special_hosts: set = None) -> bool:
+    """Check if client IP is in allowed networks or special hosts list."""
+    if special_hosts is None:
+        special_hosts = set()
+    
+    # First check if it's a special host (like 'testclient')
+    if client_ip.lower() in special_hosts:
+        return True
+    
     try:
         ip = ipaddress.ip_address(client_ip)
         return any(ip in network for network in allowed_networks)
@@ -302,7 +316,7 @@ def create_app() -> FastAPI:
         return response
     
     # IP-based access control middleware
-    allowed_networks = get_allowed_networks()
+    allowed_networks, special_hosts = get_allowed_networks()
     
     @app.middleware("http")
     async def ip_filter_middleware(request: Request, call_next):
@@ -316,7 +330,7 @@ def create_app() -> FastAPI:
         if not client_ip:
             client_ip = request.client.host if request.client else "0.0.0.0"
         
-        if not is_ip_allowed(client_ip, allowed_networks):
+        if not is_ip_allowed(client_ip, allowed_networks, special_hosts):
             return JSONResponse(
                 status_code=403,
                 content={

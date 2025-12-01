@@ -33,6 +33,14 @@ def pytest_configure(config):
     This ensures environment variables set in CI are respected by clearing
     any cached configurations from module import time.
     """
+    # Allow TestClient IP access for integration tests
+    # TestClient uses 'testclient' as the client host, which must be whitelisted
+    # This must be set BEFORE the API module is imported
+    os.environ.setdefault(
+        "DSA110_ALLOWED_IPS",
+        "127.0.0.1,::1,testclient,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
+    )
+    
     # Clear API config cache if already imported
     try:
         from dsa110_contimg.api.config import get_config
