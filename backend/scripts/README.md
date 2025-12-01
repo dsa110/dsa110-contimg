@@ -14,6 +14,7 @@ Scripts for running and monitoring the API server in production/development.
 | `run_api.sh`      | Shell wrapper for run_api.py                       |
 | `health_check.py` | Check API health and database connectivity         |
 | `ensure_port.py`  | Ensure the API port is available before starting   |
+| `migrate.py`      | Database migration management with Alembic         |
 
 **Quick Start:**
 
@@ -23,6 +24,12 @@ python scripts/ops/run_api.py
 
 # Or use uvicorn directly
 python -m uvicorn dsa110_contimg.api.app:app --host 0.0.0.0 --port 8000
+
+# Database migrations
+python scripts/ops/migrate.py status    # Show current status
+python scripts/ops/migrate.py upgrade   # Apply pending migrations
+python scripts/ops/migrate.py history   # Show migration history
+python scripts/ops/migrate.py create "Add new column"  # Create migration
 ```
 
 ### `dev/` - Development Tools

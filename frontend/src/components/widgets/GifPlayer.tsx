@@ -38,7 +38,7 @@ class GifParser {
   async load(url: string): Promise<{ frames: GifFrame[]; width: number; height: number }> {
     // For simplicity, we'll use an Image element and extract frames
     // In production, you'd want to use a proper GIF parsing library like gifuct-js
-    
+
     // Fallback: Load as static image and simulate frames
     // This provides the UI shell - actual GIF parsing would need gifuct-js
     const img = await this.loadImage(url);
@@ -50,7 +50,7 @@ class GifParser {
     canvas.width = img.width;
     canvas.height = img.height;
     const ctx = canvas.getContext("2d");
-    
+
     if (!ctx) {
       throw new Error("Could not get canvas context");
     }
@@ -203,13 +203,10 @@ const GifPlayer: React.FC<GifPlayerProps> = ({
     setCurrentFrame((prev) => (prev < frames.length - 1 ? prev + 1 : 0));
   }, [frames.length]);
 
-  const handleSeek = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setIsPlaying(false);
-      setCurrentFrame(parseInt(e.target.value, 10));
-    },
-    []
-  );
+  const handleSeek = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setIsPlaying(false);
+    setCurrentFrame(parseInt(e.target.value, 10));
+  }, []);
 
   const handleFirstFrame = useCallback(() => {
     setIsPlaying(false);

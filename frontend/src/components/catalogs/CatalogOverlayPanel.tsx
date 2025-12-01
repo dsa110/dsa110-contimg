@@ -366,7 +366,11 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
               type="button"
               onClick={handleSelectAll}
               className="text-xs text-blue-600 hover:text-blue-800"
-              aria-label={enabledCatalogs.length === CATALOG_DEFINITIONS.length ? "Deselect all catalogs" : "Select all catalogs"}
+              aria-label={
+                enabledCatalogs.length === CATALOG_DEFINITIONS.length
+                  ? "Deselect all catalogs"
+                  : "Select all catalogs"
+              }
             >
               {enabledCatalogs.length === CATALOG_DEFINITIONS.length
                 ? "Deselect all"
