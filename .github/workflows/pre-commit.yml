@@ -11,7 +11,6 @@ on:
       - "**/*.yaml"
       - "**/*.yml"
       - "**/*.md"
-      - ".pre-commit-config.yaml"
       - ".husky/**"
   push:
     branches:
@@ -26,7 +25,6 @@ on:
       - "**/*.yaml"
       - "**/*.yml"
       - "**/*.md"
-      - ".pre-commit-config.yaml"
       - ".husky/**"
 
 # Prevent duplicate runs on same branch/PR

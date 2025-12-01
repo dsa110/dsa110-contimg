@@ -11,8 +11,8 @@ on:
       - "**/*.yaml"
       - "**/*.yml"
       - "**/*.md"
-      - "tests/**"
-      - "src/**"
+      - "backend/tests/**"
+      - "backend/src/**"
       - "frontend/**"
       - ".github/workflows/**"
   push:
@@ -24,8 +24,8 @@ on:
       - "**/*.js"
       - "**/*.ts"
       - "**/*.tsx"
-      - "tests/**"
-      - "src/**"
+      - "backend/tests/**"
+      - "backend/src/**"
       - "frontend/**"
 
 # Prevent duplicate runs on same branch/PR
