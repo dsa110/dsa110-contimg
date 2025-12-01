@@ -37,3 +37,26 @@ export type { ProvenanceStripProps } from "./provenance";
 
 // Note: Deprecated type aliases (ImageDetailResponse, MSDetailResponse, SourceDetailResponse)
 // have been removed. Use ImageDetail, MSMetadata, and SourceDetail instead.
+
+// ABSURD workflow manager types
+export type {
+  TaskStatus,
+  Task,
+  TaskListResponse,
+  QueueStats,
+  WorkerState,
+  Worker,
+  WorkerListResponse,
+  WorkerMetrics,
+  AbsurdMetrics,
+  AlertLevel,
+  Alert,
+  AbsurdHealth,
+  WorkflowStatus,
+  Workflow,
+  WorkflowTask,
+  WorkflowDetail,
+  SpawnTaskRequest,
+  SpawnWorkflowRequest,
+  CancelTaskRequest,
+} from "./absurd";

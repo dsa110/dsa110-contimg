@@ -15,6 +15,7 @@ const InteractiveImagingPage = lazy(
   () => import("./pages/InteractiveImagingPage")
 );
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
+const WorkflowsPage = lazy(() => import("./pages/WorkflowsPage"));
 
 /**
  * Application router configuration.
@@ -136,6 +137,14 @@ export const router = createBrowserRouter(
               ),
             },
           ],
+        },
+        {
+          path: "workflows",
+          element: (
+            <Suspense fallback={<PageSkeleton variant="list" />}>
+              <WorkflowsPage />
+            </Suspense>
+          ),
         },
         {
           path: "*",

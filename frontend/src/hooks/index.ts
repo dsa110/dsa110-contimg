@@ -32,3 +32,27 @@ export type {
   AdvancedFilterParams,
   SourceFilterOptions,
 } from "./useSourceFiltering";
+
+// ABSURD workflow manager hooks
+export {
+  absurdQueryKeys,
+  useTasks,
+  useTask,
+  useSpawnTask,
+  useCancelTask,
+  useRetryTask,
+  useQueues,
+  useQueueStats,
+  useWorkers,
+  useWorker,
+  useWorkerMetrics,
+  useAbsurdMetrics,
+  useAbsurdHealth,
+  useWorkflows,
+  useWorkflow,
+  useSpawnWorkflow,
+  useCancelWorkflow,
+  useDeadLetterTasks,
+  useReplayDeadLetterTask,
+  usePruneTasks,
+} from "./useAbsurdQueries";

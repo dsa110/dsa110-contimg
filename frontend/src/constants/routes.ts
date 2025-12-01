@@ -41,6 +41,12 @@ export const ROUTES = {
     DETAIL: (runId: string) => `/jobs/${encodeURIComponent(runId)}` as const,
   },
 
+  /** Workflow manager routes */
+  WORKFLOWS: {
+    /** Workflows dashboard page */
+    LIST: "/workflows",
+  },
+
   /** Measurement Set routes */
   MS: {
     /** MS detail page */
@@ -69,6 +75,7 @@ export const NAV_ITEMS = [
   { path: ROUTES.IMAGES.LIST, label: "Images" },
   { path: ROUTES.SOURCES.LIST, label: "Sources" },
   { path: ROUTES.JOBS.LIST, label: "Jobs" },
+  { path: ROUTES.WORKFLOWS.LIST, label: "Workflows" },
 ] as const;
 
 /**
