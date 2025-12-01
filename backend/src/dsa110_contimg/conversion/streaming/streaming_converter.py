@@ -849,9 +849,9 @@ class _FSHandler(FileSystemEventHandler):
 
 
 # Constants for mosaic grouping
-MS_PER_MOSAIC = 10  # Number of MS files per mosaic
-MS_OVERLAP = 2      # Overlap between consecutive mosaics
-MS_NEW_PER_TRIGGER = MS_PER_MOSAIC - MS_OVERLAP  # 8 new MS files trigger next mosaic
+MS_PER_MOSAIC = 12  # Number of MS files per mosaic
+MS_OVERLAP = 3      # Overlap between consecutive mosaics
+MS_NEW_PER_TRIGGER = MS_PER_MOSAIC - MS_OVERLAP  # 9 new MS files trigger next mosaic
 
 
 def _ensure_mosaic_tracking_table(conn) -> None:
@@ -947,18 +947,18 @@ def check_for_complete_group(
     ms_per_mosaic: int = MS_PER_MOSAIC,
     ms_overlap: int = MS_OVERLAP,
 ) -> Optional[List[str]]:
-    """Check if a complete group (10 MS files) exists for mosaic creation.
+    """Check if a complete group (12 MS files) exists for mosaic creation.
 
     Implements a sliding window pattern:
-    - First mosaic: 10 completely new MS files
-    - Subsequent mosaics: 8 new + 2 overlap from previous mosaic
+    - First mosaic: 12 completely new MS files
+    - Subsequent mosaics: 9 new + 3 overlap from previous mosaic
 
     Args:
         ms_path: Path to MS file that was just imaged (trigger point)
         products_db_path: Path to products database
         time_window_minutes: Time window in minutes to search for MS files
-        ms_per_mosaic: Number of MS files per mosaic (default: 10)
-        ms_overlap: Number of MS files to overlap between mosaics (default: 2)
+        ms_per_mosaic: Number of MS files per mosaic (default: 12)
+        ms_overlap: Number of MS files to overlap between mosaics (default: 3)
 
     Returns:
         List of MS paths in complete group, or None if group incomplete

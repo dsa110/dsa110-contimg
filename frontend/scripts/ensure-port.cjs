@@ -3,6 +3,7 @@
  * Ensures port 3000 is available for the dev server.
  *
  * Features:
+ * - Checks backend API is running before starting frontend
  * - Kills any process using port 3000
  * - Retries with exponential backoff for TIME_WAIT
  * - Handles permission errors gracefully
@@ -11,10 +12,13 @@
 
 const { execSync } = require("child_process");
 const net = require("net");
+const http = require("http");
 
 const PORT = 3000;
 const MAX_RETRIES = 5;
 const INITIAL_WAIT_MS = 500;
+const BACKEND_URL = "http://localhost:8000";
+const BACKEND_HEALTH_ENDPOINT = "/api/health";
 
 function log(msg) {
   console.log(`[ensure-port] ${msg}`);
@@ -138,7 +142,9 @@ function isSafeToKill(pid) {
     // Check if it matches dangerous patterns first
     for (const pattern of dangerousPatterns) {
       if (pattern.test(cmdline)) {
-        log(`Skipping PID ${pid} (${cmdline.slice(0, 50)}...) - system process`);
+        log(
+          `Skipping PID ${pid} (${cmdline.slice(0, 50)}...) - system process`
+        );
         return false;
       }
     }
@@ -151,7 +157,12 @@ function isSafeToKill(pid) {
     }
 
     // If we can't determine, skip it to be safe
-    log(`Skipping PID ${pid} (${cmdline.slice(0, 50)}...) - not a recognized dev server`);
+    log(
+      `Skipping PID ${pid} (${cmdline.slice(
+        0,
+        50
+      )}...) - not a recognized dev server`
+    );
     return false;
   } catch (e) {
     return false;
@@ -159,9 +170,46 @@ function isSafeToKill(pid) {
 }
 
 /**
+ * Check if the backend API is running and healthy
+ */
+function checkBackendHealth() {
+  return new Promise((resolve) => {
+    const url = new URL(BACKEND_HEALTH_ENDPOINT, BACKEND_URL);
+    const req = http.get(url.href, { timeout: 5000 }, (res) => {
+      resolve(res.statusCode >= 200 && res.statusCode < 400);
+    });
+    req.on("error", () => resolve(false));
+    req.on("timeout", () => {
+      req.destroy();
+      resolve(false);
+    });
+  });
+}
+
+/**
  * Main function to ensure port is available
  */
 async function ensurePortAvailable() {
+  // First, check that the backend API is running
+  log(`Checking backend API at ${BACKEND_URL}...`);
+  const backendHealthy = await checkBackendHealth();
+  if (!backendHealthy) {
+    error(`Backend API not running at ${BACKEND_URL}`);
+    error(``);
+    error(`The frontend requires the backend API to be running.`);
+    error(`Start the backend first:`);
+    error(``);
+    error(`  sudo systemctl start contimg-api`);
+    error(``);
+    error(`Or run manually:`);
+    error(`  cd /data/dsa110-contimg/backend/src`);
+    error(`  conda activate casa6`);
+    error(`  uvicorn dsa110_contimg.api.app:app --host 0.0.0.0 --port 8000`);
+    error(``);
+    process.exit(1);
+  }
+  success(`Backend API is healthy`);
+
   log(`Ensuring port ${PORT} is available...`);
 
   // Get processes using the port FIRST
@@ -185,9 +233,12 @@ async function ensurePortAvailable() {
     // Also try pkill for any node processes that might be hanging
     // NOTE: Be very specific to avoid killing unrelated processes
     try {
-      execSync(`pkill -9 -f "node.*vite.*--port.*${PORT}" 2>/dev/null || true`, {
-        encoding: "utf8",
-      });
+      execSync(
+        `pkill -9 -f "node.*vite.*--port.*${PORT}" 2>/dev/null || true`,
+        {
+          encoding: "utf8",
+        }
+      );
     } catch {}
 
     // Wait for kills to take effect
@@ -221,14 +272,20 @@ async function ensurePortAvailable() {
       return true;
     }
 
-    log(`Port ${PORT} still busy, waiting ${waitMs}ms... (attempt ${attempt}/${MAX_RETRIES})`);
+    log(
+      `Port ${PORT} still busy, waiting ${waitMs}ms... (attempt ${attempt}/${MAX_RETRIES})`
+    );
     waitMs *= 2; // Exponential backoff
   }
 
   // Final check
   const finalPids = getPidsOnPort(PORT);
   if (finalPids.length > 0) {
-    error(`Cannot free port ${PORT}. Processes still running: ${finalPids.join(", ")}`);
+    error(
+      `Cannot free port ${PORT}. Processes still running: ${finalPids.join(
+        ", "
+      )}`
+    );
     error(`Try: sudo kill -9 ${finalPids.join(" ")}`);
   } else {
     error(`Port ${PORT} unavailable (likely TIME_WAIT or system reservation)`);
