@@ -30,6 +30,11 @@ class ImageDetailResponse(BaseModel):
     qa_summary: Optional[str] = Field(None, description="Brief QA summary (e.g., 'RMS 0.35 mJy')")
     run_id: Optional[str] = Field(None, description="Pipeline run/job ID")
     created_at: Optional[datetime] = Field(None, description="Image creation timestamp")
+    # Image versioning fields
+    parent_id: Optional[str] = Field(None, description="ID of parent image (for re-imaged products)")
+    version: int = Field(default=1, description="Image version number (1 for originals)")
+    imaging_params: Optional[dict] = Field(None, description="Imaging parameters used")
+    mask_path: Optional[str] = Field(None, description="Path to associated mask file")
     
     class Config:
         json_schema_extra = {
@@ -43,7 +48,16 @@ class ImageDetailResponse(BaseModel):
                 "qa_grade": "good",
                 "qa_summary": "RMS 0.35 mJy, DR 1200",
                 "run_id": "job-456",
-                "created_at": "2025-01-15T10:30:00Z"
+                "created_at": "2025-01-15T10:30:00Z",
+                "parent_id": None,
+                "version": 1,
+                "imaging_params": {
+                    "imsize": [5040, 5040],
+                    "cell": "2.5arcsec",
+                    "weighting": "briggs",
+                    "robust": 0.5
+                },
+                "mask_path": None
             }
         }
 

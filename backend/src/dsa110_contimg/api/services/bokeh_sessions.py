@@ -17,7 +17,10 @@ import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional, Set
+
+if TYPE_CHECKING:
+    from fastapi import WebSocket
 
 logger = logging.getLogger(__name__)
 
@@ -177,6 +180,8 @@ class BokehSessionManager:
         self.default_params = default_params or DSA110_ICLEAN_DEFAULTS.copy()
         self._cleanup_task: Optional[asyncio.Task] = None
         self._lock = asyncio.Lock()
+        # WebSocket connections for progress updates
+        self._websockets: Dict[str, Set["WebSocket"]] = {}
 
     async def create_session(
         self,
@@ -436,6 +441,96 @@ except Exception as e:
             List of session dictionaries
         """
         return [session.to_dict() for session in self.sessions.values()]
+
+    # =========================================================================
+    # WebSocket Management
+    # =========================================================================
+
+    def register_websocket(self, session_id: str, websocket: "WebSocket") -> None:
+        """Register a WebSocket connection for a session.
+
+        Args:
+            session_id: Session identifier
+            websocket: FastAPI WebSocket connection
+        """
+        if session_id not in self._websockets:
+            self._websockets[session_id] = set()
+        self._websockets[session_id].add(websocket)
+        logger.debug(f"Registered WebSocket for session {session_id}")
+
+    def unregister_websocket(self, session_id: str, websocket: "WebSocket") -> None:
+        """Unregister a WebSocket connection.
+
+        Args:
+            session_id: Session identifier
+            websocket: FastAPI WebSocket connection
+        """
+        if session_id in self._websockets:
+            self._websockets[session_id].discard(websocket)
+            if not self._websockets[session_id]:
+                del self._websockets[session_id]
+            logger.debug(f"Unregistered WebSocket for session {session_id}")
+
+    async def broadcast_progress(
+        self,
+        session_id: str,
+        progress: dict,
+    ) -> None:
+        """Broadcast progress update to all WebSocket connections for a session.
+
+        Args:
+            session_id: Session identifier
+            progress: Progress data to broadcast
+        """
+        if session_id not in self._websockets:
+            return
+
+        message = {"type": "progress", "payload": progress}
+        dead_websockets: List["WebSocket"] = []
+
+        for ws in self._websockets[session_id]:
+            try:
+                await ws.send_json(message)
+            except Exception as e:
+                logger.debug(f"Failed to send to WebSocket: {e}")
+                dead_websockets.append(ws)
+
+        # Clean up dead WebSocket connections
+        for ws in dead_websockets:
+            self._websockets[session_id].discard(ws)
+
+    async def broadcast_status(
+        self,
+        session_id: str,
+        status: str,
+    ) -> None:
+        """Broadcast status update to all WebSocket connections for a session.
+
+        Args:
+            session_id: Session identifier
+            status: Status string
+        """
+        if session_id not in self._websockets:
+            return
+
+        message = {"type": "status", "payload": status}
+
+        for ws in list(self._websockets.get(session_id, [])):
+            try:
+                await ws.send_json(message)
+            except Exception:
+                pass
+
+    def get_websocket_count(self, session_id: str) -> int:
+        """Get number of WebSocket connections for a session.
+
+        Args:
+            session_id: Session identifier
+
+        Returns:
+            Number of active WebSocket connections
+        """
+        return len(self._websockets.get(session_id, set()))
 
     async def shutdown(self) -> None:
         """Shutdown manager and cleanup all sessions."""

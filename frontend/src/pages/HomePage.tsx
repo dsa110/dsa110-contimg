@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { StatCardGrid } from "../components/summary";
 import { SkyCoverageMap, type Pointing } from "../components/skymap";
 import { StatsDashboard, ServiceStatusPanel } from "../components/stats";
+import { PipelineStatusPanel } from "../components/pipeline";
 import { useImages, useSources, useJobs } from "../hooks/useQueries";
 import type { ImageSummary } from "../types";
 import { ROUTES } from "../constants/routes";
@@ -19,7 +20,8 @@ const HomePage: React.FC = () => {
 
   // Build rating stats for StatsDashboard from image QA grades
   const ratingStats = React.useMemo(() => {
-    if (!images) return { byUser: [], byTag: [], tagDistribution: [], total: 0, rated: 0 };
+    if (!images)
+      return { byUser: [], byTag: [], tagDistribution: [], total: 0, rated: 0 };
 
     const imgArr = images as Array<{ qa_grade?: string; run_id?: string }>;
     const gradeCount = { good: 0, warn: 0, fail: 0 };
@@ -42,9 +44,24 @@ const HomePage: React.FC = () => {
         },
       ],
       byTag: [
-        { label: "Good", trueCount: gradeCount.good, falseCount: 0, unsureCount: 0 },
-        { label: "Warning", trueCount: 0, falseCount: 0, unsureCount: gradeCount.warn },
-        { label: "Fail", trueCount: 0, falseCount: gradeCount.fail, unsureCount: 0 },
+        {
+          label: "Good",
+          trueCount: gradeCount.good,
+          falseCount: 0,
+          unsureCount: 0,
+        },
+        {
+          label: "Warning",
+          trueCount: 0,
+          falseCount: 0,
+          unsureCount: gradeCount.warn,
+        },
+        {
+          label: "Fail",
+          trueCount: 0,
+          falseCount: gradeCount.fail,
+          unsureCount: 0,
+        },
       ],
       tagDistribution: [
         {
@@ -97,7 +114,10 @@ const HomePage: React.FC = () => {
   const pointings: Pointing[] = React.useMemo(() => {
     if (!images) return [];
     return images
-      .filter((img: ImageSummary) => img.pointing_ra_deg != null && img.pointing_dec_deg != null)
+      .filter(
+        (img: ImageSummary) =>
+          img.pointing_ra_deg != null && img.pointing_dec_deg != null
+      )
       .map(
         (img: ImageSummary): Pointing => ({
           id: img.id,
@@ -116,16 +136,26 @@ const HomePage: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto">
-      <h1 className="text-3xl font-bold text-gray-900 mb-2">DSA-110 Continuum Imaging Pipeline</h1>
+      <h1 className="text-3xl font-bold text-gray-900 mb-2">
+        DSA-110 Continuum Imaging Pipeline
+      </h1>
 
       <p className="text-gray-600 mb-8">
-        Monitor and manage the radio imaging pipeline for the Deep Synoptic Array.
+        Monitor and manage the radio imaging pipeline for the Deep Synoptic
+        Array.
       </p>
+
+      {/* Pipeline Status - ABSURD workflow visualization */}
+      <section className="mb-8">
+        <PipelineStatusPanel pollInterval={30000} />
+      </section>
 
       {/* Stats overview */}
       <section className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-gray-900">Pipeline Overview</h2>
+          <h2 className="text-xl font-semibold text-gray-900">
+            Pipeline Overview
+          </h2>
           <button
             onClick={() => setShowStatsDashboard(!showStatsDashboard)}
             className="text-sm text-blue-600 hover:text-blue-800"
@@ -133,13 +163,18 @@ const HomePage: React.FC = () => {
             {showStatsDashboard ? "Hide Details" : "Show Detailed Stats"}
           </button>
         </div>
-        <StatCardGrid cards={stats} isLoading={imagesLoading || sourcesLoading || jobsLoading} />
+        <StatCardGrid
+          cards={stats}
+          isLoading={imagesLoading || sourcesLoading || jobsLoading}
+        />
       </section>
 
       {/* Detailed Stats Dashboard */}
       {showStatsDashboard && (
         <section className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">QA Rating Statistics</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            QA Rating Statistics
+          </h2>
           <div className="card p-4">
             <StatsDashboard
               byUser={ratingStats.byUser}
@@ -156,7 +191,9 @@ const HomePage: React.FC = () => {
       {/* Sky Coverage Map */}
       {pointings.length > 0 && (
         <section className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Sky Coverage</h2>
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">
+            Sky Coverage
+          </h2>
           <div className="card p-4">
             <SkyCoverageMap
               pointings={pointings}
@@ -191,7 +228,9 @@ const HomePage: React.FC = () => {
       </div>
 
       <section className="card p-6">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Links</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          Quick Links
+        </h2>
         <ul className="space-y-2">
           <li>
             <a
@@ -218,7 +257,9 @@ const HomePage: React.FC = () => {
 
       {/* Service Status Panel */}
       <section className="mt-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">Infrastructure Status</h2>
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          Infrastructure Status
+        </h2>
         <ServiceStatusPanel />
       </section>
     </div>
@@ -232,7 +273,12 @@ interface DashboardCardProps {
   icon: string;
 }
 
-const DashboardCard: React.FC<DashboardCardProps> = ({ title, description, link, icon }) => (
+const DashboardCard: React.FC<DashboardCardProps> = ({
+  title,
+  description,
+  link,
+  icon,
+}) => (
   <Link to={link} className="card p-6 hover:shadow-lg transition-shadow group">
     <div className="text-3xl mb-3">{icon}</div>
     <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors mb-2">

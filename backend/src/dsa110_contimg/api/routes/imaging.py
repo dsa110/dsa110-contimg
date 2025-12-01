@@ -6,11 +6,12 @@ Provides endpoints for launching and managing InteractiveClean Bokeh sessions.
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from pathlib import Path
 from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, Field
 
 from ..services.bokeh_sessions import (
@@ -323,3 +324,100 @@ async def get_imaging_status(
         "available_ports": manager.port_pool.available_count,
         "ports_in_use": manager.port_pool.in_use_count,
     }
+
+
+# =============================================================================
+# WebSocket Endpoint for Progress Updates
+# =============================================================================
+
+
+@router.websocket("/sessions/{session_id}/ws")
+async def session_progress_websocket(
+    websocket: WebSocket,
+    session_id: str,
+    manager: BokehSessionManager = Depends(get_session_manager),
+) -> None:
+    """
+    WebSocket endpoint for real-time session progress updates.
+
+    Clients can connect to receive progress updates from InteractiveClean sessions.
+    Messages are JSON formatted with type and payload fields:
+
+    - {"type": "status", "payload": "connected"}
+    - {"type": "progress", "payload": {...}}
+    - {"type": "error", "payload": "error message"}
+    """
+    await websocket.accept()
+
+    # Validate session exists
+    session = await manager.get_session(session_id)
+    if not session:
+        await websocket.send_json({
+            "type": "error",
+            "payload": f"Session not found: {session_id}"
+        })
+        await websocket.close(code=4004)
+        return
+
+    # Send initial status
+    await websocket.send_json({
+        "type": "status",
+        "payload": "connected"
+    })
+
+    # Track this WebSocket in the session manager
+    manager.register_websocket(session_id, websocket)
+
+    try:
+        # Keep connection alive and monitor session
+        while True:
+            # Check if session is still alive
+            session = await manager.get_session(session_id)
+            if not session or not session.is_alive:
+                await websocket.send_json({
+                    "type": "status",
+                    "payload": "stopped"
+                })
+                break
+
+            # Send heartbeat and wait for client messages
+            try:
+                # Wait for client messages (with timeout for heartbeat)
+                data = await asyncio.wait_for(
+                    websocket.receive_text(),
+                    timeout=30.0
+                )
+
+                # Handle client commands
+                if data == "ping":
+                    await websocket.send_json({"type": "pong", "payload": None})
+                elif data == "status":
+                    await websocket.send_json({
+                        "type": "status",
+                        "payload": "alive" if session.is_alive else "dead"
+                    })
+
+            except asyncio.TimeoutError:
+                # Send heartbeat on timeout
+                await websocket.send_json({
+                    "type": "heartbeat",
+                    "payload": {
+                        "session_id": session_id,
+                        "age_hours": session.age_hours if session else 0,
+                    }
+                })
+
+    except WebSocketDisconnect:
+        logger.info(f"WebSocket disconnected for session {session_id}")
+    except Exception as e:
+        logger.exception(f"WebSocket error for session {session_id}: {e}")
+        try:
+            await websocket.send_json({
+                "type": "error",
+                "payload": str(e)
+            })
+        except Exception:
+            pass
+    finally:
+        # Unregister WebSocket
+        manager.unregister_websocket(session_id, websocket)

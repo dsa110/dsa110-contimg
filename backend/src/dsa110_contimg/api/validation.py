@@ -488,3 +488,231 @@ def validate_search_radius(radius: float, max_radius: float = 10.0) -> float:
             value=radius,
         )
     return radius
+
+
+# ============================================================================
+# Measurement Set Validation for Visualization
+# ============================================================================
+
+def validate_ms_for_visualization(ms_path: str) -> None:
+    """
+    Validate MS is suitable for casangi/raster visualization.
+
+    Raises:
+        ValidationError: If MS doesn't exist or is invalid
+        HTTPException: If MS is locked or has other issues
+    """
+    from pathlib import Path
+
+    path = Path(ms_path)
+
+    # Check existence
+    if not path.exists():
+        raise HTTPException(status_code=404, detail=f"MS not found: {ms_path}")
+
+    # Check it's a directory (MS is a directory)
+    if not path.is_dir():
+        raise ValidationError(
+            field="ms_path",
+            message="Path is not a valid Measurement Set directory",
+            value=ms_path,
+        )
+
+    # Check for MAIN table
+    main_table = path / "table.dat"
+    if not main_table.exists():
+        raise ValidationError(
+            field="ms_path",
+            message="Path does not contain a valid MS (missing table.dat)",
+            value=ms_path,
+        )
+
+    try:
+        from casacore.tables import table
+
+        with table(str(path), readonly=True) as t:
+            if t.nrows() == 0:
+                raise HTTPException(
+                    status_code=422,
+                    detail="MS is empty (0 rows)"
+                )
+
+            colnames = t.colnames()
+            if "CORRECTED_DATA" not in colnames and "DATA" not in colnames:
+                raise HTTPException(
+                    status_code=422,
+                    detail="MS has no DATA or CORRECTED_DATA column"
+                )
+    except RuntimeError as e:
+        error_str = str(e).lower()
+        if "cannot be opened" in error_str or "lock" in error_str:
+            raise HTTPException(
+                status_code=423,
+                detail=f"MS is locked by another process: {e}"
+            )
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to open MS: {e}"
+        )
+    except ImportError:
+        # casacore not available - skip detailed validation
+        pass
+
+
+def validate_imaging_parameters(
+    imsize: list[int],
+    niter: int,
+    cell: str | None = None,
+) -> None:
+    """
+    Validate imaging parameters are within safe bounds.
+
+    Raises:
+        ValidationError: If parameters are invalid
+    """
+    MAX_IMSIZE = 8192
+    MAX_NITER = 1_000_000
+
+    if len(imsize) != 2:
+        raise ValidationError(
+            field="imsize",
+            message="imsize must be [width, height]",
+            value=imsize,
+        )
+
+    if any(s <= 0 or s > MAX_IMSIZE for s in imsize):
+        raise ValidationError(
+            field="imsize",
+            message=f"imsize must be 1-{MAX_IMSIZE} per dimension",
+            value=imsize,
+        )
+
+    if niter < 0 or niter > MAX_NITER:
+        raise ValidationError(
+            field="niter",
+            message=f"niter must be 0-{MAX_NITER}",
+            value=niter,
+        )
+
+    if cell is not None:
+        # Validate cell format (e.g., "2.5arcsec", "0.5arcmin")
+        import re
+        if not re.match(r"^\d+(\.\d+)?(arcsec|arcmin|deg)$", cell):
+            raise ValidationError(
+                field="cell",
+                message="cell must be in format '<number><unit>' (e.g., '2.5arcsec')",
+                value=cell,
+            )
+
+
+class RasterPlotParams(BaseModel):
+    """Parameters for MS visibility raster plot."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    xaxis: str = Field(
+        default="time",
+        pattern=r"^(time|baseline|frequency|antenna_name)$",
+        description="X-axis dimension",
+    )
+    yaxis: str = Field(
+        default="amp",
+        pattern=r"^(amp|phase|real|imag)$",
+        description="Visibility component to plot",
+    )
+    colormap: str = Field(
+        default="viridis",
+        max_length=50,
+        description="Colormap name",
+    )
+    spw: Optional[str] = Field(
+        default=None,
+        max_length=100,
+        description="Spectral window filter",
+    )
+    antenna: Optional[str] = Field(
+        default=None,
+        max_length=200,
+        description="Antenna/baseline filter",
+    )
+    aggregator: str = Field(
+        default="mean",
+        pattern=r"^(mean|max|min|std|sum|var)$",
+        description="Aggregation method",
+    )
+    width: int = Field(
+        default=800,
+        ge=200,
+        le=2000,
+        description="Output image width in pixels",
+    )
+    height: int = Field(
+        default=600,
+        ge=200,
+        le=2000,
+        description="Output image height in pixels",
+    )
+
+
+class ImagingSessionParams(BaseModel):
+    """Parameters for interactive imaging session."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    ms_path: str = Field(
+        ...,
+        min_length=1,
+        max_length=1000,
+        description="Path to Measurement Set",
+    )
+    imagename: str = Field(
+        ...,
+        min_length=1,
+        max_length=500,
+        description="Output image name prefix",
+    )
+    imsize: list[int] = Field(
+        default=[5040, 5040],
+        min_length=2,
+        max_length=2,
+        description="Image size [width, height]",
+    )
+    cell: str = Field(
+        default="2.5arcsec",
+        max_length=50,
+        description="Cell size",
+    )
+    niter: int = Field(
+        default=10000,
+        ge=0,
+        le=1_000_000,
+        description="Maximum iterations",
+    )
+    threshold: str = Field(
+        default="0.5mJy",
+        max_length=50,
+        description="Stopping threshold",
+    )
+    weighting: str = Field(
+        default="briggs",
+        pattern=r"^(natural|uniform|briggs)$",
+        description="Weighting scheme",
+    )
+    robust: float = Field(
+        default=0.5,
+        ge=-2.0,
+        le=2.0,
+        description="Briggs robust parameter",
+    )
+    deconvolver: str = Field(
+        default="hogbom",
+        pattern=r"^(hogbom|multiscale|mtmfs|clark)$",
+        description="Deconvolution algorithm",
+    )
+
+    @model_validator(mode="after")
+    def validate_all(self) -> "ImagingSessionParams":
+        """Validate imaging parameters."""
+        validate_imaging_parameters(self.imsize, self.niter, self.cell)
+        return self
+
