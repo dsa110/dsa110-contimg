@@ -27,7 +27,7 @@ from dsa110_contimg.imaging.fast_imaging import run_fast_imaging
 logger = logging.getLogger("imaging_worker")
 try:
     from dsa110_contimg.utils.tempdirs import prepare_temp_environment
-except Exception:  # pragma: no cover
+except ImportError:  # pragma: no cover
     prepare_temp_environment = None  # type: ignore
 
 
@@ -49,7 +49,7 @@ def _apply_and_image(ms_path: str, out_dir: Path, gaintables: List[str]) -> List
                 os.getenv("CONTIMG_SCRATCH_DIR") or "/stage/dsa110-contimg",
                 cwd_to=os.fspath(out_dir),
             )
-    except Exception:
+    except (OSError, RuntimeError):
         pass
     # Apply to all fields by default
     try:

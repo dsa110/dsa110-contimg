@@ -92,7 +92,7 @@ def _load_pb_mask(pb_path: str, pblimit: float) -> Optional[np.ndarray]:
             pb = pb[0]
         m = np.isfinite(pb) & (pb >= float(pblimit))
         return m
-    except Exception:
+    except (OSError, ValueError, KeyError):
         return None
 
 

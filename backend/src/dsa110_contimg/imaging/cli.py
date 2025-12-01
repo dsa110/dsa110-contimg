@@ -43,7 +43,7 @@ setup_casa_environment()
 try:
     from casatools import msmetadata as _msmd  # type: ignore[import]
     from casatools import vpmanager as _vpmanager  # type: ignore[import]
-except Exception:  # pragma: no cover
+except ImportError:  # pragma: no cover
     _vpmanager = None
     _msmd = None
 
@@ -55,7 +55,7 @@ try:
         derive_default_scratch_root,
         prepare_temp_environment,
     )
-except Exception:  # pragma: no cover - defensive import
+except ImportError:  # pragma: no cover - defensive import
     prepare_temp_environment = None  # type: ignore
     derive_default_scratch_root = None  # type: ignore
 
@@ -285,7 +285,7 @@ def main(argv: Optional[list] = None) -> None:
     # Ensure scratch directory structure exists
     try:
         ensure_scratch_dirs()
-    except Exception:
+    except OSError:
         pass  # Best-effort; continue if setup fails
 
     if args.cmd == "image":

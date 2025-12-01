@@ -127,7 +127,7 @@ def default_cell_arcsec(ms_path: str) -> float:
         theta_rad = 0.5 * lam / umax
         cell = max(0.1, min(60.0, np.degrees(theta_rad) * 3600.0 / 5.0))
         return float(cell)
-    except Exception:
+    except (OSError, RuntimeError, KeyError, ValueError):
         # CASA-only fallback using casacore tables if daskms missing
         try:
             with table(f"{ms_path}::MAIN", readonly=True) as main_tbl:
@@ -146,7 +146,7 @@ def default_cell_arcsec(ms_path: str) -> float:
             theta_rad = 0.5 * lam / umax
             cell = max(0.1, min(60.0, np.degrees(theta_rad) * 3600.0 / 5.0))
             return float(cell)
-        except Exception:
+        except (OSError, RuntimeError, KeyError, ValueError):
             return 2.0
 
 

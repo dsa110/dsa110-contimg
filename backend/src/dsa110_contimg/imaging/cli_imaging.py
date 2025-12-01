@@ -24,7 +24,7 @@ from casatasks import exportfits, tclean  # type: ignore[import]  # noqa: E402
 try:
     from casatools import msmetadata as _msmd  # type: ignore[import]
     from casatools import vpmanager as _vpmanager  # type: ignore[import]
-except Exception:  # pragma: no cover
+except ImportError:  # pragma: no cover
     _vpmanager = None
     _msmd = None
 
@@ -46,7 +46,7 @@ FIXED_IMAGE_EXTENT_DEG = 3.5
 
 try:
     from dsa110_contimg.utils.tempdirs import prepare_temp_environment
-except Exception:  # pragma: no cover - defensive import
+except ImportError:  # pragma: no cover - defensive import
     prepare_temp_environment = None  # type: ignore
 
 
@@ -540,7 +540,7 @@ def image_ms(
             out_dir = os.path.dirname(os.path.abspath(imagename))
             root = os.getenv("CONTIMG_SCRATCH_DIR") or "/stage/dsa110-contimg"
             prepare_temp_environment(root, cwd_to=out_dir)
-    except Exception:
+    except (OSError, RuntimeError):
         # Best-effort; continue even if temp prep fails
         pass
     datacolumn = detect_datacolumn(ms_path)
@@ -695,7 +695,7 @@ def image_ms(
             ph = fld.getcol("PHASE_DIR")[0]
             ra0_deg = float(ph[0][0]) * (180.0 / np.pi)
             dec0_deg = float(ph[0][1]) * (180.0 / np.pi)
-        except Exception:
+        except (KeyError, IndexError, TypeError):
             pass
     if ra0_deg is None or dec0_deg is None:
         LOG.warning("Could not determine phase center from MS FIELD table")
@@ -767,7 +767,7 @@ def image_ms(
                         bandwidth_hz = float(np.max(ch) - np.min(ch) + abs(ch[1] - ch[0]))
                     else:
                         bandwidth_hz = float(spw.getcol("TOTAL_BANDWIDTH")[0])
-            except Exception:
+            except (OSError, RuntimeError, KeyError):
                 pass
 
             # Calculate primary beam radius based on pblimit
@@ -1091,7 +1091,7 @@ def image_ms(
             for tname in filter(None, [telname, "DSA_110"]):
                 try:
                     vp.setuserdefault(telescope=tname)
-                except Exception:
+                except (RuntimeError, ValueError):
                     pass
             LOG.debug(
                 "Registered VP table %s for telescope(s): %s",

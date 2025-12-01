@@ -60,7 +60,7 @@ def get_scan_duration(ms_path: str) -> float:
                 return (
                     times["end"]["m0"]["value"] * 86400.0 - times["begin"]["m0"]["value"] * 86400.0
                 )
-        except Exception:
+        except (OSError, RuntimeError, KeyError):
             # Fallback to table if metadata fails
             pass
 
