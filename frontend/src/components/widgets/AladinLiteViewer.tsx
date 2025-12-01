@@ -57,6 +57,8 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [currentFov, setCurrentFov] = useState(fov);
   const [shouldLoad, setShouldLoad] = useState(false);
+  const currentFovRef = useRef(currentFov);
+  const sourceNameRef = useRef(sourceName);
 
   const destroyInstance = useCallback(() => {
     if (aladinRef.current) {
@@ -64,6 +66,14 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
       aladinRef.current = null;
     }
   }, []);
+
+  useEffect(() => {
+    currentFovRef.current = currentFov;
+  }, [currentFov]);
+
+  useEffect(() => {
+    sourceNameRef.current = sourceName;
+  }, [sourceName]);
 
   // Initialize Aladin viewer
   useEffect(() => {
@@ -84,7 +94,7 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
 
         aladinRef.current = A.aladin(containerRef.current, {
           target,
-          fov: currentFov,
+          fov: currentFovRef.current,
           survey,
           showReticle: true,
           showZoomControl: true,
@@ -97,10 +107,10 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
         });
 
         // Add source marker if sourceName is provided
-        if (sourceName) {
+        if (sourceNameRef.current) {
           const catalog = A.catalog({ name: "Source", sourceSize: 18, color: "#ff6b6b" });
           aladinRef.current.addCatalog(catalog);
-          catalog.addSources([A.source(raDeg, decDeg, { name: sourceName })]);
+          catalog.addSources([A.source(raDeg, decDeg, { name: sourceNameRef.current })]);
         }
         setIsLoading(false);
       } catch (err) {
@@ -119,10 +129,6 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
     };
   }, [destroyInstance, error, raDeg, decDeg, survey, showFullscreen, shouldLoad]);
 
-  // Update position when coordinates change
-  // Note: currentFov and sourceName are intentionally not in deps array.
-  // We only want to reposition on coordinate changes, not on FOV/name changes.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (aladinRef.current) {
       aladinRef.current.gotoRaDec(raDeg, decDeg);
