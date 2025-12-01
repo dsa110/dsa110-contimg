@@ -8,7 +8,14 @@
 // Service Health Types
 // =============================================================================
 
-export type ServiceStatusType = "running" | "stopped" | "degraded" | "error" | "unknown" | "healthy" | "unhealthy";
+export type ServiceStatusType =
+  | "running"
+  | "stopped"
+  | "degraded"
+  | "error"
+  | "unknown"
+  | "healthy"
+  | "unhealthy";
 
 export interface ServiceHealthStatus {
   name: string;
@@ -32,7 +39,8 @@ export interface HealthSummary {
 
 export interface SystemHealthReport {
   overall_status: ServiceStatusType;
-  services: Record<string, ServiceHealthStatus>;
+  /** Array of service health statuses (not a Record - API returns array) */
+  services: ServiceHealthStatus[];
   docker_available?: boolean;
   systemd_available?: boolean;
   summary: HealthSummary;
@@ -76,22 +84,29 @@ export interface ActiveValidityWindows {
 export interface ValidityTimelineEntry {
   set_name: string;
   table_type: string;
-  valid_start_iso: string;
-  valid_end_iso: string;
-  valid_start_mjd: number;
-  valid_end_mjd: number;
-  is_current: boolean;
-  hours_until_expiry?: number;
   cal_field?: string;
+  refant?: string;
+  start_mjd: number;
+  end_mjd: number;
+  start_iso: string;
+  end_iso: string;
+  duration_hours: number;
+  is_current: boolean;
 }
 
 export interface ValidityTimeline {
-  query_mjd: number;
-  query_iso: string;
-  window_start_iso: string;
-  window_end_iso: string;
-  entries: ValidityTimelineEntry[];
-  total_entries: number;
+  /** ISO timestamp of timeline start */
+  timeline_start: string;
+  /** ISO timestamp of timeline end */
+  timeline_end: string;
+  /** Current time ISO */
+  current_time: string;
+  /** Current MJD */
+  current_mjd: number;
+  /** Array of validity windows */
+  windows: ValidityTimelineEntry[];
+  /** Total number of windows */
+  total_windows: number;
 }
 
 // =============================================================================
@@ -111,9 +126,11 @@ export interface FluxMonitoringStatus {
 
 export interface FluxMonitoringSummary {
   calibrators: FluxMonitoringStatus[];
-  total_measurements: number;
-  total_alerts: number;
+  total_measurements?: number;
+  total_alerts?: number;
   last_check_time?: string;
+  /** Optional message when flux monitoring table not initialized */
+  message?: string;
 }
 
 export interface FluxHistoryPoint {
@@ -182,8 +199,10 @@ export interface MonitoringAlert {
 
 export interface AlertsResponse {
   alerts: MonitoringAlert[];
-  total_count: number;
-  unacknowledged_count: number;
+  total_count?: number;
+  unacknowledged_count?: number;
+  /** Optional message when alerts table not initialized */
+  message?: string;
 }
 
 /** Query parameters for alerts endpoint */

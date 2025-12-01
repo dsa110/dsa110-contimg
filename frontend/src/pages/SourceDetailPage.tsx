@@ -183,7 +183,7 @@ const SourceDetailPage: React.FC = () => {
               <a
                 href={`https://simbad.u-strasbg.fr/simbad/sim-coo?Coord=${sourceData.ra_deg}+${sourceData.dec_deg}&CooFrame=FK5&CooEpoch=2000&CooEqui=2000&Radius=2&Radius.unit=arcmin`}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 hover:underline"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -195,7 +195,7 @@ const SourceDetailPage: React.FC = () => {
               <a
                 href={`https://ned.ipac.caltech.edu/conesearch?search_type=Near%20Position%20Search&ra=${sourceData.ra_deg}&dec=${sourceData.dec_deg}&radius=2&in_csys=Equatorial&in_equinox=J2000`}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 hover:underline"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
@@ -214,7 +214,11 @@ const SourceDetailPage: React.FC = () => {
                 type="button"
                 className="btn btn-primary"
                 onClick={() =>
-                  window.open(`${config.api.baseUrl}/sources/${encodedSourceId}/export`, "_blank")
+                  window.open(
+                    `${config.api.baseUrl}/sources/${encodedSourceId}/export`,
+                    "_blank",
+                    "noopener,noreferrer"
+                  )
                 }
               >
                 View Lightcurve
@@ -225,7 +229,8 @@ const SourceDetailPage: React.FC = () => {
                 onClick={() =>
                   window.open(
                     `${config.api.baseUrl}/sources/${encodedSourceId}/contributing-images`,
-                    "_blank"
+                    "_blank",
+                    "noopener,noreferrer"
                   )
                 }
               >
@@ -239,7 +244,8 @@ const SourceDetailPage: React.FC = () => {
                     `${
                       import.meta.env.VITE_API_URL || "/api"
                     }/sources/${encodedSourceId}/variability`,
-                    "_blank"
+                    "_blank",
+                    "noopener,noreferrer"
                   )
                 }
               >

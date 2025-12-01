@@ -95,7 +95,8 @@ const BokehEmbed: React.FC<BokehEmbedProps> = ({
 
   // Connect to WebSocket for progress updates
   useEffect(() => {
-    const wsUrl = `ws://${window.location.host}/api/imaging/session/${session.id}/ws`;
+    const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+    const wsUrl = `${wsScheme}://${window.location.host}/api/imaging/session/${session.id}/ws`;
 
     try {
       const ws = new WebSocket(wsUrl);
@@ -194,7 +195,7 @@ const BokehEmbed: React.FC<BokehEmbedProps> = ({
 
   // Open in new tab
   const handleDetach = useCallback(() => {
-    window.open(session.url, "_blank");
+    window.open(session.url, "_blank", "noopener,noreferrer");
   }, [session.url]);
 
   // Calculate progress percentage

@@ -109,7 +109,8 @@ const MSDetailPage: React.FC = () => {
                     `${config.api.baseUrl}/ms/${encodeURIComponent(
                       msPath ?? ""
                     )}/download`,
-                    "_blank"
+                    "_blank",
+                    "noopener,noreferrer"
                   )
                 }
               >
@@ -147,7 +148,8 @@ const MSDetailPage: React.FC = () => {
                 onClick={() =>
                   window.open(
                     `/viewer/carta?ms=${encodeURIComponent(msPath ?? "")}`,
-                    "_blank"
+                    "_blank",
+                    "noopener,noreferrer"
                   )
                 }
               >

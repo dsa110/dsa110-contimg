@@ -324,7 +324,7 @@ const HomePage: React.FC = () => {
             <a
               href="/docs/troubleshooting.md"
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="hover:underline"
               style={{ color: "var(--color-primary)" }}
             >
@@ -335,7 +335,7 @@ const HomePage: React.FC = () => {
             <a
               href="/api/health"
               target="_blank"
-              rel="noreferrer"
+              rel="noopener noreferrer"
               className="hover:underline"
               style={{ color: "var(--color-primary)" }}
             >

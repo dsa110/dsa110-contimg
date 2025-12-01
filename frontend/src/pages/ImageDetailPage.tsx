@@ -163,7 +163,7 @@ const ImageDetailPage: React.FC = () => {
               <a
                 href={`${config.api.baseUrl}/images/${encodedImageId}/fits`}
                 target="_blank"
-                rel="noreferrer"
+                rel="noopener noreferrer"
                 className="btn btn-primary text-center"
               >
                 Download FITS

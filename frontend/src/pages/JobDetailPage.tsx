@@ -139,7 +139,7 @@ const JobDetailPage: React.FC = () => {
                 <a
                   href={provenance.logsUrl}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="btn btn-secondary text-center"
                 >
                   View Logs
@@ -154,7 +154,7 @@ const JobDetailPage: React.FC = () => {
                 <a
                   href={provenance.qaUrl}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="btn btn-secondary text-center"
                 >
                   QA Report
@@ -289,7 +289,7 @@ const JobDetailPage: React.FC = () => {
                 <a
                   href={provenance.logsUrl}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="p-3 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-colors flex items-center gap-3"
                 >
                   <span className="h-10 w-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-semibold text-sm">
@@ -305,7 +305,7 @@ const JobDetailPage: React.FC = () => {
                 <a
                   href={provenance.qaUrl}
                   target="_blank"
-                  rel="noreferrer"
+                  rel="noopener noreferrer"
                   className="p-3 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-colors flex items-center gap-3"
                 >
                   <span className="h-10 w-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-semibold text-sm">

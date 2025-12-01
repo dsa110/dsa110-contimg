@@ -32,7 +32,7 @@ const JobsListPage: React.FC = () => {
       if (selectedIds.length === 0) return;
       const baseUrl = config.api.baseUrl;
       if (action === "export") {
-        window.open(`${baseUrl}/jobs/export?ids=${selectedIds.join(",")}`, "_blank");
+        window.open(`${baseUrl}/jobs/export?ids=${selectedIds.join(",")}`, "_blank", "noopener,noreferrer");
       } else {
         await fetch(`${baseUrl}/jobs/bulk-${action}`, {
           method: "POST",

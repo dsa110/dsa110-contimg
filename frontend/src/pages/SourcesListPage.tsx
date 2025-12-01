@@ -94,7 +94,7 @@ const SourcesListPage: React.FC = () => {
 
   const confirmExport = useCallback(() => {
     const baseUrl = config.api.baseUrl;
-    window.open(`${baseUrl}/sources/export?ids=${selectedIds.join(",")}`, "_blank");
+    window.open(`${baseUrl}/sources/export?ids=${selectedIds.join(",")}`, "_blank", "noopener,noreferrer");
     setShowExportModal(false);
   }, [selectedIds]);
 

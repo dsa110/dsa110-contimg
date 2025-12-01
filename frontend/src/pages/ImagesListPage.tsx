@@ -67,7 +67,7 @@ const ImagesListPage: React.FC = () => {
   const handleBulkDownload = useCallback(async (ids: string[], format: string) => {
     const baseUrl = config.api.baseUrl;
     const url = `${baseUrl}/images/bulk-download?ids=${ids.join(",")}&format=${format}`;
-    window.open(url, "_blank");
+    window.open(url, "_blank", "noopener,noreferrer");
   }, []);
 
   // Apply filters

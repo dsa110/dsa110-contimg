@@ -178,7 +178,7 @@ const StatCard: React.FC<StatCardProps> = ({
         <a
           href={href}
           target="_blank"
-          rel="noreferrer"
+          rel="noopener noreferrer"
           className="block no-underline focus:outline-none"
           aria-label={accessibleLabel}
         >
