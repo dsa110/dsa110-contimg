@@ -149,7 +149,7 @@ jobs:
 
       - name: Run tests
         working-directory: ./frontend
-        run: npm test -- --coverage
+        run: npm run test:ci
 
   integration-checks:
     name: Integration Tests
