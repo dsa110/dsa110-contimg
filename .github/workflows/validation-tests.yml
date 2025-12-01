@@ -39,22 +39,13 @@ jobs:
           set -euo pipefail
           python -m pip install --upgrade pip
           pip install pytest pytest-cov pytest-xdist pytest-timeout pytest-mock
-          pip install -e "backend/[dev]"
+          pip install -e ".[dev]"
 
       - name: Run impacted tests (fail-fast)
-        env:
-          PYTHONPATH: backend/src
-          PIPELINE_PRODUCTS_DB: /tmp/dsa110-ci/products.sqlite3
-          PIPELINE_CAL_REGISTRY_DB: /tmp/dsa110-ci/cal_registry.sqlite3
-          PIPELINE_HDF5_DB: /tmp/dsa110-ci/hdf5.sqlite3
-          PIPELINE_INGEST_DB: /tmp/dsa110-ci/ingest.sqlite3
-          PIPELINE_DATA_REGISTRY_DB: /tmp/dsa110-ci/data_registry.sqlite3
-          PIPELINE_DOCSEARCH_DB: /tmp/dsa110-ci/docsearch.sqlite3
-          PIPELINE_EMBEDDING_CACHE_DB: /tmp/dsa110-ci/embedding_cache.sqlite3
         run: |
           set -euo pipefail
-          mkdir -p /tmp/dsa110-ci
-          pytest backend/tests/unit/ -v -x --maxfail=1
+          export PYTHONPATH="${GITHUB_WORKSPACE}/src:${PYTHONPATH:-}"
+          pytest tests/unit/ -v -x --maxfail=1
 
   unit-tests:
     name: Unit Tests (Mocked)
@@ -74,23 +65,14 @@ jobs:
         run: |
           set -euo pipefail
           python -m pip install --upgrade pip
-          pip install -e "backend/[dev]"
+          pip install -e ".[dev]"
 
       - name: Run unit tests with mocking
-        env:
-          PYTHONPATH: backend/src
-          PIPELINE_PRODUCTS_DB: /tmp/dsa110-ci/products.sqlite3
-          PIPELINE_CAL_REGISTRY_DB: /tmp/dsa110-ci/cal_registry.sqlite3
-          PIPELINE_HDF5_DB: /tmp/dsa110-ci/hdf5.sqlite3
-          PIPELINE_INGEST_DB: /tmp/dsa110-ci/ingest.sqlite3
-          PIPELINE_DATA_REGISTRY_DB: /tmp/dsa110-ci/data_registry.sqlite3
-          PIPELINE_DOCSEARCH_DB: /tmp/dsa110-ci/docsearch.sqlite3
-          PIPELINE_EMBEDDING_CACHE_DB: /tmp/dsa110-ci/embedding_cache.sqlite3
         run: |
           set -euo pipefail
-          mkdir -p /tmp/dsa110-ci
-          pytest backend/tests/unit/ -v \
-            --cov=backend/src/dsa110_contimg \
+          export PYTHONPATH="${GITHUB_WORKSPACE}/src:${PYTHONPATH:-}"
+          pytest tests/unit/ -v \
+            --cov=src/dsa110_contimg \
             --cov-report=xml \
             --cov-report=term-missing \
             --tb=short
@@ -125,7 +107,7 @@ jobs:
         run: |
           set -euo pipefail
           conda activate casa6
-          pip install -e "./backend"
+          pip install -e "."
 
       - name: Activate environment and run validation tests
         shell: bash -l {0}
@@ -173,7 +155,7 @@ jobs:
         run: |
           set -euo pipefail
           conda activate casa6
-          pip install -e "./backend"
+          pip install -e "."
 
       - name: Generate synthetic test data
         shell: bash -l {0}
@@ -255,7 +237,7 @@ jobs:
         run: |
           set -euo pipefail
           conda activate casa6
-          pip install -e "./backend"
+          pip install -e "."
 
       - name: Run performance benchmarks
         shell: bash -l {0}
@@ -304,13 +286,13 @@ jobs:
         run: |
           set -euo pipefail
           # Check code formatting
-          black --check --diff backend/src/ backend/tests/
+          black --check --diff src/ tests/
 
           # Check import sorting
-          isort --check-only --diff backend/src/ backend/tests/
+          isort --check-only --diff src/ tests/
 
           # Check code style
-          flake8 backend/src/ backend/tests/ --max-line-length=79 --extend-ignore=E203,W503
+          flake8 src/ tests/ --max-line-length=79 --extend-ignore=E203,W503
 
           # Type checking (optional - may have many issues with CASA dependencies)
           # mypy src/dsa110_contimg/ || echo "Type checking found issues - review recommended"
