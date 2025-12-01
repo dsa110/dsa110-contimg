@@ -6,8 +6,7 @@
  */
 
 import * as d3 from "d3";
-import type { ProjectionType } from "./projectionUtils";
-import { createProjection, galacticToEquatorial, eclipticToEquatorial } from "./projectionUtils";
+import { galacticToEquatorial, eclipticToEquatorial } from "./projectionUtils";
 
 /**
  * Style configuration for grid elements

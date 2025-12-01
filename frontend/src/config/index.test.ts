@@ -2,7 +2,7 @@
  * Tests for centralized configuration module
  */
 
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, afterEach } from "vitest";
 import { config, API_CONFIG, APP_CONFIG, UI_CONFIG, FEATURES } from "./index";
 
 describe("config", () => {
