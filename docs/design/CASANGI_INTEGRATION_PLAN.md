@@ -1,5 +1,101 @@
 # casangi Visualization Tools Integration Plan
 
+---
+
+## 📋 Implementation Status Summary
+
+> **Last Updated**: 2025-07-14
+
+### Overall Progress
+
+| Phase   | Status      | Completion |
+| ------- | ----------- | ---------- |
+| Phase 1 | ✅ Complete | 100%       |
+| Phase 2 | ✅ Complete | 100%       |
+| Phase 3 | ✅ Complete | 100%       |
+
+### Phase 1: Quick Wins ✅
+
+| Component                             | File(s)                                                     | Status       |
+| ------------------------------------- | ----------------------------------------------------------- | ------------ |
+| MS Raster API endpoint                | `backend/src/dsa110_contimg/api/routes/ms.py`               | ✅ Completed |
+| MsRasterPlot React component          | `frontend/src/components/ms/MsRasterPlot.tsx`               | ✅ Completed |
+| Antenna layout widget (native D3/SVG) | `frontend/src/components/antenna/AntennaLayoutWidget.tsx`   | ✅ Completed |
+| Antenna stats API endpoint            | `backend/src/dsa110_contimg/api/routes/ms.py` (`/antennas`) | ✅ Completed |
+
+### Phase 2: Core Features ✅
+
+| Component                     | File(s)                                                                                | Status       |
+| ----------------------------- | -------------------------------------------------------------------------------------- | ------------ |
+| Bokeh session manager service | `backend/src/dsa110_contimg/api/services/bokeh_sessions.py`                            | ✅ Completed |
+| InteractiveClean launcher API | `backend/src/dsa110_contimg/api/routes/imaging.py`                                     | ✅ Completed |
+| Interactive imaging page      | `frontend/src/pages/InteractiveImagingPage.tsx`                                        | ✅ Completed |
+| Session list/management API   | `backend/src/dsa110_contimg/api/routes/imaging.py` (`/sessions`)                       | ✅ Completed |
+| DSA-110 default parameters    | `backend/src/dsa110_contimg/api/services/bokeh_sessions.py` (`DSA110_ICLEAN_DEFAULTS`) | ✅ Completed |
+
+### Phase 3: Deep Integration ✅
+
+| Component                    | File(s)                                                                                                         | Status       |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------- | ------------ |
+| BokehEmbed iframe component  | `frontend/src/components/bokeh/BokehEmbed.tsx`                                                                  | ✅ Completed |
+| WebSocket status bridge      | `backend/src/dsa110_contimg/api/routes/imaging.py` (`/sessions/{id}/ws`)                                        | ✅ Completed |
+| Progress tracking service    | `backend/src/dsa110_contimg/api/services/bokeh_sessions.py` (`register_websocket`, `broadcast_progress`)        | ✅ Completed |
+| Image versioning schema      | `backend/src/dsa110_contimg/api/schemas.py` (`parent_id`, `version`, `imaging_params`)                          | ✅ Completed |
+| Image versioning endpoints   | `backend/src/dsa110_contimg/api/routes/images.py` (`/versions`, `/children`, `/reimage`)                        | ✅ Completed |
+| Automated session cleanup    | `ops/systemd/contimg-session-cleanup.timer`, `ops/systemd/contimg-session-cleanup.service`                      | ✅ Completed |
+| Backend validation utilities | `backend/src/dsa110_contimg/api/validation.py` (`validate_ms_for_visualization`, `validate_imaging_parameters`) | ✅ Completed |
+| E2E tests                    | `frontend/e2e/interactive-imaging.spec.ts`                                                                      | ✅ Completed |
+| Backend unit tests           | `backend/tests/unit/api/test_phase3_integration.py` (30 tests)                                                  | ✅ Completed |
+
+### Key Files Created/Modified
+
+#### Backend (Python)
+
+| Path                                                        | Description                               |
+| ----------------------------------------------------------- | ----------------------------------------- |
+| `backend/src/dsa110_contimg/api/routes/imaging.py`          | Interactive imaging endpoints + WebSocket |
+| `backend/src/dsa110_contimg/api/routes/images.py`           | Image versioning endpoints                |
+| `backend/src/dsa110_contimg/api/services/bokeh_sessions.py` | Session lifecycle + WebSocket management  |
+| `backend/src/dsa110_contimg/api/schemas.py`                 | Pydantic models with versioning fields    |
+| `backend/src/dsa110_contimg/api/validation.py`              | MS visualization validation utilities     |
+| `backend/tests/unit/api/test_phase3_integration.py`         | 30 unit tests for Phase 3 features        |
+
+#### Frontend (TypeScript/React)
+
+| Path                                                      | Description                                   |
+| --------------------------------------------------------- | --------------------------------------------- |
+| `frontend/src/components/ms/MsRasterPlot.tsx`             | Visibility raster plot component              |
+| `frontend/src/components/antenna/AntennaLayoutWidget.tsx` | T-shaped antenna layout visualization         |
+| `frontend/src/components/bokeh/BokehEmbed.tsx`            | Bokeh iframe embedding with progress tracking |
+| `frontend/src/pages/InteractiveImagingPage.tsx`           | Interactive imaging workflow page             |
+| `frontend/e2e/interactive-imaging.spec.ts`                | Playwright E2E tests                          |
+
+#### Operations
+
+| Path                                          | Description                      |
+| --------------------------------------------- | -------------------------------- |
+| `ops/systemd/contimg-session-cleanup.timer`   | Hourly systemd timer for cleanup |
+| `ops/systemd/contimg-session-cleanup.service` | Cleanup oneshot service          |
+
+### Decisions Made
+
+| Decision                 | Choice                 | Rationale                                      |
+| ------------------------ | ---------------------- | ---------------------------------------------- |
+| Antenna visualization    | Native D3/SVG          | Simple, no Python dependency, fast render      |
+| Mask creation            | JS9 (existing)         | Already integrated, full DS9 region support    |
+| casagui integration      | Yes (MsRaster, iClean) | No web-based alternatives for MS visualization |
+| Bokeh embedding approach | iframe + WebSocket     | Unified UX with real-time progress updates     |
+
+### Not Implemented (Per Decision Matrix)
+
+| Tool         | Status     | Reason                                 |
+| ------------ | ---------- | -------------------------------------- |
+| plotants     | ❌ Skipped | Native D3/SVG implementation preferred |
+| CreateMask   | ❌ Skipped | JS9 already provides this capability   |
+| CreateRegion | ❌ Skipped | JS9 already provides this capability   |
+
+---
+
 ## Overview
 
 This document outlines the integration strategy for incorporating NRAO's
@@ -15,7 +111,7 @@ capabilities that complement our existing React-based dashboard.
 - [casangi/cubevis](https://github.com/casangi/cubevis) - CASA Image
   Visualization (beta, 1 ⭐, created Jul 2025)
 
-**Last Updated**: 2025-11-30
+**Last Updated**: 2025-07-14 (Implementation status added)
 
 ---
 
