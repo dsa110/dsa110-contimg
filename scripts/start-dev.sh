@@ -45,7 +45,7 @@ echo ""
 # =============================================================================
 # Step 1: Clean up any problematic state
 # =============================================================================
-echo -e "${YELLOW}[1/4] Checking for issues...${NC}"
+echo -e "${YELLOW}[1/5] Checking for issues...${NC}"
 
 # Kill zombie npm/vite processes not listening on expected port
 ZOMBIE_VITE=$(pgrep -f "node.*vite" 2>/dev/null | while read pid; do
@@ -73,7 +73,7 @@ echo ""
 # =============================================================================
 # Step 2: Start Backend
 # =============================================================================
-echo -e "${YELLOW}[2/4] Backend (port $BACKEND_PORT)...${NC}"
+echo -e "${YELLOW}[2/5] Backend (port $BACKEND_PORT)...${NC}"
 
 if ss -tlnp 2>/dev/null | grep -q ":${BACKEND_PORT}"; then
     BE_PID=$(ss -tlnp 2>/dev/null | grep ":${BACKEND_PORT}" | grep -oP 'pid=\K\d+' | head -1)
@@ -105,7 +105,7 @@ echo ""
 # =============================================================================
 # Step 3: Start Frontend
 # =============================================================================
-echo -e "${YELLOW}[3/4] Frontend (port $FRONTEND_PORT)...${NC}"
+echo -e "${YELLOW}[3/5] Frontend (port $FRONTEND_PORT)...${NC}"
 
 if ss -tlnp 2>/dev/null | grep -q ":${FRONTEND_PORT}"; then
     FE_PID=$(ss -tlnp 2>/dev/null | grep ":${FRONTEND_PORT}" | grep -oP 'pid=\K\d+' | head -1)
@@ -133,9 +133,9 @@ fi
 echo ""
 
 # =============================================================================
-# Step 4: Verify everything works
+# Step 4: Verify API endpoints
 # =============================================================================
-echo -e "${YELLOW}[4/4] Verifying Health Dashboard endpoints...${NC}"
+echo -e "${YELLOW}[4/5] Verifying API endpoints...${NC}"
 
 ENDPOINTS_OK=true
 for endpoint in "/health/system" "/health/pointing" "/health/alerts"; do
@@ -147,11 +147,85 @@ for endpoint in "/health/system" "/health/pointing" "/health/alerts"; do
         ENDPOINTS_OK=false
     fi
 done
+echo ""
+
+# =============================================================================
+# Step 5: Verify Frontend Application (esbuild, React, HMR)
+# =============================================================================
+echo -e "${YELLOW}[5/5] Verifying frontend application...${NC}"
+
+FRONTEND_OK=true
+
+# Check 1: Request main.tsx and verify it compiles (esbuild health check)
+# A healthy response contains compiled JS; an error returns HTML with error details
+MAIN_RESPONSE=$(curl -s -w "\n__HTTP_CODE__%{http_code}" "http://localhost:${FRONTEND_PORT}/src/main.tsx" 2>/dev/null)
+MAIN_STATUS=$(echo "$MAIN_RESPONSE" | grep "__HTTP_CODE__" | sed 's/__HTTP_CODE__//')
+MAIN_BODY=$(echo "$MAIN_RESPONSE" | grep -v "__HTTP_CODE__")
+
+if [[ "$MAIN_STATUS" != "200" ]]; then
+    echo -e "  ${RED}✗${NC} main.tsx request failed (HTTP $MAIN_STATUS)"
+    FRONTEND_OK=false
+elif echo "$MAIN_BODY" | grep -q "The service is no longer running"; then
+    echo -e "  ${RED}✗${NC} esbuild service crashed"
+    echo -e "      ${YELLOW}→${NC} TypeScript/JSX compilation will fail"
+    FRONTEND_OK=false
+elif echo "$MAIN_BODY" | grep -q "<!DOCTYPE html>"; then
+    # Vite returns HTML error page when compilation fails
+    ERROR_MSG=$(echo "$MAIN_BODY" | grep -o '"message":"[^"]*"' | head -1 | sed 's/"message":"//;s/"$//')
+    echo -e "  ${RED}✗${NC} main.tsx compilation error"
+    if [[ -n "$ERROR_MSG" ]]; then
+        echo -e "      ${YELLOW}→${NC} $ERROR_MSG"
+    fi
+    FRONTEND_OK=false
+elif echo "$MAIN_BODY" | grep -q "createRoot\|React\|import "; then
+    echo -e "  ${GREEN}✓${NC} esbuild transforms working"
+else
+    echo -e "  ${YELLOW}!${NC} main.tsx response unclear (may be OK)"
+fi
+
+# Check 2: Vite HMR WebSocket client is accessible
+HMR_CHECK=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:${FRONTEND_PORT}/@vite/client" 2>/dev/null || echo "000")
+if [[ "$HMR_CHECK" == "200" ]]; then
+    echo -e "  ${GREEN}✓${NC} HMR client available"
+else
+    echo -e "  ${YELLOW}!${NC} HMR client not accessible (hot reload may not work)"
+fi
+
+# Check 3: Frontend can reach backend via proxy
+PROXY_CHECK=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:${FRONTEND_PORT}/api/v1/health/system" 2>/dev/null || echo "000")
+if [[ "$PROXY_CHECK" == "200" ]]; then
+    echo -e "  ${GREEN}✓${NC} API proxy working"
+else
+    echo -e "  ${RED}✗${NC} API proxy failed (HTTP $PROXY_CHECK)"
+    echo -e "      ${YELLOW}→${NC} Frontend cannot reach backend"
+    FRONTEND_OK=false
+fi
+
+# Check 4: Verify index.html loads (catches static asset issues)
+INDEX_CHECK=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:${FRONTEND_PORT}/" 2>/dev/null || echo "000")
+if [[ "$INDEX_CHECK" == "200" ]]; then
+    echo -e "  ${GREEN}✓${NC} index.html served"
+else
+    echo -e "  ${RED}✗${NC} index.html failed (HTTP $INDEX_CHECK)"
+    FRONTEND_OK=false
+fi
+
+# Check 5: Check for any Vite errors in the log (last 50 lines)
+if [[ -f /tmp/vite-dev.log ]]; then
+    # Look for actual errors, not just the word "error" in paths
+    VITE_ERRORS=$(tail -50 /tmp/vite-dev.log 2>/dev/null | grep -iE "^error|failed to|ENOENT|EACCES|crashed|Cannot find" | tail -3)
+    if [[ -n "$VITE_ERRORS" ]]; then
+        echo -e "  ${YELLOW}!${NC} Recent Vite warnings:"
+        echo "$VITE_ERRORS" | while read line; do
+            echo -e "      ${YELLOW}→${NC} $line"
+        done
+    fi
+fi
 
 echo ""
 echo -e "${BLUE}═══════════════════════════════════════════════════════════════════${NC}"
 
-if $ENDPOINTS_OK; then
+if $ENDPOINTS_OK && $FRONTEND_OK; then
     echo -e "${GREEN}Ready!${NC}"
     echo ""
     echo "  Dashboard:  http://localhost:$FRONTEND_PORT"
@@ -160,8 +234,18 @@ if $ENDPOINTS_OK; then
     echo ""
     echo "Both servers auto-reload on code changes."
     echo "Stop with: $0 --stop"
+elif ! $FRONTEND_OK; then
+    echo -e "${RED}Frontend application has errors.${NC}"
+    echo ""
+    echo "  Try: $0 --stop && $0"
+    echo "  Or check: /tmp/vite-dev.log"
+    echo ""
+    echo "Common fixes:"
+    echo "  - Delete node_modules and reinstall: rm -rf node_modules && npm install"
+    echo "  - Clear Vite cache: rm -rf node_modules/.vite"
+    exit 1
 else
-    echo -e "${YELLOW}Servers running but some endpoints failed.${NC}"
+    echo -e "${YELLOW}Servers running but some API endpoints failed.${NC}"
     echo "Check /tmp/uvicorn-dev.log for backend errors."
 fi
 
