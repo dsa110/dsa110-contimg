@@ -93,10 +93,12 @@ fi
 
 echo ""
 echo -e "${CYAN}┌─ Databases ───────────────────────────┐${NC}"
-check "products.sqlite3 exists" "test -f /data/dsa110-contimg/state/db/products.sqlite3"
-check "hdf5.sqlite3 exists" "test -f /data/dsa110-contimg/state/db/hdf5.sqlite3"
-warn "ingest.sqlite3 exists" "test -f /data/dsa110-contimg/state/db/ingest.sqlite3"
-warn "cal_registry.sqlite3 exists" "test -f /data/dsa110-contimg/state/db/cal_registry.sqlite3"
+check "pipeline.sqlite3 (unified) exists" "test -f /data/dsa110-contimg/state/db/pipeline.sqlite3"
+# Legacy database files are deprecated - unified DB is the primary
+info "Legacy products.sqlite3" "test -f /data/dsa110-contimg/state/db/products.sqlite3"
+info "Legacy hdf5.sqlite3" "test -f /data/dsa110-contimg/state/db/hdf5.sqlite3"
+info "Legacy ingest.sqlite3" "test -f /data/dsa110-contimg/state/db/ingest.sqlite3"
+info "Legacy cal_registry.sqlite3" "test -f /data/dsa110-contimg/state/db/cal_registry.sqlite3"
 
 echo ""
 echo -e "${CYAN}┌─ Storage ─────────────────────────────┐${NC}"

@@ -391,12 +391,12 @@ def main():
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     )
 
-    # Find ingest DB if not provided
+    # Find ingest DB if not provided (now uses unified pipeline.sqlite3)
     ingest_db_path = args.ingest_db
     if ingest_db_path is None:
         for path_str in [
-            "/data/dsa110-contimg/state/db/ingest.sqlite3",
-            "state/db/ingest.sqlite3",
+            "/data/dsa110-contimg/state/db/pipeline.sqlite3",
+            "state/db/pipeline.sqlite3",
         ]:
             candidate = Path(path_str)
             if candidate.exists():

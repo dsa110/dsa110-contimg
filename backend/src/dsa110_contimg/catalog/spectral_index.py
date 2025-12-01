@@ -48,7 +48,7 @@ def create_spectral_indices_table(db_path: str = "/data/dsa110-contimg/state/db/
     - notes: Optional notes
 
     Args:
-        db_path: Path to products.sqlite3 database
+        db_path: Path to pipeline database (unified pipeline.sqlite3)
 
     Returns:
         True if successful

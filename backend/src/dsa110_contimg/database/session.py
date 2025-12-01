@@ -470,7 +470,7 @@ def init_database(
         in_memory: If True, use in-memory database
         
     Example:
-        init_database("products")  # Creates all products.sqlite3 tables
+        init_database("pipeline")  # Creates all tables in pipeline.sqlite3
     """
     from .models import (
         ProductsBase, CalRegistryBase, HDF5Base,

@@ -161,8 +161,8 @@ class PhotometryManager:
 
     Example:
         >>> manager = PhotometryManager(
-        ...     products_db_path=Path("state/db/products.sqlite3"),
-        ...     data_registry_db_path=Path("state/db/data_registry.sqlite3"),
+        ...     products_db_path=Path("state/db/pipeline.sqlite3"),
+        ...     data_registry_db_path=Path("state/db/pipeline.sqlite3"),
         ... )
         >>> result = manager.measure_for_fits(
         ...     fits_path=Path("image.fits"),

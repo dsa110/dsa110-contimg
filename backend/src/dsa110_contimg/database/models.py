@@ -1,12 +1,17 @@
 """
-SQLAlchemy ORM models for DSA-110 Continuum Imaging Pipeline databases.
+SQLAlchemy ORM models for DSA-110 Continuum Imaging Pipeline database.
 
-This module defines ORM models for all SQLite databases used by the pipeline:
-- products.sqlite3: Product registry (MS, images, photometry, transients)
-- cal_registry.sqlite3: Calibration table registry
-- hdf5.sqlite3: HDF5 file index
-- ingest.sqlite3: Streaming queue management
-- data_registry.sqlite3: Data staging and publishing registry
+This module defines ORM models for the unified pipeline database (pipeline.sqlite3).
+All domains are consolidated into a single database with logical table groups:
+
+- Products domain: MS registry (ms_index), images, photometry, transients
+- Calibration domain: Calibration table registry (caltables)
+- HDF5 domain: HDF5 file index (hdf5_file_index)
+- Queue domain: Streaming queue management (ingest_queue, performance_metrics)
+- Data registry domain: Data staging and publishing (data_registry)
+
+Historical note: These domains were previously in separate .sqlite3 files
+but have been unified for simpler queries, atomic transactions, and easier ops.
 
 Usage:
     from dsa110_contimg.database.models import (
@@ -15,7 +20,7 @@ Usage:
     )
     from dsa110_contimg.database.session import get_session
 
-    with get_session("products") as session:
+    with get_session("pipeline") as session:
         images = session.query(Image).filter_by(type="dirty").all()
 
 Note:
@@ -43,7 +48,7 @@ DataRegistryBase = declarative_base()
 
 
 # =============================================================================
-# Products Database Models (products.sqlite3)
+# Products Domain Models (ms_index, images, photometry tables)
 # =============================================================================
 
 class MSIndex(ProductsBase):
@@ -366,7 +371,7 @@ class MonitoringSource(ProductsBase):
 
 
 # =============================================================================
-# Calibration Registry Models (cal_registry.sqlite3)
+# Calibration Domain Models (caltables table)
 # =============================================================================
 
 class Caltable(CalRegistryBase):
@@ -415,7 +420,7 @@ class Caltable(CalRegistryBase):
 
 
 # =============================================================================
-# HDF5 Index Models (hdf5.sqlite3)
+# HDF5 Domain Models (hdf5_file_index table)
 # =============================================================================
 
 class HDF5FileIndex(HDF5Base):
@@ -486,7 +491,7 @@ class PointingHistory(HDF5Base):
 
 
 # =============================================================================
-# Ingest Queue Models (ingest.sqlite3)
+# Ingest Queue Domain Models (ingest_queue, performance_metrics tables)
 # =============================================================================
 
 class PointingHistoryIngest(IngestBase):
@@ -512,7 +517,7 @@ class PointingHistoryIngest(IngestBase):
 
 
 # =============================================================================
-# Data Registry Models (data_registry.sqlite3)
+# Data Registry Domain Models (data_registry table)
 # =============================================================================
 
 class DataRegistry(DataRegistryBase):

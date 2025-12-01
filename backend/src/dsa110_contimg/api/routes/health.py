@@ -236,17 +236,29 @@ async def check_systemd_service(service_name: str) -> ServiceHealthStatus:
 
 @router.get("/databases")
 async def check_database_health() -> Dict[str, Any]:
-    """Check health of all pipeline databases."""
+    """Check health of all pipeline databases.
+    
+    Note: All domains are now unified in pipeline.sqlite3.
+    Legacy database names are shown for backward compatibility monitoring.
+    """
     import os
     import sqlite3
     import time
     from pathlib import Path
 
+    # Unified database path (Phase 2 consolidation)
+    unified_db = os.environ.get(
+        "PIPELINE_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3"
+    )
+    
+    # Check unified database with domain labels for clarity
     databases = {
-        "products": "/data/dsa110-contimg/state/db/products.sqlite3",
-        "cal_registry": "/data/dsa110-contimg/state/db/cal_registry.sqlite3",
-        "hdf5_index": "/data/dsa110-contimg/state/db/hdf5.sqlite3",
-        "ingest": "/data/dsa110-contimg/state/db/ingest.sqlite3",
+        "pipeline": unified_db,
+        # Legacy aliases (all point to same unified database)
+        "products": unified_db,
+        "cal_registry": unified_db,
+        "hdf5_index": unified_db,
+        "ingest": unified_db,
     }
 
     results = []
@@ -326,7 +338,10 @@ async def get_active_validity_windows(
         mjd = Time.now().mjd
 
     query_time = Time(mjd, format="mjd")
-    registry_path = Path("/data/dsa110-contimg/state/db/cal_registry.sqlite3")
+    # Unified database path (Phase 2 consolidation)
+    registry_path = Path(
+        os.environ.get("PIPELINE_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3")
+    )
 
     if not registry_path.exists():
         return ActiveValidityWindows(
@@ -421,7 +436,10 @@ async def get_validity_window_timeline(
     start_mjd = now.mjd - days_back
     end_mjd = now.mjd + days_forward
 
-    registry_path = Path("/data/dsa110-contimg/state/db/cal_registry.sqlite3")
+    # Unified database path (Phase 2 consolidation)
+    registry_path = Path(
+        os.environ.get("PIPELINE_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3")
+    )
 
     if not registry_path.exists():
         return {
@@ -499,12 +517,15 @@ async def get_flux_monitoring_status(
 
     from astropy.time import Time
 
-    products_path = Path("/data/dsa110-contimg/state/db/products.sqlite3")
+    # Unified database path (Phase 2 consolidation)
+    products_path = Path(
+        os.environ.get("PIPELINE_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3")
+    )
 
     if not products_path.exists():
         return {
             "calibrators": [],
-            "message": "Products database not found",
+            "message": "Pipeline database not found",
         }
 
     conn = sqlite3.connect(str(products_path), timeout=10.0)
@@ -636,10 +657,13 @@ async def get_flux_history(
 
     from astropy.time import Time
 
-    products_path = Path("/data/dsa110-contimg/state/db/products.sqlite3")
+    # Unified database path (Phase 2 consolidation)
+    products_path = Path(
+        os.environ.get("PIPELINE_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3")
+    )
 
     if not products_path.exists():
-        return {"error": "Products database not found"}
+        return {"error": "Pipeline database not found"}
 
     conn = sqlite3.connect(str(products_path), timeout=10.0)
     conn.row_factory = sqlite3.Row
@@ -699,10 +723,13 @@ async def get_monitoring_alerts(
 
     from astropy.time import Time
 
-    products_path = Path("/data/dsa110-contimg/state/db/products.sqlite3")
+    # Unified database path (Phase 2 consolidation)
+    products_path = Path(
+        os.environ.get("PIPELINE_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3")
+    )
 
     if not products_path.exists():
-        return {"alerts": [], "message": "Products database not found"}
+        return {"alerts": [], "message": "Pipeline database not found"}
 
     conn = sqlite3.connect(str(products_path), timeout=10.0)
     conn.row_factory = sqlite3.Row

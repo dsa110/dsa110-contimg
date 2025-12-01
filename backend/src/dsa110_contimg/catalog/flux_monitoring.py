@@ -36,7 +36,7 @@ def create_flux_monitoring_tables(db_path: str = "/data/dsa110-contimg/state/db/
     - created_at: Unix timestamp when recorded
 
     Args:
-        db_path: Path to products.sqlite3 database
+        db_path: Path to pipeline database (unified pipeline.sqlite3)
 
     Returns:
         True if successful

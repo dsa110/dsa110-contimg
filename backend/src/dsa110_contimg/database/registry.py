@@ -1,30 +1,27 @@
 """
 Calibration registry database for continuum imaging pipeline.
 
-This module manages a small SQLite database that tracks generated
-calibration tables (K/B/G, etc.), their validity windows, and ordered
-apply lists, so workers can consistently pick the right tables for a
-given observation time.
+This module manages calibration table metadata in the unified pipeline
+database, tracking generated calibration tables (K/B/G, etc.), their
+validity windows, and ordered apply lists.
 
 **Registry Database Path Determination:**
 
-The registry database path is determined consistently across CLI and pipeline
-code using the following precedence order:
+The registry database path is determined using the unified database:
 
-1. **CAL_REGISTRY_DB environment variable** (highest priority)
-   - If set, uses this exact path
-   - Example: `export CAL_REGISTRY_DB=/custom/path/cal_registry.sqlite3`
+1. **PIPELINE_DB environment variable** (highest priority)
+   - If set, uses this exact path to the unified pipeline database
+   - Example: `export PIPELINE_DB=/data/dsa110-contimg/state/db/pipeline.sqlite3`
 
-2. **PIPELINE_STATE_DIR environment variable**
-   - If set, uses `{PIPELINE_STATE_DIR}/cal_registry.sqlite3`
-   - Example: `export PIPELINE_STATE_DIR=/data/pipeline/state`
+2. **Legacy CAL_REGISTRY_DB variable** (backward compatibility)
+   - Falls back to this if PIPELINE_DB not set
+   - Example: `export CAL_REGISTRY_DB=/custom/path/pipeline.sqlite3`
 
 3. **Default path** (lowest priority)
-   - Pipeline: `{config.paths.state_dir}/cal_registry.sqlite3` (defaults to `state/db/cal_registry.sqlite3`)
-   - CLI: `/data/dsa110-contimg/state/db/pipeline.sqlite3`
+   - Uses `/data/dsa110-contimg/state/db/pipeline.sqlite3`
 
-This ensures that CLI and pipeline use the same registry database when
-environment variables are set consistently.
+Note: All domains (products, calibration, queue, hdf5) are now in the
+unified pipeline.sqlite3 database.
 
 Schema (tables):
 - caltables: one row per calibration table file

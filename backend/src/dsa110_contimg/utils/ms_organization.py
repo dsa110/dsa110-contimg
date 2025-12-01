@@ -93,13 +93,13 @@ def organize_ms_file(
     - Science MS :arrow_right: ms/science/YYYY-MM-DD/
     - Failed MS :arrow_right: ms/failed/YYYY-MM-DD/
 
-    After moving, updates the ms_index table in products.sqlite3 with the new path.
+    After moving, updates the ms_index table in the pipeline database with the new path.
     This ensures the registry always reflects the current file location.
 
     Args:
         ms_path: Current MS file path
         ms_base_dir: Base directory for MS files (e.g., /stage/dsa110-contimg/ms)
-        products_db_path: Path to products.sqlite3 database
+        products_db_path: Path to pipeline database (unified pipeline.sqlite3)
         is_calibrator: Whether this is a calibrator observation
         is_failed: Whether this MS represents a failed conversion
         date_str: Date string in YYYY-MM-DD format (extracted from MS filename if None)
