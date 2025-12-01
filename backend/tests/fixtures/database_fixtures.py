@@ -27,14 +27,14 @@ if TYPE_CHECKING:
 
 # Import shared schema definitions - single source of truth
 from dsa110_contimg.database.schema import (
-    PRODUCTS_SCHEMA_SQL,
-    CAL_REGISTRY_SCHEMA_SQL,
-    create_products_schema,
-    create_cal_registry_schema,
+    PRODUCTS_TABLES,
+    PRODUCTS_INDEXES,
+    CAL_REGISTRY_TABLES,
+    CAL_REGISTRY_INDEXES,
 )
 
 __all__ = [
-    # Schema functions (re-exported from shared module)
+    # Schema functions
     "create_products_schema",
     "create_cal_registry_schema",
     # Data classes
@@ -60,124 +60,170 @@ __all__ = [
 
 
 # =============================================================================
+# Async Schema Creation Functions
+# =============================================================================
+
+
+async def create_products_schema(conn: "aiosqlite.Connection") -> None:
+    """Create all products database tables and indexes (async version).
+
+    Args:
+        conn: Active aiosqlite connection.
+    """
+    for create_sql in PRODUCTS_TABLES.values():
+        await conn.execute(create_sql)
+    for index_sql in PRODUCTS_INDEXES:
+        await conn.execute(index_sql)
+    await conn.commit()
+
+
+async def create_cal_registry_schema(conn: "aiosqlite.Connection") -> None:
+    """Create all calibration registry tables and indexes (async version).
+
+    Args:
+        conn: Active aiosqlite connection.
+    """
+    for create_sql in CAL_REGISTRY_TABLES.values():
+        await conn.execute(create_sql)
+    for index_sql in CAL_REGISTRY_INDEXES:
+        await conn.execute(index_sql)
+    await conn.commit()
+
+
+# =============================================================================
 # Sample Data Classes
 # =============================================================================
 
 
 @dataclass
 class SampleImage:
-    """Sample image record for testing."""
+    """Sample image record for testing.
+    
+    Matches the schema in dsa110_contimg.database.schema.PRODUCTS_TABLES['images'].
+    """
 
     id: int
+    path: str  # Matches schema: path TEXT NOT NULL UNIQUE
     ms_path: str
-    field_name: str
-    image_path: str
-    thumbnail_path: str | None = None
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
-    rms_noise: float | None = None
-    peak_flux: float | None = None
-    dynamic_range: float | None = None
-    beam_major: float | None = None
-    beam_minor: float | None = None
-    beam_pa: float | None = None
-    frequency_mhz: float | None = None
-    bandwidth_mhz: float | None = None
-    integration_time: float | None = None
-    weighting: str | None = None
-    robust: float | None = None
-    niter: int | None = None
+    created_at: float  # Matches schema: REAL NOT NULL (MJD or Unix timestamp)
     type: str = "continuum"
-    beam: str | None = None
+    beam_major_arcsec: float | None = None
+    beam_minor_arcsec: float | None = None
+    beam_pa_deg: float | None = None
+    noise_jy: float | None = None
+    dynamic_range: float | None = None
+    pbcor: int = 0
+    format: str = "fits"
+    field_name: str | None = None
+    center_ra_deg: float | None = None
+    center_dec_deg: float | None = None
+    imsize_x: int | None = None
+    imsize_y: int | None = None
+    cellsize_arcsec: float | None = None
+    freq_ghz: float | None = None
+    bandwidth_mhz: float | None = None
+    integration_sec: float | None = None
 
 
 @dataclass
 class SampleSource:
-    """Sample source record for testing."""
+    """Sample source record for testing.
+    
+    Matches the schema in dsa110_contimg.database.schema.PRODUCTS_TABLES['sources'].
+    """
 
-    id: int
-    image_id: int
-    name: str
-    ra: float
-    dec: float
-    flux: float
-    flux_err: float | None = None
-    peak_flux: float | None = None
-    peak_flux_err: float | None = None
-    major_axis: float | None = None
-    minor_axis: float | None = None
-    position_angle: float | None = None
-    snr: float | None = None
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    id: str  # TEXT PRIMARY KEY
+    ra_deg: float
+    dec_deg: float
+    name: str | None = None
+    catalog_match: str | None = None
+    source_type: str | None = None
+    first_detected_mjd: float | None = None
+    last_detected_mjd: float | None = None
+    detection_count: int = 1
 
 
 @dataclass
 class SampleJob:
-    """Sample batch job record for testing."""
+    """Sample batch job record for testing.
+    
+    Matches the schema in dsa110_contimg.database.schema.PRODUCTS_TABLES['batch_jobs'].
+    """
 
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     job_type: str = "imaging"
     status: str = "pending"
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
-    started_at: str | None = None
-    completed_at: str | None = None
+    created_at: float = field(default_factory=lambda: datetime.utcnow().timestamp())
+    started_at: float | None = None
+    completed_at: float | None = None
     error_message: str | None = None
-    parameters: str = "{}"
-    progress: float = 0.0
-    total_items: int = 0
-    completed_items: int = 0
+    input_params: str = "{}"
+    output_path: str | None = None
+    priority: int = 0
 
 
 @dataclass
 class SampleCalTable:
-    """Sample calibration table record for testing."""
+    """Sample calibration table record for testing.
+    
+    Matches the schema in dsa110_contimg.database.schema.CAL_REGISTRY_TABLES['caltables'].
+    """
 
-    id: int
-    ms_path: str
-    cal_type: str
-    cal_path: str
-    field_name: str | None = None
-    spw: str | None = None
-    antenna: str | None = None
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
-    solint: str | None = None
+    path: str  # TEXT PRIMARY KEY
+    table_type: str  # TEXT NOT NULL
+    set_name: str | None = None
+    cal_field: str | None = None
     refant: str | None = None
-    minsnr: float | None = None
-    calmode: str | None = None
+    created_at: float | None = None
+    source_ms_path: str | None = None
+    status: str = "active"
+    notes: str | None = None
+    order_index: int = 0
 
 
 @dataclass
 class SampleMSIndex:
-    """Sample MS index record for testing."""
+    """Sample MS index record for testing.
+    
+    Matches the schema in dsa110_contimg.database.schema.PRODUCTS_TABLES['ms_index'].
+    """
 
-    id: int
-    ms_path: str
-    obs_id: str
-    start_time: str
-    end_time: str
-    n_channels: int = 16384
-    n_polarizations: int = 4
-    n_baselines: int = 2016
-    n_fields: int = 24
-    total_size_bytes: int = 1000000000
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
-    status: str = "complete"
+    path: str  # TEXT PRIMARY KEY
+    start_mjd: float | None = None
+    end_mjd: float | None = None
+    mid_mjd: float | None = None
+    processed_at: float | None = None
+    status: str | None = None
+    stage: str | None = None
+    stage_updated_at: float | None = None
+    cal_applied: int = 0
+    imagename: str | None = None
+    ra_deg: float | None = None
+    dec_deg: float | None = None
+    field_name: str | None = None
+    pointing_ra_deg: float | None = None
+    pointing_dec_deg: float | None = None
 
 
 @dataclass
 class SamplePhotometry:
-    """Sample photometry record for testing."""
+    """Sample photometry record for testing.
+    
+    Matches the schema in dsa110_contimg.database.schema.PRODUCTS_TABLES['photometry'].
+    """
 
     id: int
-    image_id: int
-    source_name: str
-    ra: float
-    dec: float
-    flux_jy: float
+    source_id: str  # TEXT NOT NULL
+    image_path: str  # TEXT NOT NULL
+    ra_deg: float
+    dec_deg: float
+    mjd: float | None = None
+    flux_jy: float | None = None
     flux_err_jy: float | None = None
-    peak_flux_jy: float | None = None
-    rms_jy: float | None = None
+    peak_jyb: float | None = None
+    peak_err_jyb: float | None = None
     snr: float | None = None
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    local_rms: float | None = None
 
 
 # =============================================================================
@@ -194,60 +240,56 @@ def sample_image_records(count: int = 5) -> Iterator[SampleImage]:
     Yields:
         SampleImage instances with realistic test data.
     """
-    base_time = datetime.utcnow()
+    base_time = datetime.utcnow().timestamp()
     for i in range(count):
-        created = (base_time - timedelta(hours=i)).isoformat()
         yield SampleImage(
             id=i + 1,
+            path=f"/stage/dsa110-contimg/images/obs_{i:04d}.fits",
             ms_path=f"/stage/dsa110-contimg/ms/obs_{i:04d}.ms",
-            field_name=f"field_{i}",
-            image_path=f"/stage/dsa110-contimg/images/obs_{i:04d}.fits",
-            thumbnail_path=f"/stage/dsa110-contimg/thumbnails/obs_{i:04d}.png",
-            created_at=created,
-            rms_noise=0.001 + i * 0.0001,
-            peak_flux=0.1 + i * 0.01,
-            dynamic_range=100.0 + i * 10,
-            beam_major=30.0,
-            beam_minor=25.0,
-            beam_pa=45.0,
-            frequency_mhz=1400.0,
-            bandwidth_mhz=256.0,
-            integration_time=300.0,
-            weighting="briggs",
-            robust=0.0,
-            niter=10000,
+            created_at=base_time - i * 3600,
             type="continuum",
-            beam="30x25",
+            beam_major_arcsec=30.0,
+            beam_minor_arcsec=25.0,
+            beam_pa_deg=45.0,
+            noise_jy=0.001 + i * 0.0001,
+            dynamic_range=100.0 + i * 10,
+            pbcor=1,
+            format="fits",
+            field_name=f"field_{i}",
+            center_ra_deg=180.0 + i * 0.5,
+            center_dec_deg=37.0,
+            imsize_x=4096,
+            imsize_y=4096,
+            cellsize_arcsec=2.0,
+            freq_ghz=1.4,
+            bandwidth_mhz=256.0,
+            integration_sec=300.0,
         )
 
 
-def sample_source_records(count: int = 10, image_id: int = 1) -> Iterator[SampleSource]:
+def sample_source_records(count: int = 10) -> Iterator[SampleSource]:
     """Generate sample source records for testing.
 
     Args:
         count: Number of records to generate.
-        image_id: Image ID to associate sources with.
 
     Yields:
         SampleSource instances with realistic test data.
     """
     base_ra = 180.0  # degrees
     base_dec = 37.0  # degrees (DSA-110 declination)
+    base_mjd = 60000.0  # ~2023
     for i in range(count):
         yield SampleSource(
-            id=i + 1,
-            image_id=image_id,
+            id=f"src_{i:05d}",
             name=f"J{int(base_ra/15):02d}{int((base_ra%15)*4):02d}+{int(base_dec):02d}{int((base_dec%1)*60):02d}_{i}",
-            ra=base_ra + i * 0.01,
-            dec=base_dec + i * 0.01,
-            flux=0.01 + i * 0.005,
-            flux_err=0.001,
-            peak_flux=0.012 + i * 0.005,
-            peak_flux_err=0.001,
-            major_axis=30.0,
-            minor_axis=25.0,
-            position_angle=45.0,
-            snr=10.0 + i * 2,
+            ra_deg=base_ra + i * 0.01,
+            dec_deg=base_dec + i * 0.01,
+            catalog_match="NVSS" if i % 2 == 0 else None,
+            source_type="point" if i % 3 == 0 else "extended",
+            first_detected_mjd=base_mjd,
+            last_detected_mjd=base_mjd + i,
+            detection_count=i + 1,
         )
 
 
@@ -261,12 +303,12 @@ def sample_job_records(count: int = 3) -> Iterator[SampleJob]:
         SampleJob instances with varying statuses.
     """
     statuses = ["pending", "running", "completed", "failed"]
-    base_time = datetime.utcnow()
+    base_time = datetime.utcnow().timestamp()
     for i in range(count):
         status = statuses[i % len(statuses)]
-        created = (base_time - timedelta(hours=i)).isoformat()
-        started = (base_time - timedelta(hours=i) + timedelta(minutes=5)).isoformat() if status != "pending" else None
-        completed = (base_time - timedelta(hours=i) + timedelta(minutes=30)).isoformat() if status in ("completed", "failed") else None
+        created = base_time - i * 3600
+        started = created + 300 if status != "pending" else None
+        completed = created + 1800 if status in ("completed", "failed") else None
         error = "Test error message" if status == "failed" else None
 
         yield SampleJob(
@@ -277,10 +319,9 @@ def sample_job_records(count: int = 3) -> Iterator[SampleJob]:
             started_at=started,
             completed_at=completed,
             error_message=error,
-            parameters='{"test": true}',
-            progress=100.0 if status == "completed" else (50.0 if status == "running" else 0.0),
-            total_items=10,
-            completed_items=10 if status == "completed" else (5 if status == "running" else 0),
+            input_params='{"test": true}',
+            output_path=f"/stage/dsa110-contimg/output/job_{i}" if status == "completed" else None,
+            priority=i,
         )
 
 
@@ -294,23 +335,20 @@ def sample_caltable_records(count: int = 5) -> Iterator[SampleCalTable]:
         SampleCalTable instances with realistic test data.
     """
     cal_types = ["bandpass", "gain", "delay", "flux"]
-    base_time = datetime.utcnow()
+    base_time = datetime.utcnow().timestamp()
     for i in range(count):
         cal_type = cal_types[i % len(cal_types)]
-        created = (base_time - timedelta(hours=i)).isoformat()
         yield SampleCalTable(
-            id=i + 1,
-            ms_path=f"/stage/dsa110-contimg/ms/obs_{i:04d}.ms",
-            cal_type=cal_type,
-            cal_path=f"/stage/dsa110-contimg/cal/obs_{i:04d}.{cal_type[:1]}cal",
-            field_name="3C286" if cal_type == "flux" else f"field_{i}",
-            spw="0:0~1023",
-            antenna="",
-            created_at=created,
-            solint="inf" if cal_type == "bandpass" else "int",
+            path=f"/stage/dsa110-contimg/cal/obs_{i:04d}.{cal_type[:1]}cal",
+            table_type=cal_type,
+            set_name=f"calset_{i // 2}",
+            cal_field="3C286" if cal_type == "flux" else f"field_{i}",
             refant="ea01",
-            minsnr=3.0,
-            calmode="ap" if cal_type == "gain" else "p",
+            created_at=base_time - i * 3600,
+            source_ms_path=f"/stage/dsa110-contimg/ms/obs_{i:04d}.ms",
+            status="active",
+            notes=f"Test calibration table {i}",
+            order_index=i,
         )
 
 
@@ -323,49 +361,57 @@ def sample_ms_index_records(count: int = 5) -> Iterator[SampleMSIndex]:
     Yields:
         SampleMSIndex instances with realistic test data.
     """
-    base_time = datetime.utcnow()
+    base_mjd = 60000.0  # ~2023
     for i in range(count):
-        start = (base_time - timedelta(hours=i)).isoformat()
-        end = (base_time - timedelta(hours=i) + timedelta(minutes=5)).isoformat()
+        start = base_mjd + i
+        end = start + 0.003  # ~5 minutes in MJD
+        mid = (start + end) / 2
         yield SampleMSIndex(
-            id=i + 1,
-            ms_path=f"/stage/dsa110-contimg/ms/obs_{i:04d}.ms",
-            obs_id=f"obs_{i:04d}",
-            start_time=start,
-            end_time=end,
-            n_channels=16384,
-            n_polarizations=4,
-            n_baselines=2016,
-            n_fields=24,
-            total_size_bytes=1000000000 + i * 100000000,
+            path=f"/stage/dsa110-contimg/ms/obs_{i:04d}.ms",
+            start_mjd=start,
+            end_mjd=end,
+            mid_mjd=mid,
+            processed_at=datetime.utcnow().timestamp(),
             status="complete",
+            stage="imaged",
+            stage_updated_at=datetime.utcnow().timestamp(),
+            cal_applied=1,
+            imagename=f"obs_{i:04d}.fits",
+            ra_deg=180.0 + i * 0.5,
+            dec_deg=37.0,
+            field_name=f"field_{i}",
+            pointing_ra_deg=180.0 + i * 0.5,
+            pointing_dec_deg=37.0,
         )
 
 
-def sample_photometry_records(count: int = 10, image_id: int = 1) -> Iterator[SamplePhotometry]:
+def sample_photometry_records(count: int = 10, source_id: str = "src_00000") -> Iterator[SamplePhotometry]:
     """Generate sample photometry records for testing.
 
     Args:
         count: Number of records to generate.
-        image_id: Image ID to associate records with.
+        source_id: Source ID to associate records with.
 
     Yields:
         SamplePhotometry instances with realistic test data.
     """
     base_ra = 180.0
     base_dec = 37.0
+    base_mjd = 60000.0
     for i in range(count):
         yield SamplePhotometry(
             id=i + 1,
-            image_id=image_id,
-            source_name=f"source_{i:03d}",
-            ra=base_ra + i * 0.01,
-            dec=base_dec + i * 0.01,
+            source_id=source_id,
+            image_path=f"/stage/dsa110-contimg/images/obs_{i:04d}.fits",
+            ra_deg=base_ra + i * 0.001,
+            dec_deg=base_dec + i * 0.001,
+            mjd=base_mjd + i,
             flux_jy=0.01 + i * 0.005,
             flux_err_jy=0.001,
-            peak_flux_jy=0.012 + i * 0.005,
-            rms_jy=0.0005,
+            peak_jyb=0.012 + i * 0.005,
+            peak_err_jyb=0.001,
             snr=20.0 + i * 5,
+            local_rms=0.0005,
         )
 
 
@@ -409,18 +455,19 @@ async def populate_products_db(
         await conn.execute(
             """
             INSERT INTO images (
-                id, ms_path, field_name, image_path, thumbnail_path, created_at,
-                rms_noise, peak_flux, dynamic_range, beam_major, beam_minor, beam_pa,
-                frequency_mhz, bandwidth_mhz, integration_time, weighting, robust, niter,
-                type, beam
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                id, path, ms_path, created_at, type, beam_major_arcsec, beam_minor_arcsec,
+                beam_pa_deg, noise_jy, dynamic_range, pbcor, format, field_name,
+                center_ra_deg, center_dec_deg, imsize_x, imsize_y, cellsize_arcsec,
+                freq_ghz, bandwidth_mhz, integration_sec
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
-                img.id, img.ms_path, img.field_name, img.image_path, img.thumbnail_path,
-                img.created_at, img.rms_noise, img.peak_flux, img.dynamic_range,
-                img.beam_major, img.beam_minor, img.beam_pa, img.frequency_mhz,
-                img.bandwidth_mhz, img.integration_time, img.weighting, img.robust,
-                img.niter, img.type, img.beam,
+                img.id, img.path, img.ms_path, img.created_at, img.type,
+                img.beam_major_arcsec, img.beam_minor_arcsec, img.beam_pa_deg,
+                img.noise_jy, img.dynamic_range, img.pbcor, img.format,
+                img.field_name, img.center_ra_deg, img.center_dec_deg,
+                img.imsize_x, img.imsize_y, img.cellsize_arcsec,
+                img.freq_ghz, img.bandwidth_mhz, img.integration_sec,
             ),
         )
 
@@ -429,14 +476,14 @@ async def populate_products_db(
         await conn.execute(
             """
             INSERT INTO sources (
-                id, image_id, name, ra, dec, flux, flux_err, peak_flux, peak_flux_err,
-                major_axis, minor_axis, position_angle, snr, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                id, name, ra_deg, dec_deg, catalog_match, source_type,
+                first_detected_mjd, last_detected_mjd, detection_count
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
-                src.id, src.image_id, src.name, src.ra, src.dec, src.flux, src.flux_err,
-                src.peak_flux, src.peak_flux_err, src.major_axis, src.minor_axis,
-                src.position_angle, src.snr, src.created_at,
+                src.id, src.name, src.ra_deg, src.dec_deg, src.catalog_match,
+                src.source_type, src.first_detected_mjd, src.last_detected_mjd,
+                src.detection_count,
             ),
         )
 
@@ -446,13 +493,13 @@ async def populate_products_db(
             """
             INSERT INTO batch_jobs (
                 id, job_type, status, created_at, started_at, completed_at,
-                error_message, parameters, progress, total_items, completed_items
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                error_message, input_params, output_path, priority
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 job.id, job.job_type, job.status, job.created_at, job.started_at,
-                job.completed_at, job.error_message, job.parameters, job.progress,
-                job.total_items, job.completed_items,
+                job.completed_at, job.error_message, job.input_params, job.output_path,
+                job.priority,
             ),
         )
 
@@ -461,14 +508,16 @@ async def populate_products_db(
         await conn.execute(
             """
             INSERT INTO ms_index (
-                id, ms_path, obs_id, start_time, end_time, n_channels, n_polarizations,
-                n_baselines, n_fields, total_size_bytes, created_at, status
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                path, start_mjd, end_mjd, mid_mjd, processed_at, status, stage,
+                stage_updated_at, cal_applied, imagename, ra_deg, dec_deg,
+                field_name, pointing_ra_deg, pointing_dec_deg
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
-                ms.id, ms.ms_path, ms.obs_id, ms.start_time, ms.end_time, ms.n_channels,
-                ms.n_polarizations, ms.n_baselines, ms.n_fields, ms.total_size_bytes,
-                ms.created_at, ms.status,
+                ms.path, ms.start_mjd, ms.end_mjd, ms.mid_mjd, ms.processed_at,
+                ms.status, ms.stage, ms.stage_updated_at, ms.cal_applied,
+                ms.imagename, ms.ra_deg, ms.dec_deg, ms.field_name,
+                ms.pointing_ra_deg, ms.pointing_dec_deg,
             ),
         )
 
@@ -477,14 +526,14 @@ async def populate_products_db(
         await conn.execute(
             """
             INSERT INTO photometry (
-                id, image_id, source_name, ra, dec, flux_jy, flux_err_jy,
-                peak_flux_jy, rms_jy, snr, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                id, source_id, image_path, ra_deg, dec_deg, mjd, flux_jy,
+                flux_err_jy, peak_jyb, peak_err_jyb, snr, local_rms
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
-                phot.id, phot.image_id, phot.source_name, phot.ra, phot.dec,
-                phot.flux_jy, phot.flux_err_jy, phot.peak_flux_jy, phot.rms_jy,
-                phot.snr, phot.created_at,
+                phot.id, phot.source_id, phot.image_path, phot.ra_deg, phot.dec_deg,
+                phot.mjd, phot.flux_jy, phot.flux_err_jy, phot.peak_jyb,
+                phot.peak_err_jyb, phot.snr, phot.local_rms,
             ),
         )
 
@@ -508,14 +557,14 @@ async def populate_cal_registry_db(
         await conn.execute(
             """
             INSERT INTO caltables (
-                id, ms_path, cal_type, cal_path, field_name, spw, antenna,
-                created_at, solint, refant, minsnr, calmode
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                path, table_type, set_name, cal_field, refant, created_at,
+                source_ms_path, status, notes, order_index
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
-                cal.id, cal.ms_path, cal.cal_type, cal.cal_path, cal.field_name,
-                cal.spw, cal.antenna, cal.created_at, cal.solint, cal.refant,
-                cal.minsnr, cal.calmode,
+                cal.path, cal.table_type, cal.set_name, cal.cal_field, cal.refant,
+                cal.created_at, cal.source_ms_path, cal.status, cal.notes,
+                cal.order_index,
             ),
         )
 

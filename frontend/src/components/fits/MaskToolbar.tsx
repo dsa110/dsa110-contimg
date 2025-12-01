@@ -6,7 +6,7 @@ import { config } from "../../config";
 /**
  * Props for the MaskToolbar component.
  */
-interface MaskToolbarProps {
+export interface MaskToolbarProps {
   /** The JS9 display ID to operate on */
   displayId: string;
   /** Image ID for saving masks to the backend */

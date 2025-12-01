@@ -4,15 +4,16 @@
 
 ## 📋 Implementation Status Summary
 
-> **Last Updated**: 2025-07-14
+> **Last Updated**: 2025-12-01
 
 ### Overall Progress
 
-| Phase   | Status      | Completion |
-| ------- | ----------- | ---------- |
-| Phase 1 | ✅ Complete | 100%       |
-| Phase 2 | ✅ Complete | 100%       |
-| Phase 3 | ✅ Complete | 100%       |
+| Phase        | Status      | Completion |
+| ------------ | ----------- | ---------- |
+| Phase 1      | ✅ Complete | 100%       |
+| Phase 2      | ✅ Complete | 100%       |
+| Phase 3      | ✅ Complete | 100%       |
+| Native Tools | ✅ Complete | 100%       |
 
 ### Phase 1: Quick Wins ✅
 
@@ -47,28 +48,48 @@
 | E2E tests                    | `frontend/e2e/interactive-imaging.spec.ts`                                                                      | ✅ Completed |
 | Backend unit tests           | `backend/tests/unit/api/test_phase3_integration.py` (30 tests)                                                  | ✅ Completed |
 
+### Native Tool Implementations (casangi alternatives) ✅
+
+These tools were implemented natively using JS9 and D3/SVG instead of casangi:
+
+| Tool         | Implementation                       | Status       | Rationale                                   |
+| ------------ | ------------------------------------ | ------------ | ------------------------------------------- |
+| plotants     | `AntennaLayoutWidget.tsx` (D3/SVG)   | ✅ Completed | Native implementation, no Python dependency |
+| CreateMask   | `MaskToolbar.tsx` + `/masks` API     | ✅ Completed | Leverages existing JS9 region support       |
+| CreateRegion | `RegionToolbar.tsx` + `/regions` API | ✅ Completed | DS9/CRTF/JSON export via JS9                |
+
+#### Native Implementations - File Details
+
+| Component             | Frontend File(s)                                          | Backend File(s)                                                |
+| --------------------- | --------------------------------------------------------- | -------------------------------------------------------------- |
+| **Antenna Layout**    | `frontend/src/components/antenna/AntennaLayoutWidget.tsx` | (uses existing `/ms/{id}/antennas` endpoint)                   |
+| **Mask Creation**     | `frontend/src/components/fits/MaskToolbar.tsx`            | `backend/src/dsa110_contimg/api/routes/images.py` (`/masks`)   |
+| **Region Management** | `frontend/src/components/fits/RegionToolbar.tsx`          | `backend/src/dsa110_contimg/api/routes/images.py` (`/regions`) |
+
 ### Key Files Created/Modified
 
 #### Backend (Python)
 
-| Path                                                        | Description                               |
-| ----------------------------------------------------------- | ----------------------------------------- |
-| `backend/src/dsa110_contimg/api/routes/imaging.py`          | Interactive imaging endpoints + WebSocket |
-| `backend/src/dsa110_contimg/api/routes/images.py`           | Image versioning endpoints                |
-| `backend/src/dsa110_contimg/api/services/bokeh_sessions.py` | Session lifecycle + WebSocket management  |
-| `backend/src/dsa110_contimg/api/schemas.py`                 | Pydantic models with versioning fields    |
-| `backend/src/dsa110_contimg/api/validation.py`              | MS visualization validation utilities     |
-| `backend/tests/unit/api/test_phase3_integration.py`         | 30 unit tests for Phase 3 features        |
+| Path                                                        | Description                                  |
+| ----------------------------------------------------------- | -------------------------------------------- |
+| `backend/src/dsa110_contimg/api/routes/imaging.py`          | Interactive imaging endpoints + WebSocket    |
+| `backend/src/dsa110_contimg/api/routes/images.py`           | Image versioning, mask, and region endpoints |
+| `backend/src/dsa110_contimg/api/services/bokeh_sessions.py` | Session lifecycle + WebSocket management     |
+| `backend/src/dsa110_contimg/api/schemas.py`                 | Pydantic models with versioning fields       |
+| `backend/src/dsa110_contimg/api/validation.py`              | MS visualization validation utilities        |
+| `backend/tests/unit/api/test_phase3_integration.py`         | 30 unit tests for Phase 3 features           |
 
 #### Frontend (TypeScript/React)
 
-| Path                                                      | Description                                   |
-| --------------------------------------------------------- | --------------------------------------------- |
-| `frontend/src/components/ms/MsRasterPlot.tsx`             | Visibility raster plot component              |
-| `frontend/src/components/antenna/AntennaLayoutWidget.tsx` | T-shaped antenna layout visualization         |
-| `frontend/src/components/bokeh/BokehEmbed.tsx`            | Bokeh iframe embedding with progress tracking |
-| `frontend/src/pages/InteractiveImagingPage.tsx`           | Interactive imaging workflow page             |
-| `frontend/e2e/interactive-imaging.spec.ts`                | Playwright E2E tests                          |
+| Path                                                      | Description                                    |
+| --------------------------------------------------------- | ---------------------------------------------- |
+| `frontend/src/components/ms/MsRasterPlot.tsx`             | Visibility raster plot component               |
+| `frontend/src/components/antenna/AntennaLayoutWidget.tsx` | T-shaped antenna layout visualization (D3/SVG) |
+| `frontend/src/components/fits/RegionToolbar.tsx`          | JS9 region creation toolbar (DS9/CRTF export)  |
+| `frontend/src/components/fits/MaskToolbar.tsx`            | Clean mask creation with backend save          |
+| `frontend/src/components/bokeh/BokehEmbed.tsx`            | Bokeh iframe embedding with progress tracking  |
+| `frontend/src/pages/InteractiveImagingPage.tsx`           | Interactive imaging workflow page              |
+| `frontend/e2e/interactive-imaging.spec.ts`                | Playwright E2E tests                           |
 
 #### Operations
 
@@ -82,17 +103,29 @@
 | Decision                 | Choice                 | Rationale                                      |
 | ------------------------ | ---------------------- | ---------------------------------------------- |
 | Antenna visualization    | Native D3/SVG          | Simple, no Python dependency, fast render      |
-| Mask creation            | JS9 (existing)         | Already integrated, full DS9 region support    |
+| Mask creation            | JS9 + MaskToolbar      | Already integrated, full DS9 region support    |
+| Region management        | JS9 + RegionToolbar    | DS9/CRTF/JSON export, backend persistence      |
 | casagui integration      | Yes (MsRaster, iClean) | No web-based alternatives for MS visualization |
 | Bokeh embedding approach | iframe + WebSocket     | Unified UX with real-time progress updates     |
 
-### Not Implemented (Per Decision Matrix)
+### API Endpoints Added
 
-| Tool         | Status     | Reason                                 |
-| ------------ | ---------- | -------------------------------------- |
-| plotants     | ❌ Skipped | Native D3/SVG implementation preferred |
-| CreateMask   | ❌ Skipped | JS9 already provides this capability   |
-| CreateRegion | ❌ Skipped | JS9 already provides this capability   |
+#### Mask Endpoints (`/images/{id}/masks`)
+
+| Method | Endpoint                       | Description                       |
+| ------ | ------------------------------ | --------------------------------- |
+| POST   | `/images/{id}/masks`           | Save DS9/CRTF mask for re-imaging |
+| GET    | `/images/{id}/masks`           | List all masks for an image       |
+| DELETE | `/images/{id}/masks/{mask_id}` | Delete a specific mask            |
+
+#### Region Endpoints (`/images/{id}/regions`)
+
+| Method | Endpoint                           | Description                      |
+| ------ | ---------------------------------- | -------------------------------- |
+| POST   | `/images/{id}/regions`             | Save regions (DS9/CRTF/JSON)     |
+| GET    | `/images/{id}/regions`             | List regions (filter by purpose) |
+| GET    | `/images/{id}/regions/{region_id}` | Get region file content          |
+| DELETE | `/images/{id}/regions/{region_id}` | Delete a specific region file    |
 
 ---
 
