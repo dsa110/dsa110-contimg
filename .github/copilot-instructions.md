@@ -164,6 +164,7 @@ parameter.
 
 1. **Batch Converter**
    (`backend/src/dsa110_contimg/conversion/strategies/hdf5_orchestrator.py`):
+
    - For historical/archived data processing
    - Function:
      `convert_subband_groups_to_ms(input_dir, output_dir, start_time, end_time)`
@@ -196,6 +197,55 @@ update antenna positions :arrow_right: auto-rename calibrator fields
 - Use batched subband loading (default: 4 subbands per batch) to reduce memory
 - Auto-detect and rename calibrator fields (enabled by default, use
   `--no-rename-calibrator-fields` to disable)
+
+### Pointing Change Detection & Precomputation
+
+The streaming converter automatically detects pointing changes (when the
+telescope declination changes significantly) and proactively prepares resources:
+
+**How it works**:
+
+1. When new HDF5 files arrive, the `PointingTracker` reads the `phase_center_dec`
+   from the first subband's metadata
+2. If Dec changes by more than 1.0° (configurable), triggers precomputation:
+   - Selects best bandpass calibrator for the new Dec
+   - Computes upcoming transit times for that calibrator
+   - Queues background catalog strip database builds
+
+**Precomputation Module** (`backend/src/dsa110_contimg/pipeline/precompute.py`):
+
+```python
+from dsa110_contimg.pipeline.precompute import (
+    get_pointing_tracker,
+    PointingTracker,
+    ensure_catalogs_for_dec,
+)
+
+# Get current pointing status
+tracker = get_pointing_tracker()
+status = tracker.get_status()
+print(f"Current Dec: {status['current_dec_deg']}°")
+
+# Get best calibrator for a declination
+best = tracker.get_best_calibrator(dec_deg=55.0)
+print(f"Best calibrator: {best.name}, transit at {best.transit_utc}")
+
+# Ensure catalog databases exist (queues background build if needed)
+catalogs = ensure_catalogs_for_dec(dec_deg=55.0)
+```
+
+**API Endpoints** (`/api/calibrator-imaging/pointing/`):
+
+| Endpoint                        | Method | Description                     |
+| ------------------------------- | ------ | ------------------------------- |
+| `/pointing/status`              | GET    | Current pointing tracker status |
+| `/pointing/best-calibrator`     | GET    | Best calibrator for Dec         |
+| `/pointing/transits`            | GET    | Upcoming transits for Dec       |
+| `/pointing/precompute-transits` | POST   | Precompute all transits         |
+| `/pointing/ensure-catalogs`     | POST   | Build missing catalog strips    |
+
+This reduces pipeline latency by having calibrators and catalogs ready before
+the telescope reaches a new pointing.
 
 ## DSA-110 Specific Utilities
 

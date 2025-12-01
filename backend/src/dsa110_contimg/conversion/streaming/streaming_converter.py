@@ -771,11 +771,28 @@ class QueueDB:
             return [row[0] for row in rows]
 
 
+# Import pointing tracker for Dec change detection
+try:
+    from dsa110_contimg.pipeline.precompute import get_pointing_tracker, PointingTracker
+    HAS_POINTING_TRACKER = True
+except ImportError:
+    HAS_POINTING_TRACKER = False
+    PointingTracker = None  # type: ignore
+
+
 class _FSHandler(FileSystemEventHandler):
     """Watchdog handler to record arriving subband files."""
 
-    def __init__(self, queue: QueueDB) -> None:
+    def __init__(self, queue: QueueDB, pointing_tracker: "PointingTracker | None" = None) -> None:
         self.queue = queue
+        # Use provided tracker or get global instance
+        if pointing_tracker is not None:
+            self._pointing_tracker = pointing_tracker
+        elif HAS_POINTING_TRACKER:
+            self._pointing_tracker = get_pointing_tracker()
+        else:
+            self._pointing_tracker = None
+        self._last_checked_group: str | None = None  # Avoid checking every subband
 
     def _maybe_record(self, path: str) -> None:
         p = Path(path)
@@ -830,6 +847,25 @@ class _FSHandler(FileSystemEventHandler):
         except Exception as e:
             log.warning(f"File is not readable HDF5: {path}. Error: {e}")
             return
+
+        # Check for pointing change (only once per group, on first subband)
+        # This triggers precomputation of calibrators and catalog strips
+        if self._pointing_tracker is not None and gid != self._last_checked_group:
+            self._last_checked_group = gid
+            try:
+                change = self._pointing_tracker.check_pointing_change(p)
+                if change:
+                    log.info(
+                        f"Pointing change detected: Dec={change.new_dec_deg:.2f}° "
+                        f"(from {path})"
+                    )
+                    if change.precomputed_calibrator:
+                        log.info(
+                            f"Precomputed calibrator: {change.precomputed_calibrator} "
+                            f"(transit at {change.calibrator_transit_utc})"
+                        )
+            except Exception as e:
+                log.debug(f"Pointing check failed: {e}")
 
         # File passed all checks, record in queue
         try:

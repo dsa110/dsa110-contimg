@@ -1,8 +1,7 @@
 /**
- * Health Monitoring API Client.
+ * Health Monitoring API Hooks
  *
- * Provides functions for interacting with the unified health monitoring
- * REST API endpoints.
+ * React Query hooks for the health monitoring endpoints.
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -15,15 +14,9 @@ import type {
   FluxHistory,
   PointingStatus,
   AlertsResponse,
-  DatabaseHealthResponse,
-  ServiceHealthStatus,
 } from "../types/health";
 
-// =============================================================================
-// Base Path
-// =============================================================================
-
-const BASE_PATH = "/health";
+const BASE_PATH = "/api/v1/health";
 
 // =============================================================================
 // Query Keys
@@ -32,23 +25,33 @@ const BASE_PATH = "/health";
 export const healthKeys = {
   all: ["health"] as const,
   system: () => [...healthKeys.all, "system"] as const,
-  docker: (container: string) => [...healthKeys.all, "docker", container] as const,
-  systemd: (service: string) => [...healthKeys.all, "systemd", service] as const,
-  databases: () => [...healthKeys.all, "databases"] as const,
-  validityWindows: (mjd?: number) => [...healthKeys.all, "validity-windows", mjd] as const,
-  validityTimeline: (hours: number) => [...healthKeys.all, "validity-timeline", hours] as const,
+  validityWindows: (mjd?: number) =>
+    [...healthKeys.all, "validity-windows", { mjd }] as const,
+  validityTimeline: (hoursBack?: number, hoursForward?: number) =>
+    [...healthKeys.all, "validity-timeline", { hoursBack, hoursForward }] as const,
   fluxMonitoring: () => [...healthKeys.all, "flux-monitoring"] as const,
-  fluxHistory: (calibrator: string) => [...healthKeys.all, "flux-history", calibrator] as const,
+  fluxHistory: (calibrator: string, days?: number) =>
+    [...healthKeys.all, "flux-history", calibrator, { days }] as const,
   pointing: () => [...healthKeys.all, "pointing"] as const,
   alerts: (params?: AlertsQueryParams) => [...healthKeys.all, "alerts", params] as const,
 };
+
+// =============================================================================
+// API Types
+// =============================================================================
+
+interface AlertsQueryParams {
+  severity?: string;
+  acknowledged?: boolean;
+  limit?: number;
+}
 
 // =============================================================================
 // API Functions
 // =============================================================================
 
 /**
- * Get full system health report.
+ * Get system health report.
  */
 export async function getSystemHealth(): Promise<SystemHealthReport> {
   const response = await apiClient.get<SystemHealthReport>(`${BASE_PATH}/system`);
@@ -56,38 +59,10 @@ export async function getSystemHealth(): Promise<SystemHealthReport> {
 }
 
 /**
- * Get individual Docker container health.
- */
-export async function getDockerHealth(container: string): Promise<ServiceHealthStatus> {
-  const response = await apiClient.get<ServiceHealthStatus>(
-    `${BASE_PATH}/docker/${encodeURIComponent(container)}`
-  );
-  return response.data;
-}
-
-/**
- * Get individual systemd service health.
- */
-export async function getSystemdHealth(service: string): Promise<ServiceHealthStatus> {
-  const response = await apiClient.get<ServiceHealthStatus>(
-    `${BASE_PATH}/systemd/${encodeURIComponent(service)}`
-  );
-  return response.data;
-}
-
-/**
- * Get database health status.
- */
-export async function getDatabaseHealth(): Promise<DatabaseHealthResponse> {
-  const response = await apiClient.get<DatabaseHealthResponse>(`${BASE_PATH}/databases`);
-  return response.data;
-}
-
-/**
  * Get active validity windows.
  */
 export async function getValidityWindows(mjd?: number): Promise<ActiveValidityWindows> {
-  const params = mjd ? { mjd } : undefined;
+  const params = mjd ? { mjd } : {};
   const response = await apiClient.get<ActiveValidityWindows>(
     `${BASE_PATH}/validity-windows`,
     { params }
@@ -98,7 +73,10 @@ export async function getValidityWindows(mjd?: number): Promise<ActiveValidityWi
 /**
  * Get validity window timeline.
  */
-export async function getValidityTimeline(hoursBack = 24, hoursForward = 24): Promise<ValidityTimeline> {
+export async function getValidityTimeline(
+  hoursBack = 24,
+  hoursForward = 48
+): Promise<ValidityTimeline> {
   const response = await apiClient.get<ValidityTimeline>(
     `${BASE_PATH}/validity-windows/timeline`,
     { params: { hours_back: hoursBack, hours_forward: hoursForward } }
@@ -117,10 +95,7 @@ export async function getFluxMonitoring(): Promise<FluxMonitoringSummary> {
 /**
  * Get flux history for a calibrator.
  */
-export async function getFluxHistory(
-  calibrator: string,
-  days = 30
-): Promise<FluxHistory> {
+export async function getFluxHistory(calibrator: string, days = 30): Promise<FluxHistory> {
   const response = await apiClient.get<FluxHistory>(
     `${BASE_PATH}/flux-monitoring/${encodeURIComponent(calibrator)}/history`,
     { params: { days } }
@@ -129,17 +104,11 @@ export async function getFluxHistory(
 }
 
 /**
- * Get current pointing status.
+ * Get current pointing status with transit predictions.
  */
 export async function getPointingStatus(): Promise<PointingStatus> {
   const response = await apiClient.get<PointingStatus>(`${BASE_PATH}/pointing`);
   return response.data;
-}
-
-interface AlertsQueryParams {
-  severity?: string;
-  acknowledged?: boolean;
-  limit?: number;
 }
 
 /**
@@ -169,43 +138,7 @@ export function useSystemHealth(refetchInterval = 30000) {
     queryKey: healthKeys.system(),
     queryFn: getSystemHealth,
     refetchInterval,
-    staleTime: 10000,
-  });
-}
-
-/**
- * Hook to fetch Docker container health.
- */
-export function useDockerHealth(container: string, enabled = true) {
-  return useQuery({
-    queryKey: healthKeys.docker(container),
-    queryFn: () => getDockerHealth(container),
-    enabled,
-    staleTime: 30000,
-  });
-}
-
-/**
- * Hook to fetch systemd service health.
- */
-export function useSystemdHealth(service: string, enabled = true) {
-  return useQuery({
-    queryKey: healthKeys.systemd(service),
-    queryFn: () => getSystemdHealth(service),
-    enabled,
-    staleTime: 30000,
-  });
-}
-
-/**
- * Hook to fetch database health.
- */
-export function useDatabaseHealth(refetchInterval = 60000) {
-  return useQuery({
-    queryKey: healthKeys.databases(),
-    queryFn: getDatabaseHealth,
-    refetchInterval,
-    staleTime: 30000,
+    staleTime: 15000,
   });
 }
 
@@ -224,9 +157,13 @@ export function useValidityWindows(mjd?: number, refetchInterval = 60000) {
 /**
  * Hook to fetch validity window timeline.
  */
-export function useValidityTimeline(hoursBack = 24, hoursForward = 24, refetchInterval = 60000) {
+export function useValidityTimeline(
+  hoursBack = 24,
+  hoursForward = 48,
+  refetchInterval = 60000
+) {
   return useQuery({
-    queryKey: healthKeys.validityTimeline(hoursBack + hoursForward),
+    queryKey: healthKeys.validityTimeline(hoursBack, hoursForward),
     queryFn: () => getValidityTimeline(hoursBack, hoursForward),
     refetchInterval,
     staleTime: 30000,
@@ -250,7 +187,7 @@ export function useFluxMonitoring(refetchInterval = 60000) {
  */
 export function useFluxHistory(calibrator: string, days = 30, enabled = true) {
   return useQuery({
-    queryKey: healthKeys.fluxHistory(calibrator),
+    queryKey: healthKeys.fluxHistory(calibrator, days),
     queryFn: () => getFluxHistory(calibrator, days),
     enabled: enabled && !!calibrator,
     staleTime: 60000,
@@ -260,17 +197,23 @@ export function useFluxHistory(calibrator: string, days = 30, enabled = true) {
 /**
  * Hook to fetch current pointing status.
  */
-export function usePointingStatus(refetchInterval = 10000) {
+export function usePointingStatus(refetchInterval = 15000) {
   return useQuery({
     queryKey: healthKeys.pointing(),
     queryFn: getPointingStatus,
     refetchInterval,
-    staleTime: 5000,
+    staleTime: 10000,
   });
 }
 
 /**
  * Hook to fetch monitoring alerts.
+ * 
+ * @param params - Optional query parameters
+ *   - severity: Filter by severity (info, warning, critical)
+ *   - acknowledged: Filter by acknowledgement status (true/false)
+ *   - limit: Max number of alerts to return
+ * @param refetchInterval - Auto-refresh interval in ms (default 30s)
  */
 export function useAlerts(params?: AlertsQueryParams, refetchInterval = 30000) {
   return useQuery({

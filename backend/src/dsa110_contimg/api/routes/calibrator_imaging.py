@@ -1136,3 +1136,188 @@ async def evaluate_alerts():
         "new_or_changed_alerts": [a.to_dict() for a in alerts],
         "total_active": len(manager.get_active_alerts()),
     }
+
+
+# =============================================================================
+# Precomputation and Pointing Tracker Endpoints
+# =============================================================================
+
+@router.get("/pointing/status")
+async def get_pointing_status():
+    """
+    Get current pointing tracker status.
+    
+    Returns:
+        - Current telescope declination
+        - Recent pointing changes
+        - Cached transit predictions
+        - Pending catalog builds
+    """
+    try:
+        from dsa110_contimg.pipeline.precompute import get_pointing_tracker
+        tracker = get_pointing_tracker()
+        return tracker.get_status()
+    except ImportError:
+        return {
+            "error": "Precompute module not available",
+            "current_dec_deg": None,
+        }
+
+
+@router.get("/pointing/transits")
+async def get_upcoming_transits_for_dec(
+    dec_deg: Optional[float] = Query(
+        default=None,
+        description="Target declination (default: current pointing)"
+    ),
+    hours_ahead: float = Query(
+        default=24.0,
+        ge=1.0,
+        le=168.0,
+        description="Hours ahead to search"
+    ),
+):
+    """
+    Get upcoming calibrator transits for a declination.
+    
+    This uses the precomputation cache if available.
+    """
+    try:
+        from dsa110_contimg.pipeline.precompute import get_pointing_tracker
+        tracker = get_pointing_tracker()
+        
+        # Get cached transits
+        transits = tracker.get_cached_transits(dec_deg)
+        
+        return {
+            "target_dec_deg": dec_deg or tracker.current_dec,
+            "transits": [t.to_dict() for t in transits],
+            "count": len(transits),
+        }
+    except ImportError:
+        # Fallback to standard transit calculation
+        from dsa110_contimg.pointing.monitor import get_all_upcoming_transits
+        
+        transits = get_all_upcoming_transits(hours_ahead=hours_ahead)
+        return {
+            "target_dec_deg": dec_deg,
+            "transits": [t.to_dict() for t in transits],
+            "count": len(transits),
+        }
+
+
+@router.get("/pointing/best-calibrator")
+async def get_best_calibrator_for_dec(
+    dec_deg: Optional[float] = Query(
+        default=None,
+        description="Target declination (default: current pointing)"
+    ),
+):
+    """
+    Get the best calibrator for the given or current declination.
+    
+    Returns the calibrator with the closest declination and soonest transit.
+    """
+    try:
+        from dsa110_contimg.pipeline.precompute import get_pointing_tracker
+        tracker = get_pointing_tracker()
+        
+        calibrator = tracker.get_best_calibrator(dec_deg)
+        
+        if calibrator is None:
+            return {
+                "target_dec_deg": dec_deg or tracker.current_dec,
+                "calibrator": None,
+                "message": "No suitable calibrator found",
+            }
+        
+        return {
+            "target_dec_deg": dec_deg or tracker.current_dec,
+            "calibrator": calibrator.to_dict(),
+        }
+    except ImportError:
+        return {
+            "error": "Precompute module not available",
+            "calibrator": None,
+        }
+
+
+@router.post("/pointing/precompute-transits")
+async def precompute_all_transits_endpoint(
+    hours_ahead: float = Query(
+        default=48.0,
+        ge=1.0,
+        le=168.0,
+        description="Hours ahead to precompute"
+    ),
+):
+    """
+    Precompute all calibrator transits for the next N hours.
+    
+    This warms the transit cache for faster lookup.
+    """
+    try:
+        from dsa110_contimg.pipeline.precompute import precompute_all_transits
+        
+        predictions = await precompute_all_transits(hours_ahead=hours_ahead)
+        
+        total = sum(len(v) for v in predictions.values())
+        return {
+            "precomputed": True,
+            "hours_ahead": hours_ahead,
+            "calibrator_count": len(predictions),
+            "total_transits": total,
+            "by_calibrator": {k: len(v) for k, v in predictions.items()},
+        }
+    except ImportError:
+        return {
+            "error": "Precompute module not available",
+            "precomputed": False,
+        }
+
+
+@router.post("/pointing/ensure-catalogs")
+async def ensure_catalogs_for_dec_endpoint(
+    dec_deg: float = Query(..., description="Target declination"),
+    catalog_types: Optional[str] = Query(
+        default=None,
+        description="Comma-separated catalog types (default: nvss,first,vlass)"
+    ),
+    wait: bool = Query(
+        default=False,
+        description="Wait for builds to complete (can be slow)"
+    ),
+):
+    """
+    Ensure catalog databases exist for a declination.
+    
+    Triggers background builds for missing catalogs.
+    
+    Args:
+        dec_deg: Target declination
+        catalog_types: Comma-separated list (e.g., "nvss,first")
+        wait: If True, wait for builds (may take several minutes)
+    """
+    try:
+        from dsa110_contimg.pipeline.precompute import ensure_catalogs_for_dec
+        
+        types = None
+        if catalog_types:
+            types = [t.strip() for t in catalog_types.split(",")]
+        
+        results = ensure_catalogs_for_dec(
+            dec_deg=dec_deg,
+            catalog_types=types,
+            wait=wait,
+        )
+        
+        return {
+            "dec_deg": dec_deg,
+            "catalogs": {k: str(v) if v else None for k, v in results.items()},
+            "waited": wait,
+        }
+    except ImportError:
+        return {
+            "error": "Precompute module not available",
+            "catalogs": {},
+        }

@@ -8,33 +8,37 @@
 // Service Health Types
 // =============================================================================
 
-export type ServiceStatusType = "running" | "stopped" | "degraded" | "error" | "unknown";
+export type ServiceStatusType = "running" | "stopped" | "degraded" | "error" | "unknown" | "healthy" | "unhealthy";
 
 export interface ServiceHealthStatus {
   name: string;
   status: ServiceStatusType;
-  message: string;
+  message?: string;
   response_time_ms?: number;
-  details: Record<string, unknown>;
-  checked_at: string;
+  details?: Record<string, unknown>;
+  checked_at?: string;
+  last_check?: string;
 }
 
 export interface HealthSummary {
   total: number;
-  running: number;
-  stopped: number;
-  degraded: number;
-  error: number;
+  running?: number;
+  stopped?: number;
+  degraded?: number;
+  error?: number;
+  healthy?: number;
+  unhealthy?: number;
 }
 
 export interface SystemHealthReport {
   overall_status: ServiceStatusType;
-  services: ServiceHealthStatus[];
-  docker_available: boolean;
-  systemd_available: boolean;
+  services: Record<string, ServiceHealthStatus>;
+  docker_available?: boolean;
+  systemd_available?: boolean;
   summary: HealthSummary;
-  checked_at: string;
-  check_duration_ms: number;
+  checked_at?: string;
+  timestamp?: string;
+  check_duration_ms?: number;
 }
 
 // =============================================================================
@@ -169,6 +173,8 @@ export interface MonitoringAlert {
   calibrator_name?: string;
   message: string;
   triggered_at: string;
+  source?: string;
+  created_at?: string;
   acknowledged: boolean;
   acknowledged_at?: string;
   acknowledged_by?: string;
@@ -178,6 +184,16 @@ export interface AlertsResponse {
   alerts: MonitoringAlert[];
   total_count: number;
   unacknowledged_count: number;
+}
+
+/** Query parameters for alerts endpoint */
+export interface AlertsQueryParams {
+  severity?: AlertSeverity;
+  acknowledged?: boolean;
+  calibrator?: string;
+  limit?: number;
+  activeOnly?: boolean;
+  active_only?: boolean;
 }
 
 // =============================================================================

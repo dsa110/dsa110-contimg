@@ -17,6 +17,9 @@ export const ROUTES = {
   /** Home/dashboard page */
   HOME: "/",
 
+  /** Health monitoring dashboard */
+  HEALTH: "/health",
+
   /** Image routes */
   IMAGES: {
     /** Images list page */
@@ -75,6 +78,7 @@ export const ROUTES = {
  */
 export const NAV_ITEMS = [
   { path: ROUTES.HOME, label: "Home" },
+  { path: ROUTES.HEALTH, label: "Health" },
   { path: ROUTES.IMAGES.LIST, label: "Images" },
   { path: ROUTES.SOURCES.LIST, label: "Sources" },
   { path: ROUTES.JOBS.LIST, label: "Jobs" },

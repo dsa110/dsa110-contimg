@@ -3,6 +3,7 @@ export { default as MSDetailPage } from "./MSDetailPage";
 export { default as SourceDetailPage } from "./SourceDetailPage";
 export { default as JobDetailPage } from "./JobDetailPage";
 export { default as HomePage } from "./HomePage";
+export { default as HealthDashboardPage } from "./HealthDashboardPage";
 export { default as ImagesListPage } from "./ImagesListPage";
 export { default as SourcesListPage } from "./SourcesListPage";
 export { default as JobsListPage } from "./JobsListPage";

@@ -4,6 +4,7 @@ import AppLayout from "./components/layout/AppLayout";
 import { PageSkeleton } from "./components/common";
 
 const HomePage = lazy(() => import("./pages/HomePage"));
+const HealthDashboardPage = lazy(() => import("./pages/HealthDashboardPage"));
 const ImageDetailPage = lazy(() => import("./pages/ImageDetailPage"));
 const MSDetailPage = lazy(() => import("./pages/MSDetailPage"));
 const SourceDetailPage = lazy(() => import("./pages/SourceDetailPage"));
@@ -25,6 +26,7 @@ const WorkflowsPage = lazy(() => import("./pages/WorkflowsPage"));
  *
  * Routes:
  * - / : Home/dashboard
+ * - /health : Health monitoring dashboard
  * - /images : List of images
  * - /images/:imageId : Image detail
  * - /ms/* : Measurement set detail (path as wildcard)
@@ -59,6 +61,14 @@ export const router = createBrowserRouter(
           element: (
             <Suspense fallback={<PageSkeleton variant="dashboard" />}>
               <HomePage />
+            </Suspense>
+          ),
+        },
+        {
+          path: "health",
+          element: (
+            <Suspense fallback={<PageSkeleton variant="dashboard" />}>
+              <HealthDashboardPage />
             </Suspense>
           ),
         },
