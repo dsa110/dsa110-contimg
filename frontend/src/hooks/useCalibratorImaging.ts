@@ -122,6 +122,20 @@ export interface HealthStatus {
   output_images_dir_exists: boolean;
 }
 
+export interface DataCoverage {
+  has_data: boolean;
+  earliest_time_iso?: string;
+  latest_time_iso?: string;
+  earliest_mjd?: number;
+  latest_mjd?: number;
+  total_files?: number;
+  total_groups?: number;
+  days_since_latest?: number;
+  total_days_span?: number;
+  recommended_days_back?: number;
+  message?: string;
+}
+
 // =============================================================================
 // Query Keys
 // =============================================================================
@@ -142,6 +156,7 @@ export const calibratorImagingKeys = {
   photometry: (imagePath: string) =>
     [...calibratorImagingKeys.all, "photometry", imagePath] as const,
   health: () => [...calibratorImagingKeys.all, "health"] as const,
+  dataCoverage: () => [...calibratorImagingKeys.all, "data-coverage"] as const,
 };
 
 // =============================================================================
@@ -349,5 +364,24 @@ export function useCalibratorImagingHealth() {
       return response.data;
     },
     staleTime: 30000, // Cache for 30 seconds
+  });
+}
+
+/**
+ * Get data coverage information to determine appropriate query time ranges.
+ *
+ * Returns the time range of indexed HDF5 data so the frontend can
+ * query the appropriate days_back instead of using hardcoded defaults.
+ */
+export function useDataCoverage() {
+  return useQuery({
+    queryKey: calibratorImagingKeys.dataCoverage(),
+    queryFn: async () => {
+      const response = await apiClient.get<DataCoverage>(
+        "/calibrator-imaging/data-coverage"
+      );
+      return response.data;
+    },
+    staleTime: 60000, // Cache for 1 minute - data coverage doesn't change often
   });
 }

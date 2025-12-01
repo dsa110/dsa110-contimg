@@ -796,6 +796,70 @@ async def health_check():
     }
 
 
+@router.get("/data-coverage")
+async def get_data_coverage():
+    """
+    Get the time range of indexed HDF5 data.
+    
+    Returns the earliest and latest timestamps in the HDF5 index,
+    allowing the frontend to query the appropriate time range
+    instead of using hardcoded defaults.
+    """
+    hdf5_db = get_hdf5_db_path()
+    
+    if not os.path.exists(hdf5_db):
+        raise HTTPException(status_code=503, detail="HDF5 database not available")
+    
+    try:
+        conn = sqlite3.connect(hdf5_db)
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        
+        cursor.execute("""
+            SELECT 
+                MIN(timestamp_iso) as earliest_iso,
+                MAX(timestamp_iso) as latest_iso,
+                MIN(timestamp_mjd) as earliest_mjd,
+                MAX(timestamp_mjd) as latest_mjd,
+                COUNT(*) as total_files,
+                COUNT(DISTINCT group_id) as total_groups
+            FROM hdf5_file_index
+        """)
+        row = cursor.fetchone()
+        conn.close()
+        
+        if not row or not row["earliest_iso"]:
+            return {
+                "has_data": False,
+                "message": "No HDF5 files indexed"
+            }
+        
+        # Calculate days from now
+        from datetime import datetime
+        latest = datetime.fromisoformat(row["latest_iso"])
+        earliest = datetime.fromisoformat(row["earliest_iso"])
+        now = datetime.utcnow()
+        
+        days_since_latest = (now - latest).days
+        total_days_span = (latest - earliest).days
+        
+        return {
+            "has_data": True,
+            "earliest_time_iso": row["earliest_iso"],
+            "latest_time_iso": row["latest_iso"],
+            "earliest_mjd": row["earliest_mjd"],
+            "latest_mjd": row["latest_mjd"],
+            "total_files": row["total_files"],
+            "total_groups": row["total_groups"],
+            "days_since_latest": days_since_latest,
+            "total_days_span": total_days_span,
+            "recommended_days_back": max(days_since_latest + 7, 14)
+        }
+    except Exception as e:
+        logger.exception("Failed to query data coverage")
+        raise HTTPException(status_code=500, detail=f"Database query failed: {str(e)}")
+
+
 @router.get("/health/storage")
 async def storage_health_check():
     """

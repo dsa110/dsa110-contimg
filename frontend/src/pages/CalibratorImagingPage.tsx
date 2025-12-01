@@ -11,6 +11,7 @@ import {
   useCalibratorJob,
   usePhotometry,
   useCalibratorImagingHealth,
+  useDataCoverage,
 } from "../hooks/useCalibratorImaging";
 
 /**
@@ -90,6 +91,10 @@ const CalibratorImagingPage: React.FC = () => {
     refetch: refetchHealth,
   } = useCalibratorImagingHealth();
 
+  // Data coverage - determine appropriate time range for queries
+  const { data: dataCoverage } = useDataCoverage();
+  const recommendedDaysBack = dataCoverage?.recommended_days_back ?? 7;
+
   // API hooks
   const {
     data: calibrators,
@@ -101,7 +106,11 @@ const CalibratorImagingPage: React.FC = () => {
     data: transits,
     isLoading: transitsLoading,
     refetch: refetchTransits,
-  } = useCalibratorTransits(selectedCalibrator?.name ?? null, 7, 2);
+  } = useCalibratorTransits(
+    selectedCalibrator?.name ?? null,
+    recommendedDaysBack,
+    2
+  );
 
   const {
     data: observations,
