@@ -1,0 +1,90 @@
+# PostgreSQL configuration for DSA-110 Continuum Imaging Pipeline
+#
+# This extends the base docker-compose.yml with PostgreSQL support.
+# Usage:
+#   docker-compose -f docker-compose.yml -f docker-compose.postgresql.yml up -d
+#
+# Or standalone:
+#   docker-compose -f backend/docker-compose.postgresql.yml up -d postgres
+#
+# Environment variables can be set in .env.postgresql or passed directly.
+
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: dsa110-postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/postgres/init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-dsa110}
+      POSTGRES_USER: ${POSTGRES_USER:-dsa110}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dsa110_dev_password}
+      # Performance tuning for development
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dsa110} -d ${POSTGRES_DB:-dsa110}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    # Resource limits for development
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+        reservations:
+          memory: 256M
+
+  # API service configured for PostgreSQL
+  api-pg:
+    build:
+      context: ..
+      dockerfile: ops/docker/Dockerfile
+    container_name: dsa110-api-pg
+    ports:
+      - "8001:8000"  # Different port to avoid conflict with SQLite API
+    volumes:
+      - ./src:/app/src
+      - ../state:/app/state
+      - /scratch:/scratch
+      - /stage:/stage:ro
+      - /data:/data:ro
+    environment:
+      - PYTHONPATH=/app/src
+      # PostgreSQL configuration
+      - DSA110_DB_BACKEND=postgresql
+      - DSA110_DB_PG_HOST=postgres
+      - DSA110_DB_PG_PORT=5432
+      - DSA110_DB_PG_DATABASE=${POSTGRES_DB:-dsa110}
+      - DSA110_DB_PG_USER=${POSTGRES_USER:-dsa110}
+      - DSA110_DB_PG_PASSWORD=${POSTGRES_PASSWORD:-dsa110_dev_password}
+      - DSA110_DB_PG_POOL_MIN=2
+      - DSA110_DB_PG_POOL_MAX=10
+      # Keep SQLite path for fallback/comparison
+      - PIPELINE_PRODUCTS_DB=/app/state/products.sqlite3
+      - PIPELINE_STATE_DIR=/app/state
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: uvicorn dsa110_contimg.api:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health').read()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+volumes:
+  postgres_data:
+    name: dsa110-postgres-data
+
+networks:
+  default:
+    name: dsa110-network

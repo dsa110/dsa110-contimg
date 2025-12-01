@@ -5,6 +5,9 @@ import react from "@vitejs/plugin-react";
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  css: {
+    postcss: "./config/build/postcss.config.js",
+  },
   // Base path for GitHub Pages deployment (repo name + dashboard subdirectory)
   // Use "/" for local dev and E2E tests (VITE_E2E_TEST=true), "/dsa110-contimg/dashboard/" for production
   base:
