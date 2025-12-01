@@ -55,14 +55,6 @@ jobs:
           python-version: "3.11"
           auto-activate-base: false
 
-      - name: Install pre-commit
-        run: pip install pre-commit
-
-      - name: Run pre-commit hooks (Python)
-        run: |
-          # Run pre-commit hooks manually since we're not installing git hooks
-          pre-commit run --all-files --hook-stage manual
-
       - name: Check Python formatting (black)
         continue-on-error: true
         run: black --check --diff backend/src/
