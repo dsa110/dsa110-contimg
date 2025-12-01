@@ -47,6 +47,9 @@ logger = logging.getLogger(__name__)
 DEFAULT_DEC_CHANGE_THRESHOLD = 1.0  # degrees - threshold for "significant" change
 DEFAULT_CATALOG_TYPES = ["nvss", "first", "vlass"]  # Catalogs to preload
 DEFAULT_TRANSIT_HORIZON_HOURS = 48.0  # How far ahead to precompute transits
+DEFAULT_MAX_DEC_SEPARATION = 1.5  # degrees - matches DSA-110 primary beam (~3° diameter)
+VLA_CALIBRATOR_DB = Path("/data/dsa110-contimg/state/catalogs/vla_calibrators.sqlite3")
+MIN_FLUX_JY_20CM = 1.0  # Minimum 20cm flux for VLA catalog fallback search
 
 
 @dataclass
@@ -313,13 +316,14 @@ class PointingTracker:
     def _precompute_calibrator(
         self,
         dec_deg: float,
-        max_dec_separation: float = 10.0,
+        max_dec_separation: float = 1.5,
     ) -> Optional[CalibratorPrediction]:
         """Find best calibrator for the given declination.
         
         Args:
             dec_deg: Target declination
-            max_dec_separation: Maximum Dec difference from target (degrees)
+            max_dec_separation: Maximum Dec difference from target (degrees).
+                Default 1.5° matches DSA-110 primary beam (~3° diameter).
             
         Returns:
             Best CalibratorPrediction or None
