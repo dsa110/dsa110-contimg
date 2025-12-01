@@ -154,31 +154,31 @@ def ensure_products_db(path: Path) -> sqlite3.Connection:
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_photometry_source_mjd ON photometry(source_id, mjd)"
         )
-    except Exception:
+    except sqlite3.Error:
         pass
     # Minimal index to speed lookups by Measurement Set
     try:
         conn.execute("CREATE INDEX IF NOT EXISTS idx_images_ms_path ON images(ms_path)")
-    except Exception:
+    except sqlite3.Error:
         pass
     # Index for photometry lookups by image
     try:
         conn.execute("CREATE INDEX IF NOT EXISTS idx_photometry_image ON photometry(image_path)")
-    except Exception:
+    except sqlite3.Error:
         pass
     try:
         conn.execute("CREATE INDEX IF NOT EXISTS idx_photometry_source_id ON photometry(source_id)")
-    except Exception:
+    except sqlite3.Error:
         pass
     # Index for stage filtering and path lookups
     try:
         conn.execute("CREATE INDEX IF NOT EXISTS idx_ms_index_stage_path ON ms_index(stage, path)")
-    except Exception:
+    except sqlite3.Error:
         pass
     # Optional: index to speed up status filters
     try:
         conn.execute("CREATE INDEX IF NOT EXISTS idx_ms_index_status ON ms_index(status)")
-    except Exception:
+    except sqlite3.Error:
         pass
 
     # HDF5 file index for fast subband group queries
@@ -214,7 +214,7 @@ def ensure_products_db(path: Path) -> sqlite3.Connection:
             "CREATE INDEX IF NOT EXISTS idx_hdf5_group_subband ON hdf5_file_index(group_id, subband_code)"
         )
         conn.execute("CREATE INDEX IF NOT EXISTS idx_hdf5_stored ON hdf5_file_index(stored)")
-    except Exception:
+    except sqlite3.Error:
         pass
 
     # Storage locations registry for recovery
@@ -241,7 +241,7 @@ def ensure_products_db(path: Path) -> sqlite3.Connection:
         existing = conn.execute("SELECT COUNT(*) FROM storage_locations").fetchone()[0]
         if existing == 0:
             _register_default_storage_locations(conn)
-    except Exception:
+    except sqlite3.Error:
         pass
 
     conn.commit()
@@ -533,7 +533,7 @@ def ensure_products_db(path: Path) -> sqlite3.Connection:
         conn.execute(
             "CREATE INDEX IF NOT EXISTS idx_monitoring_ese ON monitoring_sources(ese_candidate)"
         )
-    except Exception:
+    except sqlite3.Error:
         pass
     # Lightweight migrations to add missing columns
     # Only migrate if table exists (it's created above)
@@ -1010,7 +1010,9 @@ def extract_ms_pointing_center(ms_path: str) -> Tuple[Optional[float], Optional[
         ra_deg = float(np.degrees(ra_rad))
         dec_deg = float(np.degrees(dec_rad))
         return ra_deg, dec_deg
-    except Exception:
+    except (OSError, RuntimeError, ValueError):
+        # OSError: file access issues, RuntimeError: casatools errors,
+        # ValueError: array/conversion issues
         return None, None
 
 
@@ -1319,7 +1321,7 @@ def ensure_ingest_db(path: Path) -> sqlite3.Connection:
     # Enable WAL mode for better concurrent access
     try:
         conn.execute("PRAGMA journal_mode=WAL")
-    except Exception:
+    except sqlite3.Error:
         pass
 
     # Table for pointing history (moved from products database)

@@ -34,7 +34,8 @@ def get_calibrators_db_path() -> Path:
         current_file = Path(__file__).resolve()
         potential_root = current_file.parents[2]  # src/dsa110_contimg/database -> root
         candidates.append(potential_root / "state" / "calibrators.sqlite3")
-    except Exception:
+    except (OSError, IndexError):
+        # OSError: path resolution issues, IndexError: not enough parent directories
         pass
 
     # Return first existing, or default to first candidate

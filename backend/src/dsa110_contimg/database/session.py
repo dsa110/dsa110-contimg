@@ -52,6 +52,7 @@ from typing import Optional, Generator, Dict, Literal, TYPE_CHECKING
 
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
+from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import sessionmaker, scoped_session, Session
 from sqlalchemy.pool import StaticPool
 
@@ -361,7 +362,7 @@ def get_session(
     try:
         yield session
         session.commit()
-    except Exception:
+    except SQLAlchemyError:
         session.rollback()
         raise
     finally:

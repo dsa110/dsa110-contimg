@@ -409,14 +409,16 @@ async def session_progress_websocket(
 
     except WebSocketDisconnect:
         logger.info(f"WebSocket disconnected for session {session_id}")
-    except Exception as e:
+    except (ConnectionError, RuntimeError, asyncio.CancelledError) as e:
+        # Handle connection-related errors and task cancellation
         logger.exception(f"WebSocket error for session {session_id}: {e}")
         try:
             await websocket.send_json({
                 "type": "error",
                 "payload": str(e)
             })
-        except Exception:
+        except (ConnectionError, RuntimeError):
+            # Socket already closed, ignore send failure
             pass
     finally:
         # Unregister WebSocket

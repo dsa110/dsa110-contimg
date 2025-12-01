@@ -115,24 +115,123 @@ class DatabasePool:
             self._cal_conn = None
 
 
+class SyncDatabasePool:
+    """
+    Synchronous database connection pool.
+    
+    Provides connection pooling for SQLite databases with proper
+    lifecycle management. Connections are reused when possible,
+    reducing the overhead of creating new connections.
+    
+    Thread-Safety: This pool is NOT thread-safe. Each thread should
+    have its own pool instance, or use thread-local storage.
+    """
+    
+    def __init__(self, config: Optional[PoolConfig] = None):
+        self.config = config or PoolConfig.from_env()
+        self._products_conn: Optional[sqlite3.Connection] = None
+        self._cal_conn: Optional[sqlite3.Connection] = None
+    
+    def _get_connection(
+        self,
+        db_path: str,
+        existing_conn: Optional[sqlite3.Connection]
+    ) -> sqlite3.Connection:
+        """Get or create a connection to the specified database."""
+        if existing_conn is not None:
+            try:
+                # Test if connection is still valid
+                existing_conn.execute("SELECT 1")
+                return existing_conn
+            except sqlite3.Error:
+                # Connection is dead, create new one
+                try:
+                    existing_conn.close()
+                except sqlite3.Error:
+                    pass
+        
+        conn = sqlite3.connect(db_path, timeout=self.config.timeout)
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA journal_mode=WAL")
+        return conn
+    
+    @contextmanager
+    def products_db(self) -> Iterator[sqlite3.Connection]:
+        """Get a connection to the products database."""
+        self._products_conn = self._get_connection(
+            self.config.products_db_path,
+            self._products_conn
+        )
+        yield self._products_conn
+    
+    @contextmanager
+    def cal_registry_db(self) -> Iterator[sqlite3.Connection]:
+        """Get a connection to the calibration registry database."""
+        self._cal_conn = self._get_connection(
+            self.config.cal_registry_db_path,
+            self._cal_conn
+        )
+        yield self._cal_conn
+    
+    def close(self):
+        """Close all connections."""
+        if self._products_conn:
+            self._products_conn.close()
+            self._products_conn = None
+        if self._cal_conn:
+            self._cal_conn.close()
+            self._cal_conn = None
+
+
 # Global database pool instance
 _db_pool: Optional[DatabasePool] = None
+_sync_db_pool: Optional[SyncDatabasePool] = None
 
 
 def get_db_pool() -> DatabasePool:
-    """Get the global database pool instance."""
+    """Get the global async database pool instance."""
     global _db_pool
     if _db_pool is None:
         _db_pool = DatabasePool()
     return _db_pool
 
 
+def get_sync_db_pool() -> SyncDatabasePool:
+    """Get the global sync database pool instance.
+    
+    Note: This pool is not thread-safe. In multi-threaded contexts,
+    consider using thread-local storage or creating per-thread pools.
+    """
+    global _sync_db_pool
+    if _sync_db_pool is None:
+        _sync_db_pool = SyncDatabasePool()
+    return _sync_db_pool
+
+
 async def close_db_pool():
-    """Close the global database pool."""
+    """Close the global async database pool."""
     global _db_pool
     if _db_pool:
         await _db_pool.close()
         _db_pool = None
+
+
+def close_sync_db_pool():
+    """Close the global sync database pool."""
+    global _sync_db_pool
+    if _sync_db_pool:
+        _sync_db_pool.close()
+        _sync_db_pool = None
+
+
+def close_all_db_pools():
+    """Close both sync and async database pools.
+    
+    Note: This function does not await the async pool closure.
+    Use close_db_pool() for async contexts.
+    """
+    close_sync_db_pool()
+    # Note: For async pool, caller should use close_db_pool() in async context
 
 
 # =============================================================================
@@ -165,7 +264,9 @@ def transaction(conn: sqlite3.Connection) -> Iterator[sqlite3.Connection]:
         conn.execute("BEGIN")
         yield conn
         conn.commit()
-    except Exception:
+    except (sqlite3.Error, OSError, ValueError) as e:
+        # Rollback on database errors, I/O errors, or value errors
+        # Re-raise to let caller handle the exception
         conn.rollback()
         raise
 
@@ -197,7 +298,8 @@ async def async_transaction(
         await conn.execute("BEGIN")
         yield conn
         await conn.commit()
-    except Exception:
+    except (sqlite3.Error, OSError, ValueError) as e:
+        # Rollback on database errors, I/O errors, or value errors
         await conn.rollback()
         raise
 
@@ -237,7 +339,8 @@ def transactional_connection(
         conn.execute("BEGIN")
         yield conn
         conn.commit()
-    except Exception:
+    except (sqlite3.Error, OSError, ValueError) as e:
+        # Rollback on database errors, I/O errors, or value errors
         conn.rollback()
         raise
     finally:
@@ -276,7 +379,8 @@ async def async_transactional_connection(
         await conn.execute("BEGIN")
         yield conn
         await conn.commit()
-    except Exception:
+    except (sqlite3.Error, OSError, ValueError) as e:
+        # Rollback on database errors, I/O errors, or value errors
         await conn.rollback()
         raise
     finally:

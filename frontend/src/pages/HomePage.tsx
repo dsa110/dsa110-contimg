@@ -2,10 +2,7 @@ import React, { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { SkyCoverageMap, type Pointing } from "../components/skymap";
 import { StatsDashboard, ServiceStatusPanel } from "../components/stats";
-import {
-  PipelineStatusPanel,
-  usePipelineStatus,
-} from "../components/pipeline";
+import { PipelineStatusPanel, usePipelineStatus } from "../components/pipeline";
 import { useImages, useJobs, useSources } from "../hooks/useQueries";
 import type { ImageSummary, JobStatus, JobSummary } from "../types";
 import { ROUTES } from "../constants/routes";
@@ -213,10 +210,7 @@ const HomePage: React.FC = () => {
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <Link
-                to={ROUTES.IMAGES.LIST}
-                className="btn btn-primary text-sm"
-              >
+              <Link to={ROUTES.IMAGES.LIST} className="btn btn-primary text-sm">
                 Browse images
               </Link>
               <Link
@@ -244,35 +238,55 @@ const HomePage: React.FC = () => {
         <div className="card p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">
+              <h2
+                className="text-xl font-semibold"
+                style={{ color: "var(--color-text-primary)" }}
+              >
                 QA Rating Overview
               </h2>
-              <p className="text-sm text-gray-500">
+              <p
+                className="text-sm"
+                style={{ color: "var(--color-text-secondary)" }}
+              >
                 Track how many candidates were graded by the pipeline team.
               </p>
             </div>
             <button
               onClick={() => setShowStatsDashboard((prev) => !prev)}
-              className="text-sm text-blue-600 hover:text-blue-800 transition-colors"
+              className="text-sm transition-colors"
+              style={{ color: "var(--color-primary)" }}
             >
               {showStatsDashboard ? "Hide charts" : "Show charts"}
             </button>
           </div>
 
           {showSummaryCards && (
-            <div className="grid grid-cols-3 gap-4 text-sm text-gray-700">
+            <div className="grid grid-cols-3 gap-4 text-sm">
               {ratingStats.tagDistribution.map((entry) => (
                 <div
                   key={entry.tag}
-                  className="rounded-lg border border-gray-200 bg-gray-50 p-3"
+                  className="rounded-lg p-3"
+                  style={{
+                    backgroundColor: "var(--color-bg-surface)",
+                    border: "1px solid var(--color-border)",
+                  }}
                 >
-                  <p className="text-xs uppercase tracking-widest text-gray-500">
+                  <p
+                    className="text-xs uppercase tracking-widest"
+                    style={{ color: "var(--color-text-secondary)" }}
+                  >
                     {entry.tag}
                   </p>
-                  <p className="text-2xl font-semibold text-gray-900">
+                  <p
+                    className="text-2xl font-semibold"
+                    style={{ color: "var(--color-text-primary)" }}
+                  >
                     {entry.count}
                   </p>
-                  <p className="text-xs text-gray-500">
+                  <p
+                    className="text-xs"
+                    style={{ color: "var(--color-text-secondary)" }}
+                  >
                     {entry.percentage.toFixed(1)}%
                   </p>
                 </div>
@@ -295,8 +309,16 @@ const HomePage: React.FC = () => {
         </div>
         <div className="card p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-gray-900">Sky Coverage</h2>
-            <span className="text-sm text-gray-500">
+            <h2
+              className="text-xl font-semibold"
+              style={{ color: "var(--color-text-primary)" }}
+            >
+              Sky Coverage
+            </h2>
+            <span
+              className="text-sm"
+              style={{ color: "var(--color-text-secondary)" }}
+            >
               {pointings.length} pointings mapped
             </span>
           </div>
@@ -311,7 +333,10 @@ const HomePage: React.FC = () => {
               />
             </div>
           ) : (
-            <p className="text-sm text-gray-500">
+            <p
+              className="text-sm"
+              style={{ color: "var(--color-text-secondary)" }}
+            >
               Pointings will appear here once image metadata is available.
             </p>
           )}
@@ -322,10 +347,16 @@ const HomePage: React.FC = () => {
         <div className="card p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">
+              <h2
+                className="text-xl font-semibold"
+                style={{ color: "var(--color-text-primary)" }}
+              >
                 Pipeline Status
               </h2>
-              <p className="text-sm text-gray-500">
+              <p
+                className="text-sm"
+                style={{ color: "var(--color-text-secondary)" }}
+              >
                 ABSURD worker state updates every 30 seconds.
               </p>
             </div>
@@ -340,24 +371,39 @@ const HomePage: React.FC = () => {
         <div className="card p-6 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">
+              <h2
+                className="text-xl font-semibold"
+                style={{ color: "var(--color-text-primary)" }}
+              >
                 Recent Jobs
               </h2>
-              <p className="text-sm text-gray-500">
+              <p
+                className="text-sm"
+                style={{ color: "var(--color-text-secondary)" }}
+              >
                 Snapshot of the latest pipeline runs.
               </p>
             </div>
             <Link
               to={ROUTES.JOBS.LIST}
-              className="text-sm font-semibold text-blue-600 hover:text-blue-800"
+              className="text-sm font-semibold"
+              style={{ color: "var(--color-primary)" }}
             >
               View all
             </Link>
           </div>
           {jobsLoading ? (
-            <p className="text-sm text-gray-500">Loading jobs...</p>
+            <p
+              className="text-sm"
+              style={{ color: "var(--color-text-secondary)" }}
+            >
+              Loading jobs...
+            </p>
           ) : latestJobs.length === 0 ? (
-            <p className="text-sm text-gray-500">
+            <p
+              className="text-sm"
+              style={{ color: "var(--color-text-secondary)" }}
+            >
               Awaiting new pipeline submissions.
             </p>
           ) : (
@@ -365,11 +411,23 @@ const HomePage: React.FC = () => {
               {latestJobs.map((job) => (
                 <div
                   key={job.run_id}
-                  className="flex items-center justify-between rounded-lg border border-gray-200 bg-gray-50 px-4 py-3"
+                  className="flex items-center justify-between rounded-lg px-4 py-3"
+                  style={{
+                    backgroundColor: "var(--color-bg-surface)",
+                    border: "1px solid var(--color-border)",
+                  }}
                 >
                   <div>
-                    <p className="font-medium text-gray-900">{job.run_id}</p>
-                    <p className="text-xs text-gray-500">
+                    <p
+                      className="font-medium"
+                      style={{ color: "var(--color-text-primary)" }}
+                    >
+                      {job.run_id}
+                    </p>
+                    <p
+                      className="text-xs"
+                      style={{ color: "var(--color-text-secondary)" }}
+                    >
                       {formatDateTime(job.started_at)}
                     </p>
                   </div>
@@ -382,7 +440,10 @@ const HomePage: React.FC = () => {
                       {JOB_STATUS_LABELS[job.status]}
                     </span>
                     {job.finished_at && (
-                      <p className="text-[11px] text-gray-500">
+                      <p
+                        className="text-[11px]"
+                        style={{ color: "var(--color-text-secondary)" }}
+                      >
                         Finished {formatDateTime(job.finished_at)}
                       </p>
                     )}
@@ -416,14 +477,23 @@ const HomePage: React.FC = () => {
       </div>
 
       <section className="card p-6 space-y-3">
-        <h2 className="text-xl font-semibold text-gray-900">Quick Links</h2>
-        <ul className="space-y-2 text-sm text-gray-600">
+        <h2
+          className="text-xl font-semibold"
+          style={{ color: "var(--color-text-primary)" }}
+        >
+          Quick Links
+        </h2>
+        <ul
+          className="space-y-2 text-sm"
+          style={{ color: "var(--color-text-secondary)" }}
+        >
           <li>
             <a
               href="/docs/troubleshooting.md"
               target="_blank"
               rel="noreferrer"
-              className="text-blue-600 hover:text-blue-800 hover:underline"
+              className="hover:underline"
+              style={{ color: "var(--color-primary)" }}
             >
               Troubleshooting guide
             </a>
@@ -433,7 +503,8 @@ const HomePage: React.FC = () => {
               href="/api/health"
               target="_blank"
               rel="noreferrer"
-              className="text-blue-600 hover:text-blue-800 hover:underline"
+              className="hover:underline"
+              style={{ color: "var(--color-primary)" }}
             >
               API health check
             </a>
@@ -442,7 +513,10 @@ const HomePage: React.FC = () => {
       </section>
 
       <section>
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+        <h2
+          className="text-xl font-semibold mb-4"
+          style={{ color: "var(--color-text-primary)" }}
+        >
           Infrastructure Status
         </h2>
         <ServiceStatusPanel />
@@ -465,11 +539,18 @@ const DashboardCard: React.FC<DashboardCardProps> = ({
   icon,
 }) => (
   <Link to={link} className="card p-6 hover:shadow-lg transition-shadow group">
-    <div className="text-3xl mb-3">{icon}</div>
-    <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors mb-2">
+    <div className="text-3xl mb-3" style={{ color: "var(--color-primary)" }}>
+      {icon}
+    </div>
+    <h3
+      className="text-lg font-semibold transition-colors mb-2"
+      style={{ color: "var(--color-text-primary)" }}
+    >
       {title}
     </h3>
-    <p className="text-gray-600 text-sm">{description}</p>
+    <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
+      {description}
+    </p>
   </Link>
 );
 

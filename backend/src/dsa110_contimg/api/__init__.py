@@ -8,9 +8,23 @@ This package provides the REST API for the pipeline, including:
 - Source catalog and lightcurve endpoints
 - Job provenance and logging endpoints
 - Standardized error handling via exceptions module
+- Database connection pooling (sync and async)
 """
 
 from .app import app, create_app
+from .database import (
+    DatabasePool,
+    SyncDatabasePool,
+    PoolConfig,
+    get_db_pool,
+    get_sync_db_pool,
+    close_db_pool,
+    close_sync_db_pool,
+    transaction,
+    async_transaction,
+    transactional_connection,
+    async_transactional_connection,
+)
 from .exceptions import (
     DSA110APIError,
     RecordNotFoundError,
@@ -24,6 +38,19 @@ __all__ = [
     # App
     "app",
     "create_app",
+    # Database pools
+    "DatabasePool",
+    "SyncDatabasePool",
+    "PoolConfig",
+    "get_db_pool",
+    "get_sync_db_pool",
+    "close_db_pool",
+    "close_sync_db_pool",
+    # Transaction managers
+    "transaction",
+    "async_transaction",
+    "transactional_connection",
+    "async_transactional_connection",
     # Exception classes
     "DSA110APIError",
     "RecordNotFoundError",

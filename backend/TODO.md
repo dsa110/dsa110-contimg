@@ -13,8 +13,14 @@
 - [x] Services monitor tests (41 tests)
 - [x] Remove deprecated routes.py
 - [x] Implement job_queue pipeline rerun logic
+- [x] **Remove Legacy errors.py** - Deleted api/errors.py and consolidated to
+      exceptions.py
+- [x] **Narrow API/Database Exception Handlers** - 19 handlers narrowed in
+      api/ and database/ modules (api/database.py, api/routes/imaging.py,
+      api/services/bokeh_sessions.py, database/products.py,
+      database/calibrators.py, database/session.py)
 
-**Status**: 782 tests passing, 72% coverage
+**Status**: 943 unit tests passing, 72% coverage
 
 ---
 
@@ -24,10 +30,8 @@
 
 - [ ] **Connection Pooling** - Add sync connection pool for better resource
       usage
-- [ ] **Remove Legacy errors.py** - No longer needed after exception
-      consolidation
-- [ ] **Narrow More Exception Handlers** - ~76 remaining `except Exception:`
-      instances
+- [ ] **Narrow More Exception Handlers** - ~90 remaining `except Exception:`
+      instances in conversion/, calibration/, photometry/, catalog/, utils/
 
 ### Medium Priority
 

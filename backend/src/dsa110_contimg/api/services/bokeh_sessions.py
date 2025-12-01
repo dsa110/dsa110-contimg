@@ -518,7 +518,8 @@ except Exception as e:
         for ws in list(self._websockets.get(session_id, [])):
             try:
                 await ws.send_json(message)
-            except Exception:
+            except (ConnectionError, RuntimeError):
+                # Socket closed or disconnected, ignore send failure
                 pass
 
     def get_websocket_count(self, session_id: str) -> int:
