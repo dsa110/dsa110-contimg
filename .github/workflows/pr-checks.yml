@@ -28,10 +28,16 @@ on:
       - "src/**"
       - "frontend/**"
 
+# Prevent duplicate runs on same branch/PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   python-checks:
     name: Python Code Quality & Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     defaults:
       run:
         shell: bash -el {0}
@@ -53,13 +59,16 @@ jobs:
         run: pip install -e ".[dev]"
 
       - name: Run linting (flake8)
-        run: flake8 backend/src/ --max-line-length=88 --extend-ignore=E203,W503 || true
+        continue-on-error: true
+        run: flake8 backend/src/ --max-line-length=88 --extend-ignore=E203,W503
 
       - name: Run type checking (mypy)
-        run: mypy backend/src/ --ignore-missing-imports --no-strict-optional || true
+        continue-on-error: true
+        run: mypy backend/src/ --ignore-missing-imports --no-strict-optional
 
       - name: Run security scanning (bandit)
-        run: bandit -r backend/src/ -f screen -ll --skip B101,B601 || true
+        continue-on-error: true
+        run: bandit -r backend/src/ -f screen -ll --skip B101,B601
 
       - name: Create CI database directory
         run: mkdir -p /tmp/dsa110-ci
@@ -111,6 +120,7 @@ jobs:
   frontend-checks:
     name: Frontend Code Quality & Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     if: contains(github.event.pull_request.changed_files, 'frontend/') || github.event_name == 'push'
     steps:
       - name: Checkout code
@@ -129,19 +139,22 @@ jobs:
 
       - name: Run linting
         working-directory: ./frontend
-        run: npm run lint || true
+        continue-on-error: true
+        run: npm run lint
 
       - name: Run type checking
         working-directory: ./frontend
-        run: npm run type-check || true
+        continue-on-error: true
+        run: npm run type-check
 
       - name: Run tests
         working-directory: ./frontend
-        run: npm test -- --coverage || true
+        run: npm test -- --coverage
 
   integration-checks:
     name: Integration Tests
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     if: contains(github.event.pull_request.changed_files, 'src/') || github.event_name == 'push'
     defaults:
       run:
@@ -166,9 +179,4 @@ jobs:
       - name: Run integration tests
         env:
           PYTHONPATH: backend/src
-        run: pytest backend/tests/integration/ -v -m "not slow" || true
-
-      - name: Run backend integration tests (API)
-        env:
-          PYTHONPATH: backend/src
-        run: pytest backend/tests/integration/ -v -m "not slow" || true
+        run: pytest backend/tests/integration/ -v -m "not slow"

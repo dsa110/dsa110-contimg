@@ -245,16 +245,129 @@ class TestRerunPipelineJob:
     """Tests for the rerun_pipeline_job worker function."""
     
     def test_rerun_generates_new_run_id(self):
-        """Test that rerun creates a new run ID."""
-        result = rerun_pipeline_job("original_run_20231201_120000")
+        """Test that rerun creates a new run ID with proper job lookup."""
+        from dsa110_contimg.api.repositories import JobRecord
+        from datetime import datetime
+        
+        mock_job = JobRecord(
+            run_id="original_run_20231201_120000",
+            input_ms_path="/data/test.ms",
+            cal_table_path="/data/test.cal",
+            phase_center_ra=180.0,
+            phase_center_dec=45.0,
+        )
+        
+        with patch("dsa110_contimg.api.job_queue.JobRepository") as MockRepo:
+            mock_instance = MagicMock()
+            mock_instance.get_by_run_id = AsyncMock(return_value=mock_job)
+            MockRepo.return_value = mock_instance
+            
+            with patch("dsa110_contimg.api.job_queue.get_db_connection") as mock_conn:
+                mock_conn.return_value = MagicMock()
+                
+                with patch("dsa110_contimg.api.job_queue.db_create_job", return_value=1):
+                    with patch("dsa110_contimg.api.job_queue.db_update_job_status"):
+                        result = rerun_pipeline_job("original_run_20231201_120000")
         
         assert result["original_run_id"] == "original_run_20231201_120000"
-        assert result["new_run_id"].startswith("original_run_")
-        assert result["new_run_id"] != result["original_run_id"]
+        assert result["new_run_id"].startswith("original_run_20231201_120000_rerun_")
         assert result["status"] == "completed"
+        assert result["config"]["ms_path"] == "/data/test.ms"
     
-    def test_rerun_with_underscores_in_name(self):
-        """Test rerun with complex run ID."""
-        result = rerun_pipeline_job("my_pipeline_run_20231201_120000")
+    def test_rerun_with_config_overrides(self):
+        """Test rerun applies config overrides."""
+        from dsa110_contimg.api.repositories import JobRecord
         
-        assert result["new_run_id"].startswith("my_pipeline_run_")
+        mock_job = JobRecord(
+            run_id="test_run",
+            input_ms_path="/data/original.ms",
+            phase_center_ra=180.0,
+            phase_center_dec=45.0,
+        )
+        
+        with patch("dsa110_contimg.api.job_queue.JobRepository") as MockRepo:
+            mock_instance = MagicMock()
+            mock_instance.get_by_run_id = AsyncMock(return_value=mock_job)
+            MockRepo.return_value = mock_instance
+            
+            with patch("dsa110_contimg.api.job_queue.get_db_connection") as mock_conn:
+                mock_conn.return_value = MagicMock()
+                
+                with patch("dsa110_contimg.api.job_queue.db_create_job", return_value=1):
+                    with patch("dsa110_contimg.api.job_queue.db_update_job_status"):
+                        result = rerun_pipeline_job("test_run", config={"ms_path": "/data/new.ms"})
+        
+        # Config override should be applied
+        assert result["config"]["ms_path"] == "/data/new.ms"
+        # Original values preserved where not overridden
+        assert result["config"]["phase_center_ra"] == 180.0
+    
+    def test_rerun_job_not_found(self):
+        """Test rerun raises ValueError when original job not found."""
+        with patch("dsa110_contimg.api.job_queue.JobRepository") as MockRepo:
+            mock_instance = MagicMock()
+            mock_instance.get_by_run_id = AsyncMock(return_value=None)
+            MockRepo.return_value = mock_instance
+            
+            with pytest.raises(ValueError) as exc_info:
+                rerun_pipeline_job("nonexistent_run")
+            
+            assert "not found" in str(exc_info.value)
+    
+    def test_rerun_with_pipeline_command(self):
+        """Test rerun uses PIPELINE_CMD_TEMPLATE when configured."""
+        from dsa110_contimg.api.repositories import JobRecord
+        import subprocess
+        
+        mock_job = JobRecord(
+            run_id="test_run",
+            input_ms_path="/data/test.ms",
+        )
+        
+        with patch("dsa110_contimg.api.job_queue.JobRepository") as MockRepo:
+            mock_instance = MagicMock()
+            mock_instance.get_by_run_id = AsyncMock(return_value=mock_job)
+            MockRepo.return_value = mock_instance
+            
+            with patch("dsa110_contimg.api.job_queue.get_db_connection") as mock_conn:
+                mock_conn.return_value = MagicMock()
+                
+                with patch("dsa110_contimg.api.job_queue.db_create_job", return_value=1):
+                    with patch("dsa110_contimg.api.job_queue.db_update_job_status"):
+                        with patch("dsa110_contimg.api.job_queue.PIPELINE_CMD_TEMPLATE", "echo {ms_path}"):
+                            with patch("subprocess.run") as mock_run:
+                                mock_run.return_value = MagicMock(returncode=0, stdout="OK", stderr="")
+                                
+                                result = rerun_pipeline_job("test_run")
+        
+        assert result["status"] == "completed"
+        mock_run.assert_called_once()
+    
+    def test_rerun_handles_pipeline_failure(self):
+        """Test rerun handles pipeline command failure."""
+        from dsa110_contimg.api.repositories import JobRecord
+        import subprocess
+        
+        mock_job = JobRecord(
+            run_id="test_run",
+            input_ms_path="/data/test.ms",
+        )
+        
+        with patch("dsa110_contimg.api.job_queue.JobRepository") as MockRepo:
+            mock_instance = MagicMock()
+            mock_instance.get_by_run_id = AsyncMock(return_value=mock_job)
+            MockRepo.return_value = mock_instance
+            
+            with patch("dsa110_contimg.api.job_queue.get_db_connection") as mock_conn:
+                mock_conn.return_value = MagicMock()
+                
+                with patch("dsa110_contimg.api.job_queue.db_create_job", return_value=1):
+                    with patch("dsa110_contimg.api.job_queue.db_update_job_status"):
+                        with patch("dsa110_contimg.api.job_queue.PIPELINE_CMD_TEMPLATE", "false"):
+                            with patch("subprocess.run") as mock_run:
+                                mock_run.side_effect = subprocess.CalledProcessError(1, "false", "", "error")
+                                
+                                result = rerun_pipeline_job("test_run")
+        
+        assert result["status"] == "failed"
+        assert "failed" in result["error"]

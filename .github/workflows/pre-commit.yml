@@ -29,10 +29,16 @@ on:
       - ".pre-commit-config.yaml"
       - ".husky/**"
 
+# Prevent duplicate runs on same branch/PR
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   pre-commit:
     name: Run Pre-commit Hooks
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     defaults:
       run:
         shell: bash -el {0}
@@ -55,11 +61,19 @@ jobs:
       - name: Run pre-commit hooks (Python)
         run: |
           # Run pre-commit hooks manually since we're not installing git hooks
-          pre-commit run --all-files --hook-stage manual || true
-          # Check Python files specifically
-          black --check --diff backend/src/ || true
-          isort --check-only --diff backend/src/ || true
-          pylint --errors-only backend/src/ || true
+          pre-commit run --all-files --hook-stage manual
+
+      - name: Check Python formatting (black)
+        continue-on-error: true
+        run: black --check --diff backend/src/
+
+      - name: Check import ordering (isort)
+        continue-on-error: true
+        run: isort --check-only --diff backend/src/
+
+      - name: Check Python errors only (pylint)
+        continue-on-error: true
+        run: pylint --errors-only backend/src/
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -72,11 +86,15 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
-      - name: Run frontend hooks (Prettier, ESLint)
+      - name: Check frontend formatting (Prettier)
         working-directory: ./frontend
-        run: |
-          npx prettier --check "src/**/*.{js,jsx,ts,tsx,json,css,scss,less,html,md}" || true
-          npm run lint || true
+        continue-on-error: true
+        run: npx prettier --check "src/**/*.{js,jsx,ts,tsx,json,css,scss,less,html,md}"
+
+      - name: Check frontend linting (ESLint)
+        working-directory: ./frontend
+        continue-on-error: true
+        run: npm run lint
 
       - name: Check husky hooks for deprecated patterns
         run: |

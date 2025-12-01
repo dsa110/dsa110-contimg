@@ -18,7 +18,9 @@
     "isolatedModules": true,
     "jsx": "react-jsx",
     "types": [
-      "vite/client"
+      "vite/client",
+      "vitest/globals",
+      "@testing-library/jest-dom"
     ]
   },
   "include": [
@@ -26,8 +28,6 @@
   ],
   "exclude": [
     "node_modules",
-    "legacy",
-    "**/*.test.ts",
-    "**/*.test.tsx"
+    "legacy"
   ]
 }
