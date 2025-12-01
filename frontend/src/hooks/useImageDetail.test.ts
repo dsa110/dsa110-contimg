@@ -32,7 +32,12 @@ const mockRefetch = vi.fn();
 vi.mock("./useQueries", () => ({
   useImage: vi.fn((imageId: string | undefined) => {
     if (!imageId) {
-      return { data: undefined, isLoading: false, error: null, refetch: mockRefetch };
+      return {
+        data: undefined,
+        isLoading: false,
+        error: null,
+        refetch: mockRefetch,
+      };
     }
     return {
       data: {
@@ -93,9 +98,12 @@ describe("useImageDetail", () => {
     });
 
     it("computes encodedImageId correctly", () => {
-      const { result } = renderHook(() => useImageDetail("image/with/slashes"), {
-        wrapper: createWrapper(),
-      });
+      const { result } = renderHook(
+        () => useImageDetail("image/with/slashes"),
+        {
+          wrapper: createWrapper(),
+        }
+      );
 
       expect(result.current.encodedImageId).toBe("image%2Fwith%2Fslashes");
     });
@@ -182,12 +190,17 @@ describe("useImageDetail", () => {
         await result.current.confirmDelete();
       });
 
-      expect(apiClient.delete).toHaveBeenCalledWith("/images/test-image-123", expect.anything());
+      expect(apiClient.delete).toHaveBeenCalledWith(
+        "/images/test-image-123",
+        expect.anything()
+      );
       expect(window.location.href).toBe("/images");
     });
 
     it("sets error state on delete failure", async () => {
-      vi.mocked(apiClient.delete).mockRejectedValueOnce(new Error("Network error"));
+      vi.mocked(apiClient.delete).mockRejectedValueOnce(
+        new Error("Network error")
+      );
 
       const { result } = renderHook(() => useImageDetail("test-image-123"), {
         wrapper: createWrapper(),
@@ -230,31 +243,41 @@ describe("useImageDetail", () => {
         });
       });
 
-      expect(apiClient.post).toHaveBeenCalledWith("/images/test-image-123/rating", {
-        itemId: "test-image-123",
-        confidence: "true",
-        tagId: "good",
-        notes: "Great image",
-      });
+      expect(apiClient.post).toHaveBeenCalledWith(
+        "/images/test-image-123/rating",
+        {
+          itemId: "test-image-123",
+          confidence: "true",
+          tagId: "good",
+          notes: "Great image",
+        }
+      );
       expect(mockRefetch).toHaveBeenCalled();
     });
 
     it("throws on rating failure", async () => {
-      vi.mocked(apiClient.post).mockRejectedValueOnce(new Error("Rating failed"));
+      const ratingError = new Error("Rating failed");
+      vi.mocked(apiClient.post).mockRejectedValueOnce(ratingError);
 
       const { result } = renderHook(() => useImageDetail("test-image-123"), {
         wrapper: createWrapper(),
       });
 
-      await expect(
-        act(async () => {
+      let caughtError: Error | undefined;
+      await act(async () => {
+        try {
           await result.current.submitRating({
             confidence: "true",
             tagId: "good",
             notes: "",
           });
-        })
-      ).rejects.toThrow("Rating failed");
+        } catch (e) {
+          caughtError = e as Error;
+        }
+      });
+
+      expect(caughtError).toBeDefined();
+      expect(caughtError?.message).toBe("Rating failed");
     });
 
     it("does nothing when imageId is undefined", async () => {

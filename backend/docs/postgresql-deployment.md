@@ -2,12 +2,20 @@
 
 This guide covers deploying PostgreSQL for the DSA-110 Continuum Imaging Pipeline.
 
+## Current Status
+
+**PostgreSQL is deployed and configured as the production database.**
+
+- Container: `dsa110-postgres` (PostgreSQL 16 Alpine)
+- Configuration: `/data/dsa110-contimg/backend/.env`
+- Schema: 15 tables initialized
+
 ## Overview
 
 The pipeline supports two database backends:
 
-- **SQLite** (default): Simple, file-based database for development and small deployments
-- **PostgreSQL**: Scalable, production-grade database with connection pooling
+- **PostgreSQL** (production): Scalable database with connection pooling (2-10 connections)
+- **SQLite** (fallback): File-based database for development or offline use
 
 ## Quick Start
 
@@ -32,23 +40,33 @@ PGPASSWORD=dsa110_dev_password psql -h localhost -U dsa110 -d dsa110 -c "\dt"
 
 Expected output: 15 tables (images, photometry, jobs, ms_index, etc.)
 
-### 3. Configure API to Use PostgreSQL
+### 3. Load PostgreSQL Configuration
 
-Set environment variables before starting the API:
+The `.env` file is pre-configured for PostgreSQL. Source it before running Python scripts:
 
 ```bash
-export DSA110_DB_BACKEND=postgresql
-export DSA110_DB_PG_HOST=localhost
-export DSA110_DB_PG_PORT=5432
-export DSA110_DB_PG_DATABASE=dsa110
-export DSA110_DB_PG_USER=dsa110
-export DSA110_DB_PG_PASSWORD=dsa110_dev_password
+cd /data/dsa110-contimg/backend
+set -a && source .env && set +a
 ```
 
-Or source the provided environment file:
+This sets:
 
-```bash
-source .env.postgresql
+- `DSA110_DB_BACKEND=postgresql`
+- `DSA110_DB_PG_HOST=localhost`
+- `DSA110_DB_PG_PORT=5432`
+- `DSA110_DB_PG_DATABASE=dsa110`
+- `DSA110_DB_PG_USER=dsa110`
+- `DSA110_DB_PG_PASSWORD=dsa110_dev_password`
+- `DSA110_DB_PG_POOL_MIN=2`
+- `DSA110_DB_PG_POOL_MAX=10`
+
+### 4. For Systemd Services
+
+Add to your service file:
+
+```ini
+[Service]
+EnvironmentFile=/data/dsa110-contimg/backend/.env
 ```
 
 ## Configuration Reference
@@ -233,4 +251,3 @@ PostgreSQL advantages over SQLite:
 - Support for complex queries and joins
 
 Use batch operations (see [Query Batching](./query-batching.md)) for bulk data access.
-
