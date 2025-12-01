@@ -2,6 +2,9 @@
 Unit tests for conversion/helpers_antenna.py
 
 Tests antenna position setting and validation functions.
+
+These tests use mocks to avoid dependencies on actual CASA/station coordinate files.
+Functions are imported through the helpers module to avoid potential circular imports.
 """
 
 import numpy as np
@@ -28,6 +31,7 @@ class TestSetAntennaPositions:
         # Store original positions
         original_positions = mock_uvdata.antenna_positions.copy()
         
+        # Patch the get_itrf function in helpers_antenna module
         with patch("dsa110_contimg.conversion.helpers_antenna.get_itrf") as mock_get_itrf:
             # Mock the station coordinates
             mock_df = MagicMock()

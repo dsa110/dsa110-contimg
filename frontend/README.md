@@ -146,8 +146,8 @@ To get started with the project, follow these steps:
 
 ## Contributing
 
-Contributions are welcome! Please submit a pull request or open an issue for
-discussion.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed setup instructions, code
+patterns, and development workflows.
 
 ## License
 
