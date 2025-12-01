@@ -250,3 +250,9 @@ docs/archive/
 !.local/bin/
 !.local/bin/python*
 internal/
+
+# Coverage reports
+.coverage
+.coverage.*
+htmlcov/
+coverage/
