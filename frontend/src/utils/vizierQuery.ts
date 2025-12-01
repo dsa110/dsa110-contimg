@@ -9,6 +9,7 @@ import {
   parseExternalServiceError,
   RATE_LIMITED_RETRY_CONFIG,
 } from "./fetchWithRetry";
+import { logger } from "./logger";
 
 export interface CatalogSource {
   ra: number;
@@ -17,10 +18,24 @@ export interface CatalogSource {
   catalog: string;
   magnitude?: number;
   flux?: number;
-  // TODO: Replace index signature with specific optional fields from VizieR catalogs
-  // e.g., properMotionRA?: number, properMotionDec?: number, redshift?: number
-  // This allows for catalog-specific extra fields while maintaining type safety
-  [key: string]: any;
+  /** Proper motion in RA (mas/yr) - from Gaia */
+  pmRA?: number;
+  /** Proper motion in Dec (mas/yr) - from Gaia */
+  pmDec?: number;
+  /** Parallax (mas) - from Gaia */
+  parallax?: number;
+  /** Distance (parsecs) - derived */
+  distance?: number;
+  /** Spectral type - from various catalogs */
+  spectralType?: string;
+  /** Radio flux density (mJy) - from NVSS/FIRST/etc */
+  fluxDensity?: number;
+  /** Redshift - from extragalactic catalogs */
+  redshift?: number;
+  /** Object type/class */
+  objectType?: string;
+  /** Additional catalog-specific data stored as Record for flexibility */
+  extra?: Record<string, string | number | boolean | null>;
 }
 
 export interface CatalogQueryResult {
@@ -143,7 +158,7 @@ function parseVOTableResponse(
   }
 
   if (raIndex === -1 || decIndex === -1) {
-    console.warn(`Could not find RA/Dec columns for ${catalogId}`, fieldNames);
+    logger.warn(`Could not find RA/Dec columns for ${catalogId}`, { fieldNames });
     return [];
   }
 
