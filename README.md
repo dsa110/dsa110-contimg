@@ -320,18 +320,21 @@ Image:
 SHELL=/bin/bash
 PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
+# Unified database path (Phase 2 consolidation)
+PIPELINE_DB=/data/dsa110-contimg/state/db/pipeline.sqlite3
+
 # Housekeeping hourly
 0 * * * * ubuntu cd /data/dsa110-contimg && \
-  PIPELINE_QUEUE_DB=state/ingest.sqlite3 CONTIMG_SCRATCH_DIR=/data/scratch \
+  PIPELINE_DB=${PIPELINE_DB} CONTIMG_SCRATCH_DIR=/data/scratch \
   /data/dsa110-contimg/scripts/ops/utils/run_casa_cmd.sh /usr/bin/python3 ops/pipeline/housekeeping.py >> state/logs/housekeeping.log 2>&1
 
 # Nightly mosaic at 03:15 UTC for previous day
 15 3 * * * ubuntu cd /data/dsa110-contimg && \
-  PIPELINE_PRODUCTS_DB=state/products.sqlite3 \
-  /data/dsa110-contimg/scripts/ops/utils/run_casa_cmd.sh /usr/bin/python3 -m dsa110_contimg.mosaic.cli plan --products-db state/products.sqlite3 \
+  PIPELINE_DB=${PIPELINE_DB} \
+  /data/dsa110-contimg/scripts/ops/utils/run_casa_cmd.sh /usr/bin/python3 -m dsa110_contimg.mosaic.cli plan --products-db ${PIPELINE_DB} \
   --name night_$(date -u -d 'yesterday' +\%Y_\%m_\%d) --since $(date -u -d 'yesterday 00:00:00' +\%s) \
   --until $(date -u -d 'today 00:00:00 - 1 sec' +\%s) && \
-  /data/dsa110-contimg/scripts/ops/utils/run_casa_cmd.sh /usr/bin/python3 -m dsa110_contimg.mosaic.cli build --products-db state/products.sqlite3 \
+  /data/dsa110-contimg/scripts/ops/utils/run_casa_cmd.sh /usr/bin/python3 -m dsa110_contimg.mosaic.cli build --products-db ${PIPELINE_DB} \
   --name night_$(date -u -d 'yesterday' +\%Y_\%m_\%d) --output /data/ms/mosaics/night_$(date -u -d 'yesterday' +\%Y_\%m_\%d).img \
   >> state/logs/mosaic_nightly.log 2>&1
 ```

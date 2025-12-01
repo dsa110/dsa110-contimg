@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
 """
-Simple scheduler for nightly mosaic and periodic housekeeping when running under Docker.
+"""Simple scheduler for nightly mosaic and periodic housekeeping when running under Docker.
 
 Environment variables:
-  PIPELINE_PRODUCTS_DB     (e.g., /data/dsa110-contimg/state/db/products.sqlite3)
-  PIPELINE_QUEUE_DB        (e.g., /data/dsa110-contimg/state/db/ingest.sqlite3)
+  PIPELINE_DB              Primary unified database path
+                           (default: /data/dsa110-contimg/state/db/pipeline.sqlite3)
+  
+  Legacy aliases (for backward compatibility, all resolve to PIPELINE_DB):
+    PIPELINE_PRODUCTS_DB   -> PIPELINE_DB
+    PIPELINE_QUEUE_DB      -> PIPELINE_DB
+  
   CONTIMG_SCRATCH_DIR      (for temp dir cleanup)
 
   SCHED_MOSAIC_ENABLE=1
@@ -79,8 +84,11 @@ def run_mosaic(products_db: str, output_dir: str, name_prefix: str, window_days:
 
 
 def main() -> int:
-    products_db = os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3")
-    queue_db = os.getenv("PIPELINE_QUEUE_DB", "state/db/ingest.sqlite3")
+    # Unified database path (Phase 2 consolidation)
+    pipeline_db = os.getenv("PIPELINE_DB", "state/db/pipeline.sqlite3")
+    # Legacy aliases resolve to unified database
+    products_db = os.getenv("PIPELINE_PRODUCTS_DB", pipeline_db)
+    queue_db = os.getenv("PIPELINE_QUEUE_DB", pipeline_db)
     scratch_dir = os.getenv("CONTIMG_SCRATCH_DIR", "/tmp")
 
     mosaic_enable = os.getenv("SCHED_MOSAIC_ENABLE", "0") == "1"
