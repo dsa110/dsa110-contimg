@@ -42,9 +42,8 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Activate conda environment
-source /opt/miniforge/etc/profile.d/conda.sh
-conda activate casa6
+# Use casa6 environment Python directly (conda run has PATH issues)
+CASA6_PYTHON="/opt/miniforge/envs/casa6/bin/python"
 
 # Change to backend directory so imports work
 cd /data/dsa110-contimg/backend/src
@@ -59,7 +58,7 @@ echo "=========================================="
 
 # Run validation
 echo "[INFO] Running storage validation..."
-METRICS=$(python3 -c "
+METRICS=$($CASA6_PYTHON -c "
 import json
 from dsa110_contimg.database.storage_validator import get_storage_metrics
 
@@ -70,7 +69,7 @@ print(json.dumps(metrics, indent=2))
 echo "$METRICS"
 
 # Extract sync percentage
-SYNC_PCT=$(echo "$METRICS" | python3 -c "
+SYNC_PCT=$(echo "$METRICS" | $CASA6_PYTHON -c "
 import sys, json
 m = json.load(sys.stdin)
 if m['files_on_disk'] == 0:
@@ -82,7 +81,7 @@ else:
 echo "[INFO] Sync percentage: ${SYNC_PCT}%"
 
 # Check if below threshold
-BELOW_THRESHOLD=$(python3 -c "print('yes' if float('$SYNC_PCT') < float('$SYNC_THRESHOLD') else 'no')")
+BELOW_THRESHOLD=$($CASA6_PYTHON -c "print('yes' if float('$SYNC_PCT') < float('$SYNC_THRESHOLD') else 'no')")
 
 if [ "$BELOW_THRESHOLD" = "yes" ]; then
     echo "[WARN] Sync percentage ${SYNC_PCT}% is below threshold ${SYNC_THRESHOLD}%"
@@ -94,13 +93,32 @@ fi
 
 # Run reconciliation if requested
 if [ "$DO_RECONCILE" = "true" ]; then
-    echo "[INFO] Running reconciliation..."
-    python3 -c "
-from dsa110_contimg.database.storage_validator import reconcile_storage
+    echo "[INFO] Running full reconciliation (mark stale + index orphaned)..."
+    $CASA6_PYTHON -c "
+import json
+from dsa110_contimg.database.storage_validator import full_reconciliation
 
-result = reconcile_storage('$HDF5_DB', '$INCOMING_DIR')
-print(f'Indexed {result[\"files_added\"]} new files')
-print(f'Marked {result[\"records_marked_removed\"]} records as removed')
+result = full_reconciliation(
+    '$HDF5_DB', '$INCOMING_DIR',
+    mark_removed=True,
+    index_orphaned=True,
+    dry_run=False
+)
+
+print(f'Pre-sync: {result[\"pre_sync_percentage\"]:.1f}%')
+print(f'Post-sync: {result[\"post_sync_percentage\"]:.1f}%')
+
+recon = result.get('reconciliation', {})
+print(f'Stale records marked: {recon.get(\"stale_records_marked\", 0)}')
+
+idx = result.get('indexing', {})
+print(f'Orphaned files indexed: {idx.get(\"indexed\", 0)}')
+print(f'Parse failures: {idx.get(\"parse_failed\", 0)}')
+
+if recon.get('errors') or idx.get('errors'):
+    print('ERRORS:')
+    for e in recon.get('errors', []) + idx.get('errors', []):
+        print(f'  - {e}')
 "
     echo "[INFO] Reconciliation complete"
 fi

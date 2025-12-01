@@ -847,6 +847,148 @@ async def storage_health_check():
     }
 
 
+@router.post("/health/storage/reconcile")
+async def reconcile_storage_endpoint(
+    mark_removed: bool = Query(default=True, description="Mark stale records as removed"),
+    dry_run: bool = Query(default=True, description="Dry run (no database changes)"),
+):
+    """
+    Reconcile database with filesystem - mark stale records as removed.
+    
+    Stale records are database entries for files that no longer exist on disk.
+    This endpoint marks them with stored=0 instead of deleting them.
+    
+    Args:
+        mark_removed: If True, mark stale records as stored=0
+        dry_run: If True, only report what would change (default: True for safety)
+    
+    Returns:
+        Reconciliation results including counts of stale records found/marked.
+    """
+    from dsa110_contimg.database.storage_validator import reconcile_storage
+    
+    hdf5_db = get_hdf5_db_path()
+    incoming_dir = get_incoming_dir()
+    
+    if not os.path.exists(hdf5_db):
+        return {
+            "status": "error",
+            "message": "HDF5 database not found",
+            "db_path": hdf5_db,
+        }
+    
+    result = reconcile_storage(
+        hdf5_db, incoming_dir,
+        mark_removed=mark_removed,
+        dry_run=dry_run,
+    )
+    
+    return {
+        "status": "success" if not result.get("errors") else "partial",
+        "message": f"{'Would mark' if dry_run else 'Marked'} {result.get('stale_records_marked', 0)} stale records",
+        **result,
+    }
+
+
+@router.post("/health/storage/index-orphaned")
+async def index_orphaned_files_endpoint(
+    dry_run: bool = Query(default=True, description="Dry run (no database changes)"),
+):
+    """
+    Index orphaned files - files on disk but not in database.
+    
+    Parses HDF5 filenames to extract metadata (timestamp, subband, group_id)
+    and inserts records into the hdf5_file_index table.
+    
+    Args:
+        dry_run: If True, only report what would be indexed (default: True for safety)
+    
+    Returns:
+        Indexing results including counts of files parsed and indexed.
+    """
+    from dsa110_contimg.database.storage_validator import index_orphaned_files
+    
+    hdf5_db = get_hdf5_db_path()
+    incoming_dir = get_incoming_dir()
+    
+    if not os.path.exists(hdf5_db):
+        return {
+            "status": "error",
+            "message": "HDF5 database not found",
+            "db_path": hdf5_db,
+        }
+    
+    result = index_orphaned_files(
+        hdf5_db, incoming_dir,
+        dry_run=dry_run,
+    )
+    
+    status = "success"
+    if result.get("errors"):
+        status = "partial"
+    if result.get("parse_failed", 0) > result.get("parsed_ok", 0):
+        status = "warning"  # Many files couldn't be parsed
+    
+    return {
+        "status": status,
+        "message": f"{'Would index' if dry_run else 'Indexed'} {result.get('indexed', 0)} of {result.get('total_orphaned', 0)} orphaned files",
+        **result,
+    }
+
+
+@router.post("/health/storage/full-reconcile")
+async def full_reconciliation_endpoint(
+    mark_removed: bool = Query(default=True, description="Mark stale records as removed"),
+    index_orphaned: bool = Query(default=True, description="Index orphaned files"),
+    dry_run: bool = Query(default=True, description="Dry run (no database changes)"),
+):
+    """
+    Perform full database reconciliation with filesystem.
+    
+    This combines both operations:
+    1. Mark stale records (in DB but not on disk) as removed
+    2. Index orphaned files (on disk but not in DB)
+    
+    Args:
+        mark_removed: If True, mark stale records as stored=0
+        index_orphaned: If True, index orphaned files
+        dry_run: If True, only report what would change (default: True for safety)
+    
+    Returns:
+        Full reconciliation results with pre/post sync percentages.
+    """
+    from dsa110_contimg.database.storage_validator import full_reconciliation
+    
+    hdf5_db = get_hdf5_db_path()
+    incoming_dir = get_incoming_dir()
+    
+    if not os.path.exists(hdf5_db):
+        return {
+            "status": "error",
+            "message": "HDF5 database not found",
+            "db_path": hdf5_db,
+        }
+    
+    result = full_reconciliation(
+        hdf5_db, incoming_dir,
+        mark_removed=mark_removed,
+        index_orphaned=index_orphaned,
+        dry_run=dry_run,
+    )
+    
+    errors = (
+        result.get("reconciliation", {}).get("errors", []) +
+        result.get("indexing", {}).get("errors", [])
+    )
+    
+    return {
+        "status": "success" if not errors else "partial",
+        "message": f"Reconciliation {'would bring' if dry_run else 'brought'} sync from {result.get('pre_sync_percentage', 0):.1f}% to {result.get('post_sync_percentage', 0):.1f}%",
+        **result,
+    }
+
+
+
 @router.get("/health/services")
 async def services_health_check():
     """

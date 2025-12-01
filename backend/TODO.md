@@ -72,6 +72,59 @@
 
 ---
 
+## Monitoring Implementation ✅ COMPLETE
+
+**Status:** All monitoring capabilities implemented
+
+### 1. Unified Health Dashboard API
+
+- **`api/routes/health.py`** - Comprehensive health monitoring endpoints:
+  - `GET /health/system` - Full system health report (Docker, systemd, HTTP)
+  - `GET /health/docker/{container}` - Individual container health
+  - `GET /health/systemd/{service}` - Individual service health
+  - `GET /health/databases` - Database connectivity checks
+  - `GET /health/validity-windows` - Active calibration validity windows
+  - `GET /health/flux-monitoring` - Calibrator flux monitoring status
+  - `GET /health/alerts` - Recent monitoring alerts
+
+### 2. Flux Monitoring Scheduler (ABSURD Integration)
+
+- **`monitoring/tasks.py`** - ABSURD task definitions:
+  - `monitoring.flux_check` - Run flux monitoring check (hourly)
+  - `monitoring.health_check` - System health check (5 minutes)
+  - `monitoring.validity_check` - Validity window expiration check (15 minutes)
+  - `monitoring.send_alert` - Send alerts via webhook/email/slack
+- **Integration**: `register_monitoring_tasks()` and `setup_monitoring_schedules()`
+
+### 3. Validity Window Visualization
+
+- **API Endpoints**:
+  - `GET /health/validity-windows` - Active windows by MJD
+  - `GET /health/validity-windows/timeline` - Timeline view for visualization
+- **Features**:
+  - Query by MJD or ISO timestamp
+  - Shows overlapping sets
+  - Expiration warnings
+
+### 4. Calibrator Monitoring Dashboard
+
+- **Grafana panels** added to `ops/grafana/dsa110-pipeline-dashboard.json`:
+  - Calibrator flux ratio over time
+  - Flux stability alerts
+  - Calibrator-specific metrics
+
+### 5. Pointing Monitor Service
+
+- **`pointing/monitor.py`** - Complete pointing module:
+  - `calculate_lst()` - Current Local Sidereal Time
+  - `predict_calibrator_transit()` - Transit time predictions
+  - `get_active_calibrator()` - Currently transiting calibrator
+  - `get_upcoming_transits()` - Future transit schedule
+  - `PointingMonitor` class - Full monitoring daemon
+- **`ops/systemd/contimg-pointing.service`** - Systemd service file
+
+---
+
 ## Test Coverage Goals ✅ COMPLETE
 
 **Status:** 1143 unit tests passing

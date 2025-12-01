@@ -285,3 +285,281 @@ def get_storage_metrics(db_path: str, storage_dir: str) -> dict:
     )
     
     return metrics
+
+
+# Regex pattern for parsing HDF5 filenames
+# Format: 2025-01-15T12:30:00_sb00.hdf5
+import re
+
+_HDF5_FILENAME_PATTERN = re.compile(
+    r"(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})_sb(?P<subband>\d{2})\.hdf5$"
+)
+
+
+def parse_hdf5_filename(filename: str) -> Optional[dict]:
+    """
+    Parse HDF5 filename to extract metadata.
+    
+    Args:
+        filename: Filename like '2025-01-15T12:30:00_sb00.hdf5'
+    
+    Returns:
+        Dictionary with parsed metadata or None if parsing fails.
+        Keys: timestamp_iso, group_id, subband_code, subband_num, obs_date, obs_time
+    """
+    match = _HDF5_FILENAME_PATTERN.search(filename)
+    if not match:
+        return None
+    
+    timestamp_iso = match.group("timestamp")
+    subband_str = match.group("subband")
+    
+    try:
+        subband_num = int(subband_str)
+    except ValueError:
+        return None
+    
+    # Parse date and time components
+    obs_date = timestamp_iso.split("T")[0]  # YYYY-MM-DD
+    obs_time = timestamp_iso.split("T")[1]  # HH:MM:SS
+    
+    return {
+        "timestamp_iso": timestamp_iso,
+        "group_id": timestamp_iso,  # Group ID is the timestamp
+        "subband_code": f"sb{subband_str}",
+        "subband_num": subband_num,
+        "obs_date": obs_date,
+        "obs_time": obs_time,
+    }
+
+
+def iso_to_mjd(timestamp_iso: str) -> float:
+    """
+    Convert ISO timestamp to MJD using astropy.
+    
+    Args:
+        timestamp_iso: ISO format timestamp like '2025-01-15T12:30:00'
+    
+    Returns:
+        MJD (Modified Julian Date) as float.
+    """
+    from astropy.time import Time
+    t = Time(timestamp_iso, format="isot", scale="utc")
+    return t.mjd
+
+
+def index_orphaned_files(
+    db_path: str,
+    storage_dir: str,
+    orphaned_files: Optional[List[str]] = None,
+    batch_size: int = 1000,
+    dry_run: bool = True,
+) -> dict:
+    """
+    Index orphaned files (files on disk not in database) into the HDF5 index.
+    
+    This function parses HDF5 filenames to extract metadata and inserts
+    records into the hdf5_file_index table.
+    
+    Args:
+        db_path: Path to HDF5 index SQLite database.
+        storage_dir: Directory containing HDF5 files.
+        orphaned_files: Optional list of orphaned file paths. If None,
+            will run validate_hdf5_storage() to find them.
+        batch_size: Number of files to insert per transaction.
+        dry_run: If True, don't actually modify database.
+    
+    Returns:
+        Dictionary with indexing results:
+        - total_orphaned: Number of orphaned files found
+        - parsed_ok: Number of files with valid filename format
+        - parse_failed: Number of files that couldn't be parsed
+        - indexed: Number of files successfully indexed
+        - errors: List of error messages
+        - sample_parse_failures: Sample of files that couldn't be parsed
+    """
+    results = {
+        "dry_run": dry_run,
+        "total_orphaned": 0,
+        "parsed_ok": 0,
+        "parse_failed": 0,
+        "indexed": 0,
+        "errors": [],
+        "sample_parse_failures": [],
+    }
+    
+    # Get orphaned files if not provided
+    if orphaned_files is None:
+        validation = validate_hdf5_storage(db_path, storage_dir, full_check=True)
+        orphaned_files = validation.on_disk_not_in_db
+    
+    results["total_orphaned"] = len(orphaned_files)
+    
+    if not orphaned_files:
+        logger.info("No orphaned files to index")
+        return results
+    
+    # Parse all files and collect valid records
+    records_to_insert = []
+    
+    for file_path in orphaned_files:
+        filename = os.path.basename(file_path)
+        parsed = parse_hdf5_filename(filename)
+        
+        if parsed is None:
+            results["parse_failed"] += 1
+            if len(results["sample_parse_failures"]) < 10:
+                results["sample_parse_failures"].append(filename)
+            continue
+        
+        results["parsed_ok"] += 1
+        
+        # Get file stats
+        try:
+            stat = os.stat(file_path)
+            file_size = stat.st_size
+            modified_time = stat.st_mtime
+        except OSError as e:
+            results["errors"].append(f"Failed to stat {file_path}: {e}")
+            continue
+        
+        # Convert timestamp to MJD
+        try:
+            timestamp_mjd = iso_to_mjd(parsed["timestamp_iso"])
+        except Exception as e:
+            results["errors"].append(f"Failed to convert timestamp for {filename}: {e}")
+            continue
+        
+        # Build record tuple for insertion
+        record = (
+            file_path,                    # path
+            filename,                     # filename
+            parsed["group_id"],           # group_id
+            parsed["subband_code"],       # subband_code
+            parsed["subband_num"],        # subband_num
+            parsed["timestamp_iso"],      # timestamp_iso
+            timestamp_mjd,                # timestamp_mjd
+            file_size,                    # file_size_bytes
+            modified_time,                # modified_time
+            time.time(),                  # indexed_at
+            1,                            # stored
+            None,                         # ra_deg (unknown)
+            None,                         # dec_deg (unknown)
+            parsed["obs_date"],           # obs_date
+            parsed["obs_time"],           # obs_time
+        )
+        records_to_insert.append(record)
+    
+    logger.info(
+        f"Parsed {results['parsed_ok']} files successfully, "
+        f"{results['parse_failed']} failed to parse"
+    )
+    
+    if dry_run:
+        results["indexed"] = len(records_to_insert)
+        logger.info(f"Dry run: would index {results['indexed']} files")
+        return results
+    
+    # Insert records in batches
+    try:
+        conn = sqlite3.connect(db_path, timeout=60)
+        cursor = conn.cursor()
+        
+        insert_sql = """
+            INSERT OR REPLACE INTO hdf5_file_index 
+            (path, filename, group_id, subband_code, subband_num, 
+             timestamp_iso, timestamp_mjd, file_size_bytes, modified_time,
+             indexed_at, stored, ra_deg, dec_deg, obs_date, obs_time)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """
+        
+        for i in range(0, len(records_to_insert), batch_size):
+            batch = records_to_insert[i:i + batch_size]
+            try:
+                cursor.executemany(insert_sql, batch)
+                conn.commit()
+                results["indexed"] += len(batch)
+                logger.info(f"Indexed batch {i // batch_size + 1}: {len(batch)} files")
+            except sqlite3.Error as e:
+                results["errors"].append(f"Batch insert error at {i}: {e}")
+                conn.rollback()
+        
+        conn.close()
+        
+        logger.info(f"Successfully indexed {results['indexed']} files")
+        
+    except sqlite3.Error as e:
+        results["errors"].append(f"Database error: {e}")
+    
+    return results
+
+
+def full_reconciliation(
+    db_path: str,
+    storage_dir: str,
+    mark_removed: bool = True,
+    index_orphaned: bool = True,
+    dry_run: bool = True,
+) -> dict:
+    """
+    Perform full database reconciliation with filesystem.
+    
+    This combines both:
+    1. Marking stale records (in DB but not on disk) as removed
+    2. Indexing orphaned files (on disk but not in DB)
+    
+    Args:
+        db_path: Path to HDF5 index SQLite database.
+        storage_dir: Directory containing HDF5 files.
+        mark_removed: If True, mark missing files as stored=0.
+        index_orphaned: If True, index orphaned files.
+        dry_run: If True, don't actually modify database.
+    
+    Returns:
+        Dictionary with full reconciliation results.
+    """
+    results = {
+        "dry_run": dry_run,
+        "reconciliation": {},
+        "indexing": {},
+        "pre_sync_percentage": 0.0,
+        "post_sync_percentage": 0.0,
+    }
+    
+    # Get pre-reconciliation metrics
+    pre_validation = validate_hdf5_storage(db_path, storage_dir, full_check=True)
+    results["pre_sync_percentage"] = pre_validation.sync_percentage
+    
+    # Step 1: Mark stale records
+    reconcile_result = reconcile_storage(
+        db_path, storage_dir, mark_removed=mark_removed, dry_run=dry_run
+    )
+    results["reconciliation"] = reconcile_result
+    
+    # Step 2: Index orphaned files
+    if index_orphaned:
+        index_result = index_orphaned_files(
+            db_path, storage_dir,
+            orphaned_files=pre_validation.on_disk_not_in_db,
+            dry_run=dry_run
+        )
+        results["indexing"] = index_result
+    
+    # Get post-reconciliation metrics (if not dry run)
+    if not dry_run:
+        post_validation = validate_hdf5_storage(db_path, storage_dir, full_check=False)
+        results["post_sync_percentage"] = post_validation.sync_percentage
+    else:
+        # Estimate post-sync percentage
+        total_on_disk = pre_validation.files_on_disk
+        indexed_ok = results.get("indexing", {}).get("indexed", 0)
+        stale_marked = reconcile_result.get("stale_records_to_mark", 0)
+        
+        # After reconciliation:
+        # - Stale records removed from "stored" count
+        # - Orphaned files indexed and added to "stored" count
+        new_stored = pre_validation.files_in_db_stored - stale_marked + indexed_ok
+        if total_on_disk > 0:
+            results["post_sync_percentage"] = round((new_stored / total_on_disk) * 100, 2)
+    
+    return results
