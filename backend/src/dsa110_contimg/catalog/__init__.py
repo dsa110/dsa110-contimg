@@ -1,6 +1,8 @@
 """Catalog utilities (master catalog build, crossmatches, per-strip databases)."""
 
 from dsa110_contimg.catalog.crossmatch import (
+    calc_de_ruiter,
+    calc_de_ruiter_beamwidth,
     calculate_flux_scale,
     calculate_positional_offsets,
     cross_match_dataframes,
@@ -25,6 +27,8 @@ except ImportError:
     query_all_catalogs = None
 
 __all__ = [
+    "calc_de_ruiter",
+    "calc_de_ruiter_beamwidth",
     "cross_match_sources",
     "cross_match_dataframes",
     "calculate_positional_offsets",

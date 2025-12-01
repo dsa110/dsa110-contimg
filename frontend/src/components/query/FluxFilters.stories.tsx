@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { fn } from "storybook/test";
 import FluxFilters from "./FluxFilters";
-import { fn } from "@storybook/test";
 
 /**
  * FluxFilters provides range controls for filtering sources by flux measurements.

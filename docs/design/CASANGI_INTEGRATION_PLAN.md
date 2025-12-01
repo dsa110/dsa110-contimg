@@ -480,62 +480,346 @@ Add visibility raster plots showing:
         └───────────────────────┴────────────────────────┘
 ```
 
-Implementation steps:
+#### 1.4.1 Step-by-Step Implementation (Option A)
 
-1. Create new API endpoint: `GET /api/ms/{ms_path}/raster`
+**Step 1: Add API Route** (`backend/src/dsa110_contimg/api/routes/ms.py`)
 
-   - Query params: `xaxis`, `yaxis`, `colorby`, `spw`, `antenna`
-   - Returns: PNG image
+Add to existing `ms.py` routes file after line 110:
 
-2. Backend implementation:
+```python
+import io
+from typing import Optional
+from fastapi.responses import StreamingResponse
+from urllib.parse import unquote
 
-   ```python
-   # backend/src/dsa110_contimg/api/routes/ms.py
+@router.get("/{encoded_path:path}/raster")
+async def get_ms_raster(
+    encoded_path: str,
+    xaxis: str = "time",
+    yaxis: str = "amp",
+    colorby: str = "amp",
+    spw: Optional[str] = None,
+    antenna: Optional[str] = None,
+    aggregator: str = "mean",
+    width: int = 800,
+    height: int = 600,
+) -> StreamingResponse:
+    """
+    Generate visibility raster plot for a Measurement Set.
 
-   @router.get("/ms/{ms_path:path}/raster")
-   async def get_ms_raster(
-       ms_path: str,
-       xaxis: str = "time",
-       yaxis: str = "amp",
-       spw: Optional[str] = None,
-       antenna: Optional[str] = None,
-   ) -> StreamingResponse:
-       """Generate visibility raster plot."""
-       from casagui.apps import MsRaster
+    Args:
+        encoded_path: URL-encoded path to MS
+        xaxis: X-axis dimension (time, baseline, frequency)
+        yaxis: Y-axis dimension (amp, phase, real, imag)
+        colorby: Color dimension (amp, phase)
+        spw: Spectral window filter (e.g., "0", "0~3")
+        antenna: Antenna filter (e.g., "ANT1 & ANT2")
+        aggregator: Aggregation method (mean, max, min, std)
+        width: Output image width in pixels
+        height: Output image height in pixels
 
-       msr = MsRaster(ms=ms_path)
-       msr.plot(xaxis=xaxis, yaxis=yaxis)
+    Returns:
+        PNG image as streaming response
 
-       # Render to PNG
-       buf = io.BytesIO()
-       msr.save(buf, format='png')
-       buf.seek(0)
+    Raises:
+        RecordNotFoundError: If MS not found
+        HTTPException: If casagui fails to render
+    """
+    from casagui.apps import MsRaster
+    from pathlib import Path
 
-       return StreamingResponse(buf, media_type="image/png")
-   ```
+    ms_path = unquote(encoded_path)
 
-3. Frontend component:
+    if not Path(ms_path).exists():
+        raise RecordNotFoundError("MeasurementSet", ms_path)
 
-   ```tsx
-   // src/components/ms/MsRasterPlot.tsx
+    try:
+        # Initialize MsRaster with low-level settings
+        msr = MsRaster(ms=ms_path, log_level='warning', show_gui=False)
 
-   interface MsRasterPlotProps {
-     msPath: string;
-     xaxis?: "time" | "channel" | "baseline";
-     yaxis?: "amp" | "phase" | "real" | "imag";
-   }
+        # Configure selection if filters provided
+        selection = {}
+        if spw:
+            selection['spw_name'] = spw
+        if antenna:
+            selection['baseline'] = antenna
 
-   const MsRasterPlot: React.FC<MsRasterPlotProps> = ({
-     msPath,
-     xaxis,
-     yaxis,
-   }) => {
-     const url = `${config.api.baseUrl}/ms/${encodeURIComponent(
-       msPath
-     )}/raster?xaxis=${xaxis}&yaxis=${yaxis}`;
-     return <img src={url} alt={`${yaxis} vs ${xaxis}`} className="w-full" />;
-   };
-   ```
+        # Create the plot
+        msr.plot(
+            x_axis=xaxis,
+            y_axis='time' if yaxis in ('amp', 'phase') else yaxis,
+            vis_axis=yaxis if yaxis in ('amp', 'phase', 'real', 'imag') else 'amp',
+            selection=selection if selection else None,
+            aggregator=aggregator,
+            color_mode='auto',
+        )
+
+        # Render to PNG buffer
+        buf = io.BytesIO()
+        msr.save(buf, format='png', width=width, height=height)
+        buf.seek(0)
+
+        return StreamingResponse(
+            buf,
+            media_type="image/png",
+            headers={
+                "Cache-Control": "public, max-age=300",  # Cache 5 min
+                "X-MS-Path": ms_path,
+            }
+        )
+
+    except Exception as e:
+        logger.exception(f"Failed to generate raster for {ms_path}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate raster plot: {str(e)}"
+        )
+```
+
+**Step 2: Add Pydantic Schema** (`backend/src/dsa110_contimg/api/schemas.py`)
+
+```python
+from pydantic import BaseModel, Field
+from typing import Literal, Optional
+
+class RasterPlotParams(BaseModel):
+    """Parameters for visibility raster plot."""
+    xaxis: Literal["time", "baseline", "frequency"] = "time"
+    yaxis: Literal["amp", "phase", "real", "imag"] = "amp"
+    colorby: Literal["amp", "phase"] = "amp"
+    spw: Optional[str] = Field(None, description="Spectral window filter")
+    antenna: Optional[str] = Field(None, description="Antenna/baseline filter")
+    aggregator: Literal["mean", "max", "min", "std"] = "mean"
+    width: int = Field(800, ge=200, le=2000)
+    height: int = Field(600, ge=200, le=2000)
+```
+
+**Step 3: Create Frontend Component**
+
+Create new file `frontend/src/components/ms/MsRasterPlot.tsx`:
+
+```tsx
+import React, { useState } from "react";
+import { config } from "../../config";
+
+export type RasterAxis = "time" | "baseline" | "frequency";
+export type RasterVisAxis = "amp" | "phase" | "real" | "imag";
+
+interface MsRasterPlotProps {
+  /** Full path to the Measurement Set */
+  msPath: string;
+  /** Initial X-axis selection */
+  initialXAxis?: RasterAxis;
+  /** Initial Y-axis (visibility component) */
+  initialYAxis?: RasterVisAxis;
+  /** Optional spectral window filter */
+  spw?: string;
+  /** Optional antenna filter */
+  antenna?: string;
+  /** CSS class name */
+  className?: string;
+}
+
+/**
+ * Visibility raster plot component.
+ * Renders amplitude/phase vs time/channel from a Measurement Set.
+ */
+const MsRasterPlot: React.FC<MsRasterPlotProps> = ({
+  msPath,
+  initialXAxis = "time",
+  initialYAxis = "amp",
+  spw,
+  antenna,
+  className = "",
+}) => {
+  const [xaxis, setXAxis] = useState<RasterAxis>(initialXAxis);
+  const [yaxis, setYAxis] = useState<RasterVisAxis>(initialYAxis);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Build URL with query params
+  const params = new URLSearchParams({
+    xaxis,
+    yaxis,
+    ...(spw && { spw }),
+    ...(antenna && { antenna }),
+  });
+
+  const url = `${config.api.baseUrl}/ms/${encodeURIComponent(
+    msPath
+  )}/raster?${params}`;
+
+  return (
+    <div className={`bg-gray-900 rounded-lg overflow-hidden ${className}`}>
+      {/* Controls */}
+      <div className="flex items-center gap-4 p-3 bg-gray-800 border-b border-gray-700">
+        <label className="flex items-center gap-2 text-sm text-gray-300">
+          X-axis:
+          <select
+            value={xaxis}
+            onChange={(e) => setXAxis(e.target.value as RasterAxis)}
+            className="bg-gray-700 text-white rounded px-2 py-1 text-sm"
+          >
+            <option value="time">Time</option>
+            <option value="baseline">Baseline</option>
+            <option value="frequency">Frequency</option>
+          </select>
+        </label>
+
+        <label className="flex items-center gap-2 text-sm text-gray-300">
+          Plot:
+          <select
+            value={yaxis}
+            onChange={(e) => setYAxis(e.target.value as RasterVisAxis)}
+            className="bg-gray-700 text-white rounded px-2 py-1 text-sm"
+          >
+            <option value="amp">Amplitude</option>
+            <option value="phase">Phase</option>
+            <option value="real">Real</option>
+            <option value="imag">Imaginary</option>
+          </select>
+        </label>
+      </div>
+
+      {/* Image container */}
+      <div className="relative aspect-[4/3]">
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+            <div className="animate-pulse text-gray-500">
+              Generating plot...
+            </div>
+          </div>
+        )}
+
+        {error && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
+            <div className="text-red-400 text-sm">{error}</div>
+          </div>
+        )}
+
+        <img
+          src={url}
+          alt={`${yaxis} vs ${xaxis}`}
+          className="w-full h-full object-contain"
+          onLoad={() => {
+            setIsLoading(false);
+            setError(null);
+          }}
+          onError={() => {
+            setIsLoading(false);
+            setError("Failed to load raster plot");
+          }}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default MsRasterPlot;
+```
+
+**Step 4: Add Query Hook** (`frontend/src/hooks/useQueries.ts`)
+
+Add to the existing query keys:
+
+```typescript
+export const queryKeys = {
+  // ... existing keys ...
+
+  // MS Raster plots (for prefetching)
+  msRaster: (path: string, params: object) =>
+    ["ms", path, "raster", params] as const,
+};
+```
+
+**Step 5: Integrate into MSDetailPage**
+
+Modify `frontend/src/pages/MSDetailPage.tsx`:
+
+```tsx
+// Add import at top
+import MsRasterPlot from "../components/ms/MsRasterPlot";
+
+// Add inside the main grid, after the Metadata card:
+{
+  /* Visibility Raster */
+}
+<Card title="Visibility Plot">
+  <MsRasterPlot
+    msPath={ms.path}
+    initialXAxis="time"
+    initialYAxis="amp"
+    className="rounded-lg overflow-hidden"
+  />
+</Card>;
+```
+
+**Step 6: Add Index Export** (`frontend/src/components/ms/index.ts`)
+
+Create the directory and index file:
+
+```typescript
+export { default as MsRasterPlot } from "./MsRasterPlot";
+export type { RasterAxis, RasterVisAxis } from "./MsRasterPlot";
+```
+
+#### 1.4.2 Testing Checklist
+
+**Backend Tests** (`backend/tests/api/test_ms_raster.py`):
+
+```python
+import pytest
+from fastapi.testclient import TestClient
+from unittest.mock import patch, MagicMock
+
+def test_raster_endpoint_returns_png(client: TestClient, mock_ms_path: str):
+    """Verify endpoint returns valid PNG."""
+    with patch("casagui.apps.MsRaster") as mock_raster:
+        # Mock the save method to return valid PNG bytes
+        mock_instance = MagicMock()
+        mock_raster.return_value = mock_instance
+
+        response = client.get(f"/api/ms/{mock_ms_path}/raster")
+
+        assert response.status_code == 200
+        assert response.headers["content-type"] == "image/png"
+
+
+def test_raster_endpoint_validates_params(client: TestClient, mock_ms_path: str):
+    """Verify invalid params return 422."""
+    response = client.get(
+        f"/api/ms/{mock_ms_path}/raster",
+        params={"xaxis": "invalid"}
+    )
+    assert response.status_code == 422
+
+
+def test_raster_endpoint_handles_missing_ms(client: TestClient):
+    """Verify 404 for non-existent MS."""
+    response = client.get("/api/ms/nonexistent.ms/raster")
+    assert response.status_code == 404
+```
+
+**Frontend Tests** (`frontend/src/components/ms/MsRasterPlot.test.tsx`):
+
+```tsx
+import { render, screen, fireEvent } from "@testing-library/react";
+import MsRasterPlot from "./MsRasterPlot";
+
+describe("MsRasterPlot", () => {
+  it("renders with loading state", () => {
+    render(<MsRasterPlot msPath="/test/observation.ms" />);
+    expect(screen.getByText("Generating plot...")).toBeInTheDocument();
+  });
+
+  it("updates URL when axis changes", () => {
+    render(<MsRasterPlot msPath="/test/observation.ms" />);
+    const select = screen.getByLabelText(/X-axis/);
+    fireEvent.change(select, { target: { value: "frequency" } });
+    // Verify img src contains new axis param
+  });
+});
+```
 
 ##### Option B: Bokeh Server Embedding (Phase 2)
 
@@ -679,6 +963,399 @@ Implementation:
      );
    };
    ```
+
+#### 2.4.1 Step-by-Step Implementation (Interactive Clean)
+
+**Step 1: Create Session Manager Service**
+
+Create `backend/src/dsa110_contimg/api/services/bokeh_sessions.py`:
+
+```python
+"""
+Bokeh session manager for interactive visualization tools.
+
+Manages lifecycle of Bokeh server processes for InteractiveClean sessions.
+"""
+from __future__ import annotations
+
+import asyncio
+import subprocess
+import uuid
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Dict, Optional
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class BokehSession:
+    """Represents a running Bokeh server session."""
+    id: str
+    port: int
+    process: subprocess.Popen
+    ms_path: str
+    imagename: str
+    created_at: datetime = field(default_factory=datetime.now)
+    user_id: Optional[str] = None
+
+    @property
+    def url(self) -> str:
+        return f"http://localhost:{self.port}/iclean/{self.id}"
+
+    @property
+    def age_seconds(self) -> float:
+        return (datetime.now() - self.created_at).total_seconds()
+
+
+class PortPool:
+    """Manages a pool of available ports for Bokeh servers."""
+
+    def __init__(self, port_range: range):
+        self.available = set(port_range)
+        self.in_use: Dict[str, int] = {}  # session_id -> port
+
+    def acquire(self, session_id: str) -> int:
+        if not self.available:
+            raise RuntimeError("No ports available in pool")
+        port = self.available.pop()
+        self.in_use[session_id] = port
+        return port
+
+    def release(self, session_id: str) -> None:
+        if session_id in self.in_use:
+            port = self.in_use.pop(session_id)
+            self.available.add(port)
+
+
+class BokehSessionManager:
+    """
+    Manages Bokeh server sessions for interactive tools.
+
+    Usage:
+        manager = BokehSessionManager()
+        session = await manager.create_session("iclean", {...params})
+        # Later...
+        await manager.cleanup_session(session.id)
+    """
+
+    def __init__(self, port_range: range = range(5010, 5100)):
+        self.sessions: Dict[str, BokehSession] = {}
+        self.port_pool = PortPool(port_range)
+        self._cleanup_task: Optional[asyncio.Task] = None
+
+    async def create_session(
+        self,
+        ms_path: str,
+        imagename: str,
+        params: Optional[dict] = None,
+        user_id: Optional[str] = None,
+    ) -> BokehSession:
+        """
+        Launch new InteractiveClean Bokeh session.
+
+        Args:
+            ms_path: Path to Measurement Set
+            imagename: Output image name prefix
+            params: Optional tclean parameters
+            user_id: Optional user identifier for tracking
+
+        Returns:
+            BokehSession with connection details
+        """
+        session_id = str(uuid.uuid4())
+        port = self.port_pool.acquire(session_id)
+
+        # DSA-110 default parameters
+        default_params = {
+            'imsize': [5040, 5040],
+            'cell': '2.5arcsec',
+            'specmode': 'mfs',
+            'deconvolver': 'hogbom',
+            'weighting': 'briggs',
+            'robust': 0.5,
+            'niter': 10000,
+            'threshold': '0.5mJy',
+        }
+        if params:
+            default_params.update(params)
+
+        # Build command
+        cmd = [
+            "python", "-c",
+            f'''
+from casagui.apps import InteractiveClean
+ic = InteractiveClean(
+    vis="{ms_path}",
+    imagename="{imagename}",
+    imsize={default_params['imsize']},
+    cell="{default_params['cell']}",
+    specmode="{default_params['specmode']}",
+    deconvolver="{default_params['deconvolver']}",
+    weighting="{default_params['weighting']}",
+    robust={default_params['robust']},
+    niter={default_params['niter']},
+    threshold="{default_params['threshold']}",
+)
+ic.serve(port={port})
+'''
+        ]
+
+        logger.info(f"Starting iClean session {session_id} on port {port}")
+
+        proc = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            env={**os.environ, "BOKEH_ALLOW_WS_ORIGIN": "*"},
+        )
+
+        session = BokehSession(
+            id=session_id,
+            port=port,
+            process=proc,
+            ms_path=ms_path,
+            imagename=imagename,
+            user_id=user_id,
+        )
+        self.sessions[session_id] = session
+
+        # Wait briefly for server to start
+        await asyncio.sleep(2.0)
+
+        # Check if process is still running
+        if proc.poll() is not None:
+            self.port_pool.release(session_id)
+            stderr = proc.stderr.read().decode() if proc.stderr else "Unknown error"
+            raise RuntimeError(f"Bokeh server failed to start: {stderr}")
+
+        return session
+
+    async def get_session(self, session_id: str) -> Optional[BokehSession]:
+        """Get session by ID."""
+        return self.sessions.get(session_id)
+
+    async def cleanup_session(self, session_id: str) -> None:
+        """Terminate session and free resources."""
+        session = self.sessions.pop(session_id, None)
+        if session:
+            logger.info(f"Cleaning up session {session_id}")
+            session.process.terminate()
+            try:
+                session.process.wait(timeout=5.0)
+            except subprocess.TimeoutExpired:
+                session.process.kill()
+            self.port_pool.release(session_id)
+
+    async def cleanup_stale_sessions(self, max_age_hours: float = 4.0) -> int:
+        """Clean up sessions older than max_age_hours. Returns count cleaned."""
+        cutoff_seconds = max_age_hours * 3600
+        stale = [
+            sid for sid, session in self.sessions.items()
+            if session.age_seconds > cutoff_seconds
+        ]
+        for sid in stale:
+            await self.cleanup_session(sid)
+        return len(stale)
+
+    def list_sessions(self) -> list[dict]:
+        """List all active sessions."""
+        return [
+            {
+                "id": s.id,
+                "url": s.url,
+                "ms_path": s.ms_path,
+                "created_at": s.created_at.isoformat(),
+                "age_seconds": s.age_seconds,
+            }
+            for s in self.sessions.values()
+        ]
+
+
+# Singleton instance
+_manager: Optional[BokehSessionManager] = None
+
+def get_session_manager() -> BokehSessionManager:
+    global _manager
+    if _manager is None:
+        _manager = BokehSessionManager()
+    return _manager
+```
+
+**Step 2: Add API Routes**
+
+Create `backend/src/dsa110_contimg/api/routes/imaging.py`:
+
+```python
+"""
+Interactive imaging routes.
+"""
+from __future__ import annotations
+
+from fastapi import APIRouter, HTTPException, Depends
+from pydantic import BaseModel, Field
+from typing import Optional, List
+
+from ..services.bokeh_sessions import get_session_manager, BokehSessionManager
+
+router = APIRouter(prefix="/imaging", tags=["imaging"])
+
+
+class InteractiveCleanRequest(BaseModel):
+    """Request to start interactive clean session."""
+    ms_path: str = Field(..., description="Path to Measurement Set")
+    imagename: str = Field(..., description="Output image name prefix")
+    imsize: List[int] = Field([5040, 5040], description="Image size in pixels")
+    cell: str = Field("2.5arcsec", description="Cell size")
+    niter: int = Field(10000, description="Maximum iterations")
+    threshold: str = Field("0.5mJy", description="Stopping threshold")
+
+
+class InteractiveCleanResponse(BaseModel):
+    """Response with session details."""
+    session_id: str
+    url: str
+    status: str
+
+
+@router.post("/interactive", response_model=InteractiveCleanResponse)
+async def start_interactive_clean(
+    request: InteractiveCleanRequest,
+    manager: BokehSessionManager = Depends(get_session_manager),
+) -> InteractiveCleanResponse:
+    """
+    Launch an interactive clean session.
+
+    Opens a Bokeh server running InteractiveClean for the specified MS.
+    Returns a URL that can be opened in a new browser tab.
+    """
+    from pathlib import Path
+
+    if not Path(request.ms_path).exists():
+        raise HTTPException(404, f"MS not found: {request.ms_path}")
+
+    try:
+        session = await manager.create_session(
+            ms_path=request.ms_path,
+            imagename=request.imagename,
+            params={
+                "imsize": request.imsize,
+                "cell": request.cell,
+                "niter": request.niter,
+                "threshold": request.threshold,
+            },
+        )
+        return InteractiveCleanResponse(
+            session_id=session.id,
+            url=session.url,
+            status="started",
+        )
+    except Exception as e:
+        raise HTTPException(500, f"Failed to start session: {e}")
+
+
+@router.get("/sessions")
+async def list_sessions(
+    manager: BokehSessionManager = Depends(get_session_manager),
+) -> list[dict]:
+    """List all active interactive sessions."""
+    return manager.list_sessions()
+
+
+@router.delete("/sessions/{session_id}")
+async def stop_session(
+    session_id: str,
+    manager: BokehSessionManager = Depends(get_session_manager),
+) -> dict:
+    """Stop and cleanup an interactive session."""
+    session = await manager.get_session(session_id)
+    if not session:
+        raise HTTPException(404, f"Session not found: {session_id}")
+
+    await manager.cleanup_session(session_id)
+    return {"status": "stopped", "session_id": session_id}
+```
+
+**Step 3: Register Routes**
+
+In `backend/src/dsa110_contimg/api/app.py`, add:
+
+```python
+from .routes import imaging
+
+app.include_router(imaging.router, prefix="/api")
+```
+
+**Step 4: Frontend Launch Button**
+
+Add to `frontend/src/pages/MSDetailPage.tsx` in the Actions card:
+
+```tsx
+<button
+  type="button"
+  className="btn btn-primary"
+  onClick={async () => {
+    try {
+      const response = await fetch(
+        `${config.api.baseUrl}/imaging/interactive`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ms_path: ms.path,
+            imagename: ms.path.replace(".ms", ".interactive"),
+          }),
+        }
+      );
+      if (!response.ok) throw new Error("Failed to start session");
+      const data = await response.json();
+      window.open(data.url, "_blank", "noopener,noreferrer");
+    } catch (error) {
+      console.error("Failed to launch interactive clean:", error);
+      // Show error toast
+    }
+  }}
+>
+  <PlayIcon className="w-4 h-4 mr-2" />
+  Interactive Clean
+</button>
+```
+
+**Step 5: Add Session Cleanup Background Task**
+
+In `backend/src/dsa110_contimg/api/app.py`:
+
+```python
+from contextlib import asynccontextmanager
+from .services.bokeh_sessions import get_session_manager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup
+    manager = get_session_manager()
+
+    # Start background cleanup task
+    async def cleanup_loop():
+        while True:
+            await asyncio.sleep(3600)  # Check hourly
+            count = await manager.cleanup_stale_sessions(max_age_hours=4.0)
+            if count:
+                logger.info(f"Cleaned up {count} stale Bokeh sessions")
+
+    cleanup_task = asyncio.create_task(cleanup_loop())
+
+    yield
+
+    # Shutdown
+    cleanup_task.cancel()
+    # Cleanup all sessions
+    for session_id in list(manager.sessions.keys()):
+        await manager.cleanup_session(session_id)
+
+app = FastAPI(lifespan=lifespan)
+```
 
 ##### Option B: Embedded iframe (Phase 3)
 
@@ -833,41 +1510,369 @@ function getFlagColor(pct: number): string {
 }
 ```
 
-#### 3.5 Backend Endpoint
+#### 3.5 Step-by-Step Implementation (Antenna Widget)
+
+**Step 1: Create Backend Endpoint**
+
+Add to `backend/src/dsa110_contimg/api/routes/ms.py`:
 
 ```python
-@router.get("/ms/{ms_path:path}/antennas")
-async def get_antenna_info(ms_path: str) -> list[dict]:
-    """Get antenna positions and flagging statistics."""
+import numpy as np
+from typing import List
+
+@router.get("/{encoded_path:path}/antennas")
+async def get_antenna_info(encoded_path: str) -> List[dict]:
+    """
+    Get antenna positions and flagging statistics for a Measurement Set.
+
+    Returns antenna positions in ENU coordinates (meters) relative to
+    array center, along with flagging statistics calculated from the
+    FLAG column.
+    """
     from casacore.tables import table
     from dsa110_contimg.utils.antpos_local import get_itrf
-    from dsa110_contimg.conversion.helpers_coordinates import itrf_to_enu
+    from pathlib import Path
 
-    # Get antenna positions from our authoritative source
+    ms_path = unquote(encoded_path)
+
+    if not Path(ms_path).exists():
+        raise RecordNotFoundError("MeasurementSet", ms_path)
+
+    # Get authoritative DSA-110 antenna positions
     itrf_df = get_itrf()
 
-    # Convert to ENU for display
-    enu_coords = itrf_to_enu(itrf_df[['x_m', 'y_m', 'z_m']].values)
+    # Convert ITRF to local ENU coordinates
+    # Array center (approximate)
+    center_lat = np.deg2rad(37.2339)  # DSA-110 latitude
+    center_lon = np.deg2rad(-118.2817)  # DSA-110 longitude
 
-    # Get per-antenna flagging from MS
-    with table(ms_path) as ms:
-        flags = ms.getcol("FLAG")
-        ant1 = ms.getcol("ANTENNA1")
-        ant2 = ms.getcol("ANTENNA2")
+    # ITRF to ENU rotation
+    def itrf_to_enu(itrf_xyz: np.ndarray) -> np.ndarray:
+        """Convert ITRF XYZ to local ENU."""
+        # Simplified conversion for display purposes
+        # Center on array mean position
+        center = itrf_xyz.mean(axis=0)
+        offset = itrf_xyz - center
+
+        # Rotation matrix (approximate for DSA-110 location)
+        sin_lat, cos_lat = np.sin(center_lat), np.cos(center_lat)
+        sin_lon, cos_lon = np.sin(center_lon), np.cos(center_lon)
+
+        R = np.array([
+            [-sin_lon, cos_lon, 0],
+            [-sin_lat * cos_lon, -sin_lat * sin_lon, cos_lat],
+            [cos_lat * cos_lon, cos_lat * sin_lon, sin_lat],
+        ])
+        return (R @ offset.T).T
+
+    itrf_xyz = itrf_df[['x_m', 'y_m', 'z_m']].values
+    enu_coords = itrf_to_enu(itrf_xyz)
 
     # Calculate per-antenna flagging percentage
-    flag_pcts = calculate_antenna_flagging(flags, ant1, ant2)
+    flag_pcts = {}
+    try:
+        with table(ms_path, readonly=True) as ms:
+            flags = ms.getcol("FLAG")  # (nrow, nchan, npol)
+            ant1 = ms.getcol("ANTENNA1")
+            ant2 = ms.getcol("ANTENNA2")
+
+            # Flatten to per-row flag fraction
+            row_flagged = np.mean(flags, axis=(1, 2))  # (nrow,)
+
+            # Accumulate per antenna
+            for ant_id in range(len(itrf_df)):
+                mask = (ant1 == ant_id) | (ant2 == ant_id)
+                if mask.sum() > 0:
+                    flag_pcts[ant_id] = float(row_flagged[mask].mean() * 100)
+                else:
+                    flag_pcts[ant_id] = 0.0
+
+    except Exception as e:
+        logger.warning(f"Could not compute flagging stats: {e}")
+        # Return zeros if flagging can't be computed
+        for i in range(len(itrf_df)):
+            flag_pcts[i] = 0.0
 
     return [
         {
-            "id": int(row.Index),
-            "name": row.name,
-            "x": float(enu_coords[row.Index, 0]),  # East
-            "y": float(enu_coords[row.Index, 1]),  # North
-            "flagged_pct": float(flag_pcts.get(row.Index, 0)),
+            "id": i,
+            "name": row.name if hasattr(row, 'name') else f"ANT{i}",
+            "x": float(enu_coords[i, 0]),  # East (meters)
+            "y": float(enu_coords[i, 1]),  # North (meters)
+            "flagged_pct": flag_pcts.get(i, 0.0),
         }
-        for row in itrf_df.itertuples()
+        for i, row in enumerate(itrf_df.itertuples())
     ]
+```
+
+**Step 2: Create Frontend Hook**
+
+Add to `frontend/src/hooks/useQueries.ts`:
+
+```typescript
+// Add to queryKeys
+export const queryKeys = {
+  // ... existing keys ...
+  msAntennas: (path: string) => ["ms", path, "antennas"] as const,
+};
+
+// Add hook
+export interface AntennaInfo {
+  id: number;
+  name: string;
+  x: number;
+  y: number;
+  flagged_pct: number;
+}
+
+export function useAntennaPositions(msPath: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.msAntennas(msPath ?? ""),
+    queryFn: async () => {
+      const response = await apiClient.get<AntennaInfo[]>(
+        `/ms/${encodeURIComponent(msPath ?? "")}/antennas`
+      );
+      return response.data;
+    },
+    enabled: !!msPath,
+    staleTime: 5 * 60 * 1000, // Cache 5 minutes (positions don't change)
+  });
+}
+```
+
+**Step 3: Create Component**
+
+Create `frontend/src/components/antenna/AntennaLayoutWidget.tsx`:
+
+```tsx
+import React, { useMemo } from "react";
+import { useAntennaPositions, AntennaInfo } from "../../hooks/useQueries";
+
+interface AntennaLayoutWidgetProps {
+  /** Path to the Measurement Set */
+  msPath: string;
+  /** Widget height in pixels */
+  height?: number;
+  /** Whether to show legend */
+  showLegend?: boolean;
+  /** CSS class name */
+  className?: string;
+}
+
+/**
+ * Antenna layout visualization showing DSA-110 T-shaped array.
+ * Antennas are color-coded by flagging percentage.
+ */
+const AntennaLayoutWidget: React.FC<AntennaLayoutWidgetProps> = ({
+  msPath,
+  height = 200,
+  showLegend = true,
+  className = "",
+}) => {
+  const { data: antennas, isLoading, error } = useAntennaPositions(msPath);
+
+  // Calculate SVG viewBox based on antenna positions
+  const viewBox = useMemo(() => {
+    if (!antennas?.length) return "-800 -300 1600 600";
+
+    const xs = antennas.map((a) => a.x);
+    const ys = antennas.map((a) => a.y);
+    const minX = Math.min(...xs) - 100;
+    const maxX = Math.max(...xs) + 100;
+    const minY = Math.min(...ys) - 100;
+    const maxY = Math.max(...ys) + 100;
+
+    // Scale to fit, maintaining aspect ratio
+    const width = maxX - minX;
+    const height = maxY - minY;
+
+    return `${minX} ${-maxY} ${width} ${height}`;
+  }, [antennas]);
+
+  if (isLoading) {
+    return (
+      <div
+        className={`flex items-center justify-center bg-gray-900 rounded-lg ${className}`}
+        style={{ height }}
+      >
+        <div className="animate-pulse text-gray-500">Loading antennas...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div
+        className={`flex items-center justify-center bg-gray-900 rounded-lg ${className}`}
+        style={{ height }}
+      >
+        <div className="text-red-400 text-sm">Failed to load antenna data</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`bg-gray-900 rounded-lg overflow-hidden ${className}`}>
+      <svg viewBox={viewBox} style={{ height }} className="w-full">
+        {/* Background grid */}
+        <defs>
+          <pattern
+            id="grid"
+            width="100"
+            height="100"
+            patternUnits="userSpaceOnUse"
+          >
+            <path
+              d="M 100 0 L 0 0 0 100"
+              fill="none"
+              stroke="#333"
+              strokeWidth="0.5"
+            />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#grid)" />
+
+        {/* Axis lines */}
+        <line
+          x1="-1000"
+          y1="0"
+          x2="1000"
+          y2="0"
+          stroke="#555"
+          strokeWidth="1"
+          strokeDasharray="10,5"
+        />
+        <line
+          x1="0"
+          y1="-500"
+          x2="0"
+          y2="500"
+          stroke="#555"
+          strokeWidth="1"
+          strokeDasharray="10,5"
+        />
+
+        {/* Antenna markers */}
+        {antennas?.map((ant) => (
+          <g key={ant.id} className="antenna-marker">
+            <circle
+              cx={ant.x}
+              cy={-ant.y} // Flip Y for screen coordinates
+              r={12}
+              fill={getFlagColor(ant.flagged_pct)}
+              stroke="#000"
+              strokeWidth="1"
+              className="cursor-pointer transition-all hover:r-[16] hover:stroke-white hover:stroke-2"
+            />
+            {/* Tooltip via title element */}
+            <title>
+              {ant.name}
+              {"\n"}Flagged: {ant.flagged_pct.toFixed(1)}%{"\n"}
+              Position: ({ant.x.toFixed(0)}m E, {ant.y.toFixed(0)}m N)
+            </title>
+          </g>
+        ))}
+
+        {/* Scale bar */}
+        <g transform="translate(-700, 200)">
+          <line x1="0" y1="0" x2="200" y2="0" stroke="white" strokeWidth="2" />
+          <line x1="0" y1="-5" x2="0" y2="5" stroke="white" strokeWidth="2" />
+          <line
+            x1="200"
+            y1="-5"
+            x2="200"
+            y2="5"
+            stroke="white"
+            strokeWidth="2"
+          />
+          <text
+            x="100"
+            y="20"
+            fill="white"
+            textAnchor="middle"
+            fontSize="14"
+            fontFamily="sans-serif"
+          >
+            200 m
+          </text>
+        </g>
+
+        {/* Direction labels */}
+        <text
+          x="750"
+          y="0"
+          fill="#888"
+          textAnchor="start"
+          fontSize="14"
+          dominantBaseline="middle"
+        >
+          E
+        </text>
+        <text
+          x="0"
+          y="-280"
+          fill="#888"
+          textAnchor="middle"
+          fontSize="14"
+          dominantBaseline="middle"
+        >
+          N
+        </text>
+      </svg>
+
+      {/* Legend */}
+      {showLegend && (
+        <div className="flex items-center justify-center gap-4 py-2 bg-gray-800 text-xs">
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-green-500" />
+            <span className="text-gray-400">&lt;20% flagged</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-amber-500" />
+            <span className="text-gray-400">20-50%</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 rounded-full bg-red-500" />
+            <span className="text-gray-400">&gt;50%</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+/**
+ * Get color for antenna based on flagging percentage.
+ */
+function getFlagColor(flaggedPct: number): string {
+  if (flaggedPct > 50) return "#EF4444"; // red-500
+  if (flaggedPct > 20) return "#F59E0B"; // amber-500
+  return "#22C55E"; // green-500
+}
+
+export default AntennaLayoutWidget;
+```
+
+**Step 4: Create Index Export**
+
+Create `frontend/src/components/antenna/index.ts`:
+
+```typescript
+export { default as AntennaLayoutWidget } from "./AntennaLayoutWidget";
+```
+
+**Step 5: Integrate into MSDetailPage**
+
+Add to `frontend/src/pages/MSDetailPage.tsx`:
+
+```tsx
+// Add import
+import { AntennaLayoutWidget } from "../components/antenna";
+
+// Add in the grid after existing cards:
+<Card title="Antenna Layout">
+  <AntennaLayoutWidget msPath={ms.path} height={200} showLegend />
+</Card>;
 ```
 
 #### 3.6 Acceptance Criteria
@@ -877,6 +1882,7 @@ async def get_antenna_info(ms_path: str) -> list[dict]:
 - [ ] Tooltip shows antenna name and flagging stats
 - [ ] Works for any MS in the system
 - [ ] Responsive sizing in dashboard panel
+- [ ] Legend shows color meanings
 
 ---
 
@@ -1421,6 +2427,119 @@ pip install git+https://github.com/casangi/cubevis.git
 | Re-imaging turnaround      | 50% reduction vs CLI | Job completion times   |
 | Mask creation rate         | 5+ masks/session     | Usage analytics        |
 | Session abandonment        | <20%                 | Cleanup logs           |
+
+---
+
+## Quick Reference: Files to Create/Modify
+
+### Backend Files
+
+| File                                                        | Action | Purpose                         |
+| ----------------------------------------------------------- | ------ | ------------------------------- |
+| `backend/src/dsa110_contimg/api/routes/ms.py`               | Modify | Add `/raster` and `/antennas`   |
+| `backend/src/dsa110_contimg/api/routes/imaging.py`          | Create | Interactive clean session mgmt  |
+| `backend/src/dsa110_contimg/api/services/bokeh_sessions.py` | Create | Bokeh session lifecycle manager |
+| `backend/src/dsa110_contimg/api/schemas.py`                 | Modify | Add Pydantic models             |
+| `backend/src/dsa110_contimg/api/app.py`                     | Modify | Register routes, add lifespan   |
+| `backend/tests/api/test_ms_raster.py`                       | Create | Raster endpoint tests           |
+| `backend/tests/api/test_imaging.py`                         | Create | Interactive imaging tests       |
+
+### Frontend Files
+
+| File                                                      | Action | Purpose                     |
+| --------------------------------------------------------- | ------ | --------------------------- |
+| `frontend/src/components/ms/MsRasterPlot.tsx`             | Create | Visibility raster component |
+| `frontend/src/components/ms/MsRasterPlot.test.tsx`        | Create | Component tests             |
+| `frontend/src/components/ms/index.ts`                     | Create | Directory exports           |
+| `frontend/src/components/antenna/AntennaLayoutWidget.tsx` | Create | Antenna layout SVG          |
+| `frontend/src/components/antenna/index.ts`                | Create | Directory exports           |
+| `frontend/src/pages/MSDetailPage.tsx`                     | Modify | Add raster + antenna cards  |
+| `frontend/src/pages/ImageDetailPage.tsx`                  | Modify | Add re-image button/modal   |
+| `frontend/src/hooks/useQueries.ts`                        | Modify | Add query keys + hooks      |
+
+### Configuration Files
+
+| File                                | Action | Purpose                  |
+| ----------------------------------- | ------ | ------------------------ |
+| `ops/docker/environment.yml`        | Modify | Add casagui dependencies |
+| `ops/systemd/contimg-bokeh.service` | Create | Bokeh server service     |
+
+---
+
+## Quick Reference: Commands
+
+### Install casagui
+
+```bash
+conda activate casa6
+pip install git+https://github.com/casangi/casagui.git
+pip install git+https://github.com/casangi/cubevis.git
+```
+
+### Run Backend Tests
+
+```bash
+cd /data/dsa110-contimg/backend
+conda activate casa6
+python -m pytest tests/api/test_ms_raster.py -v
+python -m pytest tests/api/test_imaging.py -v
+```
+
+### Run Frontend Tests
+
+```bash
+cd /data/dsa110-contimg/frontend
+npm test -- --run src/components/ms/MsRasterPlot.test.tsx
+npm test -- --run src/components/antenna/AntennaLayoutWidget.test.tsx
+```
+
+### Manual Testing
+
+```bash
+# Test raster endpoint
+curl "http://localhost:8000/api/ms/$(echo '/stage/dsa110-contimg/ms/test.ms' | jq -sRr @uri)/raster?xaxis=time&yaxis=amp" --output test.png
+
+# Test antenna endpoint
+curl "http://localhost:8000/api/ms/$(echo '/stage/dsa110-contimg/ms/test.ms' | jq -sRr @uri)/antennas" | jq
+
+# Start interactive session
+curl -X POST "http://localhost:8000/api/imaging/interactive" \
+  -H "Content-Type: application/json" \
+  -d '{"ms_path": "/stage/dsa110-contimg/ms/test.ms", "imagename": "test_interactive"}'
+
+# List active sessions
+curl "http://localhost:8000/api/imaging/sessions" | jq
+```
+
+---
+
+## Quick Reference: DSA-110 Defaults
+
+```python
+# Standard imaging parameters for DSA-110
+DSA110_IMAGING_DEFAULTS = {
+    'imsize': [5040, 5040],
+    'cell': '2.5arcsec',
+    'specmode': 'mfs',
+    'deconvolver': 'hogbom',
+    'weighting': 'briggs',
+    'robust': 0.5,
+    'gridder': 'standard',
+    'niter': 10000,
+    'threshold': '0.5mJy',
+    'pbcor': True,
+    'datacolumn': 'corrected',
+}
+
+# Telescope location
+DSA110_LAT = 37.2339   # degrees
+DSA110_LON = -118.2817 # degrees
+
+# Array characteristics
+DSA110_NANTS = 110     # Total antennas
+DSA110_NBASELINES = 2000  # Typical active baselines
+DSA110_NCHANNELS = 16384  # 16 subbands × 1024 channels
+```
 
 ---
 

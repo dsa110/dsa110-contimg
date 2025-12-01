@@ -4,20 +4,161 @@ This module provides general-purpose cross-matching utilities for matching
 detected sources with reference catalogs (NVSS, FIRST, RACS, etc.).
 
 Based on VAST Post-Processing crossmatch.py patterns.
+
+Features:
+- Simple nearest-neighbor matching (fast)
+- de Ruiter radius matching (uncertainty-weighted, statistically robust)
+- One-to-many association handling
+- Multi-catalog matching
 """
 
 import logging
-from typing import Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 import astropy.units as u
 import numpy as np
 import pandas as pd
-from astropy.coordinates import Angle, SkyCoord, match_coordinates_sky
+from astropy.coordinates import Angle, SkyCoord, match_coordinates_sky, search_around_sky
 from astropy.stats import mad_std
 from uncertainties import ufloat
 from uncertainties.core import AffineScalarFunc
 
 logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# de Ruiter Radius (VAST-style uncertainty-weighted association)
+# =============================================================================
+
+
+def calc_de_ruiter(
+    ra1: np.ndarray,
+    ra2: np.ndarray,
+    dec1: np.ndarray,
+    dec2: np.ndarray,
+    sigma_ra1: np.ndarray,
+    sigma_ra2: np.ndarray,
+    sigma_dec1: np.ndarray,
+    sigma_dec2: np.ndarray,
+) -> np.ndarray:
+    """Calculate the unitless de Ruiter radius for source association.
+
+    The de Ruiter radius is a statistically robust measure for source association
+    that accounts for positional uncertainties of both sources. A de Ruiter radius
+    of ~5.68 corresponds to a 3-sigma match (99.7% confidence).
+
+    Based on VAST pipeline implementation (de Ruiter et al. 1977).
+
+    Formula:
+        dr = sqrt(
+            (Δra * cos(dec_avg))² / (σ_ra1² + σ_ra2²) +
+            (Δdec)² / (σ_dec1² + σ_dec2²)
+        )
+
+    Args:
+        ra1: RA of first sources (degrees)
+        ra2: RA of second sources (degrees)
+        dec1: Dec of first sources (degrees)
+        dec2: Dec of second sources (degrees)
+        sigma_ra1: RA uncertainty of first sources (degrees)
+        sigma_ra2: RA uncertainty of second sources (degrees)
+        sigma_dec1: Dec uncertainty of first sources (degrees)
+        sigma_dec2: Dec uncertainty of second sources (degrees)
+
+    Returns:
+        Array of de Ruiter radii (unitless). Values < ~5.68 indicate
+        statistically significant associations.
+
+    Example:
+        >>> dr = calc_de_ruiter(
+        ...     ra1=np.array([180.0]), ra2=np.array([180.001]),
+        ...     dec1=np.array([45.0]), dec2=np.array([45.0]),
+        ...     sigma_ra1=np.array([0.001]), sigma_ra2=np.array([0.001]),
+        ...     sigma_dec1=np.array([0.001]), sigma_dec2=np.array([0.001])
+        ... )
+        >>> print(f"de Ruiter radius: {dr[0]:.2f}")  # Should be small
+
+    References:
+        de Ruiter, H. R., Willis, A. G., & Arp, H. C. 1977, A&AS, 28, 211
+    """
+    # Copy arrays to avoid modifying inputs
+    ra1 = np.asarray(ra1, dtype=np.float64).copy()
+    ra2 = np.asarray(ra2, dtype=np.float64).copy()
+    dec1 = np.asarray(dec1, dtype=np.float64)
+    dec2 = np.asarray(dec2, dtype=np.float64)
+    sigma_ra1 = np.asarray(sigma_ra1, dtype=np.float64)
+    sigma_ra2 = np.asarray(sigma_ra2, dtype=np.float64)
+    sigma_dec1 = np.asarray(sigma_dec1, dtype=np.float64)
+    sigma_dec2 = np.asarray(sigma_dec2, dtype=np.float64)
+
+    # Avoid RA wrapping issues by shifting coordinates near 0/360
+    ra1[ra1 > 270.0] -= 180.0
+    ra2[ra2 > 270.0] -= 180.0
+    ra1[ra1 < 90.0] += 180.0
+    ra2[ra2 < 90.0] += 180.0
+
+    # Convert to radians
+    ra1_rad = np.deg2rad(ra1)
+    ra2_rad = np.deg2rad(ra2)
+    dec1_rad = np.deg2rad(dec1)
+    dec2_rad = np.deg2rad(dec2)
+    sigma_ra1_rad = np.deg2rad(sigma_ra1)
+    sigma_ra2_rad = np.deg2rad(sigma_ra2)
+    sigma_dec1_rad = np.deg2rad(sigma_dec1)
+    sigma_dec2_rad = np.deg2rad(sigma_dec2)
+
+    # RA term: (Δra * cos(dec_avg))² / (σ_ra1² + σ_ra2²)
+    delta_ra = ra1_rad - ra2_rad
+    cos_dec_avg = np.cos((dec1_rad + dec2_rad) / 2.0)
+    ra_term = (delta_ra * cos_dec_avg) ** 2 / (sigma_ra1_rad**2 + sigma_ra2_rad**2)
+
+    # Dec term: (Δdec)² / (σ_dec1² + σ_dec2²)
+    delta_dec = dec1_rad - dec2_rad
+    dec_term = delta_dec**2 / (sigma_dec1_rad**2 + sigma_dec2_rad**2)
+
+    # de Ruiter radius
+    dr = np.sqrt(ra_term + dec_term)
+
+    return dr
+
+
+def calc_de_ruiter_beamwidth(
+    ra1: np.ndarray,
+    ra2: np.ndarray,
+    dec1: np.ndarray,
+    dec2: np.ndarray,
+    bmaj1: np.ndarray,
+    bmin1: np.ndarray,
+    bmaj2: np.ndarray,
+    bmin2: np.ndarray,
+    snr1: np.ndarray,
+    snr2: np.ndarray,
+) -> np.ndarray:
+    """Calculate de Ruiter radius using beam-derived uncertainties.
+
+    When explicit positional uncertainties aren't available, they can be
+    estimated from beam size and SNR: σ ≈ beam / (2 * SNR).
+
+    Args:
+        ra1, ra2: RA coordinates (degrees)
+        dec1, dec2: Dec coordinates (degrees)
+        bmaj1, bmaj2: Beam major axis (degrees)
+        bmin1, bmin2: Beam minor axis (degrees)
+        snr1, snr2: Signal-to-noise ratios
+
+    Returns:
+        Array of de Ruiter radii
+    """
+    # Estimate positional uncertainties from beam and SNR
+    # σ ≈ beam / (2 * SNR) (Condon 1997)
+    sigma_ra1 = bmaj1 / (2.0 * np.maximum(snr1, 1.0))
+    sigma_ra2 = bmaj2 / (2.0 * np.maximum(snr2, 1.0))
+    sigma_dec1 = bmin1 / (2.0 * np.maximum(snr1, 1.0))
+    sigma_dec2 = bmin2 / (2.0 * np.maximum(snr2, 1.0))
+
+    return calc_de_ruiter(
+        ra1, ra2, dec1, dec2, sigma_ra1, sigma_ra2, sigma_dec1, sigma_dec2
+    )
 
 
 def join_match_coordinates_sky(
@@ -59,23 +200,44 @@ def cross_match_sources(
     catalog_flux_err: Optional[np.ndarray] = None,
     detected_ids: Optional[np.ndarray] = None,
     catalog_ids: Optional[np.ndarray] = None,
+    *,
+    use_de_ruiter: bool = False,
+    de_ruiter_limit: float = 5.68,
+    detected_sigma_ra: Optional[np.ndarray] = None,
+    detected_sigma_dec: Optional[np.ndarray] = None,
+    catalog_sigma_ra: Optional[np.ndarray] = None,
+    catalog_sigma_dec: Optional[np.ndarray] = None,
 ) -> pd.DataFrame:
-    """General-purpose cross-matching utility.
+    """General-purpose cross-matching utility with optional de Ruiter matching.
 
-    Matches detected sources with catalog sources using nearest-neighbor matching.
+    Matches detected sources with catalog sources using either:
+    - Simple nearest-neighbor matching (default, fast)
+    - de Ruiter radius matching (uncertainty-weighted, statistically robust)
 
     Args:
         detected_ra: RA of detected sources (degrees)
         detected_dec: Dec of detected sources (degrees)
         catalog_ra: RA of catalog sources (degrees)
         catalog_dec: Dec of catalog sources (degrees)
-        radius_arcsec: Matching radius in arcseconds
+        radius_arcsec: Matching radius in arcseconds (for simple matching)
         detected_flux: Flux of detected sources (optional)
         catalog_flux: Flux of catalog sources (optional)
         detected_flux_err: Flux error of detected sources (optional)
         catalog_flux_err: Flux error of catalog sources (optional)
         detected_ids: IDs of detected sources (optional)
         catalog_ids: IDs of catalog sources (optional)
+        use_de_ruiter: If True, use de Ruiter radius instead of simple matching.
+            Requires positional uncertainties. Default: False
+        de_ruiter_limit: Maximum de Ruiter radius for a valid match.
+            Default: 5.68 (3-sigma, 99.7% confidence)
+        detected_sigma_ra: RA uncertainty of detected sources (degrees).
+            Required if use_de_ruiter=True
+        detected_sigma_dec: Dec uncertainty of detected sources (degrees).
+            Required if use_de_ruiter=True
+        catalog_sigma_ra: RA uncertainty of catalog sources (degrees).
+            Required if use_de_ruiter=True
+        catalog_sigma_dec: Dec uncertainty of catalog sources (degrees).
+            Required if use_de_ruiter=True
 
     Returns:
         DataFrame with cross-matched sources containing:
@@ -84,6 +246,7 @@ def cross_match_sources(
         - separation_arcsec: Separation distance (arcsec)
         - dra_arcsec: RA offset (arcsec)
         - ddec_arcsec: Dec offset (arcsec)
+        - de_ruiter: de Ruiter radius (if use_de_ruiter=True)
         - detected_flux, catalog_flux: Flux values (if provided)
         - detected_flux_err, catalog_flux_err: Flux errors (if provided)
         - detected_id, catalog_id: Source IDs (if provided)
@@ -99,27 +262,74 @@ def cross_match_sources(
         catalog_dec * u.deg,
     )
 
-    # Perform cross-match
+    # Perform cross-match (nearest neighbor)
     idx, sep2d, _ = match_coordinates_sky(detected_coords, catalog_coords)
-
-    # Filter matches within radius
     sep_arcsec = sep2d.to(u.arcsec).value
-    match_mask = sep_arcsec < radius_arcsec
 
-    n_matched = np.sum(match_mask)
+    if use_de_ruiter:
+        # Validate uncertainties are provided
+        if any(
+            x is None
+            for x in [detected_sigma_ra, detected_sigma_dec, catalog_sigma_ra, catalog_sigma_dec]
+        ):
+            raise ValueError(
+                "Positional uncertainties (detected_sigma_ra, detected_sigma_dec, "
+                "catalog_sigma_ra, catalog_sigma_dec) are required when use_de_ruiter=True"
+            )
 
-    if n_matched == 0:
-        logger.warning(f"No sources matched within {radius_arcsec} arcsec")
-        return pd.DataFrame()
+        # Calculate de Ruiter radius for all nearest-neighbor matches
+        dr = calc_de_ruiter(
+            detected_ra,
+            catalog_ra[idx],
+            detected_dec,
+            catalog_dec[idx],
+            detected_sigma_ra,
+            catalog_sigma_ra[idx],
+            detected_sigma_dec,
+            catalog_sigma_dec[idx],
+        )
 
-    # Build results DataFrame
-    results = pd.DataFrame(
-        {
-            "detected_idx": np.where(match_mask)[0],
-            "catalog_idx": idx[match_mask],
-            "separation_arcsec": sep_arcsec[match_mask],
-        }
-    )
+        # Filter by de Ruiter radius
+        match_mask = dr < de_ruiter_limit
+        n_matched = np.sum(match_mask)
+
+        if n_matched == 0:
+            logger.warning(f"No sources matched with de Ruiter radius < {de_ruiter_limit}")
+            return pd.DataFrame()
+
+        # Build results DataFrame
+        results = pd.DataFrame(
+            {
+                "detected_idx": np.where(match_mask)[0],
+                "catalog_idx": idx[match_mask],
+                "separation_arcsec": sep_arcsec[match_mask],
+                "de_ruiter": dr[match_mask],
+            }
+        )
+
+        logger.info(
+            f"Cross-matched {n_matched} sources with de Ruiter radius < {de_ruiter_limit}"
+        )
+
+    else:
+        # Simple radius matching (original behavior)
+        match_mask = sep_arcsec < radius_arcsec
+        n_matched = np.sum(match_mask)
+
+        if n_matched == 0:
+            logger.warning(f"No sources matched within {radius_arcsec} arcsec")
+            return pd.DataFrame()
+
+        # Build results DataFrame
+        results = pd.DataFrame(
+            {
+                "detected_idx": np.where(match_mask)[0],
+                "catalog_idx": idx[match_mask],
+                "separation_arcsec": sep_arcsec[match_mask],
+            }
+        )
+
+        logger.info(f"Cross-matched {n_matched} sources within {radius_arcsec} arcsec")
 
     # Calculate RA/Dec offsets
     matched_detected = detected_coords[match_mask]

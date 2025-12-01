@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { fn } from "storybook/test";
 import SesameResolver from "./SesameResolver";
-import { fn } from "@storybook/test";
 
 /**
  * SesameResolver allows users to resolve astronomical object names to coordinates

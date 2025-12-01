@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { fn } from "storybook/test";
 import EtaVPlot, { SourcePoint } from "./EtaVPlot";
-import { fn } from "@storybook/test";
 
 /**
  * EtaVPlot displays variability metrics (η vs V) for astronomical sources.

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
+import { fn } from "storybook/test";
 import FitsViewerGrid from "./FitsViewerGrid";
-import { fn } from "@storybook/test";
 
 /**
  * FitsViewerGrid displays multiple FITS images in a synchronized grid layout.
