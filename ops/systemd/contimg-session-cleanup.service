@@ -1,0 +1,26 @@
+[Unit]
+Description=Cleanup stale Bokeh imaging sessions
+After=network.target contimg-api.service
+
+[Service]
+Type=oneshot
+User=dsa
+Group=dsa
+
+# Set environment
+EnvironmentFile=/data/dsa110-contimg/ops/systemd/contimg.env
+
+# Run the cleanup
+ExecStart=/opt/miniforge/envs/casa6/bin/python -c "import asyncio; from dsa110_contimg.api.services.bokeh_sessions import get_session_manager; asyncio.run(get_session_manager().cleanup_stale_sessions())"
+
+# Cleanup dead sessions too
+ExecStartPost=/opt/miniforge/envs/casa6/bin/python -c "import asyncio; from dsa110_contimg.api.services.bokeh_sessions import get_session_manager; asyncio.run(get_session_manager().cleanup_dead_sessions())"
+
+# Alternative: Use HTTP API for cleanup
+# ExecStart=/usr/bin/curl -X POST "http://localhost:8000/api/imaging/sessions/cleanup?max_age_hours=4"
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

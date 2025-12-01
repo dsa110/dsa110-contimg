@@ -1,0 +1,11 @@
+[Unit]
+Description=Cleanup stale Bokeh imaging sessions
+After=network.target contimg-api.service
+
+[Timer]
+OnCalendar=hourly
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

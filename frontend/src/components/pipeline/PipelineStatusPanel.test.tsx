@@ -84,7 +84,8 @@ describe("PipelineStatusPanel", () => {
 
   describe("successful data fetch", () => {
     beforeEach(() => {
-      mockApiClient.get.mockResolvedValue(mockPipelineStatus);
+      // Mock axios response format: { data: ... }
+      mockApiClient.get.mockResolvedValue({ data: mockPipelineStatus });
     });
 
     it("renders all pipeline stages", async () => {
@@ -135,8 +136,10 @@ describe("PipelineStatusPanel", () => {
 
     it("shows degraded status when is_healthy is false", async () => {
       mockApiClient.get.mockResolvedValue({
-        ...mockPipelineStatus,
-        is_healthy: false,
+        data: {
+          ...mockPipelineStatus,
+          is_healthy: false,
+        },
       });
 
       render(<PipelineStatusPanel />, { wrapper: createWrapper() });
@@ -161,7 +164,7 @@ describe("PipelineStatusPanel", () => {
 
   describe("compact mode", () => {
     beforeEach(() => {
-      mockApiClient.get.mockResolvedValue(mockPipelineStatus);
+      mockApiClient.get.mockResolvedValue({ data: mockPipelineStatus });
     });
 
     it("shows fewer stages in compact mode", async () => {
@@ -190,11 +193,15 @@ describe("PipelineStatusPanel", () => {
 
       render(<PipelineStatusPanel />, { wrapper: createWrapper() });
 
-      await waitFor(() => {
-        expect(
-          screen.getByText("Unable to load pipeline status")
-        ).toBeInTheDocument();
-      });
+      // Wait for error state - needs to wait for retries to complete
+      await waitFor(
+        () => {
+          expect(
+            screen.getByText("Unable to load pipeline status")
+          ).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
 
       expect(
         screen.getByText("ABSURD workflow manager may not be enabled yet")
@@ -206,17 +213,20 @@ describe("PipelineStatusPanel", () => {
 
       render(<PipelineStatusPanel />, { wrapper: createWrapper() });
 
-      await waitFor(() => {
-        expect(
-          screen.getByRole("button", { name: /retry/i })
-        ).toBeInTheDocument();
-      });
+      await waitFor(
+        () => {
+          expect(
+            screen.getByRole("button", { name: /retry/i })
+          ).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
     });
   });
 
   describe("refresh functionality", () => {
     it("calls refetch when refresh button is clicked", async () => {
-      mockApiClient.get.mockResolvedValue(mockPipelineStatus);
+      mockApiClient.get.mockResolvedValue({ data: mockPipelineStatus });
 
       render(<PipelineStatusPanel />, { wrapper: createWrapper() });
 
@@ -242,7 +252,7 @@ describe("PipelineStatusPanel", () => {
 
   describe("accessibility", () => {
     beforeEach(() => {
-      mockApiClient.get.mockResolvedValue(mockPipelineStatus);
+      mockApiClient.get.mockResolvedValue({ data: mockPipelineStatus });
     });
 
     it("stage nodes have descriptive titles", async () => {
