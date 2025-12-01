@@ -16,13 +16,23 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 if(DEFINED ENV{CONDA_PREFIX})
   list(INSERT CMAKE_PREFIX_PATH 0 "$ENV{CONDA_PREFIX}")
   # Prioritize conda libraries to avoid conflicts with system libraries
-  # This suppresses warnings about libpthread.so conflicts
   link_directories(BEFORE "$ENV{CONDA_PREFIX}/lib")
+  # Set RPATH to ensure conda libraries are found at runtime
+  set(CMAKE_INSTALL_RPATH "$ENV{CONDA_PREFIX}/lib")
+  set(CMAKE_BUILD_RPATH "$ENV{CONDA_PREFIX}/lib")
 endif()
 
-# Suppress warnings about implicit link directory conflicts
-# The conda sysroot libraries may conflict with system libraries but this is expected
-set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS ON CACHE BOOL "" FORCE)
+# Suppress CMake warnings about library conflicts between conda and system paths
+# These warnings occur because conda provides its own versions of system libraries
+# (libcurl, libsz, libfftw3f, libgomp, libpthread) which is expected and safe
+set(CMAKE_NO_SYSTEM_FROM_IMPORTED ON)
+
+# Explicitly tell CMake to prefer the libraries we specify over implicit ones
+cmake_policy(SET CMP0060 NEW)  # Link libraries by full path when available
+
+# Override implicit link directories to prevent conflicts with system libraries
+# This removes /usr/lib/x86_64-linux-gnu from implicit search when we want conda libs
+set(CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES "")
 
 # Allow callers to override the staged EveryBeam artifacts location
 set(EVERYBEAM_ROOT "${PROJECT_SOURCE_DIR}/../everybeam"
