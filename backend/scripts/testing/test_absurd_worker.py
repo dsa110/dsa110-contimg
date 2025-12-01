@@ -115,13 +115,8 @@ async def main():
         if task["status"] == "completed":
             logger.info(f"Task result: {task.get('result', {})}")
             logger.info("✅ Worker test PASSED!")
-            
-            # Clean up the test task
-            await client._execute(
-                "DELETE FROM absurd.tasks WHERE task_id = $1",
-                task_id
-            )
-            logger.info(f"Cleaned up test task {task_id}")
+            # Note: Completed task left in queue for inspection; 
+            # use 'prune_tasks' API or manual SQL to clean up later
             return 0
         else:
             logger.error(f"Task failed or timed out: {task}")

@@ -94,7 +94,7 @@ CREATE OR REPLACE FUNCTION absurd.claim_task(
     queue_name TEXT,
     task_name TEXT,
     params JSONB,
-    priority INTEGER,
+    task_priority INTEGER,
     timeout_sec INTEGER,
     status TEXT,
     worker_id TEXT,
@@ -107,21 +107,22 @@ DECLARE
     v_task_id UUID;
 BEGIN
     -- Find highest priority pending task and claim it atomically
-    UPDATE absurd.tasks
+    -- Use table aliases to avoid ambiguity with RETURNS TABLE columns
+    UPDATE absurd.tasks t
     SET status = 'claimed',
         worker_id = p_worker_id,
         claimed_at = NOW(),
-        attempt = attempt + 1
-    WHERE absurd.tasks.task_id = (
-        SELECT absurd.tasks.task_id
-        FROM absurd.tasks
-        WHERE absurd.tasks.queue_name = p_queue_name
-          AND absurd.tasks.status = 'pending'
-        ORDER BY priority DESC, created_at ASC
+        attempt = t.attempt + 1
+    WHERE t.task_id = (
+        SELECT t2.task_id
+        FROM absurd.tasks t2
+        WHERE t2.queue_name = p_queue_name
+          AND t2.status = 'pending'
+        ORDER BY t2.priority DESC, t2.created_at ASC
         LIMIT 1
         FOR UPDATE SKIP LOCKED
     )
-    RETURNING absurd.tasks.task_id INTO v_task_id;
+    RETURNING t.task_id INTO v_task_id;
     
     -- Return the claimed task
     RETURN QUERY
@@ -130,7 +131,7 @@ BEGIN
         t.queue_name,
         t.task_name,
         t.params,
-        t.priority,
+        t.priority AS task_priority,
         t.timeout_sec,
         t.status,
         t.worker_id,

@@ -117,7 +117,10 @@ General-purpose region drawing:
       // Pre-populate query cache
       if (!mockData._isLoading && !mockData._error) {
         const imageId = mockData._mockImage?.id || mockGoodImage.id;
-        queryClient.setQueryData(["image", imageId], mockData._mockImage || mockGoodImage);
+        queryClient.setQueryData(
+          ["image", imageId],
+          mockData._mockImage || mockGoodImage
+        );
       }
 
       const imageId = mockData._mockImage?.id || mockGoodImage.id;
@@ -163,7 +166,8 @@ export const WarningGrade: Story = {
   parameters: {
     docs: {
       description: {
-        story: "Image that passed QA with warnings - higher noise than expected.",
+        story:
+          "Image that passed QA with warnings - higher noise than expected.",
       },
     },
   },
@@ -383,13 +387,14 @@ export const HighPrecisionCoordinates: Story = {
   args: {
     _mockImage: createMockImage({
       pointing_ra_deg: 202.784512345678,
-      pointing_dec_deg: 30.509234567890,
+      pointing_dec_deg: 30.50923456789,
     }),
   } as any,
   parameters: {
     docs: {
       description: {
-        story: "Tests coordinate display formatting with high precision values.",
+        story:
+          "Tests coordinate display formatting with high precision values.",
       },
     },
   },
@@ -408,7 +413,8 @@ export const NoCoordinates: Story = {
   parameters: {
     docs: {
       description: {
-        story: "Image without specific pointing coordinates (e.g., all-sky survey).",
+        story:
+          "Image without specific pointing coordinates (e.g., all-sky survey).",
       },
     },
   },

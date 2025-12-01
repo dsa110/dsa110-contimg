@@ -325,7 +325,7 @@ class AbsurdClient:
                 "queue_name": row["queue_name"],
                 "task_name": row["task_name"],
                 "params": json.loads(row["params"]) if row["params"] else {},
-                "priority": row["priority"],
+                "priority": row["task_priority"],
                 "status": row["status"],
                 "retry_count": row["attempt"],
             }

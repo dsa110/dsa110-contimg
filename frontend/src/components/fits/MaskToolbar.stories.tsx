@@ -259,7 +259,8 @@ export const SavedSuccessfully: Story = {
           />
         </svg>
         <span className="text-sm">
-          Mask saved: <code className="text-xs">/masks/obs-2025-12-01.mask.reg</code>
+          Mask saved:{" "}
+          <code className="text-xs">/masks/obs-2025-12-01.mask.reg</code>
         </span>
       </div>
     </div>
@@ -292,7 +293,9 @@ export const SaveError: Story = {
         <span className="text-sm">
           Failed to save mask: Server returned 500 - disk quota exceeded
         </span>
-        <button className="ml-auto text-xs text-red-700 underline">Retry</button>
+        <button className="ml-auto text-xs text-red-700 underline">
+          Retry
+        </button>
       </div>
     </div>
   ),
@@ -335,8 +338,8 @@ export const WorkflowStep1Draw: Story = {
         <div className="mb-4">
           <h3 className="font-semibold mb-2">Draw Clean Mask Regions</h3>
           <p className="text-sm text-gray-600">
-            Use circle or box tools to mark regions to include during deconvolution.
-            Draw around sources you want to clean deeply.
+            Use circle or box tools to mark regions to include during
+            deconvolution. Draw around sources you want to clean deeply.
           </p>
         </div>
         <MaskToolbar {...args} />
@@ -430,7 +433,9 @@ export const ReImageWithMask: Story = {
       <div className="mb-4 bg-gray-100 rounded p-3">
         <div className="flex justify-between items-center mb-2">
           <span className="text-sm font-medium">Loaded Mask</span>
-          <button className="text-xs text-blue-600 hover:underline">Edit Mask</button>
+          <button className="text-xs text-blue-600 hover:underline">
+            Edit Mask
+          </button>
         </div>
         <div className="text-xs text-gray-600 space-y-1">
           <div>• 3 circle regions (sources)</div>

@@ -456,15 +456,11 @@ export const InDashboardCard: Story = {
     <div className="bg-white rounded-lg shadow-md p-4">
       <div className="flex justify-between items-center mb-3">
         <h3 className="text-lg font-semibold">Array Status</h3>
-        <span className="text-xs text-gray-500">
-          Last updated: 2 min ago
-        </span>
+        <span className="text-xs text-gray-500">Last updated: 2 min ago</span>
       </div>
       <MockAntennaLayout {...args} />
       <div className="mt-3 pt-3 border-t border-gray-200 flex justify-between text-sm">
-        <span className="text-gray-600">
-          Observation: 2025-12-01T14:30:00
-        </span>
+        <span className="text-gray-600">Observation: 2025-12-01T14:30:00</span>
         <a href="#" className="text-blue-600 hover:underline">
           View Details →
         </a>

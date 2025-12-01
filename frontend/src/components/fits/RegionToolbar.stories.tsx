@@ -223,7 +223,8 @@ export const WithExistingRegions: Story = {
         </div>
       </div>
       <div className="mt-3 text-sm text-gray-600">
-        <strong>Loaded regions:</strong> circle (source), box (exclusion), point (marker)
+        <strong>Loaded regions:</strong> circle (source), box (exclusion), point
+        (marker)
       </div>
     </div>
   ),
@@ -251,19 +252,25 @@ export const SourceIdentificationWorkflow: Story = {
           📍 Source Identification
         </h3>
         <ol className="text-sm text-blue-800 space-y-1 list-decimal list-inside">
-          <li>Select the <strong>Circle</strong> tool to mark point sources</li>
-          <li>Use <strong>Ellipse</strong> for extended sources</li>
-          <li>Export as <strong>DS9</strong> for use in other tools</li>
+          <li>
+            Select the <strong>Circle</strong> tool to mark point sources
+          </li>
+          <li>
+            Use <strong>Ellipse</strong> for extended sources
+          </li>
+          <li>
+            Export as <strong>DS9</strong> for use in other tools
+          </li>
         </ol>
       </div>
-      
+
       <div className="bg-white rounded-lg shadow-md p-4">
         <RegionToolbar {...args} />
         <div className="mt-4 bg-gray-900 rounded h-80 flex items-center justify-center text-gray-500">
           [FITS Image: 2025-12-01T14:30:00.fits]
         </div>
       </div>
-      
+
       <div className="flex gap-2">
         <button className="btn btn-primary">Save & Continue</button>
         <button className="btn btn-secondary">Skip Image</button>
@@ -303,7 +310,9 @@ export const CalibratorFieldMarking: Story = {
         {/* Mock calibrator highlight */}
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-24 h-24 border-2 border-yellow-400 rounded-full animate-pulse" />
         <div className="absolute top-1/3 left-1/2 -translate-x-1/2 mt-28 text-yellow-400 text-xs text-center">
-          3C286<br />12.9 Jy
+          3C286
+          <br />
+          12.9 Jy
         </div>
       </div>
     </div>
@@ -339,12 +348,12 @@ export const ExportFormatComparison: Story = {
   render: () => (
     <div className="space-y-6 max-w-3xl">
       <h3 className="text-lg font-semibold">Region Export Formats</h3>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white rounded-lg shadow p-4">
           <h4 className="font-medium text-green-700 mb-2">DS9 Format</h4>
           <pre className="text-xs bg-gray-100 p-2 rounded overflow-x-auto">
-{`# DS9 version 4.1
+            {`# DS9 version 4.1
 global color=green
 image
 circle(256,256,30)
@@ -354,11 +363,11 @@ box(128,128,40,30,0)`}
             Standard SAOImage DS9 format. Compatible with most astronomy tools.
           </p>
         </div>
-        
+
         <div className="bg-white rounded-lg shadow p-4">
           <h4 className="font-medium text-blue-700 mb-2">CRTF Format</h4>
           <pre className="text-xs bg-gray-100 p-2 rounded overflow-x-auto">
-{`#CRTFv0 CASA Region
+            {`#CRTFv0 CASA Region
 global coord=J2000
 circle [[12h30m00s, +45d00m00s], 30arcsec]`}
           </pre>
@@ -366,11 +375,11 @@ circle [[12h30m00s, +45d00m00s], 30arcsec]`}
             CASA Region Text Format. Required for CASA tasks.
           </p>
         </div>
-        
+
         <div className="bg-white rounded-lg shadow p-4">
           <h4 className="font-medium text-purple-700 mb-2">JSON Format</h4>
           <pre className="text-xs bg-gray-100 p-2 rounded overflow-x-auto">
-{`[{
+            {`[{
   "shape": "circle",
   "ra": 187.5,
   "dec": 45.0,
@@ -382,7 +391,7 @@ circle [[12h30m00s, +45d00m00s], 30arcsec]`}
           </p>
         </div>
       </div>
-      
+
       <div className="bg-gray-50 rounded-lg p-4">
         <RegionToolbar displayId="JS9" />
       </div>

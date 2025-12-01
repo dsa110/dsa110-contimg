@@ -36,34 +36,38 @@ export const withQueryClient = (Story: React.ComponentType) => {
 /**
  * Decorator with routing support.
  */
-export const withRouter = (initialPath = "/") => (Story: React.ComponentType) => {
-  return (
-    <MemoryRouter initialEntries={[initialPath]}>
-      <Routes>
-        <Route path="*" element={<Story />} />
-      </Routes>
-    </MemoryRouter>
-  );
-};
+export const withRouter =
+  (initialPath = "/") =>
+  (Story: React.ComponentType) => {
+    return (
+      <MemoryRouter initialEntries={[initialPath]}>
+        <Routes>
+          <Route path="*" element={<Story />} />
+        </Routes>
+      </MemoryRouter>
+    );
+  };
 
 /**
  * Full app decorator with layout, routing, and query client.
  */
-export const withAppLayout = (initialPath = "/") => (Story: React.ComponentType) => {
-  const queryClient = createQueryClient();
-  return (
-    <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={[initialPath]}>
-        <Routes>
-          <Route path="*" element={<AppLayout />}>
-            <Route index element={<Story />} />
-            <Route path="*" element={<Story />} />
-          </Route>
-        </Routes>
-      </MemoryRouter>
-    </QueryClientProvider>
-  );
-};
+export const withAppLayout =
+  (initialPath = "/") =>
+  (Story: React.ComponentType) => {
+    const queryClient = createQueryClient();
+    return (
+      <QueryClientProvider client={queryClient}>
+        <MemoryRouter initialEntries={[initialPath]}>
+          <Routes>
+            <Route path="*" element={<AppLayout />}>
+              <Route index element={<Story />} />
+              <Route path="*" element={<Story />} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    );
+  };
 
 /**
  * Dark theme wrapper for testing dark mode.
