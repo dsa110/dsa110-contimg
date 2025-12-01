@@ -22,6 +22,17 @@ export default defineConfig({
       },
     },
   },
+  preview: {
+    port: 3210,
+    strictPort: true,
+    host: "127.0.0.1",
+    proxy: {
+      "/api": {
+        target: "http://127.0.0.1:8000",
+        changeOrigin: true,
+      },
+    },
+  },
   build: {
     outDir: "dist",
     // Generate sourcemaps for debugging

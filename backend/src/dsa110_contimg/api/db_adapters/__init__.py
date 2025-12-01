@@ -5,7 +5,7 @@ This package provides a unified async interface for database operations,
 supporting both SQLite and PostgreSQL backends.
 
 Basic Usage:
-    from dsa110_contimg.api.database import create_adapter, DatabaseConfig
+    from dsa110_contimg.api.db_adapters import create_adapter, DatabaseConfig
     
     # Create adapter from environment variables
     adapter = create_adapter()

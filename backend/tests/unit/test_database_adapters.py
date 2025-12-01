@@ -12,13 +12,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 import pytest_asyncio
 
-from dsa110_contimg.api.database import (
+from dsa110_contimg.api.db_adapters import (
     create_adapter,
     DatabaseAdapter,
     DatabaseBackend,
     DatabaseConfig,
 )
-from dsa110_contimg.api.database.adapters.sqlite_adapter import SQLiteAdapter
+from dsa110_contimg.api.db_adapters.adapters.sqlite_adapter import SQLiteAdapter
 
 
 # =============================================================================
@@ -354,7 +354,7 @@ class TestPostgreSQLAdapterMocked:
         with patch.dict("sys.modules", {"asyncpg": None}):
             # Re-import to trigger check
             import importlib
-            from dsa110_contimg.api.database.adapters import postgresql_adapter
+            from dsa110_contimg.api.db_adapters.adapters import postgresql_adapter
             
             # Temporarily set ASYNCPG_AVAILABLE to False
             original = postgresql_adapter.ASYNCPG_AVAILABLE
@@ -408,7 +408,7 @@ class TestCreateAdapter:
             pg_database="testdb",
         )
         adapter = create_adapter(config)
-        from dsa110_contimg.api.database.adapters.postgresql_adapter import PostgreSQLAdapter
+        from dsa110_contimg.api.db_adapters.adapters.postgresql_adapter import PostgreSQLAdapter
         assert isinstance(adapter, PostgreSQLAdapter)
 
 
@@ -422,14 +422,14 @@ class TestPlaceholderConversion:
     
     def test_convert_single_placeholder(self):
         """Test converting single ? to $1."""
-        from dsa110_contimg.api.database.adapters.postgresql_adapter import convert_placeholders
+        from dsa110_contimg.api.db_adapters.adapters.postgresql_adapter import convert_placeholders
         
         result = convert_placeholders("SELECT * FROM t WHERE id = ?")
         assert result == "SELECT * FROM t WHERE id = $1"
     
     def test_convert_multiple_placeholders(self):
         """Test converting multiple ? to $1, $2, etc."""
-        from dsa110_contimg.api.database.adapters.postgresql_adapter import convert_placeholders
+        from dsa110_contimg.api.db_adapters.adapters.postgresql_adapter import convert_placeholders
         
         result = convert_placeholders(
             "INSERT INTO t (a, b, c) VALUES (?, ?, ?)"
@@ -438,7 +438,7 @@ class TestPlaceholderConversion:
     
     def test_convert_no_placeholders(self):
         """Test query with no placeholders unchanged."""
-        from dsa110_contimg.api.database.adapters.postgresql_adapter import convert_placeholders
+        from dsa110_contimg.api.db_adapters.adapters.postgresql_adapter import convert_placeholders
         
         query = "SELECT * FROM products"
         result = convert_placeholders(query)
@@ -446,7 +446,7 @@ class TestPlaceholderConversion:
     
     def test_convert_complex_query(self):
         """Test converting complex query with multiple placeholders."""
-        from dsa110_contimg.api.database.adapters.postgresql_adapter import convert_placeholders
+        from dsa110_contimg.api.db_adapters.adapters.postgresql_adapter import convert_placeholders
         
         query = """
             SELECT p.*, c.name as category

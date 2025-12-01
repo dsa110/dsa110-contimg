@@ -3,10 +3,14 @@
 # Run this before any deployment or after any refactor
 
 set -e
+START_TIME=$(date +%s.%N)
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+DIM='\033[2m'
 NC='\033[0m'
 
 ERRORS=0
@@ -14,18 +18,18 @@ WARNINGS=0
 
 check() {
     if eval "$2" >/dev/null 2>&1; then  # suppress-output-check
-        echo -e "${GREEN}:check:${NC} $1"
+        echo -e "${GREEN}✓${NC} $1"
     else
-        echo -e "${RED}:cross:${NC} $1"
+        echo -e "${RED}✗${NC} $1"
         ((ERRORS++)) || true
     fi
 }
 
 warn() {
     if eval "$2" >/dev/null 2>&1; then  # suppress-output-check
-        echo -e "${GREEN}:check:${NC} $1"
+        echo -e "${GREEN}✓${NC} $1"
     else
-        echo -e "${YELLOW}:warning:${NC} $1 (optional)"
+        echo -e "${YELLOW}⚠${NC} $1 ${DIM}(optional)${NC}"
         ((WARNINGS++)) || true
     fi
 }
@@ -33,65 +37,91 @@ warn() {
 # Informational check - always shows as info, no warning count
 info() {
     if eval "$2" >/dev/null 2>&1; then  # suppress-output-check
-        echo -e "${GREEN}:check:${NC} $1"
+        echo -e "${GREEN}✓${NC} $1"
     else
         echo -e "${BLUE}ℹ${NC} $1"
     fi
 }
 
-echo "=== DSA-110 Preflight Check ==="
+# Show version or value inline
+show() {
+    local label="$1"
+    local value
+    value=$(eval "$2" 2>/dev/null) || value="unavailable"
+    echo -e "${CYAN}│${NC} $label: ${DIM}$value${NC}"
+}
+
+echo -e "${CYAN}╔════════════════════════════════════════╗${NC}"
+echo -e "${CYAN}║${NC}     DSA-110 Preflight Check            ${CYAN}║${NC}"
+echo -e "${CYAN}╚════════════════════════════════════════╝${NC}"
 echo ""
 
-echo "--- Environment ---"
+echo -e "${CYAN}┌─ Environment ─────────────────────────┐${NC}"
 check "conda casa6 environment exists" "conda env list | grep -q casa6"
 check "Node.js available in casa6" "test -x /opt/miniforge/envs/casa6/bin/node"
 check "Python 3.11 in casa6" "/opt/miniforge/envs/casa6/bin/python --version | grep -q '3.11'"
+show "Python" "/opt/miniforge/envs/casa6/bin/python --version 2>&1 | cut -d' ' -f2"
+show "Node.js" "/opt/miniforge/envs/casa6/bin/node --version"
+show "npm" "/opt/miniforge/envs/casa6/bin/npm --version"
 
 echo ""
-echo "--- Frontend Scripts ---"
-check "scripts/start-dev.sh exists" "test -f /data/dsa110-contimg/frontend/scripts/start-dev.sh"
-check "scripts/ensure-port.cjs exists" "test -f /data/dsa110-contimg/frontend/scripts/ensure-port.cjs"
-check "package.json dev script valid" "grep -q 'ensure-port.cjs' /data/dsa110-contimg/frontend/package.json"
-
-echo ""
-echo "--- Production Scripts ---"
-check "build-dashboard-production.sh exists" "test -x /data/dsa110-contimg/scripts/build-dashboard-production.sh"
-check "serve-dashboard-production.sh exists" "test -x /data/dsa110-contimg/scripts/serve-dashboard-production.sh"
-
-echo ""
-echo "--- Systemd Services ---"
+echo -e "${CYAN}┌─ Services ────────────────────────────┐${NC}"
 check "contimg-api.service installed" "systemctl list-unit-files | grep -q contimg-api.service"
 check "dsa110-contimg-dashboard.service installed" "systemctl list-unit-files | grep -q dsa110-contimg-dashboard.service"
-warn "contimg-api running" "systemctl is-active --quiet contimg-api"
-warn "dashboard running" "systemctl is-active --quiet dsa110-contimg-dashboard"
+check "contimg-api running" "systemctl is-active --quiet contimg-api"
+check "dashboard running" "systemctl is-active --quiet dsa110-contimg-dashboard"
+info "contimg-stream (streaming converter) running" "systemctl is-active --quiet contimg-stream"
 
 echo ""
-echo "--- Ports ---"
-check "Port 8000 (API) available or in use by our service" "! lsof -i :8000 >/dev/null 2>&1 || systemctl is-active --quiet contimg-api"  # suppress-output-check
-check "Port 3210 (Dashboard) available or in use by our service" "! lsof -i :3210 >/dev/null 2>&1 || systemctl is-active --quiet dsa110-contimg-dashboard"  # suppress-output-check
-info "Port 3000 (Dev server) not running - start with 'npm run dev' if needed" "lsof -i :3000 >/dev/null 2>&1"  # suppress-output-check
+echo -e "${CYAN}┌─ Health Checks ───────────────────────┐${NC}"
+check "API responds at :8000/api/health" "curl -sf http://localhost:8000/api/health >/dev/null"
+check "Dashboard serves at :3210" "curl -sf http://localhost:3210/ >/dev/null"
+info "Dev server at :3000 - start with 'npm run dev'" "curl -sf http://localhost:3000/ >/dev/null"
 
 echo ""
-echo "--- Frontend Build ---"
+echo -e "${CYAN}┌─ Databases ───────────────────────────┐${NC}"
+check "products.sqlite3 exists" "test -f /data/dsa110-contimg/state/products.sqlite3"
+check "hdf5.sqlite3 exists" "test -f /data/dsa110-contimg/state/hdf5.sqlite3"
+warn "ingest.sqlite3 exists" "test -f /data/dsa110-contimg/state/ingest.sqlite3"
+warn "cal_registry.sqlite3 exists" "test -f /data/dsa110-contimg/state/cal_registry.sqlite3"
+
+echo ""
+echo -e "${CYAN}┌─ Storage ─────────────────────────────┐${NC}"
+check "/data mounted (HDD)" "mountpoint -q /data || test -d /data"
+check "/stage mounted (SSD)" "test -d /stage"
+check "/scratch available" "test -d /scratch && test -w /scratch"
+show "/data usage" "df -h /data 2>/dev/null | tail -1 | awk '{print \$3\"/\"\$2\" (\"\$5\" used)\"}'"
+show "/stage usage" "df -h /stage 2>/dev/null | tail -1 | awk '{print \$3\"/\"\$2\" (\"\$5\" used)\"}'"
+
+echo ""
+echo -e "${CYAN}┌─ Frontend ────────────────────────────┐${NC}"
 check "node_modules exists" "test -d /data/dsa110-contimg/frontend/node_modules"
 check "vite installed" "test -f /data/dsa110-contimg/frontend/node_modules/.bin/vite"
-warn "dist/ exists (production build)" "test -d /data/dsa110-contimg/frontend/dist"
+check "dist/ exists (production build)" "test -d /data/dsa110-contimg/frontend/dist"
+check "build-dashboard-production.sh executable" "test -x /data/dsa110-contimg/scripts/build-dashboard-production.sh"
+check "serve-dashboard-production.sh executable" "test -x /data/dsa110-contimg/scripts/serve-dashboard-production.sh"
 
 echo ""
-echo "--- Backend ---"
+echo -e "${CYAN}┌─ Backend ─────────────────────────────┐${NC}"
 check "dsa110_contimg package exists" "test -d /data/dsa110-contimg/backend/src/dsa110_contimg"
 check "API module exists" "test -f /data/dsa110-contimg/backend/src/dsa110_contimg/api/__init__.py"
+check "conversion module exists" "test -d /data/dsa110-contimg/backend/src/dsa110_contimg/conversion"
 
 echo ""
-echo "=== Summary ==="
+END_TIME=$(date +%s.%N)
+DURATION=$(echo "$END_TIME - $START_TIME" | bc | xargs printf "%.2f")
+
+echo -e "${CYAN}╔════════════════════════════════════════╗${NC}"
 if [ $ERRORS -eq 0 ]; then
-    echo -e "${GREEN}All critical checks passed!${NC}"
+    echo -e "${CYAN}║${NC} ${GREEN}✓ All critical checks passed!${NC}          ${CYAN}║${NC}"
     if [ $WARNINGS -gt 0 ]; then
-        echo -e "${YELLOW}$WARNINGS optional checks need attention${NC}"
+        printf "${CYAN}║${NC} ${YELLOW}⚠ %d optional check(s) need attention${NC}   ${CYAN}║${NC}\n" $WARNINGS
     fi
-    exit 0
 else
-    echo -e "${RED}$ERRORS critical checks failed!${NC}"
-    exit 1
+    printf "${CYAN}║${NC} ${RED}✗ %d critical check(s) failed!${NC}          ${CYAN}║${NC}\n" $ERRORS
 fi
+echo -e "${CYAN}║${NC} ${DIM}Completed in ${DURATION}s${NC}                     ${CYAN}║${NC}"
+echo -e "${CYAN}╚════════════════════════════════════════╝${NC}"
+
+exit $ERRORS
 
