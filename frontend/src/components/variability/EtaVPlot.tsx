@@ -357,6 +357,7 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
       }
     });
   }, [
+    echartsReady,
     filteredSources,
     filteredOutCount,
     candidates,
