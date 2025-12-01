@@ -280,9 +280,10 @@ async def websocket_pipeline_updates(
         
         while True:
             try:
+                config = get_config()
                 data = await asyncio.wait_for(
                     websocket.receive_json(),
-                    timeout=30.0,
+                    timeout=config.timeouts.websocket_ping,
                 )
                 
                 if data.get("type") == "ping":
