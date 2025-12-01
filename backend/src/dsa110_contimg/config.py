@@ -119,52 +119,20 @@ class PathSettings(BaseSettings):
 
 
 class DatabaseSettings(BaseSettings):
-    """Database configuration for SQLite databases.
+    """Database configuration for the unified SQLite database.
     
-    Supports both new unified database (pipeline.sqlite3) and
-    legacy separate databases for migration period.
+    All pipeline data is stored in a single unified database (pipeline.sqlite3).
+    Legacy per-domain databases have been migrated and deprecated.
     """
     model_config = SettingsConfigDict(
         extra="ignore",
     )
     
-    # Unified database (target after migration)
-    unified_db: Path = Field(
+    # Unified database - the single source of truth
+    path: Path = Field(
         default=Path("/data/dsa110-contimg/state/db/pipeline.sqlite3"),
-        validation_alias="CONTIMG_UNIFIED_DB",
-        description="Unified pipeline database (post-migration)"
-    )
-    
-    # Legacy databases (for migration compatibility)
-    products_db: Path = Field(
-        default=Path("/data/dsa110-contimg/state/db/products.sqlite3"),
-        validation_alias="PIPELINE_PRODUCTS_DB",
-        description="Products registry database"
-    )
-    ingest_db: Path = Field(
-        default=Path("/data/dsa110-contimg/state/db/ingest.sqlite3"),
-        validation_alias="CONTIMG_QUEUE_DB",
-        description="Streaming ingest queue database"
-    )
-    cal_registry_db: Path = Field(
-        default=Path("/data/dsa110-contimg/state/db/cal_registry.sqlite3"),
-        validation_alias="PIPELINE_CAL_REGISTRY_DB",
-        description="Calibration registry database"
-    )
-    hdf5_db: Path = Field(
-        default=Path("/data/dsa110-contimg/state/db/hdf5.sqlite3"),
-        validation_alias="PIPELINE_HDF5_DB",
-        description="HDF5 file index database"
-    )
-    calibrators_db: Path = Field(
-        default=Path("/data/dsa110-contimg/state/db/calibrators.sqlite3"),
-        validation_alias="PIPELINE_CALIBRATORS_DB",
-        description="Calibrator catalog database"
-    )
-    data_registry_db: Path = Field(
-        default=Path("/data/dsa110-contimg/state/db/data_registry.sqlite3"),
-        validation_alias="PIPELINE_DATA_REGISTRY_DB",
-        description="Data registry database"
+        validation_alias="PIPELINE_DB",
+        description="Unified pipeline database path"
     )
     
     # Connection settings
@@ -177,6 +145,43 @@ class DatabaseSettings(BaseSettings):
         default=True,
         description="Enable WAL mode for concurrent access"
     )
+    
+    # Deprecated aliases for backwards compatibility during transition
+    # These all point to the unified database now
+    @property
+    def unified_db(self) -> Path:
+        """Deprecated: Use 'path' instead."""
+        return self.path
+    
+    @property
+    def products_db(self) -> Path:
+        """Deprecated: Use unified 'path' instead."""
+        return self.path
+    
+    @property
+    def ingest_db(self) -> Path:
+        """Deprecated: Use unified 'path' instead."""
+        return self.path
+    
+    @property
+    def cal_registry_db(self) -> Path:
+        """Deprecated: Use unified 'path' instead."""
+        return self.path
+    
+    @property
+    def hdf5_db(self) -> Path:
+        """Deprecated: Use unified 'path' instead."""
+        return self.path
+    
+    @property
+    def calibrators_db(self) -> Path:
+        """Deprecated: Use unified 'path' instead."""
+        return self.path
+    
+    @property
+    def data_registry_db(self) -> Path:
+        """Deprecated: Use unified 'path' instead."""
+        return self.path
 
 
 class ConversionSettings(BaseSettings):

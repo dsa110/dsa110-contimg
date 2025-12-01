@@ -156,6 +156,27 @@ def override_env(values: Dict[str, str]) -> Iterator[None]:
                 os.environ[key] = val
 
 
+def _get_pipeline_db_path() -> Path:
+    """Get unified pipeline database path from centralized settings.
+    
+    Returns the path to the unified pipeline database, using:
+    1. Centralized config settings (preferred)
+    2. PIPELINE_PRODUCTS_DB environment variable (legacy)
+    3. Default path state/db/pipeline.sqlite3
+    """
+    # Try centralized settings first
+    try:
+        from dsa110_contimg.config import get_settings
+        settings = get_settings()
+        if hasattr(settings, 'database') and hasattr(settings.database, 'unified_db'):
+            return settings.database.unified_db
+    except (ImportError, Exception):
+        pass
+    
+    # Fall back to env var with new default
+    return Path(os.getenv("PIPELINE_PRODUCTS_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3"))
+
+
 def setup_logging(level: str) -> None:
     logging.basicConfig(
         level=getattr(logging, level.upper(), logging.INFO),
@@ -1233,7 +1254,7 @@ def trigger_photometry_for_image(
     try:
         # Get products DB path
         if products_db_path is None:
-            products_db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
+            products_db_path = _get_pipeline_db_path()
 
         # Create photometry configuration from args
         config = PhotometryConfig(
@@ -1483,7 +1504,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                 continue
 
             # Derive MS path from first subband filename (already organized if path_mapper was used)
-            products_db_path = os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3")
+            products_db_path = _get_pipeline_db_path()
             try:
                 files = queue.group_files(gid)
                 if not files:
@@ -1774,8 +1795,8 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
 
                 # Update products DB with imaging artifacts and stage
                 try:
-                    products_db_path = os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3")
-                    conn = ensure_products_db(Path(products_db_path))
+                    products_db_path = _get_pipeline_db_path()
+                    conn = ensure_products_db(products_db_path)
                     ms_index_upsert(
                         conn,
                         ms_path,
@@ -1809,14 +1830,11 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
 
                             if Path(fits_image).exists():
                                 log.info(f"Triggering photometry for {Path(fits_image).name}")
-                                products_db_path = Path(
-                                    os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3")
-                                )
                                 photometry_job_id = trigger_photometry_for_image(
                                     image_path=Path(fits_image),
                                     group_id=gid,
                                     args=args,
-                                    products_db_path=products_db_path,
+                                    products_db_path=_get_pipeline_db_path(),
                                 )
                                 if photometry_job_id:
                                     log.info(
@@ -1829,15 +1847,8 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                                             link_photometry_to_data,
                                         )
 
-                                        registry_db_path = Path(
-                                            os.getenv(
-                                                "DATA_REGISTRY_DB",
-                                                str(
-                                                    products_db_path.parent
-                                                    / "data_registry.sqlite3"
-                                                ),
-                                            )
-                                        )
+                                        # Use unified database (contains data_registry tables)
+                                        registry_db_path = _get_pipeline_db_path()
                                         registry_conn = ensure_data_registry_db(registry_db_path)
                                         # Generate data_id from image path (stem without extension)
                                         image_data_id = Path(fits_image).stem
@@ -1875,11 +1886,9 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                     # Check for complete group and trigger mosaic creation if enabled
                     if getattr(args, "enable_group_imaging", False):
                         try:
-                            products_db_path = os.getenv(
-                                "PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"
-                            )
+                            products_db_path = _get_pipeline_db_path()
                             group_ms_paths = check_for_complete_group(
-                                ms_path, Path(products_db_path)
+                                ms_path, products_db_path
                             )
 
                             if group_ms_paths:
@@ -1887,7 +1896,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                                 if getattr(args, "enable_mosaic_creation", False):
                                     mosaic_path = trigger_group_mosaic_creation(
                                         group_ms_paths,
-                                        Path(products_db_path),
+                                        products_db_path,
                                         args,
                                     )
                                     if mosaic_path:
@@ -1901,7 +1910,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                                                 )
 
                                                 registry_conn = ensure_data_registry_db(
-                                                    Path(products_db_path)
+                                                    products_db_path
                                                 )
                                                 # Register mosaic in data registry
                                                 mosaic_id = Path(mosaic_path).stem
@@ -2139,7 +2148,7 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     phot_worker = None
     if getattr(args, "enable_photometry", False):
-        products_db_path = Path(os.getenv("PIPELINE_PRODUCTS_DB", "state/db/products.sqlite3"))
+        products_db_path = _get_pipeline_db_path()
         phot_worker = PhotometryBatchWorker(
             products_db_path=products_db_path,
             poll_interval=float(args.worker_poll_interval),

@@ -51,6 +51,36 @@ from .aegean_fitting import measure_with_aegean
 from .forced import measure_forced_peak, measure_many
 
 
+def _get_pipeline_db_path(cli_arg: str | None = None) -> Path:
+    """Get pipeline database path from centralized settings or CLI argument.
+    
+    Priority order:
+    1. CLI argument (if provided and not default)
+    2. Centralized settings (DatabaseSettings.unified_db)
+    3. Legacy environment variable PIPELINE_PRODUCTS_DB
+    4. Default path state/db/pipeline.sqlite3
+    """
+    # Default values
+    default_path = "state/db/products.sqlite3"  # CLI default
+    unified_default = "/data/dsa110-contimg/state/db/pipeline.sqlite3"
+    
+    # If CLI arg provided and not the default, use it
+    if cli_arg and cli_arg != default_path:
+        return Path(cli_arg)
+    
+    # Try centralized settings
+    try:
+        from dsa110_contimg.config import get_settings
+        settings = get_settings()
+        if hasattr(settings, 'database') and hasattr(settings.database, 'unified_db'):
+            return settings.database.unified_db
+    except (ImportError, Exception):
+        pass
+    
+    # Fall back to env var or new default
+    return Path(os.getenv("PIPELINE_PRODUCTS_DB", unified_default))
+
+
 def _parse_coords_arg(coords_arg: str) -> List[Tuple[float, float]]:
     parts = [c.strip() for c in coords_arg.split(";") if c.strip()]
     coords: List[Tuple[float, float]] = []
@@ -144,8 +174,8 @@ def cmd_batch(args: argparse.Namespace) -> int:
         return 1
 
     # Setup database connection - always store results
-    pdb_path = os.getenv("PIPELINE_PRODUCTS_DB", args.products_db)
-    conn = ensure_products_db(Path(pdb_path))
+    pdb_path = _get_pipeline_db_path(getattr(args, 'products_db', None))
+    conn = ensure_products_db(pdb_path)
 
     results = []
     now = time.time()
@@ -240,8 +270,8 @@ def cmd_export(args: argparse.Namespace) -> int:
     """Export lightcurve data for a source from the database."""
     import csv as csv_module
 
-    pdb_path = os.getenv("PIPELINE_PRODUCTS_DB", args.products_db)
-    conn = ensure_products_db(Path(pdb_path))
+    pdb_path = _get_pipeline_db_path(getattr(args, 'products_db', None))
+    conn = ensure_products_db(pdb_path)
 
     # Query photometry for the source
     rows = conn.execute(
@@ -344,8 +374,8 @@ def cmd_nvss(args: argparse.Namespace) -> int:
 
     results = []
     now = time.time()
-    pdb_path = os.getenv("PIPELINE_PRODUCTS_DB", args.products_db)
-    conn = ensure_products_db(Path(pdb_path))
+    pdb_path = _get_pipeline_db_path(getattr(args, 'products_db', None))
+    conn = ensure_products_db(pdb_path)
     try:
         inserted = 0
         skipped = 0
@@ -464,7 +494,7 @@ def cmd_ese_detect(args: argparse.Namespace) -> int:
     """Detect ESE candidates from variability statistics."""
     from dsa110_contimg.photometry.thresholds import get_threshold_preset
 
-    products_db = Path(os.getenv("PIPELINE_PRODUCTS_DB", args.products_db))
+    products_db = _get_pipeline_db_path(getattr(args, 'products_db', None))
 
     if not products_db.exists():
         print(json.dumps({"error": f"Products database not found: {products_db}"}, indent=2))
@@ -536,8 +566,8 @@ def cmd_plot(args: argparse.Namespace) -> int:
     ycirc = cy + r_pix * np.sin(th)
 
     # Load photometry rows for this image
-    pdb_path = os.getenv("PIPELINE_PRODUCTS_DB", args.products_db)
-    conn = ensure_products_db(Path(pdb_path))
+    pdb_path = _get_pipeline_db_path(getattr(args, 'products_db', None))
+    conn = ensure_products_db(pdb_path)
     rows = conn.execute(
         "SELECT ra_deg, dec_deg, peak_jyb, nvss_flux_mjy FROM photometry WHERE image_path = ?",
         (args.fits,),
@@ -672,7 +702,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     sp = sub.add_parser("nvss", help="Forced photometry for NVSS sources within the image FoV")
     sp.add_argument("--fits", required=True, help="Input FITS image (PB-corrected)")
-    sp.add_argument("--products-db", default="state/db/products.sqlite3")
+    sp.add_argument("--products-db", default="state/db/pipeline.sqlite3", help="Pipeline database (default: unified DB)")
     sp.add_argument("--min-mjy", type=float, default=10.0)
     sp.add_argument("--radius-deg", type=float, default=None, help="Override FoV radius (deg)")
     sp.add_argument(
@@ -693,7 +723,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     sp = sub.add_parser("plot", help="Visualize photometry results overlaid on FITS image")
     sp.add_argument("--fits", required=True, help="Input FITS image (PB-corrected)")
-    sp.add_argument("--products-db", default="state/db/products.sqlite3")
+    sp.add_argument("--products-db", default="state/db/pipeline.sqlite3", help="Pipeline database (default: unified DB)")
     sp.add_argument("--out", default=None, help="Output PNG path")
     sp.add_argument("--cmap", default="viridis")
     sp.add_argument("--vmin", type=float, default=None)

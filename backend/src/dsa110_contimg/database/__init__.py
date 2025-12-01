@@ -3,62 +3,53 @@
 """
 DSA-110 Continuum Imaging Pipeline Database Module.
 
-This module provides SQLAlchemy ORM models and session management for all
-SQLite databases used by the pipeline.
+This module provides both the simplified Database class (recommended)
+and the legacy SQLAlchemy ORM models for backwards compatibility.
 
-Databases:
-    - products.sqlite3: Product registry (MS, images, photometry, transients)
-    - cal_registry.sqlite3: Calibration table registry
-    - hdf5.sqlite3: HDF5 file index
-    - ingest.sqlite3: Streaming queue management
-    - data_registry.sqlite3: Data staging and publishing
+Recommended Usage (Simplified):
+    from dsa110_contimg.database import Database
+    
+    db = Database()  # Uses PIPELINE_DB env var or default path
+    
+    # Query with dict results
+    images = db.query("SELECT * FROM images WHERE type = ?", ("dirty",))
+    for img in images:
+        print(f"{img['path']}: {img['noise_jy']} Jy")
+    
+    # Insert/update
+    db.execute(
+        "INSERT INTO images (path, ms_path, type, created_at) VALUES (?, ?, ?, ?)",
+        ("/path/to/img.fits", "/path/to/ms", "dirty", time.time())
+    )
+    
+    # Transaction context
+    with db.transaction() as conn:
+        conn.execute("UPDATE images SET type = ? WHERE id = ?", ("clean", 42))
 
-Usage:
-    # Query images using ORM
+Legacy Usage (ORM - for existing code):
     from dsa110_contimg.database import get_session, Image, MSIndex
     
     with get_session("products") as session:
         images = session.query(Image).filter_by(type="dirty").all()
-        for img in images:
-            print(f"{img.path}: {img.noise_jy} Jy")
-    
-    # Add new records
-    with get_session("products") as session:
-        new_image = Image(
-            path="/stage/dsa110-contimg/images/test.fits",
-            ms_path="/stage/dsa110-contimg/ms/test.ms",
-            created_at=time.time(),
-            type="dirty",
-        )
-        session.add(new_image)
-        # Commits automatically on exit
-    
-    # Multi-threaded access (streaming converter)
-    from dsa110_contimg.database import get_scoped_session
-    
-    Session = get_scoped_session("products")
-    
-    def worker():
-        session = Session()
-        try:
-            # do work
-            session.commit()
-        finally:
-            Session.remove()
 
 Configuration:
-    Database paths can be overridden via environment variables:
-    - PIPELINE_PRODUCTS_DB
-    - PIPELINE_CAL_REGISTRY_DB
-    - PIPELINE_HDF5_DB
-    - PIPELINE_INGEST_DB
-    - PIPELINE_DATA_REGISTRY_DB
+    - PIPELINE_DB: Path to unified pipeline.sqlite3 (default: /data/dsa110-contimg/state/db/pipeline.sqlite3)
+    - DB_CONNECTION_TIMEOUT: Connection timeout in seconds (default: 30.0)
 
 See Also:
-    - dsa110_contimg.database.models: ORM model definitions
-    - dsa110_contimg.database.session: Session and engine management
-    - dsa110_contimg.database.repositories: Repository pattern wrappers
+    - dsa110_contimg.database.unified: Simplified Database class
+    - dsa110_contimg.database.models: ORM model definitions (legacy)
 """
+
+# =============================================================================
+# Simplified Database Layer (RECOMMENDED)
+# =============================================================================
+
+from .unified import Database, DEFAULT_PIPELINE_DB
+
+# =============================================================================
+# Legacy ORM-based Session Management
+# =============================================================================
 
 # Session management
 from .session import (
@@ -125,7 +116,10 @@ from .hdf5_index import (
 )
 
 __all__ = [
-    # Session management
+    # Simplified Database Layer (RECOMMENDED)
+    "Database",
+    "DEFAULT_PIPELINE_DB",
+    # Legacy Session management
     "get_session",
     "get_readonly_session",
     "get_scoped_session",

@@ -3,6 +3,8 @@ Database configuration and connection management.
 
 Provides async database connections with connection pooling,
 and transaction context managers for safe database operations.
+
+All database access now uses the unified pipeline.sqlite3 database.
 """
 
 from __future__ import annotations
@@ -15,113 +17,118 @@ from typing import Optional, AsyncIterator, Iterator
 import aiosqlite
 
 
+# Default unified database path
+DEFAULT_DB_PATH = "/data/dsa110-contimg/state/db/pipeline.sqlite3"
+
+
 @dataclass
 class PoolConfig:
     """Configuration for the database connection pool.
     
-    Note: This is specifically for the async connection pool. For the
-    comprehensive database configuration, see config.DatabaseConfig.
+    All paths now point to the unified pipeline.sqlite3 database.
+    Legacy separate database paths are maintained for backwards compatibility
+    but all resolve to the same unified database.
     """
     
-    products_db_path: str = "/data/dsa110-contimg/state/db/products.sqlite3"
-    cal_registry_db_path: str = "/data/dsa110-contimg/state/db/cal_registry.sqlite3"
+    db_path: str = DEFAULT_DB_PATH
     timeout: float = 30.0
+    
+    # Backwards compatibility aliases (all point to unified DB)
+    @property
+    def products_db_path(self) -> str:
+        return self.db_path
+    
+    @property
+    def cal_registry_db_path(self) -> str:
+        return self.db_path
     
     @classmethod
     def from_env(cls) -> "PoolConfig":
         """Create config from environment variables.
         
-        Uses the same env vars as the rest of the pipeline:
-        - PIPELINE_PRODUCTS_DB
-        - PIPELINE_CAL_REGISTRY_DB
+        Uses PIPELINE_DB for the unified database path.
+        Falls back to legacy env vars for backwards compatibility.
         """
+        # Prefer unified db path, fallback to legacy
+        db_path = os.getenv("PIPELINE_DB")
+        if db_path is None:
+            db_path = os.getenv("PIPELINE_PRODUCTS_DB", DEFAULT_DB_PATH)
+        
         return cls(
-            products_db_path=os.getenv(
-                "PIPELINE_PRODUCTS_DB",
-                "/data/dsa110-contimg/state/db/products.sqlite3"
-            ),
-            cal_registry_db_path=os.getenv(
-                "PIPELINE_CAL_REGISTRY_DB",
-                "/data/dsa110-contimg/state/db/cal_registry.sqlite3"
-            ),
-            timeout=float(os.getenv("DSA110_DB_TIMEOUT", "30.0")),
+            db_path=db_path,
+            timeout=float(os.getenv("DB_CONNECTION_TIMEOUT", "30.0")),
         )
 
 
 class DatabasePool:
     """
-    Async database connection pool.
+    Async database connection pool for the unified pipeline database.
     
-    Provides connection pooling for SQLite databases with proper
-    lifecycle management.
+    All database operations now use a single unified pipeline.sqlite3 database.
+    The legacy products_db and cal_registry_db methods are maintained for
+    backwards compatibility but both return the same connection.
     """
     
     def __init__(self, config: Optional[PoolConfig] = None):
         self.config = config or PoolConfig.from_env()
-        self._products_conn: Optional[aiosqlite.Connection] = None
-        self._cal_conn: Optional[aiosqlite.Connection] = None
+        self._conn: Optional[aiosqlite.Connection] = None
     
-    async def _get_connection(
-        self,
-        db_path: str,
-        existing_conn: Optional[aiosqlite.Connection]
-    ) -> aiosqlite.Connection:
-        """Get or create a connection to the specified database."""
-        if existing_conn is not None:
+    async def _get_connection(self) -> aiosqlite.Connection:
+        """Get or create a connection to the unified database."""
+        if self._conn is not None:
             try:
                 # Test if connection is still valid
-                await existing_conn.execute("SELECT 1")
-                return existing_conn
+                await self._conn.execute("SELECT 1")
+                return self._conn
             except (sqlite3.Error, ValueError):
                 # Connection is dead, create new one
                 try:
-                    await existing_conn.close()
+                    await self._conn.close()
                 except (sqlite3.Error, ValueError):
                     pass
         
         conn = await aiosqlite.connect(
-            db_path,
+            self.config.db_path,
             timeout=self.config.timeout
         )
         conn.row_factory = aiosqlite.Row
         await conn.execute("PRAGMA journal_mode=WAL")
+        self._conn = conn
         return conn
     
     @asynccontextmanager
+    async def connection(self) -> AsyncIterator[aiosqlite.Connection]:
+        """Get a connection to the unified database."""
+        conn = await self._get_connection()
+        yield conn
+    
+    # Backwards compatibility aliases
+    @asynccontextmanager
     async def products_db(self) -> AsyncIterator[aiosqlite.Connection]:
-        """Get a connection to the products database."""
-        self._products_conn = await self._get_connection(
-            self.config.products_db_path,
-            self._products_conn
-        )
-        yield self._products_conn
+        """Deprecated: Use connection() instead. Returns unified DB connection."""
+        async with self.connection() as conn:
+            yield conn
     
     @asynccontextmanager
     async def cal_registry_db(self) -> AsyncIterator[aiosqlite.Connection]:
-        """Get a connection to the calibration registry database."""
-        self._cal_conn = await self._get_connection(
-            self.config.cal_registry_db_path,
-            self._cal_conn
-        )
-        yield self._cal_conn
+        """Deprecated: Use connection() instead. Returns unified DB connection."""
+        async with self.connection() as conn:
+            yield conn
     
     async def close(self):
-        """Close all connections."""
-        if self._products_conn:
-            await self._products_conn.close()
-            self._products_conn = None
-        if self._cal_conn:
-            await self._cal_conn.close()
-            self._cal_conn = None
+        """Close the connection."""
+        if self._conn:
+            await self._conn.close()
+            self._conn = None
 
 
 class SyncDatabasePool:
     """
-    Synchronous database connection pool.
+    Synchronous database connection pool for the unified pipeline database.
     
-    Provides connection pooling for SQLite databases with proper
-    lifecycle management. Connections are reused when possible,
-    reducing the overhead of creating new connections.
+    All database operations now use a single unified pipeline.sqlite3 database.
+    The legacy products_db and cal_registry_db methods are maintained for
+    backwards compatibility but both return the same connection.
     
     Thread-Safety: This pool is NOT thread-safe. Each thread should
     have its own pool instance, or use thread-local storage.
@@ -129,58 +136,52 @@ class SyncDatabasePool:
     
     def __init__(self, config: Optional[PoolConfig] = None):
         self.config = config or PoolConfig.from_env()
-        self._products_conn: Optional[sqlite3.Connection] = None
-        self._cal_conn: Optional[sqlite3.Connection] = None
+        self._conn: Optional[sqlite3.Connection] = None
     
-    def _get_connection(
-        self,
-        db_path: str,
-        existing_conn: Optional[sqlite3.Connection]
-    ) -> sqlite3.Connection:
-        """Get or create a connection to the specified database."""
-        if existing_conn is not None:
+    def _get_connection(self) -> sqlite3.Connection:
+        """Get or create a connection to the unified database."""
+        if self._conn is not None:
             try:
                 # Test if connection is still valid
-                existing_conn.execute("SELECT 1")
-                return existing_conn
+                self._conn.execute("SELECT 1")
+                return self._conn
             except sqlite3.Error:
                 # Connection is dead, create new one
                 try:
-                    existing_conn.close()
+                    self._conn.close()
                 except sqlite3.Error:
                     pass
         
-        conn = sqlite3.connect(db_path, timeout=self.config.timeout)
+        conn = sqlite3.connect(self.config.db_path, timeout=self.config.timeout)
         conn.row_factory = sqlite3.Row
         conn.execute("PRAGMA journal_mode=WAL")
+        self._conn = conn
         return conn
     
     @contextmanager
+    def connection(self) -> Iterator[sqlite3.Connection]:
+        """Get a connection to the unified database."""
+        conn = self._get_connection()
+        yield conn
+    
+    # Backwards compatibility aliases
+    @contextmanager
     def products_db(self) -> Iterator[sqlite3.Connection]:
-        """Get a connection to the products database."""
-        self._products_conn = self._get_connection(
-            self.config.products_db_path,
-            self._products_conn
-        )
-        yield self._products_conn
+        """Deprecated: Use connection() instead. Returns unified DB connection."""
+        with self.connection() as conn:
+            yield conn
     
     @contextmanager
     def cal_registry_db(self) -> Iterator[sqlite3.Connection]:
-        """Get a connection to the calibration registry database."""
-        self._cal_conn = self._get_connection(
-            self.config.cal_registry_db_path,
-            self._cal_conn
-        )
-        yield self._cal_conn
+        """Deprecated: Use connection() instead. Returns unified DB connection."""
+        with self.connection() as conn:
+            yield conn
     
     def close(self):
-        """Close all connections."""
-        if self._products_conn:
-            self._products_conn.close()
-            self._products_conn = None
-        if self._cal_conn:
-            self._cal_conn.close()
-            self._cal_conn = None
+        """Close the connection."""
+        if self._conn:
+            self._conn.close()
+            self._conn = None
 
 
 # Global database pool instance

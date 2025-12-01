@@ -39,10 +39,51 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-# Redis connection settings
-REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
-REDIS_ENABLED = os.getenv("REDIS_CACHE_ENABLED", "true").lower() == "true"
-DEFAULT_TTL = int(os.getenv("REDIS_DEFAULT_TTL", "300"))  # 5 minutes
+
+def _get_cache_settings():
+    """Get cache settings from centralized config."""
+    try:
+        from dsa110_contimg.config import get_settings
+        settings = get_settings()
+        return {
+            "redis_url": getattr(settings.api, "redis_url", "redis://localhost:6379/0"),
+            "redis_enabled": getattr(settings.api, "redis_cache_enabled", True),
+            "default_ttl": getattr(settings.api, "redis_default_ttl", 300),
+        }
+    except ImportError:
+        # Fallback to environment variables if settings not available
+        return {
+            "redis_url": os.getenv("REDIS_URL", "redis://localhost:6379/0"),
+            "redis_enabled": os.getenv("REDIS_CACHE_ENABLED", "true").lower() == "true",
+            "default_ttl": int(os.getenv("REDIS_DEFAULT_TTL", "300")),
+        }
+
+
+# Load settings at module level (with lazy evaluation)
+_cache_settings = None
+
+def get_cache_settings():
+    global _cache_settings
+    if _cache_settings is None:
+        _cache_settings = _get_cache_settings()
+    return _cache_settings
+
+
+def _get_redis_url():
+    return get_cache_settings()["redis_url"]
+
+def _get_redis_enabled():
+    return get_cache_settings()["redis_enabled"]
+
+def _get_default_ttl():
+    return get_cache_settings()["default_ttl"]
+
+
+# Redis connection settings (functions for lazy evaluation)
+# Use these functions instead of module-level constants
+REDIS_URL = None  # Deprecated: use _get_redis_url()
+REDIS_ENABLED = None  # Deprecated: use _get_redis_enabled()
+DEFAULT_TTL = None  # Deprecated: use _get_default_ttl()
 
 # TTL configuration by cache key prefix
 # Shorter TTL for frequently changing data, longer for static data
@@ -81,27 +122,28 @@ class CacheManager:
     
     def __init__(self):
         self.client = None
-        self.enabled = REDIS_ENABLED
+        self.enabled = _get_redis_enabled()
         self._connect()
     
     def _connect(self):
         """Establish Redis connection."""
         if not self.enabled:
-            logger.info("Redis caching disabled via REDIS_CACHE_ENABLED=false")
+            logger.info("Redis caching disabled via config")
             return
         
         try:
             import redis
             from redis.exceptions import RedisError
+            redis_url = _get_redis_url()
             self.client = redis.from_url(
-                REDIS_URL,
+                redis_url,
                 decode_responses=True,
                 socket_connect_timeout=2,
                 socket_timeout=2,
             )
             # Test connection
             self.client.ping()
-            logger.info(f"Redis cache connected: {REDIS_URL}")
+            logger.info(f"Redis cache connected: {redis_url}")
         except ImportError:
             logger.warning("redis package not installed, caching disabled")
             self.enabled = False
@@ -176,7 +218,7 @@ class CacheManager:
             return False
         
         try:
-            ttl = ttl or self._get_ttl(key, DEFAULT_TTL)
+            ttl = ttl or self._get_ttl(key, _get_default_ttl())
             self.client.setex(key, ttl, json.dumps(value, default=str))
             logger.debug(f"Cache SET: {key} (TTL={ttl}s)")
             return True
