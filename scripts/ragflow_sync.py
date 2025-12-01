@@ -48,12 +48,29 @@ logger = logging.getLogger(__name__)
 API_KEY = os.environ.get("RAGFLOW_API_KEY", "ragflow-Y1ZjQwNWFjY2I5ZjExZjA5MGU5MDI0Mm")
 BASE_URL = os.environ.get("RAGFLOW_BASE_URL", "http://localhost:9380")
 DATASET_ID = os.environ.get("RAGFLOW_DATASET_ID", "735f3e9acba011f08a110242ac140006")
-DOCS_DIR = Path(os.environ.get("DOCS_DIR", "/data/dsa110-contimg/docs"))
+PROJECT_ROOT = Path(os.environ.get("PROJECT_ROOT", "/data/dsa110-contimg"))
 STATE_DB = Path(os.environ.get("RAGFLOW_STATE_DB", "/data/dsa110-contimg/state/ragflow_sync.sqlite3"))
 
-# File patterns to index
-INCLUDE_PATTERNS = ["*.md", "*.txt", "*.rst"]
-EXCLUDE_PATTERNS = ["**/node_modules/**", "**/.git/**", "**/venv/**", "**/__pycache__/**"]
+# Source directories and their file patterns
+# Each entry: (relative_path, [patterns])
+SOURCE_DIRS = [
+    ("docs", ["*.md", "*.txt", "*.rst"]),
+    ("backend/src", ["*.py"]),
+    ("frontend/src", ["*.ts", "*.tsx", "*.js", "*.jsx"]),
+]
+
+# Global exclude patterns (applied to all sources)
+EXCLUDE_PATTERNS = [
+    "**/node_modules/**",
+    "**/.git/**", 
+    "**/venv/**",
+    "**/__pycache__/**",
+    "**/*.pyc",
+    "**/dist/**",
+    "**/build/**",
+    "**/.next/**",
+    "**/coverage/**",
+]
 
 
 @dataclass
@@ -165,14 +182,14 @@ class RAGFlowSync:
         api_key: str = API_KEY,
         base_url: str = BASE_URL,
         dataset_id: str = DATASET_ID,
-        docs_dir: Path = DOCS_DIR,
+        project_root: Path = PROJECT_ROOT,
         state_db: Path = STATE_DB,
     ):
         self.api_key = api_key
         self.base_url = base_url
         self.api_url = f"{base_url}/api/v1"
         self.dataset_id = dataset_id
-        self.docs_dir = Path(docs_dir)
+        self.project_root = Path(project_root)
         self.db = SyncDatabase(state_db)
         self.timeout = 120
     
@@ -191,25 +208,43 @@ class RAGFlowSync:
             raise RuntimeError(f"API error: {data.get('message')}")
         return data.get("data", {})
     
+    def _is_excluded(self, path: Path) -> bool:
+        """Check if path matches any exclude pattern."""
+        path_str = str(path)
+        for excl in EXCLUDE_PATTERNS:
+            # Simple glob matching
+            if "**" in excl:
+                # Convert glob to check
+                parts = excl.split("**")
+                if len(parts) == 2 and parts[0] == "" and parts[1].startswith("/"):
+                    # Pattern like "**/node_modules/**"
+                    check = parts[1][1:].rstrip("/**")
+                    if f"/{check}/" in path_str or path_str.endswith(f"/{check}"):
+                        return True
+            elif path.match(excl):
+                return True
+        return False
+    
     def get_local_files(self) -> dict[str, FileInfo]:
-        """Scan local docs directory for indexable files."""
+        """Scan all source directories for indexable files."""
         files = {}
-        for pattern in INCLUDE_PATTERNS:
-            for path in self.docs_dir.rglob(pattern):
-                # Skip excluded patterns
-                skip = False
-                for excl in EXCLUDE_PATTERNS:
-                    if path.match(excl):
-                        skip = True
-                        break
-                if skip or not path.is_file():
-                    continue
-                
-                try:
-                    info = FileInfo.from_path(path, self.docs_dir)
-                    files[info.path] = info
-                except Exception as e:
-                    logger.warning(f"Error reading {path}: {e}")
+        
+        for rel_dir, patterns in SOURCE_DIRS:
+            source_dir = self.project_root / rel_dir
+            if not source_dir.exists():
+                logger.warning(f"Source directory not found: {source_dir}")
+                continue
+            
+            for pattern in patterns:
+                for path in source_dir.rglob(pattern):
+                    if self._is_excluded(path) or not path.is_file():
+                        continue
+                    
+                    try:
+                        info = FileInfo.from_path(path, self.project_root)
+                        files[info.path] = info
+                    except Exception as e:
+                        logger.warning(f"Error reading {path}: {e}")
         
         return files
     
@@ -231,10 +266,27 @@ class RAGFlowSync:
         return docs
     
     def upload_file(self, file_path: Path) -> str | None:
-        """Upload a file to RAGFlow. Returns document ID."""
+        """Upload a file to RAGFlow. Returns document ID.
+        
+        Note: RAGFlow doesn't support .tsx/.jsx extensions, so we rename
+        them to .txt for upload while preserving the original path in tracking.
+        """
         try:
+            # Determine upload filename - RAGFlow doesn't support .tsx/.jsx
+            upload_name = file_path.name
+            content_type = "text/markdown"
+            
+            if file_path.suffix in ('.tsx', '.jsx'):
+                # Rename to .txt for upload (preserves full original name)
+                upload_name = file_path.name + ".txt"
+                content_type = "text/plain"
+            elif file_path.suffix == '.py':
+                content_type = "text/x-python"
+            elif file_path.suffix in ('.ts', '.js'):
+                content_type = "text/javascript"
+            
             with open(file_path, "rb") as f:
-                files = [("file", (file_path.name, f, "text/markdown"))]
+                files = [("file", (upload_name, f, content_type))]
                 data = self._request(
                     "POST",
                     f"/datasets/{self.dataset_id}/documents",
@@ -384,7 +436,7 @@ class RAGFlowSync:
             logger.info(f"Uploading {len(changes['to_upload'])} files...")
             doc_ids = []
             for i, info in enumerate(changes["to_upload"]):
-                file_path = self.docs_dir / info.path
+                file_path = self.project_root / info.path
                 doc_id = self.upload_file(file_path)
                 if doc_id:
                     self.db.upsert_file(info, doc_id)

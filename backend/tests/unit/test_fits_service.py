@@ -217,36 +217,75 @@ class TestModuleFunctions:
 
 
 class TestFITSParsingIntegration:
-    """Integration tests with real FITS files (if available)."""
+    """Integration tests with FITS files."""
     
     @pytest.fixture
-    def sample_fits_path(self):
-        """Return path to a sample FITS file if available."""
-        # Check common locations for test FITS files
-        test_paths = [
-            "/data/dsa110-contimg/state/images/test.fits",
-            "/tmp/test.fits",
-        ]
-        for path in test_paths:
-            if os.path.exists(path):
-                return path
-        return None
+    def synthetic_fits_path(self, tmp_path):
+        """Create a minimal valid FITS file for testing.
+        
+        This creates a proper FITS file with standard headers that can be
+        parsed by the FITSParsingService. Using astropy to create the file
+        ensures it's a valid FITS format.
+        """
+        try:
+            from astropy.io import fits
+            import numpy as np
+            
+            # Create a minimal 2D image with standard radio astronomy headers
+            data = np.zeros((64, 64), dtype=np.float32)
+            hdu = fits.PrimaryHDU(data)
+            
+            # Add standard WCS headers for radio astronomy imaging
+            hdu.header['CTYPE1'] = 'RA---SIN'
+            hdu.header['CTYPE2'] = 'DEC--SIN'
+            hdu.header['CRPIX1'] = 32.0
+            hdu.header['CRPIX2'] = 32.0
+            hdu.header['CRVAL1'] = 180.0  # RA in degrees
+            hdu.header['CRVAL2'] = 45.0   # Dec in degrees
+            hdu.header['CDELT1'] = -0.001  # Cell size in degrees
+            hdu.header['CDELT2'] = 0.001
+            hdu.header['CUNIT1'] = 'deg'
+            hdu.header['CUNIT2'] = 'deg'
+            
+            # Beam parameters (common in radio images)
+            hdu.header['BMAJ'] = 0.005  # Beam major axis in degrees
+            hdu.header['BMIN'] = 0.003  # Beam minor axis
+            hdu.header['BPA'] = 45.0    # Beam position angle
+            
+            # Other useful metadata
+            hdu.header['TELESCOP'] = 'DSA-110'
+            hdu.header['INSTRUME'] = 'DSA-110 Correlator'
+            hdu.header['DATE-OBS'] = '2025-01-15T12:00:00'
+            hdu.header['BUNIT'] = 'JY/BEAM'
+            
+            fits_path = tmp_path / "test_image.fits"
+            hdu.writeto(str(fits_path), overwrite=True)
+            return str(fits_path)
+        except ImportError:
+            pytest.skip("astropy not available for creating test FITS file")
     
-    @pytest.mark.skipif(
-        not os.path.exists("/data/dsa110-contimg/state/images"),
-        reason="No sample FITS files available"
-    )
-    def test_parse_real_fits_file(self, sample_fits_path):
-        """Test parsing a real FITS file."""
-        if sample_fits_path is None:
-            pytest.skip("No sample FITS file found")
-        
+    def test_parse_synthetic_fits_file(self, synthetic_fits_path):
+        """Test parsing a synthetic FITS file with realistic headers."""
         service = FITSParsingService()
-        metadata = service.parse_header(sample_fits_path)
+        metadata = service.parse_header(synthetic_fits_path)
         
+        # Basic file properties
         assert metadata.exists is True
         assert metadata.size_bytes > 0
-        assert metadata.path == sample_fits_path
+        assert metadata.path == synthetic_fits_path
+        
+        # WCS properties should be extracted
+        assert metadata.crval1 == pytest.approx(180.0)
+        assert metadata.crval2 == pytest.approx(45.0)
+        assert metadata.cdelt1 == pytest.approx(-0.001)
+        
+        # Derived properties
+        assert metadata.cellsize_arcsec == pytest.approx(3.6)  # 0.001 deg = 3.6 arcsec
+        
+        # Beam properties
+        assert metadata.bmaj == pytest.approx(0.005)
+        assert metadata.bmin == pytest.approx(0.003)
+        assert metadata.beam_major_arcsec == pytest.approx(18.0)  # 0.005 deg = 18 arcsec
 
 
 class TestFITSParsingErrors:

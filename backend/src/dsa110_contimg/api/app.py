@@ -212,9 +212,8 @@ def create_app() -> FastAPI:
         # Return generic error message (don't leak internal details in production)
         from .exceptions import ProcessingError
         error = ProcessingError(
-            operation="request_processing",
             message="An unexpected error occurred" if not app.debug else str(exc),
-            details={"type": type(exc).__name__} if app.debug else {}
+            details={"type": type(exc).__name__, "operation": "request_processing"} if app.debug else {},
         )
         return JSONResponse(
             status_code=500,

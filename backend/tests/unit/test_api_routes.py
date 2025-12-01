@@ -69,11 +69,36 @@ class TestSourcesRoutes:
         # May return 404 or empty data depending on implementation
         assert response.status_code in (200, 404)
     
-    def test_lightcurve_date_validation(self, client):
-        """Lightcurve should validate date format."""
-        # Skip this test as it depends on astropy import behavior
-        # which may vary in test environment
-        pytest.skip("Date validation depends on astropy import timing")
+    def test_lightcurve_date_validation_valid_format(self, client):
+        """Lightcurve should accept valid ISO date format."""
+        # Valid ISO format dates should be accepted
+        response = client.get(
+            "/api/sources/test_source/lightcurve",
+            params={"start_date": "2025-01-01", "end_date": "2025-01-31"}
+        )
+        # Should succeed (200) or return 404 for non-existent source, not 422
+        assert response.status_code in (200, 404)
+    
+    def test_lightcurve_date_validation_invalid_format(self, client):
+        """Lightcurve should reject invalid date format."""
+        # Invalid date format should be rejected
+        response = client.get(
+            "/api/sources/test_source/lightcurve",
+            params={"start_date": "not-a-date"}
+        )
+        # Should return validation error (422 or 400)
+        assert response.status_code in (400, 422)
+        data = response.json()
+        assert_error_response(data)
+    
+    def test_lightcurve_date_validation_partial_dates(self, client):
+        """Lightcurve should handle partial date specifications."""
+        # Only start_date provided (should be valid)
+        response = client.get(
+            "/api/sources/test_source/lightcurve",
+            params={"start_date": "2025-06-15"}
+        )
+        assert response.status_code in (200, 404)
 
 
 class TestJobsRoutes:
