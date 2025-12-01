@@ -97,8 +97,24 @@ export interface PhotometryResult {
   snr: number;
 }
 
+export interface HealthStatusDetail {
+  path: string;
+  exists: boolean;
+  hdf5_file_count?: number;
+  ms_file_count?: number;
+}
+
 export interface HealthStatus {
-  status: string;
+  status: "healthy" | "degraded";
+  configuration?: {
+    hdf5_db?: HealthStatusDetail;
+    products_db?: HealthStatusDetail;
+    calibrators_db?: HealthStatusDetail;
+    incoming_dir?: HealthStatusDetail;
+    output_ms_dir?: HealthStatusDetail;
+    output_images_dir?: HealthStatusDetail;
+  };
+  // Legacy flat fields for backward compatibility
   hdf5_db_exists: boolean;
   calibrators_db_exists: boolean;
   incoming_dir_exists: boolean;

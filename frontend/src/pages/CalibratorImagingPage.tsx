@@ -10,6 +10,7 @@ import {
   useCreateImage,
   useCalibratorJob,
   usePhotometry,
+  useCalibratorImagingHealth,
 } from "../hooks/useCalibratorImaging";
 
 /**
@@ -81,9 +82,20 @@ const CalibratorImagingPage: React.FC = () => {
   const [calTablePath, setCalTablePath] = useState<string | null>(null);
   const [imagePath, setImagePath] = useState<string | null>(null);
 
+  // Health check - runs on mount
+  const {
+    data: healthStatus,
+    isLoading: healthLoading,
+    error: healthError,
+    refetch: refetchHealth,
+  } = useCalibratorImagingHealth();
+
   // API hooks
-  const { data: calibrators, isLoading: calibratorsLoading } =
-    useCalibratorList();
+  const {
+    data: calibrators,
+    isLoading: calibratorsLoading,
+    error: calibratorsError,
+  } = useCalibratorList();
 
   const {
     data: transits,
@@ -264,6 +276,162 @@ const CalibratorImagingPage: React.FC = () => {
     );
   };
 
+  // Render connection status panel
+  const renderConnectionStatus = () => {
+    // Show loading state
+    if (healthLoading) {
+      return (
+        <div className="mb-6 p-4 bg-gray-800 border border-gray-700 rounded-lg">
+          <div className="flex items-center gap-3">
+            <LoadingSpinner size="sm" />
+            <span className="text-gray-300">Checking system status...</span>
+          </div>
+        </div>
+      );
+    }
+
+    // Show error if API is unreachable
+    if (healthError || calibratorsError) {
+      const error = healthError || calibratorsError;
+      return (
+        <div className="mb-6 p-4 bg-red-900/50 border border-red-700 rounded-lg">
+          <div className="flex items-start gap-3">
+            <span className="text-red-400 text-xl">⚠️</span>
+            <div>
+              <h3 className="font-bold text-red-300">API Connection Failed</h3>
+              <p className="text-red-400 text-sm mt-1">
+                Unable to connect to the calibrator imaging API. Please check
+                that the backend server is running.
+              </p>
+              <p className="text-red-500 text-xs mt-2 font-mono">
+                {error instanceof Error ? error.message : "Unknown error"}
+              </p>
+              <button
+                onClick={() => refetchHealth()}
+                className="mt-3 px-3 py-1 bg-red-800 hover:bg-red-700 text-red-200 rounded text-sm"
+              >
+                Retry Connection
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Show status if available
+    if (!healthStatus) {
+      return null;
+    }
+
+    const issues: { label: string; message: string }[] = [];
+
+    if (!healthStatus.hdf5_db_exists) {
+      issues.push({
+        label: "HDF5 Database",
+        message: "HDF5 file index database not found",
+      });
+    }
+    if (!healthStatus.calibrators_db_exists) {
+      issues.push({
+        label: "Calibrators Database",
+        message: "Calibrators database not found",
+      });
+    }
+    if (!healthStatus.incoming_dir_exists) {
+      issues.push({
+        label: "Incoming Directory",
+        message: "HDF5 input directory does not exist",
+      });
+    }
+    if (!healthStatus.output_ms_dir_exists) {
+      issues.push({
+        label: "MS Output Directory",
+        message: "Measurement Set output directory does not exist",
+      });
+    }
+    if (!healthStatus.output_images_dir_exists) {
+      issues.push({
+        label: "Images Output Directory",
+        message: "Images output directory does not exist",
+      });
+    }
+
+    // All healthy - show compact success indicator with stats
+    if (issues.length === 0) {
+      const config = healthStatus.configuration;
+      const hdf5Count = config?.incoming_dir?.hdf5_file_count;
+      const msCount = config?.output_ms_dir?.ms_file_count;
+
+      return (
+        <div className="mb-6 p-3 bg-green-900/30 border border-green-800 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-green-400">✓</span>
+                <span className="text-green-300 text-sm">
+                  All systems operational
+                </span>
+              </div>
+              {(hdf5Count !== undefined || msCount !== undefined) && (
+                <div className="flex items-center gap-3 text-xs text-gray-400 border-l border-gray-700 pl-4">
+                  {hdf5Count !== undefined && (
+                    <span>{hdf5Count.toLocaleString()} HDF5 files indexed</span>
+                  )}
+                  {msCount !== undefined && (
+                    <span>{msCount} MS files available</span>
+                  )}
+                </div>
+              )}
+            </div>
+            <button
+              onClick={() => refetchHealth()}
+              className="text-green-500 hover:text-green-400 text-xs"
+            >
+              Refresh
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    // Show warnings for each issue
+    return (
+      <div className="mb-6 p-4 bg-yellow-900/30 border border-yellow-700 rounded-lg">
+        <div className="flex items-start gap-3">
+          <span className="text-yellow-400 text-xl">⚠️</span>
+          <div className="flex-1">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-yellow-300">
+                System Status: Degraded
+              </h3>
+              <button
+                onClick={() => refetchHealth()}
+                className="text-yellow-500 hover:text-yellow-400 text-xs"
+              >
+                Refresh
+              </button>
+            </div>
+            <p className="text-yellow-400 text-sm mt-1">
+              Some dependencies are unavailable. The workflow may not complete
+              successfully.
+            </p>
+            <ul className="mt-3 space-y-1">
+              {issues.map((issue) => (
+                <li key={issue.label} className="text-sm">
+                  <span className="text-yellow-500">✗</span>{" "}
+                  <span className="text-yellow-300 font-medium">
+                    {issue.label}:
+                  </span>{" "}
+                  <span className="text-yellow-400/80">{issue.message}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-6">
       {/* Header */}
@@ -289,6 +457,9 @@ const CalibratorImagingPage: React.FC = () => {
           Reset
         </button>
       </div>
+
+      {/* Connection status */}
+      {renderConnectionStatus()}
 
       {/* Step indicator */}
       {renderStepIndicator()}

@@ -794,3 +794,75 @@ async def health_check():
         "output_ms_dir_exists": ms_dir_exists,
         "output_images_dir_exists": images_dir_exists,
     }
+
+
+@router.get("/health/storage")
+async def storage_health_check():
+    """
+    Validate HDF5 database synchronization with filesystem.
+    
+    This is a more expensive check that compares the database
+    index with actual files on disk.
+    """
+    from dsa110_contimg.database.storage_validator import (
+        get_storage_metrics,
+        validate_hdf5_storage,
+    )
+    
+    hdf5_db = get_hdf5_db_path()
+    incoming_dir = get_incoming_dir()
+    
+    if not os.path.exists(hdf5_db):
+        return {
+            "status": "error",
+            "message": "HDF5 database not found",
+            "db_path": hdf5_db,
+        }
+    
+    if not os.path.exists(incoming_dir):
+        return {
+            "status": "error", 
+            "message": "Incoming directory not found",
+            "dir_path": incoming_dir,
+        }
+    
+    # Get quick metrics first
+    metrics = get_storage_metrics(hdf5_db, incoming_dir)
+    
+    # Determine if full validation is needed based on count mismatch
+    if not metrics["count_matches"]:
+        # Run full validation to get details
+        validation = validate_hdf5_storage(hdf5_db, incoming_dir)
+        return {
+            "status": "out_of_sync",
+            "message": "Database and filesystem are not synchronized",
+            "quick_metrics": metrics,
+            "validation": validation.to_dict(),
+        }
+    
+    return {
+        "status": "synchronized",
+        "message": "Database matches filesystem",
+        "metrics": metrics,
+    }
+
+
+@router.get("/health/services")
+async def services_health_check():
+    """
+    Check health of dependent services (Docker containers, systemd services).
+    """
+    from dsa110_contimg.monitoring.service_health import (
+        check_system_health,
+        DEFAULT_DOCKER_CONTAINERS,
+        DEFAULT_SYSTEMD_SERVICES,
+        DEFAULT_HTTP_ENDPOINTS,
+    )
+    
+    report = await check_system_health(
+        docker_containers=DEFAULT_DOCKER_CONTAINERS,
+        systemd_services=DEFAULT_SYSTEMD_SERVICES,
+        http_endpoints=DEFAULT_HTTP_ENDPOINTS,
+    )
+    
+    return report.to_dict()
