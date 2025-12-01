@@ -321,6 +321,7 @@ async def websocket_job_updates(
     websocket: WebSocket,
     job_id: str,
     client_id: str = Query(None),
+    reconnect_token: str = Query(None),
 ):
     """
     WebSocket endpoint for job status updates.
@@ -333,21 +334,31 @@ async def websocket_job_updates(
         "data": {...},
         "timestamp": "..."
     }
+    
+    Heartbeat:
+    - Server sends "heartbeat" messages periodically
+    - Client should respond with "heartbeat_ack" to confirm connection health
+    - Connection is dropped after 3 missed heartbeats
+    
+    Reconnection:
+    - On disconnect, client receives a reconnect_token
+    - Pass this token when reconnecting to resume subscriptions
     """
     # Generate client ID if not provided
     if not client_id:
         import uuid
         client_id = str(uuid.uuid4())
     
-    await manager.connect(websocket, client_id)
+    new_token = await manager.connect(websocket, client_id, reconnect_token=reconnect_token)
     await manager.subscribe(client_id, f"job:{job_id}")
     
     try:
-        # Send initial connection confirmation
+        # Send initial connection confirmation with reconnect token
         await websocket.send_json({
             "type": "connected",
             "job_id": job_id,
             "client_id": client_id,
+            "reconnect_token": new_token,
             "timestamp": datetime.utcnow().isoformat() + "Z",
         })
         
@@ -369,6 +380,10 @@ async def websocket_job_updates(
                         "type": "pong",
                         "timestamp": datetime.utcnow().isoformat() + "Z",
                     })
+                
+                elif msg_type == "heartbeat_ack":
+                    # Client acknowledged heartbeat - reset missed count
+                    await manager.handle_heartbeat_response(client_id)
                 
                 elif msg_type == "subscribe":
                     topic = data.get("topic")
