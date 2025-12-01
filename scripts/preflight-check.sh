@@ -80,10 +80,10 @@ info "Dev server at :3000 - start with 'npm run dev'" "curl -sf http://localhost
 
 echo ""
 echo -e "${CYAN}┌─ Databases ───────────────────────────┐${NC}"
-check "products.sqlite3 exists" "test -f /data/dsa110-contimg/state/products.sqlite3"
-check "hdf5.sqlite3 exists" "test -f /data/dsa110-contimg/state/hdf5.sqlite3"
-warn "ingest.sqlite3 exists" "test -f /data/dsa110-contimg/state/ingest.sqlite3"
-warn "cal_registry.sqlite3 exists" "test -f /data/dsa110-contimg/state/cal_registry.sqlite3"
+check "products.sqlite3 exists" "test -f /data/dsa110-contimg/state/db/products.sqlite3"
+check "hdf5.sqlite3 exists" "test -f /data/dsa110-contimg/state/db/hdf5.sqlite3"
+warn "ingest.sqlite3 exists" "test -f /data/dsa110-contimg/state/db/ingest.sqlite3"
+warn "cal_registry.sqlite3 exists" "test -f /data/dsa110-contimg/state/db/cal_registry.sqlite3"
 
 echo ""
 echo -e "${CYAN}┌─ Storage ─────────────────────────────┐${NC}"
