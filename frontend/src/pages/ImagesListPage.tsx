@@ -143,6 +143,7 @@ const ImagesListPage: React.FC = () => {
         <div className="flex gap-2">
           {selectedIds.length >= 2 && selectedIds.length <= 4 && (
             <button
+              type="button"
               onClick={() => setViewMode(viewMode === "compare" ? "list" : "compare")}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 viewMode === "compare"

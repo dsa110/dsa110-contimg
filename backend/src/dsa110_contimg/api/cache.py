@@ -83,6 +83,7 @@ class CacheManager:
         
         try:
             import redis
+            from redis.exceptions import RedisError
             self.client = redis.from_url(
                 REDIS_URL,
                 decode_responses=True,
@@ -95,7 +96,7 @@ class CacheManager:
         except ImportError:
             logger.warning("redis package not installed, caching disabled")
             self.enabled = False
-        except Exception as e:
+        except RedisError as e:
             logger.warning(f"Redis connection failed: {e}, caching disabled")
             self.enabled = False
             self.client = None
@@ -134,7 +135,10 @@ class CacheManager:
                 return json.loads(data)
             logger.debug(f"Cache MISS: {key}")
             return None
-        except Exception as e:
+        except json.JSONDecodeError as e:
+            logger.warning(f"Cache JSON decode error for {key}: {e}")
+            return None
+        except Exception as e:  # Redis errors may vary by transport
             logger.warning(f"Cache get error for {key}: {e}")
             return None
     
@@ -167,7 +171,10 @@ class CacheManager:
             self.client.setex(key, ttl, json.dumps(value, default=str))
             logger.debug(f"Cache SET: {key} (TTL={ttl}s)")
             return True
-        except Exception as e:
+        except (TypeError, ValueError) as e:
+            logger.warning(f"Cache serialization error for {key}: {e}")
+            return False
+        except Exception as e:  # Redis errors may vary by transport
             logger.warning(f"Cache set error for {key}: {e}")
             return False
     
@@ -180,7 +187,7 @@ class CacheManager:
             self.client.delete(key)
             logger.debug(f"Cache DELETE: {key}")
             return True
-        except Exception as e:
+        except Exception as e:  # Redis errors may vary by transport
             logger.warning(f"Cache delete error for {key}: {e}")
             return False
     
@@ -204,7 +211,7 @@ class CacheManager:
                 logger.info(f"Cache INVALIDATE: {pattern} ({deleted} keys)")
                 return deleted
             return 0
-        except Exception as e:
+        except Exception as e:  # Redis errors may vary by transport
             logger.warning(f"Cache invalidate error for {pattern}: {e}")
             return 0
     
@@ -234,7 +241,7 @@ class CacheManager:
                     if isinstance(db, dict)
                 ),
             }
-        except Exception as e:
+        except Exception as e:  # Redis errors may vary by transport
             return {"enabled": True, "status": "error", "error": str(e)}
 
 

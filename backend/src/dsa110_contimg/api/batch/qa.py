@@ -69,7 +69,10 @@ def extract_calibration_qa(
         qa_metrics.update(_calculate_overall_quality(qa_metrics))
 
         return qa_metrics
-    except Exception as e:
+    except (RuntimeError, ValueError, KeyError, OSError) as e:
+        # RuntimeError: CASA table errors
+        # ValueError/KeyError: data processing errors
+        # OSError: file access errors
         logger.error(f"Failed to extract calibration QA for {ms_path}: {e}")
         return {"ms_path": ms_path, "job_id": job_id, "overall_quality": "unknown"}
 
@@ -97,7 +100,7 @@ def _extract_k_table_qa(tb, caltables: Dict[str, str], ms_path: str) -> Dict[str
             "flag_fraction": float(flag_fraction),
             "avg_snr": float(avg_snr) if avg_snr is not None else None,
         }
-    except Exception as e:
+    except (RuntimeError, ValueError, KeyError) as e:
         logger.warning(f"Failed to extract K QA for {ms_path}: {e}")
         
     return result
@@ -133,7 +136,7 @@ def _extract_bp_table_qa(tb, caltables: Dict[str, str], ms_path: str) -> Dict[st
         # Extract per-SPW statistics
         result.update(_extract_per_spw_stats(caltables["bp"], ms_path))
         
-    except Exception as e:
+    except (RuntimeError, ValueError, KeyError) as e:
         logger.warning(f"Failed to extract BP QA for {ms_path}: {e}")
         
     return result
@@ -161,7 +164,7 @@ def _extract_per_spw_stats(bp_path: str, ms_path: str) -> Dict[str, Any]:
             }
             for s in spw_stats
         ]
-    except Exception as e:
+    except (ImportError, RuntimeError, ValueError, KeyError, AttributeError) as e:
         logger.warning(f"Failed to extract per-SPW statistics for {ms_path}: {e}")
         
     return result
@@ -191,7 +194,7 @@ def _extract_g_table_qa(tb, caltables: Dict[str, str], ms_path: str) -> Dict[str
             "flag_fraction": float(flag_fraction),
             "amp_mean": float(amp_mean) if amp_mean is not None else None,
         }
-    except Exception as e:
+    except (RuntimeError, ValueError, KeyError) as e:
         logger.warning(f"Failed to extract G QA for {ms_path}: {e}")
         
     return result
@@ -283,7 +286,10 @@ def extract_image_qa(
         qa_metrics.update(_assess_image_quality(qa_metrics))
 
         return qa_metrics
-    except Exception as e:
+    except (RuntimeError, ValueError, KeyError, OSError) as e:
+        # RuntimeError: CASA image analysis errors
+        # ValueError/KeyError: data processing errors
+        # OSError: file access errors
         logger.error(f"Failed to extract image QA for {ms_path}: {e}")
         return {
             "ms_path": ms_path,

@@ -103,7 +103,7 @@ class ConnectionManager:
             if info.websocket.client_state == WebSocketState.CONNECTED:
                 await info.websocket.send_json(message)
                 return True
-        except Exception as e:
+        except (RuntimeError, ConnectionError) as e:
             logger.error(f"Error sending to {client_id}: {e}")
             await self.disconnect(client_id)
         
@@ -134,7 +134,7 @@ class ConnectionManager:
                 if info.websocket.client_state == WebSocketState.CONNECTED:
                     await info.websocket.send_json(message)
                     sent_count += 1
-            except Exception as e:
+            except (RuntimeError, ConnectionError) as e:
                 logger.error(f"Error broadcasting to {client_id}: {e}")
                 await self.disconnect(client_id)
         
@@ -235,12 +235,12 @@ async def websocket_job_updates(
                         "type": "ping",
                         "timestamp": datetime.utcnow().isoformat() + "Z",
                     })
-                except Exception:
+                except (RuntimeError, ConnectionError):
                     break
                     
     except WebSocketDisconnect:
         logger.info(f"WebSocket client disconnected: {client_id}")
-    except Exception as e:
+    except (RuntimeError, ConnectionError) as e:
         logger.error(f"WebSocket error for {client_id}: {e}")
     finally:
         await manager.disconnect(client_id)

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useCallback, useState } from "react";
 import FitsViewerControls, { FitsViewerControlsValues } from "./FitsViewerControls";
 import type { JS9Image, JS9Region, JS9MouseEvent } from "../../types/js9.d";
+import { VIEWER_TIMEOUTS } from "../../constants/astronomical";
 
 // Note: JS9 global is declared in src/types/js9.d.ts
 
@@ -85,16 +86,16 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
       if (checkJS9()) {
         clearInterval(interval);
       }
-    }, 100);
+    }, VIEWER_TIMEOUTS.JS9_POLL_INTERVAL_MS);
 
-    // Timeout after 10 seconds
+    // Timeout after configured duration
     const timeout = setTimeout(() => {
       clearInterval(interval);
       if (!isJS9Ready) {
         setError("JS9 library failed to load. Make sure JS9 CDN is included.");
         setIsLoading(false);
       }
-    }, 10000);
+    }, VIEWER_TIMEOUTS.JS9_LOAD_MS);
 
     return () => {
       clearInterval(interval);

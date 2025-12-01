@@ -51,11 +51,15 @@ from dsa110_contimg.database.jobs import (
 # RQ imports (optional - graceful degradation if not available)
 try:
     from redis import Redis
+    from redis.exceptions import RedisError
     from rq import Queue, Worker
     from rq.job import Job
+    from rq.exceptions import NoSuchJobError
     RQ_AVAILABLE = True
 except ImportError:
     RQ_AVAILABLE = False
+    RedisError = Exception  # Fallback type for type checking
+    NoSuchJobError = Exception
     logger.warning("RQ not installed - job queue will use in-memory fallback")
 
 
@@ -118,7 +122,7 @@ class JobQueue:
                 self._redis.ping()  # Test connection
                 self._queue = Queue(queue_name, connection=self._redis)
                 logger.info(f"Job queue connected to Redis at {redis_url}")
-            except Exception as e:
+            except RedisError as e:
                 logger.warning(f"Failed to connect to Redis: {e} - using in-memory fallback")
                 self._redis = None
                 self._queue = None
@@ -165,7 +169,7 @@ class JobQueue:
                 )
                 logger.info(f"Enqueued job {job_id} to Redis queue")
                 return job.id
-            except Exception as e:
+            except RedisError as e:
                 logger.error(f"Failed to enqueue job to Redis: {e}")
                 # Fall through to in-memory fallback
         
@@ -185,7 +189,7 @@ class JobQueue:
             try:
                 job = Job.fetch(job_id, connection=self._redis)
                 return self._job_to_info(job)
-            except Exception:
+            except NoSuchJobError:
                 pass  # Job not found in Redis
         
         # Check in-memory jobs
@@ -206,7 +210,9 @@ class JobQueue:
                 job.cancel()
                 logger.info(f"Canceled job {job_id}")
                 return True
-            except Exception as e:
+            except NoSuchJobError:
+                logger.warning(f"Job {job_id} not found for cancellation")
+            except RedisError as e:
                 logger.warning(f"Failed to cancel job {job_id}: {e}")
         
         # In-memory fallback
@@ -228,7 +234,7 @@ class JobQueue:
                         try:
                             job = Job.fetch(job_id, connection=self._redis)
                             jobs.append(self._job_to_info(job))
-                        except Exception:
+                        except NoSuchJobError:
                             pass
                 
                 if status is None or status == JobStatus.STARTED:
@@ -237,7 +243,7 @@ class JobQueue:
                         try:
                             job = Job.fetch(job_id, connection=self._redis)
                             jobs.append(self._job_to_info(job))
-                        except Exception:
+                        except NoSuchJobError:
                             pass
                 
                 if status is None or status == JobStatus.FINISHED:
@@ -246,7 +252,7 @@ class JobQueue:
                         try:
                             job = Job.fetch(job_id, connection=self._redis)
                             jobs.append(self._job_to_info(job))
-                        except Exception:
+                        except NoSuchJobError:
                             pass
                 
                 if status is None or status == JobStatus.FAILED:
@@ -255,9 +261,9 @@ class JobQueue:
                         try:
                             job = Job.fetch(job_id, connection=self._redis)
                             jobs.append(self._job_to_info(job))
-                        except Exception:
+                        except NoSuchJobError:
                             pass
-            except Exception as e:
+            except RedisError as e:
                 logger.error(f"Failed to list jobs from Redis: {e}")
         
         # Add in-memory jobs
@@ -281,7 +287,7 @@ class JobQueue:
                 stats["started_count"] = len(self._queue.started_job_registry)
                 stats["finished_count"] = len(self._queue.finished_job_registry)
                 stats["failed_count"] = len(self._queue.failed_job_registry)
-            except Exception as e:
+            except RedisError as e:
                 stats["error"] = str(e)
         else:
             stats["in_memory_count"] = len(self._in_memory_jobs)

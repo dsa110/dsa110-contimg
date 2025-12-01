@@ -4,6 +4,7 @@ Calibration routes.
 
 from __future__ import annotations
 
+import sqlite3
 from datetime import datetime
 from urllib.parse import unquote
 
@@ -40,7 +41,7 @@ async def get_cal_table_detail(
                 (cal_path,)
             )
             row = await cursor.fetchone()
-    except Exception as e:
+    except sqlite3.Error as e:
         raise DatabaseQueryError("cal_table_lookup", str(e))
     
     if not row:

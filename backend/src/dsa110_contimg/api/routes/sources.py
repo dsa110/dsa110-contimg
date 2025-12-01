@@ -87,12 +87,12 @@ async def get_source_lightcurve(
     if start_date:
         try:
             start_mjd = Time(start_date).mjd
-        except Exception as e:
+        except ValueError as e:
             raise ValidationError(f"Invalid start_date format: {start_date}. Use ISO format (YYYY-MM-DD).") from e
     if end_date:
         try:
             end_mjd = Time(end_date).mjd
-        except Exception as e:
+        except ValueError as e:
             raise ValidationError(f"Invalid end_date format: {end_date}. Use ISO format (YYYY-MM-DD).") from e
     
     decoded_source_id = unquote(source_id)

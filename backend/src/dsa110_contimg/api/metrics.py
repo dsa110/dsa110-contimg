@@ -178,7 +178,7 @@ def sync_gauges_from_database(db_path: str = DEFAULT_DB_PATH) -> dict:
                 stage = row['stage'] or 'unknown'
                 ms_count_gauge.labels(stage=stage).set(row['cnt'])
                 results[f'ms_{stage}'] = row['cnt']
-        except Exception as e:
+        except sqlite3.Error as e:
             logger.warning(f"Failed to sync MS counts: {e}")
         
         # Image counts by type
@@ -192,7 +192,7 @@ def sync_gauges_from_database(db_path: str = DEFAULT_DB_PATH) -> dict:
                 img_type = row['type'] or 'unknown'
                 images_count_gauge.labels(type=img_type).set(row['cnt'])
                 results[f'images_{img_type}'] = row['cnt']
-        except Exception as e:
+        except sqlite3.Error as e:
             logger.warning(f"Failed to sync image counts: {e}")
         
         # Source count
@@ -203,7 +203,7 @@ def sync_gauges_from_database(db_path: str = DEFAULT_DB_PATH) -> dict:
             count = cursor.fetchone()['cnt'] or 0
             sources_count_gauge.set(count)
             results['sources'] = count
-        except Exception as e:
+        except sqlite3.Error as e:
             logger.warning(f"Failed to sync source count: {e}")
         
         # Photometry count
@@ -212,7 +212,7 @@ def sync_gauges_from_database(db_path: str = DEFAULT_DB_PATH) -> dict:
             count = cursor.fetchone()['cnt'] or 0
             photometry_count_gauge.set(count)
             results['photometry'] = count
-        except Exception as e:
+        except sqlite3.Error as e:
             logger.warning(f"Failed to sync photometry count: {e}")
         
         # Job counts
@@ -228,13 +228,13 @@ def sync_gauges_from_database(db_path: str = DEFAULT_DB_PATH) -> dict:
             running_jobs_gauge.set(row['running'] or 0)
             results['pending_jobs'] = row['pending'] or 0
             results['running_jobs'] = row['running'] or 0
-        except Exception as e:
+        except sqlite3.Error as e:
             logger.warning(f"Failed to sync job counts: {e}")
         
         conn.close()
         results['status'] = 'success'
         
-    except Exception as e:
+    except sqlite3.Error as e:
         logger.error(f"Database sync failed: {e}")
         results['status'] = 'error'
         results['error'] = str(e)
