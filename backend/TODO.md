@@ -42,9 +42,14 @@
 
 ### Medium Priority
 
-- [ ] **Service Layer Refactoring** - Move business logic from repositories to
-      services
-- [ ] **PostgreSQL Testing** - Test with real PostgreSQL database
+- [x] **Service Layer Refactoring** - Move business logic from repositories to
+      services. Created `api/business_logic.py` with `stage_to_qa_grade()`,
+      `generate_image_qa_summary()`, `generate_ms_qa_summary()`, `generate_run_id()`.
+      Removed duplicate methods from AsyncImageRepository, AsyncMSRepository,
+      AsyncJobRepository. Added 28 unit tests for business logic module.
+- [x] **PostgreSQL Testing** - Test with real PostgreSQL database. Verified
+      PostgreSQL 16 container connectivity, adapter creation, and query execution.
+      All 58 database adapter tests pass. 15 tables created via init.sql.
 - [ ] **N+1 Query Optimization** - Profile and optimize list endpoints
 
 ### Low Priority

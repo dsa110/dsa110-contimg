@@ -5,6 +5,7 @@ Provides properly configured test clients with database fixtures for unit tests
 that need to interact with API routes.
 """
 
+import asyncio
 import os
 import pytest
 from unittest.mock import patch
@@ -50,6 +51,29 @@ def client():
             try:
                 from dsa110_contimg.database.session import reset_engines
                 reset_engines()
+            except (ImportError, AttributeError):
+                pass
+            
+            # Reset database pool singletons so they pick up new env vars
+            try:
+                from dsa110_contimg.api.database import (
+                    close_sync_db_pool,
+                    _db_pool,
+                )
+                # Reset async pool global (can't await here, just set to None)
+                import dsa110_contimg.api.database as db_module
+                if db_module._db_pool is not None:
+                    # Run close in event loop if possible
+                    try:
+                        loop = asyncio.get_event_loop()
+                        if loop.is_running():
+                            db_module._db_pool = None
+                        else:
+                            loop.run_until_complete(db_module._db_pool.close())
+                            db_module._db_pool = None
+                    except RuntimeError:
+                        db_module._db_pool = None
+                close_sync_db_pool()
             except (ImportError, AttributeError):
                 pass
             

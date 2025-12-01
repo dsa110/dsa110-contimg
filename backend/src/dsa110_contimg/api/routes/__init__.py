@@ -17,6 +17,7 @@ from .cache import router as cache_router
 from .services import router as services_router
 from .imaging import router as imaging_router
 from .absurd import router as absurd_router
+from .calibrator_imaging import router as calibrator_imaging_router
 
 __all__ = [
     "images_router",
@@ -32,4 +33,5 @@ __all__ = [
     "services_router",
     "imaging_router",
     "absurd_router",
+    "calibrator_imaging_router",
 ]

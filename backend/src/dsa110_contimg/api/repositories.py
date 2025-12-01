@@ -29,6 +29,12 @@ from .interfaces import (
     SourceRepositoryInterface,
     JobRepositoryInterface,
 )
+from .business_logic import (
+    stage_to_qa_grade,
+    generate_image_qa_summary,
+    generate_ms_qa_summary,
+    generate_run_id,
+)
 
 
 # =============================================================================
@@ -305,10 +311,10 @@ class AsyncImageRepository(ImageRepositoryInterface):
             )
             ms_row = await ms_cursor.fetchone()
             if ms_row:
-                record.qa_grade = self._stage_to_qa_grade(ms_row["stage"], ms_row["status"])
-                record.qa_summary = self._generate_qa_summary(record)
+                record.qa_grade = stage_to_qa_grade(ms_row["stage"], ms_row["status"])
+                record.qa_summary = generate_image_qa_summary(record)
             
-            record.run_id = self._generate_run_id(record.ms_path)
+            record.run_id = generate_run_id(record.ms_path)
             record.cal_table = await self._find_cal_table(record.ms_path)
             
             return record
@@ -323,7 +329,7 @@ class AsyncImageRepository(ImageRepositoryInterface):
             records = []
             async for row in cursor:
                 record = self._row_to_record(row)
-                record.run_id = self._generate_run_id(record.ms_path)
+                record.run_id = generate_run_id(record.ms_path)
                 
                 # Get QA grade from ms_index
                 ms_cursor = await conn.execute(
@@ -332,7 +338,7 @@ class AsyncImageRepository(ImageRepositoryInterface):
                 )
                 ms_row = await ms_cursor.fetchone()
                 if ms_row:
-                    record.qa_grade = self._stage_to_qa_grade(ms_row["stage"], ms_row["status"])
+                    record.qa_grade = stage_to_qa_grade(ms_row["stage"], ms_row["status"])
                 records.append(record)
             return records
     
@@ -380,7 +386,7 @@ class AsyncImageRepository(ImageRepositoryInterface):
                 )
                 async for row in cursor:
                     record = self._row_to_record(row)
-                    record.run_id = self._generate_run_id(record.ms_path)
+                    record.run_id = generate_run_id(record.ms_path)
                     records.append(record)
             
             # Fetch by paths in batches
@@ -392,7 +398,7 @@ class AsyncImageRepository(ImageRepositoryInterface):
                 )
                 async for row in cursor:
                     record = self._row_to_record(row)
-                    record.run_id = self._generate_run_id(record.ms_path)
+                    record.run_id = generate_run_id(record.ms_path)
                     records.append(record)
             
             # Batch fetch QA grades from ms_index
@@ -406,7 +412,7 @@ class AsyncImageRepository(ImageRepositoryInterface):
                         tuple(chunk)
                     )
                     async for row in cursor:
-                        ms_grades[row["path"]] = self._stage_to_qa_grade(
+                        ms_grades[row["path"]] = stage_to_qa_grade(
                             row["stage"], row["status"]
                         )
                 
@@ -442,35 +448,6 @@ class AsyncImageRepository(ImageRepositoryInterface):
             bandwidth_mhz=safe_row_get(row, "bandwidth_mhz"),
             integration_sec=safe_row_get(row, "integration_sec"),
         )
-    
-    def _stage_to_qa_grade(self, stage: Optional[str], status: Optional[str]) -> str:
-        """Convert stage/status to QA grade."""
-        if not stage:
-            return "fail"
-        if stage in ["imaged", "mosaicked", "cataloged"]:
-            return "good"
-        if stage in ["calibrated"]:
-            return "warn"
-        return "fail"
-    
-    def _generate_qa_summary(self, record: ImageRecord) -> str:
-        """Generate QA summary from image metadata."""
-        parts = []
-        if record.noise_jy:
-            parts.append(f"RMS {record.noise_jy*1000:.2f} mJy")
-        if record.dynamic_range:
-            parts.append(f"DR {record.dynamic_range:.0f}")
-        if record.beam_major_arcsec:
-            parts.append(f"Beam {record.beam_major_arcsec:.1f}\"")
-        return ", ".join(parts) if parts else "No QA metrics available"
-    
-    def _generate_run_id(self, ms_path: str) -> str:
-        """Generate run ID from MS path."""
-        basename = Path(ms_path).stem
-        if "T" in basename:
-            timestamp_part = basename.split("T")[0] + "-" + basename.split("T")[1].replace(":", "").split(".")[0]
-            return f"job-{timestamp_part}"
-        return f"job-{basename}"
     
     async def _find_cal_table(self, ms_path: str) -> Optional[str]:
         """Find calibration table for MS."""
@@ -533,9 +510,9 @@ class AsyncMSRepository(MSRepositoryInterface):
             )
             
             record.calibrator_tables = await self._get_calibrator_matches(ms_path)
-            record.qa_grade = self._stage_to_qa_grade(record.stage, record.status)
-            record.qa_summary = self._generate_qa_summary(record)
-            record.run_id = self._generate_run_id(ms_path)
+            record.qa_grade = stage_to_qa_grade(record.stage, record.status)
+            record.qa_summary = generate_ms_qa_summary(record)
+            record.run_id = generate_run_id(ms_path)
             
             if record.processed_at:
                 record.created_at = datetime.fromtimestamp(record.processed_at)
@@ -560,8 +537,8 @@ class AsyncMSRepository(MSRepositoryInterface):
                     status=safe_row_get(row, "status"),
                     stage=safe_row_get(row, "stage"),
                 )
-                record.qa_grade = self._stage_to_qa_grade(record.stage, record.status)
-                record.run_id = self._generate_run_id(record.path)
+                record.qa_grade = stage_to_qa_grade(record.stage, record.status)
+                record.run_id = generate_run_id(record.path)
                 records.append(record)
             return records
     
@@ -608,9 +585,9 @@ class AsyncMSRepository(MSRepositoryInterface):
                         pointing_ra_deg=safe_row_get(row, "pointing_ra_deg"),
                         pointing_dec_deg=safe_row_get(row, "pointing_dec_deg"),
                     )
-                    record.qa_grade = self._stage_to_qa_grade(record.stage, record.status)
-                    record.qa_summary = self._generate_qa_summary(record)
-                    record.run_id = self._generate_run_id(record.path)
+                    record.qa_grade = stage_to_qa_grade(record.stage, record.status)
+                    record.qa_summary = generate_ms_qa_summary(record)
+                    record.run_id = generate_run_id(record.path)
                     if record.processed_at:
                         record.created_at = datetime.fromtimestamp(record.processed_at)
                     result[record.path] = record
@@ -634,33 +611,6 @@ class AsyncMSRepository(MSRepositoryInterface):
                 return matches
         except DatabaseConnectionError:
             return []
-    
-    def _stage_to_qa_grade(self, stage: Optional[str], status: Optional[str]) -> str:
-        """Convert stage/status to QA grade."""
-        if not stage:
-            return "fail"
-        if stage in ["imaged", "mosaicked", "cataloged"]:
-            return "good"
-        if stage in ["calibrated"]:
-            return "warn"
-        return "fail"
-    
-    def _generate_qa_summary(self, record: MSRecord) -> str:
-        """Generate QA summary from MS metadata."""
-        parts = []
-        if record.cal_applied:
-            parts.append("Calibrated")
-        if record.stage:
-            parts.append(f"Stage: {record.stage}")
-        return ", ".join(parts) if parts else "No QA info"
-    
-    def _generate_run_id(self, ms_path: str) -> str:
-        """Generate run ID from MS path."""
-        basename = Path(ms_path).stem
-        if "T" in basename:
-            timestamp_part = basename.split("T")[0] + "-" + basename.split("T")[1].replace(":", "").split(".")[0]
-            return f"job-{timestamp_part}"
-        return f"job-{basename}"
 
 
 # =============================================================================
@@ -867,7 +817,7 @@ class AsyncJobRepository(JobRepositoryInterface):
                         cal_table_path=cal_table,
                         phase_center_ra=safe_row_get(row, "pointing_ra_deg") or safe_row_get(row, "ra_deg"),
                         phase_center_dec=safe_row_get(row, "pointing_dec_deg") or safe_row_get(row, "dec_deg"),
-                        qa_grade=self._stage_to_qa_grade(safe_row_get(row, "stage"), safe_row_get(row, "status")),
+                        qa_grade=stage_to_qa_grade(safe_row_get(row, "stage"), safe_row_get(row, "status")),
                         qa_summary=f"Stage: {safe_row_get(row, 'stage', 'unknown')}",
                         output_image_id=img_row["id"] if img_row else None,
                         started_at=datetime.fromtimestamp(row["processed_at"]) if safe_row_get(row, "processed_at") else None,
@@ -892,13 +842,13 @@ class AsyncJobRepository(JobRepositoryInterface):
             )
             records = []
             async for row in cursor:
-                run_id = self._generate_run_id(row["path"])
+                run_id = generate_run_id(row["path"])
                 records.append(JobRecord(
                     run_id=run_id,
                     input_ms_path=row["path"],
                     phase_center_ra=safe_row_get(row, "pointing_ra_deg") or safe_row_get(row, "ra_deg"),
                     phase_center_dec=safe_row_get(row, "pointing_dec_deg") or safe_row_get(row, "dec_deg"),
-                    qa_grade=self._stage_to_qa_grade(safe_row_get(row, "stage"), safe_row_get(row, "status")),
+                    qa_grade=stage_to_qa_grade(safe_row_get(row, "stage"), safe_row_get(row, "status")),
                     started_at=datetime.fromtimestamp(row["processed_at"]) if safe_row_get(row, "processed_at") else None,
                 ))
             return records
@@ -961,7 +911,7 @@ class AsyncJobRepository(JobRepositoryInterface):
                     tuple(chunk)
                 )
                 async for row in cursor:
-                    generated_run_id = self._generate_run_id(row["path"])
+                    generated_run_id = generate_run_id(row["path"])
                     # Only include if it matches one of the requested run_ids
                     if generated_run_id in run_ids:
                         records.append(JobRecord(
@@ -969,26 +919,8 @@ class AsyncJobRepository(JobRepositoryInterface):
                             input_ms_path=row["path"],
                             phase_center_ra=safe_row_get(row, "pointing_ra_deg") or safe_row_get(row, "ra_deg"),
                             phase_center_dec=safe_row_get(row, "pointing_dec_deg") or safe_row_get(row, "dec_deg"),
-                            qa_grade=self._stage_to_qa_grade(safe_row_get(row, "stage"), safe_row_get(row, "status")),
+                            qa_grade=stage_to_qa_grade(safe_row_get(row, "stage"), safe_row_get(row, "status")),
                             started_at=datetime.fromtimestamp(row["processed_at"]) if safe_row_get(row, "processed_at") else None,
                         ))
         
         return records
-    
-    def _stage_to_qa_grade(self, stage: Optional[str], status: Optional[str]) -> str:
-        """Convert stage/status to QA grade."""
-        if not stage:
-            return "fail"
-        if stage in ["imaged", "mosaicked", "cataloged"]:
-            return "good"
-        if stage in ["calibrated"]:
-            return "warn"
-        return "fail"
-    
-    def _generate_run_id(self, ms_path: str) -> str:
-        """Generate run ID from MS path."""
-        basename = Path(ms_path).stem
-        if "T" in basename:
-            timestamp_part = basename.split("T")[0] + "-" + basename.split("T")[1].replace(":", "").split(".")[0]
-            return f"job-{timestamp_part}"
-        return f"job-{basename}"
