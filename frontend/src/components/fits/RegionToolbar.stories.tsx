@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { fn } from "storybook/test";
+import { action } from "@storybook/addon-actions";
 import RegionToolbar from "./RegionToolbar";
 
 /**
@@ -56,8 +56,8 @@ format selector, and export/save buttons.
   },
   args: {
     displayId: "JS9",
-    onSave: fn(),
-    onChange: fn(),
+    onSave: action("onSave"),
+    onChange: action("onChange"),
   },
 } satisfies Meta<typeof RegionToolbar>;
 
@@ -91,10 +91,7 @@ export const WithSaveCallback: Story = {
   args: {
     displayId: "JS9",
     compact: false,
-    onSave: (regions, format) => {
-      console.log(`Saving ${regions.length} regions as ${format}`);
-      alert(`Would save ${regions.length} regions in ${format} format`);
-    },
+    onSave: action("onSave-with-alert"),
   },
   parameters: {
     docs: {

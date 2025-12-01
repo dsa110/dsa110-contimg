@@ -47,12 +47,19 @@ from .database_fixtures import (
     sample_caltable_records,
     sample_ms_index_records,
     sample_photometry_records,
-    # Population functions
+    # Population functions (async)
     populate_products_db,
     populate_cal_registry_db,
     create_populated_products_db,
     create_populated_cal_registry_db,
+    # Context managers (sync, for integration tests)
+    create_test_products_db,
+    create_test_cal_registry_db,
+    create_test_database_environment,
 )
+
+# Alias for backwards compatibility
+sample_cal_table_records = sample_caltable_records
 
 from .writers import (
     PyuvdataMonolithicWriter,

@@ -3,6 +3,7 @@
 **Date:** 2025-12-01  
 **Status:** Planning  
 **Target:** Deploy durable workflow manager to `frontend/` and `backend/`
+**Last Verified:** 2025-12-01 (Pre-flight check passed)
 
 ---
 
@@ -54,6 +55,7 @@ ABSURD is a PostgreSQL-backed durable workflow/task queue manager that provides:
 | Error handling   | `frontend/src/constants/errorMappings.ts`                 | ✅ `ABSURD_DISABLED` exists  |
 | Database schema  | `legacy.backend/src/dsa110_contimg/absurd/schema.sql`     | ✅ Complete                  |
 | Systemd services | Does not exist                                            | ❌ Needs creation            |
+| React Query       | `frontend/package.json`                                   | ✅ @tanstack/react-query installed |
 
 ---
 
@@ -2594,3 +2596,461 @@ curl -X DELETE http://localhost:8000/absurd/tasks/{task_id}
 - Operations guide: `legacy.backend/docs/operations/absurd_operations_guide.md`
 - Executor roadmap: `.local/internal/docs/dev/status/2025-11/absurd_executor_roadmap.md`
 - Integration summary: `.local/internal/docs/dev/status/2025-11/absurd_integration_summary.md`
+
+---
+
+## Appendix A: Pre-Flight Checklist
+
+Before beginning deployment, verify all prerequisites are met:
+
+### Environment Verification
+
+```bash
+#!/bin/bash
+# Pre-flight checklist script
+# Save as: scripts/absurd/preflight_check.sh
+
+set -e
+echo "=== ABSURD Deployment Pre-Flight Checklist ==="
+echo ""
+
+# 1. Verify conda environment
+echo "1. Checking conda environment..."
+if conda info --envs | grep -q "casa6"; then
+    echo "   ✅ casa6 environment exists"
+else
+    echo "   ❌ casa6 environment NOT FOUND"
+    exit 1
+fi
+
+# 2. Verify legacy files exist
+echo "2. Checking legacy source files..."
+LEGACY_DIR="/data/dsa110-contimg/legacy.backend/src/dsa110_contimg/absurd"
+REQUIRED_FILES="config.py client.py worker.py schema.sql adapter.py"
+for f in $REQUIRED_FILES; do
+    if [[ -f "$LEGACY_DIR/$f" ]]; then
+        echo "   ✅ $f exists"
+    else
+        echo "   ❌ $f MISSING"
+        exit 1
+    fi
+done
+
+# 3. Verify legacy router exists
+echo "3. Checking legacy router..."
+ROUTER="/data/dsa110-contimg/legacy.backend/src/dsa110_contimg/api/routers/absurd.py"
+if [[ -f "$ROUTER" ]]; then
+    echo "   ✅ absurd.py router exists ($(wc -l < "$ROUTER") lines)"
+else
+    echo "   ❌ absurd.py router MISSING"
+    exit 1
+fi
+
+# 4. Verify PostgreSQL is running
+echo "4. Checking PostgreSQL..."
+if pg_isready -h localhost -q; then
+    echo "   ✅ PostgreSQL is running"
+else
+    echo "   ❌ PostgreSQL is NOT running"
+    exit 1
+fi
+
+# 5. Verify asyncpg is installed
+echo "5. Checking Python dependencies..."
+conda activate casa6
+if python -c "import asyncpg" 2>/dev/null; then
+    echo "   ✅ asyncpg is installed"
+else
+    echo "   ⚠️  asyncpg NOT installed (will be installed during deployment)"
+fi
+
+# 6. Verify frontend dependencies
+echo "6. Checking frontend dependencies..."
+if grep -q "@tanstack/react-query" /data/dsa110-contimg/frontend/package.json; then
+    echo "   ✅ @tanstack/react-query is installed"
+else
+    echo "   ❌ @tanstack/react-query NOT installed"
+    exit 1
+fi
+
+# 7. Check disk space
+echo "7. Checking disk space..."
+AVAILABLE=$(df -BG /data | tail -1 | awk '{print $4}' | tr -d 'G')
+if [[ $AVAILABLE -gt 10 ]]; then
+    echo "   ✅ ${AVAILABLE}GB available on /data"
+else
+    echo "   ⚠️  Only ${AVAILABLE}GB available (recommend >10GB)"
+fi
+
+# 8. Check for existing ABSURD database
+echo "8. Checking for existing database..."
+if psql -lqt | cut -d \| -f 1 | grep -qw dsa110_absurd; then
+    echo "   ⚠️  dsa110_absurd database already exists"
+    echo "      Consider backing up before proceeding"
+else
+    echo "   ✅ dsa110_absurd database does not exist (will be created)"
+fi
+
+echo ""
+echo "=== Pre-Flight Check Complete ==="
+echo "Run the deployment when all checks pass."
+```
+
+### Database Backup (Before Migration)
+
+**IMPORTANT:** Always backup existing databases before schema changes.
+
+```bash
+# Backup existing ABSURD database (if exists)
+if psql -lqt | cut -d \| -f 1 | grep -qw dsa110_absurd; then
+    BACKUP_FILE="/data/dsa110-contimg/state/backups/absurd_$(date +%Y%m%d_%H%M%S).sql"
+    mkdir -p /data/dsa110-contimg/state/backups
+    pg_dump dsa110_absurd > "$BACKUP_FILE"
+    gzip "$BACKUP_FILE"
+    echo "Backup saved to: ${BACKUP_FILE}.gz"
+fi
+
+# Backup main pipeline database
+pg_dump dsa110_contimg > "/data/dsa110-contimg/state/backups/contimg_$(date +%Y%m%d_%H%M%S).sql"
+```
+
+---
+
+## Appendix B: Rollback Procedures
+
+If deployment fails or issues are discovered, follow these rollback procedures.
+
+### Quick Rollback (Services Only)
+
+```bash
+#!/bin/bash
+# Rollback script - services only (keeps data)
+# Save as: scripts/absurd/rollback_services.sh
+
+set -e
+echo "=== ABSURD Service Rollback ==="
+
+# 1. Stop ABSURD services
+echo "Stopping ABSURD services..."
+sudo systemctl stop contimg-absurd-worker 2>/dev/null || true
+sudo systemctl disable contimg-absurd-worker 2>/dev/null || true
+
+# 2. Remove router from API (manual step)
+echo "Manual step required:"
+echo "  - Remove 'absurd' router from backend/src/dsa110_contimg/api/app.py"
+echo "  - Remove absurd import from routers/__init__.py"
+
+# 3. Disable ABSURD in environment
+sed -i 's/ABSURD_ENABLED=true/ABSURD_ENABLED=false/' \
+    /data/dsa110-contimg/ops/systemd/contimg.env
+
+# 4. Restart API without ABSURD
+sudo systemctl restart contimg-api
+
+echo "=== Rollback Complete (Services) ==="
+echo "Database preserved. Frontend routes may need manual removal."
+```
+
+### Full Rollback (Including Database)
+
+```bash
+#!/bin/bash
+# Full rollback script - removes all ABSURD components
+# Save as: scripts/absurd/rollback_full.sh
+
+set -e
+echo "=== ABSURD Full Rollback ==="
+echo "WARNING: This will delete the ABSURD database!"
+read -p "Continue? (y/N): " confirm
+[[ "$confirm" != "y" ]] && exit 1
+
+# 1. Stop services
+echo "Stopping services..."
+sudo systemctl stop contimg-absurd-worker 2>/dev/null || true
+sudo systemctl disable contimg-absurd-worker 2>/dev/null || true
+
+# 2. Backup database before deletion
+BACKUP_FILE="/data/dsa110-contimg/state/backups/absurd_rollback_$(date +%Y%m%d_%H%M%S).sql"
+pg_dump dsa110_absurd > "$BACKUP_FILE" 2>/dev/null || true
+
+# 3. Drop database
+echo "Dropping database..."
+dropdb dsa110_absurd 2>/dev/null || true
+
+# 4. Remove backend module
+echo "Removing backend module..."
+rm -rf /data/dsa110-contimg/backend/src/dsa110_contimg/absurd/
+rm -f /data/dsa110-contimg/backend/src/dsa110_contimg/api/routers/absurd.py
+
+# 5. Remove systemd service
+echo "Removing systemd service..."
+sudo rm -f /etc/systemd/system/contimg-absurd-worker.service
+sudo systemctl daemon-reload
+
+# 6. Disable in environment
+sed -i 's/ABSURD_ENABLED=true/ABSURD_ENABLED=false/' \
+    /data/dsa110-contimg/ops/systemd/contimg.env
+
+# 7. Clean up recovery files
+rm -rf /data/dsa110-contimg/state/absurd_recovery/
+
+echo "=== Full Rollback Complete ==="
+echo "Backup saved to: $BACKUP_FILE"
+echo ""
+echo "Manual steps remaining:"
+echo "  1. Remove WorkflowsPage from frontend/src/pages/"
+echo "  2. Remove /workflows route from frontend/src/router.tsx"
+echo "  3. Remove Workflows link from Sidebar.tsx"
+echo "  4. Run: cd frontend && npm run build:scratch"
+```
+
+### Restore from Backup
+
+```bash
+#!/bin/bash
+# Restore ABSURD database from backup
+# Usage: ./restore_absurd.sh <backup_file.sql.gz>
+
+BACKUP_FILE="$1"
+if [[ -z "$BACKUP_FILE" ]]; then
+    echo "Usage: $0 <backup_file.sql.gz>"
+    echo "Available backups:"
+    ls -la /data/dsa110-contimg/state/backups/absurd_*.sql.gz 2>/dev/null
+    exit 1
+fi
+
+# Drop existing database
+dropdb dsa110_absurd 2>/dev/null || true
+
+# Create fresh database
+createdb dsa110_absurd
+
+# Restore from backup
+if [[ "$BACKUP_FILE" == *.gz ]]; then
+    gunzip -c "$BACKUP_FILE" | psql dsa110_absurd
+else
+    psql dsa110_absurd < "$BACKUP_FILE"
+fi
+
+echo "Database restored from: $BACKUP_FILE"
+```
+
+---
+
+## Appendix C: Recovery File Cleanup
+
+The recovery file mechanism (`/data/dsa110-contimg/state/absurd_recovery/`) stores
+task results when the database is unavailable. These files need periodic cleanup.
+
+### Automatic Cleanup (Recommended)
+
+Add a systemd timer for daily cleanup:
+
+**File:** `ops/systemd/absurd-cleanup.service`
+
+```ini
+[Unit]
+Description=ABSURD Recovery File Cleanup
+After=network.target
+
+[Service]
+Type=oneshot
+User=dsa110
+ExecStart=/bin/bash -c '\
+    RECOVERY_DIR=/data/dsa110-contimg/state/absurd_recovery && \
+    if [[ -d "$RECOVERY_DIR" ]]; then \
+        find "$RECOVERY_DIR" -name "*.json" -mtime +7 -delete && \
+        find "$RECOVERY_DIR" -name "*.json" -mtime +1 -exec \
+            python -m dsa110_contimg.absurd.recovery process {} \; \
+    fi'
+```
+
+**File:** `ops/systemd/absurd-cleanup.timer`
+
+```ini
+[Unit]
+Description=Daily ABSURD Recovery Cleanup
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+```
+
+Enable the timer:
+
+```bash
+sudo cp ops/systemd/absurd-cleanup.{service,timer} /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now absurd-cleanup.timer
+```
+
+### Manual Cleanup
+
+```bash
+# View recovery files
+ls -la /data/dsa110-contimg/state/absurd_recovery/
+
+# Process pending recovery files (re-attempt DB writes)
+conda activate casa6
+python -m dsa110_contimg.absurd.recovery process_all
+
+# Remove old recovery files (>7 days)
+find /data/dsa110-contimg/state/absurd_recovery -name "*.json" -mtime +7 -delete
+```
+
+### Recovery File Monitoring
+
+Add to Prometheus alerting:
+
+```yaml
+- alert: AbsurdRecoveryFilesAccumulating
+  expr: |
+    count(node_directory_files{directory="/data/dsa110-contimg/state/absurd_recovery"}) > 10
+  for: 30m
+  labels:
+    severity: warning
+  annotations:
+    summary: "Recovery files accumulating"
+    description: "{{ $value }} recovery files pending - check database connectivity"
+```
+
+---
+
+## Appendix D: Worker Scaling Guidelines
+
+### Recommended Worker Limits
+
+| Host Resources | Max Workers | Concurrency/Worker | Total Concurrent |
+| -------------- | ----------- | ------------------ | ---------------- |
+| 8 cores, 32GB  | 2           | 2                  | 4 tasks          |
+| 16 cores, 64GB | 4           | 4                  | 16 tasks         |
+| 32 cores, 128GB| 6           | 4                  | 24 tasks         |
+
+### Memory Considerations
+
+Each task type has different memory requirements:
+
+| Task Type           | Typical Memory | Peak Memory | Notes                    |
+| ------------------- | -------------- | ----------- | ------------------------ |
+| `convert-uvh5-to-ms`| 4-8 GB         | 12 GB       | 16 subbands combined     |
+| `calibration-solve` | 2-4 GB         | 6 GB        | Depends on MS size       |
+| `calibration-apply` | 2-4 GB         | 6 GB        | Similar to solve         |
+| `imaging`           | 8-32 GB        | 64 GB       | WSClean can use all RAM  |
+| `validation`        | 1-2 GB         | 4 GB        | Lightweight              |
+| `crossmatch`        | 2-4 GB         | 8 GB        | Catalog size dependent   |
+
+**Formula for max workers:**
+
+```
+max_workers = floor(available_memory / peak_memory_per_task)
+```
+
+For a 64GB host running primarily imaging tasks:
+```
+max_workers = floor(64 / 32) = 2 workers with concurrency 1
+# OR
+max_workers = floor(64 / 8) = 8 workers for lighter tasks
+```
+
+### Multi-Worker Deployment
+
+Use systemd template units for scaling:
+
+```bash
+# Enable 4 worker instances
+sudo systemctl enable contimg-absurd-worker@{1..4}
+sudo systemctl start contimg-absurd-worker@{1..4}
+
+# Check status of all workers
+systemctl list-units 'contimg-absurd-worker@*'
+
+# View logs for specific worker
+journalctl -u contimg-absurd-worker@2 -f
+```
+
+### Task Affinity Configuration
+
+For tasks that shouldn't run in parallel (e.g., imaging using all GPUs):
+
+```python
+# In worker configuration
+EXCLUSIVE_TASK_TYPES = {"imaging", "create-mosaic"}
+
+# Only worker-1 handles exclusive tasks
+if worker_id == "worker-1":
+    task = await claim_task(include_types=EXCLUSIVE_TASK_TYPES)
+else:
+    task = await claim_task(exclude_types=EXCLUSIVE_TASK_TYPES)
+```
+
+---
+
+## Appendix E: Health Check Integration
+
+### Liveness and Readiness Probes
+
+Add health check endpoint for Kubernetes/systemd:
+
+**Backend health check** (already in router):
+
+```bash
+# Liveness - is the worker process alive?
+curl -f http://localhost:8000/absurd/health
+
+# Readiness - can the worker accept tasks?
+curl -f http://localhost:8000/absurd/health | jq -e '.status == "ok"'
+```
+
+### Systemd Health Check
+
+Update the worker service to include health monitoring:
+
+```ini
+# In contimg-absurd-worker.service [Service] section
+ExecStartPre=/bin/bash -c 'pg_isready -h localhost -q'
+WatchdogSec=60
+NotifyAccess=all
+```
+
+Add watchdog notification to worker:
+
+```python
+# In worker.py main loop
+import sdnotify
+
+notifier = sdnotify.SystemdNotifier()
+
+async def main_loop():
+    while True:
+        task = await claim_task()
+        if task:
+            await process_task(task)
+        notifier.notify("WATCHDOG=1")  # Heartbeat to systemd
+```
+
+### Frontend Health Display
+
+The `PipelineStatusPanel` already handles ABSURD availability gracefully with
+placeholder data during outages and retry functionality.
+
+---
+
+## Appendix F: Revised Timeline Estimate
+
+Based on complexity analysis and buffer for testing:
+
+| Phase                | Optimistic | Realistic | Pessimistic | Notes                          |
+| -------------------- | ---------- | --------- | ----------- | ------------------------------ |
+| Pre-flight & Backup  | 0.5 day    | 1 day     | 1 day       | Run checklist, backup DBs      |
+| Phase 1: Backend     | 1 day      | 2 days    | 3 days      | Migration + testing            |
+| Phase 2: Frontend    | 2 days     | 3 days    | 4 days      | Components + integration       |
+| Phase 3: Worker      | 1 day      | 1.5 days  | 2 days      | Systemd + initial testing      |
+| Phase 4: Testing     | 2 days     | 3 days    | 5 days      | E2E + load testing             |
+| Buffer               | 0 days     | 1 day     | 2 days      | Unexpected issues              |
+| **Total**            | **6.5 days** | **11.5 days** | **17 days** |                          |
+
+**Recommendation:** Plan for 10-14 business days with a 2-week target.
+

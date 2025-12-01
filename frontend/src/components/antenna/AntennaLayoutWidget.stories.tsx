@@ -1,8 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { http, HttpResponse } from "msw";
-import AntennaLayoutWidget from "./AntennaLayoutWidget";
-import type { AntennaLayoutResponse } from "./AntennaLayoutWidget";
+import React from "react";
+import type { AntennaInfo, AntennaLayoutResponse } from "./AntennaLayoutWidget";
 
 /**
  * AntennaLayoutWidget displays the DSA-110 T-shaped antenna array layout.
@@ -16,39 +14,17 @@ import type { AntennaLayoutResponse } from "./AntennaLayoutWidget";
  *
  * This component fetches antenna positions and flagging stats from the
  * `/ms/{path}/antennas` API endpoint.
+ *
+ * For Storybook, we use a mock wrapper that renders the visualization
+ * directly without API calls.
  */
-const meta = {
-  title: "Components/Antenna/AntennaLayoutWidget",
-  component: AntennaLayoutWidget,
-  tags: ["autodocs"],
-  parameters: {
-    layout: "padded",
-  },
-  decorators: [
-    (Story) => {
-      const queryClient = new QueryClient({
-        defaultOptions: {
-          queries: { retry: false, staleTime: Infinity },
-        },
-      });
-      return (
-        <QueryClientProvider client={queryClient}>
-          <Story />
-        </QueryClientProvider>
-      );
-    },
-  ],
-} satisfies Meta<typeof AntennaLayoutWidget>;
-
-export default meta;
-type Story = StoryObj<typeof meta>;
 
 // Generate mock DSA-110 T-shaped antenna positions
 function generateMockAntennas(
   count: number,
   flaggingScenario: "good" | "mixed" | "bad"
 ): AntennaLayoutResponse {
-  const antennas = [];
+  const antennas: AntennaInfo[] = [];
 
   // DSA-110 T-shape: East-West arm (~1.2km) and North-South arm (~0.3km)
   for (let i = 0; i < count; i++) {
@@ -96,25 +72,180 @@ function generateMockAntennas(
   };
 }
 
-// MSW handlers for different scenarios
-const createHandler = (scenario: "good" | "mixed" | "bad", antennaCount = 63) =>
-  http.get("*/ms/*/antennas", () => {
-    return HttpResponse.json(generateMockAntennas(antennaCount, scenario));
-  });
+/**
+ * Get color for antenna based on flagging percentage.
+ */
+function getFlagColor(flaggedPct: number): string {
+  if (flaggedPct > 50) return "#EF4444"; // red-500 - severe flagging
+  if (flaggedPct > 20) return "#F59E0B"; // amber-500 - moderate flagging
+  return "#22C55E"; // green-500 - good
+}
+
+interface MockAntennaLayoutProps {
+  data: AntennaLayoutResponse;
+  height?: number;
+  showLegend?: boolean;
+  onAntennaClick?: (antenna: AntennaInfo) => void;
+}
+
+/**
+ * Mock component that renders the antenna layout directly without API.
+ */
+const MockAntennaLayout: React.FC<MockAntennaLayoutProps> = ({
+  data,
+  height = 300,
+  showLegend = true,
+  onAntennaClick,
+}) => {
+  const { antennas, total_baselines } = data;
+
+  // Calculate viewport bounds
+  const xs = antennas.map((a) => a.x_m);
+  const ys = antennas.map((a) => a.y_m);
+  const minX = Math.min(...xs);
+  const maxX = Math.max(...xs);
+  const minY = Math.min(...ys);
+  const maxY = Math.max(...ys);
+  const padX = Math.max((maxX - minX) * 0.1, 50);
+  const padY = Math.max((maxY - minY) * 0.1, 50);
+
+  const viewBox = {
+    minX: minX - padX,
+    minY: minY - padY,
+    width: maxX - minX + 2 * padX,
+    height: maxY - minY + 2 * padY,
+  };
+
+  const aspectRatio = viewBox.width / viewBox.height;
+  const svgWidth = height * aspectRatio;
+  const markerRadius = Math.max(viewBox.width, viewBox.height) * 0.015;
+
+  return (
+    <div className="antenna-layout-widget">
+      <div className="flex gap-4">
+        <div className="flex-1">
+          <svg
+            width={svgWidth}
+            height={height}
+            viewBox={`${viewBox.minX} ${viewBox.minY} ${viewBox.width} ${viewBox.height}`}
+            className="bg-gray-900 rounded-lg"
+            style={{ maxWidth: "100%" }}
+          >
+            {/* Grid lines */}
+            <g stroke="#374151" strokeWidth={0.5} strokeDasharray="4,4">
+              <line
+                x1={viewBox.minX}
+                y1={0}
+                x2={viewBox.minX + viewBox.width}
+                y2={0}
+              />
+              <line
+                x1={0}
+                y1={viewBox.minY}
+                x2={0}
+                y2={viewBox.minY + viewBox.height}
+              />
+            </g>
+
+            {/* Antenna markers */}
+            {antennas.map((antenna) => (
+              <g
+                key={antenna.id}
+                className="cursor-pointer"
+                onClick={() => onAntennaClick?.(antenna)}
+              >
+                <circle
+                  cx={antenna.x_m}
+                  cy={-antenna.y_m}
+                  r={markerRadius}
+                  fill={getFlagColor(antenna.flagged_pct)}
+                  stroke="#fff"
+                  strokeWidth={markerRadius * 0.15}
+                >
+                  <title>
+                    {`${antenna.name}\nFlagged: ${antenna.flagged_pct.toFixed(
+                      1
+                    )}%\nBaselines: ${antenna.baseline_count}`}
+                  </title>
+                </circle>
+              </g>
+            ))}
+
+            {/* Axis labels */}
+            <text
+              x={viewBox.minX + viewBox.width / 2}
+              y={viewBox.minY + viewBox.height - 10}
+              textAnchor="middle"
+              fill="#9CA3AF"
+              fontSize={markerRadius * 1.2}
+            >
+              East (m)
+            </text>
+          </svg>
+        </div>
+
+        {showLegend && (
+          <div className="flex-shrink-0 w-32">
+            <h4 className="text-xs font-medium text-gray-700 mb-2">
+              Flagging Status
+            </h4>
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-green-500" />
+                <span className="text-xs text-gray-600">&lt;20%</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-amber-500" />
+                <span className="text-xs text-gray-600">20-50%</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="w-3 h-3 rounded-full bg-red-500" />
+                <span className="text-xs text-gray-600">&gt;50%</span>
+              </div>
+            </div>
+            <div className="mt-4 pt-3 border-t border-gray-200">
+              <dl className="space-y-1">
+                <div className="flex justify-between">
+                  <dt className="text-xs text-gray-500">Antennas</dt>
+                  <dd className="text-xs font-medium text-gray-900">
+                    {antennas.length}
+                  </dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-xs text-gray-500">Baselines</dt>
+                  <dd className="text-xs font-medium text-gray-900">
+                    {total_baselines}
+                  </dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const meta = {
+  title: "Components/Antenna/AntennaLayoutWidget",
+  component: MockAntennaLayout,
+  tags: ["autodocs"],
+  parameters: {
+    layout: "padded",
+  },
+} satisfies Meta<typeof MockAntennaLayout>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
 
 /**
  * Good observation with minimal flagging (<20% on all antennas)
  */
 export const GoodObservation: Story = {
   args: {
-    msPath: "/stage/dsa110-contimg/ms/good_observation.ms",
+    data: generateMockAntennas(63, "good"),
     height: 300,
     showLegend: true,
-  },
-  parameters: {
-    msw: {
-      handlers: [createHandler("good")],
-    },
   },
 };
 
@@ -123,14 +254,9 @@ export const GoodObservation: Story = {
  */
 export const MixedObservation: Story = {
   args: {
-    msPath: "/stage/dsa110-contimg/ms/mixed_observation.ms",
+    data: generateMockAntennas(63, "mixed"),
     height: 300,
     showLegend: true,
-  },
-  parameters: {
-    msw: {
-      handlers: [createHandler("mixed")],
-    },
   },
 };
 
@@ -139,14 +265,9 @@ export const MixedObservation: Story = {
  */
 export const BadObservation: Story = {
   args: {
-    msPath: "/stage/dsa110-contimg/ms/bad_observation.ms",
+    data: generateMockAntennas(63, "bad"),
     height: 300,
     showLegend: true,
-  },
-  parameters: {
-    msw: {
-      handlers: [createHandler("bad")],
-    },
   },
 };
 
@@ -155,14 +276,9 @@ export const BadObservation: Story = {
  */
 export const FullArray: Story = {
   args: {
-    msPath: "/stage/dsa110-contimg/ms/full_array.ms",
+    data: generateMockAntennas(110, "mixed"),
     height: 400,
     showLegend: true,
-  },
-  parameters: {
-    msw: {
-      handlers: [createHandler("mixed", 110)],
-    },
   },
 };
 
@@ -171,14 +287,9 @@ export const FullArray: Story = {
  */
 export const CompactNoLegend: Story = {
   args: {
-    msPath: "/stage/dsa110-contimg/ms/compact.ms",
+    data: generateMockAntennas(63, "good"),
     height: 200,
     showLegend: false,
-  },
-  parameters: {
-    msw: {
-      handlers: [createHandler("good", 63)],
-    },
   },
 };
 
@@ -187,60 +298,13 @@ export const CompactNoLegend: Story = {
  */
 export const WithClickHandler: Story = {
   args: {
-    msPath: "/stage/dsa110-contimg/ms/interactive.ms",
+    data: generateMockAntennas(63, "mixed"),
     height: 300,
     showLegend: true,
     onAntennaClick: (antenna) => {
-      console.log("Clicked antenna:", antenna);
       alert(
         `Selected ${antenna.name}\nFlagged: ${antenna.flagged_pct.toFixed(1)}%`
       );
-    },
-  },
-  parameters: {
-    msw: {
-      handlers: [createHandler("mixed")],
-    },
-  },
-};
-
-/**
- * Loading state (no MSW handler to trigger loading)
- */
-export const Loading: Story = {
-  args: {
-    msPath: "/stage/dsa110-contimg/ms/loading.ms",
-    height: 300,
-    showLegend: true,
-  },
-  parameters: {
-    msw: {
-      handlers: [
-        http.get("*/ms/*/antennas", async () => {
-          // Never resolve to show loading state
-          await new Promise(() => {});
-        }),
-      ],
-    },
-  },
-};
-
-/**
- * Error state
- */
-export const Error: Story = {
-  args: {
-    msPath: "/stage/dsa110-contimg/ms/error.ms",
-    height: 300,
-    showLegend: true,
-  },
-  parameters: {
-    msw: {
-      handlers: [
-        http.get("*/ms/*/antennas", () => {
-          return new HttpResponse(null, { status: 500 });
-        }),
-      ],
     },
   },
 };

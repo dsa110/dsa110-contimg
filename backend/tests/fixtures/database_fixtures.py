@@ -51,11 +51,15 @@ __all__ = [
     "sample_caltable_records",
     "sample_ms_index_records",
     "sample_photometry_records",
-    # Population functions
+    # Population functions (async)
     "populate_products_db",
     "populate_cal_registry_db",
     "create_populated_products_db",
     "create_populated_cal_registry_db",
+    # Context managers (sync, for integration tests)
+    "create_test_products_db",
+    "create_test_cal_registry_db",
+    "create_test_database_environment",
 ]
 
 
@@ -148,18 +152,17 @@ class SampleJob:
     """Sample batch job record for testing.
     
     Matches the schema in dsa110_contimg.database.schema.PRODUCTS_TABLES['batch_jobs'].
+    Schema: id, type, created_at, status, total_items, completed_items, failed_items, params
     """
 
-    id: str = field(default_factory=lambda: str(uuid.uuid4()))
-    job_type: str = "imaging"
-    status: str = "pending"
+    id: int  # INTEGER PRIMARY KEY (not UUID)
+    type: str = "imaging"  # TEXT NOT NULL (job type: imaging, calibration, photometry)
     created_at: float = field(default_factory=lambda: datetime.utcnow().timestamp())
-    started_at: float | None = None
-    completed_at: float | None = None
-    error_message: str | None = None
-    input_params: str = "{}"
-    output_path: str | None = None
-    priority: int = 0
+    status: str = "pending"  # TEXT NOT NULL DEFAULT 'pending'
+    total_items: int = 0  # INTEGER NOT NULL DEFAULT 0
+    completed_items: int = 0  # INTEGER DEFAULT 0
+    failed_items: int = 0  # INTEGER DEFAULT 0
+    params: str | None = None  # TEXT (JSON parameters)
 
 
 @dataclass
@@ -303,25 +306,23 @@ def sample_job_records(count: int = 3) -> Iterator[SampleJob]:
         SampleJob instances with varying statuses.
     """
     statuses = ["pending", "running", "completed", "failed"]
+    job_types = ["imaging", "calibration", "photometry"]
     base_time = datetime.utcnow().timestamp()
     for i in range(count):
         status = statuses[i % len(statuses)]
-        created = base_time - i * 3600
-        started = created + 300 if status != "pending" else None
-        completed = created + 1800 if status in ("completed", "failed") else None
-        error = "Test error message" if status == "failed" else None
+        total = 10
+        completed = total if status == "completed" else (5 if status == "running" else 0)
+        failed = 2 if status == "failed" else 0
 
         yield SampleJob(
-            id=str(uuid.uuid4()),
-            job_type=["imaging", "calibration", "photometry"][i % 3],
+            id=i + 1,  # INTEGER PRIMARY KEY
+            type=job_types[i % len(job_types)],
+            created_at=base_time - i * 3600,
             status=status,
-            created_at=created,
-            started_at=started,
-            completed_at=completed,
-            error_message=error,
-            input_params='{"test": true}',
-            output_path=f"/stage/dsa110-contimg/output/job_{i}" if status == "completed" else None,
-            priority=i,
+            total_items=total,
+            completed_items=completed,
+            failed_items=failed,
+            params='{"test": true}' if i % 2 == 0 else None,
         )
 
 
@@ -492,14 +493,13 @@ async def populate_products_db(
         await conn.execute(
             """
             INSERT INTO batch_jobs (
-                id, job_type, status, created_at, started_at, completed_at,
-                error_message, input_params, output_path, priority
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                id, type, created_at, status, total_items, completed_items,
+                failed_items, params
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
-                job.id, job.job_type, job.status, job.created_at, job.started_at,
-                job.completed_at, job.error_message, job.input_params, job.output_path,
-                job.priority,
+                job.id, job.type, job.created_at, job.status, job.total_items,
+                job.completed_items, job.failed_items, job.params,
             ),
         )
 
@@ -605,3 +605,243 @@ async def create_populated_cal_registry_db(db_path: Path) -> Path:
         await populate_cal_registry_db(conn)
 
     return db_path
+
+
+# =============================================================================
+# Synchronous Context Manager Helpers (for integration tests)
+# =============================================================================
+
+
+import contextlib
+import sqlite3
+import tempfile
+import shutil
+
+
+def _create_products_schema_sync(conn: sqlite3.Connection) -> None:
+    """Create all products database tables and indexes (sync version)."""
+    cursor = conn.cursor()
+    for create_sql in PRODUCTS_TABLES.values():
+        cursor.execute(create_sql)
+    for index_sql in PRODUCTS_INDEXES:
+        cursor.execute(index_sql)
+    conn.commit()
+
+
+def _create_cal_registry_schema_sync(conn: sqlite3.Connection) -> None:
+    """Create all calibration registry tables and indexes (sync version)."""
+    cursor = conn.cursor()
+    for create_sql in CAL_REGISTRY_TABLES.values():
+        cursor.execute(create_sql)
+    for index_sql in CAL_REGISTRY_INDEXES:
+        cursor.execute(index_sql)
+    conn.commit()
+
+
+def _populate_products_db_sync(conn: sqlite3.Connection) -> None:
+    """Populate products database with sample data (sync version)."""
+    cursor = conn.cursor()
+    
+    # Insert images
+    for img in sample_image_records():
+        cursor.execute(
+            """
+            INSERT INTO images (
+                id, path, ms_path, created_at, type, beam_major_arcsec, beam_minor_arcsec,
+                beam_pa_deg, noise_jy, dynamic_range, pbcor, format, field_name,
+                center_ra_deg, center_dec_deg, imsize_x, imsize_y, cellsize_arcsec,
+                freq_ghz, bandwidth_mhz, integration_sec
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                img.id, img.path, img.ms_path, img.created_at, img.type,
+                img.beam_major_arcsec, img.beam_minor_arcsec, img.beam_pa_deg,
+                img.noise_jy, img.dynamic_range, img.pbcor, img.format,
+                img.field_name, img.center_ra_deg, img.center_dec_deg,
+                img.imsize_x, img.imsize_y, img.cellsize_arcsec,
+                img.freq_ghz, img.bandwidth_mhz, img.integration_sec,
+            ),
+        )
+
+    # Insert sources
+    for src in sample_source_records():
+        cursor.execute(
+            """
+            INSERT INTO sources (
+                id, name, ra_deg, dec_deg, catalog_match, source_type,
+                first_detected_mjd, last_detected_mjd, detection_count
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                src.id, src.name, src.ra_deg, src.dec_deg, src.catalog_match,
+                src.source_type, src.first_detected_mjd, src.last_detected_mjd,
+                src.detection_count,
+            ),
+        )
+
+    # Insert jobs
+    for job in sample_job_records():
+        cursor.execute(
+            """
+            INSERT INTO batch_jobs (
+                id, type, created_at, status, total_items, completed_items,
+                failed_items, params
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                job.id, job.type, job.created_at, job.status, job.total_items,
+                job.completed_items, job.failed_items, job.params,
+            ),
+        )
+
+    # Insert MS index records
+    for ms in sample_ms_index_records():
+        cursor.execute(
+            """
+            INSERT INTO ms_index (
+                path, start_mjd, end_mjd, mid_mjd, processed_at, status, stage,
+                stage_updated_at, cal_applied, imagename, ra_deg, dec_deg,
+                field_name, pointing_ra_deg, pointing_dec_deg
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                ms.path, ms.start_mjd, ms.end_mjd, ms.mid_mjd, ms.processed_at,
+                ms.status, ms.stage, ms.stage_updated_at, ms.cal_applied,
+                ms.imagename, ms.ra_deg, ms.dec_deg, ms.field_name,
+                ms.pointing_ra_deg, ms.pointing_dec_deg,
+            ),
+        )
+
+    # Insert photometry records
+    for phot in sample_photometry_records():
+        cursor.execute(
+            """
+            INSERT INTO photometry (
+                id, source_id, image_path, ra_deg, dec_deg, mjd, flux_jy,
+                flux_err_jy, peak_jyb, peak_err_jyb, snr, local_rms
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                phot.id, phot.source_id, phot.image_path, phot.ra_deg, phot.dec_deg,
+                phot.mjd, phot.flux_jy, phot.flux_err_jy, phot.peak_jyb,
+                phot.peak_err_jyb, phot.snr, phot.local_rms,
+            ),
+        )
+
+    conn.commit()
+
+
+def _populate_cal_registry_db_sync(
+    conn: sqlite3.Connection,
+    caltables: Iterator[SampleCalTable] | None = None,
+) -> None:
+    """Populate cal registry database with sample data (sync version)."""
+    cursor = conn.cursor()
+    
+    if caltables is None:
+        caltables = sample_caltable_records()
+
+    for cal in caltables:
+        cursor.execute(
+            """
+            INSERT INTO caltables (
+                path, table_type, set_name, cal_field, refant, created_at,
+                source_ms_path, status, notes, order_index
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                cal.path, cal.table_type, cal.set_name, cal.cal_field, cal.refant,
+                cal.created_at, cal.source_ms_path, cal.status, cal.notes,
+                cal.order_index,
+            ),
+        )
+
+    conn.commit()
+
+
+@contextlib.contextmanager
+def create_test_products_db():
+    """Context manager that creates a temporary products database.
+    
+    Yields:
+        Path to the temporary database file.
+    
+    Example:
+        with create_test_products_db() as db_path:
+            conn = sqlite3.connect(db_path)
+            # ... use database ...
+    """
+    tmpdir = tempfile.mkdtemp(prefix="test_products_")
+    db_path = Path(tmpdir) / "products.sqlite3"
+    
+    try:
+        conn = sqlite3.connect(db_path)
+        _create_products_schema_sync(conn)
+        _populate_products_db_sync(conn)
+        conn.close()
+        yield db_path
+    finally:
+        shutil.rmtree(tmpdir, ignore_errors=True)
+
+
+@contextlib.contextmanager
+def create_test_cal_registry_db(caltables: Iterator[SampleCalTable] | None = None):
+    """Context manager that creates a temporary cal registry database.
+    
+    Args:
+        caltables: Optional calibration table records to insert.
+    
+    Yields:
+        Path to the temporary database file.
+    
+    Example:
+        with create_test_cal_registry_db() as db_path:
+            conn = sqlite3.connect(db_path)
+            # ... use database ...
+    """
+    tmpdir = tempfile.mkdtemp(prefix="test_cal_registry_")
+    db_path = Path(tmpdir) / "cal_registry.sqlite3"
+    
+    try:
+        conn = sqlite3.connect(db_path)
+        _create_cal_registry_schema_sync(conn)
+        _populate_cal_registry_db_sync(conn, caltables)
+        conn.close()
+        yield db_path
+    finally:
+        shutil.rmtree(tmpdir, ignore_errors=True)
+
+
+@contextlib.contextmanager
+def create_test_database_environment():
+    """Context manager that creates both test databases.
+    
+    Yields:
+        Dict with 'products' and 'cal_registry' paths.
+    
+    Example:
+        with create_test_database_environment() as db_paths:
+            products_db = db_paths["products"]
+            cal_db = db_paths["cal_registry"]
+    """
+    tmpdir = tempfile.mkdtemp(prefix="test_env_")
+    products_path = Path(tmpdir) / "products.sqlite3"
+    cal_path = Path(tmpdir) / "cal_registry.sqlite3"
+    
+    try:
+        # Create products database
+        conn = sqlite3.connect(products_path)
+        _create_products_schema_sync(conn)
+        _populate_products_db_sync(conn)
+        conn.close()
+        
+        # Create cal registry database
+        conn = sqlite3.connect(cal_path)
+        _create_cal_registry_schema_sync(conn)
+        _populate_cal_registry_db_sync(conn)
+        conn.close()
+        
+        yield {"products": products_path, "cal_registry": cal_path}
+    finally:
+        shutil.rmtree(tmpdir, ignore_errors=True)
+
