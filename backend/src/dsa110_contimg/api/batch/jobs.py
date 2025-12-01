@@ -482,69 +482,68 @@ def update_batch_item(
     if job_id is not None and (not isinstance(job_id, int) or job_id < 1):
         raise ValueError("job_id must be None or a positive integer")
 
-    cursor = conn.cursor()
-    timestamp = datetime.utcnow().timestamp()
+    with transaction(conn):
+        cursor = conn.cursor()
+        timestamp = datetime.utcnow().timestamp()
 
-    if status == "running":
+        if status == "running":
+            cursor.execute(
+                """
+                UPDATE batch_job_items
+                SET job_id = ?, status = ?, started_at = ?
+                WHERE batch_id = ? AND ms_path = ?
+                """,
+                (job_id, status, timestamp, batch_id, ms_path),
+            )
+        elif status in ("done", "failed", "cancelled"):
+            cursor.execute(
+                """
+                UPDATE batch_job_items
+                SET status = ?, completed_at = ?, error = ?
+                WHERE batch_id = ? AND ms_path = ?
+                """,
+                (status, timestamp, error, batch_id, ms_path),
+            )
+
+        # Update batch job counts
         cursor.execute(
             """
-            UPDATE batch_job_items
-            SET job_id = ?, status = ?, started_at = ?
-            WHERE batch_id = ? AND ms_path = ?
+            SELECT COUNT(*) FROM batch_job_items WHERE batch_id = ? AND status = 'done'
             """,
-            (job_id, status, timestamp, batch_id, ms_path),
+            (batch_id,),
         )
-    elif status in ("done", "failed", "cancelled"):
+        completed = cursor.fetchone()[0]
+
         cursor.execute(
             """
-            UPDATE batch_job_items
-            SET status = ?, completed_at = ?, error = ?
-            WHERE batch_id = ? AND ms_path = ?
+            SELECT COUNT(*) FROM batch_job_items WHERE batch_id = ? AND status = 'failed'
             """,
-            (status, timestamp, error, batch_id, ms_path),
+            (batch_id,),
         )
+        failed = cursor.fetchone()[0]
 
-    # Update batch job counts
-    cursor.execute(
-        """
-        SELECT COUNT(*) FROM batch_job_items WHERE batch_id = ? AND status = 'done'
-        """,
-        (batch_id,),
-    )
-    completed = cursor.fetchone()[0]
+        # Determine overall batch status
+        cursor.execute(
+            """
+            SELECT COUNT(*) FROM batch_job_items WHERE batch_id = ? AND status IN ('pending', 'running')
+            """,
+            (batch_id,),
+        )
+        remaining = cursor.fetchone()[0]
 
-    cursor.execute(
-        """
-        SELECT COUNT(*) FROM batch_job_items WHERE batch_id = ? AND status = 'failed'
-        """,
-        (batch_id,),
-    )
-    failed = cursor.fetchone()[0]
+        if remaining == 0:
+            batch_status = "done" if failed == 0 else "failed"
+        else:
+            batch_status = "running"
 
-    # Determine overall batch status
-    cursor.execute(
-        """
-        SELECT COUNT(*) FROM batch_job_items WHERE batch_id = ? AND status IN ('pending', 'running')
-        """,
-        (batch_id,),
-    )
-    remaining = cursor.fetchone()[0]
-
-    if remaining == 0:
-        batch_status = "done" if failed == 0 else "failed"
-    else:
-        batch_status = "running"
-
-    cursor.execute(
-        """
-        UPDATE batch_jobs
-        SET completed_items = ?, failed_items = ?, status = ?
-        WHERE id = ?
-        """,
-        (completed, failed, batch_status, batch_id),
-    )
-
-    conn.commit()
+        cursor.execute(
+            """
+            UPDATE batch_jobs
+            SET completed_items = ?, failed_items = ?, status = ?
+            WHERE id = ?
+            """,
+            (completed, failed, batch_status, batch_id),
+        )
 
 
 def update_batch_conversion_item(
