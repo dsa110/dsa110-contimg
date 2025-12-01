@@ -13,7 +13,7 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Optional, List, AsyncIterator, Any, Dict
+from typing import Optional, List, AsyncIterator, Any, Dict, Dict
 
 import aiosqlite
 
@@ -343,6 +343,80 @@ class AsyncImageRepository(ImageRepositoryInterface):
             row = await cursor.fetchone()
             return row[0] if row else 0
     
+    async def get_many(self, image_ids: List[str]) -> List[ImageRecord]:
+        """Get multiple images by IDs in a single batch query.
+        
+        This is more efficient than calling get_by_id multiple times,
+        as it uses a single query with IN clause.
+        
+        Args:
+            image_ids: List of image IDs (can be integer IDs or paths)
+            
+        Returns:
+            List of ImageRecords (may be fewer than requested if some not found)
+        """
+        if not image_ids:
+            return []
+        
+        from .query_batch import chunk_list, SQLITE_MAX_PARAMS
+        
+        # Separate integer IDs from paths
+        int_ids = []
+        path_ids = []
+        for image_id in image_ids:
+            try:
+                int_ids.append(int(image_id))
+            except ValueError:
+                path_ids.append(image_id)
+        
+        records = []
+        async with get_async_connection(self.db_path) as conn:
+            # Fetch by integer IDs in batches
+            for chunk in chunk_list(int_ids, SQLITE_MAX_PARAMS):
+                placeholders = ",".join("?" for _ in chunk)
+                cursor = await conn.execute(
+                    f"SELECT * FROM images WHERE id IN ({placeholders})",
+                    tuple(chunk)
+                )
+                async for row in cursor:
+                    record = self._row_to_record(row)
+                    record.run_id = self._generate_run_id(record.ms_path)
+                    records.append(record)
+            
+            # Fetch by paths in batches
+            for chunk in chunk_list(path_ids, SQLITE_MAX_PARAMS):
+                placeholders = ",".join("?" for _ in chunk)
+                cursor = await conn.execute(
+                    f"SELECT * FROM images WHERE path IN ({placeholders})",
+                    tuple(chunk)
+                )
+                async for row in cursor:
+                    record = self._row_to_record(row)
+                    record.run_id = self._generate_run_id(record.ms_path)
+                    records.append(record)
+            
+            # Batch fetch QA grades from ms_index
+            if records:
+                ms_paths = list(set(r.ms_path for r in records if r.ms_path))
+                ms_grades = {}
+                for chunk in chunk_list(ms_paths, SQLITE_MAX_PARAMS):
+                    placeholders = ",".join("?" for _ in chunk)
+                    cursor = await conn.execute(
+                        f"SELECT path, stage, status FROM ms_index WHERE path IN ({placeholders})",
+                        tuple(chunk)
+                    )
+                    async for row in cursor:
+                        ms_grades[row["path"]] = self._stage_to_qa_grade(
+                            row["stage"], row["status"]
+                        )
+                
+                # Apply QA grades to records
+                for record in records:
+                    if record.ms_path in ms_grades:
+                        record.qa_grade = ms_grades[record.ms_path]
+        
+        return records
+    
     def _row_to_record(self, row: aiosqlite.Row) -> ImageRecord:
         """Convert database row to ImageRecord."""
         return ImageRecord(
@@ -491,6 +565,58 @@ class AsyncMSRepository(MSRepositoryInterface):
                 records.append(record)
             return records
     
+    async def get_many(self, ms_paths: List[str]) -> Dict[str, MSRecord]:
+        """Get multiple MS records by paths in a single batch query.
+        
+        This is more efficient than calling get_metadata multiple times,
+        as it uses a single query with IN clause.
+        
+        Args:
+            ms_paths: List of MS paths to fetch
+            
+        Returns:
+            Dict mapping path to MSRecord
+        """
+        if not ms_paths:
+            return {}
+        
+        from .query_batch import chunk_list, SQLITE_MAX_PARAMS
+        
+        result: Dict[str, MSRecord] = {}
+        async with get_async_connection(self.db_path) as conn:
+            for chunk in chunk_list(ms_paths, SQLITE_MAX_PARAMS):
+                placeholders = ",".join("?" for _ in chunk)
+                cursor = await conn.execute(
+                    f"SELECT * FROM ms_index WHERE path IN ({placeholders})",
+                    tuple(chunk)
+                )
+                async for row in cursor:
+                    record = MSRecord(
+                        path=row["path"],
+                        start_mjd=safe_row_get(row, "start_mjd"),
+                        end_mjd=safe_row_get(row, "end_mjd"),
+                        mid_mjd=safe_row_get(row, "mid_mjd"),
+                        processed_at=safe_row_get(row, "processed_at"),
+                        status=safe_row_get(row, "status"),
+                        stage=safe_row_get(row, "stage"),
+                        stage_updated_at=safe_row_get(row, "stage_updated_at"),
+                        cal_applied=safe_row_get(row, "cal_applied", 0),
+                        imagename=safe_row_get(row, "imagename"),
+                        ra_deg=safe_row_get(row, "ra_deg"),
+                        dec_deg=safe_row_get(row, "dec_deg"),
+                        field_name=safe_row_get(row, "field_name"),
+                        pointing_ra_deg=safe_row_get(row, "pointing_ra_deg"),
+                        pointing_dec_deg=safe_row_get(row, "pointing_dec_deg"),
+                    )
+                    record.qa_grade = self._stage_to_qa_grade(record.stage, record.status)
+                    record.qa_summary = self._generate_qa_summary(record)
+                    record.run_id = self._generate_run_id(record.path)
+                    if record.processed_at:
+                        record.created_at = datetime.fromtimestamp(record.processed_at)
+                    result[record.path] = record
+        
+        return result
+
     async def _get_calibrator_matches(self, ms_path: str) -> List[dict]:
         """Get calibration tables for MS."""
         if not os.path.exists(self.cal_db_path):
@@ -660,6 +786,45 @@ class AsyncSourceRepository(SourceRepositoryInterface):
                     "image_path": row["image_path"],
                 })
             return data_points
+    
+    async def get_many(self, source_ids: List[str]) -> List[SourceRecord]:
+        """Get multiple sources by IDs in a single batch query.
+        
+        Args:
+            source_ids: List of source IDs to fetch
+            
+        Returns:
+            List of SourceRecords
+        """
+        if not source_ids:
+            return []
+        
+        from .query_batch import chunk_list, SQLITE_MAX_PARAMS
+        
+        records = []
+        async with get_async_connection(self.db_path) as conn:
+            for chunk in chunk_list(source_ids, SQLITE_MAX_PARAMS):
+                placeholders = ",".join("?" for _ in chunk)
+                cursor = await conn.execute(
+                    f"""
+                    SELECT source_id, ra_deg, dec_deg, COUNT(*) as num_images
+                    FROM photometry
+                    WHERE source_id IN ({placeholders})
+                    GROUP BY source_id
+                    """,
+                    tuple(chunk)
+                )
+                async for row in cursor:
+                    records.append(SourceRecord(
+                        id=row["source_id"],
+                        name=row["source_id"],
+                        ra_deg=row["ra_deg"],
+                        dec_deg=row["dec_deg"],
+                        contributing_images=[{}] * row["num_images"],
+                        latest_image_id=None,
+                    ))
+        
+        return records
 
 
 # =============================================================================
@@ -753,6 +918,62 @@ class AsyncJobRepository(JobRepositoryInterface):
                 return row["path"] if row else None
         except DatabaseConnectionError:
             return None
+    
+    async def get_many(self, run_ids: List[str]) -> List[JobRecord]:
+        """Get multiple jobs by run IDs in a single batch query.
+        
+        Args:
+            run_ids: List of run IDs to fetch
+            
+        Returns:
+            List of JobRecords
+        """
+        if not run_ids:
+            return []
+        
+        from .query_batch import chunk_list, SQLITE_MAX_PARAMS
+        
+        # Extract timestamp patterns from run_ids for LIKE matching
+        timestamp_patterns = []
+        for run_id in run_ids:
+            if run_id.startswith("job-"):
+                timestamp_part = run_id[4:][:10]  # Get date part
+                timestamp_patterns.append(f"%{timestamp_part}%")
+        
+        if not timestamp_patterns:
+            return []
+        
+        records = []
+        run_id_map = {}  # Map path to run_id
+        
+        async with get_async_connection(self.db_path) as conn:
+            # Batch fetch by patterns
+            for chunk in chunk_list(timestamp_patterns, SQLITE_MAX_PARAMS // 2):
+                # Build OR conditions for LIKE patterns
+                conditions = " OR ".join("path LIKE ?" for _ in chunk)
+                cursor = await conn.execute(
+                    f"""
+                    SELECT path, processed_at, stage, status,
+                           pointing_ra_deg, pointing_dec_deg, ra_deg, dec_deg
+                    FROM ms_index
+                    WHERE {conditions}
+                    """,
+                    tuple(chunk)
+                )
+                async for row in cursor:
+                    generated_run_id = self._generate_run_id(row["path"])
+                    # Only include if it matches one of the requested run_ids
+                    if generated_run_id in run_ids:
+                        records.append(JobRecord(
+                            run_id=generated_run_id,
+                            input_ms_path=row["path"],
+                            phase_center_ra=safe_row_get(row, "pointing_ra_deg") or safe_row_get(row, "ra_deg"),
+                            phase_center_dec=safe_row_get(row, "pointing_dec_deg") or safe_row_get(row, "dec_deg"),
+                            qa_grade=self._stage_to_qa_grade(safe_row_get(row, "stage"), safe_row_get(row, "status")),
+                            started_at=datetime.fromtimestamp(row["processed_at"]) if safe_row_get(row, "processed_at") else None,
+                        ))
+        
+        return records
     
     def _stage_to_qa_grade(self, stage: Optional[str], status: Optional[str]) -> str:
         """Convert stage/status to QA grade."""

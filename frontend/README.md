@@ -9,32 +9,68 @@ effectively.
 
 ## Project Structure
 
-The project is organized into several directories:
+```text
+frontend/
+├── config/                    # Build configuration
+│   └── build/                 # PostCSS and Tailwind configs
+├── docs/                      # Frontend-specific documentation
+├── e2e/                       # Playwright end-to-end tests
+├── public/                    # Static assets
+│   ├── celestial-data/        # D3-Celestial star/constellation data
+│   └── docs/                  # Public documentation files
+├── scripts/                   # Build and dev utility scripts
+├── src/                       # Source code
+│   ├── api/                   # API client and resilience patterns
+│   │   └── resilience/        # Circuit breaker, retry logic
+│   ├── components/            # Reusable React components
+│   │   ├── catalogs/          # Catalog overlay components
+│   │   ├── common/            # Shared UI components (Card, Modal, etc.)
+│   │   ├── crossmatch/        # Source cross-matching panels
+│   │   ├── download/          # Bulk download functionality
+│   │   ├── errors/            # Error display and boundaries
+│   │   ├── filters/           # Filter panels and controls
+│   │   ├── fits/              # FITS image viewer components
+│   │   ├── layout/            # App layout and navigation
+│   │   ├── provenance/        # Data provenance display
+│   │   ├── query/             # Query builders and filters
+│   │   ├── rating/            # QA rating components
+│   │   ├── skymap/            # Sky coverage visualization
+│   │   ├── stats/             # Statistics dashboard
+│   │   ├── summary/           # Summary cards and grids
+│   │   ├── variability/       # Variability analysis components
+│   │   └── widgets/           # Specialty widgets (Aladin, charts)
+│   ├── config/                # Runtime configuration
+│   ├── constants/             # Application constants
+│   ├── hooks/                 # Custom React hooks
+│   ├── lib/                   # Third-party library setup
+│   ├── pages/                 # Page components (routes)
+│   ├── stores/                # Zustand state stores
+│   ├── testing/               # Test utilities and setup
+│   ├── types/                 # TypeScript type definitions
+│   └── utils/                 # Utility functions
+├── vendor/                    # Vendored dependencies (aladin-lite)
+├── eslint.config.js           # ESLint configuration
+├── playwright.config.ts       # Playwright E2E test config
+├── tailwind.config.js         # Tailwind CSS (symlink to config/build/)
+├── tsconfig.json              # TypeScript configuration
+├── tsconfig.test.json         # TypeScript config for tests
+└── vite.config.ts             # Vite build configuration
+```
 
-- **src**: Contains the main source code for the application.
+### Key Directories
 
-  - **components**: Contains reusable React components for displaying provenance
-    information and error messages.
-    - **provenance**: Components related to provenance data.
-    - **errors**: Components for displaying error messages and handling error
-      states.
-  - **hooks**: Custom hooks for managing application state and data retrieval.
-  - **utils**: Utility functions for common tasks such as error mapping and
-    coordinate formatting.
-  - **types**: TypeScript types and interfaces used throughout the application.
-  - **constants**: Constants used for error mappings and other fixed values.
-  - **api**: API client and error interceptor for handling HTTP requests.
+- **src/components/**: Organized by feature domain. Each subdirectory contains
+  related components with their tests (`*.test.tsx`) and stories (`*.stories.tsx`).
 
-- **legacy**: Contains documentation or notes related to legacy code that has
-  been displaced.
+- **src/pages/**: Route-level page components. Each page has a corresponding test file.
 
-- **package.json**: Configuration file for npm, listing dependencies and
-  scripts.
+- **src/testing/**: Vitest setup and test utilities. Contains `setup.ts` for
+  global test configuration.
 
-- **tsconfig.json**: TypeScript configuration file specifying compiler options.
+- **config/build/**: CSS build configuration (PostCSS, Tailwind). Referenced by
+  `vite.config.ts`.
 
-- **vite.config.ts**: Configuration file for Vite, specifying build and
-  development settings.
+- **e2e/**: Playwright end-to-end tests for full integration testing.
 
 ## Getting Started
 
@@ -45,28 +81,38 @@ To get started with the project, follow these steps:
 
 1. **Install dependencies**:
 
-   ```
+   ```bash
    npm install
    ```
 
 2. **Run the development server** (port 3000):
 
-   ```
+   ```bash
    npm run dev
    ```
 
 3. **Build for production**:
 
-   ```
+   ```bash
    npm run build
    ```
 
 4. **Run Storybook** (component development, port 6006):
-   ```
+
+   ```bash
    npm run storybook
    ```
+
    See the [Storybook Guide](../docs/STORYBOOK.md) for detailed documentation on
    developing components with Storybook.
+
+5. **Run tests**:
+
+   ```bash
+   npm run test        # Watch mode
+   npm run test:run    # Single run
+   npm run test:e2e    # Playwright E2E tests
+   ```
 
 ## Components
 

@@ -6,6 +6,7 @@ Contains:
 - writers.py: Testing-only MS writers (PyuvdataMonolithicWriter)
 - uvh5_fixtures.py: Mock UVData objects and UVH5 data structures
 - ms_fixtures.py: Mock MS tables and utilities
+- database_fixtures.py: SQLite database fixtures for integration tests
 """
 
 from .uvh5_fixtures import (
@@ -26,6 +27,20 @@ from .ms_fixtures import (
     create_complete_mock_ms,
     mock_ms_table_access,
     create_temp_ms_directory,
+)
+
+from .database_fixtures import (
+    SampleImage,
+    SampleSource,
+    SampleJob,
+    SampleCalTable,
+    sample_image_records,
+    sample_source_records,
+    sample_job_records,
+    sample_cal_table_records,
+    create_test_products_db,
+    create_test_cal_registry_db,
+    create_test_database_environment,
 )
 
 from .writers import (
@@ -51,6 +66,18 @@ __all__ = [
     "create_complete_mock_ms",
     "mock_ms_table_access",
     "create_temp_ms_directory",
+    # Database fixtures
+    "SampleImage",
+    "SampleSource",
+    "SampleJob",
+    "SampleCalTable",
+    "sample_image_records",
+    "sample_source_records",
+    "sample_job_records",
+    "sample_cal_table_records",
+    "create_test_products_db",
+    "create_test_cal_registry_db",
+    "create_test_database_environment",
     # Writers
     "PyuvdataMonolithicWriter",
     "PyuvdataWriter",
