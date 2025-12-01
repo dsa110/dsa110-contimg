@@ -71,6 +71,9 @@ export default tseslint.config(
     },
     rules: {
       ...storybook.configs.recommended.rules,
+      // Storybook's render function pattern uses hooks in a way that triggers
+      // rules-of-hooks false positives. This is a known Storybook pattern.
+      "react-hooks/rules-of-hooks": "off",
     },
   },
   {

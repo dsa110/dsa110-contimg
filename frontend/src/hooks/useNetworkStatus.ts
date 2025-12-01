@@ -60,18 +60,8 @@ export function useNetworkStatus(options: UseNetworkStatusOptions = {}): Network
   const failureCountRef = useRef(0);
   const wasOnlineRef = useRef(navigator.onLine);
 
-  const [status, setStatus] = useState<NetworkStatus>(() => ({
-    isOnline: navigator.onLine,
-    hasApiConnectivity: navigator.onLine,
-    timeSinceLastSuccess: null,
-    consecutiveFailures: 0,
-    effectiveType: getEffectiveType(),
-    downlink: getDownlink(),
-    rtt: getRtt(),
-    isDegraded: false,
-  }));
-
   // Helper functions to safely access Network Information API
+  // (Defined before useState to avoid "accessed before declared" errors)
   function getEffectiveType(): NetworkStatus["effectiveType"] {
     const connection = (navigator as NavigatorWithConnection).connection;
     return connection?.effectiveType ?? null;
@@ -86,6 +76,17 @@ export function useNetworkStatus(options: UseNetworkStatusOptions = {}): Network
     const connection = (navigator as NavigatorWithConnection).connection;
     return connection?.rtt ?? null;
   }
+
+  const [status, setStatus] = useState<NetworkStatus>(() => ({
+    isOnline: navigator.onLine,
+    hasApiConnectivity: navigator.onLine,
+    timeSinceLastSuccess: null,
+    consecutiveFailures: 0,
+    effectiveType: getEffectiveType(),
+    downlink: getDownlink(),
+    rtt: getRtt(),
+    isDegraded: false,
+  }));
 
   // Record successful API call
   const recordSuccess = useCallback(() => {
