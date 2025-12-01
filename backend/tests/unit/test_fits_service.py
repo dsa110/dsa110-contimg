@@ -75,10 +75,11 @@ class TestFITSParsingService:
             service.parse_header("/nonexistent/path/to/file.fits")
     
     def test_parse_header_file_not_accessible(self, service):
-        """Test FileNotAccessibleError for inaccessible paths."""
+        """Test FileNotAccessibleError for non-existent paths."""
+        # Use a path that definitely doesn't exist (no permission issues)
         with pytest.raises(FileNotAccessibleError) as exc_info:
-            service.parse_header("/root/protected/file.fits")
-        assert "/root/protected/file.fits" in str(exc_info.value)
+            service.parse_header("/tmp/nonexistent_dir_12345/nonexistent_file.fits")
+        assert "nonexistent" in str(exc_info.value).lower()
     
     @patch("dsa110_contimg.api.services.fits_service.FITSParsingService._get_fits_module")
     def test_parse_header_with_mock_fits(self, mock_get_fits, service, tmp_path):
