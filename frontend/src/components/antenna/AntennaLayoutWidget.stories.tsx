@@ -20,24 +20,31 @@ import type { AntennaInfo, AntennaLayoutResponse } from "./AntennaLayoutWidget";
  */
 
 // Generate mock DSA-110 T-shaped antenna positions
+// Real DSA-110: E-W arm at same latitude, N arm extends NORTH only from center
 function generateMockAntennas(
   count: number,
   flaggingScenario: "good" | "mixed" | "bad"
 ): AntennaLayoutResponse {
   const antennas: AntennaInfo[] = [];
 
-  // DSA-110 T-shape: East-West arm (~1.2km) and North-South arm (~0.3km)
+  // DSA-110 T-shape layout (like an inverted T or ⊥):
+  // - East-West arm: ~1.2km long, centered at y=0
+  // - North arm: ~0.4km extending NORTH only (positive y) from near center of E-W arm
+  const ewCount = Math.floor(count * 0.7); // 70% on E-W arm
+  const nCount = count - ewCount; // 30% on North arm
+
   for (let i = 0; i < count; i++) {
     let x: number, y: number;
 
-    if (i < count * 0.7) {
-      // East-West arm (70% of antennas)
-      x = (i / (count * 0.7) - 0.5) * 1200; // -600m to +600m
-      y = (Math.random() - 0.5) * 20; // Small offset
+    if (i < ewCount) {
+      // East-West arm (along y=0, varying x from west to east)
+      x = (i / (ewCount - 1) - 0.5) * 1200; // -600m to +600m
+      y = (Math.random() - 0.5) * 10; // Small random offset for realism
     } else {
-      // North-South arm (30% of antennas)
-      x = (Math.random() - 0.5) * 20; // Small offset
-      y = ((i - count * 0.7) / (count * 0.3) - 0.5) * 300; // -150m to +150m
+      // North arm - extends NORTH only (positive y), centered at x≈0
+      const nIndex = i - ewCount;
+      x = (Math.random() - 0.5) * 10; // Small offset around center
+      y = (nIndex / nCount) * 400 + 20; // 20m to 420m NORTH only (positive y)
     }
 
     // Flagging percentage based on scenario
@@ -99,21 +106,29 @@ const MockAntennaLayout: React.FC<MockAntennaLayoutProps> = ({
 }) => {
   const { antennas, total_baselines } = data;
 
-  // Calculate viewport bounds
+  // Calculate data bounds and centroid (center of mass)
   const xs = antennas.map((a) => a.x_m);
   const ys = antennas.map((a) => a.y_m);
   const minX = Math.min(...xs);
   const maxX = Math.max(...xs);
   const minY = Math.min(...ys);
   const maxY = Math.max(...ys);
-  const padX = Math.max((maxX - minX) * 0.1, 50);
-  const padY = Math.max((maxY - minY) * 0.1, 50);
 
+  // Center of mass of all antennas
+  const centerX = xs.reduce((sum, x) => sum + x, 0) / xs.length;
+  const centerY = ys.reduce((sum, y) => sum + y, 0) / ys.length;
+
+  // Calculate extent from center of mass
+  const extentX = Math.max(maxX - centerX, centerX - minX);
+  const extentY = Math.max(maxY - centerY, centerY - minY);
+  const padding = 50;
+
+  // Create viewBox centered on centroid
   const viewBox = {
-    minX: minX - padX,
-    minY: minY - padY,
-    width: maxX - minX + 2 * padX,
-    height: maxY - minY + 2 * padY,
+    minX: centerX - extentX - padding,
+    minY: centerY - extentY - padding,
+    width: 2 * (extentX + padding),
+    height: 2 * (extentY + padding),
   };
 
   const aspectRatio = viewBox.width / viewBox.height;
