@@ -1708,7 +1708,637 @@ groups:
 
 ---
 
-## Troubleshooting
+## Edge Cases and Handling Strategies
+
+This section documents edge cases that can occur in production and how the system
+handles (or should handle) each scenario.
+
+### 1. Worker Crashes Mid-Task
+
+**Scenario:** Worker process dies while executing a task (OOM, SIGKILL, power loss).
+
+**Current Behavior:**
+
+- Task remains in `claimed` status with stale `claimed_at` timestamp
+- No heartbeat updates occur
+- Task appears "stuck"
+
+**Required Handling:**
+
+```sql
+-- Reaper job to reclaim orphaned tasks (run every 5 minutes)
+UPDATE absurd.tasks
+SET status = 'pending',
+    worker_id = NULL,
+    claimed_at = NULL
+WHERE status = 'claimed'
+  AND claimed_at < NOW() - INTERVAL '10 minutes'  -- No heartbeat for 10 min
+  AND attempt < max_retries;
+
+-- Move exhausted retries to failed
+UPDATE absurd.tasks
+SET status = 'failed',
+    error = 'Task abandoned after worker crash (max retries exhausted)',
+    completed_at = NOW()
+WHERE status = 'claimed'
+  AND claimed_at < NOW() - INTERVAL '10 minutes'
+  AND attempt >= max_retries;
+```
+
+**Implementation:** Add a periodic cleanup task in the worker or a separate
+systemd timer:
+
+```python
+# backend/src/dsa110_contimg/absurd/reaper.py
+async def reap_orphaned_tasks(client: AbsurdClient, timeout_minutes: int = 10):
+    """Reclaim tasks from crashed workers."""
+    async with client._pool.acquire() as conn:
+        # Reclaim retriable tasks
+        reclaimed = await conn.execute("""
+            UPDATE absurd.tasks
+            SET status = 'pending', worker_id = NULL, claimed_at = NULL
+            WHERE status = 'claimed'
+              AND claimed_at < NOW() - INTERVAL '%s minutes'
+              AND attempt < max_retries
+        """, timeout_minutes)
+
+        # Fail exhausted tasks
+        failed = await conn.execute("""
+            UPDATE absurd.tasks
+            SET status = 'failed',
+                error = 'Abandoned after worker crash',
+                completed_at = NOW()
+            WHERE status = 'claimed'
+              AND claimed_at < NOW() - INTERVAL '%s minutes'
+              AND attempt >= max_retries
+        """, timeout_minutes)
+
+        return {"reclaimed": reclaimed, "failed": failed}
+```
+
+### 2. Database Connection Lost During Task Execution
+
+**Scenario:** Network partition or PostgreSQL restart while task is running.
+
+**Current Behavior:**
+
+- `asyncpg.InterfaceError` or `asyncpg.ConnectionDoesNotExistError` raised
+- Task execution may complete but result cannot be saved
+- Worker may crash or enter error recovery
+
+**Required Handling:**
+
+```python
+# In worker._process_task()
+async def _process_task(self, task: Dict[str, Any]):
+    task_id = task["task_id"]
+    result = None
+
+    try:
+        result = await self.executor(task["task_name"], task["params"])
+    except Exception as e:
+        logger.exception(f"Task {task_id} execution failed")
+        result = {"status": "error", "errors": [str(e)]}
+
+    # Retry database operations with backoff
+    for attempt in range(3):
+        try:
+            if result.get("status") == "error":
+                await self.client.fail_task(task_id, result["errors"][0])
+            else:
+                await self.client.complete_task(task_id, result)
+            break
+        except (asyncpg.InterfaceError, asyncpg.ConnectionDoesNotExistError):
+            logger.warning(f"DB connection lost, attempt {attempt + 1}/3")
+            await asyncio.sleep(2 ** attempt)  # Exponential backoff
+            await self.client.connect()  # Reconnect
+    else:
+        # All retries failed - write result to local recovery file
+        await self._write_recovery_file(task_id, result)
+```
+
+**Recovery File Format:**
+
+```python
+# backend/src/dsa110_contimg/absurd/recovery.py
+import json
+from pathlib import Path
+
+RECOVERY_DIR = Path("/data/dsa110-contimg/state/absurd_recovery")
+
+async def write_recovery_file(task_id: str, result: dict):
+    """Write task result to recovery file when DB is unavailable."""
+    RECOVERY_DIR.mkdir(parents=True, exist_ok=True)
+    recovery_file = RECOVERY_DIR / f"{task_id}.json"
+    recovery_file.write_text(json.dumps({
+        "task_id": task_id,
+        "result": result,
+        "timestamp": datetime.utcnow().isoformat(),
+    }))
+
+async def process_recovery_files(client: AbsurdClient):
+    """Process any pending recovery files on startup."""
+    for recovery_file in RECOVERY_DIR.glob("*.json"):
+        try:
+            data = json.loads(recovery_file.read_text())
+            await client.complete_task(data["task_id"], data["result"])
+            recovery_file.unlink()
+            logger.info(f"Recovered task {data['task_id']}")
+        except Exception as e:
+            logger.error(f"Failed to recover {recovery_file}: {e}")
+```
+
+### 3. Duplicate Task Submission
+
+**Scenario:** User or API submits the same task twice (network retry, UI double-click).
+
+**Current Behavior:**
+
+- Two identical tasks are created
+- Both may execute, wasting resources
+- Results may conflict or overwrite each other
+
+**Required Handling:**
+
+Option A - Idempotency Key:
+
+```sql
+-- Add idempotency_key column
+ALTER TABLE absurd.tasks ADD COLUMN idempotency_key TEXT;
+CREATE UNIQUE INDEX idx_tasks_idempotency
+    ON absurd.tasks(queue_name, idempotency_key)
+    WHERE idempotency_key IS NOT NULL;
+```
+
+```python
+async def spawn_task_idempotent(
+    self,
+    queue_name: str,
+    task_name: str,
+    params: Dict[str, Any],
+    idempotency_key: str,
+    **kwargs
+) -> Tuple[UUID, bool]:
+    """Spawn task with idempotency guarantee.
+
+    Returns:
+        (task_id, created) - created=False if task already exists
+    """
+    async with self._pool.acquire() as conn:
+        # Check for existing task
+        existing = await conn.fetchrow("""
+            SELECT task_id FROM absurd.tasks
+            WHERE queue_name = $1 AND idempotency_key = $2
+        """, queue_name, idempotency_key)
+
+        if existing:
+            return existing["task_id"], False
+
+        # Create new task
+        task_id = await self.spawn_task(queue_name, task_name, params, **kwargs)
+
+        # Set idempotency key
+        await conn.execute("""
+            UPDATE absurd.tasks SET idempotency_key = $2 WHERE task_id = $1
+        """, task_id, idempotency_key)
+
+        return task_id, True
+```
+
+Option B - Content-based deduplication:
+
+```python
+import hashlib
+
+def compute_task_hash(task_name: str, params: dict) -> str:
+    """Compute hash of task content for deduplication."""
+    content = json.dumps({"task_name": task_name, "params": params}, sort_keys=True)
+    return hashlib.sha256(content.encode()).hexdigest()[:16]
+
+async def spawn_task_dedupe(self, queue_name: str, task_name: str, params: dict, window_hours: int = 24):
+    """Spawn task with content-based deduplication."""
+    content_hash = compute_task_hash(task_name, params)
+
+    async with self._pool.acquire() as conn:
+        # Check for recent identical task
+        existing = await conn.fetchrow("""
+            SELECT task_id, status FROM absurd.tasks
+            WHERE queue_name = $1
+              AND idempotency_key = $2
+              AND created_at > NOW() - INTERVAL '%s hours'
+              AND status NOT IN ('failed', 'cancelled')
+        """, queue_name, content_hash, window_hours)
+
+        if existing:
+            logger.info(f"Deduplicated task, returning existing {existing['task_id']}")
+            return existing["task_id"], False
+
+        task_id = await self.spawn_task(queue_name, task_name, params)
+        await conn.execute("""
+            UPDATE absurd.tasks SET idempotency_key = $2 WHERE task_id = $1
+        """, task_id, content_hash)
+
+        return task_id, True
+```
+
+### 4. Task Timeout
+
+**Scenario:** Task runs longer than allowed timeout (imaging stuck, infinite loop).
+
+**Current Behavior:**
+
+- Worker heartbeat continues
+- Task runs indefinitely
+- No automatic termination
+
+**Required Handling:**
+
+```python
+# In worker.py
+async def _process_task(self, task: Dict[str, Any]):
+    task_id = task["task_id"]
+    timeout_sec = task.get("timeout_sec") or self.config.default_timeout_sec
+
+    try:
+        # Execute with timeout
+        result = await asyncio.wait_for(
+            self.executor(task["task_name"], task["params"]),
+            timeout=timeout_sec
+        )
+        await self.client.complete_task(task_id, result)
+
+    except asyncio.TimeoutError:
+        error_msg = f"Task timed out after {timeout_sec} seconds"
+        logger.error(f"Task {task_id}: {error_msg}")
+        await self._handle_failure(task, error_msg)
+```
+
+**Database-level enforcement (reaper checks):**
+
+```sql
+-- Find and fail timed-out tasks
+UPDATE absurd.tasks
+SET status = 'failed',
+    error = 'Task timed out',
+    completed_at = NOW()
+WHERE status = 'claimed'
+  AND timeout_sec IS NOT NULL
+  AND claimed_at + (timeout_sec || ' seconds')::INTERVAL < NOW();
+```
+
+### 5. Partial Pipeline Failure
+
+**Scenario:** Workflow with dependencies - early stage fails, downstream stages waiting.
+
+**Current Behavior:**
+
+- Downstream tasks remain in `pending` forever
+- No cascade cancellation
+- Users must manually cancel orphaned tasks
+
+**Required Handling:**
+
+```python
+# backend/src/dsa110_contimg/absurd/dependencies.py
+
+async def cancel_downstream_tasks(client: AbsurdClient, failed_task_id: UUID):
+    """Cancel all tasks that depend on a failed task."""
+    async with client._pool.acquire() as conn:
+        # Find tasks that depend on the failed task
+        dependent_tasks = await conn.fetch("""
+            SELECT task_id FROM absurd.tasks
+            WHERE params->>'depends_on' = $1
+              AND status = 'pending'
+        """, str(failed_task_id))
+
+        cancelled = []
+        for row in dependent_tasks:
+            await conn.execute("""
+                UPDATE absurd.tasks
+                SET status = 'cancelled',
+                    error = 'Cancelled: upstream task %s failed',
+                    completed_at = NOW()
+                WHERE task_id = $1
+            """, row["task_id"], str(failed_task_id))
+            cancelled.append(row["task_id"])
+
+            # Recursively cancel downstream
+            cancelled.extend(
+                await cancel_downstream_tasks(client, row["task_id"])
+            )
+
+        return cancelled
+```
+
+**Usage in worker:**
+
+```python
+async def _handle_failure(self, task: Dict[str, Any], error_msg: str):
+    task_id = task["task_id"]
+    await self.client.fail_task(task_id, error_msg)
+
+    # Cancel downstream tasks
+    cancelled = await cancel_downstream_tasks(self.client, UUID(task_id))
+    if cancelled:
+        logger.warning(f"Cancelled {len(cancelled)} downstream tasks after {task_id} failed")
+```
+
+### 6. Queue Overflow / Backpressure
+
+**Scenario:** Tasks are submitted faster than workers can process them.
+
+**Symptoms:**
+
+- Pending queue grows unbounded
+- Wait times increase dramatically
+- Memory pressure on PostgreSQL
+
+**Required Handling:**
+
+```python
+# backend/src/dsa110_contimg/absurd/backpressure.py
+
+MAX_PENDING_TASKS = 1000  # Per queue
+
+async def check_queue_capacity(client: AbsurdClient, queue_name: str) -> bool:
+    """Check if queue can accept more tasks."""
+    async with client._pool.acquire() as conn:
+        count = await conn.fetchval("""
+            SELECT COUNT(*) FROM absurd.tasks
+            WHERE queue_name = $1 AND status = 'pending'
+        """, queue_name)
+        return count < MAX_PENDING_TASKS
+
+async def spawn_task_with_backpressure(
+    client: AbsurdClient,
+    queue_name: str,
+    task_name: str,
+    params: dict,
+    max_wait_sec: int = 60
+) -> UUID:
+    """Spawn task with backpressure - waits or rejects if queue full."""
+    start = time.time()
+
+    while time.time() - start < max_wait_sec:
+        if await check_queue_capacity(client, queue_name):
+            return await client.spawn_task(queue_name, task_name, params)
+        await asyncio.sleep(1.0)
+
+    raise QueueFullError(f"Queue {queue_name} at capacity, try again later")
+```
+
+**API-level handling:**
+
+```python
+# In FastAPI router
+@router.post("/tasks")
+async def create_task(request: TaskCreateRequest):
+    try:
+        task_id = await spawn_task_with_backpressure(
+            client, request.queue_name, request.task_name, request.params
+        )
+        return {"task_id": str(task_id)}
+    except QueueFullError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+```
+
+### 7. Worker Scaling Issues
+
+**Scenario:** Single worker is bottleneck; need to scale horizontally.
+
+**Considerations:**
+
+- Each worker needs unique `worker_id`
+- `FOR UPDATE SKIP LOCKED` ensures no double-claiming
+- Some tasks may not be parallelizable (file locks, GPU)
+
+**Configuration for multi-worker:**
+
+```bash
+# ops/systemd/contimg-absurd-worker@.service (template unit)
+[Unit]
+Description=ABSURD Worker %i
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=dsa110
+Environment=WORKER_ID=worker-%i
+EnvironmentFile=/data/dsa110-contimg/ops/systemd/contimg.env
+ExecStart=/opt/conda/envs/casa6/bin/python -m dsa110_contimg.absurd.worker
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+```
+
+```bash
+# Start 4 worker instances
+sudo systemctl enable contimg-absurd-worker@{1..4}
+sudo systemctl start contimg-absurd-worker@{1..4}
+```
+
+**Task affinity for non-parallelizable tasks:**
+
+```python
+# Force certain tasks to specific worker
+EXCLUSIVE_TASKS = {"imaging", "calibration-solve"}
+
+async def claim_task_with_affinity(
+    client: AbsurdClient, queue_name: str, worker_id: str
+) -> Optional[Dict]:
+    """Claim task with exclusive task handling."""
+    # First try to claim exclusive tasks only on worker-1
+    if worker_id == "worker-1":
+        task = await client.claim_task_by_name(queue_name, worker_id, list(EXCLUSIVE_TASKS))
+        if task:
+            return task
+
+    # All workers can claim non-exclusive tasks
+    return await client.claim_task_excluding(queue_name, worker_id, list(EXCLUSIVE_TASKS))
+```
+
+### 8. Frontend Polling During ABSURD Outage
+
+**Scenario:** ABSURD backend is down but frontend keeps polling.
+
+**Current Behavior:**
+
+- Frontend shows loading state indefinitely
+- Network requests fail repeatedly
+- No feedback to user
+
+**Required Handling:**
+
+Already implemented in `PipelineStatusPanel`:
+
+```typescript
+// placeholderData provides fallback during errors
+const { data, isError, refetch } = useQuery({
+  queryKey: ["absurd", "status"],
+  queryFn: fetchPipelineStatus,
+  retry: 2,
+  placeholderData: {
+    stages: EMPTY_STAGES,
+    total: EMPTY_COUNTS,
+    worker_count: 0,
+    is_healthy: false,
+  },
+});
+
+// Error state shown to user
+if (isError) {
+  return (
+    <div className="card p-4">
+      <p>Unable to load pipeline status</p>
+      <p>ABSURD workflow manager may not be enabled yet</p>
+      <button onClick={() => refetch()}>Retry</button>
+    </div>
+  );
+}
+```
+
+**Additional improvement - exponential backoff:**
+
+```typescript
+// hooks/usePipelineStatus.ts
+export function usePipelineStatus(pollInterval = 30000) {
+  const [backoffMultiplier, setBackoffMultiplier] = useState(1);
+
+  const query = useQuery({
+    queryKey: ["absurd", "status"],
+    queryFn: fetchPipelineStatus,
+    refetchInterval: pollInterval * backoffMultiplier,
+    retry: 2,
+    onError: () => {
+      // Increase backoff on error (max 5x)
+      setBackoffMultiplier((prev) => Math.min(prev * 2, 5));
+    },
+    onSuccess: () => {
+      // Reset backoff on success
+      setBackoffMultiplier(1);
+    },
+  });
+
+  return query;
+}
+```
+
+### 9. Task Parameter Validation
+
+**Scenario:** Invalid parameters submitted (missing required fields, wrong types).
+
+**Current Behavior:**
+
+- Task is created and claimed
+- Executor fails immediately with validation error
+- Wastes worker cycle
+
+**Required Handling:**
+
+```python
+# backend/src/dsa110_contimg/absurd/validation.py
+from pydantic import BaseModel, ValidationError
+from typing import Dict, Any, Type
+
+TASK_SCHEMAS: Dict[str, Type[BaseModel]] = {
+    "convert-uvh5-to-ms": ConvertUvh5Params,
+    "calibration-solve": CalibrationSolveParams,
+    "calibration-apply": CalibrationApplyParams,
+    "imaging": ImagingParams,
+    # ... etc
+}
+
+class ConvertUvh5Params(BaseModel):
+    input_dir: str
+    output_dir: str
+    start_time: str
+    end_time: str
+
+class ImagingParams(BaseModel):
+    ms_path: str
+    output_dir: str
+    imager: str = "wsclean"
+    niter: int = 50000
+
+async def validate_task_params(task_name: str, params: dict) -> list[str]:
+    """Validate task parameters before spawning."""
+    schema = TASK_SCHEMAS.get(task_name)
+    if not schema:
+        return []  # No validation for unknown tasks
+
+    try:
+        schema(**params)
+        return []
+    except ValidationError as e:
+        return [f"{err['loc'][0]}: {err['msg']}" for err in e.errors()]
+```
+
+**API-level validation:**
+
+```python
+@router.post("/tasks")
+async def create_task(request: TaskCreateRequest):
+    errors = await validate_task_params(request.task_name, request.params)
+    if errors:
+        raise HTTPException(
+            status_code=400,
+            detail={"code": "INVALID_PARAMS", "errors": errors}
+        )
+
+    task_id = await client.spawn_task(
+        request.queue_name, request.task_name, request.params
+    )
+    return {"task_id": str(task_id)}
+```
+
+### 10. Clock Skew Between Workers
+
+**Scenario:** Workers on different machines have unsynchronized clocks.
+
+**Impact:**
+
+- Task timing metrics are incorrect
+- Timeout calculations may be wrong
+- Reaper may incorrectly reclaim active tasks
+
+**Required Handling:**
+
+```bash
+# Ensure NTP is running on all machines
+sudo systemctl enable --now chronyd
+
+# Verify sync status
+chronyc tracking
+```
+
+**Database-side mitigation (use database time):**
+
+```sql
+-- Always use NOW() in database functions, not client timestamps
+-- The claim_task function already does this correctly:
+UPDATE absurd.tasks
+SET claimed_at = NOW()  -- Database time, not client time
+WHERE ...
+```
+
+### Summary Table
+
+| Edge Case                | Severity | Current State      | Required Action      |
+| ------------------------ | -------- | ------------------ | -------------------- |
+| Worker crash mid-task    | High     | Task stuck         | Add reaper job       |
+| DB connection lost       | High     | Task may be lost   | Add recovery files   |
+| Duplicate submission     | Medium   | Duplicates created | Add idempotency keys |
+| Task timeout             | Medium   | Runs forever       | Add asyncio.timeout  |
+| Partial pipeline failure | Medium   | Orphaned tasks     | Cascade cancellation |
+| Queue overflow           | Medium   | Unbounded growth   | Add backpressure     |
+| Worker scaling           | Low      | Single worker      | Template units       |
+| Frontend polling outage  | Low      | Loading forever    | Already handled      |
+| Invalid parameters       | Low      | Fails at execution | Pre-validate         |
+| Clock skew               | Low      | Incorrect metrics  | Use DB time, NTP     |
+
+---## Troubleshooting
 
 ### Common Issues
 

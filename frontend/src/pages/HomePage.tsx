@@ -1,10 +1,9 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { StatCardGrid } from "../components/summary";
 import { SkyCoverageMap, type Pointing } from "../components/skymap";
 import { StatsDashboard, ServiceStatusPanel } from "../components/stats";
 import { PipelineStatusPanel } from "../components/pipeline";
-import { useImages, useSources, useJobs } from "../hooks/useQueries";
+import { useImages } from "../hooks/useQueries";
 import type { ImageSummary } from "../types";
 import { ROUTES } from "../constants/routes";
 
@@ -14,8 +13,6 @@ import { ROUTES } from "../constants/routes";
  */
 const HomePage: React.FC = () => {
   const { data: images, isLoading: imagesLoading } = useImages();
-  const { data: sources, isLoading: sourcesLoading } = useSources();
-  const { data: jobs, isLoading: jobsLoading } = useJobs();
   const [showStatsDashboard, setShowStatsDashboard] = useState(false);
 
   // Build rating stats for StatsDashboard from image QA grades
@@ -85,31 +82,6 @@ const HomePage: React.FC = () => {
     };
   }, [images]);
 
-  // Build stats for StatCardGrid
-  const stats = [
-    {
-      label: "Total Images",
-      value: images?.length ?? 0,
-      icon: "IMG",
-      href: ROUTES.IMAGES.LIST,
-      variant: "primary" as const,
-    },
-    {
-      label: "Detected Sources",
-      value: sources?.length ?? 0,
-      icon: "SRC",
-      href: ROUTES.SOURCES.LIST,
-      variant: "success" as const,
-    },
-    {
-      label: "Pipeline Jobs",
-      value: jobs?.length ?? 0,
-      icon: "JOB",
-      href: ROUTES.JOBS.LIST,
-      variant: "info" as const,
-    },
-  ];
-
   // Build pointing data for sky coverage from images
   const pointings: Pointing[] = React.useMemo(() => {
     if (!images) return [];
@@ -150,11 +122,11 @@ const HomePage: React.FC = () => {
         <PipelineStatusPanel pollInterval={30000} />
       </section>
 
-      {/* Stats overview */}
+      {/* QA Rating Statistics */}
       <section className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-gray-900">
-            Pipeline Overview
+            QA Rating Overview
           </h2>
           <button
             onClick={() => setShowStatsDashboard(!showStatsDashboard)}
@@ -163,10 +135,6 @@ const HomePage: React.FC = () => {
             {showStatsDashboard ? "Hide Details" : "Show Detailed Stats"}
           </button>
         </div>
-        <StatCardGrid
-          cards={stats}
-          isLoading={imagesLoading || sourcesLoading || jobsLoading}
-        />
       </section>
 
       {/* Detailed Stats Dashboard */}

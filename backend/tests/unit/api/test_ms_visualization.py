@@ -232,7 +232,16 @@ class TestGenerateRasterPlot:
         mock_table = MagicMock()
         mock_table.__enter__ = MagicMock(return_value=mock_table)
         mock_table.__exit__ = MagicMock(return_value=False)
-        mock_table.getcol.side_effect = lambda col: mock_ms_data[col]
+        
+        # The production code tries CORRECTED_DATA first, then falls back to DATA
+        # on RuntimeError. KeyError doesn't trigger the fallback, so we need to
+        # raise RuntimeError for missing columns.
+        def getcol_side_effect(col):
+            if col in mock_ms_data:
+                return mock_ms_data[col]
+            raise RuntimeError(f"Column {col} not found")
+        
+        mock_table.getcol.side_effect = getcol_side_effect
         mock_table.close = MagicMock()
 
         with patch("casacore.tables.table", return_value=mock_table):
