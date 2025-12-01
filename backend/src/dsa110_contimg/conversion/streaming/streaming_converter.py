@@ -51,7 +51,7 @@ except ImportError:  # pragma: no cover
 
 try:
     from dsa110_contimg.utils.graphiti_logging import GraphitiRunLogger
-except Exception:  # pragma: no cover - optional helper
+except ImportError:  # pragma: no cover - optional helper
 
     class GraphitiRunLogger:  # type: ignore
         def __init__(self, *a, **k):
@@ -128,7 +128,7 @@ def parse_subband_info(path: Path) -> Optional[Tuple[str, int]]:
     gid = m.group("timestamp")
     try:
         sb = int(m.group("index"))
-    except Exception:
+    except ValueError:
         return None
     return gid, sb
 
@@ -305,7 +305,7 @@ class QueueDB:
                 ts = s.replace("T", " ")
                 dt = datetime.strptime(ts, "%Y-%m-%d %H:%M:%S")
                 return dt.strftime("%Y-%m-%dT%H:%M:%S")
-            except Exception:
+            except ValueError:
                 return s
 
     def _normalize_existing_groups(self) -> None:
@@ -596,7 +596,7 @@ class QueueDB:
                     )
                 # Commit transaction
                 self._conn.commit()
-            except Exception:
+            except sqlite3.Error:
                 # Rollback on any error to maintain consistency
                 self._conn.rollback()
                 raise
@@ -663,7 +663,7 @@ class QueueDB:
                 )
                 self._conn.commit()
                 return group_id
-            except Exception:
+            except sqlite3.Error:
                 self._conn.rollback()
                 raise
 
@@ -696,7 +696,7 @@ class QueueDB:
                         (state, now, normalized_group),
                     )
                 self._conn.commit()
-            except Exception:
+            except sqlite3.Error:
                 self._conn.rollback()
                 raise
 
@@ -756,7 +756,7 @@ class QueueDB:
                         values,
                     )
                 self._conn.commit()
-            except Exception:
+            except sqlite3.Error:
                 self._conn.rollback()
                 raise
 
@@ -834,7 +834,7 @@ class _FSHandler(FileSystemEventHandler):
         # File passed all checks, record in queue
         try:
             self.queue.record_subband(gid, sb, p)
-        except Exception:
+        except sqlite3.Error:
             logging.getLogger("stream").debug("record_subband failed for %s", p, exc_info=True)
 
     def on_created(self, event):  # type: ignore[override]
@@ -1559,7 +1559,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                     from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
                     start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_path)
-                except Exception:
+                except (OSError, RuntimeError, KeyError, ValueError):
                     pass
                 ms_index_upsert(
                     conn,
@@ -1593,7 +1593,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                         )
 
                 conn.commit()
-            except Exception:
+            except sqlite3.Error:
                 log.debug("ms_index conversion upsert failed", exc_info=True)
 
             # Solve calibration if this is a calibrator MS (before applying to science MS)
@@ -1654,7 +1654,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                         )
 
                         _, _, mid_mjd = extract_ms_time_range(ms_path)
-                    except Exception:
+                    except (OSError, RuntimeError, KeyError, ValueError):
                         pass
 
                 applylist = []
@@ -1663,7 +1663,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                         Path(args.registry_db),
                         (float(mid_mjd) if mid_mjd is not None else time.time() / 86400.0),
                     )
-                except Exception:
+                except (sqlite3.Error, ValueError, OSError):
                     applylist = []
 
                 cal_applied = 0
@@ -1671,7 +1671,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                     try:
                         apply_to_target(ms_path, field="", gaintables=applylist, calwt=True)
                         cal_applied = 1
-                    except Exception:
+                    except (RuntimeError, OSError):
                         log.warning("applycal failed for %s", ms_path, exc_info=True)
 
                 # Standard tier imaging (production quality)
@@ -1730,10 +1730,10 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                             log.debug(
                                 f"Catalog validation skipped: FITS image not found ({fits_image})"
                             )
-                    except Exception as e:
+                    except (ImportError, ValueError, OSError) as e:
                         log.warning(f"Catalog validation failed (non-fatal): {e}")
 
-                except Exception:
+                except (RuntimeError, OSError, subprocess.SubprocessError):
                     log.error("imaging failed for %s", ms_path, exc_info=True)
 
                 # Update products DB with imaging artifacts and stage
@@ -1889,19 +1889,19 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                                                 )
                                 else:
                                     log.debug("Group imaging enabled but mosaic creation disabled")
-                        except Exception as e:
+                        except (RuntimeError, OSError, KeyError, sqlite3.Error) as e:
                             log.debug(
                                 f"Group detection/mosaic creation check failed: {e}",
                                 exc_info=True,
                             )
-                except Exception:
+                except sqlite3.Error:
                     log.debug("products DB update failed", exc_info=True)
-            except Exception:
+            except (RuntimeError, OSError, sqlite3.Error):
                 log.exception("post-conversion processing failed for %s", gid)
 
             queue.update_state(gid, "completed")
             log.info("Completed %s in %.2fs", gid, total)
-        except Exception:
+        except (RuntimeError, OSError, sqlite3.Error, KeyboardInterrupt):
             log.exception("Worker loop error")
             time.sleep(2.0)
 
@@ -1958,7 +1958,7 @@ def _polling_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                 log.debug(f"Polling: registered {new_count} new files")
 
             time.sleep(interval)
-        except Exception:
+        except (OSError, sqlite3.Error):
             log.exception("Polling loop error")
             time.sleep(interval)
 
@@ -2119,7 +2119,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     )
     try:
         qdb.bootstrap_directory(Path(args.input_dir))
-    except Exception:
+    except (OSError, sqlite3.Error):
         logging.getLogger("stream").exception("Bootstrap failed")
 
     obs = _start_watch(args, qdb)
@@ -2141,7 +2141,7 @@ def main(argv: Optional[List[str]] = None) -> int:
                     ).fetchall()
                 stats = {r[0]: r[1] for r in cur}
                 log.info("Queue stats: %s", stats)
-            except Exception:
+            except sqlite3.Error:
                 log.debug("Monitor failed", exc_info=True)
             time.sleep(float(args.monitor_interval))
     else:

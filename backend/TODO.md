@@ -25,18 +25,20 @@
       conversion/ module (helpers_telescope.py, helpers_coordinates.py,
       helpers_validation.py, helpers_model.py, merge_spws.py, ms_utils.py,
       strategies/direct_subband.py)
+- [x] **Narrow Remaining Exception Handlers** - 100+ handlers narrowed across: - utils/ (~17 handlers: validation.py, time_utils.py, regions.py,
+      ms_helpers.py, locking.py) - photometry/ (~15 handlers: worker.py, forced.py, aegean_fitting.py,
+      adaptive_binning.py) - imaging/ (~14 handlers: worker.py, fast_imaging.py, nvss_tools.py,
+      cli_utils.py, cli.py, cli_imaging.py) - calibration/ (~17 handlers: validate.py, skymodels.py, selection.py,
+      model.py, flagging.py, calibration.py) - catalog/ (~17 handlers: query.py, multiwavelength.py, build_master.py) - absurd/ (2 handlers: worker.py, adapter.py) - pipeline/ (2 handlers: stages_impl.py) - streaming_converter.py (~20 handlers)
+      All handlers now use specific exception types: sqlite3.Error, OSError,
+      RuntimeError, ValueError, KeyError, TypeError, ImportError, IndexError,
+      subprocess.SubprocessError, np.linalg.LinAlgError, json.JSONDecodeError
 
-**Status**: 950 unit tests passing, 72% coverage
+**Status**: 950 unit tests passing, 72% coverage, **0 broad exception handlers**
 
 ---
 
 ## Future Enhancements
-
-### High Priority
-
-- [ ] **Narrow More Exception Handlers** - ~65 remaining `except Exception:`
-      instances in streaming_converter.py, calibration/, photometry/,
-      catalog/, utils/, imaging/, absurd/
 
 ### Medium Priority
 

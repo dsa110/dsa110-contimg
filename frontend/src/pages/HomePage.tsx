@@ -37,72 +37,6 @@ const HomePage: React.FC = () => {
   const { data: jobs, isLoading: jobsLoading } = useJobs();
   const pipelineStatusQuery = usePipelineStatus(30000);
 
-  const ratingStats = useMemo(() => {
-    if (!images)
-      return { byUser: [], byTag: [], tagDistribution: [], total: 0, rated: 0 };
-
-    const imgArr = images as Array<{ qa_grade?: string; run_id?: string }>;
-    const gradeCount = { good: 0, warn: 0, fail: 0 };
-    imgArr.forEach((img) => {
-      if (img.qa_grade === "good") gradeCount.good++;
-      else if (img.qa_grade === "warn") gradeCount.warn++;
-      else if (img.qa_grade === "fail") gradeCount.fail++;
-    });
-
-    const rated = gradeCount.good + gradeCount.warn + gradeCount.fail;
-    const total = imgArr.length;
-
-    return {
-      byUser: [
-        {
-          label: "Pipeline",
-          trueCount: gradeCount.good,
-          falseCount: gradeCount.fail,
-          unsureCount: gradeCount.warn,
-        },
-      ],
-      byTag: [
-        {
-          label: "Good",
-          trueCount: gradeCount.good,
-          falseCount: 0,
-          unsureCount: 0,
-        },
-        {
-          label: "Warning",
-          trueCount: 0,
-          falseCount: 0,
-          unsureCount: gradeCount.warn,
-        },
-        {
-          label: "Fail",
-          trueCount: 0,
-          falseCount: gradeCount.fail,
-          unsureCount: 0,
-        },
-      ],
-      tagDistribution: [
-        {
-          tag: "Good",
-          count: gradeCount.good,
-          percentage: total > 0 ? (gradeCount.good / total) * 100 : 0,
-        },
-        {
-          tag: "Warning",
-          count: gradeCount.warn,
-          percentage: total > 0 ? (gradeCount.warn / total) * 100 : 0,
-        },
-        {
-          tag: "Fail",
-          count: gradeCount.fail,
-          percentage: total > 0 ? (gradeCount.fail / total) * 100 : 0,
-        },
-      ],
-      total,
-      rated,
-    };
-  }, [images]);
-
   const pointings: Pointing[] = useMemo(() => {
     if (!images) return [];
     return images
@@ -127,39 +61,39 @@ const HomePage: React.FC = () => {
   }, [images]);
 
   const heroMetrics = useMemo<HeroMetric[]>(() => {
-    const totalImages = ratingStats.total;
-    const rated = ratingStats.rated;
-    const ratedPct =
-      totalImages > 0 ? Math.round((rated / totalImages) * 100) : 0;
+    const totalImages = images?.length ?? 0;
     const activeJobs = jobs
       ? jobs.filter(
           (job) => job.status === "running" || job.status === "pending"
         ).length
       : 0;
+    const completedJobs = jobs
+      ? jobs.filter((job) => job.status === "completed").length
+      : 0;
     const sourcesCount = sources?.length ?? 0;
     return [
       {
-        label: "Images processed",
+        label: "Images",
         value: totalImages,
-        description: "All FITS outputs tracked in the catalog",
+        description: "FITS images in catalog",
       },
       {
-        label: "QA rated",
-        value: `${rated}/${totalImages}`,
-        description: `${ratedPct}% of candidates reviewed`,
+        label: "Sources",
+        value: sourcesCount,
+        description: "Radio sources indexed",
       },
       {
         label: "Active jobs",
         value: activeJobs,
-        description: "Running or pending pipeline tasks",
+        description: "Running or pending",
       },
       {
-        label: "Sources tracked",
-        value: sourcesCount,
-        description: "Unique radio sources indexed",
+        label: "Completed jobs",
+        value: completedJobs,
+        description: "Successfully finished",
       },
     ];
-  }, [ratingStats, jobs, sources]);
+  }, [images, jobs, sources]);
 
   const latestJobs = useMemo(() => {
     if (!jobs) return [];
@@ -188,10 +122,9 @@ const HomePage: React.FC = () => {
     ? new Date(pipelineStatusQuery.data.last_updated).toLocaleTimeString()
     : "—";
 
-  const showSummaryCards = !showStatsDashboard && ratingStats.total > 0;
-
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-6">
+      {/* Hero Section */}
       <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-blue-900 to-slate-800 text-white shadow-xl">
         <div className="p-8 space-y-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -203,9 +136,8 @@ const HomePage: React.FC = () => {
                 Operational Dashboard
               </h1>
               <p className="max-w-2xl text-sm text-slate-200">
-                Monitor quality assurance, sky coverage, and pipeline activity
-                across the entire imaging stack. Dive into job-level detail or
-                explore catalogs with a single click.
+                Monitor sky coverage and pipeline activity across the imaging
+                stack. Browse images, sources, or dive into job-level detail.
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
@@ -216,7 +148,7 @@ const HomePage: React.FC = () => {
                 to={ROUTES.JOBS.LIST}
                 className="btn btn-outline-primary text-sm"
               >
-                View pipeline jobs
+                View jobs
               </Link>
             </div>
           </div>
@@ -226,11 +158,32 @@ const HomePage: React.FC = () => {
             ))}
           </div>
         </div>
-        <div className="border-t border-white/20 bg-white/5 px-8 py-4 text-xs uppercase tracking-widest text-white/70">
-          {`Pipeline health: ${pipelineHealthLabel} • Workers: ${
-            pipelineStatusQuery.data?.worker_count ?? "—"
-          } • Last sync: ${pipelineLastUpdated}`}
+      </section>
+
+      {/* Pipeline Status - Full Width */}
+      <section className="card p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2
+              className="text-xl font-semibold"
+              style={{ color: "var(--color-text-primary)" }}
+            >
+              Pipeline Status
+            </h2>
+            <p
+              className="text-sm"
+              style={{ color: "var(--color-text-secondary)" }}
+            >
+              Worker state updates every 30 seconds.
+            </p>
+          </div>
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-semibold ${pipelineHealthVariant}`}
+          >
+            {pipelineHealthLabel}
+          </span>
         </div>
+        <PipelineStatusPanel pollInterval={30000} />
       </section>
 
       {/* Sky Coverage - Full Width */}
@@ -269,7 +222,7 @@ const HomePage: React.FC = () => {
         )}
       </section>
 
-      {/* QA Rating Overview - Full Width */}
+      {/* Recent Jobs - Full Width */}
       <section className="card p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
@@ -277,204 +230,84 @@ const HomePage: React.FC = () => {
               className="text-xl font-semibold"
               style={{ color: "var(--color-text-primary)" }}
             >
-              QA Rating Overview
+              Recent Jobs
             </h2>
             <p
               className="text-sm"
               style={{ color: "var(--color-text-secondary)" }}
             >
-              Track how many candidates were graded by the pipeline team.
+              Latest pipeline runs.
             </p>
           </div>
-          <button
-            onClick={() => setShowStatsDashboard((prev) => !prev)}
-            className="text-sm transition-colors"
+          <Link
+            to={ROUTES.JOBS.LIST}
+            className="text-sm font-semibold"
             style={{ color: "var(--color-primary)" }}
           >
-            {showStatsDashboard ? "Hide charts" : "Show charts"}
-          </button>
+            View all
+          </Link>
         </div>
-
-        {showSummaryCards && (
-          <div className="grid grid-cols-3 gap-4 text-sm">
-            {ratingStats.tagDistribution.map((entry) => (
+        {jobsLoading ? (
+          <p
+            className="text-sm"
+            style={{ color: "var(--color-text-secondary)" }}
+          >
+            Loading jobs...
+          </p>
+        ) : latestJobs.length === 0 ? (
+          <p
+            className="text-sm"
+            style={{ color: "var(--color-text-secondary)" }}
+          >
+            Awaiting new pipeline submissions.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {latestJobs.map((job) => (
               <div
-                key={entry.tag}
-                className="rounded-lg p-3"
+                key={job.run_id}
+                className="flex items-center justify-between rounded-lg px-4 py-3"
                 style={{
                   backgroundColor: "var(--color-bg-surface)",
                   border: "1px solid var(--color-border)",
                 }}
               >
-                <p
-                  className="text-xs uppercase tracking-widest"
-                  style={{ color: "var(--color-text-secondary)" }}
-                >
-                  {entry.tag}
-                </p>
-                <p
-                  className="text-2xl font-semibold"
-                  style={{ color: "var(--color-text-primary)" }}
-                >
-                  {entry.count}
-                </p>
-                <p
-                  className="text-xs"
-                  style={{ color: "var(--color-text-secondary)" }}
-                >
-                  {entry.percentage.toFixed(1)}%
-                </p>
+                <div>
+                  <p
+                    className="font-medium"
+                    style={{ color: "var(--color-text-primary)" }}
+                  >
+                    {job.run_id}
+                  </p>
+                  <p
+                    className="text-xs"
+                    style={{ color: "var(--color-text-secondary)" }}
+                  >
+                    {formatDateTime(job.started_at)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                      JOB_STATUS_STYLES[job.status]
+                    }`}
+                  >
+                    {JOB_STATUS_LABELS[job.status]}
+                  </span>
+                  {job.finished_at && (
+                    <p
+                      className="text-[11px]"
+                      style={{ color: "var(--color-text-secondary)" }}
+                    >
+                      Finished {formatDateTime(job.finished_at)}
+                    </p>
+                  )}
+                </div>
               </div>
             ))}
           </div>
         )}
-
-        {showStatsDashboard && (
-          <div className="card-body p-0">
-            <StatsDashboard
-              byUser={ratingStats.byUser}
-              byTag={ratingStats.byTag}
-              tagDistribution={ratingStats.tagDistribution}
-              totalCandidates={ratingStats.total}
-              ratedCandidates={ratingStats.rated}
-              isLoading={imagesLoading}
-            />
-          </div>
-        )}
       </section>
-
-      <section className="grid gap-6 lg:grid-cols-2">
-        <div className="card p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2
-                className="text-xl font-semibold"
-                style={{ color: "var(--color-text-primary)" }}
-              >
-                Pipeline Status
-              </h2>
-              <p
-                className="text-sm"
-                style={{ color: "var(--color-text-secondary)" }}
-              >
-                ABSURD worker state updates every 30 seconds.
-              </p>
-            </div>
-            <span
-              className={`rounded-full px-3 py-1 text-xs font-semibold ${pipelineHealthVariant}`}
-            >
-              {pipelineHealthLabel}
-            </span>
-          </div>
-          <PipelineStatusPanel pollInterval={30000} />
-        </div>
-        <div className="card p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2
-                className="text-xl font-semibold"
-                style={{ color: "var(--color-text-primary)" }}
-              >
-                Recent Jobs
-              </h2>
-              <p
-                className="text-sm"
-                style={{ color: "var(--color-text-secondary)" }}
-              >
-                Snapshot of the latest pipeline runs.
-              </p>
-            </div>
-            <Link
-              to={ROUTES.JOBS.LIST}
-              className="text-sm font-semibold"
-              style={{ color: "var(--color-primary)" }}
-            >
-              View all
-            </Link>
-          </div>
-          {jobsLoading ? (
-            <p
-              className="text-sm"
-              style={{ color: "var(--color-text-secondary)" }}
-            >
-              Loading jobs...
-            </p>
-          ) : latestJobs.length === 0 ? (
-            <p
-              className="text-sm"
-              style={{ color: "var(--color-text-secondary)" }}
-            >
-              Awaiting new pipeline submissions.
-            </p>
-          ) : (
-            <div className="space-y-3">
-              {latestJobs.map((job) => (
-                <div
-                  key={job.run_id}
-                  className="flex items-center justify-between rounded-lg px-4 py-3"
-                  style={{
-                    backgroundColor: "var(--color-bg-surface)",
-                    border: "1px solid var(--color-border)",
-                  }}
-                >
-                  <div>
-                    <p
-                      className="font-medium"
-                      style={{ color: "var(--color-text-primary)" }}
-                    >
-                      {job.run_id}
-                    </p>
-                    <p
-                      className="text-xs"
-                      style={{ color: "var(--color-text-secondary)" }}
-                    >
-                      {formatDateTime(job.started_at)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                        JOB_STATUS_STYLES[job.status]
-                      }`}
-                    >
-                      {JOB_STATUS_LABELS[job.status]}
-                    </span>
-                    {job.finished_at && (
-                      <p
-                        className="text-[11px]"
-                        style={{ color: "var(--color-text-secondary)" }}
-                      >
-                        Finished {formatDateTime(job.finished_at)}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <DashboardCard
-          title="Images"
-          description="Browse processed FITS images and view QA assessments."
-          link={ROUTES.IMAGES.LIST}
-          icon="IMG"
-        />
-        <DashboardCard
-          title="Sources"
-          description="Explore detected radio sources and lightcurves."
-          link={ROUTES.SOURCES.LIST}
-          icon="SRC"
-        />
-        <DashboardCard
-          title="Jobs"
-          description="Monitor pipeline jobs and view provenance."
-          link={ROUTES.JOBS.LIST}
-          icon="JOB"
-        />
-      </div>
 
       <section className="card p-6 space-y-3">
         <h2
@@ -524,35 +357,6 @@ const HomePage: React.FC = () => {
     </div>
   );
 };
-
-interface DashboardCardProps {
-  title: string;
-  description: string;
-  link: string;
-  icon: string;
-}
-
-const DashboardCard: React.FC<DashboardCardProps> = ({
-  title,
-  description,
-  link,
-  icon,
-}) => (
-  <Link to={link} className="card p-6 hover:shadow-lg transition-shadow group">
-    <div className="text-3xl mb-3" style={{ color: "var(--color-primary)" }}>
-      {icon}
-    </div>
-    <h3
-      className="text-lg font-semibold transition-colors mb-2"
-      style={{ color: "var(--color-text-primary)" }}
-    >
-      {title}
-    </h3>
-    <p className="text-sm" style={{ color: "var(--color-text-secondary)" }}>
-      {description}
-    </p>
-  </Link>
-);
 
 const HeroMetricCard: React.FC<HeroMetric> = ({
   label,
