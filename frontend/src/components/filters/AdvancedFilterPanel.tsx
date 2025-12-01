@@ -268,7 +268,7 @@ const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
           Filters
           {activeCount > 0 && <span className="badge badge-primary">{activeCount} active</span>}
         </h4>
-        <button onClick={onReset} className="text-sm text-gray-500 hover:text-red-500">
+        <button type="button" onClick={onReset} className="text-sm text-gray-500 hover:text-red-500">
           Reset all
         </button>
       </div>
@@ -278,6 +278,7 @@ const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
           <div key={group} className="accordion-group">
             {/* Accordion Header */}
             <button
+              type="button"
               onClick={() => toggleGroup(group)}
               className="w-full flex items-center justify-between px-4 py-3 bg-gray-50 hover:bg-gray-100 transition-colors"
             >
@@ -316,7 +317,7 @@ const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
 
       {/* Apply Button */}
       <div className="p-4 border-t border-gray-200 bg-gray-50">
-        <button onClick={onApply} className="btn btn-primary w-full">
+        <button type="button" onClick={onApply} className="btn btn-primary w-full">
           Apply Filters
         </button>
       </div>

@@ -44,7 +44,7 @@ export function galacticToEquatorial(l: number, b: number): [number, number] {
   let ra = raGP + Math.atan2(y, x);
 
   // Normalize RA to [0, 360)
-  ra = ((ra * RAD_TO_DEG % 360) + 360) % 360;
+  ra = (((ra * RAD_TO_DEG) % 360) + 360) % 360;
   const decDeg = dec * RAD_TO_DEG;
 
   return [ra, decDeg];

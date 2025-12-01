@@ -144,7 +144,7 @@ const BulkDownloadPanel: React.FC<BulkDownloadPanelProps> = ({
                 return (
                   <span key={id} className="badge badge-secondary flex items-center gap-1">
                     {item?.name || id}
-                    <button onClick={() => handleToggleItem(id)} className="hover:text-red-500">
+                    <button type="button" onClick={() => handleToggleItem(id)} className="hover:text-red-500">
                       ×
                     </button>
                   </span>

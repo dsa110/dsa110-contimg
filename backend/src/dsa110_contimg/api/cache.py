@@ -28,6 +28,15 @@ import os
 from functools import wraps
 from typing import Any, Callable, Optional, Union
 
+# Import Redis exception type with fallback
+try:
+    from redis.exceptions import RedisError
+except ImportError:
+    # Define a fallback if redis is not installed
+    class RedisError(Exception):
+        """Placeholder for redis.exceptions.RedisError when redis is not installed."""
+        pass
+
 logger = logging.getLogger(__name__)
 
 # Redis connection settings
@@ -138,7 +147,7 @@ class CacheManager:
         except json.JSONDecodeError as e:
             logger.warning(f"Cache JSON decode error for {key}: {e}")
             return None
-        except Exception as e:  # Redis errors may vary by transport
+        except RedisError as e:
             logger.warning(f"Cache get error for {key}: {e}")
             return None
     
@@ -174,7 +183,7 @@ class CacheManager:
         except (TypeError, ValueError) as e:
             logger.warning(f"Cache serialization error for {key}: {e}")
             return False
-        except Exception as e:  # Redis errors may vary by transport
+        except RedisError as e:
             logger.warning(f"Cache set error for {key}: {e}")
             return False
     
@@ -187,7 +196,7 @@ class CacheManager:
             self.client.delete(key)
             logger.debug(f"Cache DELETE: {key}")
             return True
-        except Exception as e:  # Redis errors may vary by transport
+        except RedisError as e:
             logger.warning(f"Cache delete error for {key}: {e}")
             return False
     
@@ -211,7 +220,7 @@ class CacheManager:
                 logger.info(f"Cache INVALIDATE: {pattern} ({deleted} keys)")
                 return deleted
             return 0
-        except Exception as e:  # Redis errors may vary by transport
+        except RedisError as e:
             logger.warning(f"Cache invalidate error for {pattern}: {e}")
             return 0
     
@@ -241,7 +250,7 @@ class CacheManager:
                     if isinstance(db, dict)
                 ),
             }
-        except Exception as e:  # Redis errors may vary by transport
+        except RedisError as e:
             return {"enabled": True, "status": "error", "error": str(e)}
 
 

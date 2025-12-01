@@ -211,7 +211,7 @@ class FITSParsingService:
             
         except FileNotAccessibleError:
             raise
-        except Exception as e:
+        except (OSError, ValueError, KeyError) as e:
             raise FITSParsingError(fits_path, str(e))
     
     def parse_with_stats(self, fits_path: str) -> FITSMetadata:
@@ -245,7 +245,7 @@ class FITSParsingService:
             
             return metadata
             
-        except Exception as e:
+        except (OSError, ValueError) as e:
             logger.warning(f"Failed to compute stats for {fits_path}: {e}")
             return metadata
     
@@ -340,7 +340,7 @@ class FITSParsingService:
                         data = data[0]
                     return data
                     
-        except Exception as e:
+        except (OSError, IndexError, ValueError) as e:
             logger.error(f"Failed to extract data slice from {fits_path}: {e}")
             return None
     
@@ -407,7 +407,7 @@ class FITSParsingService:
                 # Verify with astropy's verification
                 hdul.verify("silentfix")
                 
-        except Exception as e:
+        except (OSError, ValueError) as e:
             result["valid"] = False
             result["errors"].append(f"FITS parsing error: {str(e)}")
         

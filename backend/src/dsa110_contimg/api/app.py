@@ -281,7 +281,7 @@ def create_app() -> FastAPI:
                             "free_gb": round(free_gb, 2),
                             "status": "ok" if free_gb > 5 else ("warning" if free_gb > 1 else "critical"),
                         }
-                    except Exception:
+                    except OSError:
                         disk_status[path_str] = {"status": "error"}
             response["disk"] = disk_status
             
@@ -363,11 +363,12 @@ try:
         
         # Background task to sync every 30 seconds
         async def periodic_sync():
+            import sqlite3
             while True:
                 await asyncio.sleep(30)
                 try:
                     sync_gauges_from_database()
-                except Exception as e:
+                except sqlite3.Error as e:
                     logger.warning(f"Periodic metrics sync failed: {e}")
         
         asyncio.create_task(periodic_sync())
@@ -403,7 +404,7 @@ def ensure_port_available(port: int = 8000) -> None:
             )
             if result.returncode == 0 and result.stdout.strip():
                 return [int(pid) for pid in result.stdout.strip().split('\n') if pid]
-        except Exception:
+        except OSError:
             pass
         return []
     

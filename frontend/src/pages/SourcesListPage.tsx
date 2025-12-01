@@ -220,6 +220,7 @@ const SourcesListPage: React.FC = () => {
         <div className="flex gap-2">
           {selectedIds.length > 0 && (
             <button
+              type="button"
               onClick={handleExportSelected}
               className="px-4 py-2 rounded-lg text-sm font-medium bg-green-600 text-white hover:bg-green-700 transition-colors"
             >
@@ -227,6 +228,7 @@ const SourcesListPage: React.FC = () => {
             </button>
           )}
           <button
+            type="button"
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               activeTab === "list"
                 ? "bg-blue-600 text-white"
@@ -237,6 +239,7 @@ const SourcesListPage: React.FC = () => {
             List View
           </button>
           <button
+            type="button"
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
               activeTab === "variability"
                 ? "bg-blue-600 text-white"
@@ -263,13 +266,14 @@ const SourcesListPage: React.FC = () => {
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-2">
           <button
+            type="button"
             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
             className="text-sm text-blue-600 hover:text-blue-800"
           >
             {showAdvancedFilters ? "Hide Advanced Filters" : "Show Advanced Filters"}
           </button>
           {hasActiveFilters && (
-            <button onClick={clearFilters} className="text-sm text-red-600 hover:text-red-800">
+            <button type="button" onClick={clearFilters} className="text-sm text-red-600 hover:text-red-800">
               Clear All Filters
             </button>
           )}
@@ -294,12 +298,14 @@ const SourcesListPage: React.FC = () => {
         footer={
           <div className="flex justify-end gap-2">
             <button
+              type="button"
               onClick={() => setShowExportModal(false)}
               className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded hover:bg-gray-200"
             >
               Cancel
             </button>
             <button
+              type="button"
               onClick={confirmExport}
               className="px-4 py-2 text-sm text-white bg-green-600 rounded hover:bg-green-700"
             >

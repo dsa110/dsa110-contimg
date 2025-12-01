@@ -250,7 +250,7 @@ async def check_redis_service(
             last_checked=datetime.utcnow(),
             error="Connection refused",
         )
-    except Exception as e:
+    except (ConnectionError, UnicodeDecodeError) as e:
         elapsed = (time.perf_counter() - start_time) * 1000
         return ServiceHealthResult(
             name=service.name,
@@ -311,7 +311,7 @@ async def check_tcp_service(
             last_checked=datetime.utcnow(),
             error="Connection refused",
         )
-    except Exception as e:
+    except ConnectionError as e:
         elapsed = (time.perf_counter() - start_time) * 1000
         return ServiceHealthResult(
             name=service.name,

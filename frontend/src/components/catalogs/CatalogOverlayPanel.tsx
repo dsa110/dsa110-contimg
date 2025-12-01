@@ -360,12 +360,13 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
 
           {/* Quick actions */}
           <div className="flex justify-between items-center pb-2 border-b border-gray-100">
-            <button onClick={handleSelectAll} className="text-xs text-blue-600 hover:text-blue-800">
+            <button type="button" onClick={handleSelectAll} className="text-xs text-blue-600 hover:text-blue-800">
               {enabledCatalogs.length === CATALOG_DEFINITIONS.length
                 ? "Deselect all"
                 : "Select all"}
             </button>
             <button
+              type="button"
               onClick={() => {
                 onCatalogChange([]);
                 setQueryResults(new Map());
