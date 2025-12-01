@@ -174,7 +174,12 @@ const NearbyObjectsPanel: React.FC<NearbyObjectsPanelProps> = ({
             className="form-control w-20"
           />
           <span className="text-sm text-gray-600">arcmin</span>
-          <button type="button" onClick={performSearch} disabled={isLoading} className="btn btn-primary btn-sm">
+          <button
+            type="button"
+            onClick={performSearch}
+            disabled={isLoading}
+            className="btn btn-primary btn-sm"
+          >
             {isLoading ? (
               <span className="flex items-center gap-1">
                 <span className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" />

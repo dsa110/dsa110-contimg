@@ -410,7 +410,11 @@ const AdvancedQueryPanel: React.FC<AdvancedQueryPanelProps> = ({
             <span className="badge badge-primary">{activeFilterCount} filters</span>
           )}
         </h4>
-        <button type="button" onClick={handleReset} className="text-sm text-gray-500 hover:text-red-500">
+        <button
+          type="button"
+          onClick={handleReset}
+          className="text-sm text-gray-500 hover:text-red-500"
+        >
           Reset all
         </button>
       </div>

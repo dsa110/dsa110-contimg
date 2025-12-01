@@ -5,6 +5,7 @@ Statistics service - business logic for dashboard statistics.
 from __future__ import annotations
 
 import os
+import sqlite3
 from datetime import datetime
 from typing import Optional
 
@@ -115,7 +116,7 @@ class StatsService:
                     stats["cal_tables"] = {"total": row["cnt"] or 0}
             else:
                 stats["cal_tables"] = {"total": 0}
-        except Exception:
+        except sqlite3.Error:
             stats["cal_tables"] = {"total": 0}
         
         # Metadata for caching

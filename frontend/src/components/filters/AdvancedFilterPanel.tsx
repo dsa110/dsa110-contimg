@@ -268,7 +268,11 @@ const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
           Filters
           {activeCount > 0 && <span className="badge badge-primary">{activeCount} active</span>}
         </h4>
-        <button type="button" onClick={onReset} className="text-sm text-gray-500 hover:text-red-500">
+        <button
+          type="button"
+          onClick={onReset}
+          className="text-sm text-gray-500 hover:text-red-500"
+        >
           Reset all
         </button>
       </div>

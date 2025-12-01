@@ -7,6 +7,7 @@ Provides async database connections with connection pooling.
 from __future__ import annotations
 
 import os
+import sqlite3
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import Optional, AsyncIterator

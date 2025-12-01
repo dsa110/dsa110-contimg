@@ -273,7 +273,11 @@ const SourcesListPage: React.FC = () => {
             {showAdvancedFilters ? "Hide Advanced Filters" : "Show Advanced Filters"}
           </button>
           {hasActiveFilters && (
-            <button type="button" onClick={clearFilters} className="text-sm text-red-600 hover:text-red-800">
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="text-sm text-red-600 hover:text-red-800"
+            >
               Clear All Filters
             </button>
           )}

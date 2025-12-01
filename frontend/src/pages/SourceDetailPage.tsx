@@ -332,11 +332,13 @@ const SourceDetailPage: React.FC = () => {
 
           {/* VizieR Catalog Overlays */}
           <Card title="Catalog Crossmatch">
-            <CatalogOverlayPanel
-              centerRa={sourceData.ra_deg}
-              centerDec={sourceData.dec_deg}
-              defaultRadius={2}
-            />
+            <WidgetErrorBoundary widgetName="Catalog Overlays" minHeight={200}>
+              <CatalogOverlayPanel
+                centerRa={sourceData.ra_deg}
+                centerDec={sourceData.dec_deg}
+                defaultRadius={2}
+              />
+            </WidgetErrorBoundary>
           </Card>
 
           {/* Nearby Objects from SIMBAD/NED */}

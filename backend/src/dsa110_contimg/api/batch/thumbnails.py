@@ -80,7 +80,7 @@ def generate_image_thumbnail(
     except ImportError as e:
         logger.error(f"Missing dependency for thumbnail generation: {e}")
         return None
-    except Exception as e:
+    except (OSError, ValueError) as e:
         logger.error(f"Failed to generate thumbnail for {image_path}: {e}")
         return None
 
