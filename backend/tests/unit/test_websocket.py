@@ -16,6 +16,8 @@ import pytest
 from dsa110_contimg.api.websocket import (
     ConnectionInfo,
     ConnectionManager,
+    ConnectionState,
+    DisconnectReason,
     ws_router,
 )
 
@@ -293,3 +295,154 @@ class TestConnectionManagerConcurrency:
         
         # Should complete without errors
         assert "client-1" in manager.active_connections
+
+
+class TestDisconnectReason:
+    """Tests for DisconnectReason enum."""
+
+    def test_all_reasons_exist(self):
+        """Test all expected disconnect reasons are defined."""
+        expected = ["NORMAL", "CLIENT_DISCONNECT", "HEARTBEAT_TIMEOUT", "ERROR", "SERVER_SHUTDOWN"]
+        for reason in expected:
+            assert hasattr(DisconnectReason, reason)
+
+    def test_reason_values(self):
+        """Test disconnect reason values are strings."""
+        assert DisconnectReason.NORMAL.value == "normal"
+        assert DisconnectReason.HEARTBEAT_TIMEOUT.value == "heartbeat_timeout"
+
+
+class TestConnectionState:
+    """Tests for ConnectionState enum."""
+
+    def test_all_states_exist(self):
+        """Test all expected connection states are defined."""
+        expected = ["CONNECTING", "CONNECTED", "DISCONNECTING", "DISCONNECTED"]
+        for state in expected:
+            assert hasattr(ConnectionState, state)
+
+
+class TestConnectionInfoHeartbeat:
+    """Tests for ConnectionInfo heartbeat features."""
+
+    def test_default_heartbeat_values(self):
+        """Test default heartbeat values."""
+        mock_ws = MagicMock()
+        info = ConnectionInfo(websocket=mock_ws)
+        
+        # Should have last_heartbeat set to connected_at
+        assert info.last_heartbeat is not None
+        assert info.missed_heartbeats == 0
+        assert info.state == ConnectionState.CONNECTED
+        assert info.reconnect_token is None
+
+    def test_custom_reconnect_token(self):
+        """Test setting reconnect token."""
+        mock_ws = MagicMock()
+        info = ConnectionInfo(websocket=mock_ws, reconnect_token="token-123")
+        
+        assert info.reconnect_token == "token-123"
+
+
+class TestConnectionManagerHeartbeat:
+    """Tests for ConnectionManager heartbeat features."""
+
+    @pytest.fixture
+    def manager(self):
+        """Create a fresh ConnectionManager."""
+        return ConnectionManager()
+
+    @pytest.fixture
+    def mock_websocket(self):
+        """Create a mock WebSocket."""
+        ws = AsyncMock()
+        ws.accept = AsyncMock()
+        ws.send_json = AsyncMock()
+        ws.client_state = MagicMock()
+        return ws
+
+    @pytest.mark.asyncio
+    async def test_record_heartbeat(self, manager, mock_websocket):
+        """Test recording a heartbeat updates timestamp."""
+        await manager.connect(mock_websocket, "client-1")
+        
+        # Get initial heartbeat time
+        initial_heartbeat = manager.connections["client-1"].last_heartbeat
+        
+        # Wait a tiny bit to ensure time difference
+        await asyncio.sleep(0.01)
+        
+        # Record new heartbeat
+        manager.record_heartbeat("client-1")
+        
+        new_heartbeat = manager.connections["client-1"].last_heartbeat
+        assert new_heartbeat > initial_heartbeat
+        assert manager.connections["client-1"].missed_heartbeats == 0
+
+    def test_record_heartbeat_nonexistent_client(self, manager):
+        """Test recording heartbeat for nonexistent client is no-op."""
+        # Should not raise
+        manager.record_heartbeat("nonexistent-client")
+
+    @pytest.mark.asyncio
+    async def test_check_heartbeat_healthy(self, manager, mock_websocket):
+        """Test check_heartbeat returns True for healthy connection."""
+        await manager.connect(mock_websocket, "client-1")
+        
+        # Fresh connection should be healthy
+        assert manager.check_heartbeat("client-1", max_missed=3) is True
+        # First check increments missed count
+        assert manager.connections["client-1"].missed_heartbeats == 1
+
+    @pytest.mark.asyncio
+    async def test_check_heartbeat_timeout(self, manager, mock_websocket):
+        """Test check_heartbeat returns False after too many missed."""
+        await manager.connect(mock_websocket, "client-1")
+        
+        # Miss multiple heartbeats
+        manager.check_heartbeat("client-1", max_missed=3)  # 1
+        manager.check_heartbeat("client-1", max_missed=3)  # 2
+        manager.check_heartbeat("client-1", max_missed=3)  # 3
+        
+        # Fourth check should return False
+        assert manager.check_heartbeat("client-1", max_missed=3) is False
+
+    def test_check_heartbeat_nonexistent_client(self, manager):
+        """Test check_heartbeat for nonexistent client returns False."""
+        assert manager.check_heartbeat("nonexistent", max_missed=3) is False
+
+    @pytest.mark.asyncio
+    async def test_generate_reconnect_token(self, manager, mock_websocket):
+        """Test generating reconnect token."""
+        await manager.connect(mock_websocket, "client-1")
+        
+        token = manager.generate_reconnect_token("client-1")
+        
+        assert token is not None
+        assert len(token) > 20  # UUID4 is 36 chars
+        assert manager.connections["client-1"].reconnect_token == token
+
+    def test_generate_reconnect_token_nonexistent(self, manager):
+        """Test generating token for nonexistent client returns None."""
+        token = manager.generate_reconnect_token("nonexistent")
+        assert token is None
+
+    @pytest.mark.asyncio
+    async def test_disconnect_with_reason(self, manager, mock_websocket):
+        """Test disconnect with reason parameter."""
+        await manager.connect(mock_websocket, "client-1")
+        
+        # Disconnect with specific reason
+        await manager.disconnect("client-1", DisconnectReason.HEARTBEAT_TIMEOUT)
+        
+        assert "client-1" not in manager.active_connections
+
+    @pytest.mark.asyncio
+    async def test_disconnect_default_reason(self, manager, mock_websocket):
+        """Test disconnect uses NORMAL as default reason."""
+        await manager.connect(mock_websocket, "client-1")
+        
+        # Disconnect without reason (should use NORMAL)
+        await manager.disconnect("client-1")
+        
+        assert "client-1" not in manager.active_connections

@@ -36,10 +36,20 @@ ws_router = APIRouter(prefix="/ws", tags=["websocket"])
 class DisconnectReason(str, Enum):
     """Reasons for WebSocket disconnection."""
     NORMAL = "normal"
+    CLIENT_DISCONNECT = "client_disconnect"
+    HEARTBEAT_TIMEOUT = "heartbeat_timeout"
     TIMEOUT = "timeout"
     ERROR = "error"
     SERVER_SHUTDOWN = "server_shutdown"
     CLIENT_GONE = "client_gone"
+
+
+class ConnectionState(str, Enum):
+    """State of a WebSocket connection."""
+    CONNECTING = "connecting"
+    CONNECTED = "connected"
+    DISCONNECTING = "disconnecting"
+    DISCONNECTED = "disconnected"
 
 
 @dataclass
@@ -51,6 +61,7 @@ class ConnectionInfo:
     user_id: Optional[str] = None
     last_heartbeat: datetime = field(default_factory=datetime.utcnow)
     missed_heartbeats: int = 0
+    state: ConnectionState = ConnectionState.CONNECTED
     reconnect_token: Optional[str] = None
 
 
@@ -303,6 +314,56 @@ class ConnectionManager:
         """Get number of active connections."""
         return len(self.active_connections)
     
+    @property
+    def connections(self) -> Dict[str, ConnectionInfo]:
+        """Access to active connections (for tests/monitoring)."""
+        return self.active_connections
+    
+    def record_heartbeat(self, client_id: str) -> None:
+        """Record that a heartbeat was received from a client.
+        
+        This is a synchronous method for use in endpoint handlers.
+        """
+        if client_id in self.active_connections:
+            self.active_connections[client_id].last_heartbeat = datetime.utcnow()
+            self.active_connections[client_id].missed_heartbeats = 0
+    
+    def check_heartbeat(self, client_id: str, max_missed: int = 3) -> bool:
+        """Check if a client's heartbeat is healthy.
+        
+        Increments the missed_heartbeats count and returns False if 
+        the client has missed too many heartbeats.
+        
+        Args:
+            client_id: The client to check
+            max_missed: Maximum allowed missed heartbeats
+            
+        Returns:
+            True if connection is still healthy, False if should disconnect
+        """
+        if client_id not in self.active_connections:
+            return False
+        
+        info = self.active_connections[client_id]
+        info.missed_heartbeats += 1
+        
+        return info.missed_heartbeats <= max_missed
+    
+    def generate_reconnect_token(self, client_id: str) -> Optional[str]:
+        """Generate a reconnect token for a client.
+        
+        Returns:
+            The generated token, or None if client not found
+        """
+        import uuid
+        
+        if client_id not in self.active_connections:
+            return None
+        
+        token = str(uuid.uuid4())
+        self.active_connections[client_id].reconnect_token = token
+        return token
+    
     def get_topic_subscribers(self, topic: str) -> int:
         """Get number of subscribers for a topic."""
         count = 0
@@ -415,10 +476,12 @@ async def websocket_job_updates(
                     
     except WebSocketDisconnect:
         logger.info(f"WebSocket client disconnected: {client_id}")
+        disconnect_reason = DisconnectReason.CLIENT_DISCONNECT
     except (RuntimeError, ConnectionError) as e:
         logger.error(f"WebSocket error for {client_id}: {e}")
+        disconnect_reason = DisconnectReason.ERROR
     finally:
-        await manager.disconnect(client_id)
+        await manager.disconnect(client_id, disconnect_reason)
 
 
 @ws_router.websocket("/pipeline")
@@ -434,19 +497,32 @@ async def websocket_pipeline_updates(
     - Job completions
     - Error notifications
     - System status changes
+    
+    Supports heartbeat monitoring for connection health.
     """
     if not client_id:
         import uuid
         client_id = str(uuid.uuid4())
     
+    disconnect_reason = DisconnectReason.NORMAL
+    
     await manager.connect(websocket, client_id)
     await manager.subscribe(client_id, "pipeline:all")
+    
+    # Generate reconnect token
+    reconnect_token = manager.generate_reconnect_token(client_id)
+    
+    # Heartbeat configuration
+    heartbeat_interval = 30.0  # seconds
+    max_missed_heartbeats = 3
     
     try:
         await websocket.send_json({
             "type": "connected",
             "topic": "pipeline:all",
             "client_id": client_id,
+            "reconnect_token": reconnect_token,
+            "heartbeat_interval": heartbeat_interval,
             "timestamp": datetime.utcnow().isoformat() + "Z",
         })
         
@@ -458,16 +534,45 @@ async def websocket_pipeline_updates(
                     timeout=config.timeouts.websocket_ping,
                 )
                 
-                if data.get("type") == "ping":
-                    await websocket.send_json({"type": "pong"})
+                msg_type = data.get("type")
+                
+                if msg_type == "ping":
+                    # Record heartbeat and respond
+                    manager.record_heartbeat(client_id)
+                    conn_info = manager.connections.get(client_id)
+                    await websocket.send_json({
+                        "type": "pong",
+                        "timestamp": datetime.utcnow().isoformat() + "Z",
+                        "connection_age_seconds": (
+                            (datetime.utcnow() - conn_info.connected_at).total_seconds()
+                            if conn_info else 0
+                        ),
+                    })
                     
             except asyncio.TimeoutError:
-                await websocket.send_json({"type": "ping"})
+                # Check heartbeat status
+                if not manager.check_heartbeat(client_id, max_missed_heartbeats):
+                    logger.warning(f"Client {client_id} missed too many heartbeats, disconnecting")
+                    disconnect_reason = DisconnectReason.HEARTBEAT_TIMEOUT
+                    break
                 
+                # Send ping to keep connection alive
+                try:
+                    await websocket.send_json({
+                        "type": "ping",
+                        "timestamp": datetime.utcnow().isoformat() + "Z",
+                    })
+                except (RuntimeError, ConnectionError):
+                    disconnect_reason = DisconnectReason.ERROR
+                    break
+                    
     except WebSocketDisconnect:
-        pass
+        disconnect_reason = DisconnectReason.CLIENT_DISCONNECT
+    except (RuntimeError, ConnectionError) as e:
+        logger.error(f"WebSocket error for {client_id}: {e}")
+        disconnect_reason = DisconnectReason.ERROR
     finally:
-        await manager.disconnect(client_id)
+        await manager.disconnect(client_id, disconnect_reason)
 
 
 # Helper functions for sending updates
