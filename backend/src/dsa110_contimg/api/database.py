@@ -1,16 +1,17 @@
 """
 Database configuration and connection management.
 
-Provides async database connections with connection pooling.
+Provides async database connections with connection pooling,
+and transaction context managers for safe database operations.
 """
 
 from __future__ import annotations
 
 import os
 import sqlite3
-from contextlib import asynccontextmanager
+from contextlib import asynccontextmanager, contextmanager
 from dataclasses import dataclass
-from typing import Optional, AsyncIterator
+from typing import Optional, AsyncIterator, Iterator
 import aiosqlite
 
 
@@ -132,3 +133,151 @@ async def close_db_pool():
     if _db_pool:
         await _db_pool.close()
         _db_pool = None
+
+
+# =============================================================================
+# Transaction Context Managers
+# =============================================================================
+
+@contextmanager
+def transaction(conn: sqlite3.Connection) -> Iterator[sqlite3.Connection]:
+    """
+    Synchronous transaction context manager.
+    
+    Provides automatic commit on success and rollback on failure.
+    Use this to wrap multi-statement database operations.
+    
+    Args:
+        conn: Existing sqlite3 connection
+        
+    Yields:
+        The same connection, with transaction started
+        
+    Example:
+        conn = sqlite3.connect(db_path)
+        with transaction(conn) as txn:
+            txn.execute("INSERT INTO ...")
+            txn.execute("UPDATE ...")
+        # Auto-committed on success, rolled back on error
+    """
+    try:
+        # Start explicit transaction (SQLite auto-starts, but be explicit)
+        conn.execute("BEGIN")
+        yield conn
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+
+
+@asynccontextmanager
+async def async_transaction(
+    conn: aiosqlite.Connection
+) -> AsyncIterator[aiosqlite.Connection]:
+    """
+    Async transaction context manager.
+    
+    Provides automatic commit on success and rollback on failure.
+    Use this to wrap multi-statement async database operations.
+    
+    Args:
+        conn: Existing aiosqlite connection
+        
+    Yields:
+        The same connection, with transaction started
+        
+    Example:
+        async with db_pool.products_db() as conn:
+            async with async_transaction(conn) as txn:
+                await txn.execute("INSERT INTO ...")
+                await txn.execute("UPDATE ...")
+        # Auto-committed on success, rolled back on error
+    """
+    try:
+        await conn.execute("BEGIN")
+        yield conn
+        await conn.commit()
+    except Exception:
+        await conn.rollback()
+        raise
+
+
+@contextmanager
+def transactional_connection(
+    db_path: str,
+    timeout: float = 30.0,
+    row_factory: bool = True
+) -> Iterator[sqlite3.Connection]:
+    """
+    Create a new connection with automatic transaction management.
+    
+    Use when you need a new connection with transaction semantics.
+    The connection is automatically closed after the context.
+    
+    Args:
+        db_path: Path to SQLite database
+        timeout: Connection timeout in seconds
+        row_factory: Whether to use sqlite3.Row for results
+        
+    Yields:
+        sqlite3.Connection with transaction started
+        
+    Example:
+        with transactional_connection("/path/to/db.sqlite3") as conn:
+            conn.execute("INSERT INTO ...")
+            conn.execute("UPDATE ...")
+        # Auto-committed and closed on success
+    """
+    conn = sqlite3.connect(db_path, timeout=timeout)
+    if row_factory:
+        conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode=WAL")
+    
+    try:
+        conn.execute("BEGIN")
+        yield conn
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+@asynccontextmanager
+async def async_transactional_connection(
+    db_path: str,
+    timeout: float = 30.0
+) -> AsyncIterator[aiosqlite.Connection]:
+    """
+    Create a new async connection with automatic transaction management.
+    
+    Use when you need a new async connection with transaction semantics.
+    The connection is automatically closed after the context.
+    
+    Args:
+        db_path: Path to SQLite database
+        timeout: Connection timeout in seconds
+        
+    Yields:
+        aiosqlite.Connection with transaction started
+        
+    Example:
+        async with async_transactional_connection("/path/to/db.sqlite3") as conn:
+            await conn.execute("INSERT INTO ...")
+            await conn.execute("UPDATE ...")
+        # Auto-committed and closed on success
+    """
+    conn = await aiosqlite.connect(db_path, timeout=timeout)
+    conn.row_factory = aiosqlite.Row
+    await conn.execute("PRAGMA journal_mode=WAL")
+    
+    try:
+        await conn.execute("BEGIN")
+        yield conn
+        await conn.commit()
+    except Exception:
+        await conn.rollback()
+        raise
+    finally:
+        await conn.close()

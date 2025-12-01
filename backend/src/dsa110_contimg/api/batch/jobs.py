@@ -19,6 +19,8 @@ import time
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
+from ..database import transaction
+
 logger = logging.getLogger(__name__)
 
 
@@ -139,35 +141,35 @@ def create_batch_job(
     _validate_string_list(ms_paths, "ms_paths")
     _validate_params(params)
 
-    cursor = conn.cursor()
-    cursor.execute(
-        """
-        INSERT INTO batch_jobs (type, created_at, status, total_items, completed_items, failed_items, params)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            job_type,
-            datetime.utcnow().timestamp(),
-            "pending",
-            len(ms_paths),
-            0,
-            0,
-            str(params),
-        ),
-    )
-    batch_id = cursor.lastrowid
-
-    # Insert batch items
-    for ms_path in ms_paths:
+    with transaction(conn):
+        cursor = conn.cursor()
         cursor.execute(
             """
-            INSERT INTO batch_job_items (batch_id, ms_path, status)
-            VALUES (?, ?, ?)
+            INSERT INTO batch_jobs (type, created_at, status, total_items, completed_items, failed_items, params)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            (batch_id, ms_path, "pending"),
+            (
+                job_type,
+                datetime.utcnow().timestamp(),
+                "pending",
+                len(ms_paths),
+                0,
+                0,
+                str(params),
+            ),
         )
+        batch_id = cursor.lastrowid
 
-    conn.commit()
+        # Insert batch items
+        for ms_path in ms_paths:
+            cursor.execute(
+                """
+                INSERT INTO batch_job_items (batch_id, ms_path, status)
+                VALUES (?, ?, ?)
+                """,
+                (batch_id, ms_path, "pending"),
+            )
+
     return batch_id
 
 
@@ -209,36 +211,36 @@ def create_batch_conversion_job(
     # Ensure tables exist
     ensure_batch_tables(conn)
 
-    cursor = conn.cursor()
-    cursor.execute(
-        """
-        INSERT INTO batch_jobs (type, created_at, status, total_items, completed_items, failed_items, params)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            job_type,
-            datetime.utcnow().timestamp(),
-            "pending",
-            len(time_windows),
-            0,
-            0,
-            str(params),
-        ),
-    )
-    batch_id = cursor.lastrowid
-
-    # Insert batch items using time window identifiers
-    for tw in time_windows:
-        time_window_id = f"time_window_{tw['start_time']}_{tw['end_time']}"
+    with transaction(conn):
+        cursor = conn.cursor()
         cursor.execute(
             """
-            INSERT INTO batch_job_items (batch_id, ms_path, status)
-            VALUES (?, ?, ?)
+            INSERT INTO batch_jobs (type, created_at, status, total_items, completed_items, failed_items, params)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            (batch_id, time_window_id, "pending"),
+            (
+                job_type,
+                datetime.utcnow().timestamp(),
+                "pending",
+                len(time_windows),
+                0,
+                0,
+                str(params),
+            ),
         )
+        batch_id = cursor.lastrowid
 
-    conn.commit()
+        # Insert batch items using time window identifiers
+        for tw in time_windows:
+            time_window_id = f"time_window_{tw['start_time']}_{tw['end_time']}"
+            cursor.execute(
+                """
+                INSERT INTO batch_job_items (batch_id, ms_path, status)
+                VALUES (?, ?, ?)
+                """,
+                (batch_id, time_window_id, "pending"),
+            )
+
     return batch_id
 
 
@@ -266,35 +268,35 @@ def create_batch_publish_job(
     _validate_string_list(data_ids, "data_ids")
     _validate_params(params)
 
-    cursor = conn.cursor()
-    cursor.execute(
-        """
-        INSERT INTO batch_jobs (type, created_at, status, total_items, completed_items, failed_items, params)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            job_type,
-            datetime.utcnow().timestamp(),
-            "pending",
-            len(data_ids),
-            0,
-            0,
-            str(params),
-        ),
-    )
-    batch_id = cursor.lastrowid
-
-    # Insert batch items using data_ids
-    for data_id in data_ids:
+    with transaction(conn):
+        cursor = conn.cursor()
         cursor.execute(
             """
-            INSERT INTO batch_job_items (batch_id, ms_path, status)
-            VALUES (?, ?, ?)
+            INSERT INTO batch_jobs (type, created_at, status, total_items, completed_items, failed_items, params)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            (batch_id, data_id, "pending"),
+            (
+                job_type,
+                datetime.utcnow().timestamp(),
+                "pending",
+                len(data_ids),
+                0,
+                0,
+                str(params),
+            ),
         )
+        batch_id = cursor.lastrowid
 
-    conn.commit()
+        # Insert batch items using data_ids
+        for data_id in data_ids:
+            cursor.execute(
+                """
+                INSERT INTO batch_job_items (batch_id, ms_path, status)
+                VALUES (?, ?, ?)
+                """,
+                (batch_id, data_id, "pending"),
+            )
+
     return batch_id
 
 
@@ -333,37 +335,37 @@ def create_batch_photometry_job(
         raise ValueError("coordinates must be a list")
     _validate_params(params)
 
-    cursor = conn.cursor()
-    cursor.execute(
-        """
-        INSERT INTO batch_jobs (type, created_at, status, total_items, completed_items, failed_items, params)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            job_type,
-            datetime.utcnow().timestamp(),
-            "pending",
-            len(fits_paths) * len(coordinates),
-            0,
-            0,
-            json.dumps(params) if isinstance(params, dict) else str(params),
-        ),
-    )
-    batch_id = cursor.lastrowid
+    with transaction(conn):
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO batch_jobs (type, created_at, status, total_items, completed_items, failed_items, params)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                job_type,
+                datetime.utcnow().timestamp(),
+                "pending",
+                len(fits_paths) * len(coordinates),
+                0,
+                0,
+                json.dumps(params) if isinstance(params, dict) else str(params),
+            ),
+        )
+        batch_id = cursor.lastrowid
 
-    # Insert batch items (one per image-coordinate pair)
-    for fits_path in fits_paths:
-        for coord in coordinates:
-            item_id = f"{fits_path}:{coord['ra_deg']}:{coord['dec_deg']}"
-            cursor.execute(
-                """
-                INSERT INTO batch_job_items (batch_id, ms_path, status, data_id)
-                VALUES (?, ?, ?, ?)
-                """,
-                (batch_id, item_id, "pending", data_id),
-            )
+        # Insert batch items (one per image-coordinate pair)
+        for fits_path in fits_paths:
+            for coord in coordinates:
+                item_id = f"{fits_path}:{coord['ra_deg']}:{coord['dec_deg']}"
+                cursor.execute(
+                    """
+                    INSERT INTO batch_job_items (batch_id, ms_path, status, data_id)
+                    VALUES (?, ?, ?, ?)
+                    """,
+                    (batch_id, item_id, "pending", data_id),
+                )
 
-    conn.commit()
     return batch_id
 
 
@@ -403,45 +405,45 @@ def create_batch_ese_detect_job(
         # Will process all sources (single item)
         total_items = 1
 
-    cursor = conn.cursor()
-    cursor.execute(
-        """
-        INSERT INTO batch_jobs (type, created_at, status, total_items, completed_items, failed_items, params)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        """,
-        (
-            job_type,
-            time.time(),
-            "pending",
-            total_items,
-            0,
-            0,
-            json.dumps(params),
-        ),
-    )
-    batch_id = cursor.lastrowid
+    with transaction(conn):
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            INSERT INTO batch_jobs (type, created_at, status, total_items, completed_items, failed_items, params)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                job_type,
+                time.time(),
+                "pending",
+                total_items,
+                0,
+                0,
+                json.dumps(params),
+            ),
+        )
+        batch_id = cursor.lastrowid
 
-    # Create batch job items
-    if source_ids:
-        for source_id in source_ids:
+        # Create batch job items
+        if source_ids:
+            for source_id in source_ids:
+                cursor.execute(
+                    """
+                    INSERT INTO batch_job_items (batch_id, ms_path, status)
+                    VALUES (?, ?, ?)
+                    """,
+                    (batch_id, source_id, "pending"),
+                )
+        else:
+            # Single item for "all sources"
             cursor.execute(
                 """
                 INSERT INTO batch_job_items (batch_id, ms_path, status)
                 VALUES (?, ?, ?)
                 """,
-                (batch_id, source_id, "pending"),
+                (batch_id, "all_sources", "pending"),
             )
-    else:
-        # Single item for "all sources"
-        cursor.execute(
-            """
-            INSERT INTO batch_job_items (batch_id, ms_path, status)
-            VALUES (?, ?, ?)
-            """,
-            (batch_id, "all_sources", "pending"),
-        )
 
-    conn.commit()
     return batch_id
 
 
