@@ -235,6 +235,73 @@ def predict_calibrator_transit(
     )
 
 
+def predict_calibrator_transit_by_coords(
+    ra_deg: float,
+    dec_deg: float,
+    from_time: Optional[datetime] = None,
+    name: str = "unknown",
+    location: Optional[EarthLocation] = None,
+) -> Optional[TransitPrediction]:
+    """
+    Predict the next transit of a source at given coordinates.
+    
+    This is a coordinate-based variant of predict_calibrator_transit()
+    for sources not in the registered calibrator list (e.g., from VLA catalog).
+    
+    Args:
+        ra_deg: Right ascension in degrees
+        dec_deg: Declination in degrees
+        from_time: Start time for prediction (default: now)
+        name: Name/identifier for the source
+        location: Observatory location (default: DSA-110)
+        
+    Returns:
+        TransitPrediction or None on error
+    """
+    if location is None:
+        location = DSA110_LOCATION
+    if from_time is None:
+        from_time = datetime.utcnow()
+    
+    # RA in hours (transit occurs when LST = RA)
+    ra_hours = ra_deg / 15.0
+    
+    # Current LST
+    current_lst = calculate_lst(from_time, location)
+    
+    # Time until transit (in sidereal hours)
+    hours_to_transit = ra_hours - current_lst
+    if hours_to_transit < 0:
+        hours_to_transit += 24.0  # Next day
+    
+    # Convert sidereal time to solar time (sidereal day = 23.9344696 hours)
+    solar_hours_to_transit = hours_to_transit * 0.9972696
+    
+    transit_utc = from_time + timedelta(hours=solar_hours_to_transit)
+    
+    # Calculate elevation at transit
+    elevation = calculate_elevation(ra_deg, dec_deg, transit_utc, location)
+    
+    # Determine status
+    if hours_to_transit < 0.1:  # Within ~6 minutes
+        status = "in_progress"
+    elif hours_to_transit < 1.0:  # Within 1 hour
+        status = "upcoming"
+    else:
+        status = "scheduled"
+    
+    return TransitPrediction(
+        calibrator=name,
+        ra_deg=ra_deg,
+        dec_deg=dec_deg,
+        transit_utc=transit_utc,
+        time_to_transit_sec=solar_hours_to_transit * 3600,
+        lst_at_transit=ra_hours,
+        elevation_at_transit=elevation,
+        status=status,
+    )
+
+
 def get_all_upcoming_transits(
     hours_ahead: float = 24.0,
     calibrators: Optional[Dict] = None,

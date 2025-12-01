@@ -98,6 +98,7 @@ class CalibratorPrediction:
     dec_separation_deg: float  # How close to telescope pointing
     expected_flux_jy: Optional[float] = None
     priority_score: float = 0.0  # Higher = better choice
+    source: str = "registered"  # "registered" or "vla_catalog"
     
     def to_dict(self) -> dict:
         return {
@@ -108,6 +109,7 @@ class CalibratorPrediction:
             "time_to_transit_sec": round(self.time_to_transit_sec, 1),
             "dec_separation_deg": round(self.dec_separation_deg, 3),
             "expected_flux_jy": self.expected_flux_jy,
+            "source": self.source,
             "priority_score": round(self.priority_score, 2),
         }
 
@@ -316,14 +318,20 @@ class PointingTracker:
     def _precompute_calibrator(
         self,
         dec_deg: float,
-        max_dec_separation: float = 1.5,
+        max_dec_separation: float = DEFAULT_MAX_DEC_SEPARATION,
+        min_flux_jy: float = MIN_FLUX_JY_20CM,
     ) -> Optional[CalibratorPrediction]:
         """Find best calibrator for the given declination.
+        
+        First searches registered calibrators (DEFAULT_CALIBRATORS), then
+        falls back to VLA calibrator database if no registered calibrator
+        is within the Dec tolerance.
         
         Args:
             dec_deg: Target declination
             max_dec_separation: Maximum Dec difference from target (degrees).
                 Default 1.5° matches DSA-110 primary beam (~3° diameter).
+            min_flux_jy: Minimum flux for VLA catalog fallback (default: 1.0 Jy)
             
         Returns:
             Best CalibratorPrediction or None
@@ -336,6 +344,7 @@ class PointingTracker:
         candidates: List[CalibratorPrediction] = []
         now = datetime.utcnow()
         
+        # First, try registered calibrators
         for name, info in DEFAULT_CALIBRATORS.items():
             cal_dec = info["dec"]
             dec_sep = abs(cal_dec - dec_deg)
@@ -362,10 +371,24 @@ class PointingTracker:
                 dec_separation_deg=dec_sep,
                 expected_flux_jy=info.get("flux_1400"),
                 priority_score=priority,
+                source="registered",
             ))
         
+        # Fallback to VLA calibrator database if no registered calibrators found
         if not candidates:
-            logger.warning(f"No calibrators found within {max_dec_separation}° of Dec={dec_deg}°")
+            logger.info(
+                f"No registered calibrators within {max_dec_separation}° of Dec={dec_deg}°, "
+                f"searching VLA calibrator database..."
+            )
+            candidates = self._search_vla_calibrators(
+                dec_deg, max_dec_separation, min_flux_jy, now
+            )
+        
+        if not candidates:
+            logger.warning(
+                f"No calibrators found within {max_dec_separation}° of Dec={dec_deg}° "
+                f"(checked registered calibrators and VLA database)"
+            )
             return None
         
         # Return highest priority
@@ -376,6 +399,84 @@ class PointingTracker:
         self._cache_expiry[dec_deg] = now + timedelta(hours=1)
         
         return candidates[0]
+    
+    def _search_vla_calibrators(
+        self,
+        dec_deg: float,
+        max_dec_separation: float,
+        min_flux_jy: float,
+        now: datetime,
+    ) -> List[CalibratorPrediction]:
+        """Search VLA calibrator database for calibrators near target Dec.
+        
+        Args:
+            dec_deg: Target declination
+            max_dec_separation: Maximum Dec separation
+            min_flux_jy: Minimum flux at 20cm
+            now: Current time for transit calculations
+            
+        Returns:
+            List of CalibratorPrediction objects
+        """
+        from ..catalog.build_vla_calibrators import query_calibrators_by_dec
+        from ..pointing.monitor import predict_calibrator_transit_by_coords
+        
+        candidates: List[CalibratorPrediction] = []
+        
+        try:
+            vla_cals = query_calibrators_by_dec(
+                dec_deg,
+                max_separation=max_dec_separation,
+                min_flux_jy=min_flux_jy,
+                band="20cm",
+                db_path=VLA_CALIBRATOR_DB,
+            )
+        except FileNotFoundError as e:
+            logger.error(f"VLA calibrator database not available: {e}")
+            return []
+        except Exception as e:
+            logger.error(f"Error querying VLA calibrators: {e}")
+            return []
+        
+        for cal in vla_cals:
+            # Calculate transit time from coordinates
+            try:
+                pred = predict_calibrator_transit_by_coords(
+                    ra_deg=cal["ra_deg"],
+                    dec_deg=cal["dec_deg"],
+                    from_time=now,
+                )
+            except Exception as e:
+                logger.debug(f"Could not compute transit for {cal['name']}: {e}")
+                continue
+            
+            if pred is None:
+                continue
+            
+            dec_sep = cal["separation_deg"]
+            hours_to_transit = pred.time_to_transit_sec / 3600
+            # VLA calibrators get slightly lower priority than registered ones
+            priority = (10 - dec_sep) * 10 - hours_to_transit - 5
+            
+            candidates.append(CalibratorPrediction(
+                name=cal["name"],
+                ra_deg=cal["ra_deg"],
+                dec_deg=cal["dec_deg"],
+                transit_utc=pred.transit_utc,
+                time_to_transit_sec=pred.time_to_transit_sec,
+                dec_separation_deg=dec_sep,
+                expected_flux_jy=cal["flux_jy"],
+                priority_score=priority,
+                source="vla_catalog",
+            ))
+        
+        if candidates:
+            logger.info(
+                f"Found {len(candidates)} VLA calibrators within {max_dec_separation}° "
+                f"of Dec={dec_deg}° with flux >= {min_flux_jy} Jy"
+            )
+        
+        return candidates
     
     def _queue_catalog_builds(self, dec_deg: float) -> List[str]:
         """Queue background catalog strip database builds.
