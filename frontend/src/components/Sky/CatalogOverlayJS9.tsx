@@ -7,9 +7,16 @@ import { Box, Typography, CircularProgress } from "@mui/material";
 import { useCatalogOverlayByCoords } from "../../api/queries";
 import { logger } from "../../utils/logger";
 import { findDisplay } from "../../utils/js9";
+import type { CatalogSource } from "../../api/types";
 
 declare global {
   interface Window {}
+}
+
+/** JS9 Overlay reference type */
+interface JS9Overlay {
+  remove?: () => void;
+  onclick?: () => void;
 }
 
 interface CatalogOverlayJS9Props {
@@ -19,7 +26,7 @@ interface CatalogOverlayJS9Props {
   radius?: number;
   catalog?: string;
   visible?: boolean;
-  onSourceClick?: (source: any) => void;
+  onSourceClick?: (source: CatalogSource) => void;
 }
 
 export default function CatalogOverlayJS9({
@@ -31,8 +38,8 @@ export default function CatalogOverlayJS9({
   visible = true,
   onSourceClick,
 }: CatalogOverlayJS9Props) {
-  const overlayRef = useRef<any[]>([]);
-  const [hoveredSource, setHoveredSource] = useState<any | null>(null);
+  const overlayRef = useRef<JS9Overlay[]>([]);
+  const [_hoveredSource, setHoveredSource] = useState<CatalogSource | null>(null);
 
   const {
     data: overlayData,
@@ -45,7 +52,7 @@ export default function CatalogOverlayJS9({
     if (!window.JS9 || !overlayData || !visible) {
       // Clear overlays if not visible
       if (overlayRef.current.length > 0) {
-        overlayRef.current.forEach((overlay: any) => {
+        overlayRef.current.forEach((overlay) => {
           try {
             if (overlay && typeof overlay.remove === "function") {
               overlay.remove();
@@ -67,7 +74,7 @@ export default function CatalogOverlayJS9({
       }
 
       // Clear existing overlays
-      overlayRef.current.forEach((overlay: any) => {
+      overlayRef.current.forEach((overlay) => {
         try {
           if (overlay && typeof overlay.remove === "function") {
             overlay.remove();
@@ -79,7 +86,7 @@ export default function CatalogOverlayJS9({
       overlayRef.current = [];
 
       // Add new overlays for each source
-      overlayData.sources.forEach((source: any, idx: number) => {
+      overlayData.sources.forEach((source: CatalogSource, idx: number) => {
         try {
           // Convert RA/Dec to pixel coordinates using JS9 WCS
           const wcs = window.JS9.GetWCS(display.im.id, source.ra_deg * 15, source.dec_deg);
@@ -112,7 +119,7 @@ export default function CatalogOverlayJS9({
 
               // Add click handler if provided
               if (onSourceClick) {
-                (overlay as any).onclick = () => onSourceClick(source);
+                (overlay as JS9Overlay).onclick = () => onSourceClick(source);
               }
             }
           } else {
@@ -130,7 +137,7 @@ export default function CatalogOverlayJS9({
 
     // Cleanup on unmount
     return () => {
-      overlayRef.current.forEach((overlay: any) => {
+      overlayRef.current.forEach((overlay) => {
         try {
           if (overlay && typeof overlay.remove === "function") {
             overlay.remove();
@@ -140,6 +147,7 @@ export default function CatalogOverlayJS9({
         }
       });
       overlayRef.current = [];
+    };
     };
   }, [displayId, overlayData, visible, onSourceClick]);
 

@@ -37,6 +37,44 @@ import { useQuery } from "@tanstack/react-query";
 import { useJobs, useImages } from "../api/queries";
 import { apiClient } from "../api/client";
 
+/** Job data from the search API (different from Job type) */
+interface SearchJob {
+  job_id: number;
+  job_type?: string;
+  ms_path?: string;
+  status?: string;
+}
+
+/** Image data from the search API */
+interface SearchImage {
+  image_id: string;
+  fits_path?: string;
+  image_type?: string;
+  source_ms?: string;
+  stokes?: string;
+  freq_ghz?: number;
+}
+
+/** Source data from the search API */
+interface SearchSource {
+  source_id: string;
+  source_name?: string;
+  ra_deg?: number;
+  dec_deg?: number;
+  catalog_name?: string;
+}
+
+/** Mosaic data from the API */
+interface MosaicInfo {
+  mosaic_id: string;
+  mosaic_name?: string;
+  num_images?: number;
+  freq_ghz?: number;
+}
+
+/** Union type for search result metadata */
+type SearchMetadata = SearchJob | SearchImage | SearchSource | MosaicInfo;
+
 interface SearchResult {
   id: string;
   title: string;
@@ -45,16 +83,16 @@ interface SearchResult {
   path: string;
   icon: React.ComponentType;
   keywords: string[];
-  metadata?: any;
+  metadata?: SearchMetadata;
 }
 
 // Generate search results from API data and static pages
 const generateSearchResults = (
   query: string,
-  jobs: any[] = [],
-  images: any[] = [],
-  sources: any[] = [],
-  mosaics: any[] = []
+  jobs: SearchJob[] = [],
+  images: SearchImage[] = [],
+  sources: SearchSource[] = [],
+  mosaics: MosaicInfo[] = []
 ): SearchResult[] => {
   const lowerQuery = query.toLowerCase();
   const results: SearchResult[] = [];
@@ -175,7 +213,7 @@ const generateSearchResults = (
   }
 
   // Search jobs (by job ID, type, MS path, status)
-  jobs.forEach((job: any) => {
+  jobs.forEach((job) => {
     const jobIdMatch = String(job.job_id || "").includes(lowerQuery);
     const jobTypeMatch = (job.job_type || "").toLowerCase().includes(lowerQuery);
     const msPathMatch = (job.ms_path || "").toLowerCase().includes(lowerQuery);
@@ -185,7 +223,9 @@ const generateSearchResults = (
       results.push({
         id: `job-${job.job_id}`,
         title: `Job #${job.job_id} - ${job.job_type || "Unknown"}`,
-        description: `${job.status || "Unknown status"} | ${job.ms_path?.split("/").pop() || "N/A"}`,
+        description: `${job.status || "Unknown status"} | ${
+          job.ms_path?.split("/").pop() || "N/A"
+        }`,
         category: "job",
         path: `/control?job=${job.job_id}`,
         icon: WorkOutline,
@@ -196,7 +236,7 @@ const generateSearchResults = (
   });
 
   // Search images (by filename, type, MS source)
-  images.forEach((img: any) => {
+  images.forEach((img) => {
     const filename = img.fits_path?.split("/").pop() || "";
     const filenameMatch = filename.toLowerCase().includes(lowerQuery);
     const typeMatch = (img.image_type || "").toLowerCase().includes(lowerQuery);
@@ -220,7 +260,7 @@ const generateSearchResults = (
   });
 
   // Search sources (by source name, coordinates, or ESE candidate)
-  sources.forEach((src: any) => {
+  sources.forEach((src) => {
     const nameMatch = (src.source_name || "").toLowerCase().includes(lowerQuery);
     const idMatch = String(src.source_id || "").includes(lowerQuery);
     const catalogMatch = (src.catalog_name || "").toLowerCase().includes(lowerQuery);
@@ -242,7 +282,7 @@ const generateSearchResults = (
   });
 
   // Search mosaics (by mosaic ID, name, frequency)
-  mosaics.forEach((mosaic: any) => {
+  mosaics.forEach((mosaic) => {
     const idMatch = String(mosaic.mosaic_id || "").includes(lowerQuery);
     const nameMatch = (mosaic.mosaic_name || "").toLowerCase().includes(lowerQuery);
     const freqMatch = String(mosaic.freq_ghz || "").includes(lowerQuery);

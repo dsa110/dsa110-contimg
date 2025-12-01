@@ -18,6 +18,8 @@ import {
   Alert,
   AlertTitle,
   Button,
+} from "@mui/material";
+import { logger } from "../utils/logger";
   Chip,
   Stack,
 } from "@mui/material";
@@ -196,7 +198,7 @@ export default function AbsurdPage() {
           <WorkflowBuilder
             queueName="dsa110-pipeline"
             onWorkflowSubmitted={(taskIds) => {
-              console.log("Workflow submitted with task IDs:", taskIds);
+              logger.info("Workflow submitted with task IDs:", taskIds);
               // Switch to dashboard tab to see submitted tasks
               setTabValue(0);
             }}
