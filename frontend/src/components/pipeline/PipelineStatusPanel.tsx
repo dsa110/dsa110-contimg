@@ -75,66 +75,66 @@ interface StageMetadata {
 const PIPELINE_STAGES: StageMetadata[] = [
   {
     id: "convert-uvh5-to-ms",
-    label: "UVH5 → MS",
+    label: "UVH5 -> MS",
     shortLabel: "Convert",
     description: "Convert UVH5 files to Measurement Sets",
-    icon: "📥",
+    icon: "1",
   },
   {
     id: "calibration-solve",
     label: "Cal Solve",
     shortLabel: "CalSolve",
     description: "Solve for calibration solutions",
-    icon: "🔬",
+    icon: "2",
   },
   {
     id: "calibration-apply",
     label: "Cal Apply",
     shortLabel: "CalApply",
     description: "Apply calibration to target data",
-    icon: "✨",
+    icon: "3",
   },
   {
     id: "imaging",
     label: "Imaging",
     shortLabel: "Image",
     description: "Create FITS images with WSClean/tclean",
-    icon: "🖼️",
+    icon: "4",
   },
   {
     id: "validation",
     label: "Validation",
     shortLabel: "Valid",
     description: "Validate image quality metrics",
-    icon: "✅",
+    icon: "5",
   },
   {
     id: "crossmatch",
     label: "Crossmatch",
     shortLabel: "XMatch",
     description: "Cross-match sources with catalogs",
-    icon: "🔗",
+    icon: "6",
   },
   {
     id: "photometry",
     label: "Photometry",
     shortLabel: "Phot",
     description: "Extract source flux measurements",
-    icon: "📊",
+    icon: "7",
   },
   {
     id: "catalog-setup",
     label: "Catalog",
     shortLabel: "Catalog",
     description: "Register sources in catalog",
-    icon: "📚",
+    icon: "8",
   },
   {
     id: "organize-files",
     label: "Organize",
     shortLabel: "Files",
     description: "Archive and organize output files",
-    icon: "📁",
+    icon: "9",
   },
 ];
 
@@ -402,7 +402,7 @@ function SummaryBar({ total, workerCount, isHealthy }: SummaryBarProps) {
               : "bg-yellow-100 text-yellow-800 dark:bg-yellow-500/20 dark:text-yellow-400"
           }`}
         >
-          {isHealthy ? "● Healthy" : "○ Degraded"}
+          {isHealthy ? "Healthy" : "Degraded"}
         </span>
       </div>
     </div>
