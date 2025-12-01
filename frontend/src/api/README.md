@@ -4,11 +4,11 @@ This directory contains the HTTP client and resilience patterns for backend comm
 
 ## Files
 
-| File | Purpose |
-|------|---------|
-| `client.ts` | Axios-based API client with interceptors |
-| `client.test.ts` | API client unit tests |
-| `resilience/` | Circuit breaker and retry logic |
+| File             | Purpose                                  |
+| ---------------- | ---------------------------------------- |
+| `client.ts`      | Axios-based API client with interceptors |
+| `client.test.ts` | API client unit tests                    |
+| `resilience/`    | Circuit breaker and retry logic          |
 
 ## Usage
 
@@ -69,9 +69,9 @@ try {
   await apiClient.get("/sources");
 } catch (error) {
   const err = error as ErrorResponse;
-  console.log(err.message);    // User-friendly message
-  console.log(err.status);     // HTTP status code
-  console.log(err.errorCode);  // Application error code
+  console.log(err.message); // User-friendly message
+  console.log(err.status); // HTTP status code
+  console.log(err.errorCode); // Application error code
 }
 ```
 
@@ -81,4 +81,3 @@ The client is configured via `src/config/index.ts`:
 
 - `config.api.baseUrl` - API base URL (default: `/api`)
 - `config.api.timeout` - Request timeout in ms
-
