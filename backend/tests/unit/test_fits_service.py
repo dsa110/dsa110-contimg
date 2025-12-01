@@ -91,7 +91,9 @@ class TestFITSParsingService:
         # Mock the FITS module
         mock_fits = MagicMock()
         mock_hdul = MagicMock()
-        mock_header = {
+        
+        # Create a proper mock header with __contains__ support
+        header_data = {
             "OBJECT": "Test Source",
             "NAXIS1": 1024,
             "NAXIS2": 1024,
@@ -105,7 +107,10 @@ class TestFITSParsingService:
             "BUNIT": "Jy/beam",
             "RESTFREQ": 1.4e9,
         }
-        mock_header.get = lambda k, d=None: mock_header.get(k, d)
+        mock_header = MagicMock()
+        mock_header.get.side_effect = lambda k, d=None: header_data.get(k, d)
+        mock_header.__getitem__ = lambda s, k: header_data.get(k)
+        mock_header.__contains__ = lambda s, k: k in header_data
         mock_hdul[0].header = mock_header
         mock_hdul[0].data = None
         mock_fits.open.return_value.__enter__ = MagicMock(return_value=mock_hdul)
