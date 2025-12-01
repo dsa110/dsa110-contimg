@@ -35,10 +35,9 @@ def gather_routes() -> Set[str]:
 
     routes: Set[str] = set()
 
-    # Locate API source trees - check ALL candidates (backend + legacy.backend)
+    # Locate API source trees - only check active backend
     api_root_candidates = [
         ROOT / "backend" / "src" / "dsa110_contimg" / "api",
-        ROOT / "legacy.backend" / "src" / "dsa110_contimg" / "api",
         ROOT / "src" / "dsa110_contimg" / "api",
     ]
 

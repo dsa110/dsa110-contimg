@@ -1,16 +1,10 @@
 """
-Database adapters for multi-backend support.
+Database adapters for SQLite.
 
-This package provides database adapters for:
-- SQLite (via aiosqlite)
-- PostgreSQL (via asyncpg)
+This package provides the SQLite adapter (via aiosqlite).
+PostgreSQL support was removed in the complexity reduction refactor.
 """
 
 from .sqlite_adapter import SQLiteAdapter
 
-# PostgreSQL adapter is optional - only import if available
-try:
-    from .postgresql_adapter import PostgreSQLAdapter
-    __all__ = ["SQLiteAdapter", "PostgreSQLAdapter"]
-except ImportError:
-    __all__ = ["SQLiteAdapter"]
+__all__ = ["SQLiteAdapter"]

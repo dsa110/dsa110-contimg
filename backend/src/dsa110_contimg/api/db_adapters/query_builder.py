@@ -1,15 +1,10 @@
 """
-SQL Query Builder for cross-database compatibility.
+SQL Query Builder for SQLite.
 
-This module provides utilities for building SQL queries that work
-across both SQLite and PostgreSQL databases.
+This module provides utilities for building SQL queries for SQLite.
 
-Key differences handled:
-- Parameter placeholders: SQLite uses ?, PostgreSQL uses $1, $2, etc.
-- AUTOINCREMENT: SQLite uses INTEGER PRIMARY KEY AUTOINCREMENT,
-  PostgreSQL uses SERIAL
-- String concatenation: SQLite uses ||, PostgreSQL uses || or CONCAT()
-- Boolean literals: SQLite uses 0/1, PostgreSQL uses TRUE/FALSE
+Note: PostgreSQL support was removed in the complexity reduction refactor.
+The pipeline exclusively uses SQLite for data storage.
 """
 
 from __future__ import annotations
@@ -18,17 +13,14 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Optional, Sequence
 
-from .backend import DatabaseBackend
-
 
 class QueryBuilder:
-    """Build SQL queries with cross-database compatibility.
+    """Build SQL queries for SQLite.
     
-    This class helps construct SQL queries that work with both
-    SQLite and PostgreSQL by abstracting database-specific syntax.
+    This class helps construct SQL queries with proper SQLite syntax.
     
     Example:
-        qb = QueryBuilder(DatabaseBackend.SQLITE)
+        qb = QueryBuilder()
         query = qb.select("products", columns=["id", "name"])
         # Returns: "SELECT id, name FROM products"
         
@@ -36,8 +28,8 @@ class QueryBuilder:
         # Returns: "INSERT INTO products (name, status) VALUES (?, ?)"
     """
     
-    def __init__(self, backend: DatabaseBackend):
-        self.backend = backend
+    def __init__(self):
+        pass
     
     def placeholder(self, index: int) -> str:
         """Get parameter placeholder for the given index (1-based).
@@ -46,12 +38,9 @@ class QueryBuilder:
             index: 1-based parameter index
             
         Returns:
-            "?" for SQLite, "$N" for PostgreSQL
+            "?" for SQLite
         """
-        if self.backend == DatabaseBackend.SQLITE:
-            return "?"
-        else:
-            return f"${index}"
+        return "?"
     
     def placeholders(self, count: int) -> str:
         """Get comma-separated placeholders for N parameters.
@@ -61,9 +50,8 @@ class QueryBuilder:
             
         Returns:
             "?, ?, ?" for SQLite (3 params)
-            "$1, $2, $3" for PostgreSQL (3 params)
         """
-        return ", ".join(self.placeholder(i) for i in range(1, count + 1))
+        return ", ".join("?" for _ in range(count))
     
     def select(
         self,
@@ -112,7 +100,7 @@ class QueryBuilder:
         Args:
             table: Table name
             columns: Column names
-            returning: Columns to return (PostgreSQL feature, ignored for SQLite)
+            returning: Ignored (was PostgreSQL-only feature)
             
         Returns:
             INSERT query with placeholders
@@ -120,10 +108,6 @@ class QueryBuilder:
         cols = ", ".join(columns)
         placeholders = self.placeholders(len(columns))
         query = f"INSERT INTO {table} ({cols}) VALUES ({placeholders})"
-        
-        if returning and self.backend == DatabaseBackend.POSTGRESQL:
-            ret_cols = ", ".join(returning)
-            query += f" RETURNING {ret_cols}"
         
         return query
     
@@ -140,16 +124,13 @@ class QueryBuilder:
             table: Table name
             columns: Columns to update
             where: WHERE clause (with placeholders)
-            where_param_offset: Offset for WHERE clause parameter indices
-                               (e.g., if updating 3 columns, WHERE params start at 4)
+            where_param_offset: Ignored (was for PostgreSQL $N params)
             
         Returns:
             UPDATE query with placeholders
         """
-        # Generate SET clause
-        set_parts = []
-        for i, col in enumerate(columns, start=1):
-            set_parts.append(f"{col} = {self.placeholder(i)}")
+        # Generate SET clause with ? placeholders
+        set_parts = [f"{col} = ?" for col in columns]
         
         set_clause = ", ".join(set_parts)
         query = f"UPDATE {table} SET {set_clause} WHERE {where}"
@@ -237,71 +218,20 @@ class QueryBuilder:
         return f"SELECT EXISTS(SELECT 1 FROM {table} WHERE {where})"
 
 
+# Legacy conversion functions - kept for backward compatibility but effectively no-ops
+# since only SQLite is now supported
+
 def convert_sqlite_to_postgresql(query: str) -> str:
-    """Convert SQLite-style query to PostgreSQL style.
+    """Legacy function - no longer needed since only SQLite is supported.
     
-    Converts:
-    - ? placeholders to $1, $2, etc.
-    - AUTOINCREMENT to SERIAL (in CREATE TABLE)
-    
-    Note: This is a simple conversion for basic queries.
-    Complex queries may need manual adjustment.
-    
-    Args:
-        query: SQLite-style query
-        
-    Returns:
-        PostgreSQL-style query
+    Returns the query unchanged.
     """
-    # Convert placeholders
-    result = []
-    param_count = 0
-    i = 0
-    while i < len(query):
-        if query[i] == '?':
-            param_count += 1
-            result.append(f"${param_count}")
-        else:
-            result.append(query[i])
-        i += 1
-    
-    converted = ''.join(result)
-    
-    # Convert AUTOINCREMENT to SERIAL
-    # Note: This is a simple pattern match - may need refinement
-    converted = converted.replace(
-        "INTEGER PRIMARY KEY AUTOINCREMENT",
-        "SERIAL PRIMARY KEY"
-    )
-    
-    return converted
+    return query
 
 
 def convert_postgresql_to_sqlite(query: str) -> str:
-    """Convert PostgreSQL-style query to SQLite style.
+    """Legacy function - no longer needed since only SQLite is supported.
     
-    Converts:
-    - $N placeholders to ?
-    - SERIAL to INTEGER PRIMARY KEY AUTOINCREMENT
-    
-    Note: This is a simple conversion for basic queries.
-    Complex queries may need manual adjustment.
-    
-    Args:
-        query: PostgreSQL-style query
-        
-    Returns:
-        SQLite-style query
+    Returns the query unchanged.
     """
-    import re
-    
-    # Convert $N placeholders to ?
-    converted = re.sub(r'\$\d+', '?', query)
-    
-    # Convert SERIAL to AUTOINCREMENT
-    converted = converted.replace(
-        "SERIAL PRIMARY KEY",
-        "INTEGER PRIMARY KEY AUTOINCREMENT"
-    )
-    
-    return converted
+    return query

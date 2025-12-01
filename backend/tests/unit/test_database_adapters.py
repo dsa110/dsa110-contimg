@@ -1,8 +1,10 @@
 """
 Tests for database abstraction layer.
 
-These tests verify the database adapters work correctly
-for both SQLite and PostgreSQL backends.
+These tests verify the database adapters work correctly for SQLite.
+
+Note: PostgreSQL support was removed in the complexity reduction refactor.
+The pipeline exclusively uses SQLite for data storage.
 """
 
 import os
@@ -15,7 +17,6 @@ import pytest_asyncio
 from dsa110_contimg.api.db_adapters import (
     create_adapter,
     DatabaseAdapter,
-    DatabaseBackend,
     DatabaseConfig,
     QueryBuilder,
     convert_sqlite_to_postgresql,
@@ -35,82 +36,24 @@ class TestDatabaseConfig:
     def test_default_config(self):
         """Test default configuration values."""
         config = DatabaseConfig()
-        assert config.backend == DatabaseBackend.SQLITE
         assert config.sqlite_timeout == 30.0
-        assert config.pg_host == "localhost"
-        assert config.pg_port == 5432
-        assert config.pg_pool_min == 1
-        assert config.pg_pool_max == 10
-        assert config.pg_ssl is False
     
     def test_sqlite_connection_string(self):
         """Test SQLite connection string generation."""
         config = DatabaseConfig(
-            backend=DatabaseBackend.SQLITE,
             sqlite_path="/tmp/test.db",
         )
         assert config.connection_string == "sqlite:////tmp/test.db"
     
-    def test_postgresql_connection_string(self):
-        """Test PostgreSQL connection string generation."""
-        config = DatabaseConfig(
-            backend=DatabaseBackend.POSTGRESQL,
-            pg_host="dbserver",
-            pg_port=5433,
-            pg_database="testdb",
-            pg_user="testuser",
-            pg_password="testpass",
-        )
-        expected = "postgresql://testuser:testpass@dbserver:5433/testdb"
-        assert config.connection_string == expected
-    
-    def test_postgresql_connection_string_with_ssl(self):
-        """Test PostgreSQL connection string with SSL."""
-        config = DatabaseConfig(
-            backend=DatabaseBackend.POSTGRESQL,
-            pg_host="secure.db",
-            pg_database="proddb",
-            pg_user="admin",
-            pg_password="secret",
-            pg_ssl=True,
-        )
-        assert "?sslmode=require" in config.connection_string
-    
     def test_from_env_sqlite(self):
         """Test loading SQLite config from environment."""
         with patch.dict(os.environ, {
-            "TEST_DB_BACKEND": "sqlite",
             "TEST_DB_SQLITE_PATH": "/data/test.db",
             "TEST_DB_SQLITE_TIMEOUT": "60.0",
         }):
             config = DatabaseConfig.from_env(prefix="TEST_DB")
-            assert config.backend == DatabaseBackend.SQLITE
             assert config.sqlite_path == "/data/test.db"
             assert config.sqlite_timeout == 60.0
-    
-    def test_from_env_postgresql(self):
-        """Test loading PostgreSQL config from environment."""
-        with patch.dict(os.environ, {
-            "TEST_DB_BACKEND": "postgresql",
-            "TEST_DB_PG_HOST": "pg.example.com",
-            "TEST_DB_PG_PORT": "5433",
-            "TEST_DB_PG_DATABASE": "mydb",
-            "TEST_DB_PG_USER": "dbuser",
-            "TEST_DB_PG_PASSWORD": "dbpass",
-            "TEST_DB_PG_POOL_MIN": "2",
-            "TEST_DB_PG_POOL_MAX": "20",
-            "TEST_DB_PG_SSL": "true",
-        }):
-            config = DatabaseConfig.from_env(prefix="TEST_DB")
-            assert config.backend == DatabaseBackend.POSTGRESQL
-            assert config.pg_host == "pg.example.com"
-            assert config.pg_port == 5433
-            assert config.pg_database == "mydb"
-            assert config.pg_user == "dbuser"
-            assert config.pg_password == "dbpass"
-            assert config.pg_pool_min == 2
-            assert config.pg_pool_max == 20
-            assert config.pg_ssl is True
 
 
 # =============================================================================
@@ -132,7 +75,6 @@ class TestSQLiteAdapter:
     def config(self, temp_db):
         """Create SQLite config with temp database."""
         return DatabaseConfig(
-            backend=DatabaseBackend.SQLITE,
             sqlite_path=temp_db,
         )
     
@@ -140,7 +82,6 @@ class TestSQLiteAdapter:
     async def adapter(self, temp_db):
         """Create and connect SQLite adapter."""
         config = DatabaseConfig(
-            backend=DatabaseBackend.SQLITE,
             sqlite_path=temp_db,
         )
         adapter = SQLiteAdapter(config)
@@ -167,8 +108,8 @@ class TestSQLiteAdapter:
     
     @pytest.mark.asyncio
     async def test_backend_property(self, adapter):
-        """Test backend property returns SQLite."""
-        assert adapter.backend == DatabaseBackend.SQLITE
+        """Test backend property returns sqlite."""
+        assert adapter.backend == "sqlite"
     
     @pytest.mark.asyncio
     async def test_execute_create_table(self, adapter):
@@ -329,48 +270,6 @@ class TestSQLiteAdapter:
 
 
 # =============================================================================
-# PostgreSQL Adapter Tests (Mocked)
-# =============================================================================
-
-
-class TestPostgreSQLAdapterMocked:
-    """Tests for PostgreSQLAdapter using mocks.
-    
-    These tests verify the adapter behavior without requiring
-    an actual PostgreSQL server.
-    """
-    
-    @pytest.fixture
-    def config(self):
-        """Create PostgreSQL config."""
-        return DatabaseConfig(
-            backend=DatabaseBackend.POSTGRESQL,
-            pg_host="localhost",
-            pg_database="testdb",
-            pg_user="testuser",
-            pg_password="testpass",
-        )
-    
-    @pytest.mark.asyncio
-    async def test_postgresql_adapter_requires_asyncpg(self, config):
-        """Test adapter raises ImportError if asyncpg not available."""
-        with patch.dict("sys.modules", {"asyncpg": None}):
-            # Re-import to trigger check
-            import importlib
-            from dsa110_contimg.api.db_adapters.adapters import postgresql_adapter
-            
-            # Temporarily set ASYNCPG_AVAILABLE to False
-            original = postgresql_adapter.ASYNCPG_AVAILABLE
-            postgresql_adapter.ASYNCPG_AVAILABLE = False
-            
-            try:
-                with pytest.raises(ImportError, match="asyncpg is required"):
-                    postgresql_adapter.PostgreSQLAdapter(config)
-            finally:
-                postgresql_adapter.ASYNCPG_AVAILABLE = original
-
-
-# =============================================================================
 # Factory Function Tests
 # =============================================================================
 
@@ -381,7 +280,6 @@ class TestCreateAdapter:
     def test_create_sqlite_adapter(self):
         """Test creating SQLite adapter."""
         config = DatabaseConfig(
-            backend=DatabaseBackend.SQLITE,
             sqlite_path="/tmp/test.db",
         )
         adapter = create_adapter(config)
@@ -391,79 +289,11 @@ class TestCreateAdapter:
     def test_create_adapter_from_env(self):
         """Test creating adapter from environment variables."""
         with patch.dict(os.environ, {
-            "DSA110_DB_BACKEND": "sqlite",
             "DSA110_DB_SQLITE_PATH": "/tmp/env_test.db",
         }):
             adapter = create_adapter()
             assert isinstance(adapter, SQLiteAdapter)
             assert adapter.config.sqlite_path == "/tmp/env_test.db"
-    
-    def test_create_postgresql_adapter(self):
-        """Test creating PostgreSQL adapter (if asyncpg available)."""
-        try:
-            import asyncpg
-        except ImportError:
-            pytest.skip("asyncpg not installed")
-        
-        config = DatabaseConfig(
-            backend=DatabaseBackend.POSTGRESQL,
-            pg_host="localhost",
-            pg_database="testdb",
-        )
-        adapter = create_adapter(config)
-        from dsa110_contimg.api.db_adapters.adapters.postgresql_adapter import PostgreSQLAdapter
-        assert isinstance(adapter, PostgreSQLAdapter)
-
-
-# =============================================================================
-# Placeholder Conversion Tests
-# =============================================================================
-
-
-class TestPlaceholderConversion:
-    """Tests for SQLite to PostgreSQL placeholder conversion."""
-    
-    def test_convert_single_placeholder(self):
-        """Test converting single ? to $1."""
-        from dsa110_contimg.api.db_adapters.adapters.postgresql_adapter import convert_placeholders
-        
-        result = convert_placeholders("SELECT * FROM t WHERE id = ?")
-        assert result == "SELECT * FROM t WHERE id = $1"
-    
-    def test_convert_multiple_placeholders(self):
-        """Test converting multiple ? to $1, $2, etc."""
-        from dsa110_contimg.api.db_adapters.adapters.postgresql_adapter import convert_placeholders
-        
-        result = convert_placeholders(
-            "INSERT INTO t (a, b, c) VALUES (?, ?, ?)"
-        )
-        assert result == "INSERT INTO t (a, b, c) VALUES ($1, $2, $3)"
-    
-    def test_convert_no_placeholders(self):
-        """Test query with no placeholders unchanged."""
-        from dsa110_contimg.api.db_adapters.adapters.postgresql_adapter import convert_placeholders
-        
-        query = "SELECT * FROM products"
-        result = convert_placeholders(query)
-        assert result == query
-    
-    def test_convert_complex_query(self):
-        """Test converting complex query with multiple placeholders."""
-        from dsa110_contimg.api.db_adapters.adapters.postgresql_adapter import convert_placeholders
-        
-        query = """
-            SELECT p.*, c.name as category
-            FROM products p
-            JOIN categories c ON p.category_id = c.id
-            WHERE p.status = ? AND p.price > ?
-            ORDER BY p.created_at DESC
-            LIMIT ?
-        """
-        result = convert_placeholders(query)
-        assert "$1" in result
-        assert "$2" in result
-        assert "$3" in result
-        assert "?" not in result
 
 
 # =============================================================================
@@ -478,7 +308,6 @@ class TestDatabaseIntegration:
     async def db(self):
         """Create in-memory SQLite database."""
         config = DatabaseConfig(
-            backend=DatabaseBackend.SQLITE,
             sqlite_path=":memory:",
         )
         adapter = SQLiteAdapter(config)
@@ -588,16 +417,16 @@ class TestDatabaseIntegration:
 # =============================================================================
 
 
-class TestQueryBuilderSQLite:
+class TestQueryBuilder:
     """Tests for QueryBuilder with SQLite backend."""
     
     @pytest.fixture
     def qb(self):
         """Create SQLite query builder."""
-        return QueryBuilder(DatabaseBackend.SQLITE)
+        return QueryBuilder()
     
-    def test_placeholder_sqlite(self, qb):
-        """Test SQLite placeholder is ?."""
+    def test_placeholder(self, qb):
+        """Test placeholder is ?."""
         assert qb.placeholder(1) == "?"
         assert qb.placeholder(5) == "?"
     
@@ -652,8 +481,8 @@ class TestQueryBuilderSQLite:
         query = qb.insert("products", columns=["name", "status"])
         assert query == "INSERT INTO products (name, status) VALUES (?, ?)"
     
-    def test_insert_returning_ignored_sqlite(self, qb):
-        """Test RETURNING is ignored for SQLite."""
+    def test_insert_returning_ignored(self, qb):
+        """Test RETURNING is ignored (was PostgreSQL-only)."""
         query = qb.insert(
             "products",
             columns=["name"],
@@ -715,80 +544,17 @@ class TestQueryBuilderSQLite:
         assert query == "SELECT EXISTS(SELECT 1 FROM products WHERE id = ?)"
 
 
-class TestQueryBuilderPostgreSQL:
-    """Tests for QueryBuilder with PostgreSQL backend."""
-    
-    @pytest.fixture
-    def qb(self):
-        """Create PostgreSQL query builder."""
-        return QueryBuilder(DatabaseBackend.POSTGRESQL)
-    
-    def test_placeholder_postgresql(self, qb):
-        """Test PostgreSQL placeholder is $N."""
-        assert qb.placeholder(1) == "$1"
-        assert qb.placeholder(5) == "$5"
-    
-    def test_placeholders_multiple(self, qb):
-        """Test multiple placeholders."""
-        assert qb.placeholders(3) == "$1, $2, $3"
-        assert qb.placeholders(1) == "$1"
-    
-    def test_insert(self, qb):
-        """Test INSERT query."""
-        query = qb.insert("products", columns=["name", "status"])
-        assert query == "INSERT INTO products (name, status) VALUES ($1, $2)"
-    
-    def test_insert_returning(self, qb):
-        """Test INSERT with RETURNING."""
-        query = qb.insert(
-            "products",
-            columns=["name"],
-            returning=["id", "created_at"],
-        )
-        assert query == "INSERT INTO products (name) VALUES ($1) RETURNING id, created_at"
-    
-    def test_update(self, qb):
-        """Test UPDATE query."""
-        query = qb.update(
-            "products",
-            columns=["name", "status"],
-            where="id = $3",
-        )
-        assert query == "UPDATE products SET name = $1, status = $2 WHERE id = $3"
-
-
 class TestQueryConversion:
-    """Tests for query conversion functions."""
+    """Tests for query conversion functions (legacy, now no-ops)."""
     
-    def test_sqlite_to_postgresql_placeholders(self):
-        """Test converting ? to $N."""
+    def test_sqlite_to_postgresql_is_noop(self):
+        """Test conversion function returns query unchanged."""
         query = "SELECT * FROM products WHERE a = ? AND b = ?"
         result = convert_sqlite_to_postgresql(query)
-        assert result == "SELECT * FROM products WHERE a = $1 AND b = $2"
+        assert result == query
     
-    def test_sqlite_to_postgresql_autoincrement(self):
-        """Test converting AUTOINCREMENT to SERIAL."""
-        query = "CREATE TABLE t (id INTEGER PRIMARY KEY AUTOINCREMENT)"
-        result = convert_sqlite_to_postgresql(query)
-        assert "SERIAL PRIMARY KEY" in result
-        assert "AUTOINCREMENT" not in result
-    
-    def test_postgresql_to_sqlite_placeholders(self):
-        """Test converting $N to ?."""
+    def test_postgresql_to_sqlite_is_noop(self):
+        """Test conversion function returns query unchanged."""
         query = "SELECT * FROM products WHERE a = $1 AND b = $2"
         result = convert_postgresql_to_sqlite(query)
-        assert result == "SELECT * FROM products WHERE a = ? AND b = ?"
-    
-    def test_postgresql_to_sqlite_serial(self):
-        """Test converting SERIAL to AUTOINCREMENT."""
-        query = "CREATE TABLE t (id SERIAL PRIMARY KEY)"
-        result = convert_postgresql_to_sqlite(query)
-        assert "INTEGER PRIMARY KEY AUTOINCREMENT" in result
-        assert "SERIAL" not in result
-    
-    def test_roundtrip_conversion(self):
-        """Test converting back and forth preserves structure."""
-        original = "INSERT INTO t (a, b, c) VALUES (?, ?, ?)"
-        pg = convert_sqlite_to_postgresql(original)
-        back = convert_postgresql_to_sqlite(pg)
-        assert back == original
+        assert result == query

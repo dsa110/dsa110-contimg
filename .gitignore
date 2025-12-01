@@ -3,6 +3,11 @@
 archive/
 .local/
 
+# Legacy frontend/backend (deprecated, kept for local reference only)
+# These directories were part of an earlier architecture and are not used in production
+legacy.frontend/
+legacy.backend/
+
 # Husky v9+ internal directory (auto-generated, not needed in repo)
 .husky/_/
 config/hooks/husky/_/

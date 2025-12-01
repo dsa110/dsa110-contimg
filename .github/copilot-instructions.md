@@ -1,5 +1,14 @@
 # DSA-110 Continuum Imaging Pipeline - AI Coding Agent Instructions
 
+# !!! IMPORTANT READ THIS FIRST !!!
+
+We are undergoing a major refactoring, and this document contains the *old* code structure. The *new* version we are migrating to is outlined as an instructive guide located at:
+
+```
+/data/dsa110-contimg/dsa110-contimg-complexity-reduction-guide.md
+```
+and
+
 ## Project Overview
 
 **Development Branch**: `master-dev` in `/data/dsa110-contimg/`.

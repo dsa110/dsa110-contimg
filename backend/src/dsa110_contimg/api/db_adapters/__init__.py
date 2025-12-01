@@ -1,8 +1,12 @@
 """
-Database abstraction layer for multi-backend support.
+Database abstraction layer for SQLite.
 
-This package provides a unified async interface for database operations,
-supporting both SQLite and PostgreSQL backends.
+This package provides a unified async interface for database operations
+using SQLite.
+
+Note: PostgreSQL support was removed in the complexity reduction refactor.
+The pipeline exclusively uses SQLite for data storage. ABSURD workflow
+manager uses its own PostgreSQL database separately.
 
 Basic Usage:
     from dsa110_contimg.api.db_adapters import create_adapter, DatabaseConfig
@@ -19,31 +23,18 @@ Basic Usage:
 
 With explicit configuration:
     config = DatabaseConfig(
-        backend=DatabaseBackend.POSTGRESQL,
-        pg_host="localhost",
-        pg_database="dsa110",
-        pg_user="user",
-        pg_password="password",
+        sqlite_path="/path/to/database.db",
     )
     adapter = create_adapter(config)
 
 Environment Variables (prefix: DSA110_DB):
-    DSA110_DB_BACKEND: "sqlite" or "postgresql"
     DSA110_DB_SQLITE_PATH: Path to SQLite database
-    DSA110_DB_PG_HOST: PostgreSQL host
-    DSA110_DB_PG_PORT: PostgreSQL port
-    DSA110_DB_PG_DATABASE: PostgreSQL database name
-    DSA110_DB_PG_USER: PostgreSQL username
-    DSA110_DB_PG_PASSWORD: PostgreSQL password
-    DSA110_DB_PG_POOL_MIN: Min pool connections
-    DSA110_DB_PG_POOL_MAX: Max pool connections
-    DSA110_DB_PG_SSL: Use SSL (true/false)
+    DSA110_DB_SQLITE_TIMEOUT: Connection timeout (default: 30.0)
 """
 
 from .backend import (
     create_adapter,
     DatabaseAdapter,
-    DatabaseBackend,
     DatabaseConfig,
 )
 from .query_builder import (
@@ -55,7 +46,6 @@ from .query_builder import (
 __all__ = [
     "create_adapter",
     "DatabaseAdapter",
-    "DatabaseBackend",
     "DatabaseConfig",
     "QueryBuilder",
     "convert_sqlite_to_postgresql",
