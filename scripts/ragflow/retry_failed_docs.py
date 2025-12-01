@@ -109,7 +109,8 @@ def retry_documents(
         return 0, 0
 
     headers = get_headers(api_key)
-    url = f"{base_url}/api/v1/datasets/{dataset_id}/documents/run"
+    # Correct endpoint: POST /api/v1/datasets/{dataset_id}/chunks
+    url = f"{base_url}/api/v1/datasets/{dataset_id}/chunks"
 
     if dry_run:
         print(f"  [DRY RUN] Would retry {len(doc_ids)} documents")
