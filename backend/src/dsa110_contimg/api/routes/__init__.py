@@ -15,6 +15,7 @@ from .logs import router as logs_router
 from .stats import router as stats_router
 from .cache import router as cache_router
 from .services import router as services_router
+from .imaging import router as imaging_router
 
 __all__ = [
     "images_router",
@@ -28,4 +29,5 @@ __all__ = [
     "stats_router",
     "cache_router",
     "services_router",
+    "imaging_router",
 ]

@@ -6,4 +6,5 @@ export { default as HomePage } from "./HomePage";
 export { default as ImagesListPage } from "./ImagesListPage";
 export { default as SourcesListPage } from "./SourcesListPage";
 export { default as JobsListPage } from "./JobsListPage";
+export { default as InteractiveImagingPage } from "./InteractiveImagingPage";
 export { default as NotFoundPage } from "./NotFoundPage";

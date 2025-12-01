@@ -11,6 +11,9 @@ const JobDetailPage = lazy(() => import("./pages/JobDetailPage"));
 const ImagesListPage = lazy(() => import("./pages/ImagesListPage"));
 const SourcesListPage = lazy(() => import("./pages/SourcesListPage"));
 const JobsListPage = lazy(() => import("./pages/JobsListPage"));
+const InteractiveImagingPage = lazy(
+  () => import("./pages/InteractiveImagingPage")
+);
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 
 /**
@@ -81,6 +84,14 @@ export const router = createBrowserRouter(
           element: (
             <Suspense fallback={<PageSkeleton variant="detail" />}>
               <MSDetailPage />
+            </Suspense>
+          ),
+        },
+        {
+          path: "imaging",
+          element: (
+            <Suspense fallback={<PageSkeleton variant="list" />}>
+              <InteractiveImagingPage />
             </Suspense>
           ),
         },

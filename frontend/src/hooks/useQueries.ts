@@ -46,6 +46,12 @@ export const queryKeys = {
   jobs: ["jobs"] as const,
   job: (runId: string) => ["jobs", runId] as const,
   jobProvenance: (runId: string) => ["jobs", runId, "provenance"] as const,
+
+  // Interactive Imaging
+  imagingSessions: ["imaging", "sessions"] as const,
+  imagingSession: (id: string) => ["imaging", "sessions", id] as const,
+  imagingDefaults: ["imaging", "defaults"] as const,
+  imagingStatus: ["imaging", "status"] as const,
 };
 
 // =============================================================================
@@ -234,6 +240,152 @@ export function useRerunJob() {
       // Invalidate related queries to refetch fresh data
       queryClient.invalidateQueries({ queryKey: queryKeys.jobs });
       queryClient.invalidateQueries({ queryKey: queryKeys.job(runId) });
+    },
+  });
+}
+
+// =============================================================================
+// Interactive Imaging hooks
+// =============================================================================
+
+/**
+ * Types for interactive imaging
+ */
+export interface ImagingSession {
+  id: string;
+  port: number;
+  url: string;
+  ms_path: string;
+  imagename: string;
+  created_at: string;
+  age_hours: number;
+  is_alive: boolean;
+  user_id?: string;
+}
+
+export interface ImagingSessionsResponse {
+  sessions: ImagingSession[];
+  total: number;
+  available_ports: number;
+}
+
+export interface ImagingDefaults {
+  imsize: number[];
+  cell: string;
+  specmode: string;
+  deconvolver: string;
+  weighting: string;
+  robust: number;
+  niter: number;
+  threshold: string;
+  nterms: number;
+  datacolumn: string;
+}
+
+export interface InteractiveCleanRequest {
+  ms_path: string;
+  imagename: string;
+  imsize?: number[];
+  cell?: string;
+  specmode?: string;
+  deconvolver?: string;
+  weighting?: string;
+  robust?: number;
+  niter?: number;
+  threshold?: string;
+}
+
+export interface InteractiveCleanResponse {
+  session_id: string;
+  url: string;
+  status: string;
+  ms_path: string;
+  imagename: string;
+}
+
+/**
+ * Fetch list of active imaging sessions.
+ */
+export function useImagingSessions() {
+  return useQuery({
+    queryKey: queryKeys.imagingSessions,
+    queryFn: async () => {
+      const response = await apiClient.get<ImagingSessionsResponse>(
+        "/imaging/sessions"
+      );
+      return response.data;
+    },
+    refetchInterval: 30000, // Refresh every 30 seconds
+  });
+}
+
+/**
+ * Fetch a single imaging session by ID.
+ */
+export function useImagingSession(sessionId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.imagingSession(sessionId ?? ""),
+    queryFn: async () => {
+      const response = await apiClient.get<ImagingSession>(
+        `/imaging/sessions/${sessionId}`
+      );
+      return response.data;
+    },
+    enabled: !!sessionId,
+  });
+}
+
+/**
+ * Fetch DSA-110 default imaging parameters.
+ */
+export function useImagingDefaults() {
+  return useQuery({
+    queryKey: queryKeys.imagingDefaults,
+    queryFn: async () => {
+      const response = await apiClient.get<ImagingDefaults>(
+        "/imaging/defaults"
+      );
+      return response.data;
+    },
+    staleTime: Infinity, // Defaults don't change
+  });
+}
+
+/**
+ * Start a new interactive clean session.
+ */
+export function useStartInteractiveClean() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (request: InteractiveCleanRequest) => {
+      const response = await apiClient.post<InteractiveCleanResponse>(
+        "/imaging/interactive",
+        request
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      // Invalidate sessions list to show new session
+      queryClient.invalidateQueries({ queryKey: queryKeys.imagingSessions });
+    },
+  });
+}
+
+/**
+ * Stop an imaging session.
+ */
+export function useStopSession() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (sessionId: string) => {
+      const response = await apiClient.delete(`/imaging/sessions/${sessionId}`);
+      return response.data;
+    },
+    onSuccess: () => {
+      // Invalidate sessions list
+      queryClient.invalidateQueries({ queryKey: queryKeys.imagingSessions });
     },
   });
 }

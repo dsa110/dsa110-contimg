@@ -91,10 +91,50 @@ from .routes import (
     stats_router,
     cache_router,
     services_router,
+    imaging_router,
 )
 from .rate_limit import limiter, rate_limit_exceeded_handler
 from .websocket import ws_router
 from slowapi.errors import RateLimitExceeded
+
+
+# Lifespan context manager for startup/shutdown events
+from contextlib import asynccontextmanager
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Application lifespan context manager.
+    
+    Handles:
+    - Startup: Initialize Bokeh session manager and cleanup loop
+    - Shutdown: Cleanup all active sessions
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+    
+    # Startup
+    logger.info("Starting application lifespan")
+    
+    # Initialize Bokeh session manager (for InteractiveClean)
+    try:
+        from .services.bokeh_sessions import init_session_manager, shutdown_session_manager
+        await init_session_manager()
+        logger.info("Bokeh session manager initialized")
+    except Exception as e:
+        logger.warning(f"Could not initialize Bokeh session manager: {e}")
+    
+    yield
+    
+    # Shutdown
+    logger.info("Shutting down application")
+    
+    try:
+        await shutdown_session_manager()
+        logger.info("Bokeh session manager shutdown complete")
+    except Exception as e:
+        logger.warning(f"Error shutting down session manager: {e}")
 
 
 def create_app() -> FastAPI:
@@ -111,6 +151,7 @@ def create_app() -> FastAPI:
         docs_url="/api/docs",
         redoc_url="/api/redoc",
         openapi_url="/api/openapi.json",
+        lifespan=lifespan,
     )
     
     # Configure CORS for frontend development
@@ -167,6 +208,7 @@ def create_app() -> FastAPI:
         (stats_router, "Statistics"),
         (cache_router, "Cache"),
         (services_router, "Services"),
+        (imaging_router, "Interactive Imaging"),
     ]
     
     # Register API routers with versioned prefix
