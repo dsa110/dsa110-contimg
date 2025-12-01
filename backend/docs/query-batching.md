@@ -4,7 +4,7 @@ This guide covers the query batching utilities for optimized multi-record databa
 
 ## Overview
 
-Query batching helps avoid N+1 query problems by fetching multiple records in a single database round-trip. The `query_batch` module provides utilities that work with both SQLite and PostgreSQL backends.
+Query batching helps avoid N+1 query problems by fetching multiple records in a single database round-trip. The `query_batch` module provides utilities for SQLite.
 
 ## The N+1 Problem
 
@@ -67,8 +67,7 @@ Build batch queries with proper placeholder handling:
 ```python
 from dsa110_contimg.api.query_batch import BatchQueryBuilder
 
-# SQLite style
-builder = BatchQueryBuilder(use_postgres=False)
+builder = BatchQueryBuilder()
 query, params = builder.build_select(
     table="images",
     columns=["id", "path", "ms_path"],
@@ -76,16 +75,7 @@ query, params = builder.build_select(
     ids=[1, 2, 3]
 )
 # query: "SELECT id, path, ms_path FROM images WHERE id IN (?, ?, ?)"
-
-# PostgreSQL style
-builder = BatchQueryBuilder(use_postgres=True)
-query, params = builder.build_select(
-    table="images",
-    columns=["id", "path"],
-    id_column="id",
-    ids=[1, 2, 3]
-)
-# query: "SELECT id, path FROM images WHERE id IN ($1, $2, $3)"
+# params: [1, 2, 3]
 ```
 
 ### batch_fetch
@@ -138,7 +128,6 @@ for img in images:
 ```python
 from dsa110_contimg.api.query_batch import (
     SQLITE_MAX_PARAMS,  # 900 (SQLite limit is ~999)
-    POSTGRES_MAX_PARAMS,  # 1000
     DEFAULT_BATCH_SIZE,  # 100
 )
 ```
@@ -187,10 +176,8 @@ images = await image_repo.get_many([3, 1, 2])
 
 3. **Tune batch size**: Default is 100, adjust based on:
 
-   - Network latency (higher batch size for high latency)
    - Memory constraints (lower batch size for large records)
-
-4. **Use appropriate backend**: PostgreSQL handles larger batches better than SQLite
+   - SQLite parameter limits (max ~900)
 
 ## Testing
 

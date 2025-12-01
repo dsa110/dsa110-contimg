@@ -186,17 +186,18 @@ Key testing patterns used:
 
 ## Database Configuration
 
-The backend supports SQLite (default) and PostgreSQL.
+The backend uses SQLite for all data storage. Database path is configured via
+environment variable:
 
 ```bash
-# Check current backend
-echo $DSA110_DB_BACKEND
-
-# Use PostgreSQL (production)
-source .env  # Sets DSA110_DB_BACKEND=postgresql
+# Default path
+export DSA110_DB_SQLITE_PATH="/data/dsa110-contimg/state/db/products.sqlite3"
 ```
 
-See `docs/postgresql-deployment.md` for PostgreSQL setup.
+See `docs/database-adapters.md` for the database adapter API.
+
+> **Note:** The ABSURD workflow manager uses its own separate PostgreSQL
+> database for job orchestration. See `docs/ops/absurd-service-activation.md`.
 
 ## Debugging Tips
 

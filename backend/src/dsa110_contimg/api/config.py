@@ -267,11 +267,6 @@ class APIConfig:
     logging: LoggingConfig = field(default_factory=LoggingConfig.from_env)
     timeouts: TimeoutConfig = field(default_factory=TimeoutConfig.from_env)
     
-    # Feature flags
-    enable_swagger: bool = True
-    enable_metrics: bool = True
-    enable_profiling: bool = False
-    
     @classmethod
     def from_env(cls) -> "APIConfig":
         """Create complete configuration from environment."""
@@ -296,9 +291,6 @@ class APIConfig:
             cors=CORSConfig.from_env(),
             logging=LoggingConfig.from_env(),
             timeouts=TimeoutConfig.from_env(),
-            enable_swagger=os.getenv("DSA110_ENABLE_SWAGGER", "true").lower() == "true",
-            enable_metrics=os.getenv("DSA110_ENABLE_METRICS", "true").lower() == "true",
-            enable_profiling=os.getenv("DSA110_ENABLE_PROFILING", "false").lower() == "true" and not is_production,
         )
     
     def validate(self) -> List[str]:
@@ -313,8 +305,6 @@ class APIConfig:
         if self.environment == Environment.PRODUCTION:
             if self.debug:
                 errors.append("Debug mode cannot be enabled in production")
-            if self.enable_profiling:
-                errors.append("Profiling cannot be enabled in production")
         
         return errors
     
@@ -405,9 +395,6 @@ ENV_VARS = {
     "DSA110_LOG_LEVEL": "Log level (DEBUG, INFO, WARNING, ERROR)",
     "DSA110_LOG_JSON": "Use JSON log format (true/false)",
     
-    # Features
-    "DSA110_ENABLE_SWAGGER": "Enable Swagger UI",
-    "DSA110_ENABLE_METRICS": "Enable Prometheus metrics",
 }
 
 

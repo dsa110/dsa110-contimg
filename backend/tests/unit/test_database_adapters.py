@@ -19,8 +19,6 @@ from dsa110_contimg.api.db_adapters import (
     DatabaseAdapter,
     DatabaseConfig,
     QueryBuilder,
-    convert_sqlite_to_postgresql,
-    convert_postgresql_to_sqlite,
 )
 from dsa110_contimg.api.db_adapters.adapters.sqlite_adapter import SQLiteAdapter
 
@@ -542,19 +540,3 @@ class TestQueryBuilder:
         """Test EXISTS query."""
         query = qb.exists("products", where="id = ?")
         assert query == "SELECT EXISTS(SELECT 1 FROM products WHERE id = ?)"
-
-
-class TestQueryConversion:
-    """Tests for query conversion functions (legacy, now no-ops)."""
-    
-    def test_sqlite_to_postgresql_is_noop(self):
-        """Test conversion function returns query unchanged."""
-        query = "SELECT * FROM products WHERE a = ? AND b = ?"
-        result = convert_sqlite_to_postgresql(query)
-        assert result == query
-    
-    def test_postgresql_to_sqlite_is_noop(self):
-        """Test conversion function returns query unchanged."""
-        query = "SELECT * FROM products WHERE a = $1 AND b = $2"
-        result = convert_postgresql_to_sqlite(query)
-        assert result == query

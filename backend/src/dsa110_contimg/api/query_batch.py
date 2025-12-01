@@ -1,8 +1,6 @@
-"""
-Query batching utilities for optimized multi-record database access.
+"""Query batching utilities for optimized multi-record database access.
 
-This module provides batch query capabilities that work with both
-SQLite (aiosqlite) and PostgreSQL (asyncpg) backends.
+This module provides batch query capabilities for SQLite (aiosqlite) backend.
 
 The key optimization patterns are:
 1. Batch fetching: Fetch multiple records by IDs in a single query
@@ -33,9 +31,6 @@ DEFAULT_BATCH_SIZE = 100
 # Maximum parameters for SQLite (SQLITE_MAX_VARIABLE_NUMBER is typically 999)
 SQLITE_MAX_PARAMS = 900
 
-# Maximum parameters for PostgreSQL (effectively unlimited, but 1000 is practical)
-POSTGRES_MAX_PARAMS = 1000
-
 
 def chunk_list(items: Sequence[T], chunk_size: int) -> List[List[T]]:
     """Split a list into chunks of specified size.
@@ -54,13 +49,12 @@ def chunk_list(items: Sequence[T], chunk_size: int) -> List[List[T]]:
     return [list(items[i:i + chunk_size]) for i in range(0, len(items), chunk_size)]
 
 
-def build_in_clause(column: str, count: int, placeholder: str = "?") -> str:
-    """Build an IN clause for batch queries.
+def build_in_clause(column: str, count: int) -> str:
+    """Build an IN clause for batch queries using SQLite ? placeholders.
     
     Args:
         column: Column name
         count: Number of parameters
-        placeholder: Parameter placeholder (? for SQLite, $N for PostgreSQL)
         
     Returns:
         SQL IN clause string
@@ -68,15 +62,8 @@ def build_in_clause(column: str, count: int, placeholder: str = "?") -> str:
     Example:
         >>> build_in_clause("id", 3)
         "id IN (?, ?, ?)"
-        >>> build_in_clause("id", 3, "$")
-        "id IN ($1, $2, $3)"
     """
-    if placeholder == "$":
-        # PostgreSQL-style numbered placeholders
-        placeholders = ", ".join(f"${i}" for i in range(1, count + 1))
-    else:
-        # SQLite-style ? placeholders
-        placeholders = ", ".join(placeholder for _ in range(count))
+    placeholders = ", ".join("?" for _ in range(count))
     return f"{column} IN ({placeholders})"
 
 
@@ -84,15 +71,13 @@ def build_batch_query(
     base_query: str,
     id_column: str,
     id_count: int,
-    placeholder: str = "?",
 ) -> str:
-    """Build a batch query with IN clause.
+    """Build a batch query with IN clause using SQLite ? placeholders.
     
     Args:
         base_query: Base SQL query (without WHERE clause)
         id_column: Column name for ID filtering
         id_count: Number of IDs to filter by
-        placeholder: Parameter placeholder style
         
     Returns:
         Complete SQL query with IN clause
@@ -101,7 +86,7 @@ def build_batch_query(
         >>> build_batch_query("SELECT * FROM images", "id", 3)
         "SELECT * FROM images WHERE id IN (?, ?, ?)"
     """
-    in_clause = build_in_clause(id_column, id_count, placeholder)
+    in_clause = build_in_clause(id_column, id_count)
     return f"{base_query} WHERE {in_clause}"
 
 
@@ -246,34 +231,29 @@ async def prefetch_related(
 
 
 class BatchQueryBuilder:
-    """Builder for constructing batch queries with proper placeholder handling.
+    """Builder for constructing batch queries for SQLite.
     
-    This class helps build queries that work with both SQLite and PostgreSQL
-    by handling placeholder differences.
+    This class helps build queries with proper SQLite ? placeholder handling.
     
     Example:
-        builder = BatchQueryBuilder(use_postgres=True)
+        builder = BatchQueryBuilder()
         query, params = builder.build_select(
             table="images",
             columns=["id", "path", "ms_path"],
             id_column="id",
             ids=[1, 2, 3]
         )
-        # query: "SELECT id, path, ms_path FROM images WHERE id IN ($1, $2, $3)"
+        # query: "SELECT id, path, ms_path FROM images WHERE id IN (?, ?, ?)"
         # params: [1, 2, 3]
     """
     
-    def __init__(self, use_postgres: bool = False, max_params: Optional[int] = None):
+    def __init__(self, max_params: Optional[int] = None):
         """Initialize the batch query builder.
         
         Args:
-            use_postgres: If True, use PostgreSQL $N placeholders
-            max_params: Maximum parameters per query (default: backend-specific)
+            max_params: Maximum parameters per query (default: SQLITE_MAX_PARAMS)
         """
-        self.use_postgres = use_postgres
-        self.max_params = max_params or (
-            POSTGRES_MAX_PARAMS if use_postgres else SQLITE_MAX_PARAMS
-        )
+        self.max_params = max_params or SQLITE_MAX_PARAMS
     
     def build_select(
         self,
@@ -300,7 +280,7 @@ class BatchQueryBuilder:
             return f"SELECT {cols} FROM {table} WHERE 1=0", []
         
         cols = ", ".join(columns)
-        in_clause = self._build_in_clause(id_column, len(ids))
+        in_clause = build_in_clause(id_column, len(ids))
         
         query = f"SELECT {cols} FROM {table} WHERE {in_clause}"
         if order_by:
@@ -327,17 +307,9 @@ class BatchQueryBuilder:
         if not ids:
             return f"SELECT COUNT(*) FROM {table} WHERE 1=0", []
         
-        in_clause = self._build_in_clause(id_column, len(ids))
+        in_clause = build_in_clause(id_column, len(ids))
         return f"SELECT COUNT(*) FROM {table} WHERE {in_clause}", list(ids)
     
-    def _build_in_clause(self, column: str, count: int) -> str:
-        """Build an IN clause with proper placeholders."""
-        if self.use_postgres:
-            placeholders = ", ".join(f"${i}" for i in range(1, count + 1))
-        else:
-            placeholders = ", ".join("?" for _ in range(count))
-        return f"{column} IN ({placeholders})"
-    
     def get_batch_size(self) -> int:
-        """Get recommended batch size for this backend."""
+        """Get recommended batch size."""
         return min(DEFAULT_BATCH_SIZE, self.max_params)

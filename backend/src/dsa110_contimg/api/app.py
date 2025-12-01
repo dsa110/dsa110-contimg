@@ -221,11 +221,8 @@ def create_app() -> FastAPI:
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
     
-    # API version prefix
+    # API version prefix - all routes use /api/v1
     api_prefix = "/api/v1"
-    
-    # Also register at /api for backwards compatibility
-    legacy_prefix = "/api"
     
     # Define routers with their tags for cleaner registration
     api_routers = [
@@ -248,10 +245,6 @@ def create_app() -> FastAPI:
     # Register API routers with versioned prefix
     for router, tag in api_routers:
         app.include_router(router, prefix=api_prefix, tags=[tag])
-    
-    # Legacy /api routes for backwards compatibility
-    for router, _ in api_routers:
-        app.include_router(router, prefix=legacy_prefix, include_in_schema=False)
     
     # ABSURD workflow manager - registered at /absurd (not versioned)
     # This is a separate subsystem with its own versioning

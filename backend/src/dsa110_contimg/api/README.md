@@ -52,12 +52,13 @@ Database Adapters     → SQLite or PostgreSQL (db_adapters/)
 
 ## Database Configuration
 
-Set `DSA110_DB_BACKEND` environment variable:
+The API uses SQLite for data storage. Configure via environment variable:
 
-- `sqlite` (default) - Single-file database
-- `postgresql` - Production database with connection pooling
+```bash
+export DSA110_DB_SQLITE_PATH="/data/dsa110-contimg/state/db/products.sqlite3"
+```
 
-See `../docs/postgresql-deployment.md` for PostgreSQL setup.
+See `docs/database-adapters.md` for the database adapter API.
 
 ## Adding a New Endpoint
 

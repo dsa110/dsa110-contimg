@@ -218,20 +218,4 @@ class QueryBuilder:
         return f"SELECT EXISTS(SELECT 1 FROM {table} WHERE {where})"
 
 
-# Legacy conversion functions - kept for backward compatibility but effectively no-ops
-# since only SQLite is now supported
 
-def convert_sqlite_to_postgresql(query: str) -> str:
-    """Legacy function - no longer needed since only SQLite is supported.
-    
-    Returns the query unchanged.
-    """
-    return query
-
-
-def convert_postgresql_to_sqlite(query: str) -> str:
-    """Legacy function - no longer needed since only SQLite is supported.
-    
-    Returns the query unchanged.
-    """
-    return query

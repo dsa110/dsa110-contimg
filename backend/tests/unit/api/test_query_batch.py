@@ -3,8 +3,8 @@ Unit tests for query_batch module.
 
 Tests the batch query utilities including:
 - chunk_list: Splitting lists into chunks
-- build_in_clause: Building SQL IN clauses
-- BatchQueryBuilder: Query construction
+- build_in_clause: Building SQL IN clauses (SQLite only)
+- BatchQueryBuilder: Query construction (SQLite only)
 - batch_fetch: Async batch fetching
 """
 
@@ -19,7 +19,6 @@ from dsa110_contimg.api.query_batch import (
     batch_fetch,
     prefetch_related,
     SQLITE_MAX_PARAMS,
-    POSTGRES_MAX_PARAMS,
     DEFAULT_BATCH_SIZE,
 )
 
@@ -73,11 +72,6 @@ class TestBuildInClause:
         result = build_in_clause("id", 3)
         assert result == "id IN (?, ?, ?)"
     
-    def test_postgres_placeholders(self):
-        """PostgreSQL-style $N placeholders."""
-        result = build_in_clause("id", 3, "$")
-        assert result == "id IN ($1, $2, $3)"
-    
     def test_single_value(self):
         """Single value IN clause."""
         assert build_in_clause("col", 1) == "col IN (?)"
@@ -104,15 +98,14 @@ class TestBuildBatchQuery:
         )
         assert result == "SELECT * FROM images WHERE id IN (?, ?, ?)"
     
-    def test_postgres_style(self):
-        """PostgreSQL placeholder style."""
+    def test_with_existing_where(self):
+        """Query with existing conditions."""
         result = build_batch_query(
-            "SELECT id, name FROM users",
+            "SELECT * FROM images",
             "id",
-            2,
-            "$"
+            2
         )
-        assert result == "SELECT id, name FROM users WHERE id IN ($1, $2)"
+        assert result == "SELECT * FROM images WHERE id IN (?, ?)"
 
 
 # =============================================================================
@@ -124,7 +117,7 @@ class TestBatchQueryBuilder:
     
     def test_sqlite_builder(self):
         """SQLite query builder."""
-        builder = BatchQueryBuilder(use_postgres=False)
+        builder = BatchQueryBuilder()
         query, params = builder.build_select(
             table="images",
             columns=["id", "path"],
@@ -135,21 +128,6 @@ class TestBatchQueryBuilder:
         assert "$" not in query
         assert params == [1, 2, 3]
         assert "id IN" in query
-    
-    def test_postgres_builder(self):
-        """PostgreSQL query builder."""
-        builder = BatchQueryBuilder(use_postgres=True)
-        query, params = builder.build_select(
-            table="images",
-            columns=["id", "path"],
-            id_column="id",
-            ids=[1, 2, 3]
-        )
-        assert "$1" in query
-        assert "$2" in query
-        assert "$3" in query
-        assert "?" not in query
-        assert params == [1, 2, 3]
     
     def test_empty_ids(self):
         """Empty ID list returns no-match query."""
@@ -189,11 +167,8 @@ class TestBatchQueryBuilder:
     
     def test_get_batch_size(self):
         """Batch size respects max params."""
-        sqlite_builder = BatchQueryBuilder(use_postgres=False)
-        assert sqlite_builder.get_batch_size() <= SQLITE_MAX_PARAMS
-        
-        pg_builder = BatchQueryBuilder(use_postgres=True)
-        assert pg_builder.get_batch_size() <= POSTGRES_MAX_PARAMS
+        builder = BatchQueryBuilder()
+        assert builder.get_batch_size() <= SQLITE_MAX_PARAMS
     
     def test_custom_max_params(self):
         """Custom max params limit."""
@@ -381,10 +356,6 @@ class TestConstants:
     def test_sqlite_max_params(self):
         """SQLite max params is reasonable."""
         assert 500 <= SQLITE_MAX_PARAMS <= 999
-    
-    def test_postgres_max_params(self):
-        """PostgreSQL max params is reasonable."""
-        assert POSTGRES_MAX_PARAMS >= 1000
     
     def test_default_batch_size(self):
         """Default batch size is reasonable."""

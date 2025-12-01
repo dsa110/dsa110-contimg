@@ -37,17 +37,11 @@ from .backend import (
     DatabaseAdapter,
     DatabaseConfig,
 )
-from .query_builder import (
-    QueryBuilder,
-    convert_sqlite_to_postgresql,
-    convert_postgresql_to_sqlite,
-)
+from .query_builder import QueryBuilder
 
 __all__ = [
     "create_adapter",
     "DatabaseAdapter",
     "DatabaseConfig",
     "QueryBuilder",
-    "convert_sqlite_to_postgresql",
-    "convert_postgresql_to_sqlite",
 ]

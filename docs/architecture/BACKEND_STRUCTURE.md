@@ -73,12 +73,11 @@ backend/
 │   │   │   ├── qa.py            # QA metric extraction
 │   │   │   └── thumbnails.py    # Thumbnail generation
 │   │   │
-│   │   ├── 📁 db_adapters/      # Multi-database support
+│   │   ├── 📁 db_adapters/      # Database adapters (SQLite)
 │   │   │   ├── backend.py       # DatabaseAdapter Protocol
-│   │   │   ├── query_builder.py # Cross-database queries
+│   │   │   ├── query_builder.py # Query building utilities
 │   │   │   └── adapters/
-│   │   │       ├── sqlite_adapter.py
-│   │   │       └── postgresql_adapter.py
+│   │   │       └── sqlite_adapter.py
 │   │   │
 │   │   └── 📁 middleware/       # HTTP middleware
 │   │       └── exception_handler.py
@@ -192,7 +191,7 @@ backend/
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
 │               Database Abstraction Layer                     │
-│     (db_adapters/ - SQLite/PostgreSQL adapters)             │
+│            (db_adapters/ - SQLite adapters)                 │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -235,12 +234,12 @@ UVH5 Files → conversion/ → Measurement Sets → calibration/ → Calibrated 
 
 ## Configuration
 
-| Variable            | Default                       | Description           |
-| ------------------- | ----------------------------- | --------------------- |
-| `DSA110_DB_BACKEND` | `sqlite`                      | Database backend      |
-| `PRODUCTS_DB_PATH`  | `/data/.../products.sqlite3`  | Products database     |
-| `REDIS_URL`         | `redis://localhost:6379/0`    | Redis connection      |
-| `DSA110_LOG_LEVEL`  | `INFO`                        | Logging level         |
+| Variable            | Default                      | Description       |
+| ------------------- | ---------------------------- | ----------------- |
+| `DSA110_DB_BACKEND` | `sqlite`                     | Database backend  |
+| `PRODUCTS_DB_PATH`  | `/data/.../products.sqlite3` | Products database |
+| `REDIS_URL`         | `redis://localhost:6379/0`   | Redis connection  |
+| `DSA110_LOG_LEVEL`  | `INFO`                       | Logging level     |
 
 ## Related Documentation
 
