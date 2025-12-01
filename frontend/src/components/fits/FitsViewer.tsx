@@ -239,7 +239,7 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
         }
       } catch (regionErr) {
         // Regions may not exist yet or API differs
-        console.debug("Region visibility toggle:", regionErr);
+        logger.debug("Region visibility toggle:", regionErr);
       }
 
       // Toggle crosshair
