@@ -190,7 +190,7 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
     const initChart = async () => {
       const echartsModule = await loadEcharts();
       if (!mounted || !chartRef.current) return;
-      
+
       chartInstance.current = echartsModule.init(chartRef.current);
       setEchartsReady(true);
     };
