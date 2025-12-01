@@ -101,6 +101,7 @@ def _retry_db_operation(func, max_retries: int = 3, initial_delay: float = 0.1):
             raise
         except Exception:
             # For non-database errors, re-raise immediately
+            # Intentionally broad here to avoid masking unexpected errors
             raise
 
     # If we exhausted retries, raise the last exception
@@ -217,9 +218,11 @@ def fetch_recent_queue_groups(
                                     ),
                                 )
                             )
-                        except Exception:
+                        except (TypeError, ValueError):
+                            # Skip entries that can't be coerced to expected types
                             continue
-            except Exception:
+            except (_json.JSONDecodeError, TypeError, ValueError):
+                # Invalid JSON or unexpected types -> treat as no matches
                 matches_parsed = []
             groups.append(
                 QueueGroup(
@@ -330,7 +333,7 @@ def fetch_recent_calibrator_matches(
         calib_json = r["calibrators"] or "[]"
         try:
             parsed = _json.loads(calib_json)
-        except Exception:
+        except (_json.JSONDecodeError, TypeError, ValueError):
             parsed = []
         matches: List[CalibratorMatch] = []
         for m in parsed if isinstance(parsed, list) else []:
@@ -348,7 +351,8 @@ def fetch_recent_calibrator_matches(
                         ),
                     )
                 )
-            except Exception:
+            except (TypeError, ValueError):
+                # Skip malformed match entries
                 continue
         groups.append(
             CalibratorMatchGroup(
@@ -400,8 +404,8 @@ def _is_synthetic_pointing_data(timestamp: float, data_registry_db: Optional[Pat
                 # If registry has synthetic entries, we could potentially match them
                 # For now, rely on timestamp filtering
                 pass
-        except Exception:
-            # If registry check fails, fall back to timestamp filtering
+        except (sqlite3.Error, OSError):
+            # If registry check fails (DB error or FS error), fall back to timestamp filtering
             pass
 
     return False
@@ -550,7 +554,7 @@ def fetch_pointing_history(
                 logger.info(
                     f"Time-based sampling: found {sampled_count} observations at regular intervals"
                 )
-        except Exception as e:
+        except (sqlite3.Error, OSError) as e:
             logger.error(f"Failed to query HDF5 index database: {e}", exc_info=True)
 
     # Convert to list and sort by timestamp
@@ -679,7 +683,7 @@ def fetch_mosaics(products_db: Path, start_time: str, end_time: str) -> List[dic
         end_dt = datetime.fromisoformat(end_time.replace("Z", "+00:00"))
         start_mjd = Time(start_dt).mjd
         end_mjd = Time(end_dt).mjd
-    except Exception:
+    except (ValueError, TypeError):
         return []
 
     with closing(_connect(products_db)) as conn:
@@ -887,12 +891,12 @@ def fetch_mosaics_recent(products_db: Path, limit: int = 10) -> tuple[list[dict]
             if start_mjd:
                 try:
                     start_time_iso = Time(start_mjd, format="mjd").datetime.isoformat()
-                except Exception:
+                except (ValueError, TypeError):
                     pass
             if end_mjd:
                 try:
                     end_time_iso = Time(end_mjd, format="mjd").datetime.isoformat()
-                except Exception:
+                except (ValueError, TypeError):
                     pass
 
             created_dt = (
