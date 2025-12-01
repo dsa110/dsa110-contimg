@@ -169,7 +169,7 @@ def ft_from_cl(
         from casacore.tables import addImagingColumns  # type: ignore
 
         addImagingColumns(ms_target)
-    except Exception:
+    except (ImportError, OSError, RuntimeError):
         pass  # Non-fatal if columns already exist
 
     # Clear existing MODEL_DATA to avoid CASA ft() crashes
@@ -227,7 +227,7 @@ def make_multi_point_cl(
         import shutil as _sh
 
         _sh.rmtree(out, ignore_errors=True)
-    except Exception:
+    except OSError:
         pass
 
     # Convert to list to check if empty
@@ -254,7 +254,7 @@ def make_multi_point_cl(
         try:
             cl.close()
             cl.done()
-        except Exception:
+        except (RuntimeError, AttributeError):
             pass
     return os.fspath(out)
 
@@ -290,7 +290,7 @@ def convert_skymodel_to_componentlist(
         import shutil as _sh
 
         _sh.rmtree(out, ignore_errors=True)
-    except Exception:
+    except OSError:
         pass
 
     # Get reference frequency
@@ -312,7 +312,7 @@ def convert_skymodel_to_componentlist(
             try:
                 cl.close()
                 cl.done()
-            except Exception:
+            except (RuntimeError, AttributeError):
                 pass
         return os.fspath(out)
 
@@ -362,7 +362,7 @@ def convert_skymodel_to_componentlist(
         try:
             cl.close()
             cl.done()
-        except Exception:
+        except (RuntimeError, AttributeError):
             pass
 
     return os.fspath(out)
@@ -516,7 +516,7 @@ def make_unified_skymodel(
             )
             # Rename for consistency if needed (query_sources returns ra_deg, dec_deg, flux_mjy)
             return df
-        except Exception:
+        except (ValueError, KeyError, OSError):
             return pd.DataFrame(columns=["ra_deg", "dec_deg", "flux_mjy"])
 
     # 1. Fetch all catalogs

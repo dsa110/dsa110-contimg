@@ -43,7 +43,7 @@ def _get_caltable_spw_count(caltable_path: str) -> Optional[int]:
                 return None
             spw_ids = tb.getcol("SPECTRAL_WINDOW_ID")
             return len(np.unique(spw_ids))
-    except Exception:
+    except (OSError, RuntimeError, KeyError):
         return None
 
 
@@ -80,7 +80,7 @@ def _get_casa_version() -> Optional[str]:
                     return ".".join(str(v) for v in version)
                 else:
                     return str(version)
-        except Exception:
+        except ImportError:
             pass
 
         # Fallback: try environment variable
@@ -89,7 +89,7 @@ def _get_casa_version() -> Optional[str]:
             return casa_version
 
         return None
-    except Exception:
+    except (ImportError, AttributeError, TypeError):
         return None
 
 
@@ -422,7 +422,7 @@ def _resolve_field_ids(ms: str, field_sel: str) -> List[int]:
                         out.append(int(i))
                         break
             return sorted(set(out))
-    except Exception:
+    except (OSError, RuntimeError, KeyError):
         return []
 
 
@@ -1091,7 +1091,7 @@ def solve_bandpass(
                 logger.info(":check: Bandpass table smoothing complete")
             except Exception as e:
                 logger.warning(f"Could not smooth bandpass table via CASA smoothcal: {e}")
-    except Exception:
+    except (ValueError, TypeError):
         # Do not fail calibration if smoothing parameters are malformed
         pass
 

@@ -72,7 +72,7 @@ def resolve_catalog_path(
             potential_root = current_file.parents[3]
             if (potential_root / "src" / "dsa110_contimg").exists():
                 candidates.append(potential_root / "state" / "catalogs" / db_name)
-        except Exception:
+        except (IndexError, OSError):
             pass
 
         for root_str in ["/data/dsa110-contimg", "/app"]:
@@ -98,7 +98,7 @@ def resolve_catalog_path(
             potential_root = current_file.parents[3]
             if (potential_root / "src" / "dsa110_contimg").exists():
                 catalog_dirs.append(potential_root / "state" / "catalogs")
-        except Exception:
+        except (IndexError, OSError):
             pass
         catalog_dirs.append(Path.cwd() / "state" / "catalogs")
         catalog_dirs.append(Path("/data/dsa110-contimg/state/catalogs"))
@@ -148,7 +148,7 @@ def resolve_catalog_path(
                 atnf_candidates.insert(
                     0, potential_root / "state" / "catalogs" / "atnf_pulsars.sqlite3"
                 )
-        except Exception:
+        except (IndexError, OSError):
             pass
 
         for candidate in atnf_candidates:

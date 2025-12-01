@@ -212,7 +212,7 @@ def select_bandpass_from_catalog(
             else:
                 # Default flux if not available (use 1 Jy as fallback)
                 flux_jy = 1.0
-        except Exception:
+        except (KeyError, TypeError, ValueError):
             continue
         if (
             not np.isfinite(ra_deg)

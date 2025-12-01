@@ -9,6 +9,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import socket
+import sqlite3
 import uuid
 from datetime import datetime
 from typing import Any, Awaitable, Callable, Dict, Optional
@@ -100,7 +101,7 @@ class AbsurdWorker:
                         except asyncio.TimeoutError:
                             pass
 
-                except Exception:
+                except (sqlite3.Error, OSError, RuntimeError):
                     logger.exception("Error in worker polling loop")
                     await asyncio.sleep(5.0)  # Backoff on infrastructure error
 

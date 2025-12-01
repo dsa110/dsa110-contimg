@@ -928,5 +928,5 @@ def flag_summary(
                 stats["n_rows"] = int(n_rows)
 
         return stats
-    except Exception:
+    except (OSError, RuntimeError, KeyError):
         return {}

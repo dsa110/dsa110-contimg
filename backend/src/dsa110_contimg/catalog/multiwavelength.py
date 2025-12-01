@@ -223,7 +223,7 @@ def check_simbad(
                 )
                 sep = simbad_source.apply_space_motion(t).separation(source).arcsec * u.arcsec
                 separations[r[i]["MAIN_ID"]] = sep
-        except Exception:
+        except (KeyError, ValueError, TypeError):
             # If proper motion is missing or other error, just calculate static separation
             try:
                 simbad_source = SkyCoord(r[i][ra_col], r[i][dec_col], unit=("hour", "deg"))
@@ -286,7 +286,7 @@ def check_atnf(
                 )
                 sep = atnf_source.apply_space_motion(t).separation(source).arcsec * u.arcsec
                 separations[r.table[i]["JNAME"]] = sep
-        except Exception:
+        except (KeyError, ValueError, TypeError):
             # Fallback if PM missing
             try:
                 atnf_source = SkyCoord(r.table[i]["RAJD"] * u.deg, r.table[i]["DECJD"] * u.deg)
@@ -319,7 +319,7 @@ def check_planets(
         loc = EarthLocation.from_geodetic(
             lat=37.234 * u.deg, lon=-118.283 * u.deg, height=1222 * u.m
         )
-    except Exception:
+    except (ValueError, TypeError):
         loc = None  # Fallback
 
     separations = {}

@@ -113,7 +113,7 @@ def _compute_alpha(
         return None
     try:
         return float(math.log(s2 / s1) / math.log(nu2_hz / nu1_hz))
-    except Exception:
+    except (ValueError, ZeroDivisionError, OverflowError):
         return None
 
 
@@ -193,12 +193,12 @@ def _crossmatch(
         if n_flux and n_flux in df_nvss.columns:
             try:
                 s_nv = float(df_nvss.at[i, n_flux]) * float(scale_nvss_to_jy)
-            except Exception:
+            except (ValueError, TypeError, KeyError):
                 s_nv = None
         if n_snr and n_snr in df_nvss.columns:
             try:
                 snr_nv = float(df_nvss.at[i, n_snr])
-            except Exception:
+            except (ValueError, TypeError, KeyError):
                 snr_nv = None
 
         # VLASS match: choose single best (closest) if multiple; flag confusion if >1
@@ -215,7 +215,7 @@ def _crossmatch(
                 if v_flux_col and v_flux_col in df_vlass.columns:
                     try:
                         s_vl = float(df_vlass.at[j, v_flux_col]) * float(scale_vlass_to_jy)
-                    except Exception:
+                    except (ValueError, TypeError, KeyError):
                         s_vl = None
 
         # FIRST compactness: treat as resolved if deconvolved major/minor above thresholds
@@ -234,7 +234,7 @@ def _crossmatch(
                         maj = float(df_first.at[j, f_maj])
                     if f_min and f_min in df_first.columns:
                         mn = float(df_first.at[j, f_min])
-                except Exception:
+                except (ValueError, TypeError, KeyError):
                     maj = None
                     mn = None
                 # Heuristic: resolved if either axis > 6 arcsec (FIRST beam ~5")
@@ -353,7 +353,7 @@ def _write_sqlite(
         # Create/replace a view for good reference sources
         try:
             conn.execute("DROP VIEW IF EXISTS good_references")
-        except Exception:
+        except sqlite3.Error:
             pass
         conn.execute(
             f"""
@@ -368,7 +368,7 @@ def _write_sqlite(
         if finalref_ids is not None:
             try:
                 conn.execute("DROP TABLE IF EXISTS stable_ids")
-            except Exception:
+            except sqlite3.Error:
                 pass
             conn.execute("CREATE TABLE IF NOT EXISTS stable_ids(source_id INTEGER PRIMARY KEY)")
             rows = [(int(i),) for i in finalref_ids if i is not None]
@@ -385,7 +385,7 @@ def _write_sqlite(
         # Create final_references view: stricter SNR and (optionally) membership in stable_ids
         try:
             conn.execute("DROP VIEW IF EXISTS final_references")
-        except Exception:
+        except sqlite3.Error:
             pass
         if finalref_ids is not None:
             conn.execute(
@@ -412,7 +412,7 @@ def _write_sqlite(
         if materialize_final:
             try:
                 conn.execute("DROP TABLE IF EXISTS final_references_table")
-            except Exception:
+            except sqlite3.Error:
                 pass
             conn.execute("CREATE TABLE final_references_table AS SELECT * FROM final_references")
 
@@ -518,7 +518,7 @@ def build_master(
             size = os.path.getsize(path)
             mtime = int(os.path.getmtime(path))
             return (h.hexdigest(), int(size), mtime)
-        except Exception:
+        except OSError:
             return ("", 0, 0)
 
     meta_extra: Dict[str, str] = {}
@@ -563,7 +563,7 @@ def build_master(
                 final_ids = [
                     int(x.strip()) for x in f if x.strip() and not x.strip().startswith("#")
                 ]
-        except Exception:
+        except (OSError, ValueError):
             final_ids = None
 
     out_db_path = Path(out_db)

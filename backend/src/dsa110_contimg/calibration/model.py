@@ -398,7 +398,7 @@ def write_point_model_with_ft(
                 index=[float(spectral_index)],
             )
             cl.setfreq(which=0, value=reffreq_hz, unit="Hz")
-        except Exception:
+        except (RuntimeError, ValueError):
             pass
     cl.rename(comp_path)
     cl.close()

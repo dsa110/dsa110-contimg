@@ -1487,7 +1487,7 @@ class CalibrationStage(PipelineStage):
             mid_mjd = None
             try:
                 _, _, mid_mjd = extract_ms_time_range(ms_path)
-            except Exception:
+            except (OSError, RuntimeError, KeyError):
                 # Fallback to current time if extraction fails
                 mid_mjd = time.time() / 86400.0
 
@@ -2222,7 +2222,7 @@ class MosaicStage(PipelineStage):
                 group_id = f"mosaic_{timestamp_match.group(1)}"
             else:
                 group_id = f"mosaic_{datetime.now().strftime('%Y-%m-%dT%H:%M:%S')}"
-        except Exception:
+        except (IndexError, AttributeError, OSError):
             group_id = f"mosaic_{datetime.now().strftime('%Y-%m-%dT%H:%M:%S')}"
 
         logger.info(f"Creating mosaic group: {group_id}")

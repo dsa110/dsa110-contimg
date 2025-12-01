@@ -115,7 +115,7 @@ def validate_caltable_compatibility(
                         with table(f"{ms_path}/DATA_DESCRIPTION", readonly=True) as dd:
                             spw_map = dd.getcol("SPECTRAL_WINDOW_ID")
                             ms_spw_ids = set(int(spw_id) for spw_id in spw_map)
-                    except Exception:
+                    except (OSError, RuntimeError, KeyError):
                         # If DATA_DESCRIPTION doesn't exist, try to infer from SPECTRAL_WINDOW
                         ms_spw_ids = set(range(len(chan_freqs)))
         except Exception as e:

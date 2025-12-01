@@ -1548,7 +1548,7 @@ class AbsurdStreamingBridge:
             else:
                 inputs_dict["start_time"] = group_id
                 inputs_dict["end_time"] = group_id
-        except Exception:
+        except (ValueError, TypeError):
             # Fallback: use group_id as timestamp
             inputs_dict["start_time"] = group_id
             inputs_dict["end_time"] = group_id

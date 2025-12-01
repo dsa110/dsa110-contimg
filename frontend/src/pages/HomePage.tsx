@@ -1,7 +1,7 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { SkyCoverageMap, type Pointing } from "../components/skymap";
-import { StatsDashboard, ServiceStatusPanel } from "../components/stats";
+import { ServiceStatusPanel } from "../components/stats";
 import { PipelineStatusPanel, usePipelineStatus } from "../components/pipeline";
 import { useImages, useJobs, useSources } from "../hooks/useQueries";
 import type { ImageSummary, JobStatus, JobSummary } from "../types";
@@ -32,11 +32,10 @@ const formatDateTime = (value?: string) =>
   value ? new Date(value).toLocaleString() : "Not started";
 
 const HomePage: React.FC = () => {
-  const { data: images, isLoading: imagesLoading } = useImages();
+  const { data: images } = useImages();
   const { data: sources } = useSources();
   const { data: jobs, isLoading: jobsLoading } = useJobs();
   const pipelineStatusQuery = usePipelineStatus(30000);
-  const [showStatsDashboard, setShowStatsDashboard] = useState(false);
 
   const ratingStats = useMemo(() => {
     if (!images)
@@ -234,113 +233,114 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-2">
-        <div className="card p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2
-                className="text-xl font-semibold"
-                style={{ color: "var(--color-text-primary)" }}
-              >
-                QA Rating Overview
-              </h2>
-              <p
-                className="text-sm"
-                style={{ color: "var(--color-text-secondary)" }}
-              >
-                Track how many candidates were graded by the pipeline team.
-              </p>
-            </div>
-            <button
-              onClick={() => setShowStatsDashboard((prev) => !prev)}
-              className="text-sm transition-colors"
-              style={{ color: "var(--color-primary)" }}
-            >
-              {showStatsDashboard ? "Hide charts" : "Show charts"}
-            </button>
-          </div>
-
-          {showSummaryCards && (
-            <div className="grid grid-cols-3 gap-4 text-sm">
-              {ratingStats.tagDistribution.map((entry) => (
-                <div
-                  key={entry.tag}
-                  className="rounded-lg p-3"
-                  style={{
-                    backgroundColor: "var(--color-bg-surface)",
-                    border: "1px solid var(--color-border)",
-                  }}
-                >
-                  <p
-                    className="text-xs uppercase tracking-widest"
-                    style={{ color: "var(--color-text-secondary)" }}
-                  >
-                    {entry.tag}
-                  </p>
-                  <p
-                    className="text-2xl font-semibold"
-                    style={{ color: "var(--color-text-primary)" }}
-                  >
-                    {entry.count}
-                  </p>
-                  <p
-                    className="text-xs"
-                    style={{ color: "var(--color-text-secondary)" }}
-                  >
-                    {entry.percentage.toFixed(1)}%
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {showStatsDashboard && (
-            <div className="card-body bg-white/50 p-0">
-              <StatsDashboard
-                byUser={ratingStats.byUser}
-                byTag={ratingStats.byTag}
-                tagDistribution={ratingStats.tagDistribution}
-                totalCandidates={ratingStats.total}
-                ratedCandidates={ratingStats.rated}
-                isLoading={imagesLoading}
-              />
-            </div>
-          )}
+      {/* Sky Coverage - Full Width */}
+      <section className="card p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <h2
+            className="text-xl font-semibold"
+            style={{ color: "var(--color-text-primary)" }}
+          >
+            Sky Coverage
+          </h2>
+          <span
+            className="text-sm"
+            style={{ color: "var(--color-text-secondary)" }}
+          >
+            {pointings.length} pointings mapped
+          </span>
         </div>
-        <div className="card p-6 space-y-4">
-          <div className="flex items-center justify-between">
+        {pointings.length > 0 ? (
+          <div className="card-body p-0">
+            <SkyCoverageMap
+              pointings={pointings}
+              height={400}
+              showGalacticPlane
+              showEcliptic
+              colorScheme="status"
+            />
+          </div>
+        ) : (
+          <p
+            className="text-sm"
+            style={{ color: "var(--color-text-secondary)" }}
+          >
+            Pointings will appear here once image metadata is available.
+          </p>
+        )}
+      </section>
+
+      {/* QA Rating Overview - Full Width */}
+      <section className="card p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
             <h2
               className="text-xl font-semibold"
               style={{ color: "var(--color-text-primary)" }}
             >
-              Sky Coverage
+              QA Rating Overview
             </h2>
-            <span
-              className="text-sm"
-              style={{ color: "var(--color-text-secondary)" }}
-            >
-              {pointings.length} pointings mapped
-            </span>
-          </div>
-          {pointings.length > 0 ? (
-            <div className="card-body p-0">
-              <SkyCoverageMap
-                pointings={pointings}
-                height={320}
-                showGalacticPlane
-                showEcliptic
-                colorScheme="status"
-              />
-            </div>
-          ) : (
             <p
               className="text-sm"
               style={{ color: "var(--color-text-secondary)" }}
             >
-              Pointings will appear here once image metadata is available.
+              Track how many candidates were graded by the pipeline team.
             </p>
-          )}
+          </div>
+          <button
+            onClick={() => setShowStatsDashboard((prev) => !prev)}
+            className="text-sm transition-colors"
+            style={{ color: "var(--color-primary)" }}
+          >
+            {showStatsDashboard ? "Hide charts" : "Show charts"}
+          </button>
         </div>
+
+        {showSummaryCards && (
+          <div className="grid grid-cols-3 gap-4 text-sm">
+            {ratingStats.tagDistribution.map((entry) => (
+              <div
+                key={entry.tag}
+                className="rounded-lg p-3"
+                style={{
+                  backgroundColor: "var(--color-bg-surface)",
+                  border: "1px solid var(--color-border)",
+                }}
+              >
+                <p
+                  className="text-xs uppercase tracking-widest"
+                  style={{ color: "var(--color-text-secondary)" }}
+                >
+                  {entry.tag}
+                </p>
+                <p
+                  className="text-2xl font-semibold"
+                  style={{ color: "var(--color-text-primary)" }}
+                >
+                  {entry.count}
+                </p>
+                <p
+                  className="text-xs"
+                  style={{ color: "var(--color-text-secondary)" }}
+                >
+                  {entry.percentage.toFixed(1)}%
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {showStatsDashboard && (
+          <div className="card-body p-0">
+            <StatsDashboard
+              byUser={ratingStats.byUser}
+              byTag={ratingStats.byTag}
+              tagDistribution={ratingStats.tagDistribution}
+              totalCandidates={ratingStats.total}
+              ratedCandidates={ratingStats.rated}
+              isLoading={imagesLoading}
+            />
+          </div>
+        )}
       </section>
 
       <section className="grid gap-6 lg:grid-cols-2">
