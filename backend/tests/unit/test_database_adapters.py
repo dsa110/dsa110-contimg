@@ -17,6 +17,9 @@ from dsa110_contimg.api.db_adapters import (
     DatabaseAdapter,
     DatabaseBackend,
     DatabaseConfig,
+    QueryBuilder,
+    convert_sqlite_to_postgresql,
+    convert_postgresql_to_sqlite,
 )
 from dsa110_contimg.api.db_adapters.adapters.sqlite_adapter import SQLiteAdapter
 
@@ -578,3 +581,214 @@ class TestDatabaseIntegration:
         # Verify not persisted
         count_after = await db.fetch_val("SELECT COUNT(*) FROM products")
         assert count_after == 0
+
+
+# =============================================================================
+# QueryBuilder Tests
+# =============================================================================
+
+
+class TestQueryBuilderSQLite:
+    """Tests for QueryBuilder with SQLite backend."""
+    
+    @pytest.fixture
+    def qb(self):
+        """Create SQLite query builder."""
+        return QueryBuilder(DatabaseBackend.SQLITE)
+    
+    def test_placeholder_sqlite(self, qb):
+        """Test SQLite placeholder is ?."""
+        assert qb.placeholder(1) == "?"
+        assert qb.placeholder(5) == "?"
+    
+    def test_placeholders_multiple(self, qb):
+        """Test multiple placeholders."""
+        assert qb.placeholders(3) == "?, ?, ?"
+        assert qb.placeholders(1) == "?"
+    
+    def test_select_all(self, qb):
+        """Test basic SELECT *."""
+        query = qb.select("products")
+        assert query == "SELECT * FROM products"
+    
+    def test_select_columns(self, qb):
+        """Test SELECT with specific columns."""
+        query = qb.select("products", columns=["id", "name", "status"])
+        assert query == "SELECT id, name, status FROM products"
+    
+    def test_select_with_where(self, qb):
+        """Test SELECT with WHERE clause."""
+        query = qb.select("products", where="status = ?")
+        assert query == "SELECT * FROM products WHERE status = ?"
+    
+    def test_select_with_order_by(self, qb):
+        """Test SELECT with ORDER BY."""
+        query = qb.select("products", order_by="created_at DESC")
+        assert query == "SELECT * FROM products ORDER BY created_at DESC"
+    
+    def test_select_with_limit_offset(self, qb):
+        """Test SELECT with LIMIT and OFFSET."""
+        query = qb.select("products", limit=10, offset=20)
+        assert query == "SELECT * FROM products LIMIT 10 OFFSET 20"
+    
+    def test_select_full(self, qb):
+        """Test SELECT with all options."""
+        query = qb.select(
+            "products",
+            columns=["id", "name"],
+            where="status = ?",
+            order_by="name ASC",
+            limit=50,
+            offset=0,
+        )
+        expected = (
+            "SELECT id, name FROM products "
+            "WHERE status = ? ORDER BY name ASC LIMIT 50 OFFSET 0"
+        )
+        assert query == expected
+    
+    def test_insert(self, qb):
+        """Test INSERT query."""
+        query = qb.insert("products", columns=["name", "status"])
+        assert query == "INSERT INTO products (name, status) VALUES (?, ?)"
+    
+    def test_insert_returning_ignored_sqlite(self, qb):
+        """Test RETURNING is ignored for SQLite."""
+        query = qb.insert(
+            "products",
+            columns=["name"],
+            returning=["id"],
+        )
+        assert "RETURNING" not in query
+        assert query == "INSERT INTO products (name) VALUES (?)"
+    
+    def test_update(self, qb):
+        """Test UPDATE query."""
+        query = qb.update(
+            "products",
+            columns=["name", "status"],
+            where="id = ?",
+        )
+        assert query == "UPDATE products SET name = ?, status = ? WHERE id = ?"
+    
+    def test_delete(self, qb):
+        """Test DELETE query."""
+        query = qb.delete("products", where="id = ?")
+        assert query == "DELETE FROM products WHERE id = ?"
+    
+    def test_upsert(self, qb):
+        """Test UPSERT query."""
+        query = qb.upsert(
+            "products",
+            columns=["id", "name", "status"],
+            conflict_columns=["id"],
+        )
+        expected = (
+            "INSERT INTO products (id, name, status) VALUES (?, ?, ?) "
+            "ON CONFLICT (id) DO UPDATE SET name = excluded.name, status = excluded.status"
+        )
+        assert query == expected
+    
+    def test_upsert_do_nothing(self, qb):
+        """Test UPSERT with DO NOTHING."""
+        query = qb.upsert(
+            "products",
+            columns=["id"],
+            conflict_columns=["id"],
+            update_columns=[],
+        )
+        assert "DO NOTHING" in query
+    
+    def test_count(self, qb):
+        """Test COUNT query."""
+        query = qb.count("products")
+        assert query == "SELECT COUNT(*) FROM products"
+    
+    def test_count_with_where(self, qb):
+        """Test COUNT with WHERE."""
+        query = qb.count("products", where="status = ?")
+        assert query == "SELECT COUNT(*) FROM products WHERE status = ?"
+    
+    def test_exists(self, qb):
+        """Test EXISTS query."""
+        query = qb.exists("products", where="id = ?")
+        assert query == "SELECT EXISTS(SELECT 1 FROM products WHERE id = ?)"
+
+
+class TestQueryBuilderPostgreSQL:
+    """Tests for QueryBuilder with PostgreSQL backend."""
+    
+    @pytest.fixture
+    def qb(self):
+        """Create PostgreSQL query builder."""
+        return QueryBuilder(DatabaseBackend.POSTGRESQL)
+    
+    def test_placeholder_postgresql(self, qb):
+        """Test PostgreSQL placeholder is $N."""
+        assert qb.placeholder(1) == "$1"
+        assert qb.placeholder(5) == "$5"
+    
+    def test_placeholders_multiple(self, qb):
+        """Test multiple placeholders."""
+        assert qb.placeholders(3) == "$1, $2, $3"
+        assert qb.placeholders(1) == "$1"
+    
+    def test_insert(self, qb):
+        """Test INSERT query."""
+        query = qb.insert("products", columns=["name", "status"])
+        assert query == "INSERT INTO products (name, status) VALUES ($1, $2)"
+    
+    def test_insert_returning(self, qb):
+        """Test INSERT with RETURNING."""
+        query = qb.insert(
+            "products",
+            columns=["name"],
+            returning=["id", "created_at"],
+        )
+        assert query == "INSERT INTO products (name) VALUES ($1) RETURNING id, created_at"
+    
+    def test_update(self, qb):
+        """Test UPDATE query."""
+        query = qb.update(
+            "products",
+            columns=["name", "status"],
+            where="id = $3",
+        )
+        assert query == "UPDATE products SET name = $1, status = $2 WHERE id = $3"
+
+
+class TestQueryConversion:
+    """Tests for query conversion functions."""
+    
+    def test_sqlite_to_postgresql_placeholders(self):
+        """Test converting ? to $N."""
+        query = "SELECT * FROM products WHERE a = ? AND b = ?"
+        result = convert_sqlite_to_postgresql(query)
+        assert result == "SELECT * FROM products WHERE a = $1 AND b = $2"
+    
+    def test_sqlite_to_postgresql_autoincrement(self):
+        """Test converting AUTOINCREMENT to SERIAL."""
+        query = "CREATE TABLE t (id INTEGER PRIMARY KEY AUTOINCREMENT)"
+        result = convert_sqlite_to_postgresql(query)
+        assert "SERIAL PRIMARY KEY" in result
+        assert "AUTOINCREMENT" not in result
+    
+    def test_postgresql_to_sqlite_placeholders(self):
+        """Test converting $N to ?."""
+        query = "SELECT * FROM products WHERE a = $1 AND b = $2"
+        result = convert_postgresql_to_sqlite(query)
+        assert result == "SELECT * FROM products WHERE a = ? AND b = ?"
+    
+    def test_postgresql_to_sqlite_serial(self):
+        """Test converting SERIAL to AUTOINCREMENT."""
+        query = "CREATE TABLE t (id SERIAL PRIMARY KEY)"
+        result = convert_postgresql_to_sqlite(query)
+        assert "INTEGER PRIMARY KEY AUTOINCREMENT" in result
+        assert "SERIAL" not in result
+    
+    def test_roundtrip_conversion(self):
+        """Test converting back and forth preserves structure."""
+        original = "INSERT INTO t (a, b, c) VALUES (?, ?, ?)"
+        pg = convert_sqlite_to_postgresql(original)
+        back = convert_postgresql_to_sqlite(pg)
+        assert back == original

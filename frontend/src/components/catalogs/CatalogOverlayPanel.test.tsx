@@ -157,7 +157,7 @@ describe("CatalogOverlayPanel", () => {
 
       // Use getAllByText since Gaia appears in both legend and checkbox
       const gaiaElements = screen.getAllByText("Gaia DR3");
-      const gaiaLabel = gaiaElements.find(el => el.closest("label"))?.closest("label");
+      const gaiaLabel = gaiaElements.find((el) => el.closest("label"))?.closest("label");
       const checkbox = gaiaLabel?.querySelector('input[type="checkbox"]') as HTMLInputElement;
 
       expect(checkbox?.checked).toBe(true);
@@ -176,7 +176,9 @@ describe("CatalogOverlayPanel", () => {
 
       await user.click(screen.getByText("Show options"));
 
-      const gaiaLabel = screen.getByText("Gaia DR3").closest("label");
+      // Use getAllByText since Gaia appears in both legend and checkbox
+      const gaiaElements = screen.getAllByText("Gaia DR3");
+      const gaiaLabel = gaiaElements.find((el) => el.closest("label"))?.closest("label");
       const checkbox = gaiaLabel?.querySelector('input[type="checkbox"]');
 
       if (checkbox) {
@@ -292,10 +294,22 @@ describe("CatalogOverlayPanel", () => {
       await user.click(screen.getByText("Show options"));
 
       const input = screen.getByRole("spinbutton");
-      await user.clear(input);
-      await user.type(input, "15");
+      // Change value using fireEvent for controlled input
+      fireEvent.change(input, { target: { value: "15" } });
 
       expect((input as HTMLInputElement).value).toBe("15");
+    });
+
+    it("clamps search radius to max of 60", async () => {
+      render(<CatalogOverlayPanel {...defaultProps} />);
+
+      await userEvent.click(screen.getByText("Show options"));
+
+      const input = screen.getByRole("spinbutton");
+      fireEvent.change(input, { target: { value: "100" } });
+
+      // Component clamps to 60 max
+      expect((input as HTMLInputElement).value).toBe("60");
     });
   });
 
