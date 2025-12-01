@@ -22,10 +22,11 @@ if(DEFINED ENV{CONDA_PREFIX})
   set(CMAKE_BUILD_RPATH "$ENV{CONDA_PREFIX}/lib")
 endif()
 
-# Suppress CMake warnings about library conflicts between conda and system paths
-# These warnings occur because conda provides its own versions of system libraries
-# (libcurl, libsz, libfftw3f, libgomp, libpthread) which is expected and safe
+# Suppress CMake warnings about library path cycles and conflicts
+# These occur because conda provides its own libc/libm/libpthread which creates
+# circular dependencies with system libraries - this is expected in conda envs
 set(CMAKE_NO_SYSTEM_FROM_IMPORTED ON)
+set(CMAKE_LINK_DIRECTORIES_BEFORE ON)
 
 # Explicitly tell CMake to prefer the libraries we specify over implicit ones
 cmake_policy(SET CMP0060 NEW)  # Link libraries by full path when available
@@ -33,6 +34,12 @@ cmake_policy(SET CMP0060 NEW)  # Link libraries by full path when available
 # Override implicit link directories to prevent conflicts with system libraries
 # This removes /usr/lib/x86_64-linux-gnu from implicit search when we want conda libs
 set(CMAKE_CXX_IMPLICIT_LINK_DIRECTORIES "")
+set(CMAKE_C_IMPLICIT_LINK_DIRECTORIES "")
+
+# Disable the "cannot generate safe linker search path" warnings
+# The cycle is: conda-lib -> sysroot/libpthread -> system/libm -> conda-lib
+# This is a known limitation of conda cross-compilation toolchains and is safe to ignore
+set(CMAKE_POLICY_WARNING_CMP0060 OFF)
 
 # Allow callers to override the staged EveryBeam artifacts location
 set(EVERYBEAM_ROOT "${PROJECT_SOURCE_DIR}/../everybeam"
@@ -74,18 +81,41 @@ if(NOT EXISTS "${CASACORE_LIB_DIR}")
   message(FATAL_ERROR "casacore libraries not found in ${CASACORE_LIB_DIR}")
 endif()
 
+# Use conda's pybind11 (v3.0+) instead of system pybind11 (v2.2) to avoid deprecation warnings
+# The system pybind11 at /usr/lib/cmake/pybind11/ uses deprecated FindPythonLibsNew
+if(DEFINED ENV{CONDA_PREFIX})
+  execute_process(
+    COMMAND "$ENV{CONDA_PREFIX}/bin/python" -c "import pybind11; print(pybind11.get_cmake_dir())"
+    OUTPUT_VARIABLE PYBIND11_CMAKE_DIR
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_QUIET
+  )
+  if(PYBIND11_CMAKE_DIR)
+    list(INSERT CMAKE_PREFIX_PATH 0 "${PYBIND11_CMAKE_DIR}")
+    message(STATUS "Using conda pybind11 from: ${PYBIND11_CMAKE_DIR}")
+  endif()
+endif()
+
 find_package(pybind11 CONFIG REQUIRED)
 find_package(Threads REQUIRED)
 find_package(OpenMP)
 find_package(Boost CONFIG REQUIRED)
 
 function(_find_required_library out_var lib_name)
-  find_library(${out_var}
-               NAMES ${lib_name}
-               PATHS ${CASACORE_LIB_DIR} ${EVERYBEAM_LIB_DIR}
-                     /opt/miniforge/envs/casa6/lib
-                     /usr/lib/x86_64-linux-gnu /usr/lib /lib
-               NO_DEFAULT_PATH)
+  # Prefer conda libraries over system libraries to avoid cyclic dependencies
+  if(DEFINED ENV{CONDA_PREFIX})
+    find_library(${out_var}
+                 NAMES ${lib_name}
+                 PATHS ${CASACORE_LIB_DIR} ${EVERYBEAM_LIB_DIR}
+                       "$ENV{CONDA_PREFIX}/lib"
+                 NO_DEFAULT_PATH)
+  else()
+    find_library(${out_var}
+                 NAMES ${lib_name}
+                 PATHS ${CASACORE_LIB_DIR} ${EVERYBEAM_LIB_DIR}
+                       /usr/lib/x86_64-linux-gnu /usr/lib /lib
+                 NO_DEFAULT_PATH)
+  endif()
   if(NOT ${out_var})
     find_library(${out_var} NAMES ${lib_name})
   endif()
