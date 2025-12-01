@@ -2430,6 +2430,298 @@ pip install git+https://github.com/casangi/cubevis.git
 
 ---
 
+## Edge Case Analysis
+
+This section documents anticipated edge cases that should be addressed before
+and during implementation. These patterns are derived from existing DSA-110
+codebase handling of similar scenarios.
+
+### Data Edge Cases (MS/HDF5 Files)
+
+| Edge Case                         | Impact                     | Mitigation Pattern                                                  |
+| --------------------------------- | -------------------------- | ------------------------------------------------------------------- |
+| **Empty MS file**                 | API returns 500 or hangs   | Check `nrow > 0` before processing (see `ms_helpers.py` validation) |
+| **Fully flagged data (100%)**     | Raster shows blank/crashes | Use `validate_ms_unflagged_fraction()` sampling, return 422         |
+| **Missing CORRECTED_DATA column** | MsRaster fails to render   | Check column existence first (pattern in `ms_helpers.py:202`)       |
+| **Corrupt/partial MS tables**     | casacore table errors      | Wrap in try/catch, return 500 with descriptive message              |
+| **MS file locked by other proc**  | "Cannot open for reading"  | Retry with exponential backoff (see `direct_subband.py:275-320`)    |
+| **Very large MS (>10GB)**         | Timeout, memory exhaustion | Add `--timeout` parameter, implement chunked reading                |
+| **Unusual spectral windows**      | Unexpected array shapes    | Validate `nspw`, squeeze dimensions if needed                       |
+| **Path with special characters**  | 404 or encoding errors     | Use `unquote()` for path decoding (pattern in `ms.py` routes)       |
+
+### Memory & Performance Edge Cases
+
+| Edge Case                           | Impact                    | Mitigation                                                      |
+| ----------------------------------- | ------------------------- | --------------------------------------------------------------- |
+| **Memory exhaustion during raster** | Process killed, 500 error | `try/except MemoryError` (pattern in `parallel.py`), downsample |
+| **Raster timeout (>30s)**           | Frontend shows "failed"   | Return partial results, add progress WebSocket                  |
+| **Concurrent raster requests**      | OOM, server thrashing     | Implement semaphore limiting (max 2-3 concurrent)               |
+| **16K channels × 2000 baselines**   | 32M points to render      | Default downsampling to 1000 time bins, 1000 freq channels      |
+| **HDD source path (vs NVMe)**       | 10× slower I/O            | Detect `/data/` prefix, warn user or stage to `/scratch/`       |
+
+### Bokeh Session Edge Cases (InteractiveClean)
+
+| Edge Case                          | Impact                       | Mitigation                                                |
+| ---------------------------------- | ---------------------------- | --------------------------------------------------------- |
+| **Port exhaustion (5006-5020)**    | New sessions fail            | Implement port pool with `find_free_port()` pattern       |
+| **Orphaned Bokeh processes**       | Port stays busy, memory leak | Background cleanup task every 15min                       |
+| **Browser closes without cleanup** | Session stays "active"       | Heartbeat WebSocket, mark stale after 5min                |
+| **Multiple tabs same session**     | State conflicts              | Session ID in URL, reject duplicate connections           |
+| **Long-running clean (>1hr)**      | Timeout, session expiry      | Extend session TTL on activity, checkpoint state          |
+| **Bokeh server crash**             | 502 proxy error              | Supervisor auto-restart, session recovery from checkpoint |
+
+### Frontend Component Edge Cases
+
+| Edge Case                          | Impact                          | Mitigation Pattern                                          |
+| ---------------------------------- | ------------------------------- | ----------------------------------------------------------- |
+| **Image load timeout (>10s)**      | Stuck spinner                   | Use `VIEWER_TIMEOUTS.JS9_LOAD_MS` pattern with fallback     |
+| **Component unmount during fetch** | Memory leak, state update error | `AbortController` cleanup (pattern in `FitsViewer.tsx:102`) |
+| **Invalid URL encoding**           | 404 from API                    | Client-side `encodeURIComponent()` before fetch             |
+| **Missing colormap selection**     | Default renders poorly          | Sensible defaults (`viridis`), persist user preference      |
+| **iframe blocked by CSP**          | Blank embed                     | Configure `X-Frame-Options` for Bokeh server                |
+| **Touch device pan/zoom**          | Desktop-only gestures           | Add mobile-friendly controls for Bokeh embeds               |
+
+### casagui Dependency Edge Cases
+
+| Edge Case                     | Impact                   | Mitigation                                                  |
+| ----------------------------- | ------------------------ | ----------------------------------------------------------- |
+| **casagui not installed**     | `ImportError` at startup | Optional import with feature flag, graceful disable         |
+| **casagui API changes**       | Breaking changes         | Pin version in `environment.yml`, maintain adapter layer    |
+| **CASA version mismatch**     | Runtime errors           | Version check at import time, log warning                   |
+| **Missing Bokeh dependency**  | Panel fails to serve     | List in `pyproject.toml` extras: `casagui = [bokeh, panel]` |
+| **HoloViews rendering fails** | Blank or error output    | Fallback to matplotlib static render                        |
+
+### Concurrency & Race Condition Edge Cases
+
+| Edge Case                         | Impact               | Mitigation Pattern                                                   |
+| --------------------------------- | -------------------- | -------------------------------------------------------------------- |
+| **Two users open same MS**        | File lock conflict   | Read-only mode for visualization (casacore handles)                  |
+| **Session cleanup during use**    | 404 mid-interaction  | Session lock during active requests                                  |
+| **Parallel API requests same MS** | Table lock errors    | Serialize with file-based lock (see `photometry/cli.py:760`)         |
+| **SQLite queue race**             | Duplicate processing | WAL mode + 30s timeout (pattern in `streaming_converter.py:185-191`) |
+
+### Network & Infrastructure Edge Cases
+
+| Edge Case                     | Impact               | Mitigation                                         |
+| ----------------------------- | -------------------- | -------------------------------------------------- |
+| **API server restart**        | Active sessions lost | Persist sessions to SQLite, recover on startup     |
+| **Proxy timeout (nginx 60s)** | Long renders fail    | Increase proxy timeout for `/api/imaging/*` routes |
+| **DNS resolution failure**    | Bokeh embed 502      | Use `localhost` not hostname for Bokeh server      |
+| **CORS issues**               | Frontend can't embed | Configure CORS headers for Bokeh server origin     |
+
+### User Input Validation Edge Cases
+
+| Edge Case                         | Impact                 | Mitigation                                   |
+| --------------------------------- | ---------------------- | -------------------------------------------- |
+| **Invalid axis selection**        | KeyError in casagui    | Validate against allowed enum before calling |
+| **Negative/zero iteration count** | Infinite loop or error | Pydantic model with `ge=0` constraint        |
+| **Path traversal attack**         | Security vulnerability | Validate path is under allowed directories   |
+| **Extremely large image size**    | OOM                    | Cap at `imsize <= [8192, 8192]`              |
+| **Invalid colormap name**         | matplotlib error       | Validate against `matplotlib.colormaps`      |
+
+### Pre-Implementation Validation Utilities
+
+These utility functions should be implemented before integration work begins:
+
+**Backend Validation Helper** (`backend/src/dsa110_contimg/api/utils/validation.py`):
+
+```python
+from pathlib import Path
+from fastapi import HTTPException
+from casacore.tables import table
+
+from dsa110_contimg.utils.ms_helpers import validate_ms_unflagged_fraction
+
+
+def validate_ms_for_visualization(ms_path: Path) -> None:
+    """Validate MS is suitable for casagui visualization.
+
+    Raises:
+        HTTPException: 404 if not found, 422 if invalid for visualization
+    """
+    if not ms_path.exists():
+        raise HTTPException(404, f"MS not found: {ms_path}")
+
+    try:
+        with table(str(ms_path), readonly=True) as t:
+            if t.nrows() == 0:
+                raise HTTPException(422, "MS is empty (0 rows)")
+
+            colnames = t.colnames()
+            if "CORRECTED_DATA" not in colnames and "DATA" not in colnames:
+                raise HTTPException(
+                    422,
+                    "MS has no DATA or CORRECTED_DATA column"
+                )
+    except RuntimeError as e:
+        if "cannot be opened" in str(e).lower():
+            raise HTTPException(423, f"MS is locked by another process: {e}")
+        raise HTTPException(500, f"Failed to open MS: {e}")
+
+    # Check flagging fraction (sample-based, memory efficient)
+    try:
+        unflagged = validate_ms_unflagged_fraction(str(ms_path))
+        if unflagged < 0.01:  # Less than 1% unflagged
+            raise HTTPException(
+                422,
+                f"MS is >99% flagged ({unflagged:.1%} unflagged)"
+            )
+    except Exception as e:
+        # Non-fatal: proceed with visualization but log warning
+        import logging
+        logging.warning(f"Could not validate flags for {ms_path}: {e}")
+
+
+def validate_imaging_parameters(imsize: list[int], niter: int) -> None:
+    """Validate imaging parameters are within safe bounds.
+
+    Raises:
+        HTTPException: 422 if parameters invalid
+    """
+    MAX_IMSIZE = 8192
+    MAX_NITER = 1_000_000
+
+    if len(imsize) != 2:
+        raise HTTPException(422, "imsize must be [width, height]")
+
+    if any(s <= 0 or s > MAX_IMSIZE for s in imsize):
+        raise HTTPException(422, f"imsize must be 1-{MAX_IMSIZE} per dimension")
+
+    if niter < 0 or niter > MAX_NITER:
+        raise HTTPException(422, f"niter must be 0-{MAX_NITER}")
+```
+
+**Frontend Safe API Call Helper** (`frontend/src/utils/safeApiCall.ts`):
+
+```typescript
+export class ApiError extends Error {
+  constructor(public readonly status: number, public readonly detail: string) {
+    super(`API Error ${status}: ${detail}`);
+    this.name = "ApiError";
+  }
+}
+
+/**
+ * Wrapper for fetch with timeout and error handling.
+ *
+ * @param url - API endpoint URL
+ * @param options - Standard fetch options
+ * @param timeoutMs - Timeout in milliseconds (default: 30000)
+ * @returns Parsed JSON response
+ * @throws ApiError on non-2xx responses
+ */
+export async function safeApiCall<T>(
+  url: string,
+  options: RequestInit = {},
+  timeoutMs: number = 30000
+): Promise<T> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      const detail = await response.text().catch(() => "Unknown error");
+      throw new ApiError(response.status, detail);
+    }
+
+    return response.json();
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new ApiError(408, `Request timeout after ${timeoutMs}ms`);
+    }
+    throw new ApiError(500, String(error));
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+/**
+ * Fetch binary data (images) with timeout.
+ */
+export async function safeBinaryFetch(
+  url: string,
+  timeoutMs: number = 60000
+): Promise<Blob> {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, { signal: controller.signal });
+
+    if (!response.ok) {
+      throw new ApiError(response.status, `Failed to fetch: ${url}`);
+    }
+
+    return response.blob();
+  } catch (error) {
+    if (error instanceof ApiError) {
+      throw error;
+    }
+    if (error instanceof Error && error.name === "AbortError") {
+      throw new ApiError(408, `Image load timeout after ${timeoutMs}ms`);
+    }
+    throw new ApiError(500, String(error));
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+```
+
+**Feature Flag for Optional casagui** (`backend/src/dsa110_contimg/api/config.py`):
+
+```python
+import os
+from functools import lru_cache
+
+
+@lru_cache
+def is_casagui_available() -> bool:
+    """Check if casagui is installed and usable."""
+    try:
+        import casagui  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+
+@lru_cache
+def get_casagui_config() -> dict:
+    """Get casagui configuration from environment."""
+    return {
+        "enabled": os.getenv("CASAGUI_ENABLED", "true").lower() == "true",
+        "bokeh_port_start": int(os.getenv("BOKEH_PORT_START", "5006")),
+        "bokeh_port_end": int(os.getenv("BOKEH_PORT_END", "5020")),
+        "session_timeout_hours": float(os.getenv("BOKEH_SESSION_TIMEOUT", "4.0")),
+        "max_concurrent_sessions": int(os.getenv("BOKEH_MAX_SESSIONS", "5")),
+    }
+
+
+def require_casagui():
+    """Dependency that raises 501 if casagui not available."""
+    from fastapi import HTTPException
+
+    config = get_casagui_config()
+    if not config["enabled"]:
+        raise HTTPException(501, "casagui integration is disabled")
+
+    if not is_casagui_available():
+        raise HTTPException(
+            501,
+            "casagui is not installed. Install with: "
+            "pip install git+https://github.com/casangi/casagui.git"
+        )
+```
+
+---
+
 ## Quick Reference: Files to Create/Modify
 
 ### Backend Files
