@@ -118,7 +118,7 @@ def test_model_structure():
         print("✓ Measurement model structure valid")
 
         return True
-    except Exception as e:
+    except (ImportError, AttributeError, KeyError, TypeError) as e:
         print(f"✗ Model structure test failed: {e}")
         return False
 
