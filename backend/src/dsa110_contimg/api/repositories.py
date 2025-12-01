@@ -320,7 +320,13 @@ class AsyncImageRepository(ImageRepositoryInterface):
             return record
     
     async def list_all(self, limit: int = 100, offset: int = 0) -> List[ImageRecord]:
-        """Get all images with pagination."""
+        """Get all images with pagination.
+        
+        Optimized to batch fetch QA grades from ms_index in a single query
+        instead of N+1 queries per image.
+        """
+        from .query_batch import chunk_list, SQLITE_MAX_PARAMS
+        
         async with get_async_connection(self.db_path) as conn:
             cursor = await conn.execute(
                 "SELECT * FROM images ORDER BY created_at DESC LIMIT ? OFFSET ?",
@@ -330,18 +336,30 @@ class AsyncImageRepository(ImageRepositoryInterface):
             async for row in cursor:
                 record = self._row_to_record(row)
                 record.run_id = generate_run_id(record.ms_path)
-                
-                # Get QA grade from ms_index
-                ms_cursor = await conn.execute(
-                    "SELECT stage, status FROM ms_index WHERE path = ?",
-                    (record.ms_path,)
-                )
-                ms_row = await ms_cursor.fetchone()
-                if ms_row:
-                    record.qa_grade = stage_to_qa_grade(ms_row["stage"], ms_row["status"])
                 records.append(record)
+            
+            # Batch fetch QA grades from ms_index (eliminates N+1 queries)
+            if records:
+                ms_paths = list(set(r.ms_path for r in records if r.ms_path))
+                ms_grades = {}
+                for chunk in chunk_list(ms_paths, SQLITE_MAX_PARAMS):
+                    placeholders = ",".join("?" for _ in chunk)
+                    ms_cursor = await conn.execute(
+                        f"SELECT path, stage, status FROM ms_index WHERE path IN ({placeholders})",
+                        tuple(chunk)
+                    )
+                    async for ms_row in ms_cursor:
+                        ms_grades[ms_row["path"]] = stage_to_qa_grade(
+                            ms_row["stage"], ms_row["status"]
+                        )
+                
+                # Apply QA grades to records
+                for record in records:
+                    if record.ms_path in ms_grades:
+                        record.qa_grade = ms_grades[record.ms_path]
+            
             return records
-    
+
     async def count(self) -> int:
         """Get total count of images."""
         async with get_async_connection(self.db_path) as conn:
