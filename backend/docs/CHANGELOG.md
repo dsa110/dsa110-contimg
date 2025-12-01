@@ -5,6 +5,59 @@ milestones for the DSA-110 backend.
 
 ---
 
+## December 1, 2025 - ABSURD Workflow Manager Activated
+
+### ABSURD Task Queue System ✅
+
+PostgreSQL-backed durable task queue fully activated for pipeline processing:
+
+- **Schema initialized**: 3 tables (tasks, workflows, scheduled_tasks), 11 functions
+- **Worker running**: 4 concurrent task slots, 1-second poll interval
+- **Dead Letter Queue**: Enabled for failed task handling
+- **Entry points created**: `python -m dsa110_contimg.absurd` and `scheduler`
+
+**Components Implemented**:
+
+| Component       | Purpose                         | Status    |
+| --------------- | ------------------------------- | --------- |
+| AbsurdClient    | Database operations, task spawn | ✅ Active |
+| AbsurdWorker    | Task execution loop             | ✅ Active |
+| AbsurdConfig    | Environment configuration       | ✅ Active |
+| TaskScheduler   | Cron-like scheduling            | ✅ Ready  |
+| Pipeline Chains | DAG task dependencies           | ✅ Ready  |
+
+**Files Created**:
+
+```
+src/dsa110_contimg/absurd/
+├── __main__.py          # Worker entry point
+├── scheduler_main.py    # Scheduler entry point
+├── setup.py             # Database initialization
+└── README.md            # API documentation
+
+docs/ops/
+└── absurd-service-activation.md  # Full activation guide
+
+ops/systemd/
+├── absurd-worker.service    # Systemd unit file
+└── absurd-scheduler.service # Systemd unit file
+```
+
+**Configuration Added** (`.env`):
+
+```bash
+ABSURD_ENABLED=true
+ABSURD_DATABASE_URL=postgresql://dsa110:***@localhost:5432/dsa110
+ABSURD_QUEUE_NAME=dsa110-pipeline
+ABSURD_WORKER_CONCURRENCY=4
+ABSURD_DLQ_ENABLED=true
+```
+
+See [ABSURD Activation Guide](./ops/absurd-service-activation.md) for full
+documentation.
+
+---
+
 ## November 30, 2025 - Major Refactoring Complete
 
 ### Async Migration ✅

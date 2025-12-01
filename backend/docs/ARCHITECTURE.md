@@ -71,6 +71,20 @@ src/dsa110_contimg/api/
     ├── fits_service.py       # FITS file parsing
     ├── qa_service.py         # QA calculations
     └── stats_service.py      # Statistics computation
+
+src/dsa110_contimg/absurd/    # ABSURD Task Queue System
+├── __init__.py               # Package exports
+├── __main__.py               # Worker entry point
+├── client.py                 # Database operations, task spawning
+├── worker.py                 # Task execution loop
+├── config.py                 # Environment configuration
+├── adapter.py                # Pipeline task executors
+├── dependencies.py           # DAG dependency management
+├── scheduling.py             # Cron-like scheduling
+├── monitoring.py             # Health checks and metrics
+├── schema.sql                # PostgreSQL schema
+├── setup.py                  # Database initialization
+└── scheduler_main.py         # Scheduler daemon entry point
 ```
 
 ---
@@ -217,6 +231,52 @@ The API is fully async using:
 
 See [ASYNC_PERFORMANCE_REPORT.md](./ASYNC_PERFORMANCE_REPORT.md) for detailed
 benchmarks.
+
+---
+
+## ABSURD Task Queue
+
+ABSURD (Asynchronous Background Service for Unified Resource Distribution) is
+the durable task queue for pipeline processing.
+
+### Architecture
+
+```
+┌──────────────────┐     ┌────────────────────────┐     ┌──────────────────┐
+│   API / Client   │────▶│   PostgreSQL (absurd)  │◀────│  AbsurdWorker    │
+│  spawn_task()    │     │   - tasks table        │     │  claim_task()    │
+└──────────────────┘     │   - SKIP LOCKED        │     │  execute()       │
+                         └────────────────────────┘     │  complete/fail() │
+                                                        └──────────────────┘
+```
+
+### Key Features
+
+- **Durable persistence** - Tasks survive crashes in PostgreSQL
+- **Atomic claims** - `FOR UPDATE SKIP LOCKED` ensures exactly-once
+- **DAG dependencies** - Tasks can depend on parent completion
+- **Dead letter queue** - Failed tasks moved to DLQ after retries
+- **Cron scheduling** - Time-based task triggers
+
+### Usage
+
+```python
+from dsa110_contimg.absurd import AbsurdClient
+
+async def main():
+    client = AbsurdClient.from_env()
+    await client.connect()
+
+    # Spawn task
+    task_id = await client.spawn("convert_uvh5", {"ms_path": "/path/to.ms"})
+
+    # Check status
+    stats = await client.get_queue_stats("dsa110-pipeline")
+    await client.close()
+```
+
+See [ABSURD README](../src/dsa110_contimg/absurd/README.md) and
+[Activation Guide](./ops/absurd-service-activation.md) for full documentation.
 
 ---
 

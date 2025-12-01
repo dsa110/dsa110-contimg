@@ -3,40 +3,82 @@
 @tailwind utilities;
 
 /* ============================================
-   VASTER-inspired Visual Design System
-   Colors: Green (#4fc3a1), Dark Blue (#324960)
+   GitHub-inspired Dark Theme (from legacy.frontend)
+   Optimized for astronomers working at night
    ============================================ */
 
 /* Custom CSS Variables for theme colors */
 :root {
-  --color-primary-green: #4fc3a1;
-  --color-primary-green-dark: #3da88a;
-  --color-primary-blue: #324960;
-  --color-primary-blue-dark: #263a4d;
-  --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  --card-shadow-hover: 0 6px 12px rgba(0, 0, 0, 0.25);
+  /* Background colors */
+  --color-bg-default: #0d1117;
+  --color-bg-paper: #161b22;
+  --color-bg-surface: #21262d;
+  --color-border: #30363d;
+
+  /* Primary - Blue */
+  --color-primary: #58a6ff;
+  --color-primary-light: #79c0ff;
+  --color-primary-dark: #1f6feb;
+
+  /* Secondary */
+  --color-secondary: #a5d6ff;
+
+  /* Status colors */
+  --color-success: #3fb950;
+  --color-success-light: #7ee787;
+  --color-success-dark: #238636;
+
+  --color-warning: #d29922;
+  --color-warning-light: #ffa657;
+  --color-warning-dark: #9e6a03;
+
+  --color-error: #f85149;
+  --color-error-light: #ff7b72;
+  --color-error-dark: #da3633;
+
+  --color-info: #79c0ff;
+
+  /* Text colors */
+  --color-text-primary: #c9d1d9;
+  --color-text-secondary: #8b949e;
+  --color-text-disabled: #6e7681;
+
+  /* Shadows */
+  --card-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  --card-shadow-hover: 0 8px 16px rgba(0, 0, 0, 0.4);
 }
 
 /* Custom component classes */
 @layer base {
   body {
-    @apply bg-gray-100 text-gray-900;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial,
-      sans-serif;
+    background-color: var(--color-bg-default);
+    color: var(--color-text-primary);
+    font-family: "Inter", "Roboto", "Helvetica", "Arial", sans-serif;
+  }
+
+  /* Default link color */
+  a {
+    color: var(--color-primary);
+  }
+
+  a:hover {
+    color: var(--color-primary-light);
   }
 }
 
 @layer components {
   /* ============================================
-     BUTTONS - Bootstrap-style variants
+     BUTTONS - GitHub-inspired dark theme
      ============================================ */
   .btn {
-    @apply px-4 py-2 rounded font-medium transition-all duration-200 border;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    @apply px-4 py-2 font-medium transition-all duration-200 border;
+    border-radius: 6px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   }
 
   .btn:focus {
     @apply outline-none ring-2 ring-offset-2;
+    --tw-ring-offset-color: var(--color-bg-default);
   }
 
   .btn:active {
@@ -44,87 +86,114 @@
     box-shadow: none;
   }
 
-  /* Primary - Green */
+  /* Primary - Blue */
   .btn-primary {
-    background-color: var(--color-primary-green);
-    border-color: var(--color-primary-green);
-    @apply text-white;
+    background-color: var(--color-primary-dark);
+    border-color: var(--color-primary-dark);
+    color: white;
   }
 
   .btn-primary:hover {
-    background-color: var(--color-primary-green-dark);
-    border-color: var(--color-primary-green-dark);
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
   }
 
   .btn-primary:focus {
-    --tw-ring-color: var(--color-primary-green);
+    --tw-ring-color: var(--color-primary);
   }
 
-  /* Secondary - Dark Blue */
+  /* Secondary - Subtle dark */
   .btn-secondary {
-    background-color: var(--color-primary-blue);
-    border-color: var(--color-primary-blue);
-    @apply text-white;
+    background-color: var(--color-bg-surface);
+    border-color: var(--color-border);
+    color: var(--color-text-primary);
   }
 
   .btn-secondary:hover {
-    background-color: var(--color-primary-blue-dark);
-    border-color: var(--color-primary-blue-dark);
+    background-color: var(--color-border);
+    border-color: var(--color-border);
   }
 
   .btn-secondary:focus {
-    --tw-ring-color: var(--color-primary-blue);
+    --tw-ring-color: var(--color-border);
   }
 
-  /* Success - Green variant */
+  /* Success - Green */
   .btn-success {
-    @apply bg-green-600 border-green-600 text-white hover:bg-green-700 hover:border-green-700;
+    background-color: var(--color-success-dark);
+    border-color: var(--color-success-dark);
+    color: white;
+  }
+
+  .btn-success:hover {
+    background-color: var(--color-success);
+    border-color: var(--color-success);
   }
 
   .btn-success:focus {
-    @apply ring-green-500;
+    --tw-ring-color: var(--color-success);
   }
 
   /* Danger - Red */
   .btn-danger {
-    @apply bg-red-600 border-red-600 text-white hover:bg-red-700 hover:border-red-700;
+    background-color: var(--color-error-dark);
+    border-color: var(--color-error-dark);
+    color: white;
+  }
+
+  .btn-danger:hover {
+    background-color: var(--color-error);
+    border-color: var(--color-error);
   }
 
   .btn-danger:focus {
-    @apply ring-red-500;
+    --tw-ring-color: var(--color-error);
   }
 
-  /* Info - Blue */
+  /* Info - Light Blue */
   .btn-info {
-    @apply bg-blue-500 border-blue-500 text-white hover:bg-blue-600 hover:border-blue-600;
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-bg-default);
+  }
+
+  .btn-info:hover {
+    background-color: var(--color-primary-light);
+    border-color: var(--color-primary-light);
   }
 
   /* Warning - Yellow/Orange */
   .btn-warning {
-    @apply bg-yellow-500 border-yellow-500 text-white hover:bg-yellow-600 hover:border-yellow-600;
+    background-color: var(--color-warning-dark);
+    border-color: var(--color-warning-dark);
+    color: white;
+  }
+
+  .btn-warning:hover {
+    background-color: var(--color-warning);
+    border-color: var(--color-warning);
   }
 
   /* Outline variants */
   .btn-outline-primary {
     background-color: transparent;
-    border-color: var(--color-primary-green);
-    color: var(--color-primary-green);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
   }
 
   .btn-outline-primary:hover {
-    background-color: var(--color-primary-green);
-    @apply text-white;
+    background-color: var(--color-primary);
+    color: white;
   }
 
   .btn-outline-secondary {
     background-color: transparent;
-    border-color: var(--color-primary-blue);
-    color: var(--color-primary-blue);
+    border-color: var(--color-border);
+    color: var(--color-text-primary);
   }
 
   .btn-outline-secondary:hover {
-    background-color: var(--color-primary-blue);
-    @apply text-white;
+    background-color: var(--color-bg-surface);
   }
 
   /* Small button */
@@ -138,10 +207,12 @@
   }
 
   /* ============================================
-     CARDS - Box shadow style from VASTER
+     CARDS - GitHub dark theme style
      ============================================ */
   .card {
-    @apply bg-white rounded-lg border border-gray-200;
+    background-color: var(--color-bg-paper);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
     box-shadow: var(--card-shadow);
     transition: box-shadow 0.2s ease-in-out;
   }
@@ -151,126 +222,144 @@
   }
 
   .card-header {
-    @apply px-4 py-3 border-b border-gray-200 font-semibold;
-    background-color: var(--color-primary-blue);
-    color: white;
-    border-radius: 0.5rem 0.5rem 0 0;
+    @apply px-4 py-3 font-semibold;
+    background-color: var(--color-bg-surface);
+    color: var(--color-text-primary);
+    border-bottom: 1px solid var(--color-border);
+    border-radius: 8px 8px 0 0;
   }
 
   .card-header-alt {
-    @apply px-4 py-3 border-b border-gray-200 font-semibold;
-    background-color: var(--color-primary-green);
+    @apply px-4 py-3 font-semibold;
+    background-color: var(--color-primary-dark);
     color: white;
-    border-radius: 0.5rem 0.5rem 0 0;
+    border-radius: 8px 8px 0 0;
   }
 
   .card-body {
     @apply p-4;
+    color: var(--color-text-primary);
   }
 
   .card-footer {
-    @apply px-4 py-3 border-t border-gray-200 bg-gray-50;
-    border-radius: 0 0 0.5rem 0.5rem;
+    @apply px-4 py-3;
+    background-color: var(--color-bg-surface);
+    border-top: 1px solid var(--color-border);
+    border-radius: 0 0 8px 8px;
   }
 
   /* ============================================
-     BADGES/TAGS - Colored by type
+     BADGES/TAGS - GitHub dark theme
      ============================================ */
   .badge {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
   }
 
-  /* Final - Green */
+  /* Success - Green */
   .badge-success,
   .badge-final {
-    @apply bg-green-500 text-white;
+    background-color: var(--color-success-dark);
+    color: white;
   }
 
-  /* Chi² - Blue */
+  /* Info - Blue */
   .badge-info,
   .badge-chi2 {
-    @apply bg-blue-500 text-white;
+    background-color: var(--color-primary-dark);
+    color: white;
   }
 
-  /* Peak - Red */
+  /* Error - Red */
   .badge-error,
   .badge-peak {
-    @apply bg-red-500 text-white;
+    background-color: var(--color-error-dark);
+    color: white;
   }
 
   /* Warning - Yellow */
   .badge-warning {
-    @apply bg-yellow-500 text-white;
+    background-color: var(--color-warning-dark);
+    color: white;
   }
 
   /* Gray/default */
   .badge-gray,
   .badge-secondary {
-    @apply bg-gray-500 text-white;
+    background-color: var(--color-bg-surface);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
   }
 
-  /* Primary badge - Green */
+  /* Primary badge - Blue */
   .badge-primary {
-    background-color: var(--color-primary-green);
-    @apply text-white;
+    background-color: var(--color-primary-dark);
+    color: white;
   }
 
-  /* Dark badge - Blue */
+  /* Dark badge */
   .badge-dark {
-    background-color: var(--color-primary-blue);
-    @apply text-white;
+    background-color: var(--color-bg-surface);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
   }
 
   /* Outline badges */
   .badge-outline-success {
-    @apply bg-transparent border border-green-500 text-green-600;
+    background-color: transparent;
+    border: 1px solid var(--color-success);
+    color: var(--color-success);
   }
 
   .badge-outline-info {
-    @apply bg-transparent border border-blue-500 text-blue-600;
+    background-color: transparent;
+    border: 1px solid var(--color-primary);
+    color: var(--color-primary);
   }
 
   .badge-outline-error {
-    @apply bg-transparent border border-red-500 text-red-600;
+    background-color: transparent;
+    border: 1px solid var(--color-error);
+    color: var(--color-error);
   }
 
   /* ============================================
-     TABLES - Bootstrap striped + bordered + hover
+     TABLES - GitHub dark theme
      ============================================ */
   .table {
     @apply min-w-full border-collapse;
-    border: 1px solid #dee2e6;
+    border: 1px solid var(--color-border);
   }
 
   .table th {
     @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider;
-    background-color: var(--color-primary-blue);
-    color: white;
-    border: 1px solid #dee2e6;
+    background-color: var(--color-bg-surface);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
   }
 
-  /* Alternating header colors */
+  /* Alternating header accent */
   .table th:nth-child(even) {
-    background-color: var(--color-primary-green);
+    background-color: var(--color-bg-paper);
   }
 
   .table td {
-    @apply px-4 py-3 text-sm text-gray-900;
-    border: 1px solid #dee2e6;
+    @apply px-4 py-3 text-sm;
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
   }
 
   /* Striped rows */
   .table tbody tr:nth-child(odd) {
-    @apply bg-white;
+    background-color: var(--color-bg-paper);
   }
 
   .table tbody tr:nth-child(even) {
-    @apply bg-gray-50;
+    background-color: var(--color-bg-default);
   }
 
   /* Hover effect */
   .table tbody tr:hover {
-    @apply bg-blue-50;
+    background-color: var(--color-bg-surface);
   }
 
   /* Table variants */
@@ -286,13 +375,14 @@
   }
 
   /* ============================================
-     FORMS - 85% width, light gray bg, rounded
+     FORMS - GitHub dark theme
      ============================================ */
   .form-container {
     @apply mx-auto rounded-lg p-6;
     width: 85%;
     max-width: 800px;
-    background-color: #f8f9fa;
+    background-color: var(--color-bg-paper);
+    border: 1px solid var(--color-border);
     box-shadow: var(--card-shadow);
   }
 
@@ -301,31 +391,44 @@
   }
 
   .form-label {
-    @apply block text-sm font-medium text-gray-700 mb-1;
+    @apply block text-sm font-medium mb-1;
+    color: var(--color-text-primary);
   }
 
   .form-control,
   .input {
-    @apply block w-full px-3 py-2 rounded-md border border-gray-300 text-sm;
-    background-color: white;
+    @apply block w-full px-3 py-2 rounded-md border text-sm;
+    background-color: var(--color-bg-default);
+    border-color: var(--color-border);
+    color: var(--color-text-primary);
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+  }
+
+  .form-control::placeholder,
+  .input::placeholder {
+    color: var(--color-text-disabled);
   }
 
   .form-control:focus,
   .input:focus {
     @apply outline-none;
-    border-color: var(--color-primary-green);
-    box-shadow: 0 0 0 3px rgba(79, 195, 161, 0.25);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.25);
   }
 
   .form-control:disabled,
   .input:disabled {
-    @apply bg-gray-100 cursor-not-allowed;
+    background-color: var(--color-bg-surface);
+    color: var(--color-text-disabled);
+    cursor: not-allowed;
   }
 
   .form-select {
-    @apply block w-full px-3 py-2 rounded-md border border-gray-300 text-sm bg-white;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+    @apply block w-full px-3 py-2 rounded-md border text-sm;
+    background-color: var(--color-bg-default);
+    border-color: var(--color-border);
+    color: var(--color-text-primary);
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%238B949E' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
     background-position: right 0.5rem center;
     background-repeat: no-repeat;
     background-size: 1.5em 1.5em;
@@ -337,8 +440,8 @@
 
   .form-select:focus {
     @apply outline-none;
-    border-color: var(--color-primary-green);
-    box-shadow: 0 0 0 3px rgba(79, 195, 161, 0.25);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.25);
   }
 
   .form-check {
@@ -346,75 +449,81 @@
   }
 
   .form-check-input {
-    @apply w-4 h-4 rounded border-gray-300;
-    accent-color: var(--color-primary-green);
+    @apply w-4 h-4 rounded;
+    border-color: var(--color-border);
+    accent-color: var(--color-primary);
   }
 
   .form-text {
-    @apply text-xs text-gray-500 mt-1;
+    @apply text-xs mt-1;
+    color: var(--color-text-secondary);
   }
 
   /* Invalid state */
   .is-invalid {
-    @apply border-red-500;
+    border-color: var(--color-error) !important;
   }
 
   .is-invalid:focus {
-    border-color: #dc3545;
-    box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.25);
+    border-color: var(--color-error);
+    box-shadow: 0 0 0 3px rgba(248, 81, 73, 0.25);
   }
 
   .invalid-feedback {
-    @apply text-xs text-red-600 mt-1;
+    @apply text-xs mt-1;
+    color: var(--color-error);
   }
 
   /* ============================================
-     HEADERS - Theme colors
+     HEADERS - GitHub dark theme
      ============================================ */
   .page-header {
     @apply py-4 px-6 mb-6;
-    background-color: var(--color-primary-blue);
-    color: white;
+    background-color: var(--color-bg-paper);
+    border-bottom: 1px solid var(--color-border);
+    color: var(--color-text-primary);
   }
 
   .page-header-alt {
     @apply py-4 px-6 mb-6;
-    background-color: var(--color-primary-green);
+    background-color: var(--color-primary-dark);
     color: white;
   }
 
   .section-header {
     @apply text-lg font-semibold py-2 px-4 rounded-t;
-    background-color: var(--color-primary-blue);
-    color: white;
+    background-color: var(--color-bg-surface);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border);
+    border-bottom: none;
   }
 
   .section-header-alt {
     @apply text-lg font-semibold py-2 px-4 rounded-t;
-    background-color: var(--color-primary-green);
+    background-color: var(--color-primary-dark);
     color: white;
   }
 
   /* ============================================
-     LINKS
+     LINKS - GitHub dark theme
      ============================================ */
   .link {
-    color: var(--color-primary-green);
+    color: var(--color-primary);
     @apply hover:underline;
   }
 
   .link:hover {
-    color: var(--color-primary-green-dark);
+    color: var(--color-primary-light);
   }
 
   /* External link with icon */
   .external-link {
     @apply inline-flex items-center gap-1;
-    color: var(--color-primary-green);
+    color: var(--color-primary);
   }
 
   .external-link:hover {
-    color: var(--color-primary-green-dark);
+    color: var(--color-primary-light);
     @apply underline;
   }
 
@@ -428,30 +537,38 @@
   }
 
   /* ============================================
-     ALERTS
+     ALERTS - GitHub dark theme
      ============================================ */
   .alert {
     @apply px-4 py-3 rounded-lg border mb-4;
   }
 
   .alert-success {
-    @apply bg-green-50 border-green-200 text-green-800;
+    background-color: rgba(63, 185, 80, 0.15);
+    border-color: var(--color-success-dark);
+    color: var(--color-success-light);
   }
 
   .alert-danger {
-    @apply bg-red-50 border-red-200 text-red-800;
+    background-color: rgba(248, 81, 73, 0.15);
+    border-color: var(--color-error-dark);
+    color: var(--color-error-light);
   }
 
   .alert-warning {
-    @apply bg-yellow-50 border-yellow-200 text-yellow-800;
+    background-color: rgba(210, 153, 34, 0.15);
+    border-color: var(--color-warning-dark);
+    color: var(--color-warning-light);
   }
 
   .alert-info {
-    @apply bg-blue-50 border-blue-200 text-blue-800;
+    background-color: rgba(88, 166, 255, 0.15);
+    border-color: var(--color-primary-dark);
+    color: var(--color-primary-light);
   }
 
   /* ============================================
-     SIDEBAR / NAVIGATION
+     SIDEBAR / NAVIGATION - GitHub dark theme
      ============================================ */
   .sticky-sidebar {
     @apply space-y-6;
@@ -462,12 +579,18 @@
   }
 
   .nav-pills .nav-link {
-    @apply px-3 py-2 rounded text-sm text-gray-700 hover:bg-gray-100;
+    @apply px-3 py-2 rounded text-sm;
+    color: var(--color-text-secondary);
+  }
+
+  .nav-pills .nav-link:hover {
+    background-color: var(--color-bg-surface);
+    color: var(--color-text-primary);
   }
 
   .nav-pills .nav-link.active {
-    background-color: var(--color-primary-green);
-    @apply text-white;
+    background-color: var(--color-primary-dark);
+    color: white;
   }
 }
 
@@ -508,10 +631,10 @@
     top: 0;
     z-index: 50;
     width: 100%;
-    background: white;
+    background: var(--color-bg-paper);
     padding-bottom: 0.5rem;
     margin-bottom: 1rem;
-    border-bottom: 1px solid theme("colors.gray.200");
+    border-bottom: 1px solid var(--color-border);
   }
 }
 
@@ -526,21 +649,29 @@
   animation: spin 0.75s linear infinite;
 }
 
-/* Widget styles */
+/* Widget styles - GitHub dark theme */
 .widget-container {
-  @apply bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden;
+  background-color: var(--color-bg-paper);
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
 }
 
 .widget-header {
-  @apply px-4 py-3 bg-gray-50 border-b border-gray-200 flex items-center justify-between;
+  @apply px-4 py-3 flex items-center justify-between;
+  background-color: var(--color-bg-surface);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .widget-title {
-  @apply text-sm font-medium text-gray-700;
+  @apply text-sm font-medium;
+  color: var(--color-text-primary);
 }
 
 .widget-body {
   @apply p-4;
+  color: var(--color-text-primary);
 }
 
 /* Aladin Lite overrides */
