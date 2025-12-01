@@ -133,7 +133,7 @@ async def check_http_service(
                     details = response.json()
                     if details.get("status") == "degraded":
                         status = ServiceStatus.DEGRADED
-                except Exception:
+                except ValueError:
                     pass
             
             return ServiceHealthResult(
@@ -168,7 +168,7 @@ async def check_http_service(
             last_checked=datetime.utcnow(),
             error="Connection timeout",
         )
-    except Exception as e:
+    except httpx.RequestError as e:
         elapsed = (time.perf_counter() - start_time) * 1000
         return ServiceHealthResult(
             name=service.name,
