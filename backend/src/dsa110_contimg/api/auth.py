@@ -119,6 +119,7 @@ def decode_jwt(token: str) -> Optional[dict]:
     
     try:
         import jwt
+        from jwt.exceptions import PyJWTError
         # Add leeway to handle clock skew between token creation and verification
         payload = jwt.decode(
             token, 
@@ -130,7 +131,7 @@ def decode_jwt(token: str) -> Optional[dict]:
     except ImportError:
         logger.warning("PyJWT not installed - JWT auth disabled")
         return None
-    except Exception as e:
+    except PyJWTError as e:
         logger.debug(f"JWT decode failed: {e}")
         return None
 

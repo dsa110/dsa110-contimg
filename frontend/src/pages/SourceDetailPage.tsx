@@ -355,13 +355,15 @@ const SourceDetailPage: React.FC = () => {
             }
           >
             {showNearbyPanel && (
-              <NearbyObjectsPanel
-                raDeg={sourceData.ra_deg}
-                decDeg={sourceData.dec_deg}
-                initialRadius={2}
-                maxRadius={30}
-                onSearch={handleNearbySearch}
-              />
+              <WidgetErrorBoundary widgetName="Nearby Objects" minHeight={150}>
+                <NearbyObjectsPanel
+                  raDeg={sourceData.ra_deg}
+                  decDeg={sourceData.dec_deg}
+                  initialRadius={2}
+                  maxRadius={30}
+                  onSearch={handleNearbySearch}
+                />
+              </WidgetErrorBoundary>
             )}
             {!showNearbyPanel && (
               <p className="text-sm text-gray-500">
