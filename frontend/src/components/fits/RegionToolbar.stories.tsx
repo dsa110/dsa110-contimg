@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { action } from "@storybook/addon-actions";
+import { fn } from "storybook/test";
 import RegionToolbar from "./RegionToolbar";
 
 /**
@@ -56,8 +56,8 @@ format selector, and export/save buttons.
   },
   args: {
     displayId: "JS9",
-    onSave: action("onSave"),
-    onChange: action("onChange"),
+    onSave: fn(),
+    onChange: fn(),
   },
 } satisfies Meta<typeof RegionToolbar>;
 

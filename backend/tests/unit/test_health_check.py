@@ -5,6 +5,8 @@ Tests for:
 - Basic health check
 - Detailed health check with database, Redis, and disk checks
 - Health status determination (healthy, degraded)
+
+Uses the shared client fixture from conftest.py that provides test databases.
 """
 
 import os
@@ -18,12 +20,7 @@ from fastapi.testclient import TestClient
 from dsa110_contimg.api.app import create_app
 
 
-@pytest.fixture
-def client():
-    """Create a test client for the API."""
-    with patch("dsa110_contimg.api.app.is_ip_allowed", return_value=True):
-        app = create_app()
-        yield TestClient(app)
+# Note: Uses client fixture from conftest.py
 
 
 class TestBasicHealthCheck:

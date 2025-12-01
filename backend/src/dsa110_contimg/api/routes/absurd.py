@@ -25,7 +25,7 @@ from pydantic import BaseModel, Field  # type: ignore[import-not-found]
 
 from dsa110_contimg.absurd import AbsurdClient, AbsurdConfig
 from dsa110_contimg.absurd.monitoring import AbsurdMonitor, TaskMetrics
-from dsa110_contimg.api.websocket_manager import manager
+from dsa110_contimg.api.websocket import manager
 
 logger = logging.getLogger(__name__)
 
@@ -231,6 +231,17 @@ async def shutdown_absurd() -> None:
         _client = None
         _monitor = None
         logger.info(":white_heavy_check_mark: Absurd client shutdown complete")
+
+
+# Alias functions for app.py lifespan integration
+async def init_absurd_client(config: AbsurdConfig) -> None:
+    """Alias for initialize_absurd for lifespan integration."""
+    await initialize_absurd(config)
+
+
+async def shutdown_absurd_client() -> None:
+    """Alias for shutdown_absurd for lifespan integration."""
+    await shutdown_absurd()
 
 
 # API endpoints

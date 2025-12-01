@@ -7,6 +7,8 @@ Tests for:
 - Error responses have proper format
 - Content types are correct
 - Pagination works correctly
+
+Uses the shared client fixture from conftest.py that provides test databases.
 """
 
 import pytest
@@ -29,12 +31,7 @@ def assert_error_response(data: dict, context: str = ""):
     assert has_new_format or has_old_format, f"{context} Response should have error structure: {data}"
 
 
-@pytest.fixture
-def client():
-    """Create a test client for the API."""
-    with patch("dsa110_contimg.api.app.is_ip_allowed", return_value=True):
-        app = create_app()
-        yield TestClient(app)
+# Note: Uses client fixture from conftest.py
 
 
 class TestPageHealthImages:

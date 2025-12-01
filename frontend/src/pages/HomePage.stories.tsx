@@ -60,6 +60,24 @@ const mockJobs = [
   { id: "job-003", run_id: "run-2025-11-30-003", status: "pending" },
 ];
 
+const mockPipelineStatus = {
+  stages: {
+    "convert-uvh5-to-ms": { pending: 0, running: 1, completed: 3, failed: 0 },
+    "calibration-solve": { pending: 1, running: 0, completed: 2, failed: 0 },
+    "calibration-apply": { pending: 0, running: 0, completed: 2, failed: 0 },
+    imaging: { pending: 0, running: 0, completed: 4, failed: 0 },
+    validation: { pending: 0, running: 0, completed: 3, failed: 0 },
+    crossmatch: { pending: 0, running: 0, completed: 3, failed: 0 },
+    photometry: { pending: 0, running: 0, completed: 3, failed: 0 },
+    "catalog-setup": { pending: 0, running: 0, completed: 3, failed: 0 },
+    "organize-files": { pending: 0, running: 0, completed: 3, failed: 0 },
+  },
+  total: { pending: 1, running: 1, completed: 23, failed: 0 },
+  worker_count: 12,
+  last_updated: "2025-11-30T15:00:00Z",
+  is_healthy: true,
+};
+
 // Large dataset for stress testing
 const generateLargeDataset = (count: number) => {
   const images = [];
@@ -120,6 +138,7 @@ const meta = {
         queryClient.setQueryData(["images"], mockData._mockImages ?? []);
         queryClient.setQueryData(["sources"], mockData._mockSources ?? []);
         queryClient.setQueryData(["jobs"], mockData._mockJobs ?? []);
+        queryClient.setQueryData(["absurd", "status"], mockPipelineStatus);
       }
 
       return (

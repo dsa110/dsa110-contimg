@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { action } from "@storybook/addon-actions";
+import { fn } from "storybook/test";
 import MaskToolbar from "./MaskToolbar";
 
 /**
@@ -60,8 +60,8 @@ masks are:
   args: {
     displayId: "JS9",
     imageId: "test-image-123",
-    onMaskSaved: action("onMaskSaved"),
-    onModeChange: action("onModeChange"),
+    onMaskSaved: fn(),
+    onModeChange: fn(),
   },
 } satisfies Meta<typeof MaskToolbar>;
 

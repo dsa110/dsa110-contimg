@@ -7,6 +7,14 @@ src/dsa110_contimg.egg-info/dependency_links.txt
 src/dsa110_contimg.egg-info/entry_points.txt
 src/dsa110_contimg.egg-info/requires.txt
 src/dsa110_contimg.egg-info/top_level.txt
+src/dsa110_contimg/absurd/__init__.py
+src/dsa110_contimg/absurd/adapter.py
+src/dsa110_contimg/absurd/client.py
+src/dsa110_contimg/absurd/config.py
+src/dsa110_contimg/absurd/dependencies.py
+src/dsa110_contimg/absurd/monitoring.py
+src/dsa110_contimg/absurd/scheduling.py
+src/dsa110_contimg/absurd/worker.py
 src/dsa110_contimg/api/__init__.py
 src/dsa110_contimg/api/app.py
 src/dsa110_contimg/api/auth.py
@@ -21,6 +29,7 @@ src/dsa110_contimg/api/interfaces.py
 src/dsa110_contimg/api/job_queue.py
 src/dsa110_contimg/api/logging_config.py
 src/dsa110_contimg/api/metrics.py
+src/dsa110_contimg/api/query_batch.py
 src/dsa110_contimg/api/rate_limit.py
 src/dsa110_contimg/api/repositories.py
 src/dsa110_contimg/api/schemas.py
@@ -43,10 +52,12 @@ src/dsa110_contimg/api/middleware/exception_handler.py
 src/dsa110_contimg/api/migrations/env.py
 src/dsa110_contimg/api/migrations/versions/001_initial_schema.py
 src/dsa110_contimg/api/routes/__init__.py
+src/dsa110_contimg/api/routes/absurd.py
 src/dsa110_contimg/api/routes/cache.py
 src/dsa110_contimg/api/routes/cal.py
 src/dsa110_contimg/api/routes/common.py
 src/dsa110_contimg/api/routes/images.py
+src/dsa110_contimg/api/routes/imaging.py
 src/dsa110_contimg/api/routes/jobs.py
 src/dsa110_contimg/api/routes/logs.py
 src/dsa110_contimg/api/routes/ms.py
@@ -57,6 +68,7 @@ src/dsa110_contimg/api/routes/sources.py
 src/dsa110_contimg/api/routes/stats.py
 src/dsa110_contimg/api/services/__init__.py
 src/dsa110_contimg/api/services/async_services.py
+src/dsa110_contimg/api/services/bokeh_sessions.py
 src/dsa110_contimg/api/services/fits_service.py
 src/dsa110_contimg/api/services/qa_service.py
 src/dsa110_contimg/api/services/stats_service.py
@@ -121,6 +133,7 @@ src/dsa110_contimg/database/products.py
 src/dsa110_contimg/database/provenance.py
 src/dsa110_contimg/database/registry.py
 src/dsa110_contimg/database/repositories.py
+src/dsa110_contimg/database/schema.py
 src/dsa110_contimg/database/session.py
 src/dsa110_contimg/docsearch/__init__.py
 src/dsa110_contimg/docsearch/cli.py
@@ -158,7 +171,11 @@ src/dsa110_contimg/photometry/thresholds.py
 src/dsa110_contimg/photometry/variability.py
 src/dsa110_contimg/photometry/worker.py
 src/dsa110_contimg/pipeline/__init__.py
+src/dsa110_contimg/pipeline/config.py
+src/dsa110_contimg/pipeline/context.py
+src/dsa110_contimg/pipeline/stages.py
 src/dsa110_contimg/pipeline/stages_impl.py
+src/dsa110_contimg/pipeline/state.py
 src/dsa110_contimg/simulation/__init__.py
 src/dsa110_contimg/simulation/generate_uvh5.py
 src/dsa110_contimg/utils/__init__.py

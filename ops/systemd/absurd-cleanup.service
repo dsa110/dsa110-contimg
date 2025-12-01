@@ -1,0 +1,13 @@
+[Unit]
+Description=ABSURD Recovery File Cleanup
+After=network.target
+
+[Service]
+Type=oneshot
+User=ubuntu
+ExecStart=/bin/bash -c '\
+    RECOVERY_DIR=/data/dsa110-contimg/state/absurd_recovery && \
+    if [[ -d "$RECOVERY_DIR" ]]; then \
+        find "$RECOVERY_DIR" -name "*.json" -mtime +7 -delete && \
+        echo "Cleaned up old recovery files" \
+    fi'

@@ -1,0 +1,9 @@
+[Unit]
+Description=Daily ABSURD Recovery Cleanup
+
+[Timer]
+OnCalendar=daily
+Persistent=true
+
+[Install]
+WantedBy=timers.target

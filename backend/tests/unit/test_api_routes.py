@@ -2,6 +2,7 @@
 Unit tests for API routes - sources, jobs, queue, stats, and cal.
 
 These tests verify route handlers work correctly with mocked dependencies.
+Uses the shared client fixture from conftest.py that provides test databases.
 """
 
 import pytest
@@ -18,13 +19,7 @@ def assert_error_response(data: dict, message: str = ""):
     assert has_new_format or has_old_format, f"Response should have error structure: {data}"
 
 
-@pytest.fixture
-def client():
-    """Create a test client for the API."""
-    with patch("dsa110_contimg.api.app.is_ip_allowed", return_value=True):
-        from dsa110_contimg.api.app import create_app
-        app = create_app()
-        yield TestClient(app)
+# Note: Uses client fixture from conftest.py
 
 
 class TestSourcesRoutes:

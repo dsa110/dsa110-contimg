@@ -1,5 +1,5 @@
 [Unit]
-Description=DSA-110 ABSURD Workflow Worker
+Description=DSA-110 ABSURD Workflow Worker %i
 Documentation=file:///data/dsa110-contimg/docs/guides/absurd-deployment-plan.md
 After=network.target postgresql.service
 Wants=postgresql.service
@@ -12,6 +12,7 @@ WorkingDirectory=/data/dsa110-contimg/backend
 
 # Environment
 EnvironmentFile=/data/dsa110-contimg/ops/systemd/contimg.env
+Environment=ABSURD_WORKER_ID=worker-%i
 
 # Activate conda environment and run worker
 ExecStart=/bin/bash -c 'source /opt/miniforge/etc/profile.d/conda.sh && \
@@ -29,8 +30,8 @@ MemoryMax=64G
 CPUQuota=800%
 
 # Logging
-StandardOutput=append:/data/dsa110-contimg/state/logs/absurd-worker.log
-StandardError=append:/data/dsa110-contimg/state/logs/absurd-worker.log
+StandardOutput=append:/data/dsa110-contimg/state/logs/absurd-worker-%i.log
+StandardError=append:/data/dsa110-contimg/state/logs/absurd-worker-%i.log
 
 # Watchdog for health monitoring
 WatchdogSec=120
