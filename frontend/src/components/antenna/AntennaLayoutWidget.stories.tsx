@@ -308,3 +308,172 @@ export const WithClickHandler: Story = {
     },
   },
 };
+
+// =============================================================================
+// Edge Cases & Realistic Scenarios
+// =============================================================================
+
+/**
+ * Sparse array with only 10 antennas (test case)
+ */
+export const SparseArray: Story = {
+  args: {
+    data: generateMockAntennas(10, "good"),
+    height: 250,
+    showLegend: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: "Minimal array configuration for edge case testing.",
+      },
+    },
+  },
+};
+
+/**
+ * Single problematic antenna highlighted
+ */
+export const SingleFlaggedAntenna: Story = {
+  args: {
+    data: (() => {
+      const data = generateMockAntennas(63, "good");
+      // Make one antenna severely flagged
+      data.antennas[15].flagged_pct = 85;
+      data.antennas[15].name = "DSA-016 (FLAGGED)";
+      return data;
+    })(),
+    height: 300,
+    showLegend: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Scenario where most antennas are good but one has severe flagging.",
+      },
+    },
+  },
+};
+
+/**
+ * RFI contamination pattern - cluster of bad antennas
+ */
+export const RFIContamination: Story = {
+  args: {
+    data: (() => {
+      const data = generateMockAntennas(63, "good");
+      // Simulate RFI affecting a cluster of antennas on the E-W arm
+      for (let i = 20; i < 30; i++) {
+        data.antennas[i].flagged_pct = 40 + Math.random() * 40;
+      }
+      return data;
+    })(),
+    height: 300,
+    showLegend: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "RFI contamination affecting a cluster of adjacent antennas on the East-West arm.",
+      },
+    },
+  },
+};
+
+/**
+ * Maintenance scenario - multiple antennas offline
+ */
+export const MaintenanceMode: Story = {
+  args: {
+    data: (() => {
+      const data = generateMockAntennas(63, "good");
+      // 5 antennas fully flagged (offline for maintenance)
+      [5, 22, 38, 45, 60].forEach((idx) => {
+        if (data.antennas[idx]) {
+          data.antennas[idx].flagged_pct = 100;
+          data.antennas[idx].baseline_count = 0;
+        }
+      });
+      return data;
+    })(),
+    height: 300,
+    showLegend: true,
+  },
+  parameters: {
+    docs: {
+      description: {
+        story: "Scenario with 5 antennas offline for scheduled maintenance.",
+      },
+    },
+  },
+};
+
+/**
+ * Mobile/responsive view
+ */
+export const ResponsiveSmall: Story = {
+  args: {
+    data: generateMockAntennas(63, "mixed"),
+    height: 180,
+    showLegend: false,
+  },
+  parameters: {
+    viewport: { defaultViewport: "mobile1" },
+    docs: {
+      description: {
+        story: "Compact view optimized for mobile devices.",
+      },
+    },
+  },
+};
+
+/**
+ * Large display for control room
+ */
+export const ControlRoomDisplay: Story = {
+  args: {
+    data: generateMockAntennas(110, "mixed"),
+    height: 600,
+    showLegend: true,
+  },
+  parameters: {
+    layout: "fullscreen",
+    docs: {
+      description: {
+        story: "Large format display for observatory control room.",
+      },
+    },
+  },
+};
+
+/**
+ * In card container (typical usage in dashboard)
+ */
+export const InDashboardCard: Story = {
+  render: (args) => (
+    <div className="bg-white rounded-lg shadow-md p-4">
+      <div className="flex justify-between items-center mb-3">
+        <h3 className="text-lg font-semibold">Array Status</h3>
+        <span className="text-xs text-gray-500">
+          Last updated: 2 min ago
+        </span>
+      </div>
+      <MockAntennaLayout {...args} />
+      <div className="mt-3 pt-3 border-t border-gray-200 flex justify-between text-sm">
+        <span className="text-gray-600">
+          Observation: 2025-12-01T14:30:00
+        </span>
+        <a href="#" className="text-blue-600 hover:underline">
+          View Details →
+        </a>
+      </div>
+    </div>
+  ),
+  args: {
+    data: generateMockAntennas(63, "mixed"),
+    height: 280,
+    showLegend: true,
+  },
+};

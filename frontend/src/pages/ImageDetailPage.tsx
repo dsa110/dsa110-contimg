@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import ProvenanceStrip from "../components/provenance/ProvenanceStrip";
 import ErrorDisplay from "../components/errors/ErrorDisplay";
@@ -12,7 +12,8 @@ import {
   QAMetrics,
 } from "../components/common";
 import { AladinLiteViewer, GifPlayer } from "../components/widgets";
-import { FitsViewer } from "../components/fits";
+import { FitsViewer, MaskToolbar, RegionToolbar } from "../components/fits";
+import type { Region, RegionFormat } from "../components/fits";
 import { RatingCard, RatingTag } from "../components/rating";
 import { mapProvenanceFromImageDetail } from "../utils/provenanceMappers";
 import { relativeTime } from "../utils/relativeTime";
@@ -48,6 +49,19 @@ const ImageDetailPage: React.FC = () => {
   const [showFitsViewer, setShowFitsViewer] = useState(false);
   const [showGifPlayer, setShowGifPlayer] = useState(false);
   const [showRatingCard, setShowRatingCard] = useState(false);
+  const [showMaskTools, setShowMaskTools] = useState(false);
+  const [showRegionTools, setShowRegionTools] = useState(false);
+
+  // Handlers for region/mask tools
+  const handleRegionSave = useCallback((regions: Region[], format: RegionFormat) => {
+    logger.info("Saving regions", { count: regions.length, format });
+    // TODO: Implement region save to backend
+  }, []);
+
+  const handleMaskSaved = useCallback((maskPath: string) => {
+    logger.info("Mask saved", { path: maskPath });
+    // Optionally show a toast notification
+  }, []);
 
   // Rating tags for QA assessment
   const ratingTags: RatingTag[] = [
@@ -145,6 +159,34 @@ const ImageDetailPage: React.FC = () => {
               >
                 {showRatingCard ? "Hide" : "Show"} Rating
               </button>
+
+              {/* Separator for analysis tools */}
+              <div className="border-t border-gray-200 my-2" />
+              <p className="text-xs text-gray-500 uppercase tracking-wide">Analysis Tools</p>
+
+              <button
+                type="button"
+                className={`btn ${showMaskTools ? "btn-primary" : "btn-secondary"}`}
+                onClick={() => {
+                  setShowMaskTools(!showMaskTools);
+                  if (!showFitsViewer && !showMaskTools) setShowFitsViewer(true);
+                }}
+              >
+                {showMaskTools ? "Hide" : "Show"} Mask Tools
+              </button>
+              <button
+                type="button"
+                className={`btn ${showRegionTools ? "btn-primary" : "btn-secondary"}`}
+                onClick={() => {
+                  setShowRegionTools(!showRegionTools);
+                  if (!showFitsViewer && !showRegionTools) setShowFitsViewer(true);
+                }}
+              >
+                {showRegionTools ? "Hide" : "Show"} Region Tools
+              </button>
+
+              <div className="border-t border-gray-200 my-2" />
+
               {imageData.qa_grade && (
                 <Link to={`/qa/image/${encodedImageId}`} className="btn btn-secondary text-center">
                   View QA Report
@@ -216,6 +258,35 @@ const ImageDetailPage: React.FC = () => {
                   }
                 />
               </WidgetErrorBoundary>
+
+              {/* Mask Tools - shown below FITS viewer when enabled */}
+              {showMaskTools && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Clean Mask Tools</h4>
+                  <p className="text-xs text-gray-500 mb-3">
+                    Draw mask regions to use during re-imaging. Masks are saved in DS9 format.
+                  </p>
+                  <MaskToolbar
+                    displayId={`fits-${encodedImageId}`}
+                    imageId={imageId || ""}
+                    onMaskSaved={handleMaskSaved}
+                  />
+                </div>
+              )}
+
+              {/* Region Tools - shown below FITS viewer when enabled */}
+              {showRegionTools && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <h4 className="text-sm font-medium text-gray-700 mb-2">Region Tools</h4>
+                  <p className="text-xs text-gray-500 mb-3">
+                    Draw and export regions in DS9, CRTF, or JSON format.
+                  </p>
+                  <RegionToolbar
+                    displayId={`fits-${encodedImageId}`}
+                    onSave={handleRegionSave}
+                  />
+                </div>
+              )}
             </Card>
           )}
 
