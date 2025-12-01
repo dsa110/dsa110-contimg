@@ -67,7 +67,10 @@ const generateLargeDataset = (count: number) => {
   for (let i = 0; i < count; i++) {
     images.push({
       id: `img-${String(i).padStart(4, "0")}`,
-      path: `/data/images/2025-11-${String((i % 30) + 1).padStart(2, "0")}T${String(i % 24).padStart(2, "0")}-00-00.fits`,
+      path: `/data/images/2025-11-${String((i % 30) + 1).padStart(
+        2,
+        "0"
+      )}T${String(i % 24).padStart(2, "0")}-00-00.fits`,
       qa_grade: grades[i % grades.length],
       created_at: new Date(Date.now() - i * 3600000).toISOString(),
       pointing_ra_deg: (i * 15) % 360,
@@ -210,7 +213,9 @@ export const LargeDataset: Story = {
     })),
     _mockJobs: Array.from({ length: 25 }, (_, i) => ({
       id: `job-${i}`,
-      run_id: `run-2025-11-${String((i % 30) + 1).padStart(2, "0")}-${String(i).padStart(3, "0")}`,
+      run_id: `run-2025-11-${String((i % 30) + 1).padStart(2, "0")}-${String(
+        i
+      ).padStart(3, "0")}`,
       status: ["completed", "running", "pending", "failed"][i % 4],
     })),
   } as any,
@@ -221,7 +226,10 @@ export const LargeDataset: Story = {
  */
 export const AllGood: Story = {
   args: {
-    _mockImages: mockImages.map((img) => ({ ...img, qa_grade: "good" as const })),
+    _mockImages: mockImages.map((img) => ({
+      ...img,
+      qa_grade: "good" as const,
+    })),
     _mockSources: mockSources,
     _mockJobs: mockJobs.map((job) => ({ ...job, status: "completed" })),
   } as any,
