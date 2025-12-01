@@ -3,6 +3,8 @@
  * Provides consistent retry behavior for VizieR, Sesame, and other external APIs.
  */
 
+import { logger } from "./logger";
+
 export interface RetryConfig {
   /** Maximum number of retry attempts (default: 3) */
   maxRetries: number;
@@ -185,7 +187,7 @@ export async function fetchWithRetry(
       lastResponse = response;
       const delay = calculateDelay(attempt, fullConfig, response.headers.get("Retry-After"));
 
-      console.debug(
+      logger.debug(
         `[fetchWithRetry] Retryable status ${response.status} for ${url}, ` +
           `attempt ${attempt + 1}/${fullConfig.maxRetries + 1}, waiting ${delay}ms`
       );
@@ -214,7 +216,7 @@ export async function fetchWithRetry(
       }
 
       const delay = calculateDelay(attempt, fullConfig);
-      console.debug(
+      logger.debug(
         `[fetchWithRetry] Network error for ${url}, ` +
           `attempt ${attempt + 1}/${fullConfig.maxRetries + 1}, waiting ${delay}ms: ${
             lastError.message
