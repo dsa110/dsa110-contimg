@@ -267,6 +267,20 @@ def get_all_upcoming_transits(
     return sorted(predictions, key=lambda p: p.transit_utc)
 
 
+# Alias for backwards compatibility
+def get_upcoming_transits(
+    n_hours: float = 24.0,
+    calibrators: Optional[Dict] = None,
+    from_time: Optional[datetime] = None,
+) -> List[TransitPrediction]:
+    """Alias for get_all_upcoming_transits with n_hours parameter."""
+    return get_all_upcoming_transits(
+        hours_ahead=n_hours,
+        calibrators=calibrators,
+        from_time=from_time,
+    )
+
+
 def get_active_calibrator(
     window_minutes: float = 5.0,
     calibrators: Optional[Dict] = None,

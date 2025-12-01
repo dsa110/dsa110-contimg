@@ -15,16 +15,22 @@ The pointing monitor runs as a systemd service that:
 
 from .monitor import (
     PointingMonitor,
+    PointingStatus,
     TransitPrediction,
+    calculate_elevation,
     calculate_lst,
-    predict_calibrator_transit,
     get_active_calibrator,
+    get_upcoming_transits,
+    predict_calibrator_transit,
 )
 
 __all__ = [
     "PointingMonitor",
+    "PointingStatus",
     "TransitPrediction",
+    "calculate_elevation",
     "calculate_lst",
-    "predict_calibrator_transit",
     "get_active_calibrator",
+    "get_upcoming_transits",
+    "predict_calibrator_transit",
 ]
