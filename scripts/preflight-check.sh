@@ -6,6 +6,7 @@ set -e
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m'
 
 ERRORS=0
@@ -26,6 +27,15 @@ warn() {
     else
         echo -e "${YELLOW}:warning:${NC} $1 (optional)"
         ((WARNINGS++)) || true
+    fi
+}
+
+# Informational check - always shows as info, no warning count
+info() {
+    if eval "$2" >/dev/null 2>&1; then  # suppress-output-check
+        echo -e "${GREEN}:check:${NC} $1"
+    else
+        echo -e "${BLUE}ℹ${NC} $1"
     fi
 }
 
@@ -57,9 +67,9 @@ warn "dashboard running" "systemctl is-active --quiet dsa110-contimg-dashboard"
 
 echo ""
 echo "--- Ports ---"
-warn "Port 8000 (API) available or in use by our service" "! lsof -i :8000 >/dev/null 2>&1 || systemctl is-active --quiet contimg-api"  # suppress-output-check
-warn "Port 3210 (Dashboard) available or in use by our service" "! lsof -i :3210 >/dev/null 2>&1 || systemctl is-active --quiet dsa110-contimg-dashboard"  # suppress-output-check
-warn "Port 3000 (Dev) available" "! lsof -i :3000 >/dev/null 2>&1"  # suppress-output-check
+check "Port 8000 (API) available or in use by our service" "! lsof -i :8000 >/dev/null 2>&1 || systemctl is-active --quiet contimg-api"  # suppress-output-check
+check "Port 3210 (Dashboard) available or in use by our service" "! lsof -i :3210 >/dev/null 2>&1 || systemctl is-active --quiet dsa110-contimg-dashboard"  # suppress-output-check
+info "Port 3000 (Dev server) not running - start with 'npm run dev' if needed" "lsof -i :3000 >/dev/null 2>&1"  # suppress-output-check
 
 echo ""
 echo "--- Frontend Build ---"
