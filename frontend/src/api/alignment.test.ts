@@ -37,6 +37,7 @@ import type {
   AbsurdHealth,
   Workflow,
   WorkflowDetail,
+  Alert,
 } from "../types/absurd";
 
 import type {
@@ -50,6 +51,27 @@ import type {
   JobStatus,
   ProvenanceStripProps,
 } from "../types";
+
+// Import calibrator imaging types (defined in hooks)
+import type {
+  CalibratorInfo,
+  TransitInfo,
+  ObservationInfo,
+  MSGenerationResponse,
+  CalibrationResponse,
+  ImagingResponse,
+  JobInfo,
+  PhotometryResult,
+  HealthStatus,
+} from "../hooks/useCalibratorImaging";
+
+// Import imaging session types (defined in hooks)
+import type {
+  ImagingSession,
+  ImagingSessionsResponse,
+  ImagingDefaults,
+  InteractiveCleanResponse,
+} from "../hooks/useQueries";
 
 // =============================================================================
 // Type-safe validation helpers
@@ -255,6 +277,264 @@ const FIXTURES = {
     last_seen: "2025-06-02T12:00:00Z",
     uptime_seconds: 129600,
   } satisfies Worker,
+
+  // --- Additional Absurd API fixtures ---
+  taskListResponse: {
+    tasks: [
+      {
+        task_id: "task-123",
+        queue_name: "default",
+        task_name: "process_image",
+        params: { image_id: "img-456" },
+        priority: 0,
+        status: "completed",
+        created_at: "2025-06-02T10:00:00Z",
+        claimed_at: "2025-06-02T10:01:00Z",
+        completed_at: "2025-06-02T10:05:00Z",
+        result: { success: true },
+        error: null,
+        retry_count: 0,
+      },
+    ],
+    total: 1,
+  } satisfies TaskListResponse,
+
+  workerListResponse: {
+    workers: [
+      {
+        worker_id: "worker-abc",
+        state: "active",
+        task_count: 50,
+        current_task_id: "task-789",
+        first_seen: "2025-06-01T00:00:00Z",
+        last_seen: "2025-06-02T12:00:00Z",
+        uptime_seconds: 129600,
+      },
+    ],
+    total: 1,
+    active: 1,
+    idle: 0,
+    stale: 0,
+    crashed: 0,
+  } satisfies WorkerListResponse,
+
+  workerMetrics: {
+    total_workers: 4,
+    active_workers: 2,
+    idle_workers: 2,
+    crashed_workers: 0,
+    timed_out_workers: 0,
+    avg_tasks_per_worker: 25.0,
+    avg_worker_uptime_sec: 3600.0,
+  } satisfies WorkerMetrics,
+
+  absurdMetrics: {
+    total_spawned: 1000,
+    total_claimed: 995,
+    total_completed: 980,
+    total_failed: 10,
+    total_cancelled: 5,
+    total_timed_out: 0,
+    current_pending: 5,
+    current_claimed: 10,
+    avg_wait_time_sec: 0.5,
+    avg_execution_time_sec: 30.0,
+    p50_wait_time_sec: 0.3,
+    p95_wait_time_sec: 1.0,
+    p99_wait_time_sec: 2.0,
+    p50_execution_time_sec: 25.0,
+    p95_execution_time_sec: 60.0,
+    p99_execution_time_sec: 120.0,
+    throughput_1min: 10.0,
+    throughput_5min: 8.0,
+    throughput_15min: 7.5,
+    success_rate_1min: 0.98,
+    success_rate_5min: 0.97,
+    success_rate_15min: 0.98,
+    error_rate_1min: 0.02,
+    error_rate_5min: 0.03,
+    error_rate_15min: 0.02,
+  } satisfies AbsurdMetrics,
+
+  absurdHealth: {
+    status: "healthy",
+    message: "All systems operational",
+    queue_depth: 5,
+    database_available: true,
+    worker_pool_healthy: true,
+    alerts: [],
+    warnings: [],
+  } satisfies AbsurdHealth,
+
+  workflow: {
+    workflow_id: "wf-123",
+    name: "calibration_pipeline",
+    status: "completed",
+    task_count: 3,
+    completed_tasks: 3,
+    failed_tasks: 0,
+    created_at: "2025-06-02T09:00:00Z",
+    started_at: "2025-06-02T09:01:00Z",
+    completed_at: "2025-06-02T09:30:00Z",
+    metadata: { calibrator: "3C286" },
+  } satisfies Workflow,
+
+  workflowDetail: {
+    workflow_id: "wf-123",
+    name: "calibration_pipeline",
+    status: "completed",
+    task_count: 3,
+    completed_tasks: 3,
+    failed_tasks: 0,
+    created_at: "2025-06-02T09:00:00Z",
+    started_at: "2025-06-02T09:01:00Z",
+    completed_at: "2025-06-02T09:30:00Z",
+    metadata: { calibrator: "3C286" },
+    tasks: [
+      {
+        task_id: "task-1",
+        task_name: "generate_ms",
+        status: "completed",
+        depends_on: [],
+        result: { ms_path: "/data/ms/out.ms" },
+        error: null,
+      },
+    ],
+    dag_edges: [["task-1", "task-2"]],
+  } satisfies WorkflowDetail,
+
+  // --- Calibrator Imaging fixtures ---
+  calibratorInfo: {
+    id: 1,
+    name: "3C286",
+    ra_deg: 202.78,
+    dec_deg: 30.51,
+    flux_jy: 14.5,
+    status: "active",
+  } satisfies CalibratorInfo,
+
+  transitInfo: {
+    transit_time_iso: "2025-06-02T14:00:00Z",
+    transit_time_mjd: 60460.5833,
+    has_data: true,
+    num_subband_groups: 1,
+    observation_ids: ["obs_20250602_140000"],
+  } satisfies TransitInfo,
+
+  observationInfo: {
+    observation_id: "obs_20250602_140000",
+    start_time_iso: "2025-06-02T13:57:30Z",
+    mid_time_iso: "2025-06-02T14:00:00Z",
+    end_time_iso: "2025-06-02T14:02:30Z",
+    num_subbands: 16,
+    file_paths: ["/data/incoming/2025-06-02T14:00:00_sb00.hdf5"],
+    delta_from_transit_min: 0.0,
+  } satisfies ObservationInfo,
+
+  msGenerationResponse: {
+    job_id: "job-ms-001",
+    status: "completed",
+    ms_path: "/stage/dsa110-contimg/ms/3C286_20250602.ms",
+  } satisfies MSGenerationResponse,
+
+  calibrationResponse: {
+    job_id: "job-cal-001",
+    status: "completed",
+    cal_table_path: "/stage/dsa110-contimg/cal/3C286_bp.caltable",
+  } satisfies CalibrationResponse,
+
+  imagingResponse: {
+    job_id: "job-img-001",
+    status: "completed",
+    image_path: "/stage/dsa110-contimg/images/3C286_20250602.fits",
+  } satisfies ImagingResponse,
+
+  jobInfo: {
+    job_id: "job-001",
+    job_type: "imaging",
+    status: "completed",
+    created_at: "2025-06-02T10:00:00Z",
+    started_at: "2025-06-02T10:01:00Z",
+    completed_at: "2025-06-02T10:05:00Z",
+    error_message: null,
+    result: { image_path: "/data/images/out.fits" },
+  } satisfies JobInfo,
+
+  photometryResult: {
+    source_name: "3C286",
+    ra_deg: 202.78,
+    dec_deg: 30.51,
+    peak_flux_jy: 14.2,
+    integrated_flux_jy: 14.5,
+    rms_jy: 0.001,
+    snr: 14200,
+  } satisfies PhotometryResult,
+
+  calibratorImagingHealthStatus: {
+    status: "healthy",
+    hdf5_db_exists: true,
+    calibrators_db_exists: true,
+    incoming_dir_exists: true,
+    output_ms_dir_exists: true,
+    output_images_dir_exists: true,
+  } satisfies HealthStatus,
+
+  // --- Interactive Imaging fixtures ---
+  imagingSession: {
+    id: "session-abc",
+    port: 9100,
+    url: "http://localhost:9100",
+    ms_path: "/data/ms/observation.ms",
+    imagename: "observation_interactive",
+    created_at: "2025-06-02T10:00:00Z",
+    age_hours: 1.5,
+    is_alive: true,
+  } satisfies ImagingSession,
+
+  imagingSessionsResponse: {
+    sessions: [
+      {
+        id: "session-abc",
+        port: 9100,
+        url: "http://localhost:9100",
+        ms_path: "/data/ms/observation.ms",
+        imagename: "observation_interactive",
+        created_at: "2025-06-02T10:00:00Z",
+        age_hours: 1.5,
+        is_alive: true,
+      },
+    ],
+    total: 1,
+    available_ports: 9,
+  } satisfies ImagingSessionsResponse,
+
+  imagingDefaults: {
+    imsize: [4096, 4096],
+    cell: "1arcsec",
+    specmode: "mfs",
+    deconvolver: "mtmfs",
+    weighting: "briggs",
+    robust: 0.5,
+    niter: 10000,
+    threshold: "0.1mJy",
+    nterms: 2,
+    datacolumn: "data",
+  } satisfies ImagingDefaults,
+
+  interactiveCleanResponse: {
+    session_id: "session-abc",
+    url: "http://localhost:9100",
+    status: "running",
+    ms_path: "/data/ms/observation.ms",
+    imagename: "observation_interactive",
+  } satisfies InteractiveCleanResponse,
+
+  // --- Provenance fixture ---
+  provenanceStrip: {
+    run_id: "run-abc123",
+    stages: [],
+    metadata: {},
+  } satisfies ProvenanceStripProps,
 };
 
 // =============================================================================
