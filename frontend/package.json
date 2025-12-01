@@ -1,6 +1,7 @@
 {
   "devDependencies": {
     "@vitest/coverage-v8": "^4.0.14",
-    "eslint-plugin-react-refresh": "^0.4.24"
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "eslint-plugin-unused-imports": "^4.3.0"
   }
 }
