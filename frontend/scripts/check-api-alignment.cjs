@@ -234,11 +234,12 @@ async function main() {
         }
       }
     } catch (error) {
-      console.log(`⚠️  ${error.message}`);
-      // Network errors are warnings, not failures (backend may not have all endpoints)
+      console.log(`❌ ${error.message}`);
+      allPassed = false;
+      failCount++;
       results.push({
         name: endpoint.name,
-        status: "skip",
+        status: "error",
         issues: [error.message],
       });
     }
