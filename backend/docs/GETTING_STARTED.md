@@ -35,9 +35,15 @@ python -c "import pyuvdata; print('pyuvdata OK')"
 
 See `ops/docker/environment.yml` for the full dependency list.
 
+## Architecture Overview
+
+![Backend Architecture](backend_architecture.svg)
+
+_Visual diagram of module dependencies and data flow._
+
 ## Project Layout
 
-```
+```text
 backend/
 ├── src/dsa110_contimg/     # Main Python package
 │   ├── api/                # REST API (FastAPI)

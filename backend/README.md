@@ -7,6 +7,8 @@ visibility data from UVH5 (HDF5) format into CASA Measurement Sets for
 calibration and imaging. The pipeline processes data from the DSA-110 telescope,
 which generates multiple subband files per observation.
 
+**New to this codebase?** Start with the [Getting Started Guide](docs/GETTING_STARTED.md).
+
 ## Documentation
 
 Full documentation is available in the [`docs/`](../docs/) directory:
