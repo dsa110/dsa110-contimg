@@ -10,7 +10,7 @@ schema management via Alembic migrations.
 from dsa110_contimg.database import get_session, Image, MSIndex
 
 # Query with context manager (auto-commit/rollback)
-with get_session("products") as session:
+with get_session() as session:
     images = session.query(Image).filter_by(type="dirty").all()
     for img in images:
         print(f"{img.path}: {img.noise_jy} Jy/beam")
@@ -18,22 +18,19 @@ with get_session("products") as session:
 
 ## Database Configuration
 
-All databases use SQLite with:
+All pipeline tables are stored in a **unified database** using SQLite with:
 
 - **WAL mode** - Concurrent read/write access
 - **30 second timeout** - Handles lock contention gracefully
 - **Foreign keys enabled** - Referential integrity
 
-| Database        | Path                                               | Description            |
-| --------------- | -------------------------------------------------- | ---------------------- |
-| `products`      | `/data/dsa110-contimg/state/db/products.sqlite3`      | MS, images, photometry |
-| `cal_registry`  | `/data/dsa110-contimg/state/db/cal_registry.sqlite3`  | Calibration tables     |
-| `hdf5`          | `/data/dsa110-contimg/state/db/hdf5.sqlite3`          | HDF5 file index        |
-| `ingest`        | `/data/dsa110-contimg/state/db/ingest.sqlite3`        | Streaming queue        |
-| `data_registry` | `/data/dsa110-contimg/state/db/data_registry.sqlite3` | Data products          |
+| Environment Variable | Default Path                                         | Description       |
+| -------------------- | ---------------------------------------------------- | ----------------- |
+| `PIPELINE_DB`        | `/data/dsa110-contimg/state/db/pipeline.sqlite3`     | Unified database  |
 
-Paths can be overridden via environment variables (e.g.,
-`PIPELINE_PRODUCTS_DB`).
+Legacy environment variables (`PIPELINE_PRODUCTS_DB`, `CAL_REGISTRY_DB`, etc.)
+are still supported for backwards compatibility but all point to the same
+unified database.
 
 ## Session Management
 
@@ -43,13 +40,13 @@ Paths can be overridden via environment variables (e.g.,
 from dsa110_contimg.database.session import get_session
 
 # Read-write session (default)
-with get_session("products") as session:
+with get_session() as session:
     new_image = Image(path="/path/to/image.fits", ...)
     session.add(new_image)
     session.commit()
 
 # Read-only session
-with get_session("products", read_only=True) as session:
+with get_session(read_only=True) as session:
     images = session.query(Image).all()
 ```
 
@@ -61,7 +58,7 @@ For thread-safety, use scoped sessions:
 from dsa110_contimg.database.session import get_scoped_session
 
 # Get a thread-local session factory
-Session = get_scoped_session("products")
+Session = get_scoped_session()
 
 def worker_thread():
     session = Session()

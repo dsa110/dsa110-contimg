@@ -519,12 +519,11 @@ conda activate casa6
 sudo systemctl start contimg-stream.service
 sudo systemctl status contimg-stream.service
 
-# Or manually for testing
+# Or manually for testing (uses PIPELINE_DB env var by default)
+PIPELINE_DB=/data/dsa110-contimg/state/db/pipeline.sqlite3 \
 python -m dsa110_contimg.conversion.streaming.streaming_converter \
     --input-dir /data/incoming \
     --output-dir /stage/dsa110-contimg/ms \
-    --queue-db /data/dsa110-contimg/state/db/ingest.sqlite3 \
-    --registry-db /data/dsa110-contimg/state/db/cal_registry.sqlite3 \
     --scratch-dir /stage/dsa110-contimg/scratch \
     --monitoring \
     --monitor-interval 60
@@ -534,15 +533,15 @@ python -m dsa110_contimg.conversion.streaming.streaming_converter \
 
 ```bash
 # Check streaming queue status
-sqlite3 /data/dsa110-contimg/state/db/ingest.sqlite3 \
+sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
   "SELECT group_id, state, processing_stage, retry_count FROM ingest_queue ORDER BY received_at DESC LIMIT 10;"
 
 # Check performance metrics
-sqlite3 /data/dsa110-contimg/state/db/ingest.sqlite3 \
+sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
   "SELECT group_id, total_time, load_time, phase_time, write_time FROM performance_metrics ORDER BY recorded_at DESC LIMIT 10;"
 
 # Check HDF5 file index
-sqlite3 /data/dsa110-contimg/state/db/hdf5.sqlite3 \
+sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
   "SELECT timestamp, COUNT(*) as subband_count FROM hdf5_file_index GROUP BY group_id HAVING subband_count = 16 LIMIT 10;"
 ```
 
@@ -667,13 +666,17 @@ historical context (gitignored, not committed):
 
 SQLite databases are organized in `/data/dsa110-contimg/state/`:
 
-**Runtime databases** (`state/` root and `state/db/`):
+**Unified Pipeline Database** (`state/db/`):
 
-- `products.sqlite3` - Product registry (MS, images, photometry)
-- `ingest.sqlite3` - Streaming queue management
-- `hdf5.sqlite3` - HDF5 file index
-- `cal_registry.sqlite3` - Calibration table registry
-- `data_registry.sqlite3` - Data product tracking
+- `pipeline.sqlite3` - **Primary unified database** containing all pipeline state:
+  - Product registry (MS, images, photometry) - `ms_index`, `images`, `photometry_results`
+  - Streaming queue management - `ingest_queue`, `performance_metrics`
+  - HDF5 file index - `hdf5_file_index`
+  - Calibration table registry - `calibration_tables`, `calibration_source_catalog`
+  - Mosaic groups - `mosaic_groups`, `mosaic_members`
+
+**Other runtime databases** (`state/db/`):
+
 - `docsearch.sqlite3` - Local documentation search index
 - `embedding_cache.sqlite3` - Cached OpenAI embeddings
 

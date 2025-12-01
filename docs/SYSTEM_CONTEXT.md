@@ -26,11 +26,12 @@ astronomy data from the DSA-110 telescope.
 ## 2. Data Model (SQLite)
 
 The system relies on direct SQLite interactions (no ORM) for performance and
-simplicity. It uses multiple separated databases to manage state.
+simplicity. As of Phase 2 consolidation, all pipeline state is stored in a
+**unified database**.
 
-### **Products Database** (`state/db/products.sqlite3`)
+### **Unified Pipeline Database** (`state/db/pipeline.sqlite3`)
 
-- **Managed by:** `backend/src/dsa110_contimg/database/products.py`
+- **Managed by:** `backend/src/dsa110_contimg/database/unified.py`
 - **Key Tables:**
   - `ms_index`: Tracks the lifecycle of a Measurement Set.
     - `path` (PK): Absolute path to the MS.
@@ -40,19 +41,16 @@ simplicity. It uses multiple separated databases to manage state.
     - `path`: Path to the FITS file.
     - `type`: 'continuum', 'dirty', 'residual', etc.
     - `noise_jy`: Quality metric.
+  - `ingest_queue`: Tracks file groups (16 subbands) and their state.
+  - `performance_metrics`: Tracks writer performance.
+  - `calibration_tables`: Calibration tables and validity windows.
+  - `hdf5_file_index`: Maps subbands to files.
   - `calibrator_transits`: Pre-calculated transit times for calibrators.
   - `transient_candidates`: Detected transient sources.
   - `jobs` & `batch_jobs`: Execution history.
 
-### **Other Active Databases**
+### **External Catalogs** (read-only reference data)
 
-- **`ingest.sqlite3`**: Queue management for incoming data.
-  - `ingest_queue`: Tracks file groups (16 subbands) and their state.
-  - `performance_metrics`: Tracks writer performance.
-- **`cal_registry.sqlite3`**: Calibration tables and validity windows.
-  - `caltables`: Path, validity window, quality metrics.
-- **`hdf5.sqlite3`**: Index of raw HDF5 files.
-  - `hdf5_file_index`: Maps subbands to files.
 - **`state/catalogs/master_sources.sqlite3`**: Large catalog of sources (1.6M+).
 - **`state/db/calibrators.sqlite3`**: Registry of known calibrators.
 - **`state/catalogs/vla_calibrators.sqlite3`**: VLA calibrator catalog.
@@ -102,7 +100,7 @@ simplicity. It uses multiple separated databases to manage state.
   - **Source:** `backend/src/dsa110_contimg/conversion/transit_precalc.py`
   - **Mechanism:** Calculates transit times for registered calibrators using
     `astropy`.
-  - **Storage:** `calibrator_transits` table in `products.sqlite3`.
+  - **Storage:** `calibrator_transits` table in `pipeline.sqlite3`.
 - **Parallel-Subband Writer:**
   - **Source:**
     `backend/src/dsa110_contimg/conversion/strategies/direct_subband.py`

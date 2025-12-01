@@ -2,16 +2,16 @@
 
 **Locations**:
 
-- `/data/dsa110-contimg/state/` - Primary databases
-- `/data/dsa110-contimg/state/db/` - Additional databases
+- `/data/dsa110-contimg/state/db/` - Unified pipeline database
 - `/data/dsa110-contimg/state/catalogs/` - Source catalogs
 
 ---
 
 ## Overview
 
-The DSA-110 continuum imaging pipeline uses SQLite databases for state
-management.
+The DSA-110 continuum imaging pipeline uses a **unified SQLite database** for
+all state management. As of Phase 2 consolidation, all pipeline tables are
+stored in a single database file.
 
 See [Database Schema](database_schema.md) for detailed table definitions and
 example queries.
@@ -20,23 +20,27 @@ example queries.
 
 ## Database Summary
 
-### Primary (`/state/`)
+### Unified Pipeline Database (`/state/db/`)
 
-| Database                | Purpose                               | Size    |
-| ----------------------- | ------------------------------------- | ------- |
-| `products.sqlite3`      | MS index, images, mosaics, photometry | ~500 KB |
-| `hdf5.sqlite3`          | HDF5 file index for subband grouping  | ~65 KB  |
-| `ingest.sqlite3`        | Streaming converter queue management  | ~16 KB  |
-| `cal_registry.sqlite3`  | Calibration table registry            | ~24 KB  |
-| `data_registry.sqlite3` | Data product registry                 | ~65 KB  |
+| Database           | Purpose                                      | Size    |
+| ------------------ | -------------------------------------------- | ------- |
+| `pipeline.sqlite3` | All pipeline state (see table groups below)  | ~45 MB  |
 
-### Secondary (`/state/db/`)
+**Table Groups in `pipeline.sqlite3`:**
+
+- **Products**: `ms_index`, `images`, `photometry_results` - MS and image tracking
+- **Ingest**: `ingest_queue`, `performance_metrics` - Streaming queue management
+- **HDF5 Index**: `hdf5_file_index` - Subband file tracking
+- **Calibration**: `calibration_tables`, `calibration_source_catalog` - Cal table registry
+- **Mosaics**: `mosaic_groups`, `mosaic_members` - Mosaic planning
+
+### Other Databases (`/state/db/`)
 
 | Database                 | Purpose                           | Size    |
 | ------------------------ | --------------------------------- | ------- |
 | `master_sources.sqlite3` | Source catalog (NVSS, FIRST, RAX) | ~113 MB |
 | `calibrators.sqlite3`    | Calibrator source catalog         | ~106 KB |
-| `ingest_queue.sqlite3`   | Legacy ingest queue               | ~32 KB  |
+| `docsearch.sqlite3`      | Documentation search index        | ~1 MB   |
 
 ### Catalogs (`/state/catalogs/`)
 
@@ -54,8 +58,10 @@ example queries.
 
 ```python
 import sqlite3
+import os
 
-conn = sqlite3.connect('/data/dsa110-contimg/state/db/products.sqlite3')
+db_path = os.environ.get('PIPELINE_DB', '/data/dsa110-contimg/state/db/pipeline.sqlite3')
+conn = sqlite3.connect(db_path)
 conn.row_factory = sqlite3.Row
 
 # Recent MS files
@@ -73,7 +79,10 @@ for row in rows:
 ### Find Complete Subband Groups
 
 ```python
-conn = sqlite3.connect('/data/dsa110-contimg/state/db/hdf5.sqlite3')
+import os
+
+db_path = os.environ.get('PIPELINE_DB', '/data/dsa110-contimg/state/db/pipeline.sqlite3')
+conn = sqlite3.connect(db_path)
 
 # Find groups with all 16 subbands
 complete = conn.execute('''
@@ -89,7 +98,10 @@ complete = conn.execute('''
 ### Check Streaming Queue
 
 ```python
-conn = sqlite3.connect('/data/dsa110-contimg/state/db/ingest.sqlite3')
+import os
+
+db_path = os.environ.get('PIPELINE_DB', '/data/dsa110-contimg/state/db/pipeline.sqlite3')
+conn = sqlite3.connect(db_path)
 
 # Current queue status
 status = conn.execute('''
@@ -103,13 +115,16 @@ status = conn.execute('''
 
 ```python
 import time
-conn = sqlite3.connect('/data/dsa110-contimg/state/db/cal_registry.sqlite3')
+import os
+
+db_path = os.environ.get('PIPELINE_DB', '/data/dsa110-contimg/state/db/pipeline.sqlite3')
+conn = sqlite3.connect(db_path)
 
 # Active bandpass tables
 now = time.time()
 caltables = conn.execute('''
     SELECT path, calibrator, created_at
-    FROM caltables
+    FROM calibration_tables
     WHERE valid_from <= ? AND valid_until >= ?
     AND cal_type = 'bandpass'
     ORDER BY created_at DESC
@@ -122,12 +137,13 @@ caltables = conn.execute('''
 
 ```python
 import sqlite3
+import os
+
+# Use PIPELINE_DB environment variable
+db_path = os.environ.get('PIPELINE_DB', '/data/dsa110-contimg/state/db/pipeline.sqlite3')
 
 # Always use WAL mode for concurrent access
-conn = sqlite3.connect(
-    '/data/dsa110-contimg/state/db/products.sqlite3',
-    timeout=30.0
-)
+conn = sqlite3.connect(db_path, timeout=30.0)
 conn.execute('PRAGMA journal_mode=WAL')
 conn.row_factory = sqlite3.Row  # Dict-like access
 ```

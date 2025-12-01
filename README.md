@@ -196,36 +196,46 @@ For more details, see `docs/dev/STRUCTURE_DIAGRAM_README.md`.
 
 ## Databases
 
-The pipeline uses SQLite databases for state management and product tracking.
-All databases are stored in `state/` with `.sqlite3` extension.
+The pipeline uses a **unified SQLite database** for all state management and
+product tracking. As of Phase 2 consolidation, all tables are stored in a single
+database file.
 
-**Active Databases:**
+**Unified Database:**
 
-| Database                      | Purpose                                                 |
-| ----------------------------- | ------------------------------------------------------- |
-| `ingest.sqlite3`              | Queue management, subband tracking, performance metrics |
-| `cal_registry.sqlite3`        | Calibration table registry with validity windows        |
-| `calibrator_registry.sqlite3` | Known calibrators, blacklist, PB weights cache          |
-| `products.sqlite3`            | MS index, images, photometry, mosaic groups             |
-| `hdf5.sqlite3`                | HDF5 file index for fast queries                        |
+| Database                    | Purpose                                                                                           |
+| --------------------------- | ------------------------------------------------------------------------------------------------- |
+| `state/db/pipeline.sqlite3` | All pipeline state: ingest queue, calibration registry, products, HDF5 index, photometry, mosaics |
 
-> **:book: Full Documentation:** See
+The unified database contains tables previously spread across multiple files:
+
+- Ingest queue management and performance metrics (`ingest_queue`, `performance_metrics`)
+- Calibration table registry with validity windows (`calibration_tables`, `calibration_source_catalog`)
+- Product tracking: MS index, images, photometry (`ms_index`, `images`, `photometry_results`)
+- HDF5 file index for fast queries (`hdf5_file_index`)
+- Mosaic groups and planning (`mosaic_groups`, `mosaic_members`)
+
+> **📖 Full Documentation:** See
 > [Database Reference](docs/reference/DATABASE_REFERENCE_INDEX.md) for complete
 > schemas, common queries, and Python access examples.
 
 **Removed Legacy Files:**
 
-- ~~`state/streaming_queue.sqlite3`~~ (replaced by `ingest.sqlite3`, removed)
+- ~~`state/ingest.sqlite3`~~ (merged into `pipeline.sqlite3`)
+- ~~`state/cal_registry.sqlite3`~~ (merged into `pipeline.sqlite3`)
+- ~~`state/products.sqlite3`~~ (merged into `pipeline.sqlite3`)
+- ~~`state/hdf5.sqlite3`~~ (merged into `pipeline.sqlite3`)
+- ~~`state/streaming_queue.sqlite3`~~ (replaced by `ingest_queue` table)
 - ~~`state/products.db`, `state/queue.db`, `state/pipeline_queue.db`~~ (old
   schema, removed)
 
 ## Environment Variables
 
 - CORE
-  - `PIPELINE_PRODUCTS_DB` (e.g., `state/products.sqlite3`)
+  - `PIPELINE_DB` (e.g., `state/db/pipeline.sqlite3`) - **Primary database path**
   - `PIPELINE_STATE_DIR` (e.g., `state`)
   - `HDF5_USE_FILE_LOCKING=FALSE` (recommended)
   - `OMP_NUM_THREADS`, `MKL_NUM_THREADS` (e.g., 4)
+  - Legacy aliases (still supported): `PIPELINE_PRODUCTS_DB`, `CAL_REGISTRY_DB`, `INGEST_DB`, `HDF5_DB`
 - PIPELINE FRAMEWORK
   - The pipeline orchestration framework is the default implementation
     - All job execution uses direct function calls (no subprocess overhead)
@@ -283,23 +293,27 @@ Image:
 ## CLI Reference
 
 - Streaming worker (manual):
-  - `python -m dsa110_contimg.conversion.streaming.streaming_converter --input-dir /data/incoming --output-dir /stage/dsa110-contimg/ms --queue-db state/ingest.sqlite3 --registry-db state/cal_registry.sqlite3 --scratch-dir /stage/dsa110-contimg --log-level INFO --use-subprocess --expected-subbands 16 --chunk-duration 5 --monitoring`
+  - `python -m dsa110_contimg.conversion.streaming.streaming_converter --input-dir /data/incoming --output-dir /stage/dsa110-contimg/ms --scratch-dir /stage/dsa110-contimg --log-level INFO --use-subprocess --expected-subbands 16 --chunk-duration 5 --monitoring`
+  - Uses `PIPELINE_DB` environment variable (default: `state/db/pipeline.sqlite3`)
 - Backfill imaging worker:
   - Scan:
-    `python -m dsa110_contimg.imaging.worker scan --ms-dir /data/ms --out-dir /data/ms --registry-db state/cal_registry.sqlite3 --products-db state/products.sqlite3 --log-level INFO`
+    `python -m dsa110_contimg.imaging.worker scan --ms-dir /data/ms --out-dir /data/ms --log-level INFO`
+  - Uses `PIPELINE_DB` environment variable for registry and products
 - Standalone converter (legacy/utility):
   - `python -m dsa110_contimg.conversion.uvh5_to_ms --help`
 - Orchestrator writer (preferred):
   - `python -m dsa110_contimg.conversion.strategies.hdf5_orchestrator --help`
 - Registry CLI:
   - `python -m dsa110_contimg.database.registry_cli --help`
-- Mosaic CLI (new):
+- Mosaic CLI:
   - Plan:
-    `python -m dsa110_contimg.mosaic.cli plan --products-db state/products.sqlite3 --name night_YYYYMMDD --since <epoch> --until <epoch>`
+    `python -m dsa110_contimg.mosaic.cli plan --name night_YYYYMMDD --since <epoch> --until <epoch>`
   - Build:
-    `python -m dsa110_contimg.mosaic.cli build --products-db state/products.sqlite3 --name night_YYYYMMDD --output /data/ms/mosaics/night_YYYYMMDD.img`
+    `python -m dsa110_contimg.mosaic.cli build --name night_YYYYMMDD --output /data/ms/mosaics/night_YYYYMMDD.img`
+  - Uses `PIPELINE_DB` environment variable for products database
 - Housekeeping:
-  - `python ops/pipeline/housekeeping.py --queue-db state/ingest.sqlite3 --scratch-dir /stage/dsa110-contimg --in-progress-timeout 3600 --collecting-timeout 86400 --temp-age 86400`
+  - `python ops/pipeline/housekeeping.py --scratch-dir /stage/dsa110-contimg --in-progress-timeout 3600 --collecting-timeout 86400 --temp-age 86400`
+  - Uses `PIPELINE_DB` environment variable for queue database
 
 ## Nightly Mosaic and Housekeeping
 
