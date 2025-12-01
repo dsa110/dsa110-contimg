@@ -16,6 +16,7 @@ REQUIRED_PYTHON_PATH = "/opt/miniforge/envs/casa6/bin/python"
 CASA6_ENV_PATHS = [
     "/opt/miniforge/envs/casa6",  # Local development (miniforge)
     "/opt/conda/envs/casa6",  # Docker container (micromamba)
+    "/usr/share/miniconda3/envs/casa6",  # GitHub Actions setup-miniconda path
 ]
 
 

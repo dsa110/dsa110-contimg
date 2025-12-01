@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SyncPoolConfig:
     """Configuration for the synchronous connection pool.
-    
+
     Attributes:
         db_path: Path to the SQLite database file
         pool_size: Number of connections to maintain in the pool
@@ -32,6 +32,7 @@ class SyncPoolConfig:
         check_same_thread: Whether to check thread affinity (False for pool)
         max_wait: Maximum seconds to wait for a connection from pool
     """
+
     db_path: str
     pool_size: int = 5
     timeout: float = 30.0
@@ -41,26 +42,26 @@ class SyncPoolConfig:
 
 class SyncConnectionPool:
     """Thread-safe synchronous connection pool for SQLite.
-    
+
     This pool maintains a fixed number of connections that can be
     acquired and released by multiple threads. Each connection is
     configured with WAL mode for concurrent access.
-    
+
     Usage:
         pool = SyncConnectionPool(SyncPoolConfig(db_path="/path/to/db.sqlite3"))
         pool.initialize()
-        
+
         with pool.acquire() as conn:
             cursor = conn.execute("SELECT * FROM table")
             rows = cursor.fetchall()
-        
+
         pool.close()
-    
+
     Thread Safety:
         The pool is thread-safe. Connections can be safely acquired
         and released from multiple threads.
     """
-    
+
     def __init__(self, config: SyncPoolConfig):
         self.config = config
         self._pool: queue.Queue[sqlite3.Connection] = queue.Queue(maxsize=config.pool_size)
@@ -68,7 +69,7 @@ class SyncConnectionPool:
         self._initialized = False
         self._closed = False
         self._connection_count = 0
-    
+
     def _create_connection(self) -> sqlite3.Connection:
         """Create a new SQLite connection with proper configuration."""
         conn = sqlite3.connect(
@@ -77,15 +78,15 @@ class SyncConnectionPool:
             check_same_thread=self.config.check_same_thread,
         )
         conn.row_factory = sqlite3.Row
-        
+
         # Enable WAL mode and other optimizations
         conn.execute("PRAGMA journal_mode=WAL")
         conn.execute("PRAGMA foreign_keys=ON")
         conn.execute("PRAGMA synchronous=NORMAL")
         conn.execute("PRAGMA cache_size=-65536")  # 64MB cache
-        
+
         return conn
-    
+
     def _validate_connection(self, conn: sqlite3.Connection) -> bool:
         """Check if a connection is still valid."""
         try:
@@ -93,17 +94,17 @@ class SyncConnectionPool:
             return True
         except (sqlite3.Error, ValueError):
             return False
-    
+
     def initialize(self) -> None:
         """Initialize the connection pool.
-        
+
         Creates all connections upfront. This should be called
         before using the pool.
         """
         with self._lock:
             if self._initialized:
                 return
-            
+
             for _ in range(self.config.pool_size):
                 try:
                     conn = self._create_connection()
@@ -112,22 +113,22 @@ class SyncConnectionPool:
                 except sqlite3.Error as e:
                     logger.error(f"Failed to create pool connection: {e}")
                     raise
-            
+
             self._initialized = True
             logger.info(
                 f"Sync pool initialized with {self._connection_count} connections "
                 f"for {self.config.db_path}"
             )
-    
+
     def close(self) -> None:
         """Close all connections in the pool."""
         with self._lock:
             if self._closed:
                 return
-            
+
             self._closed = True
             closed_count = 0
-            
+
             while not self._pool.empty():
                 try:
                     conn = self._pool.get_nowait()
@@ -138,35 +139,35 @@ class SyncConnectionPool:
                         pass
                 except queue.Empty:
                     break
-            
+
             logger.info(f"Sync pool closed ({closed_count} connections)")
-    
+
     @contextmanager
     def acquire(self) -> Iterator[sqlite3.Connection]:
         """Acquire a connection from the pool.
-        
+
         The connection is automatically returned to the pool when
         the context manager exits.
-        
+
         Yields:
             A SQLite connection from the pool
-            
+
         Raises:
             RuntimeError: If pool is not initialized or is closed
             TimeoutError: If no connection available within max_wait
         """
         if not self._initialized:
             raise RuntimeError("Pool not initialized. Call initialize() first.")
-        
+
         if self._closed:
             raise RuntimeError("Pool is closed.")
-        
+
         conn: Optional[sqlite3.Connection] = None
-        
+
         try:
             # Try to get a connection from the pool
             conn = self._pool.get(timeout=self.config.max_wait)
-            
+
             # Validate and reconnect if needed
             if not self._validate_connection(conn):
                 try:
@@ -174,13 +175,11 @@ class SyncConnectionPool:
                 except sqlite3.Error:
                     pass
                 conn = self._create_connection()
-            
+
             yield conn
-            
+
         except queue.Empty:
-            raise TimeoutError(
-                f"No connection available within {self.config.max_wait}s"
-            )
+            raise TimeoutError(f"No connection available within {self.config.max_wait}s")
         finally:
             # Return connection to pool
             if conn is not None:
@@ -201,12 +200,12 @@ class SyncConnectionPool:
                         self._pool.put_nowait(new_conn)
                     except (sqlite3.Error, queue.Full):
                         pass
-    
+
     @property
     def available(self) -> int:
         """Number of available connections in the pool."""
         return self._pool.qsize()
-    
+
     @property
     def size(self) -> int:
         """Total pool size."""
@@ -224,14 +223,14 @@ def get_sync_pool(
     timeout: float = 30.0,
 ) -> SyncConnectionPool:
     """Get or create a sync connection pool for a database.
-    
+
     Pools are cached by database path and reused.
-    
+
     Args:
         db_path: Path to the SQLite database
         pool_size: Number of connections in the pool
         timeout: SQLite connection timeout
-        
+
     Returns:
         Initialized SyncConnectionPool
     """
@@ -245,7 +244,7 @@ def get_sync_pool(
             pool = SyncConnectionPool(config)
             pool.initialize()
             _pools[db_path] = pool
-        
+
         return _pools[db_path]
 
 

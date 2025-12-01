@@ -39,12 +39,22 @@ jobs:
           set -euo pipefail
           python -m pip install --upgrade pip
           pip install pytest pytest-cov pytest-xdist pytest-timeout pytest-mock
-          if [ -f requirements-test.txt ]; then pip install -r requirements-test.txt; fi
+          pip install -e "backend/[dev]"
 
       - name: Run impacted tests (fail-fast)
+        env:
+          PYTHONPATH: backend/src
+          PIPELINE_PRODUCTS_DB: /tmp/dsa110-ci/products.sqlite3
+          PIPELINE_CAL_REGISTRY_DB: /tmp/dsa110-ci/cal_registry.sqlite3
+          PIPELINE_HDF5_DB: /tmp/dsa110-ci/hdf5.sqlite3
+          PIPELINE_INGEST_DB: /tmp/dsa110-ci/ingest.sqlite3
+          PIPELINE_DATA_REGISTRY_DB: /tmp/dsa110-ci/data_registry.sqlite3
+          PIPELINE_DOCSEARCH_DB: /tmp/dsa110-ci/docsearch.sqlite3
+          PIPELINE_EMBEDDING_CACHE_DB: /tmp/dsa110-ci/embedding_cache.sqlite3
         run: |
           set -euo pipefail
-          bash scripts/test-impacted.sh
+          mkdir -p /tmp/dsa110-ci
+          pytest backend/tests/unit/ -v -x --maxfail=1
 
   unit-tests:
     name: Unit Tests (Mocked)
@@ -64,14 +74,23 @@ jobs:
         run: |
           set -euo pipefail
           python -m pip install --upgrade pip
-          pip install -r requirements-test.txt
+          pip install -e "backend/[dev]"
 
       - name: Run unit tests with mocking
+        env:
+          PYTHONPATH: backend/src
+          PIPELINE_PRODUCTS_DB: /tmp/dsa110-ci/products.sqlite3
+          PIPELINE_CAL_REGISTRY_DB: /tmp/dsa110-ci/cal_registry.sqlite3
+          PIPELINE_HDF5_DB: /tmp/dsa110-ci/hdf5.sqlite3
+          PIPELINE_INGEST_DB: /tmp/dsa110-ci/ingest.sqlite3
+          PIPELINE_DATA_REGISTRY_DB: /tmp/dsa110-ci/data_registry.sqlite3
+          PIPELINE_DOCSEARCH_DB: /tmp/dsa110-ci/docsearch.sqlite3
+          PIPELINE_EMBEDDING_CACHE_DB: /tmp/dsa110-ci/embedding_cache.sqlite3
         run: |
           set -euo pipefail
-          export PYTHONPATH="${GITHUB_WORKSPACE}/src:${PYTHONPATH:-}"
-          pytest tests/unit/test_validation_functions.py -v \
-            --cov=src/dsa110_contimg/conversion/helpers \
+          mkdir -p /tmp/dsa110-ci
+          pytest backend/tests/unit/ -v \
+            --cov=backend/src/dsa110_contimg \
             --cov-report=xml \
             --cov-report=term-missing \
             --tb=short
@@ -100,6 +119,13 @@ jobs:
           channel-priority: strict
           activate-environment: casa6
           environment-file: ops/docker/environment.yml
+
+      - name: Install backend dependencies
+        shell: bash -l {0}
+        run: |
+          set -euo pipefail
+          conda activate casa6
+          pip install -e "./backend"
 
       - name: Activate environment and run validation tests
         shell: bash -l {0}
@@ -141,6 +167,13 @@ jobs:
           channel-priority: strict
           activate-environment: casa6
           environment-file: ops/docker/environment.yml
+
+      - name: Install backend dependencies
+        shell: bash -l {0}
+        run: |
+          set -euo pipefail
+          conda activate casa6
+          pip install -e "./backend"
 
       - name: Generate synthetic test data
         shell: bash -l {0}
@@ -216,6 +249,13 @@ jobs:
           channel-priority: strict
           activate-environment: casa6
           environment-file: ops/docker/environment.yml
+
+      - name: Install backend dependencies
+        shell: bash -l {0}
+        run: |
+          set -euo pipefail
+          conda activate casa6
+          pip install -e "./backend"
 
       - name: Run performance benchmarks
         shell: bash -l {0}

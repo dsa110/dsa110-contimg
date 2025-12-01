@@ -6,14 +6,14 @@ supporting both SQLite and PostgreSQL backends.
 
 Basic Usage:
     from dsa110_contimg.api.db_adapters import create_adapter, DatabaseConfig
-    
+
     # Create adapter from environment variables
     adapter = create_adapter()
     await adapter.connect()
-    
+
     # Execute queries
     rows = await adapter.fetch_all("SELECT * FROM products")
-    
+
     # Clean up
     await adapter.disconnect()
 

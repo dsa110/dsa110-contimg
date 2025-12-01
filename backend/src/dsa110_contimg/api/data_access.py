@@ -99,10 +99,7 @@ def _retry_db_operation(func, max_retries: int = 3, initial_delay: float = 0.1):
                     continue
             # For other database errors, re-raise immediately
             raise
-        except Exception:
-            # For non-database errors, re-raise immediately
-            # Intentionally broad here to avoid masking unexpected errors
-            raise
+        # Non-database exceptions propagate automatically (not caught here)
 
     # If we exhausted retries, raise the last exception
     raise last_exception
