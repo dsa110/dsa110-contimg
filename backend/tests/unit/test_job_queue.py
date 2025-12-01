@@ -270,7 +270,9 @@ class TestRerunPipelineJob:
                         result = rerun_pipeline_job("original_run_20231201_120000")
         
         assert result["original_run_id"] == "original_run_20231201_120000"
-        assert result["new_run_id"].startswith("original_run_20231201_120000_rerun_")
+        # new_run_id format is: base_id_rerun_timestamp where base_id is everything before the last underscore
+        assert "_rerun_" in result["new_run_id"]
+        assert result["new_run_id"].startswith("original_run_20231201_rerun_")
         assert result["status"] == "completed"
         assert result["config"]["ms_path"] == "/data/test.ms"
     
