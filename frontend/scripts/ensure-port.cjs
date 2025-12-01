@@ -4,10 +4,46 @@
  *
  * Features:
  * - Checks backend API is running before starting frontend
- * - Kills any process using port 3000
+ * - Gracefully stops any process using port 3000
  * - Retries with exponential backoff for TIME_WAIT
  * - Handles permission errors gracefully
  * - Cross-platform support (Linux/macOS)
+ *
+ * ## Graceful Shutdown (SIGTERM before SIGKILL)
+ *
+ * This script uses SIGTERM first and waits for graceful shutdown before
+ * falling back to SIGKILL. This is important for Vite's esbuild service.
+ *
+ * ### Background
+ *
+ * Vite spawns esbuild as a long-lived child process that handles TypeScript/JSX
+ * compilation. The parent (Vite) and child (esbuild) communicate via IPC.
+ *
+ * When Vite is terminated with SIGKILL:
+ * - The process dies immediately without cleanup
+ * - esbuild's IPC channels may be left in an inconsistent state
+ * - Subsequent Vite instances may inherit or encounter these broken channels
+ *
+ * This likely causes the error:
+ *   "The service is no longer running"
+ *   at esbuild/lib/main.js
+ *
+ * The error indicates esbuild's internal service (a child process) is no longer
+ * responding to IPC requests, probably because it was terminated abruptly or
+ * its communication channel was corrupted.
+ *
+ * ### Solution
+ *
+ * Use SIGTERM first, which allows:
+ * 1. Vite to catch the signal and clean up
+ * 2. esbuild child process to terminate gracefully
+ * 3. IPC channels to close properly
+ *
+ * Only use SIGKILL as a last resort after 3 seconds.
+ *
+ * ### References
+ * - esbuild service lifecycle: node_modules/vite/node_modules/esbuild/lib/main.js
+ * - Error originates from closeData.didClose flag set when child process exits
  */
 
 const { execSync } = require("child_process");
@@ -64,36 +100,81 @@ function isPortAvailable(port) {
 }
 
 /**
- * Kill a process by PID - try SIGKILL directly for reliability
+ * Check if a process is still running
  */
-function killProcess(pid) {
+function isProcessRunning(pid) {
   try {
-    // Use SIGKILL directly - we want these gone immediately
-    process.kill(pid, "SIGKILL");
-    log(`Killed PID ${pid} (SIGKILL)`);
+    process.kill(pid, 0); // Signal 0 = just check if process exists
     return true;
   } catch (e) {
-    if (e.code === "EPERM") {
-      // Try with sudo via shell
-      try {
-        execSync(`sudo kill -9 ${pid} 2>/dev/null`, { encoding: "utf8" });
-        log(`Killed PID ${pid} via sudo`);
-        return true;
-      } catch {
-        error(`Permission denied killing PID ${pid} (owned by another user)`);
-        return false;
-      }
-    } else if (e.code === "ESRCH") {
-      // Process already dead
-      return true;
-    }
-    error(`Failed to kill PID ${pid}: ${e.message}`);
     return false;
   }
 }
 
 /**
- * Force kill a process by PID with SIGKILL
+ * Kill a process by PID - use graceful shutdown first, then force kill
+ *
+ * This is critical for esbuild: SIGKILL causes "The service is no longer running"
+ * errors because esbuild's child process gets terminated mid-operation without
+ * cleanup. SIGTERM allows graceful shutdown.
+ */
+async function killProcess(pid) {
+  // First try SIGTERM (graceful shutdown)
+  try {
+    process.kill(pid, "SIGTERM");
+    log(`Sent SIGTERM to PID ${pid}`);
+  } catch (e) {
+    if (e.code === "ESRCH") {
+      // Process already dead
+      return true;
+    }
+    if (e.code === "EPERM") {
+      // Try with sudo
+      try {
+        execSync(`sudo kill -15 ${pid} 2>/dev/null`, { encoding: "utf8" });
+        log(`Sent SIGTERM to PID ${pid} via sudo`);
+      } catch {
+        error(`Permission denied killing PID ${pid} (owned by another user)`);
+        return false;
+      }
+    } else {
+      error(`Failed to signal PID ${pid}: ${e.message}`);
+      return false;
+    }
+  }
+
+  // Wait up to 3 seconds for graceful shutdown
+  for (let i = 0; i < 6; i++) {
+    await sleep(500);
+    if (!isProcessRunning(pid)) {
+      log(`PID ${pid} terminated gracefully`);
+      return true;
+    }
+  }
+
+  // Process still running - now use SIGKILL
+  log(`PID ${pid} did not terminate gracefully, sending SIGKILL`);
+  try {
+    process.kill(pid, "SIGKILL");
+    log(`Sent SIGKILL to PID ${pid}`);
+    return true;
+  } catch (e) {
+    if (e.code === "ESRCH") return true; // Already dead
+    if (e.code === "EPERM") {
+      try {
+        execSync(`sudo kill -9 ${pid} 2>/dev/null`, { encoding: "utf8" });
+        log(`Killed PID ${pid} via sudo`);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  }
+}
+
+/**
+ * Force kill a process by PID with SIGKILL (use sparingly)
  */
 function forceKillProcess(pid) {
   try {
@@ -223,22 +304,25 @@ async function ensurePortAvailable() {
     }
 
     // Kill only SAFE processes (dev servers, not system processes)
-    log(`Killing dev server processes on port ${PORT}...`);
+    log(`Stopping dev server processes on port ${PORT}...`);
     for (const pid of pids) {
       if (isSafeToKill(pid)) {
-        killProcess(pid);
+        await killProcess(pid);
       }
     }
 
     // Also try pkill for any node processes that might be hanging
     // NOTE: Be very specific to avoid killing unrelated processes
+    // Use SIGTERM first for graceful shutdown
     try {
       execSync(
-        `pkill -9 -f "node.*vite.*--port.*${PORT}" 2>/dev/null || true`,
+        `pkill -15 -f "node.*vite.*--port.*${PORT}" 2>/dev/null || true`,
         {
           encoding: "utf8",
         }
       );
+      // Give processes time to shut down gracefully
+      await sleep(1000);
     } catch {}
 
     // Wait for kills to take effect
@@ -260,7 +344,7 @@ async function ensurePortAvailable() {
       log(`Found lingering processes: ${currentPids.join(", ")}, checking...`);
       for (const pid of currentPids) {
         if (isSafeToKill(pid)) {
-          killProcess(pid);
+          await killProcess(pid);
         }
       }
     }
