@@ -14,6 +14,10 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+# Add backend/src to path
+REPO_ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(REPO_ROOT / "backend" / "src"))
+
 import numpy as np
 from astropy import units as u
 from astropy.coordinates import SkyCoord
@@ -23,9 +27,6 @@ from astropy.wcs import WCS
 
 from dsa110_contimg.api.data_access import _connect
 from dsa110_contimg.simulation.synthetic_fits import create_synthetic_fits
-
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 
 PRODUCTS_DB = Path(os.getenv("PIPELINE_PRODUCTS_DB", "/data/dsa110-contimg/state/db/products.sqlite3"))

@@ -7,12 +7,10 @@ without requiring actual MS files by mocking the casacore dependencies.
 
 from __future__ import annotations
 
-import io
 from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
-from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
 
@@ -31,7 +29,7 @@ class TestMsRasterEndpoint:
             mock_gen.return_value = b"\x89PNG\r\n\x1a\n" + b"\x00" * 100
 
             response = client.get(
-                f"/api/ms/{str(ms_path)}/raster",
+                f"/api/v1/ms/{str(ms_path)}/raster",
                 params={"xaxis": "time", "yaxis": "amp"},
             )
 
@@ -45,7 +43,7 @@ class TestMsRasterEndpoint:
         ms_path.mkdir()
 
         response = client.get(
-            f"/api/ms/{str(ms_path)}/raster",
+            f"/api/v1/ms/{str(ms_path)}/raster",
             params={"xaxis": "invalid_axis", "yaxis": "amp"},
         )
 
@@ -58,7 +56,7 @@ class TestMsRasterEndpoint:
         ms_path.mkdir()
 
         response = client.get(
-            f"/api/ms/{str(ms_path)}/raster",
+            f"/api/v1/ms/{str(ms_path)}/raster",
             params={"xaxis": "time", "yaxis": "invalid_component"},
         )
 
@@ -72,14 +70,14 @@ class TestMsRasterEndpoint:
 
         # Too small
         response = client.get(
-            f"/api/ms/{str(ms_path)}/raster",
+            f"/api/v1/ms/{str(ms_path)}/raster",
             params={"xaxis": "time", "yaxis": "amp", "width": 50},
         )
         assert response.status_code == 422
 
         # Too large
         response = client.get(
-            f"/api/ms/{str(ms_path)}/raster",
+            f"/api/v1/ms/{str(ms_path)}/raster",
             params={"xaxis": "time", "yaxis": "amp", "width": 5000},
         )
         assert response.status_code == 422
@@ -87,7 +85,7 @@ class TestMsRasterEndpoint:
     def test_raster_returns_404_for_missing_ms(self, client: TestClient):
         """Verify 404 for non-existent MS."""
         response = client.get(
-            "/api/ms/%2Fnonexistent%2Fpath.ms/raster",
+            "/api/v1/ms/%2Fnonexistent%2Fpath.ms/raster",
             params={"xaxis": "time", "yaxis": "amp"},
         )
 
@@ -103,7 +101,7 @@ class TestMsRasterEndpoint:
             mock_gen.side_effect = RuntimeError("CASA error")
 
             response = client.get(
-                f"/api/ms/{str(ms_path)}/raster",
+                f"/api/v1/ms/{str(ms_path)}/raster",
                 params={"xaxis": "time", "yaxis": "amp"},
             )
 
@@ -119,7 +117,7 @@ class TestMsRasterEndpoint:
             mock_gen.return_value = b"\x89PNG\r\n\x1a\n" + b"\x00" * 100
 
             response = client.get(
-                f"/api/ms/{str(ms_path)}/raster",
+                f"/api/v1/ms/{str(ms_path)}/raster",
                 params={"xaxis": "time", "yaxis": "amp"},
             )
 
@@ -163,7 +161,7 @@ class TestAntennaLayoutEndpoint:
                 total_baselines=1,
             )
 
-            response = client.get(f"/api/ms/{str(ms_path)}/antennas")
+            response = client.get(f"/api/v1/ms/{str(ms_path)}/antennas")
 
             assert response.status_code == 200
             data = response.json()
@@ -175,7 +173,7 @@ class TestAntennaLayoutEndpoint:
 
     def test_antennas_returns_404_for_missing_ms(self, client: TestClient):
         """Verify 404 for non-existent MS."""
-        response = client.get("/api/ms/%2Fnonexistent%2Fpath.ms/antennas")
+        response = client.get("/api/v1/ms/%2Fnonexistent%2Fpath.ms/antennas")
 
         assert response.status_code == 404
 
@@ -187,7 +185,7 @@ class TestAntennaLayoutEndpoint:
         ms_path.mkdir()
         # Don't create ANTENNA subdirectory
 
-        response = client.get(f"/api/ms/{str(ms_path)}/antennas")
+        response = client.get(f"/api/v1/ms/{str(ms_path)}/antennas")
 
         assert response.status_code == 404
         assert "antenna" in response.json()["detail"].lower()
@@ -201,7 +199,7 @@ class TestAntennaLayoutEndpoint:
         with patch("dsa110_contimg.api.routes.ms._get_antenna_info") as mock_get:
             mock_get.side_effect = RuntimeError("Table read error")
 
-            response = client.get(f"/api/ms/{str(ms_path)}/antennas")
+            response = client.get(f"/api/v1/ms/{str(ms_path)}/antennas")
 
             assert response.status_code == 500
             assert "failed" in response.json()["detail"].lower()
@@ -232,7 +230,7 @@ class TestGenerateRasterPlot:
         mock_table = MagicMock()
         mock_table.__enter__ = MagicMock(return_value=mock_table)
         mock_table.__exit__ = MagicMock(return_value=False)
-        
+
         # The production code tries CORRECTED_DATA first, then falls back to DATA
         # on RuntimeError. KeyError doesn't trigger the fallback, so we need to
         # raise RuntimeError for missing columns.
@@ -240,7 +238,7 @@ class TestGenerateRasterPlot:
             if col in mock_ms_data:
                 return mock_ms_data[col]
             raise RuntimeError(f"Column {col} not found")
-        
+
         mock_table.getcol.side_effect = getcol_side_effect
         mock_table.close = MagicMock()
 

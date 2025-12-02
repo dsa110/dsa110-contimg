@@ -13,16 +13,16 @@ from pathlib import Path
 
 from astropy.time import Time
 
-# Determine project root (needed for default paths even if package is installed)
-repo_root = Path(__file__).parent.parent
+# Determine repo root for backend/src path
+REPO_ROOT = Path(__file__).resolve().parents[3]
 
 # Try importing directly (works if package is installed)
 try:
     from dsa110_contimg.api.data_access import fetch_observation_timeline
     from dsa110_contimg.database.products import ensure_products_db
 except ImportError:
-    # Fallback: add project root to path for development mode
-    src_path = repo_root / "src"
+    # Fallback: add backend/src to path for development mode
+    src_path = REPO_ROOT / "backend" / "src"
     if src_path.exists():
         if str(src_path) not in sys.path:
             sys.path.insert(0, str(src_path))

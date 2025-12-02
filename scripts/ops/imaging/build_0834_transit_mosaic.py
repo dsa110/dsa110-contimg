@@ -26,9 +26,9 @@ from dsa110_contimg.conversion.calibrator_ms_service import \
 from dsa110_contimg.conversion.config import CalibratorMSConfig
 from dsa110_contimg.mosaic.cli import cmd_build, cmd_plan
 
-# Add src to path
-repo_root = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(repo_root / "src"))
+# Add backend/src to path
+REPO_ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(REPO_ROOT / "backend" / "src"))
 
 
 def find_transit_with_data_before_date(calibrator_name: str, target_date: str, max_days_back: int = 60):

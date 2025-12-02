@@ -9,8 +9,9 @@ import sys
 from pathlib import Path
 from typing import Union, get_args, get_origin, get_type_hints
 
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+# Add backend/src to path
+REPO_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO_ROOT / "backend" / "src"))
 
 try:
     from dsa110_contimg.api.models import *

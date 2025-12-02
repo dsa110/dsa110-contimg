@@ -14,8 +14,9 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+# Add backend/src to path
+REPO_ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(REPO_ROOT / "backend" / "src"))
 
 def extract_docstring(node: ast.AST) -> str:
     """Extract docstring from AST node."""

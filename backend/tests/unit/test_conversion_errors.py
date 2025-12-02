@@ -40,8 +40,8 @@ class TestHDF5OrchestratorErrors:
             from dsa110_contimg.conversion import convert_subband_groups_to_ms
         except (ImportError, AttributeError):
             pytest.skip("hdf5_orchestrator not available")
-        
-        with patch("dsa110_contimg.conversion.strategies.hdf5_orchestrator.query_subband_groups"):
+
+        with patch("dsa110_contimg.conversion.hdf5_orchestrator.query_subband_groups"):
             with pytest.raises(ConversionError) as exc_info:
                 convert_subband_groups_to_ms(
                     input_dir="/nonexistent/path",
@@ -59,8 +59,8 @@ class TestHDF5OrchestratorErrors:
             from dsa110_contimg.conversion import convert_subband_groups_to_ms
         except (ImportError, AttributeError):
             pytest.skip("hdf5_orchestrator not available")
-        
-        with patch("dsa110_contimg.conversion.strategies.hdf5_orchestrator.query_subband_groups") as mock_query:
+
+        with patch("dsa110_contimg.conversion.hdf5_orchestrator.query_subband_groups") as mock_query:
             mock_query.side_effect = DatabaseError("Connection failed", db_name="hdf5")
             
             with pytest.raises(ConversionError) as exc_info:

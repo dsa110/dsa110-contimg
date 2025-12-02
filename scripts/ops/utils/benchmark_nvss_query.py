@@ -5,14 +5,15 @@ This script measures the performance improvement of using SQLite databases
 instead of CSV files for NVSS catalog queries.
 """
 
-# Add project root to path
+# Add backend/src to path
 import sys
 import time
 from pathlib import Path
 
 import numpy as np
 
-sys.path.insert(0, str(Path(__file__).parent.parent))
+REPO_ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(REPO_ROOT / "backend" / "src"))
 
 from dsa110_contimg.calibration.catalogs import (query_nvss_sources,
                                                  read_nvss_catalog)

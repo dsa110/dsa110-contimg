@@ -16,8 +16,9 @@ from typing import Optional
 
 import pandas as pd
 
-# Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+# Add backend/src to path for imports
+REPO_ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(REPO_ROOT / "backend" / "src"))
 
 from dsa110_contimg.photometry.variability import calculate_eta_metric
 
