@@ -242,13 +242,13 @@ def solve_gains_numpy(
     model: np.ndarray,
     antenna_pairs: List[Tuple[int, int]],
     n_antennas: int,
-    n_iterations: int = 50,
+    n_iterations: int = 20,
     dtype: np.dtype = np.complex128,
 ) -> Tuple[np.ndarray, Dict[str, float]]:
-    """Solve for antenna gains using iterative least-squares (Stefcal-like).
+    """Solve for antenna gains using vectorized Stefcal-like iteration.
     
-    This implements a simplified gain solver to test precision effects.
-    Real CASA gaincal uses more sophisticated algorithms.
+    This implements a simplified but FAST gain solver to test precision effects.
+    Uses fully vectorized NumPy operations for speed.
     
     Args:
         visibilities: Observed visibilities [n_baselines, n_channels, n_times]
@@ -267,6 +267,15 @@ def solve_gains_numpy(
     
     n_baselines, n_channels, n_times = vis.shape
     
+    # Pre-compute time-averaged data for speed
+    vis_avg = np.mean(vis, axis=-1)  # [n_baselines, n_channels]
+    mod_avg = np.mean(mod, axis=-1)  # [n_baselines, n_channels]
+    mod_abs2 = np.abs(mod_avg) ** 2  # [n_baselines, n_channels]
+    
+    # Build antenna index arrays for vectorized operations
+    ant1_arr = np.array([p[0] for p in antenna_pairs])
+    ant2_arr = np.array([p[1] for p in antenna_pairs])
+    
     # Initialize gains to unity
     gains = np.ones((n_antennas, n_channels), dtype=dtype)
     
@@ -274,47 +283,41 @@ def solve_gains_numpy(
     chi2_history = []
     
     for iteration in range(n_iterations):
-        # Compute residuals
-        residuals = np.zeros_like(vis)
-        for bl_idx, (i, j) in enumerate(antenna_pairs):
-            gain_product = gains[i, :, np.newaxis] * np.conj(gains[j, :, np.newaxis])
-            residuals[bl_idx] = vis[bl_idx] - gain_product * mod[bl_idx]
+        # Compute model visibilities with current gains: g_i * g_j^* * M_ij
+        gain_products = gains[ant1_arr] * np.conj(gains[ant2_arr])  # [n_baselines, n_channels]
+        predicted = gain_products * mod_avg
         
-        chi2 = np.sum(np.abs(residuals) ** 2).real
-        chi2_history.append(float(chi2))
+        # Chi-squared
+        residuals = vis_avg - predicted
+        chi2 = float(np.sum(np.abs(residuals) ** 2).real)
+        chi2_history.append(chi2)
         
-        # Update gains (simplified update step)
-        # For each antenna, solve: g_i = sum(V_ij * conj(g_j) * M_ij^*) / sum(|g_j|^2 |M_ij|^2)
-        new_gains = np.zeros_like(gains)
-        for ant in range(n_antennas):
-            numerator = np.zeros(n_channels, dtype=dtype)
-            denominator = np.zeros(n_channels, dtype=np.float64)
-            
-            for bl_idx, (i, j) in enumerate(antenna_pairs):
-                if i == ant:
-                    other = j
-                    sign = 1
-                elif j == ant:
-                    other = i
-                    sign = -1  # Conjugate relationship
-                else:
-                    continue
-                
-                # Average over time
-                vis_avg = np.mean(vis[bl_idx], axis=-1)
-                mod_avg = np.mean(mod[bl_idx], axis=-1)
-                
-                if sign == 1:
-                    numerator += vis_avg * np.conj(gains[other]) * np.conj(mod_avg)
-                else:
-                    numerator += np.conj(vis_avg) * gains[other] * mod_avg
-                
-                denominator += np.abs(gains[other]) ** 2 * np.abs(mod_avg) ** 2
-            
-            # Avoid division by zero
-            mask = denominator > 1e-10
-            new_gains[ant, mask] = numerator[mask] / denominator[mask]
-            new_gains[ant, ~mask] = gains[ant, ~mask]
+        # Vectorized gain update using np.add.at for accumulation
+        # For antenna i: g_i = sum_j(V_ij * g_j^* * M_ij^*) / sum_j(|g_j|^2 * |M_ij|^2)
+        
+        numerator = np.zeros((n_antennas, n_channels), dtype=dtype)
+        denominator = np.zeros((n_antennas, n_channels), dtype=np.float64)
+        
+        # Contribution from ant1 side: V_ij * conj(g_j) * conj(M_ij)
+        contrib1 = vis_avg * np.conj(gains[ant2_arr]) * np.conj(mod_avg)
+        denom1 = np.abs(gains[ant2_arr]) ** 2 * mod_abs2
+        
+        # Contribution from ant2 side: conj(V_ij) * g_i * M_ij  
+        contrib2 = np.conj(vis_avg) * gains[ant1_arr] * mod_avg
+        denom2 = np.abs(gains[ant1_arr]) ** 2 * mod_abs2
+        
+        # Accumulate using np.add.at (handles repeated indices)
+        np.add.at(numerator, ant1_arr, contrib1)
+        np.add.at(denominator, ant1_arr, denom1.real)
+        np.add.at(numerator, ant2_arr, contrib2)
+        np.add.at(denominator, ant2_arr, denom2.real)
+        
+        # Update gains
+        new_gains = np.where(
+            denominator > 1e-10,
+            numerator / denominator,
+            gains
+        )
         
         # Check convergence
         gain_change = np.max(np.abs(new_gains - gains))
@@ -328,7 +331,7 @@ def solve_gains_numpy(
     metrics = {
         "n_iterations": iteration + 1,
         "final_chi2": chi2_history[-1] if chi2_history else np.nan,
-        "chi2_reduction": chi2_history[0] / chi2_history[-1] if len(chi2_history) > 1 else 1.0,
+        "chi2_reduction": chi2_history[0] / chi2_history[-1] if len(chi2_history) > 1 and chi2_history[-1] > 0 else 1.0,
         "converged": gain_change < 1e-8,
     }
     

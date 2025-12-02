@@ -80,8 +80,12 @@ def _record_to_database(
     """Record timing metrics to the unified database.
 
     This is a best-effort operation - failures are logged but don't propagate.
+    
+    NOTE: Imports are done inside the function to avoid circular imports
+    since this module may be imported by modules that config/database depend on.
     """
     try:
+        # Lazy imports to avoid circular dependency issues
         from dsa110_contimg.database.unified import Database
         from dsa110_contimg.config import settings
 
