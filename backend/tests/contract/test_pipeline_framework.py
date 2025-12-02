@@ -566,8 +566,8 @@ class TestPipelineScheduler:
 # =============================================================================
 
 
-class TestMosaicPipelineV2:
-    """Tests for the V2 mosaic pipelines using generic framework.
+class TestMosaicPipeline:
+    """Tests for the mosaic pipelines using generic framework.
     
     Note: These tests don't use the reset_registry fixture because
     they're checking the pre-registered pipelines from module import.
@@ -578,11 +578,11 @@ class TestMosaicPipelineV2:
         """Skip the autouse reset fixture for these tests."""
         pass
     
-    def test_nightly_pipeline_v2_structure(self):
-        """NightlyMosaicPipelineV2 has correct structure."""
+    def test_nightly_pipeline_structure(self):
+        """NightlyMosaicPipeline has correct structure."""
         from dsa110_contimg.mosaic.pipeline import (
             MosaicPipelineConfig,
-            NightlyMosaicPipelineV2,
+            NightlyMosaicPipeline,
         )
         
         # Create a minimal config
@@ -593,9 +593,9 @@ class TestMosaicPipelineV2:
                 mosaic_dir=Path(tmpdir) / "mosaics",
             )
             
-            pipeline = NightlyMosaicPipelineV2(config)
+            pipeline = NightlyMosaicPipeline(config)
             
-            assert pipeline.pipeline_name == "nightly_mosaic_v2"
+            assert pipeline.pipeline_name == "nightly_mosaic"
             assert len(pipeline.jobs) == 3
             
             job_ids = [j.job_id for j in pipeline.jobs]
@@ -603,23 +603,23 @@ class TestMosaicPipelineV2:
             assert "build" in job_ids
             assert "qa" in job_ids
     
-    def test_nightly_pipeline_v2_has_schedule(self):
-        """NightlyMosaicPipelineV2 has correct schedule."""
-        from dsa110_contimg.mosaic.pipeline import NightlyMosaicPipelineV2
+    def test_nightly_pipeline_has_schedule(self):
+        """NightlyMosaicPipeline has correct schedule."""
+        from dsa110_contimg.mosaic.pipeline import NightlyMosaicPipeline
         
-        assert NightlyMosaicPipelineV2.schedule == "0 3 * * *"
+        assert NightlyMosaicPipeline.schedule == "0 3 * * *"
     
-    def test_on_demand_pipeline_v2_no_schedule(self):
-        """OnDemandMosaicPipelineV2 has no schedule."""
-        from dsa110_contimg.mosaic.pipeline import OnDemandMosaicPipelineV2
+    def test_on_demand_pipeline_no_schedule(self):
+        """OnDemandMosaicPipeline has no schedule."""
+        from dsa110_contimg.mosaic.pipeline import OnDemandMosaicPipeline
         
-        assert OnDemandMosaicPipelineV2.schedule is None
+        assert OnDemandMosaicPipeline.schedule is None
     
-    def test_on_demand_pipeline_v2_structure(self):
-        """OnDemandMosaicPipelineV2 has correct structure."""
+    def test_on_demand_pipeline_structure(self):
+        """OnDemandMosaicPipeline has correct structure."""
         from dsa110_contimg.mosaic.pipeline import (
             MosaicPipelineConfig,
-            OnDemandMosaicPipelineV2,
+            OnDemandMosaicPipeline,
         )
         
         import tempfile
@@ -629,14 +629,14 @@ class TestMosaicPipelineV2:
                 mosaic_dir=Path(tmpdir) / "mosaics",
             )
             
-            pipeline = OnDemandMosaicPipelineV2(
+            pipeline = OnDemandMosaicPipeline(
                 config=config,
                 name="test_mosaic",
                 start_time=1000000,
                 end_time=1100000,
             )
             
-            assert pipeline.pipeline_name == "on_demand_mosaic_v2"
+            assert pipeline.pipeline_name == "on_demand_mosaic"
             assert len(pipeline.jobs) == 3
     
     def test_mosaic_jobs_have_correct_types(self):
