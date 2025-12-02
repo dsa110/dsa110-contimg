@@ -362,8 +362,8 @@ def populated_pipeline_db(
             """
             INSERT INTO images (
                 path, ms_path, type, format, noise_jy,
-                n_pixels, pixel_scale_arcsec, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                imsize_x, imsize_y, cellsize_arcsec, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 f"/stage/images/image_{i}.fits",
@@ -371,6 +371,7 @@ def populated_pipeline_db(
                 "dirty",
                 "FITS",
                 0.001 * (i + 1),
+                4096,
                 4096,
                 1.5,
                 now,

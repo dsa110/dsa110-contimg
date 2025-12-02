@@ -81,17 +81,27 @@ class TestUnifiedSchemaContract:
             'created_at': 'REAL',
             'type': 'TEXT',
             'format': 'TEXT',
-            'noise_jy': 'REAL',
             'beam_major_arcsec': 'REAL',
             'beam_minor_arcsec': 'REAL',
             'beam_pa_deg': 'REAL',
+            'noise_jy': 'REAL',
+            'dynamic_range': 'REAL',
+            'pbcor': 'INTEGER',
+            'field_name': 'TEXT',
+            'center_ra_deg': 'REAL',
+            'center_dec_deg': 'REAL',
             'imsize_x': 'INTEGER',
             'imsize_y': 'INTEGER',
             'cellsize_arcsec': 'REAL',
+            'freq_ghz': 'REAL',
+            'bandwidth_mhz': 'REAL',
+            'integration_sec': 'REAL',
         }
         
         for col_name, col_type in required_columns.items():
             assert col_name in columns, f"Missing column: {col_name}"
+            assert columns[col_name] == col_type, \
+                f"Column {col_name} has type {columns[col_name]}, expected {col_type}"
 
 
 class TestMSIndexOperations:
@@ -178,6 +188,18 @@ class TestMSIndexOperations:
 
 class TestImagesOperations:
     """Contract tests for images table operations."""
+    
+    IMAGE_INSERT_COLUMNS = (
+        "path",
+        "ms_path",
+        "created_at",
+        "type",
+        "format",
+        "noise_jy",
+        "imsize_x",
+        "imsize_y",
+        "cellsize_arcsec",
+    )
 
     def test_insert_and_query_image(self, test_pipeline_db):
         """Verify we can insert and retrieve image records."""
@@ -196,9 +218,9 @@ class TestImagesOperations:
         # Insert image record (using correct schema columns)
         img_path = "/stage/dsa110-contimg/images/for_image.fits"
         db.execute(
-            """INSERT INTO images 
-               (path, ms_path, created_at, type, format, noise_jy, imsize_x, imsize_y, cellsize_arcsec)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            f"""INSERT INTO images 
+                ({', '.join(self.IMAGE_INSERT_COLUMNS)})
+                VALUES ({', '.join('?' for _ in self.IMAGE_INSERT_COLUMNS)})""",
             (img_path, ms_path, now, 'dirty', 'fits', 0.001, 4096, 4096, 1.5)
         )
         
@@ -229,10 +251,10 @@ class TestImagesOperations:
         )
         
         db.execute(
-            """INSERT INTO images 
-               (path, ms_path, created_at, type, format, noise_jy)
-               VALUES (?, ?, ?, ?, ?, ?)""",
-            (img_path, ms_path, now, 'dirty', 'FITS', 0.001)
+            f"""INSERT INTO images 
+                ({', '.join(self.IMAGE_INSERT_COLUMNS)})
+                VALUES ({', '.join('?' for _ in self.IMAGE_INSERT_COLUMNS)})""",
+            (img_path, ms_path, now, 'dirty', 'FITS', 0.001, 2048, 2048, 2.0)
         )
         
         # Join query
