@@ -28,11 +28,13 @@ def client():
     The databases are cleaned up automatically when the fixture exits.
     """
     with create_test_database_environment() as db_paths:
+        pipeline_db = str(db_paths["pipeline"])
         products_db = str(db_paths["products"])
         cal_db = str(db_paths["cal_registry"])
         
         # Set environment variables before creating the app
         env_patches = {
+            "PIPELINE_DB": pipeline_db,
             "PIPELINE_PRODUCTS_DB": products_db,
             "PIPELINE_CAL_REGISTRY_DB": cal_db,
             "DSA110_AUTH_DISABLED": "true",

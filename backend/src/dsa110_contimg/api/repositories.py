@@ -732,7 +732,7 @@ class AsyncSourceRepository(SourceRepositoryInterface):
                 SELECT mjd, flux_jy, flux_err_jy, peak_jyb, peak_err_jyb, snr, image_path
                 FROM photometry
                 WHERE source_id IS NOT NULL
-                WHERE source_id = ?
+                  AND source_id = ?
             """
             params: List[Any] = [source_id]
             

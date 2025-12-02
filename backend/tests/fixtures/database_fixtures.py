@@ -814,34 +814,31 @@ def create_test_cal_registry_db(caltables: Iterator[SampleCalTable] | None = Non
 
 @contextlib.contextmanager
 def create_test_database_environment():
-    """Context manager that creates both test databases.
+    """Context manager that creates a unified test database.
     
     Yields:
-        Dict with 'products' and 'cal_registry' paths.
+        Dict with unified database path referenced by legacy keys.
     
     Example:
         with create_test_database_environment() as db_paths:
-            products_db = db_paths["products"]
-            cal_db = db_paths["cal_registry"]
+            pipeline_db = db_paths["pipeline"]
     """
     tmpdir = tempfile.mkdtemp(prefix="test_env_")
-    products_path = Path(tmpdir) / "products.sqlite3"
-    cal_path = Path(tmpdir) / "cal_registry.sqlite3"
+    pipeline_path = Path(tmpdir) / "pipeline.sqlite3"
     
     try:
-        # Create products database
-        conn = sqlite3.connect(products_path)
+        conn = sqlite3.connect(pipeline_path)
+        # Create unified schema (products + cal tables share same DB now)
         _create_products_schema_sync(conn)
-        _populate_products_db_sync(conn)
-        conn.close()
-        
-        # Create cal registry database
-        conn = sqlite3.connect(cal_path)
         _create_cal_registry_schema_sync(conn)
+        _populate_products_db_sync(conn)
         _populate_cal_registry_db_sync(conn)
         conn.close()
         
-        yield {"products": products_path, "cal_registry": cal_path}
+        yield {
+            "pipeline": pipeline_path,
+            "products": pipeline_path,
+            "cal_registry": pipeline_path,
+        }
     finally:
         shutil.rmtree(tmpdir, ignore_errors=True)
-
