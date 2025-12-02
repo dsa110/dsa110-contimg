@@ -1,16 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { loadEcharts } from "../../lib/loadEcharts";
 
-/**
- * Type for ECharts tooltip formatter params
- */
-interface EChartsTooltipParams {
-  dataIndex: number;
-  data: [number, number]; // [timestamp, value]
-  seriesName?: string;
-  seriesIndex?: number;
-}
-
 export interface LightCurveDataPoint {
   /** Timestamp in ISO format or Unix milliseconds */
   time: string | number;
