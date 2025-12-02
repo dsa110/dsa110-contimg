@@ -13,9 +13,8 @@ Philosophy:
 
 import os
 import shutil
-import tempfile
 from pathlib import Path
-from typing import Generator, List, Optional
+from typing import Generator, List
 
 import numpy as np
 import pytest

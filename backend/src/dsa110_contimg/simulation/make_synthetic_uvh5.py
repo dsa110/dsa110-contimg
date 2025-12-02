@@ -375,6 +375,7 @@ def build_uvdata_from_scratch(
     tel = Telescope()
     tel.name = "DSA-110"
     tel.location = config.site_location
+    tel.Nants = len(uv.antenna_numbers)
     uv.telescope = tel
 
     # Set data arrays using calculated dimensions
