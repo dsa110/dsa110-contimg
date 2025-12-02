@@ -5,12 +5,12 @@
  */
 
 import React from "react";
-import type { ResourceMetrics } from "../../types/prometheus";
+import type { ResourceMetricsDetailed } from "../../types/prometheus";
 import { MetricsTimeSeriesChart } from "./MetricsTimeSeriesChart";
 
 interface ResourceMetricsPanelProps {
   /** Resource metrics data */
-  metrics: ResourceMetrics;
+  metrics: ResourceMetricsDetailed;
   /** Show detailed charts */
   showCharts?: boolean;
   className?: string;
@@ -138,6 +138,7 @@ export function ResourceMetricsPanel({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <MetricsTimeSeriesChart
               metric={{
+                id: "cpu",
                 name: "CPU Usage",
                 description: "Processor utilization over time",
                 current: metrics.cpu.current,
@@ -151,6 +152,7 @@ export function ResourceMetricsPanel({
             />
             <MetricsTimeSeriesChart
               metric={{
+                id: "memory",
                 name: "Memory Usage",
                 description: "RAM utilization over time",
                 current: (metrics.memory.current / metrics.memory.total) * 100,
@@ -167,6 +169,7 @@ export function ResourceMetricsPanel({
             />
             <MetricsTimeSeriesChart
               metric={{
+                id: "disk-io",
                 name: "Disk I/O",
                 description: "Disk read/write throughput",
                 current: metrics.diskIO.current,
@@ -180,6 +183,7 @@ export function ResourceMetricsPanel({
             />
             <MetricsTimeSeriesChart
               metric={{
+                id: "network-io",
                 name: "Network I/O",
                 description: "Network bandwidth usage",
                 current: metrics.network.current,

@@ -97,6 +97,14 @@ export interface ResourceMetrics {
   network_io_mbps: number;
 }
 
+/** Extended resource metrics with history for detailed visualization */
+export interface ResourceMetricsDetailed {
+  cpu: SystemMetric;
+  memory: SystemMetric & { total: number };
+  diskIO: SystemMetric;
+  network: SystemMetric;
+}
+
 export interface MetricsDashboard {
   /** System resource metrics */
   resources: ResourceMetrics;
