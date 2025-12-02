@@ -51,6 +51,12 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 asyncio_mode = "auto"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "contract: marks tests as contract tests using real data",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
 asyncio_default_fixture_loop_scope = "function"
 # Filter warnings from third-party packages we can't control
 filterwarnings = [
