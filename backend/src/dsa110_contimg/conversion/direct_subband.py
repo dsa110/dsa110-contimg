@@ -188,7 +188,7 @@ class DirectSubbandWriter(MSWriter):
         #   sb15 = lowest frequency (~1311 MHz)
         # For MFS imaging, we need ASCENDING frequency order (low to high).
         # Therefore, we must REVERSE the subband number sort.
-        from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
+        from dsa110_contimg.conversion.hdf5_orchestrator import (
             _extract_subband_code,
         )
 
@@ -622,7 +622,7 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
     # Create per-subband MS files
     # CRITICAL: DSA-110 subbands use DESCENDING frequency order (sb00=highest, sb15=lowest).
     # For MFS imaging, we need ASCENDING frequency order, so REVERSE the sort.
-    from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
+    from dsa110_contimg.conversion.hdf5_orchestrator import (
         _extract_subband_code,
     )
 

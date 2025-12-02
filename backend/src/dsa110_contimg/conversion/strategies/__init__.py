@@ -1,10 +1,16 @@
 # This file initializes the strategies module.
-"""Conversion strategies for DSA-110 Continuum Imaging Pipeline."""
+"""Conversion strategies for DSA-110 Continuum Imaging Pipeline.
 
-from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
+NOTE: This module exists for backwards compatibility. All implementation
+files have been flattened to the conversion/ level per the complexity
+reduction guide. Import directly from conversion/ for new code.
+"""
+
+# Import from flattened location (modules moved up to conversion/)
+from dsa110_contimg.conversion.hdf5_orchestrator import (
     convert_subband_groups_to_ms,
 )
-from dsa110_contimg.conversion.strategies.writers import (
+from dsa110_contimg.conversion.writers import (
     MSWriter,
     DirectSubbandWriter,
     ParallelSubbandWriter,  # Alias for DirectSubbandWriter

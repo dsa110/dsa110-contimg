@@ -16,23 +16,27 @@ Usage:
     # Streaming mode
     from dsa110_contimg.conversion import QueueDB
     queue = QueueDB(db_path)
+
+NOTE: Per complexity reduction guide, all implementation files have been
+flattened to this level. The streaming/ and strategies/ submodules remain
+for backwards compatibility but import from the flattened files.
 """
 
 from . import helpers_coordinates  # Make coordinate helpers accessible via the package
 
-# Flattened exports - main conversion API
-from .converter import convert_subband_groups_to_ms
+# Flattened exports - main conversion API (direct import from flattened files)
+from .hdf5_orchestrator import convert_subband_groups_to_ms
 
-# Flattened exports - streaming API
-from .streaming import (
+# Flattened exports - streaming API (direct import from flattened file)
+from .streaming_converter import (
     QueueDB,
     parse_subband_info,
     get_mosaic_queue_status,
     check_for_complete_group,
 )
 
-# Re-export from strategies for backwards compatibility
-from .strategies import (
+# Flattened exports - writers (direct import from flattened files)
+from .writers import (
     MSWriter,
     DirectSubbandWriter,
     ParallelSubbandWriter,

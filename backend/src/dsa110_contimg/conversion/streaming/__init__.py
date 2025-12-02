@@ -16,7 +16,8 @@ Usage:
     from dsa110_contimg.conversion import QueueDB
 """
 
-from dsa110_contimg.conversion.streaming.streaming_converter import (
+# Import from flattened location (module moved up to conversion/)
+from dsa110_contimg.conversion.streaming_converter import (
     # Main classes
     QueueDB,
     # Helper functions

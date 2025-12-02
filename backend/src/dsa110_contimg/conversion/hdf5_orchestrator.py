@@ -18,7 +18,7 @@ import numpy as np
 import pyuvdata
 
 from dsa110_contimg.database.hdf5_index import query_subband_groups
-from dsa110_contimg.conversion.strategies.writers import get_writer
+from dsa110_contimg.conversion.writers import get_writer
 from dsa110_contimg.utils.antpos_local import get_itrf
 from dsa110_contimg.utils import FastMeta
 from dsa110_contimg.utils.exceptions import (
