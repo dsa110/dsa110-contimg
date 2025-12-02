@@ -7,10 +7,12 @@ import sys
 import tempfile
 from pathlib import Path
 
+# Add backend/src to path
+REPO_ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(REPO_ROOT / 'backend' / 'src'))
+
 from casacore.images import image as casaimage
 from casatasks import importfits, imregrid
-
-sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
 
 def test_regrid():

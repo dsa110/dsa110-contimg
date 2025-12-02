@@ -4,8 +4,11 @@ Test script for Phase 3 backend API endpoints (Events and Cache).
 """
 import os
 import sys
+from pathlib import Path
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+# Add backend/src to path
+REPO_ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(REPO_ROOT / "backend" / "src"))
 
 import time
 from datetime import datetime

@@ -8,7 +8,9 @@ This is the recommended workflow since DP3 cannot handle 2-pol MS files.
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+# Add backend/src to path
+REPO_ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(REPO_ROOT / "backend" / "src"))
 
 import os
 import tempfile
