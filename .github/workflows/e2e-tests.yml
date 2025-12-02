@@ -117,7 +117,7 @@ jobs:
           npx playwright test --reporter=list,html
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: always()
         with:
           name: playwright-report
@@ -125,7 +125,7 @@ jobs:
           retention-days: 14
 
       - name: Upload test screenshots
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: failure()
         with:
           name: test-screenshots
@@ -196,7 +196,7 @@ jobs:
           npx playwright test --project=${{ matrix.browser }} --reporter=list
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         if: failure()
         with:
           name: playwright-report-${{ matrix.browser }}
