@@ -39,6 +39,8 @@ def client():
             "PIPELINE_CAL_REGISTRY_DB": cal_db,
             "DSA110_AUTH_DISABLED": "true",
             "DSA110_ALLOWED_IPS": "127.0.0.1,::1,testclient",
+            "DSA110_TEST_MODE": "true",
+            "ABSURD_ENABLED": "false",
         }
         
         with patch.dict(os.environ, env_patches):

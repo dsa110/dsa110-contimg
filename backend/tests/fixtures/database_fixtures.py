@@ -16,6 +16,8 @@ Usage:
 
 from __future__ import annotations
 
+import atexit
+import threading
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -618,6 +620,55 @@ import tempfile
 import shutil
 
 
+# =============================================================================
+# Cached database templates
+# =============================================================================
+
+_template_lock = threading.Lock()
+_unified_template_path: Path | None = None
+_unified_template_dir: Path | None = None
+
+
+def _cleanup_template_dir():
+    """Remove the cached template directory at interpreter shutdown."""
+    global _unified_template_dir, _unified_template_path
+    if _unified_template_dir is not None:
+        shutil.rmtree(_unified_template_dir, ignore_errors=True)
+        _unified_template_dir = None
+        _unified_template_path = None
+
+
+atexit.register(_cleanup_template_dir)
+
+
+def _ensure_unified_db_template() -> Path:
+    """Return the path to a cached unified database template.
+
+    The first caller builds and populates the database; subsequent callers
+    simply clone the resulting SQLite file, which is much faster than
+    recreating schemas and data for every test.
+    """
+    global _unified_template_path, _unified_template_dir
+
+    with _template_lock:
+        if _unified_template_path and _unified_template_path.exists():
+            return _unified_template_path
+
+        template_dir = Path(tempfile.mkdtemp(prefix="unified_db_template_"))
+        template_path = template_dir / "pipeline.sqlite3"
+
+        conn = sqlite3.connect(template_path)
+        _create_products_schema_sync(conn)
+        _create_cal_registry_schema_sync(conn)
+        _populate_products_db_sync(conn)
+        _populate_cal_registry_db_sync(conn)
+        conn.close()
+
+        _unified_template_dir = template_dir
+        _unified_template_path = template_path
+        return template_path
+
+
 def _create_products_schema_sync(conn: sqlite3.Connection) -> None:
     """Create all products database tables and indexes (sync version)."""
     cursor = conn.cursor()
@@ -823,17 +874,12 @@ def create_test_database_environment():
         with create_test_database_environment() as db_paths:
             pipeline_db = db_paths["pipeline"]
     """
+    template_path = _ensure_unified_db_template()
     tmpdir = tempfile.mkdtemp(prefix="test_env_")
     pipeline_path = Path(tmpdir) / "pipeline.sqlite3"
     
     try:
-        conn = sqlite3.connect(pipeline_path)
-        # Create unified schema (products + cal tables share same DB now)
-        _create_products_schema_sync(conn)
-        _create_cal_registry_schema_sync(conn)
-        _populate_products_db_sync(conn)
-        _populate_cal_registry_db_sync(conn)
-        conn.close()
+        shutil.copy2(template_path, pipeline_path)
         
         yield {
             "pipeline": pipeline_path,

@@ -34,6 +34,11 @@ DEFAULT_ALLOWED_IPS = [
 ]
 
 
+def _is_test_mode() -> bool:
+    """Return True when lightweight test mode is enabled."""
+    return os.getenv("DSA110_TEST_MODE", "").lower() in {"1", "true", "yes", "on"}
+
+
 def get_allowed_networks():
     """Parse allowed IPs from environment or use defaults.
     
@@ -120,37 +125,49 @@ async def lifespan(app: FastAPI):
     """
     import logging
     logger = logging.getLogger(__name__)
+    test_mode = _is_test_mode()
+    session_manager_started = False
+    shutdown_session_manager_fn = None
     
     # Startup
     logger.info("Starting application lifespan")
     
     # Initialize Bokeh session manager (for InteractiveClean)
-    try:
-        from .services.bokeh_sessions import init_session_manager, shutdown_session_manager
-        await init_session_manager()
-        logger.info("Bokeh session manager initialized")
-    except Exception as e:
-        logger.warning(f"Could not initialize Bokeh session manager: {e}")
+    if test_mode:
+        logger.info("Test mode enabled; skipping Bokeh session manager initialization")
+    else:
+        try:
+            from .services.bokeh_sessions import init_session_manager, shutdown_session_manager
+            await init_session_manager()
+            session_manager_started = True
+            shutdown_session_manager_fn = shutdown_session_manager
+            logger.info("Bokeh session manager initialized")
+        except Exception as e:
+            logger.warning(f"Could not initialize Bokeh session manager: {e}")
     
     # Initialize ABSURD workflow manager client
-    try:
-        from dsa110_contimg.absurd import AbsurdClient, AbsurdConfig
-        from .routes.absurd import init_absurd_client, shutdown_absurd_client
-        
-        config = AbsurdConfig.from_env()
-        if config.enabled:
-            await init_absurd_client(config)
-            app.state.absurd_enabled = True
-            logger.info(f"ABSURD client initialized (queue={config.queue_name})")
-        else:
+    if test_mode:
+        app.state.absurd_enabled = False
+        logger.info("Test mode enabled; skipping ABSURD client initialization")
+    else:
+        try:
+            from dsa110_contimg.absurd import AbsurdClient, AbsurdConfig
+            from .routes.absurd import init_absurd_client, shutdown_absurd_client
+            
+            config = AbsurdConfig.from_env()
+            if config.enabled:
+                await init_absurd_client(config)
+                app.state.absurd_enabled = True
+                logger.info(f"ABSURD client initialized (queue={config.queue_name})")
+            else:
+                app.state.absurd_enabled = False
+                logger.info("ABSURD disabled (ABSURD_ENABLED=false)")
+        except ImportError as e:
             app.state.absurd_enabled = False
-            logger.info("ABSURD disabled (ABSURD_ENABLED=false)")
-    except ImportError as e:
-        app.state.absurd_enabled = False
-        logger.warning(f"ABSURD module not available: {e}")
-    except Exception as e:
-        app.state.absurd_enabled = False
-        logger.warning(f"Could not initialize ABSURD client: {e}")
+            logger.warning(f"ABSURD module not available: {e}")
+        except Exception as e:
+            app.state.absurd_enabled = False
+            logger.warning(f"Could not initialize ABSURD client: {e}")
     
     yield
     
@@ -166,11 +183,12 @@ async def lifespan(app: FastAPI):
     except Exception as e:
         logger.warning(f"Error shutting down ABSURD client: {e}")
     
-    try:
-        await shutdown_session_manager()
-        logger.info("Bokeh session manager shutdown complete")
-    except Exception as e:
-        logger.warning(f"Error shutting down session manager: {e}")
+    if session_manager_started and shutdown_session_manager_fn:
+        try:
+            await shutdown_session_manager_fn()
+            logger.info("Bokeh session manager shutdown complete")
+        except Exception as e:
+            logger.warning(f"Error shutting down session manager: {e}")
 
 
 def create_app() -> FastAPI:
