@@ -263,20 +263,59 @@ class TestCalibrationOperations:
         cal_path = "/stage/dsa110-contimg/caltables/bandpass.bcal"
         now = time.time()
         
-        # Using actual schema columns
+        # Use the unified schema column list to avoid drift
+        cal_columns = (
+            "set_name",
+            "path",
+            "table_type",
+            "order_index",
+            "cal_field",
+            "refant",
+            "created_at",
+            "valid_start_mjd",
+            "valid_end_mjd",
+            "status",
+            "source_ms_path",
+            "solver_command",
+            "solver_version",
+            "solver_params",
+            "quality_metrics",
+            "notes",
+        )
+        cal_values = (
+            "cal_set_001",
+            cal_path,
+            "bandpass",
+            0,
+            "3C286",
+            "ea01",
+            now,
+            60676.0,
+            60677.0,
+            "active",
+            "/stage/dsa110-contimg/ms/bandpass.ms",
+            "gaincal",
+            "1.9.0",
+            "solint=int,combine=scan",
+            '{"snr": 42.0}',
+            "contract test insert",
+        )
         db.execute(
-            """INSERT INTO calibration_tables 
-               (set_name, path, table_type, order_index, cal_field, created_at, valid_start_mjd, valid_end_mjd, status)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-            ('cal_set_001', cal_path, 'bandpass', 0, '3C286', now, 60676.0, 60677.0, 'active')
+            f"""INSERT INTO calibration_tables 
+                ({', '.join(cal_columns)})
+                VALUES ({', '.join('?' for _ in cal_columns)})""",
+            cal_values,
         )
         
         results = db.query("SELECT * FROM calibration_tables WHERE path = ?", (cal_path,))
         
         assert len(results) == 1
-        assert results[0]['table_type'] == 'bandpass'
-        assert results[0]['cal_field'] == '3C286'
-        assert results[0]['status'] == 'active'
+        record = results[0]
+        assert record['table_type'] == 'bandpass'
+        assert record['cal_field'] == '3C286'
+        assert record['refant'] == 'ea01'
+        assert record['source_ms_path'] == '/stage/dsa110-contimg/ms/bandpass.ms'
+        assert record['status'] == 'active'
 
 
 class TestProcessingQueueOperations:
@@ -289,12 +328,28 @@ class TestProcessingQueueOperations:
         group_id = "grp_test_001"
         now = time.time()
         
-        # Insert new queue entry (collecting state)
+        # Insert new queue entry (collecting state) with schema-accurate columns
+        queue_columns = (
+            "group_id",
+            "state",
+            "expected_subbands",
+            "received_at",
+            "last_update",
+            "processing_stage",
+        )
+        queue_values = (
+            group_id,
+            "collecting",
+            16,
+            now,
+            now,
+            "collecting",
+        )
         db.execute(
-            """INSERT INTO processing_queue 
-               (group_id, state, expected_subbands, received_at, last_update, processing_stage)
-               VALUES (?, ?, ?, ?, ?, ?)""",
-            (group_id, 'collecting', 16, now, now, 'collecting')
+            f"""INSERT INTO processing_queue 
+                ({', '.join(queue_columns)})
+                VALUES ({', '.join('?' for _ in queue_columns)})""",
+            queue_values,
         )
         
         # Transition to pending
@@ -320,6 +375,7 @@ class TestProcessingQueueOperations:
         assert len(results) == 1
         assert results[0]['state'] == 'completed'
         assert results[0]['expected_subbands'] == 16
+        assert results[0]['processing_stage'] == 'completed'
 
 
 class TestPerformanceMetrics:
@@ -340,22 +396,52 @@ class TestPerformanceMetrics:
             (group_id, 'completed', now, now)
         )
         
-        # Now insert performance metrics (using actual schema columns)
-        db.execute(
-            """INSERT INTO performance_metrics 
-               (group_id, total_time, load_time, phase_time, write_time, writer_type, recorded_at)
-               VALUES (?, ?, ?, ?, ?, ?, ?)""",
-            (group_id, 120.5, 30.2, 15.1, 75.2, 'direct-subband', now)
+        metrics_columns = (
+            "group_id",
+            "load_time",
+            "phase_time",
+            "write_time",
+            "total_time",
+            "writer_type",
+            "recorded_at",
+        )
+        metrics_values = (
+            group_id,
+            30.2,
+            15.1,
+            75.2,
+            120.5,
+            "direct-subband",
+            now,
         )
         
+        # Insert performance metrics using the real schema column names
+        db.execute(
+            f"""INSERT INTO performance_metrics 
+                ({', '.join(metrics_columns)})
+                VALUES ({', '.join('?' for _ in metrics_columns)})""",
+            metrics_values,
+        )
+        
+        select_columns = (
+            "group_id",
+            "total_time",
+            "load_time",
+            "phase_time",
+            "write_time",
+            "writer_type",
+            "recorded_at",
+        )
         results = db.query(
-            "SELECT * FROM performance_metrics WHERE group_id = ?", 
+            f"SELECT {', '.join(select_columns)} FROM performance_metrics WHERE group_id = ?", 
             (group_id,)
         )
         
         assert len(results) == 1
         assert results[0]['total_time'] == 120.5
         assert results[0]['load_time'] == 30.2
+        assert results[0]['phase_time'] == 15.1
+        assert results[0]['write_time'] == 75.2
         assert results[0]['writer_type'] == 'direct-subband'
 
 

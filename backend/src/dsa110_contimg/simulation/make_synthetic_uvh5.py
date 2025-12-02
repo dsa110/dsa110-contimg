@@ -348,6 +348,12 @@ def build_uvdata_from_scratch(
     uv.ant_2_array = np.repeat(ant2_list, ntimes)
     uv.antenna_numbers = np.array(ant_indices, dtype=int)
     uv.antenna_names = [str(i) for i in ant_indices]
+    uv.antenna_positions = np.array(
+        [ant_offsets[idx] for idx in ant_indices],
+        dtype=float,
+    )
+    uv.antenna_diameters = np.full(len(ant_indices), 4.65, dtype=float)
+    uv.Nants_data = len(ant_indices)
 
     # Set time arrays
     uv.time_array = time_array
@@ -357,12 +363,37 @@ def build_uvdata_from_scratch(
     # Set frequency array (will be set per subband)
     uv.freq_array = np.zeros((nspws, nfreqs), dtype=float)
     uv.channel_width = np.full(nfreqs, config.channel_width_hz, dtype=float)
+    uv.spw_array = np.array([0], dtype=int)  # Single spectral window
+    uv.flex_spw_id_array = np.zeros(nfreqs, dtype=int)  # All channels in spw 0
 
-    # Set phase center
+    # Set phase center with pyuvdata 3.x phase_center_catalog
+    phase_center_id = 0
+    uv.phase_center_catalog = {
+        phase_center_id: {
+            "cat_name": "synthetic_calibrator",
+            "cat_type": "sidereal",
+            "cat_lon": config.phase_ra.to_value(u.rad),
+            "cat_lat": config.phase_dec.to_value(u.rad),
+            "cat_frame": "icrs",
+            "cat_epoch": 2000.0,
+        }
+    }
+    uv.phase_center_id_array = np.full(nblts, phase_center_id, dtype=int)
+    uv._Nphase.value = 1
+
+    # Legacy phase center attributes (for compatibility)
     uv.phase_center_ra = config.phase_ra.to_value(u.rad)
     uv.phase_center_dec = config.phase_dec.to_value(u.rad)
     uv.phase_center_frame = "icrs"
     uv.phase_center_epoch = 2000.0
+
+    # Apparent coordinates (same as catalog for ICRS at J2000)
+    uv.phase_center_app_ra = np.full(nblts, config.phase_ra.to_value(u.rad), dtype=float)
+    uv.phase_center_app_dec = np.full(nblts, config.phase_dec.to_value(u.rad), dtype=float)
+    uv.phase_center_frame_pa = np.zeros(nblts, dtype=float)  # Position angle
+
+    # Set baseline array
+    uv.baseline_array = uv.antnums_to_baseline(uv.ant_1_array, uv.ant_2_array)
 
     # Set UVW
     uv.uvw_array = uvw_array
@@ -374,14 +405,31 @@ def build_uvdata_from_scratch(
     from pyuvdata import Telescope
     tel = Telescope()
     tel.name = "DSA-110"
+    tel.instrument = "DSA-110"  # Required for pyuvdata 3.x UVH5 write
     tel.location = config.site_location
     tel.Nants = len(uv.antenna_numbers)
+    tel.antenna_numbers = np.array(uv.antenna_numbers, dtype=int)
+    tel.antenna_names = list(uv.antenna_names)
+    if hasattr(uv, "antenna_positions") and uv.antenna_positions is not None:
+        tel.antenna_positions = np.array(uv.antenna_positions, dtype=float)
+    else:
+        tel.antenna_positions = np.zeros((tel.Nants, 3), dtype=float)
+    if hasattr(uv, "antenna_diameters") and uv.antenna_diameters is not None:
+        tel.antenna_diameters = np.array(uv.antenna_diameters, dtype=float)
     uv.telescope = tel
 
     # Set data arrays using calculated dimensions
     uv.data_array = np.zeros((nblts, nspws, nfreqs, npols), dtype=np.complex64)
     uv.flag_array = np.zeros((nblts, nspws, nfreqs, npols), dtype=bool)
     uv.nsample_array = np.ones((nblts, nspws, nfreqs, npols), dtype=np.float32)
+
+    # Set computed dimension properties explicitly for pyuvdata 3.x
+    # These are computed properties backed by UVParameter objects
+    uv._Nbls.value = nbls
+    uv._Nblts.value = nblts
+    uv._Nfreqs.value = nfreqs
+    uv._Npols.value = npols
+    uv._Ntimes.value = ntimes
 
     # Set units and metadata
     uv.vis_units = "Jy"
