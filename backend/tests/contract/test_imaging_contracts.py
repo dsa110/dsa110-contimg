@@ -229,9 +229,9 @@ class TestProvenanceContract:
         with fits.open(synthetic_fits_image) as hdul:
             header = hdul[0].header
             
-            # Our synthetic_fits adds SYNTHETIC=True
+            # Our synthetic_fits adds SYNTH=True (<=8 chars to avoid HIERARCH)
             is_marked = (
-                header.get("SYNTHETIC", False) or
+                header.get("SYNTH", False) or
                 "synthetic" in header.get("OBJECT", "").lower() or
                 "synthetic" in str(header.get("COMMENT", "")).lower()
             )

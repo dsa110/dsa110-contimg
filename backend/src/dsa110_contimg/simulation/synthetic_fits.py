@@ -118,7 +118,7 @@ def create_synthetic_fits(
     # Provenance marking
     if mark_synthetic:
         hdu.header["OBJECT"] = "Synthetic Test Image"
-        hdu.header["SYNTHETIC"] = True
+        hdu.header["SYNTH"] = True  # Use <=8 char keyword to avoid HIERARCH
         hdu.header["COMMENT"] = "This is synthetic test data generated for testing purposes"
     else:
         hdu.header["OBJECT"] = "Test Image"
