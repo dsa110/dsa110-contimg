@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional, Sequence
+from typing import Any, Dict, List, Optional, Sequence
 
 import numpy as np
 import pandas as pd
@@ -184,4 +184,3 @@ def summarize_sources(sources: Sequence[SyntheticSource]) -> Dict[str, Any]:
         "brightest_flux_jy": float(fluxes.max()),
         "faintest_flux_jy": float(fluxes.min()),
     }
-

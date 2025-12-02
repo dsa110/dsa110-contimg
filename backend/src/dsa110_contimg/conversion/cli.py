@@ -11,7 +11,7 @@ import warnings
 
 # Flattened imports - use top-level module
 from dsa110_contimg.conversion import convert_subband_groups_to_ms
-from dsa110_contimg.conversion.streaming import main as streaming_main
+from dsa110_contimg.conversion.streaming_converter import main as streaming_main
 
 
 def start_streaming_conversion(input_dir, output_dir, queue_db, registry_db, scratch_dir):
