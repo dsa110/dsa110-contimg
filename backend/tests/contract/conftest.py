@@ -241,7 +241,7 @@ def synthetic_fits_image(tmp_path: Path) -> Generator[Path, None, None]:
 
 
 @pytest.fixture(scope="function")
-def test_pipeline_db(tmp_path: Path) -> Generator[Path, None, None]:
+def test_pipeline_db(tmp_path: Path) -> Generator["Database", None, None]:
     """Create an in-memory-like test database with full schema.
     
     This fixture creates a real SQLite database (not mocked) that:
@@ -251,7 +251,7 @@ def test_pipeline_db(tmp_path: Path) -> Generator[Path, None, None]:
     - Can be inspected with sqlite3 CLI
     
     Yields:
-        Path to SQLite database file
+        Database instance with full schema initialized
     """
     from dsa110_contimg.database.unified import Database, UNIFIED_SCHEMA
     
@@ -264,14 +264,17 @@ def test_pipeline_db(tmp_path: Path) -> Generator[Path, None, None]:
     db.conn.executescript(UNIFIED_SCHEMA)
     db.conn.commit()
     
-    yield db_path
+    yield db
+    
+    # Cleanup
+    db.close()
 
 
 @pytest.fixture(scope="function")
 def populated_pipeline_db(
-    test_pipeline_db: Path,
+    tmp_path: Path,
     synthetic_fits_image: Path,
-) -> Generator[Path, None, None]:
+) -> Generator["Database", None, None]:
     """Test database pre-populated with sample records.
     
     Contains:
@@ -280,54 +283,63 @@ def populated_pipeline_db(
     - 2 calibration table entries
     
     Yields:
-        Path to populated SQLite database
+        Database instance with sample data
     """
-    import sqlite3
-    from datetime import datetime
+    import time
+    from dsa110_contimg.database.unified import Database, UNIFIED_SCHEMA
     
-    conn = sqlite3.connect(test_pipeline_db)
-    cursor = conn.cursor()
+    db_path = tmp_path / "populated_pipeline.sqlite3"
+    db = Database(db_path)
+    db.conn.executescript(UNIFIED_SCHEMA)
+    db.conn.commit()
     
-    # Add MS index entries
+    now = time.time()
+    
+    # Add MS index entries (using correct schema columns)
     for i in range(3):
-        cursor.execute(
+        db.execute(
             """
             INSERT INTO ms_index (
-                ms_path, group_id, mid_time_mjd, dec_deg, 
-                n_integrations, n_channels, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                path, group_id, start_mjd, end_mjd, mid_mjd, 
+                status, stage, dec_deg, ra_deg, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 f"/stage/ms/observation_{i}.ms",
                 f"group_{i}",
                 60000.0 + i,
+                60000.01 + i,
+                60000.005 + i,
+                "completed",
+                "imaged",
                 35.0 + i * 0.5,
-                24,
-                6144,
-                datetime.now().isoformat(),
+                180.0 + i,
+                now,
             ),
         )
     
-    # Add image entries
+    # Add image entries (using correct schema columns)
     for i in range(5):
-        cursor.execute(
+        db.execute(
             """
             INSERT INTO images (
-                image_path, ms_path, field_id, rms_jy,
-                peak_jy, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?)
+                path, ms_path, type, format, noise_jy,
+                n_pixels, pixel_scale_arcsec, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 f"/stage/images/image_{i}.fits",
                 f"/stage/ms/observation_{i % 3}.ms",
-                i % 24,
+                "dirty",
+                "FITS",
                 0.001 * (i + 1),
-                0.1 * (i + 1),
-                datetime.now().isoformat(),
+                4096,
+                1.5,
+                now,
             ),
         )
     
-    conn.commit()
-    conn.close()
+    yield db
     
-    yield test_pipeline_db
+    # Cleanup
+    db.close()
