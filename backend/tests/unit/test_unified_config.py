@@ -78,30 +78,42 @@ class TestPathSettings:
 
 
 class TestDatabaseSettings:
-    """Tests for DatabaseSettings domain."""
+    """Tests for DatabaseSettings domain - unified database design."""
     
     def test_default_database_paths(self):
-        """Default database paths should point to state/db."""
+        """Default database path should point to unified pipeline.sqlite3."""
         from dsa110_contimg.config import DatabaseSettings
         
         db = DatabaseSettings()
         
-        assert db.products_db == Path("/data/dsa110-contimg/state/db/products.sqlite3")
-        assert db.ingest_db == Path("/data/dsa110-contimg/state/db/ingest.sqlite3")
+        # Unified database is the primary path
+        assert db.path == Path("/data/dsa110-contimg/state/db/pipeline.sqlite3")
         assert db.timeout == 30.0
+        
+    def test_legacy_properties_return_unified_path(self):
+        """Deprecated properties should return unified path for backwards compat."""
+        from dsa110_contimg.config import DatabaseSettings
+        
+        db = DatabaseSettings()
+        
+        # All legacy properties now point to unified path
+        assert db.products_db == db.path
+        assert db.ingest_db == db.path
+        assert db.cal_registry_db == db.path
+        assert db.unified_db == db.path
     
     def test_legacy_env_var_aliases(self):
-        """Legacy PIPELINE_* env vars should work via aliases."""
+        """Legacy PIPELINE_DB env var should work."""
         from dsa110_contimg.config import DatabaseSettings
         
         with patch.dict(os.environ, {
-            "PIPELINE_PRODUCTS_DB": "/custom/products.sqlite3",
-            "CONTIMG_QUEUE_DB": "/custom/queue.sqlite3",
+            "PIPELINE_DB": "/custom/pipeline.sqlite3",
         }):
             db = DatabaseSettings()
         
-        assert db.products_db == Path("/custom/products.sqlite3")
-        assert db.ingest_db == Path("/custom/queue.sqlite3")
+        assert db.path == Path("/custom/pipeline.sqlite3")
+        # Legacy properties also reflect this
+        assert db.products_db == Path("/custom/pipeline.sqlite3")
 
 
 class TestConversionSettings:

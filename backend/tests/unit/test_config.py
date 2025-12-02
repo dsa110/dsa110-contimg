@@ -55,16 +55,25 @@ class TestEnvironment:
 
 
 class TestDatabaseConfig:
-    """Tests for DatabaseConfig dataclass."""
+    """Tests for DatabaseConfig dataclass - unified database design."""
 
-    def test_default_paths(self):
-        """Test default database paths are set."""
+    def test_default_unified_path(self):
+        """Test default unified database path is set."""
         config = DatabaseConfig()
         
-        assert config.products_path.name == "products.sqlite3"
-        assert config.cal_registry_path.name == "cal_registry.sqlite3"
-        assert config.hdf5_path.name == "hdf5.sqlite3"
-        assert config.ingest_path.name == "ingest.sqlite3"
+        # All paths now point to unified pipeline.sqlite3
+        assert config.unified_path.name == "pipeline.sqlite3"
+        
+    def test_legacy_properties_return_unified_path(self):
+        """Test legacy path properties all return unified path for backwards compat."""
+        config = DatabaseConfig()
+        
+        # Legacy properties should all return the unified path
+        assert config.products_path == config.unified_path
+        assert config.cal_registry_path == config.unified_path
+        assert config.hdf5_path == config.unified_path
+        assert config.ingest_path == config.unified_path
+        assert config.data_registry_path == config.unified_path
 
     def test_default_timeout(self):
         """Test default connection timeout."""
@@ -72,39 +81,17 @@ class TestDatabaseConfig:
         
         assert config.connection_timeout == 30.0
 
-    def test_custom_paths(self):
-        """Test custom database paths."""
+    def test_custom_unified_path(self):
+        """Test custom unified database path."""
         config = DatabaseConfig(
-            products_path=Path("/custom/products.sqlite3"),
-            cal_registry_path=Path("/custom/cal.sqlite3"),
+            unified_path=Path("/custom/pipeline.sqlite3"),
         )
         
-        assert config.products_path == Path("/custom/products.sqlite3")
-        assert config.cal_registry_path == Path("/custom/cal.sqlite3")
+        assert config.unified_path == Path("/custom/pipeline.sqlite3")
+        # Legacy properties should also reflect the custom unified path
+        assert config.products_path == Path("/custom/pipeline.sqlite3")
+        assert config.cal_registry_path == Path("/custom/pipeline.sqlite3")
 
-    def test_validate_missing_directories(self):
-        """Test validation returns errors for missing directories."""
-        config = DatabaseConfig(
-            products_path=Path("/nonexistent/dir/products.sqlite3"),
-        )
-        errors = config.validate()
-        
-        assert len(errors) >= 1
-        assert any("does not exist" in e for e in errors)
-
-    def test_validate_existing_directories(self):
-        """Test validation passes for existing directories."""
-        with tempfile.TemporaryDirectory() as tmpdir:
-            config = DatabaseConfig(
-                products_path=Path(tmpdir) / "products.sqlite3",
-                cal_registry_path=Path(tmpdir) / "cal.sqlite3",
-                hdf5_path=Path(tmpdir) / "hdf5.sqlite3",
-                ingest_path=Path(tmpdir) / "ingest.sqlite3",
-                data_registry_path=Path(tmpdir) / "data_registry.sqlite3",
-            )
-            errors = config.validate()
-        
-        assert errors == []
 
 
 class TestRedisConfig:
