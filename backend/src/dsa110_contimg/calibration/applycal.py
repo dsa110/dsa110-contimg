@@ -11,6 +11,7 @@ ensure_casa_path()
 from dsa110_contimg.calibration.validate import (
     validate_caltables_for_use,
 )
+from dsa110_contimg.utils import timed
 
 
 def _verify_corrected_data_populated(ms_path: str, min_fraction: float = 0.01) -> None:
@@ -80,6 +81,7 @@ def _verify_corrected_data_populated(ms_path: str, min_fraction: float = 0.01) -
         ) from e
 
 
+@timed("calibration.apply_to_target")
 def apply_to_target(
     ms_target: str,
     field: str,

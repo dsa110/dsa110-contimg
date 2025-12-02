@@ -4,6 +4,9 @@ HDF5 Subband Group Orchestrator for DSA-110 Continuum Imaging Pipeline.
 Orchestrates the conversion of HDF5 subband files to Measurement Sets,
 handling subband grouping, combination, and MS writing with proper
 error handling and logging.
+
+Configuration is loaded from settings.conversion for rarely-changed parameters.
+Only essential arguments (input, output, time range) are passed to functions.
 """
 
 from __future__ import annotations
@@ -17,10 +20,11 @@ from typing import Optional
 import numpy as np
 import pyuvdata
 
+from dsa110_contimg.config import settings
 from dsa110_contimg.database.hdf5_index import query_subband_groups
 from dsa110_contimg.conversion.writers import get_writer
 from dsa110_contimg.utils.antpos_local import get_itrf
-from dsa110_contimg.utils import FastMeta
+from dsa110_contimg.utils import FastMeta, timed, timed_debug
 from dsa110_contimg.utils.exceptions import (
     ConversionError,
     SubbandGroupingError,
@@ -56,26 +60,33 @@ def _extract_subband_code(filename: str) -> Optional[str]:
         return f"sb{match.group(1)}"
     return None
 
+
+@timed("conversion.convert_subband_groups")
 def convert_subband_groups_to_ms(
     input_dir: str,
     output_dir: str,
     start_time: str,
     end_time: str,
-    tolerance_s: float = 60.0,
-    skip_incomplete: bool = True,
-    skip_existing: bool = False,
+    *,
+    # Override settings if needed (most callers just use defaults)
+    tolerance_s: Optional[float] = None,
+    skip_incomplete: Optional[bool] = None,
+    skip_existing: Optional[bool] = None,
 ) -> dict:
     """
     Orchestrates the conversion of HDF5 subband files to Measurement Sets.
+
+    Most parameters are pulled from settings.conversion. Only override
+    explicitly if you need non-default behavior.
 
     Parameters:
         input_dir: Directory containing the HDF5 subband files.
         output_dir: Directory where the Measurement Sets will be saved.
         start_time: Start time for the conversion window (ISO format).
         end_time: End time for the conversion window (ISO format).
-        tolerance_s: Time tolerance for grouping subbands (default: 60 seconds).
-        skip_incomplete: Skip groups with fewer than 16 subbands (default: True).
-        skip_existing: Skip groups that already have output MS files (default: False).
+        tolerance_s: Time tolerance for grouping subbands (default: settings.conversion.cluster_tolerance_s).
+        skip_incomplete: Skip incomplete groups (default: settings.conversion.skip_incomplete).
+        skip_existing: Skip existing MS files (default: settings.conversion.skip_existing).
 
     Returns:
         Dictionary with conversion statistics:
@@ -86,6 +97,14 @@ def convert_subband_groups_to_ms(
     Raises:
         ConversionError: If no groups are found or critical error occurs.
     """
+    # Apply settings defaults for optional parameters
+    if tolerance_s is None:
+        tolerance_s = settings.conversion.cluster_tolerance_s
+    if skip_incomplete is None:
+        skip_incomplete = settings.conversion.skip_incomplete
+    if skip_existing is None:
+        skip_existing = settings.conversion.skip_existing
+    
     results = {
         "converted": [],
         "skipped": [],
@@ -209,6 +228,7 @@ def convert_subband_groups_to_ms(
     return results
 
 
+@timed_debug("conversion.convert_single_group")
 def _convert_single_group(
     group: list[str],
     group_id: str,
@@ -227,8 +247,8 @@ def _convert_single_group(
         UVH5ReadError: If reading UVH5 fails
         MSWriteError: If writing MS fails
     """
-    # Check for complete group
-    expected_subbands = 16
+    # Check for complete group (use settings for expected count)
+    expected_subbands = settings.conversion.expected_subbands
     if len(group) < expected_subbands:
         if skip_incomplete:
             raise IncompleteSubbandGroupError(
@@ -280,17 +300,18 @@ def _convert_single_group(
             original_exception=e,
         ) from e
 
-    # Write Measurement Set
+    # Write Measurement Set (use settings for writer type)
     try:
-        writer_cls = get_writer('parallel-subband')
+        writer_type = settings.conversion.writer_type
+        writer_cls = get_writer(writer_type)
         writer_instance = writer_cls(uvdata, output_path)
-        writer_type = writer_instance.write()
+        actual_writer = writer_instance.write()
         
         logger.info(
             f"Successfully wrote MS: {output_path}",
             extra={
                 "output_path": output_path,
-                "writer_type": writer_type,
+                "writer_type": actual_writer,
             }
         )
     except Exception as e:
@@ -304,6 +325,7 @@ def _convert_single_group(
     return "converted"
 
 
+@timed_debug("conversion.load_and_combine_subbands")
 def _load_and_combine_subbands(group: list[str], group_id: str) -> pyuvdata.UVData:
     """
     Load and combine subband files into a single UVData object.

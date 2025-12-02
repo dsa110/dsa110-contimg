@@ -10,6 +10,7 @@ from dsa110_contimg.calibration.validate import (
 )
 from dsa110_contimg.conversion.merge_spws import get_spw_count
 from dsa110_contimg.utils.casa_init import ensure_casa_path
+from dsa110_contimg.utils import timed
 
 # Initialize CASA environment before importing CASA modules
 ensure_casa_path()
@@ -426,6 +427,7 @@ def _resolve_field_ids(ms: str, field_sel: str) -> List[int]:
         return []
 
 
+@timed("calibration.solve_delay")
 def solve_delay(
     ms: str,
     cal_field: str,
@@ -841,6 +843,7 @@ def solve_prebandpass_phase(
     return caltable_name
 
 
+@timed("calibration.solve_bandpass")
 def solve_bandpass(
     ms: str,
     cal_field: str,
@@ -1108,6 +1111,7 @@ def solve_bandpass(
     return out
 
 
+@timed("calibration.solve_gains")
 def solve_gains(
     ms: str,
     cal_field: str,

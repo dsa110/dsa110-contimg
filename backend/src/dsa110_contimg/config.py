@@ -189,12 +189,26 @@ class DatabaseSettings(BaseSettings):
 
 
 class ConversionSettings(BaseSettings):
-    """Configuration for UVH5 -> MS conversion."""
+    """Configuration for UVH5 -> MS conversion.
+    
+    All conversion parameters are centralized here instead of being passed
+    as 10+ function arguments. Functions only need essential parameters
+    (input, output) and pull configuration from settings.conversion.
+    
+    Example:
+        from dsa110_contimg.config import settings
+        
+        # Instead of convert_group(..., max_workers=4, skip_incomplete=True, ...)
+        # Just use:
+        timeout = settings.conversion.timeout_s
+        workers = settings.conversion.max_workers
+    """
     model_config = SettingsConfigDict(
         env_prefix="CONTIMG_",
         extra="ignore",
     )
     
+    # Subband configuration
     expected_subbands: int = Field(
         default=16,
         description="Expected number of subbands per observation"
@@ -203,14 +217,57 @@ class ConversionSettings(BaseSettings):
         default=5.0,
         description="Observation chunk duration in minutes"
     )
+    
+    # Time windowing for grouping
+    cluster_tolerance_s: float = Field(
+        default=60.0,
+        description="Time window for grouping subbands (seconds)"
+    )
+    
+    # Parallelization
     max_workers: int = Field(
         default=4,
         validation_alias="max_workers",
         description="Maximum parallel workers for conversion"
     )
-    cluster_tolerance_s: float = Field(
-        default=60.0,
-        description="Time window for grouping subbands (seconds)"
+    omp_threads: int = Field(
+        default=4,
+        validation_alias="OMP_NUM_THREADS",
+        description="OpenMP threads per worker"
+    )
+    
+    # Behavior flags (rarely changed - moved from function args)
+    skip_incomplete: bool = Field(
+        default=True,
+        description="Skip groups with fewer than expected_subbands"
+    )
+    skip_existing: bool = Field(
+        default=False,
+        description="Skip groups that already have output MS files"
+    )
+    rename_calibrator_fields: bool = Field(
+        default=True,
+        description="Auto-detect and rename calibrator fields"
+    )
+    
+    # Timeout and retry
+    timeout_s: float = Field(
+        default=3600.0,
+        description="Conversion timeout in seconds"
+    )
+    retry_count: int = Field(
+        default=2,
+        description="Number of retries on failure"
+    )
+    
+    # Writer configuration
+    writer_type: str = Field(
+        default="parallel-subband",
+        description="MS writer type: parallel-subband, direct-subband"
+    )
+    batch_size: int = Field(
+        default=4,
+        description="Subbands to load per batch"
     )
 
 

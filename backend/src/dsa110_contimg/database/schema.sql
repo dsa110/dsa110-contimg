@@ -801,3 +801,21 @@ CREATE TABLE IF NOT EXISTS gain_calibrators (
 );
 
 CREATE INDEX IF NOT EXISTS idx_gain_field ON gain_calibrators(field_id);
+
+-- ---------------------------------------------------------------------------
+-- Operation Metrics Domain (for @timed decorator)
+-- ---------------------------------------------------------------------------
+
+-- General operation timing metrics (populated by @timed decorator)
+CREATE TABLE IF NOT EXISTS operation_metrics (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    operation TEXT NOT NULL,
+    duration_ms REAL NOT NULL,
+    success INTEGER NOT NULL,
+    error TEXT,
+    recorded_at REAL NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_op_metrics_operation ON operation_metrics(operation);
+CREATE INDEX IF NOT EXISTS idx_op_metrics_recorded ON operation_metrics(recorded_at);
+CREATE INDEX IF NOT EXISTS idx_op_metrics_success ON operation_metrics(success);
