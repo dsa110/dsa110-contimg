@@ -914,3 +914,178 @@ async def execute_mosaic_pipeline_task(params: dict[str, Any]) -> dict[str, Any]
             "message": result.message,
             "errors": result.errors,
         }
+
+
+# =============================================================================
+# Generic Pipeline Framework Integration
+# =============================================================================
+# 
+# The classes below use the new generic pipeline framework from
+# dsa110_contimg.pipeline, which provides:
+# - Execution tracking in database
+# - ABSURD task integration
+# - Cron-based scheduling
+#
+# These are the preferred classes for new code.
+
+from dsa110_contimg.pipeline import Pipeline as GenericPipeline
+from dsa110_contimg.pipeline import register_pipeline
+
+
+@register_pipeline
+class NightlyMosaicPipelineV2(GenericPipeline):
+    """Nightly mosaic pipeline using the generic framework.
+    
+    This is the preferred pipeline for new deployments.
+    Uses the generic Pipeline base class for:
+    - Database execution tracking
+    - ABSURD task spawning
+    - Cron-based scheduling
+    
+    Schedule: 03:00 UTC daily
+    """
+    
+    pipeline_name = "nightly_mosaic_v2"
+    schedule = "0 3 * * *"  # 3 AM UTC daily
+    
+    def __init__(self, config: MosaicPipelineConfig | None = None):
+        """Initialize nightly pipeline.
+        
+        Args:
+            config: Pipeline configuration (uses MosaicPipelineConfig)
+        """
+        # Calculate time range for previous 24 hours
+        now = datetime.now(timezone.utc)
+        target_date = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        self.target_date = target_date
+        self.end_time = int(target_date.timestamp())
+        self.start_time = self.end_time - 86400  # 24 hours
+        
+        # Generate mosaic name
+        date_str = target_date.strftime("%Y%m%d")
+        self.mosaic_name = f"nightly_{date_str}"
+        
+        super().__init__(config)
+    
+    def build(self) -> None:
+        """Build the nightly pipeline job graph."""
+        # Job 1: Planning
+        self.add_job(
+            MosaicPlanningJob,
+            job_id="plan",
+            params={
+                "start_time": self.start_time,
+                "end_time": self.end_time,
+                "tier": "science",
+                "mosaic_name": self.mosaic_name,
+            },
+        )
+        
+        # Job 2: Build (depends on plan)
+        self.add_job(
+            MosaicBuildJob,
+            job_id="build",
+            params={
+                "plan_id": "${plan.plan_id}",
+            },
+            dependencies=["plan"],
+        )
+        
+        # Job 3: QA (depends on build)
+        self.add_job(
+            MosaicQAJob,
+            job_id="qa",
+            params={
+                "mosaic_id": "${build.mosaic_id}",
+            },
+            dependencies=["build"],
+        )
+        
+        # Configure retry and notifications
+        self.set_retry_policy(max_retries=2, backoff="exponential")
+        self.add_notification(
+            on_failure="qa",
+            channels=["email"],
+            recipients=["observer@dsa110.org"],
+        )
+
+
+@register_pipeline
+class OnDemandMosaicPipelineV2(GenericPipeline):
+    """On-demand mosaic pipeline using the generic framework.
+    
+    This is the preferred pipeline for API-triggered mosaics.
+    No schedule - triggered on demand.
+    """
+    
+    pipeline_name = "on_demand_mosaic_v2"
+    schedule = None  # On-demand, not scheduled
+    
+    def __init__(
+        self,
+        config: MosaicPipelineConfig | None = None,
+        name: str = "mosaic",
+        start_time: int = 0,
+        end_time: int = 0,
+        tier: str | None = None,
+    ):
+        """Initialize on-demand pipeline.
+        
+        Args:
+            config: Pipeline configuration
+            name: Unique mosaic name
+            start_time: Start time (Unix timestamp)
+            end_time: End time (Unix timestamp)
+            tier: Tier to use (auto-selected if not provided)
+        """
+        self.mosaic_name = name
+        self.start_time = start_time
+        self.end_time = end_time
+        
+        # Auto-select tier if not provided
+        if tier is None:
+            time_range_hours = (end_time - start_time) / 3600
+            selected_tier = select_tier_for_request(time_range_hours)
+            self.tier = selected_tier.value
+        else:
+            self.tier = tier
+        
+        super().__init__(config)
+    
+    def build(self) -> None:
+        """Build the on-demand pipeline job graph."""
+        # Job 1: Planning
+        self.add_job(
+            MosaicPlanningJob,
+            job_id="plan",
+            params={
+                "start_time": self.start_time,
+                "end_time": self.end_time,
+                "tier": self.tier,
+                "mosaic_name": self.mosaic_name,
+            },
+        )
+        
+        # Job 2: Build (depends on plan)
+        self.add_job(
+            MosaicBuildJob,
+            job_id="build",
+            params={
+                "plan_id": "${plan.plan_id}",
+            },
+            dependencies=["plan"],
+        )
+        
+        # Job 3: QA (depends on build)
+        self.add_job(
+            MosaicQAJob,
+            job_id="qa",
+            params={
+                "mosaic_id": "${build.mosaic_id}",
+            },
+            dependencies=["build"],
+        )
+        
+        # Configure retry
+        self.set_retry_policy(max_retries=2, backoff="exponential")

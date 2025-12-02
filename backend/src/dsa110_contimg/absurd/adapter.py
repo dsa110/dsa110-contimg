@@ -114,13 +114,17 @@ async def execute_pipeline_task(task_name: str, params: Dict[str, Any]) -> Dict[
         return await execute_mosaic_pipeline(params)
     elif task_name == "mosaic-nightly":
         return await execute_mosaic_nightly(params)
+    elif task_name == "pipeline-job":
+        return await execute_pipeline_job(params)
+    elif task_name == "pipeline-run":
+        return await execute_pipeline_run(params)
     else:
         raise ValueError(
             f"Unknown task name: '{task_name}'. Supported tasks: "
             f"convert-uvh5-to-ms, calibration-solve, calibration-apply, "
             f"imaging, validation, crossmatch, photometry, catalog-setup, "
             f"organize-files, housekeeping, create-mosaic, mosaic-pipeline, "
-            f"mosaic-nightly"
+            f"mosaic-nightly, pipeline-job, pipeline-run"
         )
 
 
@@ -1792,6 +1796,176 @@ async def register_nightly_mosaic_schedule(
     )
 
     return schedule.schedule_id
+
+
+# =============================================================================
+# Pipeline Framework Integration
+# =============================================================================
+
+
+async def execute_pipeline_job(params: Dict[str, Any]) -> Dict[str, Any]:
+    """Execute a pipeline job from the job registry.
+
+    This is the generic handler for jobs registered via the pipeline framework.
+    It looks up the job class from the registry and executes it.
+
+    Args:
+        params: Must contain:
+            - job_type: Registered job type (e.g., "mosaic_planning")
+            - config: Job configuration (passed to job constructor)
+            - Plus any job-specific parameters
+
+    Returns:
+        Result dict with:
+            - status: "success" or "error"
+            - outputs: Job outputs
+            - message: Status message
+    """
+    import asyncio
+
+    from dsa110_contimg.pipeline import get_job_registry
+
+    job_type = params.get("job_type")
+    if not job_type:
+        return {
+            "status": "error",
+            "message": "Missing required parameter: job_type",
+            "outputs": {},
+        }
+
+    registry = get_job_registry()
+    try:
+        job_class = registry.get_or_raise(job_type)
+    except ValueError as e:
+        return {
+            "status": "error",
+            "message": str(e),
+            "outputs": {},
+        }
+
+    # Extract job params (exclude meta params)
+    job_params = {
+        k: v for k, v in params.items()
+        if k not in ("job_type", "_execution_id", "_job_id", "_pipeline_name")
+    }
+
+    try:
+        job = job_class(**job_params)
+
+        # Validate
+        is_valid, error = job.validate()
+        if not is_valid:
+            return {
+                "status": "error",
+                "message": f"Validation failed: {error}",
+                "outputs": {},
+            }
+
+        # Execute in thread pool
+        result = await asyncio.to_thread(job.execute)
+
+        if result.success:
+            return {
+                "status": "success",
+                "outputs": result.outputs,
+                "message": result.message,
+            }
+        else:
+            return {
+                "status": "error",
+                "message": result.error or "Job failed",
+                "outputs": {},
+            }
+
+    except Exception as e:
+        logger.exception(f"Pipeline job {job_type} failed: {e}")
+        return {
+            "status": "error",
+            "message": str(e),
+            "outputs": {},
+        }
+
+
+async def execute_pipeline_run(params: Dict[str, Any]) -> Dict[str, Any]:
+    """Execute a complete pipeline from the pipeline registry.
+
+    This spawns a pipeline execution using the PipelineExecutor,
+    which tracks execution in the database.
+
+    Args:
+        params: Must contain:
+            - pipeline_name: Registered pipeline name
+            - database_path: Path to pipeline database
+            - Plus any pipeline-specific parameters
+
+    Returns:
+        Result dict with:
+            - status: "success" or "error"
+            - execution_id: Pipeline execution ID
+            - message: Status message
+    """
+    from pathlib import Path
+
+    from dsa110_contimg.pipeline import PipelineExecutor, get_pipeline_registry
+
+    pipeline_name = params.get("pipeline_name")
+    if not pipeline_name:
+        return {
+            "status": "error",
+            "message": "Missing required parameter: pipeline_name",
+            "execution_id": None,
+        }
+
+    database_path = params.get("database_path")
+    if not database_path:
+        return {
+            "status": "error",
+            "message": "Missing required parameter: database_path",
+            "execution_id": None,
+        }
+
+    registry = get_pipeline_registry()
+    try:
+        pipeline_class = registry.get_or_raise(pipeline_name)
+    except ValueError as e:
+        return {
+            "status": "error",
+            "message": str(e),
+            "execution_id": None,
+        }
+
+    # Extract pipeline constructor params
+    pipeline_params = {
+        k: v for k, v in params.items()
+        if k not in ("pipeline_name", "database_path")
+    }
+
+    try:
+        # Instantiate pipeline
+        config = pipeline_params.pop("config", None)
+        pipeline = pipeline_class(config=config, **pipeline_params)
+
+        # Execute via executor
+        executor = PipelineExecutor(Path(database_path))
+        execution_id = await executor.execute(pipeline)
+
+        # Get status
+        status = await executor.get_status(execution_id)
+
+        return {
+            "status": "success" if status.status == "completed" else status.status,
+            "execution_id": execution_id,
+            "message": f"Pipeline {pipeline_name} completed: {status.status}",
+            "jobs": status.jobs,
+        }
+
+    except Exception as e:
+        logger.exception(f"Pipeline {pipeline_name} failed: {e}")
+        return {
+            "status": "error",
+            "message": str(e),
+            "execution_id": None,
+        }
 
 
 # Add astropy units import at module level for bridge

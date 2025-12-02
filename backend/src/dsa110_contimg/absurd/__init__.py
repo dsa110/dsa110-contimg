@@ -16,6 +16,8 @@ from .adapter import (
     execute_housekeeping,
     execute_mosaic_nightly,
     execute_mosaic_pipeline,
+    execute_pipeline_job,
+    execute_pipeline_run,
     register_nightly_mosaic_schedule,
 )
 from .client import AbsurdClient
@@ -73,6 +75,9 @@ __all__ = [
     "execute_mosaic_pipeline",
     "execute_mosaic_nightly",
     "register_nightly_mosaic_schedule",
+    # Pipeline framework integration
+    "execute_pipeline_job",
+    "execute_pipeline_run",
     # Scheduling
     "TaskScheduler",
     "ScheduledTask",

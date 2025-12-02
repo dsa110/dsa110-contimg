@@ -5,6 +5,8 @@ Three jobs:
 1. MosaicPlanningJob - Query images, select tier, validate
 2. MosaicBuildJob - Run reprojection, combine, write FITS  
 3. MosaicQAJob - Astrometry, photometry, artifact detection
+
+These jobs inherit from the generic pipeline.Job base class.
 """
 
 from __future__ import annotations
@@ -17,34 +19,9 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from dsa110_contimg.pipeline import Job, JobResult, register_job
+
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class JobResult:
-    """Result of a job execution.
-    
-    Attributes:
-        success: Whether the job succeeded
-        outputs: Output data from the job
-        message: Human-readable status message
-        error: Error message if failed
-    """
-    
-    success: bool
-    outputs: dict[str, Any] = field(default_factory=dict)
-    message: str = ""
-    error: str | None = None
-    
-    @classmethod
-    def ok(cls, outputs: dict[str, Any], message: str = "") -> JobResult:
-        """Create a successful result."""
-        return cls(success=True, outputs=outputs, message=message)
-    
-    @classmethod
-    def fail(cls, error: str) -> JobResult:
-        """Create a failed result."""
-        return cls(success=False, error=error, message=error)
 
 
 @dataclass
@@ -62,8 +39,9 @@ class MosaicJobConfig:
     images_table: str = "images"
 
 
+@register_job
 @dataclass
-class MosaicPlanningJob:
+class MosaicPlanningJob(Job):
     """Select images for mosaicking based on time range and tier.
     
     Inputs:
@@ -85,16 +63,23 @@ class MosaicPlanningJob:
     mosaic_name: str = ""
     config: MosaicJobConfig | None = None
     
+    def validate(self) -> tuple[bool, str | None]:
+        """Validate job parameters."""
+        if not self.config:
+            return False, "No configuration provided"
+        if not self.mosaic_name:
+            return False, "No mosaic name provided"
+        return True, None
+    
     def execute(self) -> JobResult:
         """Execute the planning job."""
         from .schema import ensure_mosaic_tables
         from .tiers import TIER_CONFIGS, MosaicTier
         
-        if not self.config:
-            return JobResult.fail("No configuration provided")
-        
-        if not self.mosaic_name:
-            return JobResult.fail("No mosaic name provided")
+        # Validate first
+        is_valid, error = self.validate()
+        if not is_valid:
+            return JobResult.fail(error or "Validation failed")
         
         logger.info(f"Planning mosaic '{self.mosaic_name}' "
                     f"(tier={self.tier}, range={self.start_time}-{self.end_time})")
@@ -184,8 +169,9 @@ class MosaicPlanningJob:
             return JobResult.fail(str(e))
 
 
+@register_job
 @dataclass
-class MosaicBuildJob:
+class MosaicBuildJob(Job):
     """Build mosaic from planned images using reproject.
     
     Inputs:
@@ -201,17 +187,24 @@ class MosaicBuildJob:
     plan_id: int = 0
     config: MosaicJobConfig | None = None
     
+    def validate(self) -> tuple[bool, str | None]:
+        """Validate job parameters."""
+        if not self.config:
+            return False, "No configuration provided"
+        if not self.plan_id:
+            return False, "No plan_id provided"
+        return True, None
+    
     def execute(self) -> JobResult:
         """Execute the build job."""
         from .builder import build_mosaic
         from .schema import ensure_mosaic_tables
         from .tiers import TIER_CONFIGS, MosaicTier
         
-        if not self.config:
-            return JobResult.fail("No configuration provided")
-        
-        if not self.plan_id:
-            return JobResult.fail("No plan_id provided")
+        # Validate first
+        is_valid, error = self.validate()
+        if not is_valid:
+            return JobResult.fail(error or "Validation failed")
         
         logger.info(f"Building mosaic for plan {self.plan_id}")
         
@@ -313,8 +306,9 @@ class MosaicBuildJob:
             return JobResult.fail(str(e))
 
 
+@register_job
 @dataclass
-class MosaicQAJob:
+class MosaicQAJob(Job):
     """Run quality checks on completed mosaic.
     
     Inputs:
@@ -330,16 +324,23 @@ class MosaicQAJob:
     mosaic_id: int = 0
     config: MosaicJobConfig | None = None
     
+    def validate(self) -> tuple[bool, str | None]:
+        """Validate job parameters."""
+        if not self.config:
+            return False, "No configuration provided"
+        if not self.mosaic_id:
+            return False, "No mosaic_id provided"
+        return True, None
+    
     def execute(self) -> JobResult:
         """Execute the QA job."""
         from .qa import run_qa_checks
         from .schema import ensure_mosaic_tables
         
-        if not self.config:
-            return JobResult.fail("No configuration provided")
-        
-        if not self.mosaic_id:
-            return JobResult.fail("No mosaic_id provided")
+        # Validate first
+        is_valid, error = self.validate()
+        if not is_valid:
+            return JobResult.fail(error or "Validation failed")
         
         logger.info(f"Running QA for mosaic {self.mosaic_id}")
         

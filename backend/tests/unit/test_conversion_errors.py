@@ -56,9 +56,7 @@ class TestHDF5OrchestratorErrors:
     def test_handles_database_query_failure(self, mock_dependencies, tmp_path):
         """Test handling of database query failures."""
         try:
-            from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
-                convert_subband_groups_to_ms
-            )
+            from dsa110_contimg.conversion import convert_subband_groups_to_ms
         except (ImportError, AttributeError):
             pytest.skip("hdf5_orchestrator not available")
         
