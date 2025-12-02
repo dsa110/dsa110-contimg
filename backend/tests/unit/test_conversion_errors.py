@@ -37,9 +37,7 @@ class TestHDF5OrchestratorErrors:
     def test_raises_on_nonexistent_input_dir(self, mock_dependencies):
         """Test that ConversionError is raised for missing input directory."""
         try:
-            from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
-                convert_subband_groups_to_ms
-            )
+            from dsa110_contimg.conversion import convert_subband_groups_to_ms
         except (ImportError, AttributeError):
             pytest.skip("hdf5_orchestrator not available")
         
