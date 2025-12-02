@@ -38,9 +38,11 @@ def client_with_data(test_databases):
     """Create API client with test databases configured."""
     products_db = str(test_databases["products"])
     cal_db = str(test_databases["cal_registry"])
+    pipeline_db = str(test_databases.get("pipeline", products_db))
     
     # Patch environment variables and config
     env_patches = {
+        "PIPELINE_DB": pipeline_db,
         "PIPELINE_PRODUCTS_DB": products_db,
         "PIPELINE_CAL_REGISTRY_DB": cal_db,
         "DSA110_AUTH_DISABLED": "true",  # Disable auth for testing
@@ -128,6 +130,7 @@ class TestCalWithData:
         with create_test_products_db() as products_path:
             with create_test_cal_registry_db(iter(cal_tables)) as cal_path:
                 env_patches = {
+                    "PIPELINE_DB": str(cal_path),
                     "PIPELINE_PRODUCTS_DB": str(products_path),
                     "PIPELINE_CAL_REGISTRY_DB": str(cal_path),
                     "DSA110_AUTH_DISABLED": "true",
