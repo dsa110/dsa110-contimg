@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import axios, { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from "axios";
+import axios, {
+  AxiosError,
+  AxiosResponse,
+  InternalAxiosRequestConfig,
+} from "axios";
 import type { ErrorResponse } from "../types/errors";
 
 // We need to mock axios before importing the client
@@ -25,13 +29,18 @@ vi.mock("axios", () => {
 // Import after mocking
 import apiClient, { fetchProvenanceData } from "./client";
 
+// Type for mocked axios.create
+type MockedCreate = ReturnType<typeof vi.fn>;
+
 // Capture axios.create call args at module load time (before any test clears mocks)
-const axiosCreateCallArgs = (axios.create as ReturnType<typeof vi.fn>).mock.calls[0]?.[0];
+const axiosCreateCallArgs = (axios.create as MockedCreate).mock.calls[0]?.[0];
 // Also capture the interceptor registration at module load time
-const mockInstanceAtLoad = (axios.create as ReturnType<typeof vi.fn>)() as {
+const mockInstanceAtLoad = (axios.create as MockedCreate)() as unknown as {
   interceptors: { response: { use: ReturnType<typeof vi.fn> } };
 };
-const interceptorUseCalls = [...mockInstanceAtLoad.interceptors.response.use.mock.calls];
+const interceptorUseCalls = [
+  ...mockInstanceAtLoad.interceptors.response.use.mock.calls,
+];
 
 describe("api/client", () => {
   let mockAxiosInstance: {
@@ -48,7 +57,9 @@ describe("api/client", () => {
   };
 
   beforeEach(() => {
-    mockAxiosInstance = axios.create() as typeof mockAxiosInstance;
+    mockAxiosInstance = (
+      axios.create as MockedCreate
+    )() as unknown as typeof mockAxiosInstance;
     vi.clearAllMocks();
   });
 
@@ -119,7 +130,9 @@ describe("api/client", () => {
 
       if (responseInterceptor?.onRejected) {
         await expect(
-          responseInterceptor.onRejected(axiosError as AxiosError<ErrorResponse>)
+          responseInterceptor.onRejected(
+            axiosError as AxiosError<ErrorResponse>
+          )
         ).rejects.toEqual(backendError);
       }
     });
@@ -135,7 +148,9 @@ describe("api/client", () => {
 
       if (responseInterceptor?.onRejected) {
         await expect(
-          responseInterceptor.onRejected(axiosError as AxiosError<ErrorResponse>)
+          responseInterceptor.onRejected(
+            axiosError as AxiosError<ErrorResponse>
+          )
         ).rejects.toMatchObject({
           code: "NETWORK_ERROR",
           user_message: "Unable to reach the server",
@@ -155,7 +170,9 @@ describe("api/client", () => {
 
       if (responseInterceptor?.onRejected) {
         await expect(
-          responseInterceptor.onRejected(axiosError as AxiosError<ErrorResponse>)
+          responseInterceptor.onRejected(
+            axiosError as AxiosError<ErrorResponse>
+          )
         ).rejects.toMatchObject({
           http_status: 0,
         });
@@ -174,7 +191,9 @@ describe("api/client", () => {
 
       const result = await fetchProvenanceData("run-123");
 
-      expect(mockAxiosInstance.get).toHaveBeenCalledWith("/jobs/run-123/provenance");
+      expect(mockAxiosInstance.get).toHaveBeenCalledWith(
+        "/jobs/run-123/provenance"
+      );
       expect(result).toEqual(mockProvenance);
     });
 

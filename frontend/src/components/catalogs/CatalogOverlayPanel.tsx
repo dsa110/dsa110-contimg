@@ -1,8 +1,19 @@
 import React, { useState, useCallback, useEffect, useRef } from "react";
-import { CATALOG_DEFINITIONS, CatalogDefinition } from "../../constants/catalogDefinitions";
+import {
+  CATALOG_DEFINITIONS,
+  CatalogDefinition,
+} from "../../constants/catalogDefinitions";
 import CatalogLegend from "./CatalogLegend";
-import { queryCatalogCached, CatalogQueryResult, CatalogSource } from "../../utils/vizierQuery";
-import type { AladinCatalog, AladinInstance, AladinStatic } from "aladin-lite";
+import {
+  queryCatalogCached,
+  CatalogQueryResult,
+  CatalogSource,
+} from "../../utils/vizierQuery";
+import A, { type AladinStatic } from "aladin-lite";
+
+// Re-export types from the module for local use
+type AladinCatalog = ReturnType<typeof A.catalog>;
+type AladinInstance = ReturnType<typeof A.aladin>;
 
 export interface CatalogOverlayPanelProps {
   /** Currently enabled catalog IDs */
@@ -39,8 +50,12 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
 }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [radiusInput, setRadiusInput] = useState(searchRadius);
-  const [queryResults, setQueryResults] = useState<Map<string, CatalogQueryResult>>(new Map());
-  const [loadingCatalogs, setLoadingCatalogs] = useState<Set<string>>(new Set());
+  const [queryResults, setQueryResults] = useState<
+    Map<string, CatalogQueryResult>
+  >(new Map());
+  const [loadingCatalogs, setLoadingCatalogs] = useState<Set<string>>(
+    new Set()
+  );
   const [lastQueryRadius, setLastQueryRadius] = useState<number>(searchRadius);
 
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -95,7 +110,13 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
       if (!catalog) return;
 
       try {
-        const result = await queryCatalogCached(catalog, centerRa, centerDec, radiusInput, signal);
+        const result = await queryCatalogCached(
+          catalog,
+          centerRa,
+          centerDec,
+          radiusInput,
+          signal
+        );
 
         if (signal.aborted) return;
 
@@ -239,7 +260,9 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
     }
   }, [enabledCatalogs.length, onCatalogChange]);
 
-  const enabledCatalogDefs = CATALOG_DEFINITIONS.filter((c) => enabledCatalogs.includes(c.id));
+  const enabledCatalogDefs = CATALOG_DEFINITIONS.filter((c) =>
+    enabledCatalogs.includes(c.id)
+  );
   const isLoading = loadingCatalogs.size > 0;
 
   // Group catalogs by type
@@ -306,19 +329,25 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
       {/* Compact header with legend */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <span className="font-semibold text-sm text-gray-700">VizieR Catalogues</span>
+          <span className="font-semibold text-sm text-gray-700">
+            VizieR Catalogues
+          </span>
           {isLoading && (
             <span className="w-4 h-4 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
           )}
           {enabledCatalogs.length > 0 && (
-            <span className="badge badge-secondary text-xs">{enabledCatalogs.length}</span>
+            <span className="badge badge-secondary text-xs">
+              {enabledCatalogs.length}
+            </span>
           )}
         </div>
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           className="text-sm text-blue-600 hover:text-blue-800"
           aria-expanded={isExpanded}
-          aria-label={isExpanded ? "Hide catalog options" : "Show catalog options"}
+          aria-label={
+            isExpanded ? "Hide catalog options" : "Show catalog options"
+          }
         >
           {isExpanded ? "Hide" : "Show"} options
         </button>
@@ -334,7 +363,9 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
         <div className="border border-gray-200 rounded-lg p-3 bg-white space-y-3">
           {/* Search radius input */}
           <div className="flex items-center gap-2 pb-2 border-b border-gray-100">
-            <label className="text-xs text-gray-600 whitespace-nowrap">Search radius:</label>
+            <label className="text-xs text-gray-600 whitespace-nowrap">
+              Search radius:
+            </label>
             <input
               type="number"
               min={0.5}
@@ -342,7 +373,9 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
               step={0.5}
               value={radiusInput}
               onChange={(e) =>
-                setRadiusInput(Math.max(0.5, Math.min(60, parseFloat(e.target.value) || 5)))
+                setRadiusInput(
+                  Math.max(0.5, Math.min(60, parseFloat(e.target.value) || 5))
+                )
               }
               className="w-16 px-2 py-1 text-sm border border-gray-300 rounded"
             />
@@ -386,7 +419,9 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
 
           {/* Optical/IR catalogs */}
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Optical / Infrared</p>
+            <p className="text-xs font-semibold text-gray-500 uppercase mb-1">
+              Optical / Infrared
+            </p>
             <div className="grid grid-cols-2 gap-1">
               {opticalCatalogs.map(renderCatalogCheckbox)}
             </div>
@@ -394,16 +429,24 @@ const CatalogOverlayPanel: React.FC<CatalogOverlayPanelProps> = ({
 
           {/* Radio catalogs */}
           <div>
-            <p className="text-xs font-semibold text-gray-500 uppercase mb-1">Radio</p>
-            <div className="grid grid-cols-2 gap-1">{radioCatalogs.map(renderCatalogCheckbox)}</div>
+            <p className="text-xs font-semibold text-gray-500 uppercase mb-1">
+              Radio
+            </p>
+            <div className="grid grid-cols-2 gap-1">
+              {radioCatalogs.map(renderCatalogCheckbox)}
+            </div>
           </div>
 
           {/* Summary */}
           {queryResults.size > 0 && (
             <div className="text-xs text-gray-500 pt-2 border-t border-gray-100">
-              {Array.from(queryResults.values()).reduce((sum, r) => sum + r.count, 0)} sources
-              loaded
-              {Array.from(queryResults.values()).some((r) => r.truncated) && " (some truncated)"}
+              {Array.from(queryResults.values()).reduce(
+                (sum, r) => sum + r.count,
+                0
+              )}{" "}
+              sources loaded
+              {Array.from(queryResults.values()).some((r) => r.truncated) &&
+                " (some truncated)"}
             </div>
           )}
         </div>

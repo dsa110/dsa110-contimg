@@ -197,7 +197,7 @@ const FIXTURES = {
 
   // Flux monitoring when table not initialized
   fluxMonitoringEmpty: {
-    calibrators: [],
+    calibrators: [] as FluxMonitoringStatus[],
     message: "Flux monitoring table not initialized",
   } satisfies FluxMonitoringSummary,
 

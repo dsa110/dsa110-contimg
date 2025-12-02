@@ -59,7 +59,7 @@ export const router = createBrowserRouter(
         {
           index: true,
           element: (
-            <Suspense fallback={<PageSkeleton variant="dashboard" />}>
+            <Suspense fallback={<PageSkeleton variant="cards" />}>
               <HomePage />
             </Suspense>
           ),
@@ -67,7 +67,7 @@ export const router = createBrowserRouter(
         {
           path: "health",
           element: (
-            <Suspense fallback={<PageSkeleton variant="dashboard" />}>
+            <Suspense fallback={<PageSkeleton variant="cards" />}>
               <HealthDashboardPage />
             </Suspense>
           ),

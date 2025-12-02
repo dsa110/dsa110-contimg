@@ -9,14 +9,14 @@ import { logger } from "../../utils/logger";
  * In production, it shows a minimal error message with recovery options.
  * In development, it includes the error stack trace for debugging.
  */
-const meta = {
+const meta: Meta<typeof AppErrorBoundary> = {
   title: "Components/Errors/AppErrorBoundary",
   component: AppErrorBoundary,
   tags: ["autodocs"],
   parameters: {
     layout: "fullscreen",
   },
-} satisfies Meta<typeof AppErrorBoundary>;
+};
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -51,7 +51,6 @@ function ErrorThrower() {
  * Click the button to trigger an error and see the fallback UI.
  */
 export const Default: Story = {
-  args: {},
   render: () => (
     <AppErrorBoundary>
       <ErrorThrower />
@@ -64,7 +63,6 @@ export const Default: Story = {
  * The error boundary can accept a custom fallback to match your app's design.
  */
 export const WithCustomFallback: Story = {
-  args: {},
   render: () => (
     <AppErrorBoundary
       fallback={
@@ -91,12 +89,14 @@ export const WithCustomFallback: Story = {
  * Useful for error logging and monitoring integration.
  */
 export const WithOnErrorCallback: Story = {
-  args: {},
   render: () => (
     <AppErrorBoundary
       onError={(error, errorInfo) => {
         // Demo: In real app, send to error tracking service
-        logger.info("Error caught:", error, "Stack:", errorInfo.componentStack);
+        logger.info("Error caught", {
+          error: error.message,
+          stack: errorInfo.componentStack,
+        });
       }}
     >
       <ErrorThrower />
@@ -109,7 +109,6 @@ export const WithOnErrorCallback: Story = {
  * The error boundary renders children normally when no error occurs.
  */
 export const NoError: Story = {
-  args: {},
   render: () => (
     <AppErrorBoundary>
       <div className="p-8">

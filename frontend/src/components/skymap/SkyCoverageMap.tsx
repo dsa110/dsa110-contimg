@@ -1,4 +1,10 @@
-import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
 import * as d3 from "d3";
 import { geoAitoff, geoHammer, geoMollweide } from "d3-geo-projection";
 
@@ -26,7 +32,12 @@ export interface ConstellationOptions {
   /** Line style */
   lineStyle?: { stroke?: string; width?: number; opacity?: number };
   /** Boundary style */
-  boundStyle?: { stroke?: string; width?: number; opacity?: number; dash?: string };
+  boundStyle?: {
+    stroke?: string;
+    width?: number;
+    opacity?: number;
+    dash?: string;
+  };
   /** Name style */
   nameStyle?: { fill?: string; fontSize?: number; opacity?: number };
 }
@@ -113,12 +124,14 @@ function galacticToEquatorial(l: number, b: number): [number, number] {
   const lAscend = (32.93192 * Math.PI) / 180;
 
   const sinDec =
-    Math.sin(bRad) * Math.sin(decGP) + Math.cos(bRad) * Math.cos(decGP) * Math.sin(lRad - lAscend);
+    Math.sin(bRad) * Math.sin(decGP) +
+    Math.cos(bRad) * Math.cos(decGP) * Math.sin(lRad - lAscend);
   const dec = Math.asin(sinDec);
 
   const y = Math.cos(bRad) * Math.cos(lRad - lAscend);
   const x =
-    Math.sin(bRad) * Math.cos(decGP) - Math.cos(bRad) * Math.sin(decGP) * Math.sin(lRad - lAscend);
+    Math.sin(bRad) * Math.cos(decGP) -
+    Math.cos(bRad) * Math.sin(decGP) * Math.sin(lRad - lAscend);
 
   let ra = raGP + Math.atan2(y, x);
 
@@ -191,7 +204,9 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
     useState<GeoJSONCollection<ConstellationLinesFeature> | null>(null);
   const [constellationBounds, setConstellationBounds] =
     useState<GeoJSONCollection<ConstellationBoundsFeature> | null>(null);
-  const [constellationLoadError, setConstellationLoadError] = useState<string | null>(null);
+  const [constellationLoadError, setConstellationLoadError] = useState<
+    string | null
+  >(null);
   const [isLoadingConstellations, setIsLoadingConstellations] = useState(false);
 
   // Memoize constellation options to prevent unnecessary re-renders
@@ -261,7 +276,9 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
       } catch (err) {
         if (!isCancelled) {
           const message = err instanceof Error ? err.message : "Unknown error";
-          setConstellationLoadError(`Failed to load constellation data: ${message}`);
+          setConstellationLoadError(
+            `Failed to load constellation data: ${message}`
+          );
         }
       } finally {
         if (!isCancelled) {
@@ -357,7 +374,11 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
     const path = d3.geoPath(proj);
 
     // Background
-    svg.append("rect").attr("width", width).attr("height", height).attr("fill", "#1a1a2e");
+    svg
+      .append("rect")
+      .attr("width", width)
+      .attr("height", height)
+      .attr("fill", "#1a1a2e");
 
     // Graticule (coordinate grid)
     const graticule = d3.geoGraticule().step([30, 15]);
@@ -440,7 +461,10 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
     // Constellation labels (simplified - major constellations at approximate centers)
     // Convert d3-celestial coordinates to our projection format
     // d3-celestial uses [lon, lat] where lon can be negative (west of prime meridian)
-    const convertCelestialCoord = (lon: number, lat: number): [number, number] => {
+    const convertCelestialCoord = (
+      lon: number,
+      lat: number
+    ): [number, number] => {
       // Convert from d3-celestial format to standard RA/Dec
       // d3-celestial uses -180 to 180 longitude, we use 0-360 RA
       let ra = lon;
@@ -478,10 +502,10 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
               .append("path")
               .attr("d", pathData)
               .attr("fill", "none")
-              .attr("stroke", boundStyle.stroke)
-              .attr("stroke-width", boundStyle.width)
-              .attr("stroke-opacity", boundStyle.opacity)
-              .attr("stroke-dasharray", boundStyle.dash);
+              .attr("stroke", boundStyle.stroke ?? "#333355")
+              .attr("stroke-width", boundStyle.width ?? 0.5)
+              .attr("stroke-opacity", boundStyle.opacity ?? 0.3)
+              .attr("stroke-dasharray", boundStyle.dash ?? "2,2");
           }
         }
       });
@@ -516,9 +540,9 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
               .append("path")
               .attr("d", pathData)
               .attr("fill", "none")
-              .attr("stroke", lineStyle.stroke)
-              .attr("stroke-width", lineStyle.width)
-              .attr("stroke-opacity", lineStyle.opacity);
+              .attr("stroke", lineStyle.stroke ?? "#4a4a6a")
+              .attr("stroke-width", lineStyle.width ?? 1)
+              .attr("stroke-opacity", lineStyle.opacity ?? 0.5);
           }
         });
       });
@@ -549,7 +573,8 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
         ) {
           // Font size based on constellation rank (1 = major, 3 = minor)
           const rank = parseInt(feature.properties.rank) || 2;
-          const fontSize = nameStyle.fontSize - (rank - 1) * 2;
+          const baseFontSize = nameStyle.fontSize ?? 10;
+          const fontSize = baseFontSize - (rank - 1) * 2;
 
           namesGroup
             .append("text")
@@ -557,10 +582,10 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
             .attr("y", coords[1])
             .attr("text-anchor", "middle")
             .attr("dominant-baseline", "middle")
-            .attr("fill", nameStyle.fill)
+            .attr("fill", nameStyle.fill ?? "#888888")
             .attr("font-size", fontSize)
             .attr("font-style", "italic")
-            .attr("opacity", nameStyle.opacity)
+            .attr("opacity", nameStyle.opacity ?? 0.7)
             .text(feature.properties.desig); // Use 3-letter abbreviation
         }
       });
@@ -656,7 +681,10 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
       // Convert degree radius to pixel radius (approximate)
       const pixelRadius = (radius / 180) * Math.min(width, height);
 
-      const group = pointingGroup.append("g").attr("class", "pointing").attr("cursor", "pointer");
+      const group = pointingGroup
+        .append("g")
+        .attr("class", "pointing")
+        .attr("cursor", "pointer");
 
       // Field of view circle
       group
@@ -686,14 +714,20 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
           onPointingHover?.(pointing);
 
           // Highlight
-          group.select("circle").attr("fill-opacity", 0.6).attr("stroke-width", 2.5);
+          group
+            .select("circle")
+            .attr("fill-opacity", 0.6)
+            .attr("stroke-width", 2.5);
         })
         .on("mouseleave", () => {
           setHoveredPointing(null);
           onPointingHover?.(null);
 
           // Remove highlight
-          group.select("circle").attr("fill-opacity", 0.3).attr("stroke-width", 1.5);
+          group
+            .select("circle")
+            .attr("fill-opacity", 0.3)
+            .attr("stroke-width", 1.5);
         })
         .on("click", () => {
           onPointingClick?.(pointing);
@@ -701,7 +735,9 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
     });
 
     // Legend
-    const legend = svg.append("g").attr("transform", `translate(${width - 120}, 20)`);
+    const legend = svg
+      .append("g")
+      .attr("transform", `translate(${width - 120}, 20)`);
 
     // Calculate legend height based on content
     let legendHeight = 10; // base padding
@@ -796,7 +832,9 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
       .scaleExtent([0.5, 8])
       .on("zoom", (event: d3.D3ZoomEvent<SVGSVGElement, unknown>) => {
         svg
-          .selectAll("path, circle, text:not(.legend-text), line:not(.legend-line)")
+          .selectAll(
+            "path, circle, text:not(.legend-text), line:not(.legend-line)"
+          )
           .attr("transform", event.transform.toString());
       });
 
@@ -849,7 +887,9 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
             Projection:
             <select
               value={selectedProjection}
-              onChange={(e) => setSelectedProjection(e.target.value as ProjectionType)}
+              onChange={(e) =>
+                setSelectedProjection(e.target.value as ProjectionType)
+              }
               className="ml-2 px-2 py-1 border border-gray-300 rounded text-sm"
             >
               <option value="aitoff">Aitoff</option>
@@ -860,12 +900,19 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
           </label>
         </div>
 
-        <div className="text-sm text-gray-500">{pointings.length} pointings</div>
+        <div className="text-sm text-gray-500">
+          {pointings.length} pointings
+        </div>
       </div>
 
       {/* SVG Map */}
       <div className="relative">
-        <svg ref={svgRef} width={width} height={height} className="rounded-lg shadow-md" />
+        <svg
+          ref={svgRef}
+          width={width}
+          height={height}
+          className="rounded-lg shadow-md"
+        />
 
         {/* Constellation loading indicator */}
         {isLoadingConstellations && (
@@ -891,7 +938,9 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
             top: tooltipPos.y + 15,
           }}
         >
-          <p className="font-semibold text-sm">{hoveredPointing.label || hoveredPointing.id}</p>
+          <p className="font-semibold text-sm">
+            {hoveredPointing.label || hoveredPointing.id}
+          </p>
           <p className="text-xs text-gray-500">
             {formatCoord(hoveredPointing.ra, hoveredPointing.dec)}
           </p>
@@ -912,7 +961,9 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
             </p>
           )}
           {hoveredPointing.epoch && (
-            <p className="text-xs text-gray-400">Epoch: {hoveredPointing.epoch}</p>
+            <p className="text-xs text-gray-400">
+              Epoch: {hoveredPointing.epoch}
+            </p>
           )}
         </div>
       )}

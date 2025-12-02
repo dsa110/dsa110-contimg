@@ -11,14 +11,14 @@ import ErrorDisplay from "./ErrorDisplay";
  * - Trace ID for debugging
  * - Retry action support
  */
-const meta = {
+const meta: Meta<typeof ErrorDisplay> = {
   title: "Components/Errors/ErrorDisplay",
   component: ErrorDisplay,
   tags: ["autodocs"],
   parameters: {
     layout: "padded",
   },
-} satisfies Meta<typeof ErrorDisplay>;
+};
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -122,9 +122,11 @@ export const NetworkError: Story = {
   args: {
     error: {
       code: "NETWORK_ERROR",
-      message: "Failed to fetch",
-      userMessage:
+      http_status: 0,
+      user_message:
         "Unable to connect to the server. Please check your internet connection and try again.",
+      action: "Check your network connection and retry.",
+      ref_id: "net-006",
       details: {
         url: "https://api.example.com/data",
         error: "net::ERR_INTERNET_DISCONNECTED",
@@ -140,9 +142,11 @@ export const ValidationError: Story = {
   args: {
     error: {
       code: "INVALID_COORDINATES",
-      message: "Validation failed",
-      userMessage:
+      http_status: 400,
+      user_message:
         "The coordinates you entered are invalid. RA must be 0-360° and Dec must be -90 to +90°.",
+      action: "Correct the coordinate values and try again.",
+      ref_id: "val-007",
       details: {
         field: "coordinates",
         provided: { ra: 400, dec: 100 },
@@ -159,8 +163,10 @@ export const PermissionError: Story = {
   args: {
     error: {
       code: "FORBIDDEN",
-      message: "Access denied",
-      userMessage: "You don't have permission to access this resource.",
+      http_status: 403,
+      user_message: "You don't have permission to access this resource.",
+      action: "Contact your administrator to request access.",
+      ref_id: "perm-008",
       details: {
         resource: "/api/admin/users",
         requiredRole: "admin",
@@ -177,9 +183,11 @@ export const RateLimitError: Story = {
   args: {
     error: {
       code: "RATE_LIMIT_EXCEEDED",
-      message: "Too many requests",
-      userMessage:
+      http_status: 429,
+      user_message:
         "You've made too many requests. Please wait a moment and try again.",
+      action: "Wait before making more requests.",
+      ref_id: "rate-009",
       details: {
         limit: 100,
         window: "1 hour",
@@ -196,9 +204,11 @@ export const TimeoutError: Story = {
   args: {
     error: {
       code: "TIMEOUT",
-      message: "Request timeout",
-      userMessage:
+      http_status: 504,
+      user_message:
         "The request took too long to complete. The server might be busy. Please try again.",
+      action: "Retry the request or try again later.",
+      ref_id: "time-010",
       details: {
         timeout: "30000ms",
         elapsed: "30001ms",
@@ -215,20 +225,29 @@ export const MultipleErrors: Story = {
     <div className="space-y-4">
       <ErrorDisplay
         error={{
-          message: "Error 1",
-          userMessage: "First error occurred",
+          code: "ERROR_1",
+          http_status: 500,
+          user_message: "First error occurred",
+          action: "Try again",
+          ref_id: "err-1",
         }}
       />
       <ErrorDisplay
         error={{
-          message: "Error 2",
-          userMessage: "Second error occurred",
+          code: "ERROR_2",
+          http_status: 500,
+          user_message: "Second error occurred",
+          action: "Try again",
+          ref_id: "err-2",
         }}
       />
       <ErrorDisplay
         error={{
-          message: "Error 3",
-          userMessage: "Third error occurred",
+          code: "ERROR_3",
+          http_status: 500,
+          user_message: "Third error occurred",
+          action: "Try again",
+          ref_id: "err-3",
         }}
       />
     </div>

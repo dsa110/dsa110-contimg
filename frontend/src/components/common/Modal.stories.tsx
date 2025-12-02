@@ -12,14 +12,14 @@ import Modal from "./Modal";
  * - Optional footer with actions
  * - Scrollable content
  */
-const meta = {
+const meta: Meta<typeof Modal> = {
   title: "Components/Common/Modal",
   component: Modal,
   tags: ["autodocs"],
   parameters: {
     layout: "fullscreen",
   },
-} satisfies Meta<typeof Modal>;
+};
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -28,7 +28,6 @@ type Story = StoryObj<typeof meta>;
  * Basic modal with title and content
  */
 export const Default: Story = {
-  args: {},
   render: () => {
     const [isOpen, setIsOpen] = useState(true);
 
@@ -57,7 +56,6 @@ export const Default: Story = {
  * Modal with footer actions
  */
 export const WithFooter: Story = {
-  args: {},
   render: () => {
     const [isOpen, setIsOpen] = useState(true);
 
@@ -104,7 +102,6 @@ export const WithFooter: Story = {
  * Large modal with scrollable content
  */
 export const LargeScrollable: Story = {
-  args: {},
   render: () => {
     const [isOpen, setIsOpen] = useState(true);
 
@@ -120,7 +117,7 @@ export const LargeScrollable: Story = {
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}
           title="Long Content"
-          size="large"
+          size="lg"
         >
           <div className="space-y-4">
             {Array.from({ length: 20 }, (_, i) => (
@@ -141,7 +138,6 @@ export const LargeScrollable: Story = {
  * Small modal
  */
 export const Small: Story = {
-  args: {},
   render: () => {
     const [isOpen, setIsOpen] = useState(true);
 
@@ -157,7 +153,7 @@ export const Small: Story = {
           isOpen={isOpen}
           onClose={() => setIsOpen(false)}
           title="Small Modal"
-          size="small"
+          size="sm"
         >
           <p>This is a compact modal.</p>
         </Modal>
@@ -170,7 +166,6 @@ export const Small: Story = {
  * Extra large modal
  */
 export const ExtraLarge: Story = {
-  args: {},
   render: () => {
     const [isOpen, setIsOpen] = useState(true);
 
@@ -202,7 +197,6 @@ export const ExtraLarge: Story = {
  * Modal with form
  */
 export const WithForm: Story = {
-  args: {},
   render: () => {
     const [isOpen, setIsOpen] = useState(true);
 

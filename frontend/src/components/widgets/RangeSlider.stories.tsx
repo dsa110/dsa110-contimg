@@ -12,14 +12,14 @@ import RangeSlider from "./RangeSlider";
  * - Unit display
  * - Real-time value updates
  */
-const meta = {
+const meta: Meta<typeof RangeSlider> = {
   title: "Components/Widgets/RangeSlider",
   component: RangeSlider,
   tags: ["autodocs"],
   parameters: {
     layout: "padded",
   },
-} satisfies Meta<typeof RangeSlider>;
+};
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -28,7 +28,6 @@ type Story = StoryObj<typeof meta>;
  * Interactive range slider with state
  */
 export const Default: Story = {
-  args: {},
   render: () => {
     const [range, setRange] = useState<[number, number]>([20, 80]);
 
@@ -55,7 +54,6 @@ export const Default: Story = {
  * Slider with unit label
  */
 export const WithUnit: Story = {
-  args: {},
   render: () => {
     const [flux, setFlux] = useState<[number, number]>([10, 500]);
 
@@ -80,7 +78,6 @@ export const WithUnit: Story = {
  * Slider with histogram background
  */
 export const WithHistogram: Story = {
-  args: {},
   render: () => {
     const [snr, setSnr] = useState<[number, number]>([5, 50]);
     // Generate sample histogram data
@@ -110,7 +107,6 @@ export const WithHistogram: Story = {
  * Slider with decimal step
  */
 export const DecimalStep: Story = {
-  args: {},
   render: () => {
     const [fov, setFov] = useState<[number, number]>([0.1, 2.5]);
 
@@ -135,7 +131,6 @@ export const DecimalStep: Story = {
  * Narrow range slider
  */
 export const NarrowRange: Story = {
-  args: {},
   render: () => {
     const [value, setValue] = useState<[number, number]>([3, 7]);
 
@@ -159,7 +154,6 @@ export const NarrowRange: Story = {
  * Large range slider
  */
 export const LargeRange: Story = {
-  args: {},
   render: () => {
     const [value, setValue] = useState<[number, number]>([1000, 5000]);
 
@@ -184,7 +178,6 @@ export const LargeRange: Story = {
  * Multiple sliders in a form
  */
 export const MultipleSliders: Story = {
-  args: {},
   render: () => {
     const [ra, setRa] = useState<[number, number]>([0, 360]);
     const [dec, setDec] = useState<[number, number]>([-90, 90]);

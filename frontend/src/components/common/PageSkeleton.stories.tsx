@@ -51,6 +51,6 @@ export const Detail: Story = {
  */
 export const Dashboard: Story = {
   args: {
-    variant: "dashboard",
+    variant: "cards",
   },
 };

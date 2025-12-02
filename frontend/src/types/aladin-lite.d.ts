@@ -10,7 +10,7 @@ declare module "aladin-lite" {
   /**
    * Main Aladin module
    */
-  interface AladinStatic {
+  export interface AladinStatic {
     /**
      * Promise that resolves when WASM module is initialized
      */
@@ -19,7 +19,10 @@ declare module "aladin-lite" {
     /**
      * Create an Aladin instance in the specified container
      */
-    aladin(container: HTMLElement | string, options?: AladinOptions): AladinInstance;
+    aladin(
+      container: HTMLElement | string,
+      options?: AladinOptions
+    ): AladinInstance;
 
     /**
      * Create a catalog
@@ -29,13 +32,17 @@ declare module "aladin-lite" {
     /**
      * Create a source marker
      */
-    source(ra: number, dec: number, data?: { name?: string; [key: string]: unknown }): AladinSource;
+    source(
+      ra: number,
+      dec: number,
+      data?: { name?: string; [key: string]: unknown }
+    ): AladinSource;
   }
 
   /**
    * Options for creating an Aladin instance
    */
-  interface AladinOptions {
+  export interface AladinOptions {
     /** Target coordinates as string "RA DEC" or object */
     target?: string | { ra: number; dec: number };
     /** Field of view in degrees */
@@ -69,7 +76,7 @@ declare module "aladin-lite" {
   /**
    * Aladin viewer instance
    */
-  interface AladinInstance {
+  export interface AladinInstance {
     /**
      * Navigate to specified coordinates
      */
@@ -139,7 +146,7 @@ declare module "aladin-lite" {
   /**
    * Options for creating a catalog
    */
-  interface CatalogOptions {
+  export interface CatalogOptions {
     /** Catalog name */
     name?: string;
     /** Source size in pixels */
@@ -159,7 +166,7 @@ declare module "aladin-lite" {
   /**
    * Catalog layer
    */
-  interface AladinCatalog {
+  export interface AladinCatalog {
     /**
      * Add sources to the catalog
      */
@@ -189,7 +196,7 @@ declare module "aladin-lite" {
   /**
    * Source marker
    */
-  interface AladinSource {
+  export interface AladinSource {
     /** Right ascension in degrees */
     ra: number;
     /** Declination in degrees */

@@ -12,14 +12,26 @@ describe("CatalogLegend", () => {
       description: "NRAO VLA Sky Survey",
       color: "#ff0000",
       symbol: "circle",
+      vizierTable: "VIII/65/nvss",
+      defaultEnabled: false,
     },
-    { id: "first", name: "FIRST", description: "Faint Images", color: "#00ff00", symbol: "square" },
+    {
+      id: "first",
+      name: "FIRST",
+      description: "Faint Images",
+      color: "#00ff00",
+      symbol: "square",
+      vizierTable: "VIII/92/first14",
+      defaultEnabled: false,
+    },
     {
       id: "vlass",
       name: "VLASS",
       description: "VLA Sky Survey",
       color: "#0000ff",
       symbol: "diamond",
+      vizierTable: "VIII/100/vlass",
+      defaultEnabled: false,
     },
   ];
 
@@ -47,7 +59,15 @@ describe("CatalogLegend", () => {
   describe("symbol rendering", () => {
     it("renders circle symbol", () => {
       const circleCatalog: CatalogDefinition[] = [
-        { id: "test", name: "Circle", description: "Test", color: "#ff0000", symbol: "circle" },
+        {
+          id: "test",
+          name: "Circle",
+          description: "Test",
+          color: "#ff0000",
+          symbol: "circle",
+          vizierTable: "test/circle",
+          defaultEnabled: false,
+        },
       ];
       render(<CatalogLegend catalogs={circleCatalog} />);
       expect(screen.getByText("Circle")).toBeInTheDocument();
@@ -56,7 +76,15 @@ describe("CatalogLegend", () => {
 
     it("renders square symbol", () => {
       const squareCatalog: CatalogDefinition[] = [
-        { id: "test", name: "Square", description: "Test", color: "#ff0000", symbol: "square" },
+        {
+          id: "test",
+          name: "Square",
+          description: "Test",
+          color: "#ff0000",
+          symbol: "square",
+          vizierTable: "test/square",
+          defaultEnabled: false,
+        },
       ];
       render(<CatalogLegend catalogs={squareCatalog} />);
       expect(document.querySelector("rect")).toBeInTheDocument();
@@ -64,7 +92,15 @@ describe("CatalogLegend", () => {
 
     it("renders diamond symbol", () => {
       const diamondCatalog: CatalogDefinition[] = [
-        { id: "test", name: "Diamond", description: "Test", color: "#ff0000", symbol: "diamond" },
+        {
+          id: "test",
+          name: "Diamond",
+          description: "Test",
+          color: "#ff0000",
+          symbol: "diamond",
+          vizierTable: "test/diamond",
+          defaultEnabled: false,
+        },
       ];
       render(<CatalogLegend catalogs={diamondCatalog} />);
       expect(document.querySelector("polygon")).toBeInTheDocument();
@@ -72,7 +108,15 @@ describe("CatalogLegend", () => {
 
     it("renders triangle symbol", () => {
       const triangleCatalog: CatalogDefinition[] = [
-        { id: "test", name: "Triangle", description: "Test", color: "#ff0000", symbol: "triangle" },
+        {
+          id: "test",
+          name: "Triangle",
+          description: "Test",
+          color: "#ff0000",
+          symbol: "triangle",
+          vizierTable: "test/triangle",
+          defaultEnabled: false,
+        },
       ];
       render(<CatalogLegend catalogs={triangleCatalog} />);
       expect(document.querySelector("polygon")).toBeInTheDocument();
@@ -80,7 +124,15 @@ describe("CatalogLegend", () => {
 
     it("renders star symbol", () => {
       const starCatalog: CatalogDefinition[] = [
-        { id: "test", name: "Star", description: "Test", color: "#ff0000", symbol: "star" },
+        {
+          id: "test",
+          name: "Star",
+          description: "Test",
+          color: "#ff0000",
+          symbol: "star",
+          vizierTable: "test/star",
+          defaultEnabled: false,
+        },
       ];
       render(<CatalogLegend catalogs={starCatalog} />);
       expect(document.querySelector("polygon")).toBeInTheDocument();
@@ -88,7 +140,15 @@ describe("CatalogLegend", () => {
 
     it("renders plus symbol", () => {
       const plusCatalog: CatalogDefinition[] = [
-        { id: "test", name: "Plus", description: "Test", color: "#ff0000", symbol: "plus" },
+        {
+          id: "test",
+          name: "Plus",
+          description: "Test",
+          color: "#ff0000",
+          symbol: "plus",
+          vizierTable: "test/plus",
+          defaultEnabled: false,
+        },
       ];
       render(<CatalogLegend catalogs={plusCatalog} />);
       expect(document.querySelector("path")).toBeInTheDocument();
@@ -96,7 +156,15 @@ describe("CatalogLegend", () => {
 
     it("renders cross symbol", () => {
       const crossCatalog: CatalogDefinition[] = [
-        { id: "test", name: "Cross", description: "Test", color: "#ff0000", symbol: "cross" },
+        {
+          id: "test",
+          name: "Cross",
+          description: "Test",
+          color: "#ff0000",
+          symbol: "cross",
+          vizierTable: "test/cross",
+          defaultEnabled: false,
+        },
       ];
       render(<CatalogLegend catalogs={crossCatalog} />);
       expect(document.querySelector("path")).toBeInTheDocument();
@@ -110,6 +178,8 @@ describe("CatalogLegend", () => {
           description: "Test",
           color: "#ff0000",
           symbol: "unknown" as CatalogDefinition["symbol"],
+          vizierTable: "test/unknown",
+          defaultEnabled: false,
         },
       ];
       render(<CatalogLegend catalogs={unknownCatalog} />);
@@ -121,7 +191,15 @@ describe("CatalogLegend", () => {
   describe("colors", () => {
     it("applies correct colors to catalog names", () => {
       const colorCatalog: CatalogDefinition[] = [
-        { id: "test", name: "ColorTest", description: "Test", color: "#ff5500", symbol: "circle" },
+        {
+          id: "test",
+          name: "ColorTest",
+          description: "Test",
+          color: "#ff5500",
+          symbol: "circle",
+          vizierTable: "test/color",
+          defaultEnabled: false,
+        },
       ];
       render(<CatalogLegend catalogs={colorCatalog} />);
       const text = screen.getByText("ColorTest");

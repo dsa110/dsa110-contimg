@@ -19,6 +19,7 @@ const meta = {
   },
   args: {
     onChange: fn(),
+    values: {},
   },
 } satisfies Meta<typeof FluxFilters>;
 
@@ -30,12 +31,7 @@ type Story = StoryObj<typeof meta>;
  */
 export const Default: Story = {
   args: {
-    minFlux: undefined,
-    maxFlux: undefined,
-    minIntFlux: undefined,
-    maxIntFlux: undefined,
-    minSnr: undefined,
-    maxSnr: undefined,
+    values: {},
   },
 };
 
@@ -44,12 +40,10 @@ export const Default: Story = {
  */
 export const WithPresetValues: Story = {
   args: {
-    minFlux: 10,
-    maxFlux: 500,
-    minIntFlux: 20,
-    maxIntFlux: 1000,
-    minSnr: 5,
-    maxSnr: 50,
+    values: {
+      minFlux: { min: 10, max: 500, type: "peak" },
+      maxFlux: { min: 20, max: 1000, type: "peak" },
+    },
   },
 };
 
@@ -58,10 +52,9 @@ export const WithPresetValues: Story = {
  */
 export const BrightSourcesOnly: Story = {
   args: {
-    minFlux: 100,
-    maxFlux: undefined,
-    minSnr: 10,
-    maxSnr: undefined,
+    values: {
+      minFlux: { min: 100, type: "peak" },
+    },
   },
 };
 
@@ -70,10 +63,9 @@ export const BrightSourcesOnly: Story = {
  */
 export const FaintSources: Story = {
   args: {
-    minFlux: 1,
-    maxFlux: 50,
-    minSnr: 3,
-    maxSnr: 10,
+    values: {
+      minFlux: { min: 1, max: 50, type: "peak" },
+    },
   },
 };
 
@@ -82,8 +74,9 @@ export const FaintSources: Story = {
  */
 export const CustomStyling: Story = {
   args: {
-    minFlux: 10,
-    maxFlux: 500,
+    values: {
+      minFlux: { min: 10, max: 500, type: "peak" },
+    },
     className: "bg-slate-50 p-6 rounded-lg shadow-md",
   },
 };

@@ -12,14 +12,14 @@ import AladinLiteViewer from "./AladinLiteViewer";
  * - Fullscreen mode
  * - Deferred loading (load on demand)
  */
-const meta = {
+const meta: Meta<typeof AladinLiteViewer> = {
   title: "Components/Widgets/AladinLiteViewer",
   component: AladinLiteViewer,
   tags: ["autodocs"],
   parameters: {
     layout: "fullscreen",
   },
-} satisfies Meta<typeof AladinLiteViewer>;
+};
 
 export default meta;
 type Story = StoryObj<typeof meta>;
@@ -140,7 +140,6 @@ export const CustomStyling: Story = {
  * Multiple viewers in a grid
  */
 export const MultipleViewers: Story = {
-  args: {},
   render: () => (
     <div className="grid grid-cols-2 gap-4 p-4">
       <AladinLiteViewer

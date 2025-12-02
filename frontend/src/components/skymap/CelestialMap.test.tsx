@@ -121,13 +121,6 @@ describe("CelestialMap", () => {
         render(<CelestialMap onMarkerClick={onMarkerClick} />);
       }).not.toThrow();
     });
-
-    it("accepts onZoomChange callback", () => {
-      const onZoomChange = vi.fn();
-      expect(() => {
-        render(<CelestialMap onZoomChange={onZoomChange} />);
-      }).not.toThrow();
-    });
   });
 
   describe("projection types", () => {
@@ -152,7 +145,12 @@ describe("CelestialMap", () => {
   });
 
   describe("transform types", () => {
-    const transforms = ["equatorial", "ecliptic", "galactic", "supergalactic"] as const;
+    const transforms = [
+      "equatorial",
+      "ecliptic",
+      "galactic",
+      "supergalactic",
+    ] as const;
 
     transforms.forEach((transform) => {
       it(`accepts ${transform} transform`, () => {

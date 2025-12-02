@@ -30,9 +30,10 @@ type Story = StoryObj<typeof meta>;
  */
 export const Unsorted: Story = {
   args: {
-    column: "name",
-    label: "Name",
-    currentSort: null,
+    columnKey: "name",
+    children: "Name",
+    sortColumn: null,
+    sortDirection: null,
   },
 };
 
@@ -41,9 +42,10 @@ export const Unsorted: Story = {
  */
 export const SortedAscending: Story = {
   args: {
-    column: "flux",
-    label: "Peak Flux (mJy)",
-    currentSort: { column: "flux", direction: "asc" },
+    columnKey: "flux",
+    children: "Peak Flux (mJy)",
+    sortColumn: "flux",
+    sortDirection: "asc",
   },
 };
 
@@ -52,9 +54,10 @@ export const SortedAscending: Story = {
  */
 export const SortedDescending: Story = {
   args: {
-    column: "snr",
-    label: "SNR",
-    currentSort: { column: "snr", direction: "desc" },
+    columnKey: "snr",
+    children: "SNR",
+    sortColumn: "snr",
+    sortDirection: "desc",
   },
 };
 
@@ -63,9 +66,10 @@ export const SortedDescending: Story = {
  */
 export const NotCurrentSort: Story = {
   args: {
-    column: "ra",
-    label: "RA (deg)",
-    currentSort: { column: "dec", direction: "asc" },
+    columnKey: "ra",
+    children: "RA (deg)",
+    sortColumn: "dec",
+    sortDirection: "asc",
   },
 };
 
@@ -79,35 +83,45 @@ export const CompleteTable: Story = {
         <thead className="bg-gray-50">
           <tr>
             <SortableTableHeader
-              column="name"
-              label="Source Name"
-              currentSort={args.currentSort}
+              columnKey="name"
+              sortColumn={args.sortColumn}
+              sortDirection={args.sortDirection}
               onSort={args.onSort}
-            />
+            >
+              Source Name
+            </SortableTableHeader>
             <SortableTableHeader
-              column="ra"
-              label="RA (deg)"
-              currentSort={args.currentSort}
+              columnKey="ra"
+              sortColumn={args.sortColumn}
+              sortDirection={args.sortDirection}
               onSort={args.onSort}
-            />
+            >
+              RA (deg)
+            </SortableTableHeader>
             <SortableTableHeader
-              column="dec"
-              label="Dec (deg)"
-              currentSort={args.currentSort}
+              columnKey="dec"
+              sortColumn={args.sortColumn}
+              sortDirection={args.sortDirection}
               onSort={args.onSort}
-            />
+            >
+              Dec (deg)
+            </SortableTableHeader>
             <SortableTableHeader
-              column="flux"
-              label="Peak Flux (mJy)"
-              currentSort={args.currentSort}
+              columnKey="flux"
+              sortColumn={args.sortColumn}
+              sortDirection={args.sortDirection}
               onSort={args.onSort}
-            />
+            >
+              Peak Flux (mJy)
+            </SortableTableHeader>
             <SortableTableHeader
-              column="snr"
-              label="SNR"
-              currentSort={args.currentSort}
+              columnKey="snr"
+              sortColumn={args.sortColumn}
+              sortDirection={args.sortDirection}
               onSort={args.onSort}
-            />
+            >
+              SNR
+            </SortableTableHeader>
           </tr>
         </thead>
         <tbody>
@@ -137,8 +151,9 @@ export const CompleteTable: Story = {
     </div>
   ),
   args: {
-    column: "flux",
-    label: "Peak Flux (mJy)",
-    currentSort: { column: "flux", direction: "desc" },
+    columnKey: "flux",
+    children: "Peak Flux (mJy)",
+    sortColumn: "flux",
+    sortDirection: "desc",
   },
 };

@@ -1,8 +1,16 @@
-import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useCallback,
+  useMemo,
+} from "react";
 import type * as echarts from "echarts";
 import type { ECElementEvent } from "echarts";
 import { loadEcharts } from "../../lib/loadEcharts";
-import VariabilityControls, { VariabilityControlsValues } from "./VariabilityControls";
+import VariabilityControls, {
+  VariabilityControlsValues,
+} from "./VariabilityControls";
 import SourcePreview from "./SourcePreview";
 
 /**
@@ -77,7 +85,9 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
   // Preview state
   const [hoverSource, setHoverSource] = useState<SourcePoint | null>(null);
   const [hoverPosition, setHoverPosition] = useState({ x: 0, y: 0 });
-  const [selectedSource, setSelectedSource] = useState<SourcePoint | null>(null);
+  const [selectedSource, setSelectedSource] = useState<SourcePoint | null>(
+    null
+  );
 
   // Escape key handler for modal
   useEffect(() => {
@@ -104,7 +114,9 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
     const mean = (arr: number[]) => arr.reduce((a, b) => a + b, 0) / arr.length;
     const std = (arr: number[]) => {
       const m = mean(arr);
-      return Math.sqrt(arr.reduce((sum, x) => sum + (x - m) ** 2, 0) / arr.length);
+      return Math.sqrt(
+        arr.reduce((sum, x) => sum + (x - m) ** 2, 0) / arr.length
+      );
     };
 
     const etaMean = mean(etaValues);
@@ -122,7 +134,10 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
   const filteredSources = useMemo(
     () =>
       sources.filter(
-        (s) => (s.nMeasurements ?? 10) >= controls.minDataPoints && s.eta > 0 && s.v > 0 // Filter out non-positive values for log scale
+        (s) =>
+          (s.nMeasurements ?? 10) >= controls.minDataPoints &&
+          s.eta > 0 &&
+          s.v > 0 // Filter out non-positive values for log scale
       ),
     [sources, controls.minDataPoints]
   );
@@ -139,11 +154,15 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
 
   // Pre-compute max values once to avoid O(n²) in color mapping
   const colorMaxValues = useMemo(() => {
-    if (filteredSources.length === 0) return { variability: 1, flux: 1, measurements: 1 };
+    if (filteredSources.length === 0)
+      return { variability: 1, flux: 1, measurements: 1 };
     return {
       variability: Math.max(...filteredSources.map((s) => s.eta * s.v), 1),
       flux: Math.max(...filteredSources.map((s) => s.peakFlux ?? 0), 1),
-      measurements: Math.max(...filteredSources.map((s) => s.nMeasurements ?? 0), 1),
+      measurements: Math.max(
+        ...filteredSources.map((s) => s.nMeasurements ?? 0),
+        1
+      ),
     };
   }, [filteredSources]);
 
@@ -234,7 +253,8 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
     const vMax = Math.max(...vValues) * 2;
 
     // Build subtitle with excluded count info
-    const excludedInfo = filteredOutCount > 0 ? ` (${filteredOutCount} excluded: η≤0 or v≤0)` : "";
+    const excludedInfo =
+      filteredOutCount > 0 ? ` (${filteredOutCount} excluded: η≤0 or v≤0)` : "";
     const subtext = `${filteredSources.length} sources, ${candidates.length} candidates${excludedInfo}`;
 
     const option: echarts.EChartsOption = {
@@ -336,10 +356,11 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
     chart.off("click");
 
     // Event handlers
-    chart.on("mouseover", (params: EtaVPlotClickEvent) => {
-      if (params.componentType === "series" && params.data?.source) {
-        const event = params.event?.event;
-        setHoverSource(params.data.source);
+    chart.on("mouseover", (params: ECElementEvent) => {
+      const typedParams = params as unknown as EtaVPlotClickEvent;
+      if (params.componentType === "series" && typedParams.data?.source) {
+        const event = typedParams.event?.event;
+        setHoverSource(typedParams.data.source);
         if (event) {
           setHoverPosition({ x: event.clientX, y: event.clientY });
         }
@@ -350,9 +371,10 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
       setHoverSource(null);
     });
 
-    chart.on("click", (params: EtaVPlotClickEvent) => {
-      if (params.componentType === "series" && params.data?.source) {
-        setSelectedSource(params.data.source);
+    chart.on("click", (params: ECElementEvent) => {
+      const typedParams = params as unknown as EtaVPlotClickEvent;
+      if (params.componentType === "series" && typedParams.data?.source) {
+        setSelectedSource(typedParams.data.source);
         setHoverSource(null);
       }
     });
@@ -431,7 +453,9 @@ const EtaVPlot: React.FC<EtaVPlotProps> = ({
                   </button>
                 ))}
                 {candidates.length > 10 && (
-                  <p className="text-xs text-red-500">+{candidates.length - 10} more</p>
+                  <p className="text-xs text-red-500">
+                    +{candidates.length - 10} more
+                  </p>
                 )}
               </div>
             </div>

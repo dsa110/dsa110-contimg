@@ -1,5 +1,7 @@
 import React, { useEffect, useRef, useCallback, useState } from "react";
-import FitsViewerControls, { FitsViewerControlsValues } from "./FitsViewerControls";
+import FitsViewerControls, {
+  FitsViewerControlsValues,
+} from "./FitsViewerControls";
 import type { JS9Image, JS9Region, JS9MouseEvent } from "../../types/js9.d";
 import { VIEWER_TIMEOUTS } from "../../constants/astronomical";
 import { logger } from "../../utils/logger";
@@ -52,7 +54,10 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isJS9Ready, setIsJS9Ready] = useState(false);
-  const [cursorWCS, setCursorWCS] = useState<{ ra: string; dec: string } | null>(null);
+  const [cursorWCS, setCursorWCS] = useState<{
+    ra: string;
+    dec: string;
+  } | null>(null);
   const initialControlsRef = useRef<FitsViewerControlsValues | null>(null);
 
   // Control state
@@ -130,7 +135,9 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
           // Apply initial controls (from ref, not state to avoid dependency)
           const initControls = initialControlsRef.current;
           if (initControls) {
-            window.JS9.SetColormap(initControls.colorMap, { display: displayId });
+            window.JS9.SetColormap(initControls.colorMap, {
+              display: displayId,
+            });
             window.JS9.SetScale(initControls.scale, { display: displayId });
           }
 
@@ -147,8 +154,14 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
       if (onCoordinateClick) {
         window.JS9.SetCallback(
           "onclick",
-          (_im: JS9Image | null, _xreg: JS9Region | null, evt: JS9MouseEvent) => {
-            const wcs = window.JS9.PixToWCS(evt.x, evt.y, { display: displayId });
+          (
+            _im: JS9Image | null,
+            _xreg: JS9Region | null,
+            evt: JS9MouseEvent
+          ) => {
+            const wcs = window.JS9.PixToWCS(evt.x, evt.y, {
+              display: displayId,
+            });
             if (wcs) {
               onCoordinateClick(wcs.ra, wcs.dec);
             }
@@ -162,7 +175,9 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
         "onmousemove",
         (_im: JS9Image | null, _xreg: JS9Region | null, evt: JS9MouseEvent) => {
           try {
-            const wcs = window.JS9.PixToWCS(evt.x, evt.y, { display: displayId });
+            const wcs = window.JS9.PixToWCS(evt.x, evt.y, {
+              display: displayId,
+            });
             if (wcs && wcs.ra !== undefined && wcs.dec !== undefined) {
               // Format as sexagesimal
               const raH = wcs.ra / 15;
@@ -178,7 +193,9 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
               const decDeg = Math.floor(decAbs);
               const decMin = Math.floor((decAbs - decDeg) * 60);
               const decSec = ((decAbs - decDeg) * 60 - decMin) * 60;
-              const decStr = `${decSign}${decDeg.toString().padStart(2, "0")}:${decMin
+              const decStr = `${decSign}${decDeg
+                .toString()
+                .padStart(2, "0")}:${decMin
                 .toString()
                 .padStart(2, "0")}:${decSec.toFixed(1).padStart(4, "0")}`;
 
@@ -219,7 +236,9 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
     try {
       window.JS9.SetColormap(controls.colorMap, { display: displayId });
       window.JS9.SetScale(controls.scale, { display: displayId });
-      window.JS9.SetParam("contrast", controls.contrast, { display: displayId });
+      window.JS9.SetParam("contrast", controls.contrast, {
+        display: displayId,
+      });
       window.JS9.SetParam("bias", controls.bias, { display: displayId });
 
       // Toggle regions visibility (hide/show, don't delete)
@@ -239,11 +258,13 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
         }
       } catch (regionErr) {
         // Regions may not exist yet or API differs
-        logger.debug("Region visibility toggle:", regionErr);
+        logger.debug("Region visibility toggle", { error: regionErr });
       }
 
       // Toggle crosshair
-      window.JS9.SetParam("crosshair", controls.showCrosshair, { display: displayId });
+      window.JS9.SetParam("crosshair", controls.showCrosshair, {
+        display: displayId,
+      });
     } catch (err) {
       logger.warn("Failed to apply JS9 settings", { error: err, displayId });
     }
@@ -294,7 +315,11 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
           style={{ width, height }}
         >
           {/* JS9 display div */}
-          <div className="JS9" id={displayId} style={{ width: "100%", height: "100%" }} />
+          <div
+            className="JS9"
+            id={displayId}
+            style={{ width: "100%", height: "100%" }}
+          />
 
           {/* Loading overlay */}
           {isLoading && (
@@ -352,10 +377,15 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
                 <span className="text-gray-700 ml-2">Dec:</span> {cursorWCS.dec}
               </>
             ) : (
-              <span className="text-gray-400">Move cursor over image for coordinates</span>
+              <span className="text-gray-400">
+                Move cursor over image for coordinates
+              </span>
             )}
           </span>
-          <span className="text-gray-400 truncate max-w-[150px]" title={fitsUrl}>
+          <span
+            className="text-gray-400 truncate max-w-[150px]"
+            title={fitsUrl}
+          >
             {fitsUrl.split("/").pop()?.substring(0, 25) || "No file"}
           </span>
         </div>
