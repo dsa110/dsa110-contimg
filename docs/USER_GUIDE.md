@@ -21,11 +21,11 @@ Complete operations documentation for pipeline users.
 
 ### 1.1 Prerequisites
 
-| Requirement | Details |
-|-------------|---------|
-| **Conda Environment** | `casa6` with Python 3.11, CASA 6.7, pyuvdata 3.2.4 |
-| **Storage** | `/data/incoming` (raw HDF5), `/stage/dsa110-contimg` (output) |
-| **Network Ports** | 8000 (API), 3210 (Dashboard), 3030 (Grafana) |
+| Requirement           | Details                                                       |
+| --------------------- | ------------------------------------------------------------- |
+| **Conda Environment** | `casa6` with Python 3.11, CASA 6.7, pyuvdata 3.2.4            |
+| **Storage**           | `/data/incoming` (raw HDF5), `/stage/dsa110-contimg` (output) |
+| **Network Ports**     | 8000 (API), 3210 (Dashboard), 3030 (Grafana)                  |
 
 ### 1.2 Environment Setup
 
@@ -47,12 +47,12 @@ Configuration uses environment variables with Pydantic validation. The primary s
 
 #### Essential Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `PIPELINE_INPUT_DIR` | Input directory for UVH5 files | `/data/incoming` |
-| `PIPELINE_OUTPUT_DIR` | Output directory for MS files | `/stage/dsa110-contimg/ms` |
-| `PIPELINE_SCRATCH_DIR` | Fast scratch storage | `/stage/dsa110-contimg` |
-| `PIPELINE_STATE_DIR` | Database and state directory | `state` |
+| Variable               | Description                    | Default                    |
+| ---------------------- | ------------------------------ | -------------------------- |
+| `PIPELINE_INPUT_DIR`   | Input directory for UVH5 files | `/data/incoming`           |
+| `PIPELINE_OUTPUT_DIR`  | Output directory for MS files  | `/stage/dsa110-contimg/ms` |
+| `PIPELINE_SCRATCH_DIR` | Fast scratch storage           | `/stage/dsa110-contimg`    |
+| `PIPELINE_STATE_DIR`   | Database and state directory   | `state`                    |
 
 #### Loading Configuration
 
@@ -68,27 +68,27 @@ config = PipelineConfig.from_env(validate_paths=False)
 
 #### Conversion Settings
 
-| Variable | Description | Default | Range |
-|----------|-------------|---------|-------|
-| `PIPELINE_WRITER` | Writer strategy | `auto` | `auto`, `parallel-subband` |
-| `PIPELINE_MAX_WORKERS` | Parallel workers | `4` | 1-32 |
-| `PIPELINE_EXPECTED_SUBBANDS` | Subbands per observation | `16` | 1-32 |
+| Variable                     | Description              | Default | Range                      |
+| ---------------------------- | ------------------------ | ------- | -------------------------- |
+| `PIPELINE_WRITER`            | Writer strategy          | `auto`  | `auto`, `parallel-subband` |
+| `PIPELINE_MAX_WORKERS`       | Parallel workers         | `4`     | 1-32                       |
+| `PIPELINE_EXPECTED_SUBBANDS` | Subbands per observation | `16`    | 1-32                       |
 
 #### Calibration Settings
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `PIPELINE_CAL_BP_MINSNR` | Bandpass minimum SNR | `3.0` |
-| `PIPELINE_CAL_GAIN_SOLINT` | Gain solution interval | `inf` |
-| `PIPELINE_DEFAULT_REFANT` | Reference antenna | `103` |
+| Variable                   | Description            | Default |
+| -------------------------- | ---------------------- | ------- |
+| `PIPELINE_CAL_BP_MINSNR`   | Bandpass minimum SNR   | `3.0`   |
+| `PIPELINE_CAL_GAIN_SOLINT` | Gain solution interval | `inf`   |
+| `PIPELINE_DEFAULT_REFANT`  | Reference antenna      | `103`   |
 
 #### Imaging Settings
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `PIPELINE_GRIDDER` | Gridding algorithm | `wproject` |
-| `PIPELINE_USE_NVSS_MASK` | Use NVSS mask (2-4x faster) | `true` |
-| `PIPELINE_MASK_RADIUS_ARCSEC` | Mask radius | `60.0` |
+| Variable                      | Description                 | Default    |
+| ----------------------------- | --------------------------- | ---------- |
+| `PIPELINE_GRIDDER`            | Gridding algorithm          | `wproject` |
+| `PIPELINE_USE_NVSS_MASK`      | Use NVSS mask (2-4x faster) | `true`     |
+| `PIPELINE_MASK_RADIUS_ARCSEC` | Mask radius                 | `60.0`     |
 
 ### 1.4 Verification
 
@@ -112,6 +112,7 @@ sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 "SELECT COUNT(*) FROM ms_
 #### Starting Services
 
 **Production (systemd):**
+
 ```bash
 # Start all services
 sudo systemctl start contimg-api contimg-stream dsa110-contimg-dashboard
@@ -124,6 +125,7 @@ sudo systemctl status contimg-api contimg-stream
 ```
 
 **Development (manual):**
+
 ```bash
 # Terminal 1: API
 cd /data/dsa110-contimg/backend/src
@@ -192,13 +194,13 @@ sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
 
 #### Queue States
 
-| State | Description |
-|-------|-------------|
-| `collecting` | Accumulating subbands (waiting for all 16) |
-| `pending` | Ready for processing |
-| `in_progress` | Currently being converted |
-| `completed` | Successfully converted |
-| `failed` | Conversion failed (check logs) |
+| State         | Description                                |
+| ------------- | ------------------------------------------ |
+| `collecting`  | Accumulating subbands (waiting for all 16) |
+| `pending`     | Ready for processing                       |
+| `in_progress` | Currently being converted                  |
+| `completed`   | Successfully converted                     |
+| `failed`      | Conversion failed (check logs)             |
 
 ### 2.3 Batch Conversion
 
@@ -226,14 +228,14 @@ python -m dsa110_contimg.conversion.cli groups --dry-run \
 
 #### CLI Options
 
-| Option | Description |
-|--------|-------------|
-| `--dry-run` | Preview without writing files |
-| `--calibrator NAME` | Auto-find transit time for calibrator |
-| `--find-only` | Find groups/transits without converting |
-| `--skip-existing` | Skip groups with existing MS files |
-| `--no-rename-calibrator-fields` | Disable auto calibrator detection |
-| `--writer {parallel-subband,auto}` | MS writing strategy |
+| Option                             | Description                             |
+| ---------------------------------- | --------------------------------------- |
+| `--dry-run`                        | Preview without writing files           |
+| `--calibrator NAME`                | Auto-find transit time for calibrator   |
+| `--find-only`                      | Find groups/transits without converting |
+| `--skip-existing`                  | Skip groups with existing MS files      |
+| `--no-rename-calibrator-fields`    | Disable auto calibrator detection       |
+| `--writer {parallel-subband,auto}` | MS writing strategy                     |
 
 ### 2.4 Monitoring Pipeline Health
 
@@ -243,17 +245,18 @@ Access metrics at: `http://localhost:8000/metrics`
 
 Key metrics:
 
-| Metric | Description |
-|--------|-------------|
-| `http_requests_total` | Total HTTP requests |
-| `http_request_duration_seconds` | Request latency |
-| `http_requests_in_progress` | Active requests |
+| Metric                          | Description         |
+| ------------------------------- | ------------------- |
+| `http_requests_total`           | Total HTTP requests |
+| `http_request_duration_seconds` | Request latency     |
+| `http_requests_in_progress`     | Active requests     |
 
 #### Grafana Dashboard
 
 Access at: `http://localhost:3030`
 
 Recommended panels:
+
 - Request rate by endpoint
 - Latency heatmap
 - Error rate (4xx/5xx)
@@ -266,16 +269,17 @@ Recommended panels:
 
 ### 3.1 Accessing the Dashboard
 
-| Environment | URL |
-|-------------|-----|
-| Production | http://localhost:3210/ui/ |
-| Development | http://localhost:5173 |
+| Environment | URL                       |
+| ----------- | ------------------------- |
+| Production  | http://localhost:3210/ui/ |
+| Development | http://localhost:5173     |
 
 ### 3.2 Main Dashboard
 
 **URL:** `/dashboard`
 
 Features:
+
 - **Pipeline Status Panel**: Queue statistics, active calibrations, recent observations
 - **System Health Panel**: CPU, memory, disk usage
 - **ESE Candidates Panel**: Real-time variability alerts (5σ threshold)
@@ -285,6 +289,7 @@ Features:
 **URL:** `/observations`
 
 Features:
+
 - Interactive timeline of observations
 - Filter by time range, calibrator, status
 - Quick access to MS and image files
@@ -294,6 +299,7 @@ Features:
 **URL:** `/images`
 
 Features:
+
 - Grid view of all images
 - Filter by time range, source, quality
 - Download FITS files
@@ -304,6 +310,7 @@ Features:
 **URL:** `/mosaics`
 
 Features:
+
 - Time-range query interface
 - Mosaic metadata (source count, noise, image count)
 - Create new mosaics from time ranges
@@ -314,6 +321,7 @@ Features:
 **URL:** `/control-panel`
 
 Features:
+
 - Manual pipeline execution
 - Calibration controls
 - Imaging controls
@@ -362,13 +370,13 @@ python -m dsa110_contimg.calibration.cli calibrate \
 
 #### Calibration Options
 
-| Flag | Description | Default |
-|------|-------------|---------|
-| `--do-k` | Enable K-calibration | Disabled |
-| `--skip-bp` | Skip bandpass | Enabled |
-| `--skip-g` | Skip gain | Enabled |
-| `--bp-minsnr` | Bandpass min SNR | 3.0 |
-| `--gain-solint` | Gain solution interval | inf |
+| Flag            | Description            | Default  |
+| --------------- | ---------------------- | -------- |
+| `--do-k`        | Enable K-calibration   | Disabled |
+| `--skip-bp`     | Skip bandpass          | Enabled  |
+| `--skip-g`      | Skip gain              | Enabled  |
+| `--bp-minsnr`   | Bandpass min SNR       | 3.0      |
+| `--gain-solint` | Gain solution interval | inf      |
 
 #### Applying Existing Calibration
 
@@ -491,14 +499,14 @@ import asyncio
 async def spawn_task():
     client = AbsurdClient('postgresql://user:password@localhost:5432/dsa110_absurd')
     await client.connect()
-    
+
     task_id = await client.spawn_task(
         queue='dsa110-pipeline',
         task_type='mosaic_build',
         payload={'name': 'night_2025_12_01'},
         priority=10
     )
-    
+
     await client.close()
     return task_id
 
@@ -507,13 +515,13 @@ asyncio.run(spawn_task())
 
 #### API Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/absurd/metrics` | GET | Real-time metrics |
-| `/api/absurd/tasks` | GET | List tasks |
-| `/api/absurd/tasks` | POST | Spawn new task |
-| `/api/absurd/tasks/{id}` | GET | Task details |
-| `/api/absurd/tasks/{id}` | DELETE | Cancel task |
+| Endpoint                 | Method | Description       |
+| ------------------------ | ------ | ----------------- |
+| `/api/absurd/metrics`    | GET    | Real-time metrics |
+| `/api/absurd/tasks`      | GET    | List tasks        |
+| `/api/absurd/tasks`      | POST   | Spawn new task    |
+| `/api/absurd/tasks/{id}` | GET    | Task details      |
+| `/api/absurd/tasks/{id}` | DELETE | Cancel task       |
 
 ### 5.2 CARTA Integration
 
@@ -534,6 +542,7 @@ docker run -d \
 #### Configure Dashboard
 
 Create `frontend/.env`:
+
 ```bash
 VITE_CARTA_BACKEND_URL=http://localhost:9002
 VITE_CARTA_FRONTEND_URL=http://localhost:9002
@@ -569,59 +578,59 @@ scheduler.register_pipeline(
 
 ### 6.1 CLI Commands
 
-| Command | Description |
-|---------|-------------|
-| `python -m dsa110_contimg.conversion.cli --help` | Conversion CLI |
+| Command                                           | Description     |
+| ------------------------------------------------- | --------------- |
+| `python -m dsa110_contimg.conversion.cli --help`  | Conversion CLI  |
 | `python -m dsa110_contimg.calibration.cli --help` | Calibration CLI |
-| `python -m dsa110_contimg.imaging.cli --help` | Imaging CLI |
-| `python -m dsa110_contimg.mosaic.cli --help` | Mosaic CLI |
-| `python -m dsa110_contimg.photometry.cli --help` | Photometry CLI |
+| `python -m dsa110_contimg.imaging.cli --help`     | Imaging CLI     |
+| `python -m dsa110_contimg.mosaic.cli --help`      | Mosaic CLI      |
+| `python -m dsa110_contimg.photometry.cli --help`  | Photometry CLI  |
 
 ### 6.2 API Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/status` | GET | Pipeline status |
-| `/api/streaming/status` | GET | Streaming queue status |
-| `/api/streaming/start` | POST | Start streaming |
-| `/api/streaming/stop` | POST | Stop streaming |
-| `/api/data/observations` | GET | List observations |
-| `/api/data/images` | GET | List images |
-| `/api/mosaic/create` | POST | Create mosaic |
-| `/api/mosaic/status/{name}` | GET | Mosaic status |
+| Endpoint                    | Method | Description            |
+| --------------------------- | ------ | ---------------------- |
+| `/api/status`               | GET    | Pipeline status        |
+| `/api/streaming/status`     | GET    | Streaming queue status |
+| `/api/streaming/start`      | POST   | Start streaming        |
+| `/api/streaming/stop`       | POST   | Stop streaming         |
+| `/api/data/observations`    | GET    | List observations      |
+| `/api/data/images`          | GET    | List images            |
+| `/api/mosaic/create`        | POST   | Create mosaic          |
+| `/api/mosaic/status/{name}` | GET    | Mosaic status          |
 
 ### 6.3 Port Assignments
 
-| Port | Service | Environment |
-|------|---------|-------------|
-| 3000 | Vite dev server | Development |
-| 3210 | Dashboard (production) | Production |
-| 6006 | Storybook | Development |
-| 8000 | FastAPI backend | Both |
-| 8001 | MkDocs | Development |
-| 3030 | Grafana | Production |
-| 9090 | Prometheus | Production |
-| 9002 | CARTA | Both |
+| Port | Service                | Environment |
+| ---- | ---------------------- | ----------- |
+| 3000 | Vite dev server        | Development |
+| 3210 | Dashboard (production) | Production  |
+| 6006 | Storybook              | Development |
+| 8000 | FastAPI backend        | Both        |
+| 8001 | MkDocs                 | Development |
+| 3030 | Grafana                | Production  |
+| 9090 | Prometheus             | Production  |
+| 9002 | CARTA                  | Both        |
 
 ### 6.4 File Locations
 
-| Path | Description |
-|------|-------------|
-| `/data/incoming/` | Raw HDF5 subband files |
-| `/stage/dsa110-contimg/ms/` | Measurement Sets |
-| `/stage/dsa110-contimg/images/` | FITS images |
-| `/stage/dsa110-contimg/mosaics/` | Mosaic products |
-| `/data/dsa110-contimg/state/db/` | SQLite databases |
-| `/data/dsa110-contimg/state/logs/` | Pipeline logs |
+| Path                               | Description            |
+| ---------------------------------- | ---------------------- |
+| `/data/incoming/`                  | Raw HDF5 subband files |
+| `/stage/dsa110-contimg/ms/`        | Measurement Sets       |
+| `/stage/dsa110-contimg/images/`    | FITS images            |
+| `/stage/dsa110-contimg/mosaics/`   | Mosaic products        |
+| `/data/dsa110-contimg/state/db/`   | SQLite databases       |
+| `/data/dsa110-contimg/state/logs/` | Pipeline logs          |
 
 ### 6.5 Database Paths
 
-| Database | Purpose |
-|----------|---------|
-| `state/db/pipeline.sqlite3` | Unified pipeline database |
-| `state/db/ingest.sqlite3` | Streaming queue |
-| `state/db/products.sqlite3` | MS, images, photometry registry |
-| `state/catalogs/vla_calibrators.sqlite3` | VLA calibrator catalog |
+| Database                                 | Purpose                         |
+| ---------------------------------------- | ------------------------------- |
+| `state/db/pipeline.sqlite3`              | Unified pipeline database       |
+| `state/db/ingest.sqlite3`                | Streaming queue                 |
+| `state/db/products.sqlite3`              | MS, images, photometry registry |
+| `state/catalogs/vla_calibrators.sqlite3` | VLA calibrator catalog          |
 
 ---
 
