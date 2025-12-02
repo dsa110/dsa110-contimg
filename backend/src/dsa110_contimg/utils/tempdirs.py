@@ -48,16 +48,60 @@ def derive_default_scratch_root() -> Path:
         return Path("/tmp")
 
 
+def derive_casa_log_dir() -> Path:
+    """Return the directory where CASA log files should be written.
+
+    Uses the centralized settings.paths.casa_logs_dir which handles:
+    - ENV CONTIMG_CASA_LOGS_DIR (if set)
+    - Default: /data/dsa110-contimg/state/logs/casa
+    - Fallback: /tmp (if directory cannot be created)
+    
+    CASA logs are written to persistent storage (HDD) rather than scratch
+    (NVMe) because they are archival records that should be preserved.
+    """
+    log_dir = settings.paths.casa_logs_dir
+
+    try:
+        log_dir.mkdir(parents=True, exist_ok=True)
+        return log_dir
+    except (OSError, IOError, PermissionError):
+        # Fallback to /tmp if we can't create the preferred directory
+        return Path("/tmp")
+
+
+def setup_casa_logging() -> Path:
+    """Set up CASA logging environment variables.
+
+    This sets the CASALOGFILE environment variable and ensures the log
+    directory exists. Note that CASA primarily uses the current working
+    directory for log files, so this should be used in conjunction with
+    changing CWD or using casa_log_environment() context manager.
+
+    Returns the path to the log directory.
+    """
+    log_dir = derive_casa_log_dir()
+    # Set CASALOGFILE - some CASA versions may respect this
+    os.environ["CASALOGFILE"] = str(log_dir / "casa.log")
+    return log_dir
+
+
 def prepare_temp_environment(
     preferred_root: Optional[str | os.PathLike[str]] = None,
     *,
     cwd_to: Optional[str | os.PathLike[str]] = None,
+    setup_casa_logs: bool = True,
 ) -> Path:
     """Prepare temp dirs and environment variables for CASA/casacore.
 
     - Ensures a stable temp directory under `<root>/tmp`
     - Sets TMPDIR/TMP/TEMP and CASA_TMPDIR environment variables
+    - Sets CASALOGFILE to direct CASA logs to state/logs/casa/
     - Optionally changes the current working directory to `cwd_to`
+
+    Args:
+        preferred_root: Base directory for temp files (defaults to scratch_dir)
+        cwd_to: Change working directory to this path after setup
+        setup_casa_logs: Configure CASA logging environment (default True)
 
     Returns the path to the temp directory used.
     """
@@ -81,6 +125,10 @@ def prepare_temp_environment(
     # CASA-specific (best-effort; not all versions honor this)
     os.environ.setdefault("CASA_TMPDIR", str(tmp))
 
+    # Set up CASA logging to the persistent logs directory
+    if setup_casa_logs:
+        setup_casa_logging()
+
     if cwd_to is not None:
         outdir = Path(cwd_to)
         outdir.mkdir(parents=True, exist_ok=True)
@@ -96,15 +144,15 @@ def prepare_temp_environment(
 def derive_casa_log_dir() -> Path:
     """Return the directory where CASA log files should be written.
 
-    Uses the centralized settings.paths.logs_dir which handles:
-    - ENV CONTIMG_LOGS_DIR (if set)
-    - Default: settings.paths.scratch_dir / "logs"
+    Uses the centralized settings.paths.casa_logs_dir which handles:
+    - ENV CONTIMG_CASA_LOGS_DIR (if set)
+    - Default: /data/dsa110-contimg/state/logs/casa
     - Fallback: /tmp (if directory cannot be created)
+    
+    CASA logs are written to persistent storage (HDD) rather than scratch
+    (NVMe) because they are archival records that should be preserved.
     """
-    log_dir = settings.paths.logs_dir
-    if log_dir is None:
-        # Shouldn't happen with model_validator, but handle gracefully
-        log_dir = settings.paths.scratch_dir / "logs"
+    log_dir = settings.paths.casa_logs_dir
 
     try:
         log_dir.mkdir(parents=True, exist_ok=True)

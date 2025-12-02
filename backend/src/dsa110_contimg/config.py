@@ -89,7 +89,11 @@ class PathSettings(BaseSettings):
     )
     logs_dir: Optional[Path] = Field(
         default=None,
-        description="Log files directory"
+        description="Log files directory (scratch, for transient logs)"
+    )
+    casa_logs_dir: Path = Field(
+        default=Path("/data/dsa110-contimg/state/logs/casa"),
+        description="CASA log files directory (persistent storage)"
     )
     
     # tmpfs staging
