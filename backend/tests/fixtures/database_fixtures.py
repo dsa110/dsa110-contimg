@@ -18,22 +18,17 @@ from __future__ import annotations
 
 import atexit
 import threading
-import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Iterator
 
 if TYPE_CHECKING:
     import aiosqlite
 
-# Import shared schema definitions - single source of truth
-from dsa110_contimg.database.schema import (
-    PRODUCTS_TABLES,
-    PRODUCTS_INDEXES,
-    CAL_REGISTRY_TABLES,
-    CAL_REGISTRY_INDEXES,
-)
+# Import unified schema - single source of truth
+# The schema.py module has been deprecated in favor of schema.sql
+from dsa110_contimg.database.unified import get_unified_schema
 
 __all__ = [
     # Schema functions
@@ -71,28 +66,27 @@ __all__ = [
 
 
 async def create_products_schema(conn: "aiosqlite.Connection") -> None:
-    """Create all products database tables and indexes (async version).
+    """Create all database tables and indexes (async version).
+    
+    Uses the unified schema from schema.sql.
 
     Args:
         conn: Active aiosqlite connection.
     """
-    for create_sql in PRODUCTS_TABLES.values():
-        await conn.execute(create_sql)
-    for index_sql in PRODUCTS_INDEXES:
-        await conn.execute(index_sql)
+    await conn.executescript(get_unified_schema())
     await conn.commit()
 
 
 async def create_cal_registry_schema(conn: "aiosqlite.Connection") -> None:
-    """Create all calibration registry tables and indexes (async version).
+    """Create all database tables and indexes (async version).
+    
+    Uses the unified schema from schema.sql (same as products).
 
     Args:
         conn: Active aiosqlite connection.
     """
-    for create_sql in CAL_REGISTRY_TABLES.values():
-        await conn.execute(create_sql)
-    for index_sql in CAL_REGISTRY_INDEXES:
-        await conn.execute(index_sql)
+    # Both products and cal_registry now use the unified schema
+    await conn.executescript(get_unified_schema())
     await conn.commit()
 
 
@@ -105,7 +99,7 @@ async def create_cal_registry_schema(conn: "aiosqlite.Connection") -> None:
 class SampleImage:
     """Sample image record for testing.
     
-    Matches the schema in dsa110_contimg.database.schema.PRODUCTS_TABLES['images'].
+    Matches the 'images' table schema in schema.sql.
     """
 
     id: int
@@ -135,7 +129,7 @@ class SampleImage:
 class SampleSource:
     """Sample source record for testing.
     
-    Matches the schema in dsa110_contimg.database.schema.PRODUCTS_TABLES['sources'].
+    Matches the 'sources' table schema in schema.sql.
     """
 
     id: str  # TEXT PRIMARY KEY
@@ -153,8 +147,8 @@ class SampleSource:
 class SampleJob:
     """Sample batch job record for testing.
     
-    Matches the schema in dsa110_contimg.database.schema.PRODUCTS_TABLES['batch_jobs'].
-    Schema: id, type, created_at, status, total_items, completed_items, failed_items, params
+    Matches the 'batch_jobs' table schema in schema.sql.
+    Fields: id, type, created_at, status, total_items, completed_items, failed_items, params
     """
 
     id: int  # INTEGER PRIMARY KEY (not UUID)
@@ -171,7 +165,7 @@ class SampleJob:
 class SampleCalTable:
     """Sample calibration table record for testing.
     
-    Matches the schema in dsa110_contimg.database.schema.CAL_REGISTRY_TABLES['caltables'].
+    Matches the 'calibration_tables' table schema in schema.sql.
     """
 
     path: str  # TEXT PRIMARY KEY
@@ -190,7 +184,7 @@ class SampleCalTable:
 class SampleMSIndex:
     """Sample MS index record for testing.
     
-    Matches the schema in dsa110_contimg.database.schema.PRODUCTS_TABLES['ms_index'].
+    Matches the 'ms_index' table schema in schema.sql.
     """
 
     path: str  # TEXT PRIMARY KEY
@@ -214,7 +208,7 @@ class SampleMSIndex:
 class SamplePhotometry:
     """Sample photometry record for testing.
     
-    Matches the schema in dsa110_contimg.database.schema.PRODUCTS_TABLES['photometry'].
+    Matches the 'photometry_results' table schema in schema.sql.
     """
 
     id: int
@@ -670,22 +664,21 @@ def _ensure_unified_db_template() -> Path:
 
 
 def _create_products_schema_sync(conn: sqlite3.Connection) -> None:
-    """Create all products database tables and indexes (sync version)."""
-    cursor = conn.cursor()
-    for create_sql in PRODUCTS_TABLES.values():
-        cursor.execute(create_sql)
-    for index_sql in PRODUCTS_INDEXES:
-        cursor.execute(index_sql)
+    """Create all database tables and indexes (sync version).
+    
+    Uses the unified schema from schema.sql.
+    """
+    conn.executescript(get_unified_schema())
     conn.commit()
 
 
 def _create_cal_registry_schema_sync(conn: sqlite3.Connection) -> None:
-    """Create all calibration registry tables and indexes (sync version)."""
-    cursor = conn.cursor()
-    for create_sql in CAL_REGISTRY_TABLES.values():
-        cursor.execute(create_sql)
-    for index_sql in CAL_REGISTRY_INDEXES:
-        cursor.execute(index_sql)
+    """Create all database tables and indexes (sync version).
+    
+    Uses the unified schema from schema.sql (same as products).
+    """
+    # Both products and cal_registry now use the unified schema
+    conn.executescript(get_unified_schema())
     conn.commit()
 
 
