@@ -29,13 +29,14 @@ vi.mock("axios", () => {
 // Import after mocking
 import apiClient, { fetchProvenanceData } from "./client";
 
-// Type for mocked axios.create
-type MockedCreate = ReturnType<typeof vi.fn>;
+// Type for mocked axios.create that includes the call signature
+type MockedAxiosCreate = ReturnType<typeof vi.fn> & (() => unknown);
 
 // Capture axios.create call args at module load time (before any test clears mocks)
-const axiosCreateCallArgs = (axios.create as MockedCreate).mock.calls[0]?.[0];
+const axiosCreateCallArgs = (axios.create as MockedAxiosCreate).mock
+  .calls[0]?.[0];
 // Also capture the interceptor registration at module load time
-const mockInstanceAtLoad = (axios.create as MockedCreate)() as unknown as {
+const mockInstanceAtLoad = (axios.create as MockedAxiosCreate)() as unknown as {
   interceptors: { response: { use: ReturnType<typeof vi.fn> } };
 };
 const interceptorUseCalls = [
@@ -58,7 +59,7 @@ describe("api/client", () => {
 
   beforeEach(() => {
     mockAxiosInstance = (
-      axios.create as MockedCreate
+      axios.create as MockedAxiosCreate
     )() as unknown as typeof mockAxiosInstance;
     vi.clearAllMocks();
   });

@@ -200,6 +200,7 @@ const FIXTURES = {
   fluxMonitoringEmpty: {
     calibrators: [] as FluxMonitoringStatus[],
     message: "Flux monitoring table not initialized",
+    total_alerts: undefined as number | undefined,
   } satisfies FluxMonitoringSummary,
 
   pointingStatus: {

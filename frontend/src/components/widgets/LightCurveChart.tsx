@@ -135,14 +135,19 @@ const LightCurveChart: React.FC<LightCurveChartProps> = ({
             : undefined,
           tooltip: {
             trigger: "item",
-            formatter: (params: EChartsTooltipParams) => {
-              const point = data[params.dataIndex];
-              const date = new Date(params.data[0]);
+            formatter: (params) => {
+              // Cast to access data array - ECharts passes CallbackDataParams
+              const p = params as unknown as {
+                dataIndex: number;
+                data: [number, number];
+              };
+              const point = data[p.dataIndex];
+              const date = new Date(p.data[0]);
               let html = `<div class="text-sm">
                 <div class="font-medium">${escapeHtml(
                   date.toLocaleString()
                 )}</div>
-                <div>Flux: ${escapeHtml(formatFlux(params.data[1]))}</div>`;
+                <div>Flux: ${escapeHtml(formatFlux(p.data[1]))}</div>`;
               if (point?.fluxError) {
                 html += `<div>Error: ±${escapeHtml(
                   formatFlux(point.fluxError)
