@@ -12,12 +12,13 @@ import sys
 import tempfile
 from pathlib import Path
 
+# Add backend/src to path BEFORE importing dsa110_contimg modules
+REPO_ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(REPO_ROOT / 'backend' / 'src'))
+
 from dsa110_contimg.mosaic.cli import (_build_weighted_mosaic,
                                        _build_weighted_mosaic_linearmosaic)
 from dsa110_contimg.mosaic.validation import TileQualityMetrics
-
-# Add src to path BEFORE importing dsa110_contimg modules
-sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
 
 logging.basicConfig(level=logging.INFO)

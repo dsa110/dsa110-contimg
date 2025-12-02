@@ -9,7 +9,9 @@ seeding, which avoids the Docker container cleanup hang issue.
 import sys
 from pathlib import Path
 
-sys.path.insert(0, "/data/dsa110-contimg/src/dsa110_contimg/src")
+# Add backend/src to path
+REPO_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO_ROOT / "backend" / "src"))
 
 from dsa110_contimg.calibration.selfcal import SelfCalConfig, selfcal_ms
 

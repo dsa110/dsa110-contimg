@@ -11,14 +11,14 @@ import sys
 import time
 from pathlib import Path
 
+# Add backend/src to path (must be before dsa110_contimg imports)
+REPO_ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(REPO_ROOT / "backend" / "src"))
+
 import requests
 
 from dsa110_contimg.api.caching import CacheBackend, get_cache
 from dsa110_contimg.api.rate_limiting import SLOWAPI_AVAILABLE, get_limiter
-
-# Add project root to path
-project_root = Path(__file__).parent.parent
-sys.path.insert(0, str(project_root / "src"))
 
 
 def test_cache_backend():
