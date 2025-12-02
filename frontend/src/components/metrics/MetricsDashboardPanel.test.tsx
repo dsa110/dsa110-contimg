@@ -105,9 +105,9 @@ describe("MetricsDashboardPanel", () => {
   it("shows overview tab by default", () => {
     render(<MetricsDashboardPanel data={mockDashboard} />);
 
-    // Overview should show quick stats
-    expect(screen.getByText("45.0%")).toBeInTheDocument(); // CPU
-    expect(screen.getByText("60.0%")).toBeInTheDocument(); // Memory
+    // Overview should show quick stats - CPU and Memory appear in multiple places
+    expect(screen.getAllByText(/45\.0%/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/60\.0%/).length).toBeGreaterThan(0);
   });
 
   it("switches to Resources tab when clicked", () => {
