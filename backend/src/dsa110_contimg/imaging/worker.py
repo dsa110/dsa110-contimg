@@ -16,7 +16,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import List, Optional
 
-from dsa110_contimg.database.products import (
+from dsa110_contimg.database import (
     ensure_products_db,
     images_insert,
     ms_index_upsert,

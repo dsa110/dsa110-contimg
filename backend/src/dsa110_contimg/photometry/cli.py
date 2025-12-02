@@ -39,7 +39,7 @@ from astropy.wcs import WCS  # type: ignore[reportMissingTypeStubs]
 from matplotlib.colors import Normalize
 
 from dsa110_contimg.catalog.query import query_sources
-from dsa110_contimg.database.products import (
+from dsa110_contimg.database import (
     ensure_products_db,
     photometry_insert,
 )

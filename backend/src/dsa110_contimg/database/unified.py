@@ -1472,3 +1472,30 @@ def register_bandpass_calibrator(
     )
     conn.commit()
     return cursor.lastrowid
+
+
+# Pointing helpers
+
+def log_pointing(
+    conn: sqlite3.Connection,
+    timestamp_mjd: float,
+    ra_deg: float,
+    dec_deg: float,
+) -> None:
+    """
+    Log pointing to pointing_history table.
+
+    Args:
+        conn: Database connection
+        timestamp_mjd: Observation timestamp (MJD)
+        ra_deg: Right ascension in degrees
+        dec_deg: Declination in degrees
+    """
+    conn.execute(
+        """
+        INSERT OR REPLACE INTO pointing_history (timestamp, ra_deg, dec_deg)
+        VALUES (?, ?, ?)
+        """,
+        (timestamp_mjd, ra_deg, dec_deg),
+    )
+    conn.commit()

@@ -11,7 +11,7 @@ import sqlite3
 from typing import Dict, List, Optional, Tuple
 
 from dsa110_contimg.api.job_adapters import run_batch_photometry_job
-from dsa110_contimg.database.products import ensure_products_db
+from dsa110_contimg.database import ensure_products_db
 
 logger = logging.getLogger(__name__)
 

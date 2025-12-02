@@ -96,6 +96,7 @@ from dsa110_contimg.database import (
     ensure_ingest_db,  # alias for ensure_pipeline_db
     images_insert,
     ms_index_upsert,
+    log_pointing,
 )
 from dsa110_contimg.imaging.cli import image_ms  # noqa
 from dsa110_contimg.utils.ms_organization import create_path_mapper  # noqa

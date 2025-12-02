@@ -12,7 +12,7 @@ import time
 from pathlib import Path
 from typing import List, Optional
 
-from dsa110_contimg.database.products import ensure_products_db
+from dsa110_contimg.database import ensure_products_db
 from dsa110_contimg.photometry.caching import (
     invalidate_cache,
 )

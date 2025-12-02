@@ -26,7 +26,7 @@ from dsa110_contimg.database.data_registry import (
     ensure_data_registry_db,
     link_photometry_to_data,
 )
-from dsa110_contimg.database.products import (
+from dsa110_contimg.database import (
     ensure_products_db,
     photometry_insert,
 )

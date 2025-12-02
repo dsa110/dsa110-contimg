@@ -135,7 +135,7 @@ class CatalogSetupStage(PipelineStage):
             )  # Default 0.1 degrees
 
             try:
-                from dsa110_contimg.database.products import ensure_ingest_db
+                from dsa110_contimg.database import ensure_ingest_db
 
                 ingest_db = self.config.paths.queue_db
                 conn = ensure_ingest_db(ingest_db)
@@ -167,7 +167,7 @@ class CatalogSetupStage(PipelineStage):
                             from dsa110_contimg.conversion.transit_precalc import (
                                 precalculate_transits_for_calibrator,
                             )
-                            from dsa110_contimg.database.products import (
+                            from dsa110_contimg.database import (
                                 get_products_db_connection,
                             )
 
@@ -226,7 +226,7 @@ class CatalogSetupStage(PipelineStage):
 
             # Log pointing to pointing_history for future change detection
             try:
-                from dsa110_contimg.database.products import ensure_ingest_db
+                from dsa110_contimg.database import ensure_ingest_db
 
                 ingest_db = self.config.paths.queue_db
                 conn = ensure_ingest_db(ingest_db)
@@ -2165,7 +2165,7 @@ class MosaicStage(PipelineStage):
         log_progress("Starting mosaic stage...")
 
         from dsa110_contimg.mosaic.streaming_mosaic import StreamingMosaicManager
-        from dsa110_contimg.database.products import ensure_products_db
+        from dsa110_contimg.database import ensure_products_db
         from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
         # Get image paths
@@ -2298,7 +2298,7 @@ class MosaicStage(PipelineStage):
             logger.info(f"Cleaning up partial mosaic for group {group_id}")
             # Mark group as failed in database
             try:
-                from dsa110_contimg.database.products import ensure_products_db
+                from dsa110_contimg.database import ensure_products_db
 
                 products_db_path = Path(context.config.paths.products_db)
                 products_db = ensure_products_db(products_db_path)
@@ -2419,7 +2419,7 @@ class LightCurveStage(PipelineStage):
         start_time_sec = time.time()
         log_progress("Starting light curve computation stage...")
 
-        from dsa110_contimg.database.products import ensure_products_db
+        from dsa110_contimg.database import ensure_products_db
         from dsa110_contimg.photometry.variability import (
             calculate_eta_metric,
             calculate_v_metric,
@@ -3444,7 +3444,7 @@ class CrossMatchStage(PipelineStage):
         """
         import time
 
-        from dsa110_contimg.database.products import ensure_products_db
+        from dsa110_contimg.database import ensure_products_db
 
         products_db = self.config.paths.products_db
         conn = ensure_products_db(products_db)

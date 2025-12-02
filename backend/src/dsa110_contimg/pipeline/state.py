@@ -17,11 +17,13 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from dsa110_contimg.database.jobs import append_job_log as db_append_job_log
-from dsa110_contimg.database.jobs import create_job as db_create_job
-from dsa110_contimg.database.jobs import get_job as db_get_job
-from dsa110_contimg.database.jobs import list_jobs as db_list_jobs
-from dsa110_contimg.database.jobs import update_job_status as db_update_job_status
-from dsa110_contimg.database.products import ensure_products_db
+from dsa110_contimg.database import (
+    create_job as db_create_job,
+    get_job as db_get_job,
+    list_jobs as db_list_jobs,
+    update_job_status as db_update_job_status,
+    ensure_products_db,
+)
 
 
 @dataclass
@@ -222,7 +224,7 @@ class SQLiteStateRepository(StateRepository):
 
     def upsert_ms_index(self, ms_path: str, metadata: Dict[str, Any]) -> None:
         """Upsert MS index entry."""
-        from dsa110_contimg.database.products import ms_index_upsert
+        from dsa110_contimg.database import ms_index_upsert
 
         conn = self._get_conn()
         ms_index_upsert(
