@@ -67,13 +67,9 @@ import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-# Add src to path for imports
-src_path = Path(__file__).parent.parent / "src" / "dsa110_contimg" / "src"
-if src_path.exists():
-    sys.path.insert(0, str(src_path))
-else:
-    # Try alternative path
-    sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+# Add backend/src to path
+REPO_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO_ROOT / "backend" / "src"))
 
 try:
     from dsa110_contimg.mosaic.astrometric_integration import apply_astrometric_refinement

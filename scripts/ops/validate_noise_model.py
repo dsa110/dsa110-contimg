@@ -60,7 +60,8 @@ except ImportError:
     sys.exit(1)
 
 # Import simulation noise generation
-sys.path.insert(0, str(Path(__file__).parent.parent / "backend" / "src"))
+REPO_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO_ROOT / "backend" / "src"))
 from dsa110_contimg.simulation.visibility_models import (
     add_thermal_noise,
     calculate_thermal_noise_rms,

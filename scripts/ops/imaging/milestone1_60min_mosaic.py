@@ -24,8 +24,9 @@ from typing import List, Optional, Tuple
 import astropy.units as u
 from astropy.time import Time
 
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+# Add backend/src to path
+REPO_ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(REPO_ROOT / "backend" / "src"))
 
 from dsa110_contimg.calibration.catalogs import (get_calibrator_radec,
                                                  load_vla_catalog)
