@@ -17,9 +17,9 @@ from pathlib import Path
 import astropy.units as u
 from astropy.time import Time
 
-# Add src to path
-repo_root = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(repo_root / "src"))
+# Add backend/src to path
+REPO_ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(REPO_ROOT / "backend" / "src"))
 
 from dsa110_contimg.calibration.catalogs import (get_calibrator_radec,
                                                  load_vla_catalog)
@@ -171,7 +171,7 @@ def main():
     
     # Set PYTHONPATH if not already set
     if "PYTHONPATH" not in env:
-        env["PYTHONPATH"] = str(repo_root / "src")
+        env["PYTHONPATH"] = str(REPO_ROOT / "backend" / "src")
     
     print(f"\nExecuting conversion...")
     print(f"Working directory: {os.getcwd()}")

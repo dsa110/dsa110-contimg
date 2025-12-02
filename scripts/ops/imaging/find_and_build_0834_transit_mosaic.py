@@ -18,9 +18,9 @@ from pathlib import Path
 
 from astropy.time import Time
 
-# Add src to path
-repo_root = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(repo_root / "src"))
+# Add backend/src to path
+REPO_ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(REPO_ROOT / "backend" / "src"))
 
 import argparse
 
