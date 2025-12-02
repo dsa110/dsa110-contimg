@@ -325,14 +325,16 @@ class TestMigrationContract:
 
     def test_table_creation_idempotent(self, test_pipeline_db: Path):
         """Contract: Schema creation should be idempotent."""
-        from dsa110_contimg.database.unified import UnifiedDatabase
+        from dsa110_contimg.database.unified import Database, UNIFIED_SCHEMA
         
         # Initialize twice - should not fail
-        db1 = UnifiedDatabase(test_pipeline_db)
-        db1.initialize_schema()
+        db1 = Database(test_pipeline_db)
+        db1.conn.executescript(UNIFIED_SCHEMA)
+        db1.conn.commit()
         
-        db2 = UnifiedDatabase(test_pipeline_db)
-        db2.initialize_schema()  # Should not raise
+        db2 = Database(test_pipeline_db)
+        db2.conn.executescript(UNIFIED_SCHEMA)  # Should not raise (IF NOT EXISTS)
+        db2.conn.commit()
         
         # Tables should still exist
         conn = sqlite3.connect(test_pipeline_db)

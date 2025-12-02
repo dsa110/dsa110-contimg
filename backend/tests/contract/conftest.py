@@ -253,13 +253,16 @@ def test_pipeline_db(tmp_path: Path) -> Generator[Path, None, None]:
     Yields:
         Path to SQLite database file
     """
-    from dsa110_contimg.database.unified import UnifiedDatabase
+    from dsa110_contimg.database.unified import Database, UNIFIED_SCHEMA
     
     db_path = tmp_path / "test_pipeline.sqlite3"
     
-    # Initialize with full schema
-    db = UnifiedDatabase(db_path)
-    db.initialize_schema()
+    # Initialize with full schema using the Database class
+    db = Database(db_path)
+    
+    # Execute the unified schema to create all tables
+    db.conn.executescript(UNIFIED_SCHEMA)
+    db.conn.commit()
     
     yield db_path
 
