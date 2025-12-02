@@ -19,6 +19,56 @@ from typing import Generator, List, Optional
 
 import numpy as np
 import pytest
+from astropy.time import Time
+
+
+def _generate_uvh5_subbands(
+    config,
+    output_dir: Path,
+    *,
+    num_subbands: int,
+    duration_sec: float,
+    nants: int = 63,
+    flux_density_jy: float = 25.0,
+) -> List[Path]:
+    """Helper to synthesize UVH5 subbands using the template-free simulator."""
+    from dsa110_contimg.simulation.make_synthetic_uvh5 import (
+        build_uvdata_from_scratch,
+        write_subband_uvh5,
+    )
+
+    start_time = Time("2025-01-01T00:00:00", format="isot", scale="utc")
+    ntimes = max(1, int(np.ceil(duration_sec / config.integration_time_sec)))
+
+    uv_template = build_uvdata_from_scratch(
+        config,
+        nants=nants,
+        ntimes=ntimes,
+        start_time=start_time,
+    )
+
+    time_array = np.array(uv_template.time_array, copy=True)
+    lst_array = np.array(uv_template.lst_array, copy=True)
+    integration_time = np.array(uv_template.integration_time, copy=True)
+    uvw_array = np.array(uv_template.uvw_array, copy=True)
+
+    files = []
+    for sb_idx in range(num_subbands):
+        path = write_subband_uvh5(
+            sb_idx,
+            uv_template,
+            config,
+            start_time,
+            time_array,
+            lst_array,
+            integration_time,
+            uvw_array,
+            flux_density_jy,
+            output_dir,
+        )
+        files.append(path)
+
+    return files
 
 # Mark all tests in this module as slow (can be skipped with -m "not slow")
 pytestmark = pytest.mark.slow
@@ -60,12 +110,8 @@ def synthetic_uvh5_files(contract_test_dir: Path) -> Generator[List[Path], None,
         List of 16 Path objects to UVH5 files
     """
     from dsa110_contimg.simulation.make_synthetic_uvh5 import (
-        TelescopeConfig,
         load_reference_layout,
         load_telescope_config,
-        build_uvdata_from_scratch,
-        write_subband_uvh5,
-        PACKAGE_ROOT,
         CONFIG_DIR,
     )
     
@@ -87,16 +133,13 @@ def synthetic_uvh5_files(contract_test_dir: Path) -> Generator[List[Path], None,
     config.total_duration_sec = 30.0  # 30 seconds instead of full 5 minutes
     config.num_subbands = 16
     
-    uvdata = build_uvdata_from_scratch(config)
-    
-    # Write 16 subband files
-    files = []
-    timestamp = "2025-01-01T00_00_00"
-    
-    for sb_idx in range(16):
-        sb_path = output_dir / f"{timestamp}_sb{sb_idx:02d}.hdf5"
-        write_subband_uvh5(uvdata, sb_path, sb_idx, config)
-        files.append(sb_path)
+    files = _generate_uvh5_subbands(
+        config,
+        output_dir,
+        num_subbands=16,
+        duration_sec=config.total_duration_sec,
+        nants=63,
+    )
     
     yield files
 
@@ -114,8 +157,6 @@ def synthetic_uvh5_minimal(tmp_path: Path) -> Generator[List[Path], None, None]:
     from dsa110_contimg.simulation.make_synthetic_uvh5 import (
         load_reference_layout,
         load_telescope_config,
-        build_uvdata_from_scratch,
-        write_subband_uvh5,
         CONFIG_DIR,
     )
     
@@ -129,18 +170,16 @@ def synthetic_uvh5_minimal(tmp_path: Path) -> Generator[List[Path], None, None]:
     config = load_telescope_config(config_path, layout_meta, freq_order="desc")
     
     # Minimal configuration for speed
-    config.total_duration_sec = 12.88  # Single integration
+    config.total_duration_sec = config.integration_time_sec  # Single integration
     config.num_subbands = 4  # Only 4 subbands
     
-    uvdata = build_uvdata_from_scratch(config)
-    
-    files = []
-    timestamp = "2025-01-01T00_00_00"
-    
-    for sb_idx in range(4):
-        sb_path = tmp_path / f"{timestamp}_sb{sb_idx:02d}.hdf5"
-        write_subband_uvh5(uvdata, sb_path, sb_idx, config)
-        files.append(sb_path)
+    files = _generate_uvh5_subbands(
+        config,
+        tmp_path,
+        num_subbands=4,
+        duration_sec=config.total_duration_sec,
+        nants=32,
+    )
     
     yield files
 

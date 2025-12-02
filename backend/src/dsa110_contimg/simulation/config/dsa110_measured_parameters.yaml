@@ -25,6 +25,34 @@ metadata:
   description: "DSA-110 system parameters for rigorous simulation"
   contact: "DSA-110 Team"
 
+telescope_name: DSA-110
+instrument_name: DSA-110_Continuum
+site:
+  latitude_deg: 37.2314
+  longitude_deg: -118.2817
+  altitude_m: 1222.0
+layout:
+  csv: DSA110_Station_Coordinates.csv
+  polarization_array:
+    - -5  # XX
+    - -6  # YY
+spectral:
+  num_subbands: 16
+  channels_per_subband: 384
+  channel_width_hz: 244140.625
+  freq_min_hz: 1280000000.0
+  freq_max_hz: 1530000000.0
+  reference_frequency_hz: 1400000000.0
+temporal:
+  integration_time_sec: 12.884902000427246
+  total_duration_sec: 900.0
+  samples_per_integration: 1
+phase_center:
+  ra_deg: 0.0
+  dec_deg: 54.6
+beam_model:
+  config: beams.yaml
+
 system_parameters:
   system_temperature:
     value: 50.0 # PLACEHOLDER - awaiting measurement

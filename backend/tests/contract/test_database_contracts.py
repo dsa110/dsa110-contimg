@@ -10,6 +10,7 @@ import sqlite3
 from pathlib import Path
 from datetime import datetime
 import time
+import re
 
 from dsa110_contimg.database.unified import Database, UNIFIED_SCHEMA
 
@@ -27,25 +28,14 @@ class TestUnifiedSchemaContract:
         )
         table_names = {t['name'] for t in tables}
         
-        # Required tables from actual UNIFIED_SCHEMA
-        required_tables = {
-            'ms_index',
-            'images', 
-            'photometry',
-            'calibration_tables',
-            'calibration_applied',
-            'calibrator_catalog',
-            'calibrator_transits',
-            'hdf5_files',
-            'pointing_history',
-            'processing_queue',
-            'subband_files',
-            'performance_metrics',
-            'dead_letter_queue',
-            'storage_locations',
-            'alert_history',
+        schema_tables = {
+            match.group(1)
+            for match in re.finditer(
+                r"CREATE TABLE IF NOT EXISTS\s+([a-zA-Z0-9_]+)", UNIFIED_SCHEMA
+            )
         }
-        
+        required_tables = schema_tables
+       
         missing = required_tables - table_names
         assert not missing, f"Missing tables: {missing}"
 
