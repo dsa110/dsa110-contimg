@@ -72,3 +72,13 @@ export type {
   StorageTrendPoint,
   StorageTrend,
 } from "./storage";
+
+// Calibration QA types
+export type {
+  CalibrationQAMetrics,
+  CalibrationIssue,
+  CalibrationComparison,
+  PhotometryResult,
+  QualityThresholds,
+} from "./calibration";
+export { DEFAULT_QUALITY_THRESHOLDS } from "./calibration";

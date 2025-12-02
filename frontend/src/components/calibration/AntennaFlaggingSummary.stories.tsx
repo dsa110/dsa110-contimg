@@ -29,7 +29,8 @@ function generateAntennaData(
         percent = i % 10 === 0 ? 25 + Math.random() * 30 : Math.random() * 10;
         break;
       case "many-flagged":
-        percent = Math.random() < 0.3 ? 40 + Math.random() * 50 : Math.random() * 20;
+        percent =
+          Math.random() < 0.3 ? 40 + Math.random() * 50 : Math.random() * 20;
         break;
     }
     data[antName] = percent;
