@@ -31,46 +31,29 @@ FIRST_CATALOG_BASE_URL = "https://third.ucllnl.org/first/catalogs/"
 def resolve_vla_catalog_path(
     explicit_path: Optional[str | os.PathLike[str]] = None, prefer_sqlite: bool = True
 ) -> Path:
-    """Resolve the path to the VLA calibrator catalog using a consistent precedence order.
+    """Resolve the path to the VLA calibrator catalog.
 
-    This function provides a single source of truth for locating the VLA calibrator catalog,
-    following this precedence:
+    This function provides a single source of truth for locating the VLA calibrator catalog.
+    SQLite database is the only supported format.
+
+    Resolution order:
     1. Explicit path provided as argument (highest priority)
     2. VLA_CATALOG environment variable
-    3. If prefer_sqlite=True (default), try SQLite database first:
-       - state/catalogs/vla_calibrators.sqlite3 (relative to project root)
-       - /data/dsa110-contimg/state/catalogs/vla_calibrators.sqlite3
-    4. Standard CSV locations relative to project root:
-       - /data/dsa110-contimg/data/catalogs/VLA_calibrators_parsed.csv
-       - /data/dsa110-contimg/data/catalogs/vla_calibrators_parsed.csv
-       - references/dsa110-contimg-main-legacy/data/catalogs/vla_calibrators_parsed.csv
-       - data-samples/catalogs/vla_calibrators_parsed.csv
-       - sim-data-samples/catalogs/vla_calibrators_parsed.csv
+    3. Standard SQLite location: /data/dsa110-contimg/state/catalogs/vla_calibrators.sqlite3
 
     Args:
         explicit_path: Optional explicit path to catalog (overrides all defaults)
-        prefer_sqlite: If True, prefer SQLite database over CSV (default: True)
+        prefer_sqlite: Deprecated, kept for API compatibility (SQLite is always used)
 
     Returns:
-        Path object pointing to the catalog file (CSV or SQLite)
+        Path object pointing to the SQLite catalog file
 
     Raises:
-        FileNotFoundError: If no catalog file can be found at any location
+        FileNotFoundError: If no catalog file can be found
 
     Examples:
-        >>> # Use default resolution (prefers SQLite)
         >>> path = resolve_vla_catalog_path()
-
-        >>> # Override with explicit path
-        >>> path = resolve_vla_catalog_path("/custom/path/to/catalog.csv")
-
-        >>> # Prefer CSV instead of SQLite
-        >>> path = resolve_vla_catalog_path(prefer_sqlite=False)
-
-        >>> # Override with environment variable
-        >>> import os
-        >>> os.environ["VLA_CATALOG"] = "/custom/path.csv"
-        >>> path = resolve_vla_catalog_path()
+        >>> path = resolve_vla_catalog_path("/custom/path/to/catalog.sqlite3")
     """
     # 1. Explicit path takes highest priority
     if explicit_path:
@@ -85,124 +68,29 @@ def resolve_vla_catalog_path(
         path = Path(env_path)
         if path.exists():
             return path
-        # Don't raise here - fall through to standard locations as fallback
+        # Fall through to standard location
 
-    # 3. Try SQLite database first if preferred
-    if prefer_sqlite:
-        sqlite_candidates = []
-        try:
-            # Try to find project root
-            current_file = Path(__file__).resolve()
-            potential_root = current_file.parents[3]
-            if (potential_root / "src" / "dsa110_contimg").exists():
-                sqlite_candidates.append(
-                    potential_root / "state" / "catalogs" / "vla_calibrators.sqlite3"
-                )
-        except Exception:
-            pass
+    # 3. Standard SQLite location
+    sqlite_path = Path("/data/dsa110-contimg/state/catalogs/vla_calibrators.sqlite3")
+    if sqlite_path.exists():
+        return sqlite_path
 
-        # Also try common absolute paths
-        for root_str in ["/data/dsa110-contimg", "/app"]:
-            root_path = Path(root_str)
-            if root_path.exists():
-                sqlite_candidates.append(
-                    root_path / "state" / "catalogs" / "vla_calibrators.sqlite3"
-                )
-
-        # Try relative to current working directory
-        sqlite_candidates.append(Path.cwd() / "state" / "catalogs" / "vla_calibrators.sqlite3")
-
-        # Try absolute path
-        sqlite_candidates.append(
-            Path("/data/dsa110-contimg/state/catalogs/vla_calibrators.sqlite3")
-        )
-
-        for candidate in sqlite_candidates:
-            if candidate.exists():
-                return candidate
-
-    # 4. Try standard CSV locations (relative to common project roots)
-    # Try to find project root by looking for known markers
-    candidates = []
-
-    # Try to find project root
-    project_roots = []
+    # Also try relative to project structure for development
     try:
-        # If we're in the package, try to find project root
-        # catalogs.py → calibration → dsa110_contimg → src → project root
         current_file = Path(__file__).resolve()
-        # Go up from catalogs.py to src/dsa110_contimg/calibration/catalogs.py
-        # This gets us to: src/dsa110_contimg/calibration/
-        # We want to go up 3 levels to reach project root
-        potential_root = current_file.parents[3]
-        if (potential_root / "src" / "dsa110_contimg").exists():
-            project_roots.append(potential_root)
+        # catalogs.py -> calibration -> dsa110_contimg -> src -> backend -> repo root
+        repo_root = current_file.parents[4]
+        alt_path = repo_root / "state" / "catalogs" / "vla_calibrators.sqlite3"
+        if alt_path.exists():
+            return alt_path
     except Exception:
         pass
 
-    # Also try common absolute paths
-    for root_str in ["/data/dsa110-contimg", "/app"]:
-        root_path = Path(root_str)
-        if root_path.exists():
-            project_roots.append(root_path)
-
-    # Build candidate paths
-    for root in project_roots:
-        candidates.extend(
-            [
-                root / "data" / "catalogs" / "VLA_calibrators_parsed.csv",
-                root / "data" / "catalogs" / "vla_calibrators_parsed.csv",
-                root
-                / "references"
-                / "dsa110-contimg-main-legacy"
-                / "data"
-                / "catalogs"
-                / "vla_calibrators_parsed.csv",
-                root / "data-samples" / "catalogs" / "vla_calibrators_parsed.csv",
-                root / "sim-data-samples" / "catalogs" / "vla_calibrators_parsed.csv",
-            ]
-        )
-
-    # Also try relative to current working directory
-    cwd = Path.cwd()
-    candidates.extend(
-        [
-            cwd / "data" / "catalogs" / "VLA_calibrators_parsed.csv",
-            cwd / "data" / "catalogs" / "vla_calibrators_parsed.csv",
-            cwd
-            / "references"
-            / "dsa110-contimg-main-legacy"
-            / "data"
-            / "catalogs"
-            / "vla_calibrators_parsed.csv",
-            cwd / "data-samples" / "catalogs" / "vla_calibrators_parsed.csv",
-            cwd / "sim-data-samples" / "catalogs" / "vla_calibrators_parsed.csv",
-        ]
-    )
-
-    # Try absolute paths directly
-    candidates.extend(
-        [
-            Path("/data/dsa110-contimg/data/catalogs/VLA_calibrators_parsed.csv"),
-            Path("/data/dsa110-contimg/data/catalogs/vla_calibrators_parsed.csv"),
-            Path(
-                "/data/dsa110-contimg/references/dsa110-contimg-main-legacy/data/catalogs/vla_calibrators_parsed.csv"
-            ),
-        ]
-    )
-
-    # Find first existing candidate
-    for candidate in candidates:
-        if candidate.exists():
-            return candidate
-
-    # If nothing found, raise with helpful error
     raise FileNotFoundError(
         f"VLA calibrator catalog not found. Searched:\n"
         f"  - Environment variable VLA_CATALOG: {env_path or '(not set)'}\n"
-        f"  - {len(candidates)} standard locations\n"
-        f"  - Current working directory: {cwd}\n"
-        f"Set VLA_CATALOG environment variable or provide explicit path."
+        f"  - /data/dsa110-contimg/state/catalogs/vla_calibrators.sqlite3\n"
+        f"Ensure the SQLite database exists or set VLA_CATALOG environment variable."
     )
 
 
@@ -529,35 +417,21 @@ def read_vla_calibrator_catalog(path: str, cache_dir: Optional[str] = None) -> p
 def load_vla_catalog(
     explicit_path: Optional[str | os.PathLike[str]] = None, prefer_sqlite: bool = True
 ) -> pd.DataFrame:
-    """Load the VLA calibrator catalog using automatic path resolution.
-
-    This is a convenience wrapper that automatically finds and loads the catalog using
-    the standard resolution order. Supports both SQLite database and CSV formats.
+    """Load the VLA calibrator catalog from SQLite database.
 
     Args:
         explicit_path: Optional explicit path to catalog (overrides all defaults)
-        prefer_sqlite: If True, prefer SQLite database over CSV (default: True)
+        prefer_sqlite: Deprecated, kept for API compatibility (SQLite is always used)
 
     Returns:
-        DataFrame with calibrator catalog (indexed by J2000_NAME, columns include ra_deg, dec_deg, etc.)
+        DataFrame with calibrator catalog (indexed by name, columns: ra_deg, dec_deg, flux_jy)
 
     Examples:
-        >>> # Use default resolution (prefers SQLite)
         >>> df = load_vla_catalog()
-
-        >>> # Override with explicit path
-        >>> df = load_vla_catalog("/custom/path/to/catalog.csv")
-
-        >>> # Force CSV instead of SQLite
-        >>> df = load_vla_catalog(prefer_sqlite=False)
+        >>> df = load_vla_catalog("/custom/path/to/catalog.sqlite3")
     """
     catalog_path = resolve_vla_catalog_path(explicit_path, prefer_sqlite=prefer_sqlite)
-
-    # Load from SQLite if it's a .sqlite3 file
-    if str(catalog_path).endswith(".sqlite3"):
-        return load_vla_catalog_from_sqlite(str(catalog_path))
-    else:
-        return read_vla_parsed_catalog_csv(str(catalog_path))
+    return load_vla_catalog_from_sqlite(str(catalog_path))
 
 
 def load_vla_catalog_from_sqlite(db_path: str) -> pd.DataFrame:
