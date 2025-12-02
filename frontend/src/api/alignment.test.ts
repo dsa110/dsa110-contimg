@@ -19,6 +19,7 @@ import type {
   ValidityTimeline,
   ValidityTimelineEntry,
   FluxMonitoringSummary,
+  FluxMonitoringStatus,
   PointingStatus,
   AlertsResponse,
   ActiveValidityWindows,
