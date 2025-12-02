@@ -44,6 +44,14 @@ from .base import (
     RetryBackoff,
     RetryPolicy,
 )
+from .events import (
+    Event,
+    EventEmitter,
+    EventType,
+    emit_ese_detection,
+    emit_job_event,
+    emit_pipeline_event,
+)
 from .executor import ExecutionStatus, PipelineExecutor
 from .registry import (
     JobRegistry,
@@ -65,6 +73,13 @@ __all__ = [
     "Pipeline",
     "RetryBackoff",
     "RetryPolicy",
+    # Events
+    "Event",
+    "EventEmitter",
+    "EventType",
+    "emit_ese_detection",
+    "emit_job_event",
+    "emit_pipeline_event",
     # Executor
     "ExecutionStatus",
     "PipelineExecutor",
