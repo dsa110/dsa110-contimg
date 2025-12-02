@@ -374,10 +374,13 @@ class TestCalibrationPipeline:
 
         pipeline.build()
 
+        # Get job IDs from the jobs list
+        job_ids = [job.job_id for job in pipeline.jobs]
+
         # Should have solve, apply, validate jobs
-        assert "solve" in pipeline.jobs
-        assert "apply" in pipeline.jobs
-        assert "validate" in pipeline.jobs
+        assert "solve" in job_ids
+        assert "apply" in job_ids
+        assert "validate" in job_ids
 
     def test_pipeline_build_skip_apply(self, config):
         """Test build() with skip_apply creates fewer jobs."""
@@ -390,10 +393,13 @@ class TestCalibrationPipeline:
 
         pipeline.build()
 
+        # Get job IDs from the jobs list
+        job_ids = [job.job_id for job in pipeline.jobs]
+
         # Should only have solve and validate
-        assert "solve" in pipeline.jobs
-        assert "apply" not in pipeline.jobs
-        assert "validate" in pipeline.jobs
+        assert "solve" in job_ids
+        assert "apply" not in job_ids
+        assert "validate" in job_ids
 
 
 class TestStreamingCalibrationPipeline:
@@ -429,7 +435,10 @@ class TestStreamingCalibrationPipeline:
 
         pipeline.build()
 
+        # Get job IDs from the jobs list
+        job_ids = [job.job_id for job in pipeline.jobs]
+
         # Should have solve and validate jobs (no apply)
-        assert "solve" in pipeline.jobs
-        assert "apply" not in pipeline.jobs
-        assert "validate" in pipeline.jobs
+        assert "solve" in job_ids
+        assert "apply" not in job_ids
+        assert "validate" in job_ids

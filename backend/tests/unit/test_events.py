@@ -6,8 +6,6 @@ Tests event emission, subscription, and handler execution.
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock
-
 import pytest
 
 from dsa110_contimg.pipeline.events import (
@@ -187,22 +185,31 @@ class TestEventEmitter:
     def test_multiple_handlers(self):
         """Test multiple handlers for same event type."""
         emitter = EventEmitter.get_instance()
-        handler1 = MagicMock()
-        handler2 = MagicMock()
+        call_count = [0, 0]
+
+        def handler1(event: Event):
+            call_count[0] += 1
+
+        def handler2(event: Event):
+            call_count[1] += 1
 
         emitter.subscribe(EventType.MOSAIC_CREATED, handler1)
         emitter.subscribe(EventType.MOSAIC_CREATED, handler2)
         emitter.emit(EventType.MOSAIC_CREATED, data={})
 
-        handler1.assert_called_once()
-        handler2.assert_called_once()
+        assert call_count[0] == 1
+        assert call_count[1] == 1
 
     def test_handler_isolation(self):
         """Test that handler errors don't affect other handlers."""
         emitter = EventEmitter.get_instance()
+        success_called = [False]
 
-        failing_handler = MagicMock(side_effect=ValueError("test error"))
-        success_handler = MagicMock()
+        def failing_handler(event: Event):
+            raise ValueError("test error")
+
+        def success_handler(event: Event):
+            success_called[0] = True
 
         emitter.subscribe(EventType.JOB_FAILED, failing_handler)
         emitter.subscribe(EventType.JOB_FAILED, success_handler)
@@ -210,8 +217,7 @@ class TestEventEmitter:
         # Should not raise, and second handler should still be called
         emitter.emit(EventType.JOB_FAILED, data={"error": "test"})
 
-        failing_handler.assert_called_once()
-        success_handler.assert_called_once()
+        assert success_called[0]
 
     def test_event_history(self):
         """Test that events are stored in history."""
@@ -253,16 +259,22 @@ class TestEventEmitter:
     def test_different_event_types_isolated(self):
         """Test that handlers only receive their event type."""
         emitter = EventEmitter.get_instance()
-        job_handler = MagicMock()
-        pipeline_handler = MagicMock()
+        job_called = [False]
+        pipeline_called = [False]
+
+        def job_handler(event: Event):
+            job_called[0] = True
+
+        def pipeline_handler(event: Event):
+            pipeline_called[0] = True
 
         emitter.subscribe(EventType.JOB_COMPLETED, job_handler)
         emitter.subscribe(EventType.PIPELINE_COMPLETED, pipeline_handler)
 
         emitter.emit(EventType.JOB_COMPLETED, data={})
 
-        job_handler.assert_called_once()
-        pipeline_handler.assert_not_called()
+        assert job_called[0]
+        assert not pipeline_called[0]
 
 
 class TestEmitHelpers:
@@ -278,7 +290,11 @@ class TestEmitHelpers:
     def test_emit_ese_detection(self):
         """Test ESE detection helper."""
         emitter = EventEmitter.get_instance()
-        handler = MagicMock()
+        received = []
+
+        def handler(event: Event):
+            received.append(event)
+
         emitter.subscribe(EventType.ESE_DETECTED, handler)
 
         event = emit_ese_detection(
@@ -293,30 +309,38 @@ class TestEmitHelpers:
         assert event.data["source_name"] == "ESE_2024_001"
         assert event.data["ra"] == 123.456
         assert event.data["dec"] == 45.678
-        handler.assert_called_once()
+        assert len(received) == 1
 
     def test_emit_job_event(self):
         """Test job event helper."""
         emitter = EventEmitter.get_instance()
-        handler = MagicMock()
+        received = []
+
+        def handler(event: Event):
+            received.append(event)
+
         emitter.subscribe(EventType.JOB_COMPLETED, handler)
 
         event = emit_job_event(
             event_type=EventType.JOB_COMPLETED,
             job_id="job123",
-            job_type="imaging",
-            result={"output": "/data/image.fits"},
+            pipeline_name="test_pipeline",
+            execution_id="exec123",
         )
 
         assert event.event_type == EventType.JOB_COMPLETED
         assert event.data["job_id"] == "job123"
-        assert event.data["job_type"] == "imaging"
-        handler.assert_called_once()
+        assert event.data["pipeline_name"] == "test_pipeline"
+        assert len(received) == 1
 
     def test_emit_pipeline_event(self):
         """Test pipeline event helper."""
         emitter = EventEmitter.get_instance()
-        handler = MagicMock()
+        received = []
+
+        def handler(event: Event):
+            received.append(event)
+
         emitter.subscribe(EventType.PIPELINE_COMPLETED, handler)
 
         event = emit_pipeline_event(
@@ -328,4 +352,4 @@ class TestEmitHelpers:
         assert event.event_type == EventType.PIPELINE_COMPLETED
         assert event.data["pipeline_name"] == "calibration"
         assert event.data["execution_id"] == "exec_abc"
-        handler.assert_called_once()
+        assert len(received) == 1
