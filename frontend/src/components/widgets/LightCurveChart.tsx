@@ -101,7 +101,9 @@ const LightCurveChart: React.FC<LightCurveChartProps> = ({
         // Transform data
         const chartData: [number, number][] = data.map((point) => {
           const time =
-            typeof point.time === "string" ? new Date(point.time).getTime() : point.time;
+            typeof point.time === "string"
+              ? new Date(point.time).getTime()
+              : point.time;
           return [time, point.flux];
         });
 
@@ -112,7 +114,12 @@ const LightCurveChart: React.FC<LightCurveChartProps> = ({
             if (point.fluxError !== undefined) {
               const time = chartData[index][0];
               errorBarData.push({
-                coord: [time, point.flux - point.fluxError, time, point.flux + point.fluxError],
+                coord: [
+                  time,
+                  point.flux - point.fluxError,
+                  time,
+                  point.flux + point.fluxError,
+                ],
               });
             }
           });
@@ -142,13 +149,19 @@ const LightCurveChart: React.FC<LightCurveChartProps> = ({
               const point = data[params.dataIndex];
               const date = new Date(params.data[0]);
               let html = `<div class="text-sm">
-                <div class="font-medium">${escapeHtml(date.toLocaleString())}</div>
+                <div class="font-medium">${escapeHtml(
+                  date.toLocaleString()
+                )}</div>
                 <div>Flux: ${escapeHtml(formatFlux(params.data[1]))}</div>`;
               if (point?.fluxError) {
-                html += `<div>Error: ±${escapeHtml(formatFlux(point.fluxError))}</div>`;
+                html += `<div>Error: ±${escapeHtml(
+                  formatFlux(point.fluxError)
+                )}</div>`;
               }
               if (point?.label) {
-                html += `<div class="text-gray-500">${escapeHtml(point.label)}</div>`;
+                html += `<div class="text-gray-500">${escapeHtml(
+                  point.label
+                )}</div>`;
               }
               html += "</div>";
               return html;
@@ -184,7 +197,10 @@ const LightCurveChart: React.FC<LightCurveChartProps> = ({
               showSymbol: true,
               emphasis: {
                 focus: "series",
-                itemStyle: { shadowBlur: 10, shadowColor: "rgba(59, 130, 246, 0.5)" },
+                itemStyle: {
+                  shadowBlur: 10,
+                  shadowColor: "rgba(59, 130, 246, 0.5)",
+                },
               },
             },
           ],
@@ -203,7 +219,10 @@ const LightCurveChart: React.FC<LightCurveChartProps> = ({
           },
           toolbox: {
             feature: {
-              dataZoom: { yAxisIndex: "none", title: { zoom: "Zoom", back: "Reset" } },
+              dataZoom: {
+                yAxisIndex: "none",
+                title: { zoom: "Zoom", back: "Reset" },
+              },
               restore: { title: "Restore" },
               saveAsImage: { title: "Save" },
             },
@@ -222,12 +241,13 @@ const LightCurveChart: React.FC<LightCurveChartProps> = ({
         }
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Failed to render chart");
+          setError(
+            err instanceof Error ? err.message : "Failed to render chart"
+          );
         }
       }
     };
 
-     
     renderChart();
 
     return () => {

@@ -65,7 +65,9 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
     const init = async () => {
       if (!shouldLoad || error || !containerRef.current) return;
 
-      const target = `${raDeg.toFixed(6)} ${decDeg >= 0 ? "+" : ""}${decDeg.toFixed(6)}`;
+      const target = `${raDeg.toFixed(6)} ${
+        decDeg >= 0 ? "+" : ""
+      }${decDeg.toFixed(6)}`;
 
       try {
         setIsLoading(true);
@@ -92,14 +94,22 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
 
         // Add source marker if sourceName is provided
         if (sourceNameRef.current) {
-          const catalog = A.catalog({ name: "Source", sourceSize: 18, color: "#ff6b6b" });
+          const catalog = A.catalog({
+            name: "Source",
+            sourceSize: 18,
+            color: "#ff6b6b",
+          });
           aladinRef.current.addCatalog(catalog);
-          catalog.addSources([A.source(raDeg, decDeg, { name: sourceNameRef.current })]);
+          catalog.addSources([
+            A.source(raDeg, decDeg, { name: sourceNameRef.current }),
+          ]);
         }
         setIsLoading(false);
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Failed to load sky viewer");
+          setError(
+            err instanceof Error ? err.message : "Failed to load sky viewer"
+          );
           setIsLoading(false);
         }
       }
@@ -111,7 +121,15 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
       cancelled = true;
       destroyInstance();
     };
-  }, [destroyInstance, error, raDeg, decDeg, survey, showFullscreen, shouldLoad]);
+  }, [
+    destroyInstance,
+    error,
+    raDeg,
+    decDeg,
+    survey,
+    showFullscreen,
+    shouldLoad,
+  ]);
 
   useEffect(() => {
     if (aladinRef.current) {
@@ -151,12 +169,16 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
 
   if (!shouldLoad) {
     return (
-      <div className={`bg-gray-100 rounded-lg p-4 ${className}`} style={{ height: heightStyle }}>
+      <div
+        className={`bg-gray-100 rounded-lg p-4 ${className}`}
+        style={{ height: heightStyle }}
+      >
         <div className="flex items-center justify-between">
           <div>
             <p className="font-semibold text-gray-800">Sky Viewer</p>
             <p className="text-sm text-gray-600">
-              Load the interactive Aladin viewer on demand to reduce initial page weight.
+              Load the interactive Aladin viewer on demand to reduce initial
+              page weight.
             </p>
           </div>
           <button
@@ -224,8 +246,18 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
           className="bg-white/90 hover:bg-white p-1.5 rounded shadow text-gray-700 hover:text-gray-900 transition-colors"
           title="Zoom in"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v12m6-6H6" />
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 6v12m6-6H6"
+            />
           </svg>
         </button>
         <button
@@ -234,8 +266,18 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
           className="bg-white/90 hover:bg-white p-1.5 rounded shadow text-gray-700 hover:text-gray-900 transition-colors"
           title="Zoom out"
         >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 12H6" />
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M18 12H6"
+            />
           </svg>
         </button>
         {showFullscreen && (
@@ -245,7 +287,12 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
             className="bg-white/90 hover:bg-white p-1.5 rounded shadow text-gray-700 hover:text-gray-900 transition-colors"
             title="Toggle fullscreen"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="w-4 h-4"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
