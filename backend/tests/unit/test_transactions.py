@@ -290,7 +290,7 @@ class TestSyncDatabasePool:
         pool.close()
         
         # Should get a new connection
-        with pool.products_db() as conn2:
+        with pool.connection() as conn2:
             assert conn1 is not conn2
             # Data should still be there (persisted to disk)
             cursor = conn2.execute("SELECT COUNT(*) FROM items")
@@ -298,8 +298,20 @@ class TestSyncDatabasePool:
         
         pool.close()
     
-    def test_pool_cal_registry_db(self, pool_config):
-        """Test pool cal_registry_db context manager."""
+    def test_pool_legacy_products_db(self, pool_config):
+        """Test legacy pool products_db context manager (deprecated)."""
+        pool = SyncDatabasePool(pool_config)
+        
+        with pool.products_db() as conn:
+            conn.execute("INSERT INTO items (name) VALUES ('test')")
+            conn.commit()
+            cursor = conn.execute("SELECT COUNT(*) FROM items")
+            assert cursor.fetchone()[0] == 1
+        
+        pool.close()
+    
+    def test_pool_legacy_cal_registry_db(self, pool_config):
+        """Test legacy pool cal_registry_db context manager (deprecated)."""
         pool = SyncDatabasePool(pool_config)
         
         with pool.cal_registry_db() as conn:
@@ -314,7 +326,7 @@ class TestSyncDatabasePool:
         """Test that connections use sqlite3.Row factory."""
         pool = SyncDatabasePool(pool_config)
         
-        with pool.products_db() as conn:
+        with pool.connection() as conn:
             conn.execute("INSERT INTO items (name) VALUES ('test')")
             conn.commit()
             cursor = conn.execute("SELECT * FROM items")
@@ -329,7 +341,7 @@ class TestSyncDatabasePool:
         """Test that connections have WAL mode enabled."""
         pool = SyncDatabasePool(pool_config)
         
-        with pool.products_db() as conn:
+        with pool.connection() as conn:
             cursor = conn.execute("PRAGMA journal_mode")
             mode = cursor.fetchone()[0]
             assert mode.lower() == 'wal'
