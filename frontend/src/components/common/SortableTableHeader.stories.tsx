@@ -137,6 +137,8 @@ export const CompleteTable: Story = {
     </div>
   ),
   args: {
+    column: "flux",
+    label: "Peak Flux (mJy)",
     currentSort: { column: "flux", direction: "desc" },
   },
 };

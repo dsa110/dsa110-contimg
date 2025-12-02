@@ -29,8 +29,12 @@ type Story = StoryObj<typeof meta>;
 export const Simple: Story = {
   args: {
     error: {
-      message: "Failed to load data",
-      userMessage: "Unable to retrieve the requested information. Please try again.",
+      code: "DATA_LOAD_FAILED",
+      http_status: 500,
+      user_message:
+        "Unable to retrieve the requested information. Please try again.",
+      action: "Retry the request or contact support if the issue persists.",
+      ref_id: "job-001",
     },
   },
 };
@@ -41,8 +45,12 @@ export const Simple: Story = {
 export const WithDetails: Story = {
   args: {
     error: {
-      message: "Network request failed",
-      userMessage: "Unable to connect to the server. Please check your network connection.",
+      code: "NETWORK_ERROR",
+      http_status: 503,
+      user_message:
+        "Unable to connect to the server. Please check your network connection.",
+      action: "Check your network connection and retry.",
+      ref_id: "req-002",
       details: {
         statusCode: 503,
         endpoint: "/api/sources",
@@ -59,8 +67,11 @@ export const WithErrorCode: Story = {
   args: {
     error: {
       code: "MS_NOT_FOUND",
-      message: "Measurement set not found",
-      userMessage: "The requested measurement set could not be found in the archive.",
+      http_status: 404,
+      user_message:
+        "The requested measurement set could not be found in the archive.",
+      action: "Verify the measurement set path and try again.",
+      ref_id: "ms-003",
     },
   },
 };
@@ -71,9 +82,12 @@ export const WithErrorCode: Story = {
 export const WithTraceId: Story = {
   args: {
     error: {
-      message: "Internal server error",
-      userMessage: "An unexpected error occurred. Our team has been notified.",
-      traceId: "a1b2c3d4-e5f6-7890-1234-567890abcdef",
+      code: "INTERNAL_ERROR",
+      http_status: 500,
+      user_message: "An unexpected error occurred. Our team has been notified.",
+      action: "Please try again later or contact support.",
+      ref_id: "err-004",
+      trace_id: "a1b2c3d4-e5f6-7890-1234-567890abcdef",
     },
   },
 };
@@ -85,15 +99,18 @@ export const Complete: Story = {
   args: {
     error: {
       code: "CAL_TABLE_MISSING",
-      message: "Calibration table not found in measurement set",
-      userMessage:
+      http_status: 400,
+      user_message:
         "The calibration data required for this image is missing. Please run calibration first.",
+      action: "Run the calibration pipeline before attempting imaging.",
+      ref_id: "cal-005",
       details: {
         msPath: "/data/ms/58000_000.ms",
         missingTable: "ANTENNA",
         attemptedAt: new Date().toISOString(),
       },
-      traceId: "f7e8d9c0-b1a2-3456-7890-1234567890ab",
+      trace_id: "f7e8d9c0-b1a2-3456-7890-1234567890ab",
+      doc_anchor: "calibration-tables",
     },
   },
 };
@@ -161,7 +178,8 @@ export const RateLimitError: Story = {
     error: {
       code: "RATE_LIMIT_EXCEEDED",
       message: "Too many requests",
-      userMessage: "You've made too many requests. Please wait a moment and try again.",
+      userMessage:
+        "You've made too many requests. Please wait a moment and try again.",
       details: {
         limit: 100,
         window: "1 hour",

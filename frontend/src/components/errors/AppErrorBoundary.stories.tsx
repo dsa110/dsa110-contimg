@@ -51,6 +51,7 @@ function ErrorThrower() {
  * Click the button to trigger an error and see the fallback UI.
  */
 export const Default: Story = {
+  args: {},
   render: () => (
     <AppErrorBoundary>
       <ErrorThrower />
@@ -63,14 +64,19 @@ export const Default: Story = {
  * The error boundary can accept a custom fallback to match your app's design.
  */
 export const WithCustomFallback: Story = {
+  args: {},
   render: () => (
     <AppErrorBoundary
       fallback={
         <div className="min-h-screen flex items-center justify-center bg-purple-50">
           <div className="text-center">
             <div className="text-6xl mb-4">💜</div>
-            <h1 className="text-2xl font-bold text-purple-900 mb-2">Custom Error UI</h1>
-            <p className="text-purple-700">This is a custom fallback component</p>
+            <h1 className="text-2xl font-bold text-purple-900 mb-2">
+              Custom Error UI
+            </h1>
+            <p className="text-purple-700">
+              This is a custom fallback component
+            </p>
           </div>
         </div>
       }
@@ -85,6 +91,7 @@ export const WithCustomFallback: Story = {
  * Useful for error logging and monitoring integration.
  */
 export const WithOnErrorCallback: Story = {
+  args: {},
   render: () => (
     <AppErrorBoundary
       onError={(error, errorInfo) => {
@@ -102,6 +109,7 @@ export const WithOnErrorCallback: Story = {
  * The error boundary renders children normally when no error occurs.
  */
 export const NoError: Story = {
+  args: {},
   render: () => (
     <AppErrorBoundary>
       <div className="p-8">

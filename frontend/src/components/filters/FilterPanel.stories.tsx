@@ -64,6 +64,7 @@ const exampleFilters: FilterConfig[] = [
  * Interactive filter panel with various filter types
  */
 export const Default: Story = {
+  args: {},
   render: () => {
     const [values, setValues] = useState<FilterValues>({
       flux: [0, 1000],
@@ -93,6 +94,7 @@ export const Default: Story = {
  * Filter panel in collapsed state
  */
 export const Collapsed: Story = {
+  args: {},
   render: () => {
     const [values, setValues] = useState<FilterValues>({
       flux: [0, 1000],
@@ -117,6 +119,7 @@ export const Collapsed: Story = {
  * Filter panel with range sliders only
  */
 export const RangeSlidersOnly: Story = {
+  args: {},
   render: () => {
     const [values, setValues] = useState<FilterValues>({
       ra: [0, 360],
@@ -174,6 +177,7 @@ export const RangeSlidersOnly: Story = {
  * Non-collapsible filter panel
  */
 export const NonCollapsible: Story = {
+  args: {},
   render: () => {
     const [values, setValues] = useState<FilterValues>({
       flux: [0, 1000],
@@ -198,6 +202,7 @@ export const NonCollapsible: Story = {
  * Empty filter panel (no filters configured)
  */
 export const Empty: Story = {
+  args: {},
   render: () => {
     const [values, setValues] = useState<FilterValues>({});
 

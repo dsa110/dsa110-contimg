@@ -28,6 +28,7 @@ type Story = StoryObj<typeof meta>;
  * Interactive range slider with state
  */
 export const Default: Story = {
+  args: {},
   render: () => {
     const [range, setRange] = useState<[number, number]>([20, 80]);
 
@@ -38,8 +39,9 @@ export const Default: Story = {
           min={0}
           max={100}
           step={1}
-          value={range}
-          onChange={setRange}
+          minValue={range[0]}
+          maxValue={range[1]}
+          onChange={(min, max) => setRange([min, max])}
         />
         <div className="mt-4 p-4 bg-gray-100 rounded">
           <strong>Selected Range:</strong> {range[0]} - {range[1]}
@@ -53,6 +55,7 @@ export const Default: Story = {
  * Slider with unit label
  */
 export const WithUnit: Story = {
+  args: {},
   render: () => {
     const [flux, setFlux] = useState<[number, number]>([10, 500]);
 
@@ -63,8 +66,9 @@ export const WithUnit: Story = {
           min={0}
           max={1000}
           step={10}
-          value={flux}
-          onChange={setFlux}
+          minValue={flux[0]}
+          maxValue={flux[1]}
+          onChange={(min, max) => setFlux([min, max])}
           unit="mJy"
         />
       </div>
@@ -76,10 +80,14 @@ export const WithUnit: Story = {
  * Slider with histogram background
  */
 export const WithHistogram: Story = {
+  args: {},
   render: () => {
     const [snr, setSnr] = useState<[number, number]>([5, 50]);
     // Generate sample histogram data
-    const histogram = Array.from({ length: 20 }, (_, i) => Math.exp(-i / 5) * 100);
+    const histogram = Array.from(
+      { length: 20 },
+      (_, i) => Math.exp(-i / 5) * 100
+    );
 
     return (
       <div className="max-w-md">
@@ -88,8 +96,9 @@ export const WithHistogram: Story = {
           min={0}
           max={100}
           step={1}
-          value={snr}
-          onChange={setSnr}
+          minValue={snr[0]}
+          maxValue={snr[1]}
+          onChange={(min, max) => setSnr([min, max])}
           histogram={histogram}
         />
       </div>
@@ -101,6 +110,7 @@ export const WithHistogram: Story = {
  * Slider with decimal step
  */
 export const DecimalStep: Story = {
+  args: {},
   render: () => {
     const [fov, setFov] = useState<[number, number]>([0.1, 2.5]);
 
@@ -111,8 +121,9 @@ export const DecimalStep: Story = {
           min={0}
           max={5}
           step={0.1}
-          value={fov}
-          onChange={setFov}
+          minValue={fov[0]}
+          maxValue={fov[1]}
+          onChange={(min, max) => setFov([min, max])}
           unit="degrees"
         />
       </div>
@@ -124,6 +135,7 @@ export const DecimalStep: Story = {
  * Narrow range slider
  */
 export const NarrowRange: Story = {
+  args: {},
   render: () => {
     const [value, setValue] = useState<[number, number]>([3, 7]);
 
@@ -134,8 +146,9 @@ export const NarrowRange: Story = {
           min={0}
           max={10}
           step={1}
-          value={value}
-          onChange={setValue}
+          minValue={value[0]}
+          maxValue={value[1]}
+          onChange={(min, max) => setValue([min, max])}
         />
       </div>
     );
@@ -146,6 +159,7 @@ export const NarrowRange: Story = {
  * Large range slider
  */
 export const LargeRange: Story = {
+  args: {},
   render: () => {
     const [value, setValue] = useState<[number, number]>([1000, 5000]);
 
@@ -156,8 +170,9 @@ export const LargeRange: Story = {
           min={0}
           max={10000}
           step={100}
-          value={value}
-          onChange={setValue}
+          minValue={value[0]}
+          maxValue={value[1]}
+          onChange={(min, max) => setValue([min, max])}
           unit="MHz"
         />
       </div>
@@ -169,6 +184,7 @@ export const LargeRange: Story = {
  * Multiple sliders in a form
  */
 export const MultipleSliders: Story = {
+  args: {},
   render: () => {
     const [ra, setRa] = useState<[number, number]>([0, 360]);
     const [dec, setDec] = useState<[number, number]>([-90, 90]);
@@ -181,8 +197,9 @@ export const MultipleSliders: Story = {
           min={0}
           max={360}
           step={1}
-          value={ra}
-          onChange={setRa}
+          minValue={ra[0]}
+          maxValue={ra[1]}
+          onChange={(min, max) => setRa([min, max])}
           unit="deg"
         />
         <RangeSlider
@@ -190,8 +207,9 @@ export const MultipleSliders: Story = {
           min={-90}
           max={90}
           step={1}
-          value={dec}
-          onChange={setDec}
+          minValue={dec[0]}
+          maxValue={dec[1]}
+          onChange={(min, max) => setDec([min, max])}
           unit="deg"
         />
         <RangeSlider
@@ -199,8 +217,9 @@ export const MultipleSliders: Story = {
           min={0}
           max={1000}
           step={10}
-          value={flux}
-          onChange={setFlux}
+          minValue={flux[0]}
+          maxValue={flux[1]}
+          onChange={(min, max) => setFlux([min, max])}
           unit="mJy"
         />
 
@@ -230,7 +249,8 @@ export const Disabled: Story = {
     min: 0,
     max: 100,
     step: 1,
-    value: [20, 80],
+    minValue: 20,
+    maxValue: 80,
     onChange: () => {},
     disabled: true,
   },

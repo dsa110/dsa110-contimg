@@ -28,6 +28,7 @@ type Story = StoryObj<typeof meta>;
  * Basic modal with title and content
  */
 export const Default: Story = {
+  args: {},
   render: () => {
     const [isOpen, setIsOpen] = useState(true);
 
@@ -39,7 +40,11 @@ export const Default: Story = {
         >
           Open Modal
         </button>
-        <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="Example Modal">
+        <Modal
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+          title="Example Modal"
+        >
           <p>This is a basic modal with some content.</p>
           <p className="mt-2">Click the backdrop or press ESC to close.</p>
         </Modal>
@@ -52,6 +57,7 @@ export const Default: Story = {
  * Modal with footer actions
  */
 export const WithFooter: Story = {
+  args: {},
   render: () => {
     const [isOpen, setIsOpen] = useState(true);
 
@@ -98,6 +104,7 @@ export const WithFooter: Story = {
  * Large modal with scrollable content
  */
 export const LargeScrollable: Story = {
+  args: {},
   render: () => {
     const [isOpen, setIsOpen] = useState(true);
 
@@ -109,12 +116,18 @@ export const LargeScrollable: Story = {
         >
           Open Large Modal
         </button>
-        <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="Long Content" size="large">
+        <Modal
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+          title="Long Content"
+          size="large"
+        >
           <div className="space-y-4">
             {Array.from({ length: 20 }, (_, i) => (
               <p key={i}>
-                Paragraph {i + 1}: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do
-                eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                Paragraph {i + 1}: Lorem ipsum dolor sit amet, consectetur
+                adipiscing elit. Sed do eiusmod tempor incididunt ut labore et
+                dolore magna aliqua.
               </p>
             ))}
           </div>
@@ -128,6 +141,7 @@ export const LargeScrollable: Story = {
  * Small modal
  */
 export const Small: Story = {
+  args: {},
   render: () => {
     const [isOpen, setIsOpen] = useState(true);
 
@@ -139,7 +153,12 @@ export const Small: Story = {
         >
           Open Small Modal
         </button>
-        <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="Small Modal" size="small">
+        <Modal
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+          title="Small Modal"
+          size="small"
+        >
           <p>This is a compact modal.</p>
         </Modal>
       </>
@@ -151,6 +170,7 @@ export const Small: Story = {
  * Extra large modal
  */
 export const ExtraLarge: Story = {
+  args: {},
   render: () => {
     const [isOpen, setIsOpen] = useState(true);
 
@@ -162,7 +182,12 @@ export const ExtraLarge: Story = {
         >
           Open XL Modal
         </button>
-        <Modal isOpen={isOpen} onClose={() => setIsOpen(false)} title="Extra Large Modal" size="xl">
+        <Modal
+          isOpen={isOpen}
+          onClose={() => setIsOpen(false)}
+          title="Extra Large Modal"
+          size="xl"
+        >
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 bg-gray-100 rounded">Column 1</div>
             <div className="p-4 bg-gray-100 rounded">Column 2</div>
@@ -177,6 +202,7 @@ export const ExtraLarge: Story = {
  * Modal with form
  */
 export const WithForm: Story = {
+  args: {},
   render: () => {
     const [isOpen, setIsOpen] = useState(true);
 

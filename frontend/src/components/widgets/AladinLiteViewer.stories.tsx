@@ -140,6 +140,7 @@ export const CustomStyling: Story = {
  * Multiple viewers in a grid
  */
 export const MultipleViewers: Story = {
+  args: {},
   render: () => (
     <div className="grid grid-cols-2 gap-4 p-4">
       <AladinLiteViewer
@@ -149,7 +150,13 @@ export const MultipleViewers: Story = {
         height={400}
         sourceName="M31"
       />
-      <AladinLiteViewer raDeg={83.63308} decDeg={22.0145} fov={0.5} height={400} sourceName="M1" />
+      <AladinLiteViewer
+        raDeg={83.63308}
+        decDeg={22.0145}
+        fov={0.5}
+        height={400}
+        sourceName="M1"
+      />
       <AladinLiteViewer
         raDeg={201.365}
         decDeg={-43.019}
@@ -157,7 +164,13 @@ export const MultipleViewers: Story = {
         height={400}
         sourceName="Centaurus A"
       />
-      <AladinLiteViewer raDeg={148.888} decDeg={69.065} fov={1.5} height={400} sourceName="M82" />
+      <AladinLiteViewer
+        raDeg={148.888}
+        decDeg={69.065}
+        fov={1.5}
+        height={400}
+        sourceName="M82"
+      />
     </div>
   ),
 };
