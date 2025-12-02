@@ -358,14 +358,11 @@ class TestGlobalSyncPool:
         import dsa110_contimg.api.database as db_module
         db_module._sync_db_pool = None
         
-        # Set up temp paths
-        products_db = tmp_path / "products.sqlite3"
-        cal_db = tmp_path / "cal_registry.sqlite3"
-        products_db.touch()
-        cal_db.touch()
+        # Set up temp unified database path
+        db_path = tmp_path / "pipeline.sqlite3"
+        db_path.touch()
         
-        monkeypatch.setenv("PIPELINE_PRODUCTS_DB", str(products_db))
-        monkeypatch.setenv("PIPELINE_CAL_REGISTRY_DB", str(cal_db))
+        monkeypatch.setenv("PIPELINE_DB", str(db_path))
         
         pool1 = get_sync_db_pool()
         pool2 = get_sync_db_pool()
@@ -380,13 +377,10 @@ class TestGlobalSyncPool:
         import dsa110_contimg.api.database as db_module
         db_module._sync_db_pool = None
         
-        products_db = tmp_path / "products.sqlite3"
-        cal_db = tmp_path / "cal_registry.sqlite3"
-        products_db.touch()
-        cal_db.touch()
+        db_path = tmp_path / "pipeline.sqlite3"
+        db_path.touch()
         
-        monkeypatch.setenv("PIPELINE_PRODUCTS_DB", str(products_db))
-        monkeypatch.setenv("PIPELINE_CAL_REGISTRY_DB", str(cal_db))
+        monkeypatch.setenv("PIPELINE_DB", str(db_path))
         
         pool1 = get_sync_db_pool()
         close_sync_db_pool()
