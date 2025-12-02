@@ -870,15 +870,15 @@ class TestPipelineClasses:
             RetryBackoff,
         )
         
-        # Default policy
+        # Default policy (EXPONENTIAL)
         policy = RetryPolicy()
         assert policy.max_retries == 2
         assert policy.backoff == RetryBackoff.EXPONENTIAL
         
-        # Verify delay calculation
-        assert policy.get_delay(0) == 0
+        # Verify exponential delay calculation
+        assert policy.get_delay(0) == 0  # First attempt, no delay
         assert policy.get_delay(1) == 2.0  # initial
-        assert policy.get_delay(2) == 4.0  # 2 * initial
+        assert policy.get_delay(2) == 4.0  # 2 * initial  
         assert policy.get_delay(3) == 8.0  # 4 * initial
         
         # Test max delay cap
@@ -888,40 +888,22 @@ class TestPipelineClasses:
         )
         assert policy_capped.get_delay(10) == 60.0  # capped
         
-        # Test linear backoff
-        policy_linear = RetryPolicy(
-            backoff=RetryBackoff.LINEAR,
-            initial_delay_seconds=5.0,
-        )
-        assert policy_linear.get_delay(1) == 5.0
-        assert policy_linear.get_delay(2) == 10.0
-        assert policy_linear.get_delay(3) == 15.0
-        
-        # Test constant backoff
-        policy_constant = RetryPolicy(
-            backoff=RetryBackoff.CONSTANT,
+        # Test fixed backoff (constant delay)
+        policy_fixed = RetryPolicy(
+            backoff=RetryBackoff.FIXED,
             initial_delay_seconds=3.0,
         )
-        assert policy_constant.get_delay(1) == 3.0
-        assert policy_constant.get_delay(2) == 3.0
-        assert policy_constant.get_delay(5) == 3.0
-    
-    def test_job_node_with_param_references(self, tmp_path: Path) -> None:
-        """Test JobNode stores parameter references correctly."""
-        from dsa110_contimg.mosaic import JobNode
-        from dsa110_contimg.mosaic.jobs import MosaicBuildJob
+        assert policy_fixed.get_delay(1) == 3.0
+        assert policy_fixed.get_delay(2) == 3.0
+        assert policy_fixed.get_delay(5) == 3.0
         
-        node = JobNode(
-            job_id="build",
-            job_class=MosaicBuildJob,
-            params={"plan_id": "${plan.plan_id}"},
-            dependencies=["plan"],
+        # Test no backoff (no retry delays)
+        policy_none = RetryPolicy(
+            backoff=RetryBackoff.NONE,
+            max_retries=0,
         )
-        
-        assert node.job_id == "build"
-        assert node.params["plan_id"] == "${plan.plan_id}"
-        assert node.dependencies == ["plan"]
-        assert node.result is None
+        assert policy_none.get_delay(0) == 0
+        assert policy_none.get_delay(1) == 0
     
     def test_pipeline_execution_order(self, tmp_path: Path) -> None:
         """Test pipeline computes correct execution order."""
@@ -943,20 +925,20 @@ class TestPipelineClasses:
         )
         
         # Verify execution order respects dependencies
-        order = pipeline._execution_order
+        order = pipeline.get_execution_order()
         assert order.index("plan") < order.index("build")
         assert order.index("build") < order.index("qa")
     
-    def test_pipeline_generates_execution_id(
+    def test_wrapper_function_runs_pipeline(
         self,
         populated_database: Path,
         synthetic_images: list[Path],
         tmp_path: Path,
     ) -> None:
-        """Test pipeline generates unique execution IDs."""
+        """Test wrapper functions execute pipelines correctly."""
         from dsa110_contimg.mosaic import (
             MosaicPipelineConfig,
-            OnDemandMosaicPipeline,
+            run_on_demand_mosaic,
         )
         
         config = MosaicPipelineConfig(
@@ -966,18 +948,17 @@ class TestPipelineClasses:
         
         now = int(time.time())
         
-        pipeline = OnDemandMosaicPipeline(
+        result = run_on_demand_mosaic(
             config=config,
-            name="exec_id_test",
+            name="wrapper_test",
             start_time=now - 3600,
             end_time=now + 3600,
         )
         
-        exec_id = pipeline.start()
-        
-        assert exec_id is not None
-        assert exec_id.startswith("on_demand_mosaic_")
-        assert pipeline._execution_id == exec_id
+        # The wrapper returns a PipelineResult
+        assert result is not None
+        assert result.execution_id is not None
+        assert result.execution_id.startswith("on_demand_mosaic_")
     
     def test_pipeline_result_includes_timing(
         self,
@@ -988,7 +969,7 @@ class TestPipelineClasses:
         """Test pipeline result includes start/complete times."""
         from dsa110_contimg.mosaic import (
             MosaicPipelineConfig,
-            OnDemandMosaicPipeline,
+            run_on_demand_mosaic,
         )
         
         config = MosaicPipelineConfig(
@@ -998,14 +979,12 @@ class TestPipelineClasses:
         
         now = int(time.time())
         
-        pipeline = OnDemandMosaicPipeline(
+        result = run_on_demand_mosaic(
             config=config,
             name="timing_test",
             start_time=now - 3600,
             end_time=now + 3600,
         )
-        
-        result = pipeline.execute()
         
         assert result.execution_id is not None
         assert result.started_at is not None
@@ -1013,19 +992,18 @@ class TestPipelineClasses:
         assert result.started_at <= result.completed_at
     
     def test_notification_config(self) -> None:
-        """Test NotificationConfig defaults and usage."""
+        """Test NotificationConfig for pipeline notifications."""
         from dsa110_contimg.mosaic import NotificationConfig
         
-        # Default config
-        config = NotificationConfig()
-        assert config.enabled is True
+        # NotificationConfig requires job_id in the new framework
+        config = NotificationConfig(job_id="qa")
         assert config.on_failure is True
         assert config.on_success is False
         assert "email" in config.channels
         
         # Custom config
         config = NotificationConfig(
-            enabled=True,
+            job_id="qa",
             on_failure=True,
             on_success=True,
             channels=["slack", "webhook"],
@@ -1035,24 +1013,29 @@ class TestPipelineClasses:
         assert "slack" in config.channels
         assert len(config.recipients) == 2
     
-    def test_pipeline_config_legacy_properties(self, tmp_path: Path) -> None:
-        """Test MosaicPipelineConfig legacy property accessors."""
+    def test_retry_policy_configuration_in_pipeline(self, tmp_path: Path) -> None:
+        """Test RetryPolicy can be used with pipelines."""
         from dsa110_contimg.mosaic import (
             MosaicPipelineConfig,
+            OnDemandMosaicPipeline,
             RetryPolicy,
-            NotificationConfig,
         )
         
         config = MosaicPipelineConfig(
             database_path=tmp_path / "test.db",
             mosaic_dir=tmp_path / "mosaics",
-            retry_policy=RetryPolicy(max_retries=5),
-            notifications=NotificationConfig(enabled=True, on_failure=True),
         )
         
-        # Legacy accessors
-        assert config.max_retries == 5
-        assert config.notify_on_failure is True
+        pipeline = OnDemandMosaicPipeline(
+            config=config,
+            name="retry_test",
+            start_time=1700000000,
+            end_time=1700086400,
+        )
+        
+        # Pipeline should have retry config set via set_retry_policy in build()
+        assert pipeline.retry_policy is not None
+        assert pipeline.retry_policy.max_retries == 2
 
 
 class TestABSURDIntegration:
