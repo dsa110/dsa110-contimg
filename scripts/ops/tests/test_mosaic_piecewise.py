@@ -17,6 +17,10 @@ import sys
 import tempfile
 from pathlib import Path
 
+# Add backend/src to path BEFORE importing dsa110_contimg
+REPO_ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(REPO_ROOT / 'backend' / 'src'))
+
 import numpy as np
 from casacore.images import image as casaimage
 from casatasks import imregrid
@@ -24,9 +28,6 @@ from casatasks import imregrid
 from dsa110_contimg.mosaic.cache import get_cache
 from dsa110_contimg.mosaic.cli import (_calculate_mosaic_bounds,
                                        _create_common_coordinate_system)
-
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
 
 def test_coordinate_extraction(tile_path: str):

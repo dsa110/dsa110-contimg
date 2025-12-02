@@ -20,15 +20,16 @@ import os
 import sys
 from pathlib import Path
 
+# Add backend/src to path
+REPO_ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(REPO_ROOT / "backend" / "src"))
+
 import numpy as np
 from astropy import units as u
 from astropy.coordinates import Angle, EarthLocation, SkyCoord
 from astropy.time import Time
 from casacore.tables import table
 from casatasks import phaseshift
-
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from dsa110_contimg.conversion.helpers import get_meridian_coords
 

@@ -21,8 +21,9 @@ except ImportError:
     print("ERROR: casacore not available. Activate casa6 environment.")
     sys.exit(1)
 
-# Add src to path for imports
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+# Add backend/src to path for imports
+REPO_ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(REPO_ROOT / "backend" / "src"))
 
 try:
     from dsa110_contimg.calibration.applycal import apply_to_target

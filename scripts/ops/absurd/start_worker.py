@@ -16,11 +16,9 @@ from pathlib import Path
 print(f"DEBUG: sys.path: {sys.path}")
 print(f"DEBUG: PYTHONPATH: {os.environ.get('PYTHONPATH')}")
 
-# Ensure src is in path (if PYTHONPATH failed)
-# We assume this script is in scripts/absurd/
-# We want to add src/ to path.
-# ../../src resolves to project_root/src
-src_path = str(Path(__file__).resolve().parent.parent.parent / "src")
+# Ensure backend/src is in path
+REPO_ROOT = Path(__file__).resolve().parents[3]
+src_path = str(REPO_ROOT / "backend" / "src")
 if src_path not in sys.path:
     print(f"DEBUG: Adding {src_path} to sys.path")
     sys.path.insert(0, src_path)
