@@ -319,6 +319,15 @@ export function HealthDashboardPage() {
           <StorageMonitoringPanel showTrends={true} showCleanup={true} />
         </div>
 
+        {/* Prometheus Metrics */}
+        <div className="mb-6">
+          <MetricsDashboardPanel
+            data={metricsData}
+            isLoading={metricsLoading}
+            error={metricsError}
+          />
+        </div>
+
         {/* Calibrator monitoring */}
         <div className="mb-6">
           <CalibratorMonitoringPanel />
