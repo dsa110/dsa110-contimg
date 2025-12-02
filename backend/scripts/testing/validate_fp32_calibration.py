@@ -170,8 +170,8 @@ class ValidationReport:
 # =============================================================================
 
 def generate_synthetic_visibilities(
-    n_antennas: int = 350,
-    n_channels: int = 384,
+    n_antennas: int = 96,
+    n_channels: int = 768,
     n_times: int = 100,
     snr: float = 100.0,
     dtype: np.dtype = np.complex128,
@@ -181,8 +181,8 @@ def generate_synthetic_visibilities(
     Creates visibility data with known gains for validation.
     
     Args:
-        n_antennas: Number of antennas (DSA-110 has 350)
-        n_channels: Number of frequency channels
+        n_antennas: Number of antennas (DSA-110 has 96)
+        n_channels: Number of frequency channels (DSA-110 has 768)
         n_times: Number of time samples
         snr: Signal-to-noise ratio
         dtype: Data type (complex64 or complex128)
@@ -415,9 +415,9 @@ def compare_gain_solutions(
 # =============================================================================
 
 def test_accumulation_precision(
-    n_antennas: int = 350,
-    n_baselines: int = 61075,
-    n_channels: int = 384,
+    n_antennas: int = 96,
+    n_baselines: int = 4560,
+    n_channels: int = 768,
     thresholds: ValidationThresholds = None,
 ) -> List[ValidationResult]:
     """Test precision of accumulation operations typical in calibration.
@@ -517,7 +517,7 @@ def test_accumulation_precision(
 
 
 def test_matrix_inversion_stability(
-    n_antennas: int = 350,
+    n_antennas: int = 96,
     thresholds: ValidationThresholds = None,
 ) -> List[ValidationResult]:
     """Test matrix inversion stability at different precisions.
@@ -773,8 +773,8 @@ def test_casa_calibration_precision(
 # =============================================================================
 
 def run_synthetic_validation(
-    n_antennas: int = 350,
-    n_channels: int = 384,
+    n_antennas: int = 96,
+    n_channels: int = 768,
     n_times: int = 100,
     thresholds: ValidationThresholds = None,
     quick: bool = False,
@@ -1046,14 +1046,14 @@ Examples:
     parser.add_argument(
         "--n-antennas",
         type=int,
-        default=350,
-        help="Number of antennas for synthetic tests (default: 350)",
+        default=96,
+        help="Number of antennas for synthetic tests (default: 96 for DSA-110)",
     )
     parser.add_argument(
         "--n-channels",
         type=int,
-        default=384,
-        help="Number of channels for synthetic tests (default: 384)",
+        default=768,
+        help="Number of channels for synthetic tests (default: 768 for DSA-110)",
     )
     parser.add_argument(
         "--output",

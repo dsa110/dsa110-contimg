@@ -3,12 +3,20 @@ import { useParams, Link } from "react-router-dom";
 import ProvenanceStrip from "../components/provenance/ProvenanceStrip";
 import ErrorDisplay from "../components/errors/ErrorDisplay";
 import { WidgetErrorBoundary } from "../components/errors";
-import { Card, CoordinateDisplay, PageSkeleton, QAMetrics } from "../components/common";
+import {
+  Card,
+  CoordinateDisplay,
+  PageSkeleton,
+  QAMetrics,
+} from "../components/common";
 import { AladinLiteViewer, LightCurveChart } from "../components/widgets";
 import { CatalogOverlayPanel } from "../components/catalogs";
 import { NearbyObjectsPanel, NearbyObject } from "../components/crossmatch";
 import type { LightCurveDataPoint } from "../components/widgets";
-import { mapProvenanceFromSourceDetail, SourceDetailResponse } from "../utils/provenanceMappers";
+import {
+  mapProvenanceFromSourceDetail,
+  SourceDetailResponse,
+} from "../utils/provenanceMappers";
 import { relativeTime } from "../utils/relativeTime";
 import { logger } from "../utils/logger";
 import type { ErrorResponse } from "../types/errors";
@@ -18,8 +26,15 @@ import { usePreferencesStore } from "../stores/appStore";
 import { config } from "../config";
 
 /** SIMBAD external link icon */
-const ExternalLinkIcon: React.FC<{ className?: string }> = ({ className = "w-4 h-4" }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+const ExternalLinkIcon: React.FC<{ className?: string }> = ({
+  className = "w-4 h-4",
+}) => (
+  <svg
+    className={className}
+    fill="none"
+    stroke="currentColor"
+    viewBox="0 0 24 24"
+  >
     <path
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -37,10 +52,13 @@ const SourceDetailPage: React.FC = () => {
   const { sourceId } = useParams<{ sourceId: string }>();
   const { data: source, isLoading, error, refetch } = useSource(sourceId);
   const addRecentSource = usePreferencesStore((state) => state.addRecentSource);
-  const [selectedImageId, setSelectedImageId] = useState<string | undefined>(undefined);
+  const [selectedImageId, setSelectedImageId] = useState<string | undefined>(
+    undefined
+  );
   const [showSkyViewer, setShowSkyViewer] = useState(true);
   const encodedSourceId = sourceId ? encodeURIComponent(sourceId) : "";
   const [showNearbyPanel, setShowNearbyPanel] = useState(false);
+  const [enabledCatalogs, setEnabledCatalogs] = useState<string[]>([]);
 
   // Search for nearby objects in external catalogs
   const handleNearbySearch = async (
@@ -70,8 +88,10 @@ const SourceDetailPage: React.FC = () => {
           const objDec = parseFloat(row[2]);
           const sep =
             Math.sqrt(
-              Math.pow((raDeg - objRa) * Math.cos((decDeg * Math.PI) / 180), 2) +
-                Math.pow(decDeg - objDec, 2)
+              Math.pow(
+                (raDeg - objRa) * Math.cos((decDeg * Math.PI) / 180),
+                2
+              ) + Math.pow(decDeg - objDec, 2)
             ) * 3600;
           results.push({
             name: row[0],
@@ -80,7 +100,9 @@ const SourceDetailPage: React.FC = () => {
             separation: sep,
             database: "SIMBAD",
             type: row[3] || undefined,
-            url: `https://simbad.u-strasbg.fr/simbad/sim-id?Ident=${encodeURIComponent(row[0])}`,
+            url: `https://simbad.u-strasbg.fr/simbad/sim-id?Ident=${encodeURIComponent(
+              row[0]
+            )}`,
           });
         }
       }
@@ -129,7 +151,10 @@ const SourceDetailPage: React.FC = () => {
   if (error) {
     return (
       <div className="max-w-4xl mx-auto p-6">
-        <ErrorDisplay error={error as unknown as ErrorResponse} onRetry={() => refetch()} />
+        <ErrorDisplay
+          error={error as unknown as ErrorResponse}
+          onRetry={() => refetch()}
+        />
       </div>
     );
   }
@@ -158,7 +183,10 @@ const SourceDetailPage: React.FC = () => {
     <div className="max-w-6xl mx-auto p-6">
       {/* Header */}
       <div className="mb-6">
-        <Link to="/sources" className="text-sm text-gray-500 hover:text-gray-700 mb-2 inline-block">
+        <Link
+          to="/sources"
+          className="text-sm text-gray-500 hover:text-gray-700 mb-2 inline-block"
+        >
           Back to Sources
         </Link>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
@@ -186,7 +214,11 @@ const SourceDetailPage: React.FC = () => {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 hover:underline"
               >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <svg
+                  className="w-4 h-4"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
                   <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
                 </svg>
                 Search in SIMBAD
@@ -198,7 +230,11 @@ const SourceDetailPage: React.FC = () => {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:text-blue-800 hover:underline"
               >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <svg
+                  className="w-4 h-4"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
                   <path d="M12 3L1 9l4 2.18v6L12 21l7-3.82v-6l2-1.09V17h2V9L12 3zm6.82 6L12 12.72 5.18 9 12 5.28 18.82 9zM17 15.99l-5 2.73-5-2.73v-3.72L12 15l5-2.73v3.72z" />
                 </svg>
                 Search in NED
@@ -258,17 +294,25 @@ const SourceDetailPage: React.FC = () => {
           <Card title="Details">
             <dl className="space-y-3">
               <div>
-                <dt className="text-xs text-gray-500 uppercase tracking-wide">Source ID</dt>
-                <dd className="font-mono text-sm text-gray-900">{sourceData.id}</dd>
+                <dt className="text-xs text-gray-500 uppercase tracking-wide">
+                  Source ID
+                </dt>
+                <dd className="font-mono text-sm text-gray-900">
+                  {sourceData.id}
+                </dd>
               </div>
               {sourceData.name && (
                 <div>
-                  <dt className="text-xs text-gray-500 uppercase tracking-wide">Name</dt>
+                  <dt className="text-xs text-gray-500 uppercase tracking-wide">
+                    Name
+                  </dt>
                   <dd className="text-sm text-gray-900">{sourceData.name}</dd>
                 </div>
               )}
               <div>
-                <dt className="text-xs text-gray-500 uppercase tracking-wide">Detections</dt>
+                <dt className="text-xs text-gray-500 uppercase tracking-wide">
+                  Detections
+                </dt>
                 <dd className="text-sm text-gray-900">
                   {sourceData.contributing_images?.length || 0} images
                 </dd>
@@ -281,15 +325,24 @@ const SourceDetailPage: React.FC = () => {
             sourceData.contributing_images.length > 0 &&
             (() => {
               // Compute aggregate QA metrics from contributing images
-              const imagesWithQA = sourceData.contributing_images.filter((img) => img.qa_grade);
-              const goodCount = imagesWithQA.filter((img) => img.qa_grade === "good").length;
-              const warnCount = imagesWithQA.filter((img) => img.qa_grade === "warn").length;
-              const failCount = imagesWithQA.filter((img) => img.qa_grade === "fail").length;
+              const imagesWithQA = sourceData.contributing_images.filter(
+                (img) => img.qa_grade
+              );
+              const goodCount = imagesWithQA.filter(
+                (img) => img.qa_grade === "good"
+              ).length;
+              const warnCount = imagesWithQA.filter(
+                (img) => img.qa_grade === "warn"
+              ).length;
+              const failCount = imagesWithQA.filter(
+                (img) => img.qa_grade === "fail"
+              ).length;
 
               // Determine overall grade based on majority
               let overallGrade: "good" | "warn" | "fail" | undefined;
               if (imagesWithQA.length > 0) {
-                if (failCount > goodCount && failCount > warnCount) overallGrade = "fail";
+                if (failCount > goodCount && failCount > warnCount)
+                  overallGrade = "fail";
                 else if (warnCount > goodCount) overallGrade = "warn";
                 else if (goodCount > 0) overallGrade = "good";
               }
@@ -343,7 +396,9 @@ const SourceDetailPage: React.FC = () => {
               <CatalogOverlayPanel
                 centerRa={sourceData.ra_deg}
                 centerDec={sourceData.dec_deg}
-                defaultRadius={2}
+                searchRadius={2}
+                enabledCatalogs={enabledCatalogs}
+                onCatalogChange={setEnabledCatalogs}
               />
             </WidgetErrorBoundary>
           </Card>
@@ -374,15 +429,22 @@ const SourceDetailPage: React.FC = () => {
             )}
             {!showNearbyPanel && (
               <p className="text-sm text-gray-500">
-                Click &quot;Search SIMBAD&quot; to find nearby objects in external catalogs.
+                Click &quot;Search SIMBAD&quot; to find nearby objects in
+                external catalogs.
               </p>
             )}
           </Card>
 
           {/* Light Curve Chart */}
           {lightCurveData.length > 1 && (
-            <Card title="Light Curve" subtitle={`${lightCurveData.length} measurements`}>
-              <WidgetErrorBoundary widgetName="Light Curve Chart" minHeight={300}>
+            <Card
+              title="Light Curve"
+              subtitle={`${lightCurveData.length} measurements`}
+            >
+              <WidgetErrorBoundary
+                widgetName="Light Curve Chart"
+                minHeight={300}
+              >
                 <LightCurveChart
                   data={lightCurveData}
                   height={300}
@@ -405,87 +467,91 @@ const SourceDetailPage: React.FC = () => {
           )}
 
           {/* Contributing Images */}
-          {sourceData.contributing_images && sourceData.contributing_images.length > 0 && (
-            <Card
-              title="Contributing Images"
-              subtitle={`${sourceData.contributing_images.length} detection${
-                sourceData.contributing_images.length !== 1 ? "s" : ""
-              }`}
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                {sourceData.contributing_images.map((img) => (
-                  <div
-                    key={img.image_id}
-                    className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                      selectedImageId === img.image_id
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 hover:border-gray-300 bg-white"
-                    }`}
-                    onClick={() => setSelectedImageId(img.image_id)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" || e.key === " ") {
-                        setSelectedImageId(img.image_id);
-                      }
-                    }}
-                    role="button"
-                    tabIndex={0}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <Link
-                          to={`/images/${img.image_id}`}
-                          className="font-medium text-gray-900 hover:text-blue-600 truncate block"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {img.path?.split("/").pop() || img.image_id}
-                        </Link>
-                        {img.ms_path && (
-                          <div className="text-xs text-gray-500 truncate mt-0.5">
-                            MS: {img.ms_path.split("/").pop()}
-                          </div>
+          {sourceData.contributing_images &&
+            sourceData.contributing_images.length > 0 && (
+              <Card
+                title="Contributing Images"
+                subtitle={`${sourceData.contributing_images.length} detection${
+                  sourceData.contributing_images.length !== 1 ? "s" : ""
+                }`}
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {sourceData.contributing_images.map((img) => (
+                    <div
+                      key={img.image_id}
+                      className={`p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                        selectedImageId === img.image_id
+                          ? "border-blue-500 bg-blue-50"
+                          : "border-gray-200 hover:border-gray-300 bg-white"
+                      }`}
+                      onClick={() => setSelectedImageId(img.image_id)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          setSelectedImageId(img.image_id);
+                        }
+                      }}
+                      role="button"
+                      tabIndex={0}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <Link
+                            to={`/images/${img.image_id}`}
+                            className="font-medium text-gray-900 hover:text-blue-600 truncate block"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {img.path?.split("/").pop() || img.image_id}
+                          </Link>
+                          {img.ms_path && (
+                            <div className="text-xs text-gray-500 truncate mt-0.5">
+                              MS: {img.ms_path.split("/").pop()}
+                            </div>
+                          )}
+                        </div>
+                        {img.qa_grade && (
+                          <span
+                            className={`badge ml-2 ${
+                              img.qa_grade === "good"
+                                ? "badge-success"
+                                : img.qa_grade === "warn"
+                                ? "badge-warning"
+                                : "badge-error"
+                            }`}
+                          >
+                            {img.qa_grade}
+                          </span>
                         )}
                       </div>
-                      {img.qa_grade && (
-                        <span
-                          className={`badge ml-2 ${
-                            img.qa_grade === "good"
-                              ? "badge-success"
-                              : img.qa_grade === "warn"
-                              ? "badge-warning"
-                              : "badge-error"
-                          }`}
-                        >
-                          {img.qa_grade}
-                        </span>
-                      )}
-                    </div>
 
-                    {/* Flux and date info */}
-                    <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
-                      {img.flux_jy !== undefined && (
-                        <span>
-                          <span className="font-medium">Flux:</span>{" "}
-                          {img.flux_jy < 0.001
-                            ? `${(img.flux_jy * 1e6).toFixed(1)} μJy`
-                            : img.flux_jy < 1
-                            ? `${(img.flux_jy * 1e3).toFixed(2)} mJy`
-                            : `${img.flux_jy.toFixed(3)} Jy`}
-                        </span>
-                      )}
-                      {img.created_at && (
-                        <span title={new Date(img.created_at).toLocaleString()}>
-                          {relativeTime(img.created_at)}
-                        </span>
-                      )}
+                      {/* Flux and date info */}
+                      <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                        {img.flux_jy !== undefined && (
+                          <span>
+                            <span className="font-medium">Flux:</span>{" "}
+                            {img.flux_jy < 0.001
+                              ? `${(img.flux_jy * 1e6).toFixed(1)} μJy`
+                              : img.flux_jy < 1
+                              ? `${(img.flux_jy * 1e3).toFixed(2)} mJy`
+                              : `${img.flux_jy.toFixed(3)} Jy`}
+                          </span>
+                        )}
+                        {img.created_at && (
+                          <span
+                            title={new Date(img.created_at).toLocaleString()}
+                          >
+                            {relativeTime(img.created_at)}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </Card>
-          )}
+                  ))}
+                </div>
+              </Card>
+            )}
 
           {/* Empty state */}
-          {(!sourceData.contributing_images || sourceData.contributing_images.length === 0) && (
+          {(!sourceData.contributing_images ||
+            sourceData.contributing_images.length === 0) && (
             <Card>
               <div className="text-center py-8 text-gray-500">
                 <svg
