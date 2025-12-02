@@ -84,8 +84,9 @@ describe("ResourceMetricsPanel", () => {
   it("displays CPU gauge", () => {
     render(<ResourceMetricsPanel metrics={mockResourceMetrics} />);
 
-    expect(screen.getByText("CPU")).toBeInTheDocument();
-    expect(screen.getByText("65.0%")).toBeInTheDocument();
+    // CPU appears in both gauge and chart, so use getAllBy
+    expect(screen.getAllByText("CPU").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("65.0%").length).toBeGreaterThan(0);
   });
 
   it("displays Memory gauge with total", () => {
@@ -98,15 +99,15 @@ describe("ResourceMetricsPanel", () => {
   it("displays Disk I/O gauge", () => {
     render(<ResourceMetricsPanel metrics={mockResourceMetrics} />);
 
-    expect(screen.getByText("Disk I/O")).toBeInTheDocument();
-    expect(screen.getByText("100.0 MB")).toBeInTheDocument();
+    expect(screen.getAllByText("Disk I/O").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("100.0 MB").length).toBeGreaterThan(0);
   });
 
   it("displays Network gauge", () => {
     render(<ResourceMetricsPanel metrics={mockResourceMetrics} />);
 
-    expect(screen.getByText("Network")).toBeInTheDocument();
-    expect(screen.getByText("50.0 MB")).toBeInTheDocument();
+    expect(screen.getAllByText("Network").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("50.0 MB").length).toBeGreaterThan(0);
   });
 
   it("renders charts when showCharts is true", () => {
@@ -146,7 +147,8 @@ describe("ResourceMetricsPanel", () => {
     };
     render(<ResourceMetricsPanel metrics={warningMetrics} />);
 
-    expect(screen.getByText("65.0%")).toBeInTheDocument();
+    // CPU value appears in multiple places with warning status
+    expect(screen.getAllByText("65.0%").length).toBeGreaterThan(0);
   });
 
   it("handles critical status", () => {
