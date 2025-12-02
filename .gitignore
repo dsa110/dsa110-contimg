@@ -155,6 +155,8 @@ src/.cache/
 src/.pyre/
 src/.pyre_cache/
 src/.pyre_cache/
+# Legacy placeholder package directory (replaced by backend/src)
+src/dsa110_contimg/
 
 # Logs
 logs/
