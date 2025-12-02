@@ -8,7 +8,7 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
-from dsa110_contimg.conversion.streaming.streaming_converter import QueueDB
+from dsa110_contimg.conversion.streaming import QueueDB
 from dsa110_contimg.database.products import ensure_products_db
 from dsa110_contimg.database.registry import ensure_db as ensure_registry_db
 from dsa110_contimg.database.schema_evolution import evolve_all_schemas
