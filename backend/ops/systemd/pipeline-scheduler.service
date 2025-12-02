@@ -1,0 +1,41 @@
+[Unit]
+Description=DSA-110 Pipeline Scheduler - Runs cron-scheduled pipelines
+Documentation=file:///data/dsa110-contimg/backend/docs/ARCHITECTURE.md
+After=network.target absurd-worker.service absurd-scheduler.service
+Wants=absurd-worker.service absurd-scheduler.service
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/data/dsa110-contimg/backend
+
+# Environment configuration
+EnvironmentFile=/data/dsa110-contimg/backend/.env
+
+# Conda environment activation and pipeline scheduler execution
+# This runs the high-level pipeline scheduler that triggers pipelines
+# like NightlyMosaicPipeline on their cron schedules
+ExecStart=/bin/bash -c 'source /home/ubuntu/miniconda3/etc/profile.d/conda.sh && conda activate casa6 && exec python -m dsa110_contimg.pipeline.scheduler_main'
+
+# Graceful shutdown
+ExecStop=/bin/kill -SIGTERM $MAINPID
+TimeoutStopSec=30
+
+# Restart policy
+Restart=on-failure
+RestartSec=30
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+# Logging
+StandardOutput=append:/data/dsa110-contimg/state/logs/pipeline-scheduler.log
+StandardError=append:/data/dsa110-contimg/state/logs/pipeline-scheduler.log
+
+# Resource limits (scheduler is lightweight)
+LimitNOFILE=4096
+MemoryMax=512M
+CPUQuota=50%
+
+[Install]
+WantedBy=multi-user.target
