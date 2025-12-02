@@ -14,6 +14,7 @@ from __future__ import annotations
 import ipaddress
 import os
 from datetime import datetime
+from pathlib import Path
 
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -98,6 +99,9 @@ from .routes import (
 )
 from .rate_limit import limiter, rate_limit_exceeded_handler
 from .websocket import ws_router
+
+# Mosaic API router (ABSURD-governed pipeline)
+from dsa110_contimg.mosaic import mosaic_router, configure_mosaic_api
 from slowapi.errors import RateLimitExceeded
 
 
@@ -241,6 +245,21 @@ def create_app() -> FastAPI:
         (calibrator_imaging_router, "Calibrator Imaging"),
         (health_router, "Health Monitoring"),
     ]
+    
+    # Mosaic router is pre-prefixed with /api/mosaic, include directly
+    # Configure the mosaic API with paths from config
+    config = get_config()
+    try:
+        # Use default mosaic directory based on pipeline conventions
+        default_mosaic_dir = Path("/data/dsa110-contimg/state/mosaics")
+        configure_mosaic_api(
+            database_path=config.database.products_path,
+            mosaic_dir=default_mosaic_dir,
+        )
+        app.include_router(mosaic_router, tags=["Mosaics"])
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).warning(f"Failed to configure mosaic API: {e}")
     
     # Register API routers with versioned prefix
     for router, tag in api_routers:

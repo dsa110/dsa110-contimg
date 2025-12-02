@@ -1472,9 +1472,8 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                     ret = result.returncode
                     writer_type = "auto"
                 else:
-                    from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
-                        convert_subband_groups_to_ms,
-                    )
+                    # Use flattened import from top-level conversion module
+                    from dsa110_contimg.conversion import convert_subband_groups_to_ms
 
                     convert_subband_groups_to_ms(
                         args.input_dir,

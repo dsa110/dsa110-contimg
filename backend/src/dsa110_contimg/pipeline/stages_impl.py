@@ -452,9 +452,8 @@ class ConversionStage(PipelineStage):
         start_time_sec = time.time()
         log_progress("Starting UVH5 to MS conversion stage...")
 
-        from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
-            convert_subband_groups_to_ms,
-        )
+        # Use flattened import from top-level conversion module
+        from dsa110_contimg.conversion import convert_subband_groups_to_ms
 
         start_time = context.inputs["start_time"]
         end_time = context.inputs["end_time"]
