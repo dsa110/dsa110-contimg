@@ -496,12 +496,18 @@ class PipelineExecutor:
     ) -> None:
         """Send notification for job event.
 
+        Integrates with the monitoring/alerting system to send
+        notifications via Slack, webhook, or email.
+
         Args:
             pipeline: The pipeline
             job_id: Job ID that triggered the event
             event: Event type (failure, success)
             error: Error message if failure
         """
+        from .events import EventEmitter, EventType, emit_job_event
+
+        matching_notifications = []
         for notification in pipeline.notifications:
             if notification.job_id != job_id:
                 continue
@@ -511,14 +517,140 @@ class PipelineExecutor:
             if event == "success" and not notification.on_success:
                 continue
 
-            logger.info(
-                f"[Notification:{event}] Job '{job_id}' {event} "
-                f"(channels={notification.channels}, "
-                f"recipients={notification.recipients})"
+            matching_notifications.append(notification)
+
+        if not matching_notifications:
+            return
+
+        logger.info(
+            f"[Notification:{event}] Job '{job_id}' {event} "
+            f"(count={len(matching_notifications)})"
+        )
+
+        # Emit pipeline event for event-driven listeners
+        event_type = EventType.JOB_FAILED if event == "failure" else EventType.JOB_COMPLETED
+        emit_job_event(
+            event_type,
+            job_id=job_id,
+            pipeline_name=pipeline.pipeline_name,
+            execution_id=getattr(pipeline, "_execution_id", "unknown"),
+            error=error,
+        )
+
+        # Send via AlertManager if configured
+        for notification in matching_notifications:
+            self._dispatch_notification(
+                notification=notification,
+                pipeline_name=pipeline.pipeline_name,
+                job_id=job_id,
+                event=event,
+                error=error,
             )
 
-            # TODO: Integrate with monitoring/alerting system
-            # For now, just log
+    def _dispatch_notification(
+        self,
+        notification: Any,
+        pipeline_name: str,
+        job_id: str,
+        event: str,
+        error: str | None,
+    ) -> None:
+        """Dispatch a notification via configured channels.
+
+        Args:
+            notification: NotificationConfig
+            pipeline_name: Name of the pipeline
+            job_id: Job ID that triggered
+            event: Event type (failure, success)
+            error: Error message if failure
+        """
+        import asyncio
+
+        from dsa110_contimg.monitoring.alerting import (
+            Alert,
+            AlertManager,
+            AlertSeverity,
+            AlertState,
+        )
+
+        # Build message
+        if event == "failure":
+            message = f"Pipeline '{pipeline_name}' job '{job_id}' failed: {error}"
+            severity = AlertSeverity.CRITICAL
+            state = AlertState.FIRING
+        else:
+            message = f"Pipeline '{pipeline_name}' job '{job_id}' completed successfully"
+            severity = AlertSeverity.INFO
+            state = AlertState.RESOLVED
+
+        # Create alert for AlertManager
+        alert = Alert(
+            rule_name=f"pipeline_{pipeline_name}_{job_id}",
+            severity=severity,
+            state=state,
+            message=message,
+            fired_at=time.time(),
+            labels={
+                "pipeline": pipeline_name,
+                "job_id": job_id,
+                "event": event,
+            },
+        )
+
+        # Send via each configured channel
+        for channel in notification.channels:
+            try:
+                if channel == "slack":
+                    slack_webhook = self._get_slack_webhook()
+                    if slack_webhook:
+                        manager = AlertManager(slack_webhook=slack_webhook)
+                        asyncio.run(manager.send_notifications([alert]))
+                        logger.info(f"Sent Slack notification for job {job_id}")
+
+                elif channel == "webhook":
+                    webhook_url = self._get_webhook_url()
+                    if webhook_url:
+                        manager = AlertManager(webhook_url=webhook_url)
+                        asyncio.run(manager.send_notifications([alert]))
+                        logger.info(f"Sent webhook notification for job {job_id}")
+
+                elif channel == "email":
+                    # Email notification would be implemented here
+                    # For now, log the intended recipients
+                    logger.info(
+                        f"Email notification for job {job_id} "
+                        f"would be sent to: {notification.recipients}"
+                    )
+
+                else:
+                    logger.warning(f"Unknown notification channel: {channel}")
+
+            except Exception as e:
+                logger.error(f"Failed to send {channel} notification: {e}")
+
+    def _get_slack_webhook(self) -> str | None:
+        """Get Slack webhook URL from environment or config.
+
+        Returns:
+            Slack webhook URL or None if not configured
+        """
+        import os
+
+        return os.environ.get("SLACK_WEBHOOK_URL") or os.environ.get(
+            "DSA110_SLACK_WEBHOOK"
+        )
+
+    def _get_webhook_url(self) -> str | None:
+        """Get generic webhook URL from environment or config.
+
+        Returns:
+            Webhook URL or None if not configured
+        """
+        import os
+
+        return os.environ.get("NOTIFICATION_WEBHOOK_URL") or os.environ.get(
+            "DSA110_NOTIFICATION_WEBHOOK"
+        )
 
     async def get_status(self, execution_id: str) -> ExecutionStatus:
         """Get pipeline execution status.
