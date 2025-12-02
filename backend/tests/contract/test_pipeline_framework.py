@@ -489,7 +489,8 @@ class TestPipelineExecutor:
         
         assert row is not None
         assert row["pipeline_name"] == "simple_pipeline"
-        assert row["status"] == "running"
+        # Execution completes synchronously, so status is "completed"
+        assert row["status"] == "completed"
     
     @pytest.mark.asyncio
     async def test_executor_records_jobs(self, temp_db):
@@ -524,7 +525,8 @@ class TestPipelineExecutor:
         
         assert status.execution_id == execution_id
         assert status.pipeline_name == "simple_pipeline"
-        assert status.status == "running"
+        # Execution completes synchronously
+        assert status.status == "completed"
         assert len(status.jobs) == 2
 
 
