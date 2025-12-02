@@ -44,6 +44,8 @@ describe("provenanceMappers", () => {
       const image: ImageDetailResponse = {
         id: "img-minimal",
         path: "/data/images/minimal.fits",
+        qa_grade: "good",
+        created_at: "2025-01-15T10:30:00Z",
       };
 
       const result = mapProvenanceFromImageDetail(image);
