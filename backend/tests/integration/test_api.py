@@ -58,7 +58,7 @@ class TestHealthEndpoint:
     
     def test_health_returns_ok(self, test_client):
         """Health endpoint should return healthy status."""
-        response = test_client.get("/api/health")
+        response = test_client.get("/api/v1/health")
         
         assert response.status_code == 200
         data = response.json()
@@ -67,7 +67,7 @@ class TestHealthEndpoint:
     
     def test_health_has_service_name(self, test_client):
         """Health response should include service name."""
-        response = test_client.get("/api/health")
+        response = test_client.get("/api/v1/health")
         
         data = response.json()
         assert "service" in data
@@ -79,7 +79,7 @@ class TestImagesEndpoint:
     
     def test_list_images_returns_list(self, test_client):
         """GET /images should return a list."""
-        response = test_client.get("/api/images")
+        response = test_client.get("/api/v1/images")
         
         assert response.status_code == 200
         data = response.json()
@@ -88,7 +88,7 @@ class TestImagesEndpoint:
     def test_list_images_with_pagination(self, test_client):
         """GET /images should support pagination."""
         response = test_client.get(
-            "/api/images",
+            "/api/v1/images",
             params={"limit": 5, "offset": 0}
         )
         
@@ -98,7 +98,7 @@ class TestImagesEndpoint:
     
     def test_get_nonexistent_image(self, test_client):
         """GET /images/{id} should return 404 for missing image."""
-        response = test_client.get("/api/images/nonexistent_image_id")
+        response = test_client.get("/api/v1/images/nonexistent_image_id")
         
         assert response.status_code == 404
 
@@ -108,7 +108,7 @@ class TestSourcesEndpoint:
     
     def test_list_sources_returns_list(self, test_client):
         """GET /sources should return a list."""
-        response = test_client.get("/api/sources")
+        response = test_client.get("/api/v1/sources")
         
         assert response.status_code == 200
         data = response.json()
@@ -116,7 +116,7 @@ class TestSourcesEndpoint:
     
     def test_get_nonexistent_source(self, test_client):
         """GET /sources/{id} should return 404 for missing source."""
-        response = test_client.get("/api/sources/nonexistent_source_id")
+        response = test_client.get("/api/v1/sources/nonexistent_source_id")
         
         assert response.status_code == 404
 
@@ -126,7 +126,7 @@ class TestJobsEndpoint:
     
     def test_list_jobs_returns_list(self, test_client):
         """GET /jobs should return a list."""
-        response = test_client.get("/api/jobs")
+        response = test_client.get("/api/v1/jobs")
         
         assert response.status_code == 200
         data = response.json()
@@ -134,13 +134,13 @@ class TestJobsEndpoint:
     
     def test_get_nonexistent_job(self, test_client):
         """GET /jobs/{id} should return 404 for missing job."""
-        response = test_client.get("/api/jobs/nonexistent_run_id")
+        response = test_client.get("/api/v1/jobs/nonexistent_run_id")
         
         assert response.status_code == 404
     
     def test_rerun_job_requires_auth(self, test_client):
         """POST /jobs/{id}/rerun should require authentication."""
-        response = test_client.post("/api/jobs/some_run_id/rerun")
+        response = test_client.post("/api/v1/jobs/some_run_id/rerun")
         
         # Should get 401 without auth header
         assert response.status_code == 401
@@ -151,7 +151,7 @@ class TestQueueEndpoint:
     
     def test_queue_stats(self, test_client):
         """GET /queue should return queue stats."""
-        response = test_client.get("/api/queue")
+        response = test_client.get("/api/v1/queue")
         
         assert response.status_code == 200
         data = response.json()
@@ -160,7 +160,7 @@ class TestQueueEndpoint:
     
     def test_list_queued_jobs(self, test_client):
         """GET /queue/jobs should return job list."""
-        response = test_client.get("/api/queue/jobs")
+        response = test_client.get("/api/v1/queue/jobs")
         
         assert response.status_code == 200
         data = response.json()
@@ -168,7 +168,7 @@ class TestQueueEndpoint:
     
     def test_queue_job_not_found(self, test_client):
         """GET /queue/jobs/{id} should return 404 for missing job."""
-        response = test_client.get("/api/queue/jobs/nonexistent_job")
+        response = test_client.get("/api/v1/queue/jobs/nonexistent_job")
         
         assert response.status_code == 404
 
@@ -178,7 +178,7 @@ class TestCacheEndpoint:
     
     def test_cache_stats(self, test_client):
         """GET /cache should return cache stats."""
-        response = test_client.get("/api/cache")
+        response = test_client.get("/api/v1/cache")
         
         assert response.status_code == 200
         data = response.json()
@@ -186,13 +186,13 @@ class TestCacheEndpoint:
     
     def test_cache_invalidate_requires_auth(self, test_client):
         """POST /cache/invalidate requires auth."""
-        response = test_client.post("/api/cache/invalidate/test")
+        response = test_client.post("/api/v1/cache/invalidate/test")
         
         assert response.status_code == 401
     
     def test_cache_clear_requires_auth(self, test_client):
         """POST /cache/clear requires auth."""
-        response = test_client.post("/api/cache/clear")
+        response = test_client.post("/api/v1/cache/clear")
         
         assert response.status_code == 401
 
@@ -204,7 +204,7 @@ class TestCORSHeaders:
         """API should include CORS headers."""
         # Test that CORS headers are present on a regular GET request
         response = test_client.get(
-            "/api/health",
+            "/api/v1/health",
             headers={"Origin": "http://localhost:3000"}
         )
         
@@ -220,7 +220,7 @@ class TestStatsEndpoint:
     
     def test_stats_returns_data(self, test_client):
         """GET /stats should return statistics."""
-        response = test_client.get("/api/stats")
+        response = test_client.get("/api/v1/stats")
         
         assert response.status_code == 200
         data = response.json()

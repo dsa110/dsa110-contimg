@@ -12,8 +12,9 @@ import sys
 import time
 from pathlib import Path
 
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src" / "dsa110_contimg" / "src"))
+# Add backend/src to path
+REPO_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(REPO_ROOT / "backend" / "src"))
 
 from dsa110_contimg.catalog.blacklist_sources import run_full_blacklist_update
 from dsa110_contimg.catalog.calibrator_registry import (

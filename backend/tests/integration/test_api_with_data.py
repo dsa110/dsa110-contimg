@@ -66,8 +66,8 @@ class TestImagesWithData:
     """Test image endpoints with database data."""
     
     def test_list_images_returns_data(self, client_with_data):
-        """GET /api/images should return sample images."""
-        response = client_with_data.get("/api/images")
+        """GET /api/v1/images should return sample images."""
+        response = client_with_data.get("/api/v1/images")
         
         assert response.status_code == 200
         data = response.json()
@@ -78,12 +78,12 @@ class TestImagesWithData:
     def test_list_images_pagination(self, client_with_data):
         """Pagination should work correctly."""
         # Get first 2 images
-        response = client_with_data.get("/api/images", params={"limit": 2, "offset": 0})
+        response = client_with_data.get("/api/v1/images", params={"limit": 2, "offset": 0})
         assert response.status_code == 200
         first_page = response.json()
         
         # Get next 2 images
-        response = client_with_data.get("/api/images", params={"limit": 2, "offset": 2})
+        response = client_with_data.get("/api/v1/images", params={"limit": 2, "offset": 2})
         assert response.status_code == 200
         second_page = response.json()
         
@@ -98,8 +98,8 @@ class TestSourcesWithData:
     """Test source endpoints with database data."""
     
     def test_list_sources_returns_data(self, client_with_data):
-        """GET /api/sources should return sample sources."""
-        response = client_with_data.get("/api/sources")
+        """GET /api/v1/sources should return sample sources."""
+        response = client_with_data.get("/api/v1/sources")
         
         assert response.status_code == 200
         data = response.json()
@@ -110,8 +110,8 @@ class TestJobsWithData:
     """Test job endpoints with database data."""
     
     def test_list_jobs_returns_data(self, client_with_data):
-        """GET /api/jobs should return sample jobs."""
-        response = client_with_data.get("/api/jobs")
+        """GET /api/v1/jobs should return sample jobs."""
+        response = client_with_data.get("/api/v1/jobs")
         
         assert response.status_code == 200
         data = response.json()
@@ -149,13 +149,13 @@ class TestCalWithData:
                         yield TestClient(app), cal_tables
     
     def test_get_cal_table_found(self, cal_client):
-        """GET /api/cal/{path} should return cal table details."""
+        """GET /api/v1/cal/{path} should return cal table details."""
         client, cal_tables = cal_client
         
         # URL-encode the path (replace / with %2F)
         test_path = cal_tables[0].path
         # The path is used directly in the URL
-        response = client.get(f"/api/cal{test_path}")
+        response = client.get(f"/api/v1/cal{test_path}")
         
         # May return 200 if found, or 404 if path handling differs
         # The important thing is no 500 errors
@@ -166,8 +166,8 @@ class TestStatsWithData:
     """Test stats endpoints with database data."""
     
     def test_get_stats_returns_summary(self, client_with_data):
-        """GET /api/stats should return dashboard statistics."""
-        response = client_with_data.get("/api/stats")
+        """GET /api/v1/stats should return dashboard statistics."""
+        response = client_with_data.get("/api/v1/stats")
         
         assert response.status_code == 200
         data = response.json()
@@ -179,7 +179,7 @@ class TestHealthCheck:
     
     def test_health_always_works(self, client_with_data):
         """Health endpoint should work regardless of database state."""
-        response = client_with_data.get("/api/health")
+        response = client_with_data.get("/api/v1/health")
         
         assert response.status_code == 200
         data = response.json()
@@ -193,9 +193,9 @@ class TestErrorHandling:
         """Non-existent resources should return 404."""
         # Test various endpoints
         endpoints = [
-            "/api/images/nonexistent_id_12345",
-            "/api/sources/nonexistent_source",
-            "/api/jobs/nonexistent_run",
+            "/api/v1/images/nonexistent_id_12345",
+            "/api/v1/sources/nonexistent_source",
+            "/api/v1/jobs/nonexistent_run",
         ]
         
         for endpoint in endpoints:
@@ -209,13 +209,13 @@ class TestErrorHandling:
         # A stricter API would return 422 for negative limit/offset.
         
         # Test with negative limit - API may return 200 (with empty results) or 422
-        response = client_with_data.get("/api/images", params={"limit": -1})
+        response = client_with_data.get("/api/v1/images", params={"limit": -1})
         assert response.status_code in (200, 422)
         
         # Test with negative offset - API may return 200 or 422
-        response = client_with_data.get("/api/images", params={"offset": -1})
+        response = client_with_data.get("/api/v1/images", params={"offset": -1})
         assert response.status_code in (200, 422)
         
         # Test with excessively large limit - should return 422 due to le=1000 constraint
-        response = client_with_data.get("/api/images", params={"limit": 10000})
+        response = client_with_data.get("/api/v1/images", params={"limit": 10000})
         assert response.status_code == 422
