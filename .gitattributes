@@ -46,3 +46,23 @@
 *.7z binary
 *.bz2 binary
 *.rar binary
+
+# Hide tracked dot files
+.cursor linguist-hidden=true
+.husky linguist-hidden=true
+.vscode linguist-hidden=true
+.idea linguist-hidden=true
+.env linguist-hidden=true
+.env.* linguist-hidden=true
+*.env linguist-hidden=true
+*.env.* linguist-hidden=true
+*.log linguist-generated=true
+.ai linguist-hidden=true
+.azure linguist-hidden=true
+.codacy linguist-hidden=true
+.codacy.yml linguist-hidden=true
+.cache linguist-hidden=true
+.codeql linguist-hidden=true
+.pytest_cache linguist-hidden=true
+.windsurf linguist-hidden=true
+.local linguist-hidden=true
