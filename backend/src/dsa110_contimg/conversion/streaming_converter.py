@@ -80,12 +80,8 @@ import casacore.tables as casatables  # noqa
 table = casatables.table  # noqa: N816
 from casatasks import concat as casa_concat  # noqa
 
-from dsa110_contimg.calibration.applycal import apply_to_target  # noqa
-from dsa110_contimg.calibration.calibration import solve_bandpass  # noqa
-from dsa110_contimg.calibration.calibration import (
-    solve_delay,
-    solve_gains,
-)
+# NOTE: calibration.applycal and calibration.calibration imports are done lazily
+# inside functions to avoid circular imports (calibration -> conversion -> streaming_converter)
 from dsa110_contimg.calibration.streaming import has_calibrator  # noqa
 from dsa110_contimg.calibration.streaming import (
     solve_calibration_for_ms,
