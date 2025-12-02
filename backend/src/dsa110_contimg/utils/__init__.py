@@ -75,6 +75,14 @@ from dsa110_contimg.utils.fast_meta import (
     peek_uvh5_phase_and_midtime,
 )
 
+# Import timing decorators
+from dsa110_contimg.utils.decorators import (
+    timed,
+    timed_context,
+    timed_debug,
+    timed_verbose,
+)
+
 __all__ = [
     # Exceptions
     "PipelineError",
@@ -119,4 +127,9 @@ __all__ = [
     "get_uvh5_freqs",
     "get_uvh5_basic_info",
     "peek_uvh5_phase_and_midtime",
+    # Timing decorators
+    "timed",
+    "timed_context",
+    "timed_debug",
+    "timed_verbose",
 ]
