@@ -59,8 +59,9 @@ import os
 import sqlite3
 import time
 from contextlib import contextmanager
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Optional, Union
+from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple, Union
 
 # Default database path
 DEFAULT_PIPELINE_DB = "/data/dsa110-contimg/state/db/pipeline.sqlite3"
@@ -762,3 +763,562 @@ def log_pointing(
         (timestamp_mjd, ra_deg, dec_deg),
     )
     conn.commit()
+
+
+# =============================================================================
+# Calibration Registry Functions (migrated from registry.py)
+# =============================================================================
+
+# Default calibration table apply order
+DEFAULT_CALTABLE_ORDER = [
+    ("K", 10),    # delays
+    ("BA", 20),   # bandpass amplitude
+    ("BP", 30),   # bandpass phase
+    ("GA", 40),   # gain amplitude
+    ("GP", 50),   # gain phase
+    ("2G", 60),   # short-timescale ap gains (optional)
+    ("FLUX", 70), # fluxscale table (optional)
+]
+
+
+@dataclass
+class CalTableRow:
+    """Calibration table row for registration."""
+    set_name: str
+    path: str
+    table_type: str
+    order_index: int
+    cal_field: Optional[str]
+    refant: Optional[str]
+    valid_start_mjd: Optional[float]
+    valid_end_mjd: Optional[float]
+    status: str = "active"
+    notes: Optional[str] = None
+    source_ms_path: Optional[str] = None
+    solver_command: Optional[str] = None
+    solver_version: Optional[str] = None
+    solver_params: Optional[Dict[str, Any]] = None
+    quality_metrics: Optional[Dict[str, Any]] = None
+
+
+def ensure_db(path: Path) -> sqlite3.Connection:
+    """Ensure calibration database exists with current schema.
+    
+    This function creates the caltables table if it doesn't exist and
+    handles schema migrations for backwards compatibility.
+    
+    Args:
+        path: Path to database file
+        
+    Returns:
+        sqlite3.Connection to the database
+    """
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(str(path))
+
+    # Create table with current schema
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS caltables (
+            id INTEGER PRIMARY KEY,
+            set_name TEXT NOT NULL,
+            path TEXT NOT NULL UNIQUE,
+            table_type TEXT NOT NULL,
+            order_index INTEGER NOT NULL,
+            cal_field TEXT,
+            refant TEXT,
+            created_at REAL NOT NULL,
+            valid_start_mjd REAL,
+            valid_end_mjd REAL,
+            status TEXT NOT NULL,
+            notes TEXT,
+            source_ms_path TEXT,
+            solver_command TEXT,
+            solver_version TEXT,
+            solver_params TEXT,
+            quality_metrics TEXT
+        )
+        """
+    )
+
+    # Migrate existing databases by adding new columns if they don't exist
+    _migrate_caltables_schema(conn)
+
+    # Create indexes
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_caltables_set ON caltables(set_name)")
+    conn.execute(
+        "CREATE INDEX IF NOT EXISTS idx_caltables_valid "
+        "ON caltables(valid_start_mjd, valid_end_mjd)"
+    )
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_caltables_source ON caltables(source_ms_path)")
+    conn.commit()
+    return conn
+
+
+def _migrate_caltables_schema(conn: sqlite3.Connection) -> None:
+    """Migrate existing database schema to add provenance columns."""
+    cursor = conn.cursor()
+
+    # Get existing columns
+    cursor.execute("PRAGMA table_info(caltables)")
+    existing_columns = {row[1] for row in cursor.fetchall()}
+
+    # Add missing provenance columns
+    new_columns = [
+        ("source_ms_path", "TEXT"),
+        ("solver_command", "TEXT"),
+        ("solver_version", "TEXT"),
+        ("solver_params", "TEXT"),
+        ("quality_metrics", "TEXT"),
+    ]
+
+    for col_name, col_type in new_columns:
+        if col_name not in existing_columns:
+            try:
+                conn.execute(f"ALTER TABLE caltables ADD COLUMN {col_name} {col_type}")
+            except sqlite3.OperationalError as e:
+                # Column might already exist from concurrent migration
+                if "duplicate column" not in str(e).lower():
+                    raise
+
+    conn.commit()
+
+
+def _detect_type_from_filename(path: Path) -> Optional[str]:
+    """Detect calibration table type from filename suffix."""
+    name = path.name.lower()
+    if name.endswith("_kcal"):
+        return "K"
+    if name.endswith("_2kcal"):
+        return "K"
+    if name.endswith("_bacal"):
+        return "BA"
+    if name.endswith("_bpcal"):
+        return "BP"
+    if name.endswith("_gacal"):
+        return "GA"
+    if name.endswith("_gpcal"):
+        return "GP"
+    if name.endswith("_2gcal"):
+        return "2G"
+    if name.endswith("_flux.cal") or name.endswith("_fluxcal"):
+        return "FLUX"
+    return None
+
+
+def register_caltable_set(
+    db_path: Path,
+    set_name: str,
+    rows: "Sequence[CalTableRow]",
+    *,
+    upsert: bool = True,
+) -> None:
+    """Register a set of calibration tables.
+    
+    Args:
+        db_path: Path to calibration registry database
+        set_name: Logical name for this calibration set
+        rows: Sequence of CalTableRow objects to register
+        upsert: If True, replace existing entries; if False, ignore duplicates
+    """
+    import json
+    
+    conn = ensure_db(db_path)
+    now = time.time()
+    with conn:
+        for r in rows:
+            solver_params_json = json.dumps(r.solver_params) if r.solver_params else None
+            quality_metrics_json = json.dumps(r.quality_metrics) if r.quality_metrics else None
+
+            if upsert:
+                conn.execute(
+                    """
+                    INSERT OR REPLACE INTO caltables(
+                        set_name, path, table_type, order_index, cal_field, refant,
+                        created_at, valid_start_mjd, valid_end_mjd, status, notes,
+                        source_ms_path, solver_command, solver_version, solver_params,
+                        quality_metrics
+                    )
+                    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                    """,
+                    (
+                        r.set_name, os.fspath(r.path), r.table_type, int(r.order_index),
+                        r.cal_field, r.refant, now, r.valid_start_mjd, r.valid_end_mjd,
+                        r.status, r.notes, r.source_ms_path, r.solver_command,
+                        r.solver_version, solver_params_json, quality_metrics_json,
+                    ),
+                )
+            else:
+                conn.execute(
+                    """
+                    INSERT OR IGNORE INTO caltables(
+                        set_name, path, table_type, order_index, cal_field, refant,
+                        created_at, valid_start_mjd, valid_end_mjd, status, notes,
+                        source_ms_path, solver_command, solver_version, solver_params,
+                        quality_metrics
+                    )
+                    VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+                    """,
+                    (
+                        r.set_name, os.fspath(r.path), r.table_type, int(r.order_index),
+                        r.cal_field, r.refant, now, r.valid_start_mjd, r.valid_end_mjd,
+                        r.status, r.notes, r.source_ms_path, r.solver_command,
+                        r.solver_version, solver_params_json, quality_metrics_json,
+                    ),
+                )
+
+
+def register_caltable_set_from_prefix(
+    db_path: Path,
+    set_name: str,
+    prefix: Path,
+    *,
+    cal_field: Optional[str],
+    refant: Optional[str],
+    valid_start_mjd: Optional[float],
+    valid_end_mjd: Optional[float],
+    status: str = "active",
+) -> List[CalTableRow]:
+    """Register calibration tables found with a common prefix.
+
+    Example: prefix="/data/ms/calpass_J1234+5678" will find files named
+    calpass_J1234+5678_kcal, _bacal, _bpcal, _gacal, _gpcal, etc.
+    
+    Args:
+        db_path: Path to calibration registry database
+        set_name: Logical name for this calibration set
+        prefix: Filesystem prefix for calibration tables
+        cal_field: Field used for calibration solve
+        refant: Reference antenna used
+        valid_start_mjd: Start of validity window (MJD)
+        valid_end_mjd: End of validity window (MJD)
+        status: Status for registered tables (default: "active")
+        
+    Returns:
+        List of CalTableRow objects that were registered
+    """
+    parent = prefix.parent
+    base = prefix.name
+    found: List[Tuple[str, Path]] = []
+    for p in parent.glob(base + "*"):
+        if not p.is_dir():
+            continue
+        t = _detect_type_from_filename(p)
+        if t is None:
+            continue
+        found.append((t, p))
+
+    # Determine apply order using DEFAULT_CALTABLE_ORDER
+    order_map = {t: oi for t, oi in DEFAULT_CALTABLE_ORDER}
+    rows: List[CalTableRow] = []
+    extras: List[Tuple[str, Path]] = []
+    
+    for t, p in found:
+        if t in order_map:
+            oi = order_map[t]
+        else:
+            extras.append((t, p))
+            continue
+        rows.append(
+            CalTableRow(
+                set_name=set_name,
+                path=str(p),
+                table_type=t,
+                order_index=oi,
+                cal_field=cal_field,
+                refant=refant,
+                valid_start_mjd=valid_start_mjd,
+                valid_end_mjd=valid_end_mjd,
+                status=status,
+                notes=None,
+            )
+        )
+
+    # Append extras at the end in alpha order
+    start_idx = max([oi for _, oi in DEFAULT_CALTABLE_ORDER] + [60]) + 10
+    for i, (t, p) in enumerate(sorted(extras)):
+        rows.append(
+            CalTableRow(
+                set_name=set_name,
+                path=str(p),
+                table_type=t,
+                order_index=start_idx + 10 * i,
+                cal_field=cal_field,
+                refant=refant,
+                valid_start_mjd=valid_start_mjd,
+                valid_end_mjd=valid_end_mjd,
+                status=status,
+                notes=None,
+            )
+        )
+
+    if rows:
+        register_caltable_set(db_path, set_name, rows, upsert=True)
+    return rows
+
+
+def retire_caltable_set(db_path: Path, set_name: str, *, reason: Optional[str] = None) -> None:
+    """Retire a calibration set (mark as inactive).
+    
+    Args:
+        db_path: Path to calibration registry database
+        set_name: Name of set to retire
+        reason: Optional reason for retirement (appended to notes)
+    """
+    conn = ensure_db(db_path)
+    with conn:
+        conn.execute(
+            "UPDATE caltables SET status = 'retired', "
+            "notes = COALESCE(notes,'') || ? WHERE set_name = ?",
+            (f" Retired: {reason or ''}", set_name),
+        )
+
+
+def list_caltable_sets(db_path: Path) -> List[tuple]:
+    """List all calibration sets with summary info.
+    
+    Args:
+        db_path: Path to calibration registry database
+        
+    Returns:
+        List of (set_name, total_count, active_count, min_order) tuples
+    """
+    conn = ensure_db(db_path)
+    cur = conn.execute(
+        """
+        SELECT set_name,
+               COUNT(*) AS nrows,
+               SUM(CASE WHEN status = 'active' THEN 1 ELSE 0 END) AS n_active,
+               MIN(order_index) AS min_order
+          FROM caltables
+      GROUP BY set_name
+      ORDER BY MAX(created_at) DESC
+        """
+    )
+    return [(r[0], r[1], r[2], r[3]) for r in cur.fetchall()]
+
+
+def get_active_applylist(
+    db_path: Path, 
+    mjd: float, 
+    set_name: Optional[str] = None
+) -> List[str]:
+    """Return ordered list of active calibration tables applicable to MJD.
+
+    When set_name is provided, restrict to that group; otherwise choose among
+    active sets whose validity window includes mjd. If multiple sets match,
+    pick the most recently created set.
+
+    Args:
+        db_path: Path to calibration registry database
+        mjd: Modified Julian Date to find applicable tables for
+        set_name: Optional specific set name to query
+        
+    Returns:
+        Ordered list of calibration table paths (by apply order)
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+
+    conn = ensure_db(db_path)
+    
+    if set_name:
+        rows = conn.execute(
+            """
+            SELECT path FROM caltables
+             WHERE set_name = ? AND status = 'active'
+             ORDER BY order_index ASC
+            """,
+            (set_name,),
+        ).fetchall()
+        return [r[0] for r in rows]
+
+    # Select all sets that cover mjd
+    all_matching_sets = conn.execute(
+        """
+        SELECT DISTINCT set_name, MAX(created_at) AS t
+          FROM caltables
+         WHERE status = 'active'
+           AND (valid_start_mjd IS NULL OR valid_start_mjd <= ?)
+           AND (valid_end_mjd   IS NULL OR valid_end_mjd   >= ?)
+      GROUP BY set_name
+      ORDER BY t DESC
+        """,
+        (mjd, mjd),
+    ).fetchall()
+
+    if not all_matching_sets:
+        return []
+
+    # If multiple sets match, check compatibility and warn
+    if len(all_matching_sets) > 1:
+        set_metadata = {}
+        for set_name_row, _ in all_matching_sets:
+            rows = conn.execute(
+                """
+                SELECT DISTINCT cal_field, refant
+                  FROM caltables
+                 WHERE set_name = ? AND status = 'active'
+                 LIMIT 1
+                """,
+                (set_name_row,),
+            ).fetchone()
+            if rows:
+                set_metadata[set_name_row] = {"cal_field": rows[0], "refant": rows[1]}
+
+        set_names = [s[0] for s in all_matching_sets]
+        newest_set = set_names[0]
+        newest_metadata = set_metadata.get(newest_set, {})
+
+        for other_set in set_names[1:]:
+            other_metadata = set_metadata.get(other_set, {})
+            if (newest_metadata.get("refant") and other_metadata.get("refant") and
+                newest_metadata["refant"] != other_metadata["refant"]):
+                logger.warning(
+                    f"Overlapping calibration sets have different reference antennas: "
+                    f"'{newest_set}' uses refant={newest_metadata['refant']}, "
+                    f"'{other_set}' uses refant={other_metadata['refant']}. "
+                    f"Selecting newest set '{newest_set}'."
+                )
+            if (newest_metadata.get("cal_field") and other_metadata.get("cal_field") and
+                newest_metadata["cal_field"] != other_metadata["cal_field"]):
+                logger.warning(
+                    f"Overlapping calibration sets have different calibration fields: "
+                    f"'{newest_set}' uses field={newest_metadata['cal_field']}, "
+                    f"'{other_set}' uses field={other_metadata['cal_field']}. "
+                    f"Selecting newest set '{newest_set}'."
+                )
+
+    # Select winner set by created_at (most recent)
+    chosen = all_matching_sets[0][0]
+    out = conn.execute(
+        "SELECT path FROM caltables WHERE set_name = ? AND status='active' ORDER BY order_index ASC",
+        (chosen,),
+    ).fetchall()
+    return [r[0] for r in out]
+
+
+def register_and_verify_caltables(
+    registry_db: Path,
+    set_name: str,
+    table_prefix: Path,
+    *,
+    cal_field: Optional[str],
+    refant: Optional[str],
+    valid_start_mjd: Optional[float],
+    valid_end_mjd: Optional[float],
+    mid_mjd: Optional[float] = None,
+    status: str = "active",
+    verify_discoverable: bool = True,
+) -> List[str]:
+    """Register calibration tables and verify they are discoverable.
+
+    This is a robust wrapper around register_caltable_set_from_prefix that:
+    1. Registers tables (idempotent via upsert)
+    2. Verifies tables are discoverable after registration
+    3. Returns list of registered table paths
+
+    Args:
+        registry_db: Path to calibration registry database
+        set_name: Logical calibration set name
+        table_prefix: Filesystem prefix for calibration tables
+        cal_field: Field used for calibration solve
+        refant: Reference antenna used
+        valid_start_mjd: Start of validity window (MJD)
+        valid_end_mjd: End of validity window (MJD)
+        mid_mjd: Optional MJD midpoint for verification
+        status: Status for registered tables (default: "active")
+        verify_discoverable: Whether to verify tables are discoverable
+
+    Returns:
+        List of registered calibration table paths (ordered by apply order)
+
+    Raises:
+        RuntimeError: If registration fails or tables are not discoverable
+        ValueError: If no tables found with prefix
+    """
+    import logging
+    logger = logging.getLogger(__name__)
+
+    # Ensure registry DB exists
+    ensure_db(registry_db)
+
+    # Register tables
+    try:
+        registered_rows = register_caltable_set_from_prefix(
+            registry_db, set_name, table_prefix,
+            cal_field=cal_field, refant=refant,
+            valid_start_mjd=valid_start_mjd, valid_end_mjd=valid_end_mjd,
+            status=status,
+        )
+    except Exception as e:
+        error_msg = f"Failed to register calibration tables with prefix {table_prefix}: {e}"
+        logger.error(error_msg, exc_info=True)
+        raise RuntimeError(error_msg) from e
+
+    if not registered_rows:
+        error_msg = f"No calibration tables found with prefix {table_prefix}."
+        logger.error(error_msg)
+        raise ValueError(error_msg)
+
+    registered_paths = [row.path for row in registered_rows]
+    logger.info("Registered %d calibration tables in set '%s'", len(registered_paths), set_name)
+
+    # Verify tables are discoverable if requested
+    if verify_discoverable:
+        try:
+            if mid_mjd is None:
+                if valid_start_mjd is not None and valid_end_mjd is not None:
+                    mid_mjd = (valid_start_mjd + valid_end_mjd) / 2.0
+                else:
+                    from astropy.time import Time
+                    mid_mjd = Time.now().mjd
+                    logger.warning("Using current time (%.6f) for verification", mid_mjd)
+
+            discovered = get_active_applylist(registry_db, mid_mjd, set_name=set_name)
+
+            if not discovered:
+                error_msg = (
+                    f"Registered tables not discoverable: get_active_applylist "
+                    f"returned empty for set '{set_name}' at MJD {mid_mjd:.6f}"
+                )
+                logger.error(error_msg)
+                raise RuntimeError(error_msg)
+
+            discovered_set = set(discovered)
+            registered_set = set(registered_paths)
+            missing = registered_set - discovered_set
+            if missing:
+                error_msg = f"Some registered tables are not discoverable: {missing}"
+                logger.error(error_msg)
+                raise RuntimeError(error_msg)
+
+            missing_files = [p for p in discovered if not Path(p).exists()]
+            if missing_files:
+                error_msg = f"Discovered tables do not exist on filesystem: {missing_files}"
+                logger.error(error_msg)
+                raise RuntimeError(error_msg)
+
+            logger.info("Verified %d calibration tables are discoverable", len(discovered))
+
+        except Exception as e:
+            try:
+                retire_caltable_set(registry_db, set_name, reason=f"Verification failed: {e}")
+                logger.warning("Retired set '%s' due to verification failure", set_name)
+            except Exception as rollback_error:
+                logger.error(f"Failed to rollback: {rollback_error}", exc_info=True)
+            
+            error_msg = f"Calibration tables registered but not discoverable: {e}"
+            logger.error(error_msg, exc_info=True)
+            raise RuntimeError(error_msg) from e
+
+    return registered_paths
+
+
+# Legacy aliases for backward compatibility with registry.py imports
+register_set = register_caltable_set
+register_set_from_prefix = register_caltable_set_from_prefix
+retire_set = retire_caltable_set
+list_sets = list_caltable_sets
+DEFAULT_ORDER = DEFAULT_CALTABLE_ORDER

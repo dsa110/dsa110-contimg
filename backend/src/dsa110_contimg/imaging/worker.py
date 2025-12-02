@@ -20,8 +20,8 @@ from dsa110_contimg.database import (
     ensure_products_db,
     images_insert,
     ms_index_upsert,
+    get_active_applylist,
 )
-from dsa110_contimg.database.registry import get_active_applylist
 from dsa110_contimg.imaging.fast_imaging import run_fast_imaging
 
 logger = logging.getLogger("imaging_worker")

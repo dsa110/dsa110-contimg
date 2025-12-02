@@ -60,7 +60,7 @@ def track_calibration_provenance(
         solver_command: Optional full CASA command executed
         solver_version: Optional CASA version used
     """
-    from dsa110_contimg.database.registry import ensure_db
+    from .unified import ensure_db
 
     conn = ensure_db(registry_db)
 
@@ -113,7 +113,7 @@ def query_caltables_by_source(registry_db: Path, ms_path: str) -> List[CalTable]
     Returns:
         List of CalTable objects matching the source MS path
     """
-    from dsa110_contimg.database.registry import ensure_db
+    from .unified import ensure_db
 
     conn = ensure_db(registry_db)
 
@@ -179,7 +179,7 @@ def impact_analysis(registry_db: Path, caltable_paths: List[str]) -> List[str]:
     Returns:
         List of MS paths that may be affected by changes to these calibration tables
     """
-    from dsa110_contimg.database.registry import ensure_db
+    from .unified import ensure_db
 
     conn = ensure_db(registry_db)
 
@@ -212,7 +212,7 @@ def get_caltable_provenance(registry_db: Path, caltable_path: str) -> Optional[C
     Returns:
         CalTable object with provenance, or None if not found
     """
-    from dsa110_contimg.database.registry import ensure_db
+    from .unified import ensure_db
 
     conn = ensure_db(registry_db)
 

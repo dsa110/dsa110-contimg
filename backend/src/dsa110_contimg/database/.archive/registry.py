@@ -1,4 +1,35 @@
 """
+DEPRECATED: This module has been archived as part of complexity reduction.
+
+All functions have been migrated to `dsa110_contimg.database.unified`.
+
+Migration date: 2025-06-27
+Reason: Consolidating calibration registry functions into unified database layer
+
+Use imports from:
+    from dsa110_contimg.database import (
+        CalTableRow,
+        DEFAULT_CALTABLE_ORDER,
+        ensure_db,
+        register_caltable_set,
+        register_caltable_set_from_prefix,
+        retire_caltable_set,
+        list_caltable_sets,
+        get_active_applylist,
+        register_and_verify_caltables,
+    )
+
+Legacy aliases still work:
+    - register_set -> register_caltable_set
+    - register_set_from_prefix -> register_caltable_set_from_prefix
+    - retire_set -> retire_caltable_set
+    - list_sets -> list_caltable_sets
+    - DEFAULT_ORDER -> DEFAULT_CALTABLE_ORDER
+
+================================================================================
+ORIGINAL DOCSTRING BELOW
+================================================================================
+
 Calibration registry database for continuum imaging pipeline.
 
 This module manages calibration table metadata in the unified pipeline

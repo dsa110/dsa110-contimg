@@ -1171,7 +1171,7 @@ class CalibrationSolveStage(PipelineStage):
         registry_db = context.config.paths.pipeline_db
 
         try:
-            from dsa110_contimg.database.registry import register_and_verify_caltables
+            from dsa110_contimg.database import register_and_verify_caltables
             from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
             # Extract time range from MS for validity window
@@ -1422,7 +1422,7 @@ class CalibrationStage(PipelineStage):
         from pathlib import Path
 
         from dsa110_contimg.calibration.applycal import apply_to_target
-        from dsa110_contimg.database.registry import get_active_applylist
+        from dsa110_contimg.database import get_active_applylist
         from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
         ms_path = context.outputs["ms_path"]

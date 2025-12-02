@@ -33,7 +33,7 @@ from datetime import datetime  # noqa: E402
 from pathlib import Path  # noqa: E402
 from typing import Dict, Iterator, List, Optional, Tuple  # noqa: E402
 
-from dsa110_contimg.database.registry import (  # noqa: E402
+from dsa110_contimg.database import (  # noqa: E402
     get_active_applylist,
     register_set_from_prefix,
 )
