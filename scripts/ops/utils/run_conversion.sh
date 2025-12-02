@@ -48,7 +48,7 @@ fi
 #    parallel I/O and robust MS creation. Worker count is controlled by
 #    CONTIMG_MAX_WORKERS (default 8).
 PYTHONPATH=${PYTHONPATH:-}
-export PYTHONPATH="${REPO_ROOT}/src${PYTHONPATH:+:${PYTHONPATH}}"
+export PYTHONPATH="${REPO_ROOT}/backend/src${PYTHONPATH:+:${PYTHONPATH}}"
 export CONTIMG_SCRATCH_DIR="${SCRATCH_ROOT}"
 
 # CASA/dask stability: keep thread pools small and avoid HDF5 file locking
