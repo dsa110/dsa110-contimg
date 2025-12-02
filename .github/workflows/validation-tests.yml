@@ -32,12 +32,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      # Use temp directories for databases in CI
-      PIPELINE_PRODUCTS_DB: /tmp/dsa110-ci/products.sqlite3
-      PIPELINE_CAL_REGISTRY_DB: /tmp/dsa110-ci/cal_registry.sqlite3
-      PIPELINE_HDF5_DB: /tmp/dsa110-ci/hdf5.sqlite3
-      PIPELINE_INGEST_DB: /tmp/dsa110-ci/ingest.sqlite3
-      PIPELINE_DATA_REGISTRY_DB: /tmp/dsa110-ci/data_registry.sqlite3
+      # Use unified database path for CI (Phase 2 consolidation)
+      PIPELINE_DB: /tmp/dsa110-ci/pipeline.sqlite3
+      # Legacy env vars still supported for backwards compatibility
+      PIPELINE_PRODUCTS_DB: /tmp/dsa110-ci/pipeline.sqlite3
+      PIPELINE_CAL_REGISTRY_DB: /tmp/dsa110-ci/pipeline.sqlite3
+      PIPELINE_HDF5_DB: /tmp/dsa110-ci/pipeline.sqlite3
+      PIPELINE_INGEST_DB: /tmp/dsa110-ci/pipeline.sqlite3
+      PIPELINE_DATA_REGISTRY_DB: /tmp/dsa110-ci/pipeline.sqlite3
       PIPELINE_DOCSEARCH_DB: /tmp/dsa110-ci/docsearch.sqlite3
       PIPELINE_EMBEDDING_CACHE_DB: /tmp/dsa110-ci/embedding_cache.sqlite3
     steps:
@@ -65,9 +67,8 @@ jobs:
         run: |
           python -c "
           from dsa110_contimg.database.session import init_database
-          for db in ['products', 'cal_registry', 'hdf5', 'ingest', 'data_registry']:
-              init_database(db)
-              print(f'Initialized {db} database')
+          init_database()
+          print('Initialized unified pipeline database')
           "
 
       - name: Run impacted tests (fail-fast)
@@ -83,12 +84,14 @@ jobs:
     timeout-minutes: 30
     if: ${{ github.event.inputs.test_type == 'unit' || github.event.inputs.test_type == 'full' || github.event.inputs.test_type == '' }}
     env:
-      # Use temp directories for databases in CI
-      PIPELINE_PRODUCTS_DB: /tmp/dsa110-ci/products.sqlite3
-      PIPELINE_CAL_REGISTRY_DB: /tmp/dsa110-ci/cal_registry.sqlite3
-      PIPELINE_HDF5_DB: /tmp/dsa110-ci/hdf5.sqlite3
-      PIPELINE_INGEST_DB: /tmp/dsa110-ci/ingest.sqlite3
-      PIPELINE_DATA_REGISTRY_DB: /tmp/dsa110-ci/data_registry.sqlite3
+      # Use unified database path for CI (Phase 2 consolidation)
+      PIPELINE_DB: /tmp/dsa110-ci/pipeline.sqlite3
+      # Legacy env vars still supported for backwards compatibility
+      PIPELINE_PRODUCTS_DB: /tmp/dsa110-ci/pipeline.sqlite3
+      PIPELINE_CAL_REGISTRY_DB: /tmp/dsa110-ci/pipeline.sqlite3
+      PIPELINE_HDF5_DB: /tmp/dsa110-ci/pipeline.sqlite3
+      PIPELINE_INGEST_DB: /tmp/dsa110-ci/pipeline.sqlite3
+      PIPELINE_DATA_REGISTRY_DB: /tmp/dsa110-ci/pipeline.sqlite3
       PIPELINE_DOCSEARCH_DB: /tmp/dsa110-ci/docsearch.sqlite3
       PIPELINE_EMBEDDING_CACHE_DB: /tmp/dsa110-ci/embedding_cache.sqlite3
 

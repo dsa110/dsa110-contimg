@@ -22,9 +22,9 @@ example queries.
 
 ### Unified Pipeline Database (`/state/db/`)
 
-| Database           | Purpose                                      | Size    |
-| ------------------ | -------------------------------------------- | ------- |
-| `pipeline.sqlite3` | All pipeline state (see table groups below)  | ~45 MB  |
+| Database           | Purpose                                     | Size   |
+| ------------------ | ------------------------------------------- | ------ |
+| `pipeline.sqlite3` | All pipeline state (see table groups below) | ~45 MB |
 
 **Table Groups in `pipeline.sqlite3`:**
 

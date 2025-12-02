@@ -24,9 +24,9 @@ All pipeline tables are stored in a **unified database** using SQLite with:
 - **30 second timeout** - Handles lock contention gracefully
 - **Foreign keys enabled** - Referential integrity
 
-| Environment Variable | Default Path                                         | Description       |
-| -------------------- | ---------------------------------------------------- | ----------------- |
-| `PIPELINE_DB`        | `/data/dsa110-contimg/state/db/pipeline.sqlite3`     | Unified database  |
+| Environment Variable | Default Path                                     | Description      |
+| -------------------- | ------------------------------------------------ | ---------------- |
+| `PIPELINE_DB`        | `/data/dsa110-contimg/state/db/pipeline.sqlite3` | Unified database |
 
 Legacy environment variables (`PIPELINE_PRODUCTS_DB`, `CAL_REGISTRY_DB`, etc.)
 are still supported for backwards compatibility but all point to the same

@@ -9,14 +9,14 @@ on:
   pull_request:
     branches: [master-dev, main]
     paths:
-      - 'frontend/**'
-      - 'backend/**'
-      - '.github/workflows/e2e-tests.yml'
+      - "frontend/**"
+      - "backend/**"
+      - ".github/workflows/e2e-tests.yml"
   push:
     branches: [master-dev, main]
     paths:
-      - 'frontend/**'
-  workflow_dispatch:  # Allow manual trigger
+      - "frontend/**"
+  workflow_dispatch: # Allow manual trigger
 
 # Cancel in-progress runs for the same PR
 concurrency:
@@ -24,15 +24,15 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  NODE_VERSION: '20'
-  PYTHON_VERSION: '3.11'
+  NODE_VERSION: "20"
+  PYTHON_VERSION: "3.11"
 
 jobs:
   e2e-tests:
     name: Playwright E2E Tests
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    
+
     services:
       # SQLite doesn't need a service container
       # If needed, add PostgreSQL or other services here
@@ -40,7 +40,7 @@ jobs:
         # Use a lightweight mock API or wait for backend build
         image: node:20-slim
         options: --health-cmd "exit 0" --health-interval 10s --health-timeout 5s --health-retries 5
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -51,14 +51,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
           cache-dependency-path: frontend/package-lock.json
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-          cache: 'pip'
+          cache: "pip"
           cache-dependency-path: backend/pyproject.toml
 
       - name: Install frontend dependencies
@@ -74,22 +74,21 @@ jobs:
         run: |
           pip install --upgrade pip
           pip install -e ".[dev,test]" || pip install -e .
-          
+
       - name: Setup test database
         run: |
           mkdir -p /tmp/contimg-test/db
-          # Create minimal test databases
-          sqlite3 /tmp/contimg-test/db/hdf5.sqlite3 "CREATE TABLE IF NOT EXISTS hdf5_file_index (id INTEGER PRIMARY KEY, filepath TEXT, timestamp TEXT);"
-          sqlite3 /tmp/contimg-test/db/products.sqlite3 "CREATE TABLE IF NOT EXISTS products (id INTEGER PRIMARY KEY, name TEXT);"
-          sqlite3 /tmp/contimg-test/db/cal_registry.sqlite3 "CREATE TABLE IF NOT EXISTS calibration_tables (id INTEGER PRIMARY KEY, name TEXT);"
+          # Create unified test database with all required tables
+          sqlite3 /tmp/contimg-test/db/pipeline.sqlite3 "CREATE TABLE IF NOT EXISTS hdf5_file_index (id INTEGER PRIMARY KEY, filepath TEXT, timestamp TEXT);"
+          sqlite3 /tmp/contimg-test/db/pipeline.sqlite3 "CREATE TABLE IF NOT EXISTS ms_index (id INTEGER PRIMARY KEY, ms_path TEXT, status TEXT);"
+          sqlite3 /tmp/contimg-test/db/pipeline.sqlite3 "CREATE TABLE IF NOT EXISTS images (id INTEGER PRIMARY KEY, path TEXT, type TEXT);"
+          sqlite3 /tmp/contimg-test/db/pipeline.sqlite3 "CREATE TABLE IF NOT EXISTS calibration_tables (id INTEGER PRIMARY KEY, path TEXT, cal_type TEXT);"
+          sqlite3 /tmp/contimg-test/db/pipeline.sqlite3 "CREATE TABLE IF NOT EXISTS ingest_queue (id INTEGER PRIMARY KEY, group_id TEXT, state TEXT);"
 
       - name: Start backend API
         working-directory: backend/src
         env:
-          HDF5_DATABASE_PATH: /tmp/contimg-test/db/hdf5.sqlite3
-          PRODUCTS_DATABASE_PATH: /tmp/contimg-test/db/products.sqlite3
-          CAL_REGISTRY_DATABASE_PATH: /tmp/contimg-test/db/cal_registry.sqlite3
-          CALIBRATORS_DATABASE_PATH: /tmp/contimg-test/db/calibrators.sqlite3
+          PIPELINE_DB: /tmp/contimg-test/db/pipeline.sqlite3
           PIPELINE_INCOMING_DIR: /tmp/contimg-test/incoming
           PIPELINE_OUTPUT_MS_DIR: /tmp/contimg-test/ms
         run: |
@@ -139,20 +138,20 @@ jobs:
           script: |
             const fs = require('fs');
             const issue_number = context.issue.number;
-            
+
             const body = `## ❌ E2E Tests Failed
-            
+
             The Playwright E2E tests have failed. Please review the test results:
-            
+
             - [View Report Artifact](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
-            
+
             Common issues:
             - API endpoint changes without frontend updates
             - UI component changes breaking selectors
             - Async timing issues
-            
+
             Please fix the failing tests before merging.`;
-            
+
             github.rest.issues.createComment({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -166,11 +165,11 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && github.ref == 'refs/heads/master-dev'
     timeout-minutes: 45
-    
+
     strategy:
       matrix:
         browser: [chromium, firefox, webkit]
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -179,7 +178,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
+          cache: "npm"
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies

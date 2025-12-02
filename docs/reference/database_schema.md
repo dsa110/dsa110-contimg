@@ -2,9 +2,9 @@
 
 ## Overview
 
-The pipeline uses SQLite databases for state management and product tracking.
-This document details the schema for all databases with a focus on frontend
-requirements.
+The pipeline uses a **unified SQLite database** for all state management and
+product tracking. As of Phase 2 consolidation, all tables are stored in a single
+`pipeline.sqlite3` file.
 
 ---
 
@@ -12,14 +12,14 @@ requirements.
 
 | Database                 | Location                         | Purpose                                     |
 | ------------------------ | -------------------------------- | ------------------------------------------- |
-| `ingest.sqlite3`         | `/data/dsa110-contimg/state/`    | Queue management, subband tracking          |
-| `cal_registry.sqlite3`   | `/data/dsa110-contimg/state/`    | Calibration table registry                  |
-| `products.sqlite3`       | `/data/dsa110-contimg/state/`    | Images, photometry, MS index                |
+| `pipeline.sqlite3`       | `/data/dsa110-contimg/state/db/` | **Unified database** - all pipeline state   |
 | `master_sources.sqlite3` | `/data/dsa110-contimg/state/db/` | NVSS/VLASS/FIRST crossmatch (1.6M+ sources) |
+
+**Environment Variable**: `PIPELINE_DB` points to the unified database path.
 
 ---
 
-## 1. Ingest Queue Database (`ingest.sqlite3`)
+## 1. Ingest Queue Tables (in `pipeline.sqlite3`)
 
 ### Table: `ingest_queue`
 
@@ -87,9 +87,9 @@ CREATE INDEX IF NOT EXISTS idx_perf_group ON performance_metrics(group_id);
 
 ---
 
-## 2. Calibration Registry (`cal_registry.sqlite3`)
+## 2. Calibration Registry Tables (in `pipeline.sqlite3`)
 
-### Table: `caltables`
+### Table: `calibration_tables`
 
 Tracks calibration tables and their validity ranges, with complete provenance
 tracking.
@@ -136,12 +136,12 @@ CREATE INDEX IF NOT EXISTS idx_caltables_source ON caltables(source_ms_path);
 **Migration**: Existing databases are automatically migrated when accessed. Old
 entries will have NULL values for provenance fields.
 
-**See Also**: the `caltables` table schema above for provenance field
+**See Also**: the `calibration_tables` table schema above for provenance field
 descriptions.
 
 ---
 
-## 3. Products Database (`products.sqlite3`)
+## 3. Products Tables (in `pipeline.sqlite3`)
 
 ### Table: `ms_index`
 
