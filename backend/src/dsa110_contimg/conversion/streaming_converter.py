@@ -90,14 +90,13 @@ from dsa110_contimg.calibration.streaming import has_calibrator  # noqa
 from dsa110_contimg.calibration.streaming import (
     solve_calibration_for_ms,
 )
-from dsa110_contimg.database.products import ensure_ingest_db  # noqa
-from dsa110_contimg.database.products import (
-    ensure_products_db,
+from dsa110_contimg.database import (
+    ensure_pipeline_db,
+    ensure_products_db,  # alias for ensure_pipeline_db
+    ensure_ingest_db,  # alias for ensure_pipeline_db
     images_insert,
-    log_pointing,
     ms_index_upsert,
 )
-from dsa110_contimg.database.registry import ensure_db as ensure_cal_db  # noqa
 from dsa110_contimg.imaging.cli import image_ms  # noqa
 from dsa110_contimg.utils.ms_organization import create_path_mapper  # noqa
 from dsa110_contimg.utils.ms_organization import (

@@ -36,3 +36,7 @@ yarn-error.log*
 # Bundle analysis
 build-report.txt
 stats.html
+
+
+#Ignore vscode AI rules
+.github/instructions/codacy.instructions.md
