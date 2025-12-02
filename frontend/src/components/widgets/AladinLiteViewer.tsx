@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 // Import Aladin Lite from local npm package (v3.7.3-beta)
-import A from "aladin-lite";
+import A, { type AladinInstance } from "aladin-lite";
 
 export interface AladinLiteViewerProps {
   /** Right Ascension in degrees */
@@ -19,22 +19,6 @@ export interface AladinLiteViewerProps {
   className?: string;
   /** Enable fullscreen toggle */
   showFullscreen?: boolean;
-}
-
-/**
- * Extended interface for Aladin Lite instance.
- * Includes methods that exist in the library but are not in the base type definition.
- */
-interface AladinInstance {
-  gotoRaDec: (ra: number, dec: number) => void;
-  setFoV: (fov: number) => void;
-  setImageSurvey: (survey: string) => void;
-  addCatalog: (catalog: unknown) => void;
-  increaseZoom: () => void;
-  decreaseZoom: () => void;
-  toggleFullscreen: () => void;
-  /** Cleanup method to destroy the Aladin instance */
-  destroy: () => void;
 }
 
 /**
