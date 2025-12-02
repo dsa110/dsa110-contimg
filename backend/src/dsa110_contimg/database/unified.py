@@ -80,6 +80,26 @@ def _load_schema() -> str:
         )
 
 
+def get_pipeline_db_path() -> Path:
+    """Get the path to the unified pipeline database.
+
+    Returns:
+        Path to the pipeline.sqlite3 database.
+        
+    Note:
+        Checks PIPELINE_DB environment variable first,
+        then falls back to default path.
+    """
+    env_path = os.environ.get("PIPELINE_DB")
+    if env_path:
+        return Path(env_path)
+    return Path(DEFAULT_PIPELINE_DB)
+
+
+# Backward compatibility alias
+get_calibrators_db_path = get_pipeline_db_path
+
+
 # Lazy-loaded schema (cached after first load)
 _CACHED_SCHEMA: Optional[str] = None
 

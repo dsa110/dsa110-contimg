@@ -19,6 +19,8 @@ import {
   TransitWidget,
 } from "../components/health";
 import { StorageMonitoringPanel } from "../components/storage";
+import { MetricsDashboardPanel } from "../components/metrics";
+import { useMetricsDashboard } from "../api/metrics";
 
 // Map various status types to display status
 function normalizeStatus(
@@ -282,6 +284,12 @@ function AlertsPanel() {
 }
 
 export function HealthDashboardPage() {
+  const {
+    data: metricsData,
+    isLoading: metricsLoading,
+    error: metricsError,
+  } = useMetricsDashboard();
+
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
       {/* Header */}

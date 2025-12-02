@@ -82,3 +82,16 @@ export type {
   QualityThresholds,
 } from "./calibration";
 export { DEFAULT_QUALITY_THRESHOLDS } from "./calibration";
+
+// Prometheus metrics types
+export type {
+  MetricDataPoint,
+  MetricSeries,
+  PrometheusQueryResult,
+  SystemMetric,
+  MetricThreshold,
+  PipelineMetrics,
+  ResourceMetrics,
+  ResourceMetricsDetailed,
+  MetricsDashboard,
+} from "./prometheus";

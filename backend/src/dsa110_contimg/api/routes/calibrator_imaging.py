@@ -31,7 +31,7 @@ from dsa110_contimg.calibration.transit import (
     upcoming_transits,
     pick_best_observation,
 )
-from dsa110_contimg.database.calibrators import (
+from dsa110_contimg.database import (
     get_bandpass_calibrators,
     get_calibrators_db_path,
 )

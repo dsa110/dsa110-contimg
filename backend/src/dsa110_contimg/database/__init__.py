@@ -52,6 +52,9 @@ from .unified import (
     # Database class
     Database,
     DEFAULT_PIPELINE_DB,
+    # Path helpers
+    get_pipeline_db_path,
+    get_calibrators_db_path,  # Alias for get_pipeline_db_path
     # Initialization and singleton
     init_unified_db,
     get_db,
