@@ -15,6 +15,10 @@ Usage:
 This sets common temp environment variables (TMPDIR, TMP, TEMP, CASA_TMPDIR)
 and creates the directories if needed. It also changes CWD to `cwd_to` when
 provided.
+
+Note:
+    This module now uses the unified settings from dsa110_contimg.config.
+    All configuration is centralized there with Pydantic validation.
 """
 
 from __future__ import annotations
@@ -24,23 +28,21 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Optional
 
+from dsa110_contimg.config import settings
+
 
 def derive_default_scratch_root() -> Path:
     """Return the preferred scratch root for temporary files.
 
-    Order of precedence:
+    Uses the centralized settings.paths.scratch_dir which respects:
     - ENV CONTIMG_SCRATCH_DIR (if set)
-    - /stage/dsa110-contimg
-    - /tmp (last resort)
+    - Default: /stage/dsa110-contimg
+    - Fallback: /tmp (if directory cannot be created)
     """
-    env = os.getenv("CONTIMG_SCRATCH_DIR")
-    if env:
-        return Path(env)
-    # Prefer project scratch, fall back to /tmp if not writable
-    p = Path("/stage/dsa110-contimg")
+    scratch = settings.paths.scratch_dir
     try:
-        p.mkdir(parents=True, exist_ok=True)
-        return p
+        scratch.mkdir(parents=True, exist_ok=True)
+        return scratch
     except (OSError, IOError, PermissionError):
         # Fallback to /tmp if preferred directory cannot be created
         return Path("/tmp")
@@ -94,16 +96,15 @@ def prepare_temp_environment(
 def derive_casa_log_dir() -> Path:
     """Return the directory where CASA log files should be written.
 
-    Order of precedence:
-    - ENV CONTIMG_STATE_DIR/logs (if CONTIMG_STATE_DIR is set)
-    - /data/dsa110-contimg/state/logs
-    - /tmp (last resort)
+    Uses the centralized settings.paths.logs_dir which handles:
+    - ENV CONTIMG_LOGS_DIR (if set)
+    - Default: settings.paths.scratch_dir / "logs"
+    - Fallback: /tmp (if directory cannot be created)
     """
-    state_dir = os.getenv("CONTIMG_STATE_DIR") or os.getenv("PIPELINE_STATE_DIR")
-    if state_dir:
-        log_dir = Path(state_dir) / "logs"
-    else:
-        log_dir = Path("/data/dsa110-contimg/state/logs")
+    log_dir = settings.paths.logs_dir
+    if log_dir is None:
+        # Shouldn't happen with model_validator, but handle gracefully
+        log_dir = settings.paths.scratch_dir / "logs"
 
     try:
         log_dir.mkdir(parents=True, exist_ok=True)

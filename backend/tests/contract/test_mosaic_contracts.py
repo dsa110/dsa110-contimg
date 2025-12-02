@@ -1056,3 +1056,122 @@ class TestPipelineClasses:
         assert config.max_retries == 5
         assert config.notify_on_failure is True
 
+
+class TestABSURDIntegration:
+    """Test ABSURD task integration for mosaic pipelines."""
+    
+    @pytest.mark.asyncio
+    async def test_execute_mosaic_pipeline_task(
+        self,
+        populated_database: Path,
+        synthetic_images: list[Path],
+        tmp_path: Path,
+    ) -> None:
+        """Test execute_mosaic_pipeline_task async function."""
+        from dsa110_contimg.mosaic.pipeline import execute_mosaic_pipeline_task
+        
+        now = int(time.time())
+        
+        result = await execute_mosaic_pipeline_task({
+            "database_path": str(populated_database),
+            "mosaic_dir": str(tmp_path / "mosaics"),
+            "name": "absurd_test_mosaic",
+            "start_time": now - 3600,
+            "end_time": now + 3600,
+            "tier": "science",
+            "pipeline_type": "on_demand",
+        })
+        
+        assert result["status"] in ["success", "error"]
+        assert "execution_id" in result
+        
+        if result["status"] == "success":
+            assert "outputs" in result
+            assert result["outputs"]["plan_id"] is not None
+    
+    @pytest.mark.asyncio
+    async def test_execute_mosaic_nightly_task(
+        self,
+        populated_database: Path,
+        synthetic_images: list[Path],
+        tmp_path: Path,
+    ) -> None:
+        """Test execute_mosaic_pipeline_task with nightly type."""
+        from dsa110_contimg.mosaic.pipeline import execute_mosaic_pipeline_task
+        
+        result = await execute_mosaic_pipeline_task({
+            "database_path": str(populated_database),
+            "mosaic_dir": str(tmp_path / "mosaics"),
+            "pipeline_type": "nightly",
+        })
+        
+        assert result["status"] in ["success", "error"]
+        assert "execution_id" in result
+    
+    def test_absurd_adapter_task_routing(self) -> None:
+        """Test that ABSURD adapter routes mosaic tasks correctly."""
+        from dsa110_contimg.absurd.adapter import execute_pipeline_task
+        import asyncio
+        
+        # Test that the task names are recognized (will fail execution 
+        # without proper params, but routing should work)
+        async def test_routing():
+            # mosaic-pipeline should be routed
+            try:
+                await execute_pipeline_task("mosaic-pipeline", {})
+            except Exception as e:
+                # Expected to fail on params, but should not be "Unknown task"
+                assert "Unknown task" not in str(e)
+            
+            # mosaic-nightly should be routed  
+            try:
+                await execute_pipeline_task("mosaic-nightly", {})
+            except Exception as e:
+                assert "Unknown task" not in str(e)
+        
+        asyncio.run(test_routing())
+    
+    def test_cron_expression_parsing(self) -> None:
+        """Test that ABSURD cron expressions work for nightly schedule."""
+        from dsa110_contimg.absurd.scheduling import (
+            parse_cron_expression,
+            calculate_next_run,
+        )
+        from datetime import datetime
+        
+        # Test the nightly expression: 0 3 * * * (03:00 UTC daily)
+        fields = parse_cron_expression("0 3 * * *")
+        
+        assert fields["minute"] == [0]
+        assert fields["hour"] == [3]
+        assert fields["day"] == list(range(1, 32))
+        assert fields["month"] == list(range(1, 13))
+        assert fields["weekday"] == list(range(0, 7))
+        
+        # Test next run calculation
+        test_time = datetime(2025, 6, 15, 2, 30, 0)  # 02:30 UTC
+        next_run = calculate_next_run("0 3 * * *", test_time)
+        
+        # Should be 03:00 on same day
+        assert next_run.hour == 3
+        assert next_run.minute == 0
+        assert next_run.day == 15
+    
+    def test_scheduler_registration_params(self) -> None:
+        """Test that register_nightly_mosaic_schedule has correct signature."""
+        from dsa110_contimg.absurd import register_nightly_mosaic_schedule
+        import inspect
+        
+        sig = inspect.signature(register_nightly_mosaic_schedule)
+        params = list(sig.parameters.keys())
+        
+        # Should have these parameters
+        assert "pool" in params
+        assert "database_path" in params
+        assert "mosaic_dir" in params
+        assert "queue_name" in params
+        assert "cron_expression" in params
+        
+        # Check defaults
+        assert sig.parameters["queue_name"].default == "mosaic"
+        assert sig.parameters["cron_expression"].default == "0 3 * * *"

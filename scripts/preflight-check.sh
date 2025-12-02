@@ -13,6 +13,9 @@ CYAN='\033[0;36m'
 DIM='\033[2m'
 NC='\033[0m'
 
+# Respect environment overrides for key service ports
+DASHBOARD_PORT="${CONTIMG_DASHBOARD_PORT:-3210}"
+
 ERRORS=0
 WARNINGS=0
 
@@ -75,7 +78,7 @@ info "contimg-stream (streaming converter) running" "systemctl is-active --quiet
 echo ""
 echo -e "${CYAN}┌─ Health Checks ───────────────────────┐${NC}"
 check "API responds at :8000/api/health" "curl -sf http://localhost:8000/api/health >/dev/null"
-check "Dashboard serves at :3210" "curl -sf http://localhost:3210/ >/dev/null"
+check "Dashboard serves at :${DASHBOARD_PORT}" "curl -sf http://localhost:${DASHBOARD_PORT}/ >/dev/null"
 info "Dev server at :3000 - start with 'npm run dev'" "curl -sf http://localhost:3000/ >/dev/null"
 
 echo ""

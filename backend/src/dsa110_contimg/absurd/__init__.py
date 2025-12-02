@@ -14,6 +14,9 @@ from .adapter import (
     TaskChain,
     execute_chained_task,
     execute_housekeeping,
+    execute_mosaic_nightly,
+    execute_mosaic_pipeline,
+    register_nightly_mosaic_schedule,
 )
 from .client import AbsurdClient
 from .config import AbsurdConfig
@@ -66,6 +69,10 @@ __all__ = [
     "QUICK_IMAGING_CHAIN",
     "CALIBRATOR_CHAIN",
     "TARGET_CHAIN",
+    # Mosaic pipeline tasks
+    "execute_mosaic_pipeline",
+    "execute_mosaic_nightly",
+    "register_nightly_mosaic_schedule",
     # Scheduling
     "TaskScheduler",
     "ScheduledTask",

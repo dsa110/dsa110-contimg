@@ -4,6 +4,9 @@ GPU utilities for seamless GPU acceleration across all pipeline modes.
 This module provides unified GPU detection, configuration, and Docker command
 building that works consistently across CLI, streaming, and ABSURD execution modes.
 
+Configuration is now centralized in dsa110_contimg.config.GPUSettings.
+This module reads defaults from there and provides runtime detection/overrides.
+
 Example usage:
     from dsa110_contimg.utils.gpu_utils import get_gpu_config, build_docker_command
 
@@ -28,6 +31,8 @@ from dataclasses import dataclass, field
 from enum import Enum
 from functools import lru_cache
 from typing import Dict, List, Optional, Tuple
+
+from dsa110_contimg.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -62,27 +67,27 @@ class GPUConfig:
     """Unified GPU configuration for pipeline execution.
     
     This configuration is used across all pipeline modes (CLI, streaming, ABSURD)
-    to ensure consistent GPU behavior.
+    to ensure consistent GPU behavior. Defaults are loaded from centralized settings.
     """
 
-    # Core settings
-    enabled: bool = True  # Whether to attempt GPU acceleration
+    # Core settings - defaults from settings.gpu
+    enabled: bool = field(default_factory=lambda: settings.gpu.enabled)
     backend: GPUBackend = GPUBackend.CUDA
     device_ids: List[int] = field(default_factory=list)  # Empty = all GPUs
     
     # Docker settings
     docker_gpu_flag: str = "--gpus all"  # Can be "--gpus 0" for specific GPU
     
-    # WSClean-specific settings
-    wsclean_gridder: str = "idg"  # "idg", "wgridder", or "wstacking"
-    wsclean_idg_mode: str = "hybrid"  # "cpu", "gpu", or "hybrid"
+    # WSClean-specific settings - defaults from settings.gpu
+    wsclean_gridder: str = field(default_factory=lambda: settings.gpu.gridder)
+    wsclean_idg_mode: str = field(default_factory=lambda: settings.gpu.idg_mode)
     
     # Photometry GPU settings (CuPy)
     photometry_use_gpu: bool = True
     photometry_batch_threshold: int = 100  # Min sources to use GPU
     
-    # Memory management
-    gpu_memory_fraction: float = 0.9  # Max fraction of GPU memory to use
+    # Memory management - defaults from settings.gpu
+    gpu_memory_fraction: float = field(default_factory=lambda: settings.gpu.memory_fraction)
     
     # Detected GPU info (populated by detect_gpus())
     gpus: List[GPUInfo] = field(default_factory=list)

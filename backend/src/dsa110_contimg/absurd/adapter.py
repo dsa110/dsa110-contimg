@@ -110,12 +110,17 @@ async def execute_pipeline_task(task_name: str, params: Dict[str, Any]) -> Dict[
         return await execute_housekeeping(params)
     elif task_name == "create-mosaic":
         return await execute_create_mosaic(params)
+    elif task_name == "mosaic-pipeline":
+        return await execute_mosaic_pipeline(params)
+    elif task_name == "mosaic-nightly":
+        return await execute_mosaic_nightly(params)
     else:
         raise ValueError(
             f"Unknown task name: '{task_name}'. Supported tasks: "
             f"convert-uvh5-to-ms, calibration-solve, calibration-apply, "
             f"imaging, validation, crossmatch, photometry, catalog-setup, "
-            f"organize-files, housekeeping, create-mosaic"
+            f"organize-files, housekeeping, create-mosaic, mosaic-pipeline, "
+            f"mosaic-nightly"
         )
 
 
@@ -1611,6 +1616,182 @@ class AbsurdStreamingBridge:
     def clear_submitted_cache(self):
         """Clear the submitted groups cache (useful for testing)."""
         self._submitted_groups.clear()
+
+
+# =============================================================================
+# Mosaic Pipeline Tasks
+# =============================================================================
+
+
+async def execute_mosaic_pipeline(params: Dict[str, Any]) -> Dict[str, Any]:
+    """Execute an on-demand mosaic pipeline.
+
+    This task runs the full mosaic pipeline (Plan → Build → QA) for
+    a user-specified time range.
+
+    Args:
+        params: Must contain:
+            - database_path: Path to unified database
+            - mosaic_dir: Output directory for mosaics
+            - name: Unique mosaic name
+            - start_time: Start time (Unix timestamp)
+            - end_time: End time (Unix timestamp)
+            - tier: Optional tier override (quicklook/science/deep)
+            - images_table: Optional images table name (default: "images")
+            - max_retries: Optional retry count (default: 2)
+            - backoff: Optional backoff strategy (default: "exponential")
+
+    Returns:
+        Result dict with:
+            - status: "success" or "error"
+            - execution_id: Pipeline execution ID
+            - outputs: Dict with plan_id, mosaic_id, mosaic_path, qa_status
+            - message: Status message
+            - errors: Error list (if failed)
+
+    Example:
+        >>> result = await execute_mosaic_pipeline({
+        ...     "database_path": "/data/pipeline.sqlite3",
+        ...     "mosaic_dir": "/data/mosaics",
+        ...     "name": "custom_mosaic_001",
+        ...     "start_time": 1700000000,
+        ...     "end_time": 1700086400,
+        ...     "tier": "science"
+        ... })
+    """
+    logger.info("[Absurd] Starting mosaic pipeline")
+
+    try:
+        from dsa110_contimg.mosaic.pipeline import execute_mosaic_pipeline_task
+
+        result = await execute_mosaic_pipeline_task(params)
+
+        if result.get("status") == "success":
+            logger.info(
+                f"[Absurd] Mosaic pipeline complete: "
+                f"mosaic_id={result['outputs'].get('mosaic_id')}"
+            )
+        else:
+            logger.warning(f"[Absurd] Mosaic pipeline failed: {result.get('message')}")
+
+        return result
+
+    except Exception as e:
+        logger.exception(f"[Absurd] Mosaic pipeline failed: {e}")
+        return {"status": "error", "message": str(e), "errors": [str(e)]}
+
+
+async def execute_mosaic_nightly(params: Dict[str, Any]) -> Dict[str, Any]:
+    """Execute the nightly mosaic pipeline.
+
+    This task is triggered by the ABSURD scheduler at 03:00 UTC daily.
+    It processes the previous 24 hours of data using the science tier.
+
+    Args:
+        params: Must contain:
+            - database_path: Path to unified database
+            - mosaic_dir: Output directory for mosaics
+            - target_date: Optional ISO date string (default: yesterday UTC)
+            - images_table: Optional images table name (default: "images")
+
+    Returns:
+        Result dict with:
+            - status: "success" or "error"
+            - execution_id: Pipeline execution ID
+            - outputs: Dict with plan_id, mosaic_id, mosaic_path, qa_status
+            - message: Status message
+            - errors: Error list (if failed)
+
+    Example:
+        >>> # Typically called by scheduler, but can be invoked directly:
+        >>> result = await execute_mosaic_nightly({
+        ...     "database_path": "/data/pipeline.sqlite3",
+        ...     "mosaic_dir": "/data/mosaics",
+        ... })
+    """
+    logger.info("[Absurd] Starting nightly mosaic pipeline")
+
+    try:
+        from dsa110_contimg.mosaic.pipeline import execute_mosaic_pipeline_task
+
+        # Wrap params for nightly execution
+        nightly_params = {
+            **params,
+            "pipeline_type": "nightly",
+        }
+
+        result = await execute_mosaic_pipeline_task(nightly_params)
+
+        if result.get("status") == "success":
+            logger.info(
+                f"[Absurd] Nightly mosaic complete: "
+                f"mosaic_path={result['outputs'].get('mosaic_path')}"
+            )
+        else:
+            logger.warning(f"[Absurd] Nightly mosaic failed: {result.get('message')}")
+
+        return result
+
+    except Exception as e:
+        logger.exception(f"[Absurd] Nightly mosaic failed: {e}")
+        return {"status": "error", "message": str(e), "errors": [str(e)]}
+
+
+async def register_nightly_mosaic_schedule(
+    pool: "asyncpg.Pool",
+    database_path: str,
+    mosaic_dir: str,
+    queue_name: str = "mosaic",
+    cron_expression: str = "0 3 * * *",
+) -> str:
+    """Register the nightly mosaic pipeline with ABSURD scheduler.
+
+    This creates a scheduled task that runs at 03:00 UTC daily (by default),
+    executing the nightly mosaic pipeline to process the previous 24 hours.
+
+    Args:
+        pool: PostgreSQL connection pool
+        database_path: Path to unified database
+        mosaic_dir: Output directory for mosaics
+        queue_name: Target queue for spawned tasks (default: "mosaic")
+        cron_expression: Cron schedule (default: "0 3 * * *" = 03:00 UTC)
+
+    Returns:
+        Schedule ID
+
+    Example:
+        >>> schedule_id = await register_nightly_mosaic_schedule(
+        ...     pool=pool,
+        ...     database_path="/data/pipeline.sqlite3",
+        ...     mosaic_dir="/data/mosaics",
+        ... )
+        >>> print(f"Registered schedule: {schedule_id}")
+    """
+    from dsa110_contimg.absurd.scheduling import create_schedule
+
+    schedule = await create_schedule(
+        pool=pool,
+        name="nightly_mosaic",
+        queue_name=queue_name,
+        task_name="mosaic-nightly",
+        cron_expression=cron_expression,
+        params={
+            "database_path": database_path,
+            "mosaic_dir": mosaic_dir,
+        },
+        priority=10,  # Higher priority for scheduled tasks
+        timeout_sec=3600,  # 1 hour timeout
+        max_retries=2,
+        timezone="UTC",
+        description="Nightly science-tier mosaic of previous 24 hours",
+    )
+
+    logger.info(
+        f"Registered nightly mosaic schedule: {schedule.schedule_id} "
+        f"(cron: {cron_expression})"
+    )
+
+    return schedule.schedule_id
 
 
 # Add astropy units import at module level for bridge

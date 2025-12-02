@@ -176,3 +176,54 @@ __all__ = [
     "query_hdf5_file",
     "get_hdf5_metadata",
 ]
+
+# Add legacy ORM exports to __all__ if available
+if _LEGACY_ORM_AVAILABLE:
+    __all__.extend([
+        # Legacy Session management
+        "get_session",
+        "get_readonly_session",
+        "get_scoped_session",
+        "get_session_factory",
+        "get_engine",
+        "get_db_path",
+        "get_db_url",
+        "get_raw_connection",
+        "init_database",
+        "reset_engines",
+        "DatabaseName",
+        "DEFAULT_DB_PATHS",
+        "DATABASE_PATHS",
+        # ORM Base classes
+        "ProductsBase",
+        "CalRegistryBase",
+        "HDF5Base",
+        "IngestBase",
+        "DataRegistryBase",
+        # ORM Models
+        "MSIndex",
+        "Image",
+        "Photometry",
+        "HDF5FileIndexProducts",
+        "StorageLocation",
+        "BatchJob",
+        "BatchJobItem",
+        "TransientCandidate",
+        "CalibratorTransit",
+        "DeadLetterQueue",
+        "MonitoringSource",
+        "Caltable",
+        "HDF5FileIndex",
+        "HDF5StorageLocation",
+        "PointingHistory",
+        "PointingHistoryIngest",
+        "DataRegistry",
+        "DataRelationship",
+        "DataTag",
+        # Model collections
+        "PRODUCTS_MODELS",
+        "CAL_REGISTRY_MODELS",
+        "HDF5_MODELS",
+        "INGEST_MODELS",
+        "DATA_REGISTRY_MODELS",
+    ])
