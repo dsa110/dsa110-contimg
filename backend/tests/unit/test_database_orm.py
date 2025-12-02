@@ -56,11 +56,16 @@ class TestEngineCreation:
         assert engine1 is engine2
     
     def test_different_dbs_different_engines(self):
-        """Test that different databases get different engines."""
+        """Test that different database names resolve to same engine (unified DB).
+        
+        With the unified database design, all logical database names
+        (products, cal_registry, hdf5) resolve to the same engine.
+        """
         products_engine = get_engine("products", in_memory=True)
         cal_engine = get_engine("cal_registry", in_memory=True)
         
-        assert products_engine is not cal_engine
+        # Unified design: all DBs share the same engine
+        assert products_engine is cal_engine
 
 
 class TestSessionManagement:

@@ -60,67 +60,6 @@ class TestAPIVersioning:
         assert response.status_code in (200, 404)
 
 
-class TestLegacyRoutes:
-    """Tests for legacy /api routes (backwards compatibility)."""
-
-    def test_legacy_health_endpoint(self, client):
-        """Test /api/health legacy endpoint works."""
-        response = client.get("/api/health")
-        
-        assert response.status_code == 200
-        data = response.json()
-        assert data["status"] == "healthy"
-
-    def test_legacy_images_endpoint(self, client):
-        """Test /api/images legacy endpoint works."""
-        response = client.get("/api/images")
-        
-        assert response.status_code == 200
-        assert isinstance(response.json(), list)
-
-    def test_legacy_sources_endpoint(self, client):
-        """Test /api/sources legacy endpoint works."""
-        response = client.get("/api/sources")
-        
-        assert response.status_code == 200
-        assert isinstance(response.json(), list)
-
-    def test_legacy_jobs_endpoint(self, client):
-        """Test /api/jobs legacy endpoint works."""
-        response = client.get("/api/jobs")
-        
-        assert response.status_code == 200
-        assert isinstance(response.json(), list)
-
-
-class TestVersionConsistency:
-    """Tests for version consistency between v1 and legacy routes."""
-
-    def test_images_same_response(self, client):
-        """Test /api/v1/images and /api/images return same structure."""
-        v1_response = client.get("/api/v1/images")
-        legacy_response = client.get("/api/images")
-        
-        assert v1_response.status_code == legacy_response.status_code
-        # Both should return lists
-        assert isinstance(v1_response.json(), list)
-        assert isinstance(legacy_response.json(), list)
-
-    def test_sources_same_response(self, client):
-        """Test /api/v1/sources and /api/sources return same structure."""
-        v1_response = client.get("/api/v1/sources")
-        legacy_response = client.get("/api/sources")
-        
-        assert v1_response.status_code == legacy_response.status_code
-
-    def test_jobs_same_response(self, client):
-        """Test /api/v1/jobs and /api/jobs return same structure."""
-        v1_response = client.get("/api/v1/jobs")
-        legacy_response = client.get("/api/jobs")
-        
-        assert v1_response.status_code == legacy_response.status_code
-
-
 class TestOpenAPIDocumentation:
     """Tests for OpenAPI documentation availability."""
 

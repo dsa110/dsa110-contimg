@@ -241,32 +241,24 @@ class TestSyncDatabasePool:
     """Tests for the synchronous database connection pool."""
     
     @pytest.fixture
-    def temp_db_paths(self, tmp_path):
-        """Create temporary database files."""
-        products_db = tmp_path / "products.sqlite3"
-        cal_db = tmp_path / "cal_registry.sqlite3"
+    def temp_db_path(self, tmp_path):
+        """Create a temporary unified database file."""
+        db_file = tmp_path / "pipeline.sqlite3"
         
-        # Initialize products database
-        conn = sqlite3.connect(str(products_db))
+        # Initialize unified database with both tables
+        conn = sqlite3.connect(str(db_file))
         conn.execute("CREATE TABLE items (id INTEGER PRIMARY KEY, name TEXT)")
-        conn.commit()
-        conn.close()
-        
-        # Initialize cal_registry database
-        conn = sqlite3.connect(str(cal_db))
         conn.execute("CREATE TABLE tables (id INTEGER PRIMARY KEY, path TEXT)")
         conn.commit()
         conn.close()
         
-        return str(products_db), str(cal_db)
+        return str(db_file)
     
     @pytest.fixture
-    def pool_config(self, temp_db_paths):
-        """Create pool config with temporary paths."""
-        products_path, cal_path = temp_db_paths
+    def pool_config(self, temp_db_path):
+        """Create pool config with unified database path."""
         return PoolConfig(
-            products_db_path=products_path,
-            cal_registry_db_path=cal_path,
+            db_path=temp_db_path,
             timeout=10.0,
         )
     
@@ -274,11 +266,11 @@ class TestSyncDatabasePool:
         """Test that pool reuses the same connection."""
         pool = SyncDatabasePool(pool_config)
         
-        with pool.products_db() as conn1:
+        with pool.connection() as conn1:
             conn1.execute("INSERT INTO items (name) VALUES ('test1')")
             conn1.commit()
         
-        with pool.products_db() as conn2:
+        with pool.connection() as conn2:
             # Should be the same connection object
             assert conn1 is conn2
             cursor = conn2.execute("SELECT COUNT(*) FROM items")
@@ -290,7 +282,7 @@ class TestSyncDatabasePool:
         """Test that pool creates new connection after explicit close."""
         pool = SyncDatabasePool(pool_config)
         
-        with pool.products_db() as conn1:
+        with pool.connection() as conn1:
             conn1.execute("INSERT INTO items (name) VALUES ('test')")
             conn1.commit()
         
