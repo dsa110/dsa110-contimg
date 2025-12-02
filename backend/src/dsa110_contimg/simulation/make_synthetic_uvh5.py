@@ -367,6 +367,7 @@ def build_uvdata_from_scratch(
     uv.flex_spw_id_array = np.zeros(nfreqs, dtype=int)  # All channels in spw 0
 
     # Set phase center with pyuvdata 3.x phase_center_catalog
+    # Note: info_source must be included for compatibility with pyuvdata's += operator
     phase_center_id = 0
     uv.phase_center_catalog = {
         phase_center_id: {
@@ -376,6 +377,7 @@ def build_uvdata_from_scratch(
             "cat_lat": config.phase_dec.to_value(u.rad),
             "cat_frame": "icrs",
             "cat_epoch": 2000.0,
+            "info_source": None,  # Required for combining subbands
         }
     }
     uv.phase_center_id_array = np.full(nblts, phase_center_id, dtype=int)
