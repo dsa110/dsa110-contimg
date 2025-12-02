@@ -13,6 +13,7 @@ Philosophy:
 
 import os
 import shutil
+import warnings
 from pathlib import Path
 from typing import Generator, List
 
@@ -36,7 +37,9 @@ def _generate_uvh5_subbands(
         write_subband_uvh5,
     )
 
-    start_time = Time("2025-01-01T00:00:00", format="isot", scale="utc")
+    # Use a past date within IERS data validity range to avoid ERFA
+    # "dubious year" warnings (IERS data is valid through ~2026)
+    start_time = Time("2024-06-15T12:00:00", format="isot", scale="utc")
     ntimes = max(1, int(np.ceil(duration_sec / config.integration_time_sec)))
 
     uv_template = build_uvdata_from_scratch(
@@ -47,7 +50,6 @@ def _generate_uvh5_subbands(
     )
 
     time_array = np.array(uv_template.time_array, copy=True)
-    lst_array = np.array(uv_template.lst_array, copy=True)
     integration_time = np.array(uv_template.integration_time, copy=True)
     uvw_array = np.array(uv_template.uvw_array, copy=True)
 
@@ -59,7 +61,6 @@ def _generate_uvh5_subbands(
             config,
             start_time,
             time_array,
-            lst_array,
             integration_time,
             uvw_array,
             flux_density_jy,
@@ -213,20 +214,26 @@ def synthetic_ms(
     
     ms_path = output_dir / "synthetic_observation.ms"
     
-    # Combine subbands
+    # Combine subbands with warning filters for synthetic data
+    # - ERFA "dubious year": prediction accuracy warning for dates beyond IERS bulletins
+    # - UVW mismatch: synthetic antenna positions don't perfectly match UVW values
     combined = None
-    for uvh5_path in sorted(synthetic_uvh5_files):
-        uv = UVData()
-        uv.read(str(uvh5_path), file_type="uvh5")
-        if combined is None:
-            combined = uv
-        else:
-            combined += uv
-    
-    # Write to MS using pyuvdata's native writer
-    # This is more portable than DirectSubbandWriter which expects
-    # the full DSA-110 antenna catalog (117 antennas)
-    combined.write_ms(str(ms_path))
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", message="ERFA function.*dubious year")
+        warnings.filterwarnings("ignore", message="The uvw_array does not match")
+        
+        for uvh5_path in sorted(synthetic_uvh5_files):
+            uv = UVData()
+            uv.read(str(uvh5_path), file_type="uvh5")
+            if combined is None:
+                combined = uv
+            else:
+                combined += uv
+        
+        # Write to MS using pyuvdata's native writer
+        # This is more portable than DirectSubbandWriter which expects
+        # the full DSA-110 antenna catalog (117 antennas)
+        combined.write_ms(str(ms_path))
     
     yield ms_path
 

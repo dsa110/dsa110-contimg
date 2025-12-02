@@ -5,6 +5,7 @@
 import argparse
 import json
 import random
+import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -128,23 +129,26 @@ def build_time_arrays(config: TelescopeConfig, nbls: int, ntimes: int, start_tim
         start_time: Observation start time
 
     Returns:
-        Tuple of (unique_times, time_array, lst_array, integration_time)
+        Tuple of (unique_times_jd, time_array, integration_time)
+        
+    Note:
+        Times are returned in Julian Date (JD) format as required by pyuvdata.
+        LST is not computed here - use UVData.set_lsts_from_time_array()
+        after setting up the telescope to ensure self-consistency.
     """
     dt_days = config.integration_time_sec / SECONDS_PER_DAY
 
-    unique_times = start_time.mjd + dt_days * np.arange(ntimes)
+    # Use JD (not MJD) as required by pyuvdata's time_array
+    unique_times = start_time.jd + dt_days * np.arange(ntimes)
     time_array = np.repeat(unique_times, nbls)
-
-    lst = Time(unique_times, format="mjd", scale="utc", location=config.site_location)
-    lst_array = np.repeat(lst.sidereal_time("apparent").rad, nbls)
-
     integration_time = np.full(time_array.shape, config.integration_time_sec, dtype=float)
-    return unique_times, time_array, lst_array, integration_time
+    
+    return unique_times, time_array, integration_time
 
 
 def build_uvw(
     config: TelescopeConfig,
-    unique_times_mjd: np.ndarray,
+    unique_times_jd: np.ndarray,
     ant1_array: np.ndarray,
     ant2_array: np.ndarray,
     nants_telescope: int,
@@ -153,7 +157,7 @@ def build_uvw(
 
     Args:
         config: Telescope configuration
-        unique_times_mjd: Array of unique times in MJD
+        unique_times_jd: Array of unique times in Julian Date (JD)
         ant1_array: Antenna 1 array for baselines
         ant2_array: Antenna 2 array for baselines
         nants_telescope: Number of antennas
@@ -162,7 +166,10 @@ def build_uvw(
         UVW array with shape (nbls * ntimes, 3)
     """
     nbls = len(ant1_array)
-    ntimes = len(unique_times_mjd)
+    ntimes = len(unique_times_jd)
+    
+    # Convert JD to MJD for calc_uvw_blt (which expects MJD)
+    unique_times_mjd = unique_times_jd - 2400000.5
 
     ant_df = get_itrf(latlon_center=(OVRO_LAT * u.rad, OVRO_LON * u.rad, OVRO_ALT * u.m))
     ant_offsets = {}
@@ -316,8 +323,8 @@ def build_uvdata_from_scratch(
     ant1_list = [b[0] for b in baselines]
     ant2_list = [b[1] for b in baselines]
 
-    # Build time arrays
-    unique_times, time_array, lst_array, integration_time = build_time_arrays(
+    # Build time arrays (LST computed later via set_lsts_from_time_array)
+    unique_times, time_array, integration_time = build_time_arrays(
         config, nbls, ntimes, start_time
     )
 
@@ -355,9 +362,8 @@ def build_uvdata_from_scratch(
     uv.antenna_diameters = np.full(len(ant_indices), 4.65, dtype=float)
     uv.Nants_data = len(ant_indices)
 
-    # Set time arrays
+    # Set time arrays (lst_array computed after telescope setup)
     uv.time_array = time_array
-    uv.lst_array = lst_array
     uv.integration_time = integration_time
 
     # Set frequency array (will be set per subband)
@@ -420,6 +426,13 @@ def build_uvdata_from_scratch(
         tel.antenna_diameters = np.array(uv.antenna_diameters, dtype=float)
     uv.telescope = tel
 
+    # Compute LST from time_array using pyuvdata's method for self-consistency
+    # Filter ERFA "dubious year" warnings - these are prediction accuracy warnings
+    # for dates beyond IERS bulletins, which is fine for synthetic test data
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", message="ERFA function.*dubious year")
+        uv.set_lsts_from_time_array()
+
     # Set data arrays using calculated dimensions
     uv.data_array = np.zeros((nblts, nspws, nfreqs, npols), dtype=np.complex64)
     uv.flag_array = np.zeros((nblts, nspws, nfreqs, npols), dtype=bool)
@@ -449,8 +462,7 @@ def write_subband_uvh5(
     uv_template: UVData,
     config: TelescopeConfig,
     start_time: Time,
-    times_mjd: np.ndarray,
-    lst_array: np.ndarray,
+    times_jd: np.ndarray,
     integration_time: np.ndarray,
     uvw_array: np.ndarray,
     amplitude_jy: float,
@@ -472,8 +484,7 @@ def write_subband_uvh5(
         uv_template: Template UVData object (or created from scratch)
         config: Telescope configuration
         start_time: Observation start time
-        times_mjd: Time array in MJD
-        lst_array: LST array in radians
+        times_jd: Time array in Julian Date (JD) as required by pyuvdata
         integration_time: Integration time array in seconds
         uvw_array: UVW array
         amplitude_jy: Source flux density in Jy
@@ -481,6 +492,10 @@ def write_subband_uvh5(
 
     Returns:
         Path to created UVH5 file
+        
+    Note:
+        LST is computed internally via set_lsts_from_time_array() for
+        self-consistency with the telescope location.
     """
     uv = uv_template.copy()
     uv.history += f"\nSynthetic point-source dataset generated (subband {subband_index:02d})."
@@ -536,14 +551,16 @@ def write_subband_uvh5(
     uv.channel_width = np.full_like(uv.freq_array, channel_width_signed)
     uv.Nspws = 1
 
-    uv.time_array = times_mjd
-    uv.lst_array = lst_array
+    uv.time_array = times_jd
     uv.integration_time = integration_time
     uv.uvw_array = uvw_array
 
+    # Let pyuvdata compute LST from time_array for self-consistency
+    uv.set_lsts_from_time_array()
+
     # Calculate dimensions from arrays (pyuvdata 3.x compatibility)
     # Computed properties like Nblts, Nfreqs, Npols may be None
-    nblts = len(times_mjd)
+    nblts = len(times_jd)
     nspws = 1
     nfreqs = nchan
     npols = len(uv.polarization_array)
@@ -831,7 +848,7 @@ def main() -> None:
         )
         nbls = uv_template.Nbls
         ntimes = uv_template.Ntimes
-        unique_times, time_array, lst_array, integration_time = build_time_arrays(
+        unique_times, time_array, integration_time = build_time_arrays(
             config, nbls, ntimes, start_time
         )
         uvw_array = build_uvw(
@@ -859,7 +876,7 @@ def main() -> None:
         )
         nbls = uv_template.Nbls
         ntimes = uv_template.Ntimes
-        unique_times, time_array, lst_array, integration_time = build_time_arrays(
+        unique_times, time_array, integration_time = build_time_arrays(
             config, nbls, ntimes, start_time
         )
         uvw_array = build_uvw(
@@ -889,7 +906,6 @@ def main() -> None:
             config,
             start_time,
             time_array,
-            lst_array,
             integration_time,
             uvw_array,
             args.flux_jy,
