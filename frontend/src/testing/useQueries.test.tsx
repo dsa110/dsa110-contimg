@@ -21,18 +21,32 @@ const wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return <QueryClientProvider client={client}>{children}</QueryClientProvider>;
 };
 
+// Type alias for mocked API client
+type MockedApiClient = { get: ReturnType<typeof vi.fn> };
+
 describe("useQueries hooks", () => {
   beforeEach(() => {
-    (apiClient as { get: ReturnType<typeof vi.fn> }).get.mockReset();
+    (apiClient as unknown as MockedApiClient).get.mockReset();
   });
 
   it("fetches images with expected endpoint", async () => {
-    const mockData = [{ id: "img-1", path: "/data/img1.fits", qa_grade: "good", created_at: "" }];
-    (apiClient as { get: ReturnType<typeof vi.fn> }).get.mockResolvedValue({ data: mockData });
+    const mockData = [
+      {
+        id: "img-1",
+        path: "/data/img1.fits",
+        qa_grade: "good",
+        created_at: "",
+      },
+    ];
+    (apiClient as unknown as MockedApiClient).get.mockResolvedValue({
+      data: mockData,
+    });
 
     const { result } = renderHook(() => useImages(), { wrapper });
 
     await waitFor(() => expect(result.current.data).toEqual(mockData));
-    expect((apiClient as { get: ReturnType<typeof vi.fn> }).get).toHaveBeenCalledWith("/images");
+    expect((apiClient as unknown as MockedApiClient).get).toHaveBeenCalledWith(
+      "/images"
+    );
   });
 });

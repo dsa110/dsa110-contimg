@@ -96,7 +96,11 @@ class CanvasRenderingContext2DMock {
   fillText() {}
   strokeText() {}
   measureText(text: string) {
-    return { width: text.length * 6, actualBoundingBoxAscent: 10, actualBoundingBoxDescent: 2 };
+    return {
+      width: text.length * 6,
+      actualBoundingBoxAscent: 10,
+      actualBoundingBoxDescent: 2,
+    };
   }
   drawImage() {}
   createImageData() {
@@ -176,7 +180,8 @@ class WebGL2RenderingContextMock {
 
 // Mock HTMLCanvasElement.getContext to return proper mocks
 const originalGetContext = HTMLCanvasElement.prototype.getContext;
-HTMLCanvasElement.prototype.getContext = function (
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+(HTMLCanvasElement.prototype as any).getContext = function (
   contextId: string,
   _options?: unknown
 ): RenderingContext | null {
@@ -184,7 +189,13 @@ HTMLCanvasElement.prototype.getContext = function (
     return new WebGL2RenderingContextMock() as unknown as WebGL2RenderingContext;
   }
   if (contextId === "2d") {
-    return new CanvasRenderingContext2DMock(this) as unknown as CanvasRenderingContext2D;
+    return new CanvasRenderingContext2DMock(
+      this
+    ) as unknown as CanvasRenderingContext2D;
   }
-  return originalGetContext.call(this, contextId, _options as CanvasRenderingContext2DSettings);
+  return originalGetContext.call(
+    this,
+    contextId,
+    _options as CanvasRenderingContext2DSettings
+  );
 };
