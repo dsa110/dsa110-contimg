@@ -187,3 +187,43 @@ def get_uvh5_basic_info(path: str | Path) -> dict:
             "nants": meta.Nants_telescope,
             "channel_width": meta.channel_width if HAS_FAST_META else meta.channel_width[0],
         }
+
+
+def peek_uvh5_phase_and_midtime(path: str | Path) -> tuple[float, float, float]:
+    """Get phase center (RA, Dec in radians) and mid-time (MJD) from UVH5 file.
+    
+    This is a fast peek operation that reads minimal metadata.
+    Uses phase_center_catalog (pyuvdata 3.x) or legacy attributes.
+    
+    Args:
+        path: Path to UVH5 file
+        
+    Returns:
+        Tuple of (phase_center_ra_rad, phase_center_dec_rad, mid_time_mjd)
+        
+    Raises:
+        KeyError: If phase center information cannot be found
+    """
+    with FastMeta(path) as meta:
+        mid_mjd = meta.mid_time_mjd
+        
+        # Try pyuvdata 3.x phase_center_catalog first
+        try:
+            catalog = meta.phase_center_catalog
+            if catalog and 0 in catalog:
+                entry = catalog[0]
+                ra_rad = entry.get("cat_lon", 0.0)
+                dec_rad = entry.get("cat_lat", 0.0)
+                return (float(ra_rad), float(dec_rad), mid_mjd)
+        except (AttributeError, KeyError):
+            pass
+        
+        # Fallback to legacy attributes
+        try:
+            ra_rad = meta.phase_center_ra
+            dec_rad = meta.phase_center_dec
+            return (float(ra_rad), float(dec_rad), mid_mjd)
+        except AttributeError:
+            pass
+        
+        raise KeyError(f"No phase center information found in {path}")

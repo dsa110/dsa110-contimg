@@ -1516,15 +1516,11 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                 ra_deg = None
                 dec_deg = None
                 try:
-                    import astropy.units as u
+                    from dsa110_contimg.utils.fast_meta import peek_uvh5_phase_and_midtime
 
-                    from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
-                        _peek_uvh5_phase_and_midtime,
-                    )
-
-                    pt_ra, pt_dec, _ = _peek_uvh5_phase_and_midtime(files[0])
-                    ra_deg = float(pt_ra.to(u.deg).value)  # pylint: disable=no-member
-                    dec_deg = float(pt_dec.to(u.deg).value)  # pylint: disable=no-member
+                    pt_ra_rad, pt_dec_rad, _ = peek_uvh5_phase_and_midtime(files[0])
+                    ra_deg = float(np.degrees(pt_ra_rad))
+                    dec_deg = float(np.degrees(pt_dec_rad))
                     log.debug(
                         f"Extracted pointing from HDF5: RA={ra_deg:.6f} deg, Dec={dec_deg:.6f} deg"
                     )

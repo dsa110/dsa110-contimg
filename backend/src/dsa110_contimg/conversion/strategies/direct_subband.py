@@ -131,11 +131,9 @@ class DirectSubbandWriter(MSWriter):
             for sb_file in self.file_list:
                 try:
                     # Use lightweight peek to get midpoint time without full read
-                    from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
-                        _peek_uvh5_phase_and_midtime,
-                    )
+                    from dsa110_contimg.utils.fast_meta import peek_uvh5_phase_and_midtime
 
-                    _, pt_dec, mid_mjd = _peek_uvh5_phase_and_midtime(sb_file)
+                    _, pt_dec, mid_mjd = peek_uvh5_phase_and_midtime(sb_file)
                     if group_pt_dec is None:
                         group_pt_dec = pt_dec
                     if np.isfinite(mid_mjd) and mid_mjd > 0:
@@ -579,11 +577,9 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
         mid_times = []
         for sb_file in file_list:
             try:
-                from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
-                    _peek_uvh5_phase_and_midtime,
-                )
+                from dsa110_contimg.utils.fast_meta import peek_uvh5_phase_and_midtime
 
-                _, pt_dec, mid_mjd = _peek_uvh5_phase_and_midtime(sb_file)
+                _, pt_dec, mid_mjd = peek_uvh5_phase_and_midtime(sb_file)
                 if group_pt_dec is None:
                     group_pt_dec = pt_dec
                 if np.isfinite(mid_mjd) and mid_mjd > 0:

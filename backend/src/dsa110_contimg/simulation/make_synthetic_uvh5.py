@@ -504,20 +504,36 @@ def write_subband_uvh5(
 
     delta_f = abs(config.channel_width_hz)
     nchan = config.channels_per_subband
-    sign = -1.0 if config.freq_order == "desc" else 1.0
+    subband_width = nchan * delta_f  # Width of one subband in Hz
+    total_bandwidth = config.num_subbands * subband_width  # Total correlator output bandwidth
 
-    if config.freq_template.size == nchan:
-        base = config.freq_template.copy()
-        freqs = base + sign * subband_index * nchan * delta_f
+    # Calculate frequency array for this subband
+    # DSA-110 correlator outputs 16 subbands centered on reference frequency.
+    # The freq_min/freq_max in config may represent the science band, but
+    # the actual correlator output spans: ref_freq ± total_bandwidth/2
+    #
+    # For synthetic data, we center on reference_frequency:
+    #   - sb00 = highest frequencies
+    #   - sb15 = lowest frequencies
+    center_freq = config.reference_frequency_hz
+    band_top = center_freq + total_bandwidth / 2
+
+    if config.freq_order == "desc":
+        # Start at top of band, work down
+        sb_start_freq = band_top - subband_index * subband_width
+        # Channels descend within subband
+        freqs = sb_start_freq - delta_f * np.arange(nchan)
+        channel_width_signed = -delta_f
     else:
-        if config.freq_order == "desc":
-            start_freq = config.freq_max_hz
-        else:
-            start_freq = config.freq_min_hz
-        freqs = start_freq + sign * delta_f * (np.arange(nchan) + subband_index * nchan)
+        # Start at bottom of band, work up
+        band_bottom = center_freq - total_bandwidth / 2
+        sb_start_freq = band_bottom + subband_index * subband_width
+        # Channels ascend within subband
+        freqs = sb_start_freq + delta_f * np.arange(nchan)
+        channel_width_signed = delta_f
 
     uv.freq_array = freqs.reshape(1, -1)
-    uv.channel_width = np.full_like(uv.freq_array, sign * delta_f)
+    uv.channel_width = np.full_like(uv.freq_array, channel_width_signed)
     uv.Nspws = 1
 
     uv.time_array = times_mjd
@@ -631,7 +647,7 @@ def write_subband_uvh5(
     with open_uvh5(output_path, "r+") as handle:
         hdr = handle["Header"]
         if "channel_width" in hdr:
-            data = np.array([sign * delta_f], dtype=np.float64)
+            data = np.array([channel_width_signed], dtype=np.float64)
             del hdr["channel_width"]
             hdr.create_dataset("channel_width", data=data)
     return output_path

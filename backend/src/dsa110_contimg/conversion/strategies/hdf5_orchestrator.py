@@ -9,6 +9,7 @@ error handling and logging.
 from __future__ import annotations
 
 import os
+import re
 import logging
 from pathlib import Path
 from typing import Optional
@@ -33,6 +34,27 @@ from dsa110_contimg.utils.logging_config import log_context, log_exception
 
 logger = logging.getLogger(__name__)
 
+# Regex to match subband codes in filenames (e.g., "_sb00", "_sb15")
+_SUBBAND_PATTERN = re.compile(r"_sb(\d{2})")
+
+
+def _extract_subband_code(filename: str) -> Optional[str]:
+    """Extract the subband code (e.g., 'sb00') from a filename.
+    
+    DSA-110 subband files follow the pattern: {timestamp}_sb{NN}.hdf5
+    where NN is a two-digit subband number (00-15).
+    
+    Args:
+        filename: Filename or path to extract subband code from.
+        
+    Returns:
+        Subband code like 'sb00', 'sb15', or None if not found.
+    """
+    basename = os.path.basename(filename)
+    match = _SUBBAND_PATTERN.search(basename)
+    if match:
+        return f"sb{match.group(1)}"
+    return None
 
 def convert_subband_groups_to_ms(
     input_dir: str,

@@ -72,6 +72,7 @@ from dsa110_contimg.utils.fast_meta import (
     get_uvh5_mid_mjd,
     get_uvh5_freqs,
     get_uvh5_basic_info,
+    peek_uvh5_phase_and_midtime,
 )
 
 __all__ = [
@@ -117,4 +118,5 @@ __all__ = [
     "get_uvh5_mid_mjd",
     "get_uvh5_freqs",
     "get_uvh5_basic_info",
+    "peek_uvh5_phase_and_midtime",
 ]
