@@ -141,27 +141,6 @@ def prepare_temp_environment(
     return tmp
 
 
-def derive_casa_log_dir() -> Path:
-    """Return the directory where CASA log files should be written.
-
-    Uses the centralized settings.paths.casa_logs_dir which handles:
-    - ENV CONTIMG_CASA_LOGS_DIR (if set)
-    - Default: /data/dsa110-contimg/state/logs/casa
-    - Fallback: /tmp (if directory cannot be created)
-    
-    CASA logs are written to persistent storage (HDD) rather than scratch
-    (NVMe) because they are archival records that should be preserved.
-    """
-    log_dir = settings.paths.casa_logs_dir
-
-    try:
-        log_dir.mkdir(parents=True, exist_ok=True)
-        return log_dir
-    except (OSError, IOError, PermissionError):
-        # Fallback to /tmp if we can't create the preferred directory
-        return Path("/tmp")
-
-
 @contextmanager
 def casa_log_environment():
     """Context manager that sets up CASA logging environment.
@@ -182,22 +161,6 @@ def casa_log_environment():
         yield log_dir
     finally:
         os.chdir(old_cwd)
-
-
-def setup_casa_logging() -> Path:
-    """Set up CASA logging environment variables.
-
-    This sets the CASALOGFILE environment variable and ensures the log
-    directory exists. Note that CASA primarily uses the current working
-    directory for log files, so this should be used in conjunction with
-    changing CWD or using casa_log_environment() context manager.
-
-    Returns the path to the log directory.
-    """
-    log_dir = derive_casa_log_dir()
-    # Set CASALOGFILE - some CASA versions may respect this
-    os.environ["CASALOGFILE"] = str(log_dir / "casa.log")
-    return log_dir
 
 
 __all__ = [
