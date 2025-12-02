@@ -66,6 +66,10 @@ from .api import (
     MosaicResponse,
     MosaicStatusResponse,
 )
+from .orchestrator import (
+    MosaicOrchestrator,
+    OrchestratorConfig,
+)
 
 __all__ = [
     # Tiers
@@ -110,4 +114,7 @@ __all__ = [
     "MosaicRequest",
     "MosaicResponse",
     "MosaicStatusResponse",
+    # Orchestrator
+    "MosaicOrchestrator",
+    "OrchestratorConfig",
 ]

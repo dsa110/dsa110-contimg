@@ -78,6 +78,71 @@ jobs:
           set -euo pipefail
           python -m pytest backend/tests/unit/ -v --tb=short -x
 
+  contract-tests:
+    name: Contract Tests (Interface Verification)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Use unified database path for CI (Phase 2 consolidation)
+      PIPELINE_DB: /tmp/dsa110-ci/pipeline.sqlite3
+      # Legacy env vars still supported for backwards compatibility
+      PIPELINE_PRODUCTS_DB: /tmp/dsa110-ci/pipeline.sqlite3
+      PIPELINE_CAL_REGISTRY_DB: /tmp/dsa110-ci/pipeline.sqlite3
+      PIPELINE_HDF5_DB: /tmp/dsa110-ci/pipeline.sqlite3
+      PIPELINE_INGEST_DB: /tmp/dsa110-ci/pipeline.sqlite3
+      PIPELINE_DATA_REGISTRY_DB: /tmp/dsa110-ci/pipeline.sqlite3
+      PIPELINE_DOCSEARCH_DB: /tmp/dsa110-ci/docsearch.sqlite3
+      PIPELINE_EMBEDDING_CACHE_DB: /tmp/dsa110-ci/embedding_cache.sqlite3
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Create CI database directory
+        run: mkdir -p /tmp/dsa110-ci
+
+      - name: Install test dependencies
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade pip
+          pip install pytest pytest-cov pytest-xdist pytest-timeout pytest-mock pytest-asyncio httpx
+          pip install -e "backend/[dev]"
+
+      - name: Initialize test databases
+        env:
+          PYTHONPATH: backend/src
+        run: |
+          python -c "
+          from dsa110_contimg.database.session import init_database
+          init_database()
+          print('Initialized unified pipeline database')
+          "
+
+      - name: Run contract tests
+        env:
+          PYTHONPATH: backend/src
+        run: |
+          set -euo pipefail
+          # Contract tests verify interface behavior without heavy mocking
+          python -m pytest backend/tests/contract/ -v \
+            --tb=short \
+            -W ignore::DeprecationWarning
+
+      - name: Contract test summary
+        if: always()
+        run: |
+          echo "Contract tests verify:"
+          echo "  - Conversion: MS structure, antenna positions, data format"
+          echo "  - Database: Schema, CRUD operations, migrations"
+          echo "  - Imaging: FITS structure, WCS, beam info"
+          echo "  - Mosaic: Build, QA, orchestration"
+          echo "  - Calibration: Transit, flagging, caltable discovery"
+          echo "  - API: Health, status, images, queue endpoints"
+
   unit-tests:
     name: Unit Tests (Mocked)
     runs-on: ubuntu-latest
