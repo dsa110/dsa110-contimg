@@ -2,20 +2,35 @@
 
 Welcome to the documentation for the DSA-110 Continuum Imaging Pipeline.
 
-## :rocket: Quick Start for Developers
+## 🚀 Quick Start
 
-- **[System Context](SYSTEM_CONTEXT.md)**: **START HERE.** Technical
-  architecture and implementation details.
-- **[Code Map](CODE_MAP.md)**: Navigate the codebase and find relevant
-  documentation.
-- **[Roadmap](DEVELOPMENT_ROADMAP.md)**: Current project status and active
-  phases.
+**New here?** Start with the **[Quick Start Guide](QUICKSTART.md)** - get the pipeline running in 5 minutes.
+
+| I want to...          | Go to...                              |
+| --------------------- | ------------------------------------- |
+| Get running fast      | **[Quick Start](QUICKSTART.md)**      |
+| Understand the system | [Architecture](ARCHITECTURE.md)       |
+| Operate the pipeline  | [User Guide](USER_GUIDE.md)           |
+| Develop features      | [Developer Guide](DEVELOPER_GUIDE.md) |
+| Use the API           | [API Reference](API_REFERENCE.md)     |
+| Fix problems          | [Troubleshooting](TROUBLESHOOTING.md) |
 
 ---
 
-## :books: Documentation Structure
+## 📚 Core Documentation
 
-### :building_construction::variation_selector-16: Architecture
+| Document                                | Description                     |
+| --------------------------------------- | ------------------------------- |
+| **[Quick Start](QUICKSTART.md)**        | Get running in 5 minutes        |
+| **[System Context](SYSTEM_CONTEXT.md)** | Technical architecture overview |
+| **[Code Map](CODE_MAP.md)**             | Navigate the codebase           |
+| **[Roadmap](DEVELOPMENT_ROADMAP.md)**   | Current project status          |
+
+---
+
+## 📖 Detailed Guides
+
+### Architecture
 
 System design, strategies, and analysis.
 
