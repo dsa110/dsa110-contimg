@@ -56,6 +56,10 @@ from .pipeline import (
     run_on_demand_mosaic,
     run_mosaic_pipeline,
     execute_mosaic_pipeline_task,
+    # Re-exported from pipeline framework
+    RetryPolicy,
+    RetryBackoff,
+    NotificationConfig,
 )
 from .schema import (
     MOSAIC_TABLES,
@@ -111,6 +115,9 @@ __all__ = [
     "run_on_demand_mosaic",
     "run_mosaic_pipeline",
     "execute_mosaic_pipeline_task",
+    "RetryPolicy",
+    "RetryBackoff",
+    "NotificationConfig",
     # Schema
     "MOSAIC_TABLES",
     "MOSAIC_INDEXES",

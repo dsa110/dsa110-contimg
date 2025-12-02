@@ -18,7 +18,13 @@ from enum import Enum
 from pathlib import Path
 from typing import Any
 
-from dsa110_contimg.pipeline import Pipeline, register_pipeline
+from dsa110_contimg.pipeline import (
+    Pipeline,
+    register_pipeline,
+    RetryPolicy,
+    RetryBackoff,
+    NotificationConfig,
+)
 
 from .jobs import (
     JobResult,
@@ -28,6 +34,24 @@ from .jobs import (
     MosaicQAJob,
 )
 from .tiers import select_tier_for_request
+
+
+# Re-export for backward compatibility
+__all__ = [
+    "PipelineStatus",
+    "MosaicPipelineConfig",
+    "PipelineResult",
+    "NightlyMosaicPipeline",
+    "OnDemandMosaicPipeline",
+    "run_nightly_mosaic",
+    "run_on_demand_mosaic",
+    "run_mosaic_pipeline",
+    "execute_mosaic_pipeline_task",
+    # Re-exported from pipeline framework
+    "RetryPolicy",
+    "RetryBackoff",
+    "NotificationConfig",
+]
 
 logger = logging.getLogger(__name__)
 

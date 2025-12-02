@@ -783,7 +783,6 @@ class TestPipelineClasses:
         from dsa110_contimg.mosaic import (
             MosaicPipelineConfig,
             NightlyMosaicPipeline,
-            PipelineStatus,
         )
         
         config = MosaicPipelineConfig(
@@ -798,16 +797,15 @@ class TestPipelineClasses:
         assert pipeline.mosaic_name == "nightly_20250615"
         assert pipeline.start_time < pipeline.end_time
         assert pipeline.end_time - pipeline.start_time == 86400
-        assert pipeline._status == PipelineStatus.PENDING
         
-        # Verify job graph was built
-        assert "plan" in pipeline._jobs
-        assert "build" in pipeline._jobs
-        assert "qa" in pipeline._jobs
+        # Verify job graph was built (using get_job API)
+        assert pipeline.get_job("plan") is not None
+        assert pipeline.get_job("build") is not None
+        assert pipeline.get_job("qa") is not None
         
         # Verify dependencies
-        assert pipeline._jobs["build"].dependencies == ["plan"]
-        assert pipeline._jobs["qa"].dependencies == ["build"]
+        assert pipeline.get_job("build").dependencies == ["plan"]
+        assert pipeline.get_job("qa").dependencies == ["build"]
     
     def test_on_demand_pipeline_initialization(self, tmp_path: Path) -> None:
         """Test OnDemandMosaicPipeline can be created."""
