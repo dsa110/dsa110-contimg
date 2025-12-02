@@ -21,14 +21,14 @@ Welcome to the documentation for the DSA-110 Continuum Imaging Pipeline.
 
 These 6 consolidated documents cover all essential pipeline documentation:
 
-| Document                                       | Description                                |
-| ---------------------------------------------- | ------------------------------------------ |
-| **[Quick Start](QUICKSTART.md)**               | Get running in 5 minutes                   |
-| **[User Guide](USER_GUIDE.md)**                | Complete operations & workflow guide       |
-| **[Developer Guide](DEVELOPER_GUIDE.md)**      | Development environment, testing, contributing |
-| **[Architecture](ARCHITECTURE.md)**            | System design, data flow, components       |
-| **[API Reference](API_REFERENCE.md)**          | REST API, CLI, Python API documentation    |
-| **[Troubleshooting](TROUBLESHOOTING.md)**      | Problem diagnosis & resolution             |
+| Document                                  | Description                                    |
+| ----------------------------------------- | ---------------------------------------------- |
+| **[Quick Start](QUICKSTART.md)**          | Get running in 5 minutes                       |
+| **[User Guide](USER_GUIDE.md)**           | Complete operations & workflow guide           |
+| **[Developer Guide](DEVELOPER_GUIDE.md)** | Development environment, testing, contributing |
+| **[Architecture](ARCHITECTURE.md)**       | System design, data flow, components           |
+| **[API Reference](API_REFERENCE.md)**     | REST API, CLI, Python API documentation        |
+| **[Troubleshooting](TROUBLESHOOTING.md)** | Problem diagnosis & resolution                 |
 
 ---
 
