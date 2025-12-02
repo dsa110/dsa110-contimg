@@ -1136,3 +1136,339 @@ def close_db() -> None:
     if _global_db is not None:
         _global_db.close()
         _global_db = None
+
+
+# =============================================================================
+# Helper Functions (replacing legacy modules)
+# =============================================================================
+
+def ensure_pipeline_db() -> sqlite3.Connection:
+    """
+    Ensure the unified pipeline database exists and return a connection.
+    
+    This replaces ensure_products_db, ensure_ingest_db, etc.
+    
+    Returns:
+        sqlite3.Connection to the pipeline database
+    """
+    db = init_unified_db()
+    return db.conn
+
+
+# Jobs helpers (replacing jobs.py)
+
+def create_job(
+    conn: sqlite3.Connection,
+    job_type: str,
+    ms_path: str,
+    params: Optional[Dict[str, Any]] = None,
+) -> int:
+    """
+    Create a new job record.
+    
+    Args:
+        conn: Database connection
+        job_type: Type of job (e.g., 'calibration', 'imaging')
+        ms_path: Path to measurement set
+        params: Optional job parameters (stored as JSON)
+        
+    Returns:
+        Job ID
+    """
+    import json
+    import time
+    params_json = json.dumps(params) if params else None
+    cursor = conn.execute(
+        """
+        INSERT INTO jobs (type, status, ms_path, params, created_at)
+        VALUES (?, 'pending', ?, ?, ?)
+        """,
+        (job_type, ms_path, params_json, time.time())
+    )
+    conn.commit()
+    return cursor.lastrowid
+
+
+def update_job_status(
+    conn: sqlite3.Connection,
+    job_id: int,
+    status: str,
+    **kwargs
+) -> None:
+    """
+    Update job status and optional fields.
+    
+    Args:
+        conn: Database connection
+        job_id: Job ID to update
+        status: New status ('pending', 'running', 'completed', 'failed')
+        **kwargs: Additional fields to update (started_at, finished_at, logs, artifacts)
+    """
+    import json
+    import time
+    
+    updates = ["status = ?"]
+    values = [status]
+    
+    if status == "running" and "started_at" not in kwargs:
+        updates.append("started_at = ?")
+        values.append(time.time())
+    
+    if status in ("completed", "failed") and "finished_at" not in kwargs:
+        updates.append("finished_at = ?")
+        values.append(time.time())
+    
+    for key, value in kwargs.items():
+        if key in ("started_at", "finished_at"):
+            updates.append(f"{key} = ?")
+            values.append(value)
+        elif key in ("logs", "artifacts"):
+            updates.append(f"{key} = ?")
+            values.append(json.dumps(value) if isinstance(value, (dict, list)) else value)
+    
+    values.append(job_id)
+    conn.execute(f"UPDATE jobs SET {', '.join(updates)} WHERE id = ?", values)
+    conn.commit()
+
+
+def append_job_log(conn: sqlite3.Connection, job_id: int, line: str) -> None:
+    """
+    Append a line to the job's log.
+    
+    Args:
+        conn: Database connection
+        job_id: Job ID
+        line: Log line to append
+    """
+    cursor = conn.execute("SELECT logs FROM jobs WHERE id = ?", (job_id,))
+    row = cursor.fetchone()
+    existing = row[0] if row and row[0] else ""
+    new_logs = existing + line + "\n" if existing else line + "\n"
+    conn.execute("UPDATE jobs SET logs = ? WHERE id = ?", (new_logs, job_id))
+    conn.commit()
+
+
+def get_job(conn: sqlite3.Connection, job_id: int) -> Optional[Dict[str, Any]]:
+    """
+    Get a job by ID.
+    
+    Args:
+        conn: Database connection
+        job_id: Job ID
+        
+    Returns:
+        Job record as dict, or None if not found
+    """
+    cursor = conn.execute("SELECT * FROM jobs WHERE id = ?", (job_id,))
+    row = cursor.fetchone()
+    if row:
+        return dict(zip([d[0] for d in cursor.description], row))
+    return None
+
+
+def list_jobs(
+    conn: sqlite3.Connection,
+    limit: int = 50,
+    status: Optional[str] = None
+) -> List[Dict[str, Any]]:
+    """
+    List jobs, optionally filtered by status.
+    
+    Args:
+        conn: Database connection
+        limit: Maximum number of jobs to return
+        status: Optional status filter
+        
+    Returns:
+        List of job records as dicts
+    """
+    if status:
+        cursor = conn.execute(
+            "SELECT * FROM jobs WHERE status = ? ORDER BY created_at DESC LIMIT ?",
+            (status, limit)
+        )
+    else:
+        cursor = conn.execute(
+            "SELECT * FROM jobs ORDER BY created_at DESC LIMIT ?",
+            (limit,)
+        )
+    return [dict(zip([d[0] for d in cursor.description], row)) for row in cursor.fetchall()]
+
+
+# MS/Products helpers (replacing products.py)
+
+def ms_index_upsert(
+    conn: sqlite3.Connection,
+    ms_path: str,
+    **kwargs
+) -> None:
+    """
+    Insert or update an MS index record.
+    
+    Args:
+        conn: Database connection
+        ms_path: Path to measurement set (primary key)
+        **kwargs: Additional fields to set
+    """
+    import time
+    
+    # Check if record exists
+    cursor = conn.execute("SELECT 1 FROM ms_index WHERE path = ?", (ms_path,))
+    exists = cursor.fetchone() is not None
+    
+    if exists:
+        # Update existing record
+        if kwargs:
+            updates = [f"{k} = ?" for k in kwargs.keys()]
+            conn.execute(
+                f"UPDATE ms_index SET {', '.join(updates)} WHERE path = ?",
+                list(kwargs.values()) + [ms_path]
+            )
+    else:
+        # Insert new record
+        kwargs.setdefault("created_at", time.time())
+        columns = ["path"] + list(kwargs.keys())
+        placeholders = ", ".join("?" for _ in columns)
+        conn.execute(
+            f"INSERT INTO ms_index ({', '.join(columns)}) VALUES ({placeholders})",
+            [ms_path] + list(kwargs.values())
+        )
+    conn.commit()
+
+
+def images_insert(
+    conn: sqlite3.Connection,
+    path: str,
+    ms_path: str,
+    image_type: str,
+    **kwargs
+) -> int:
+    """
+    Insert an image record.
+    
+    Args:
+        conn: Database connection
+        path: Path to image file
+        ms_path: Path to source measurement set
+        image_type: Type of image (e.g., 'dirty', 'clean', 'residual')
+        **kwargs: Additional fields
+        
+    Returns:
+        Image ID
+    """
+    import time
+    kwargs.setdefault("created_at", time.time())
+    
+    columns = ["path", "ms_path", "type"] + list(kwargs.keys())
+    placeholders = ", ".join("?" for _ in columns)
+    cursor = conn.execute(
+        f"INSERT OR REPLACE INTO images ({', '.join(columns)}) VALUES ({placeholders})",
+        [path, ms_path, image_type] + list(kwargs.values())
+    )
+    conn.commit()
+    return cursor.lastrowid
+
+
+def photometry_insert(
+    conn: sqlite3.Connection,
+    image_path: str,
+    source_id: str,
+    ra_deg: float,
+    dec_deg: float,
+    flux_jy: float,
+    **kwargs
+) -> int:
+    """
+    Insert a photometry measurement.
+    
+    Args:
+        conn: Database connection
+        image_path: Path to source image
+        source_id: Source identifier
+        ra_deg: Right ascension in degrees
+        dec_deg: Declination in degrees
+        flux_jy: Flux in Jansky
+        **kwargs: Additional fields (flux_err_jy, peak_flux_jy, rms_jy, etc.)
+        
+    Returns:
+        Photometry record ID
+    """
+    import time
+    kwargs.setdefault("measured_at", time.time())
+    
+    columns = ["image_path", "source_id", "ra_deg", "dec_deg", "flux_jy"] + list(kwargs.keys())
+    placeholders = ", ".join("?" for _ in columns)
+    cursor = conn.execute(
+        f"INSERT INTO photometry ({', '.join(columns)}) VALUES ({placeholders})",
+        [image_path, source_id, ra_deg, dec_deg, flux_jy] + list(kwargs.values())
+    )
+    conn.commit()
+    return cursor.lastrowid
+
+
+# Calibrator helpers (replacing calibrators.py)
+
+def get_bandpass_calibrators(
+    conn: sqlite3.Connection,
+    dec_range: Optional[tuple] = None,
+    status: str = "active"
+) -> List[Dict[str, Any]]:
+    """
+    Get bandpass calibrators, optionally filtered by declination range.
+    
+    Args:
+        conn: Database connection
+        dec_range: Optional (min_dec, max_dec) tuple to filter by declination
+        status: Status filter (default: 'active')
+        
+    Returns:
+        List of calibrator records as dicts
+    """
+    if dec_range:
+        cursor = conn.execute(
+            """
+            SELECT * FROM bandpass_calibrators 
+            WHERE status = ? AND dec_range_min <= ? AND dec_range_max >= ?
+            ORDER BY dec_deg
+            """,
+            (status, dec_range[1], dec_range[0])
+        )
+    else:
+        cursor = conn.execute(
+            "SELECT * FROM bandpass_calibrators WHERE status = ? ORDER BY dec_deg",
+            (status,)
+        )
+    return [dict(zip([d[0] for d in cursor.description], row)) for row in cursor.fetchall()]
+
+
+def register_bandpass_calibrator(
+    conn: sqlite3.Connection,
+    name: str,
+    ra_deg: float,
+    dec_deg: float,
+    **kwargs
+) -> int:
+    """
+    Register a bandpass calibrator.
+    
+    Args:
+        conn: Database connection
+        name: Calibrator name
+        ra_deg: Right ascension in degrees
+        dec_deg: Declination in degrees
+        **kwargs: Additional fields (dec_range_min, dec_range_max, flux_jy, etc.)
+        
+    Returns:
+        Calibrator ID
+    """
+    import time
+    kwargs.setdefault("registered_at", time.time())
+    
+    columns = ["calibrator_name", "ra_deg", "dec_deg"] + list(kwargs.keys())
+    placeholders = ", ".join("?" for _ in columns)
+    cursor = conn.execute(
+        f"INSERT OR REPLACE INTO bandpass_calibrators ({', '.join(columns)}) VALUES ({placeholders})",
+        [name, ra_deg, dec_deg] + list(kwargs.values())
+    )
+    conn.commit()
+    return cursor.lastrowid

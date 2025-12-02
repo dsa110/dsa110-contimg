@@ -3,8 +3,8 @@
 """
 DSA-110 Continuum Imaging Pipeline Database Module.
 
-This module provides both the simplified Database class (recommended)
-and the legacy SQLAlchemy ORM models for backwards compatibility.
+This module provides the simplified Database class (recommended)
+and helper functions for common database operations.
 
 Recommended Usage (Simplified):
     from dsa110_contimg.database import Database
@@ -26,87 +26,119 @@ Recommended Usage (Simplified):
     with db.transaction() as conn:
         conn.execute("UPDATE images SET type = ? WHERE id = ?", ("clean", 42))
 
-Legacy Usage (ORM - for existing code):
-    from dsa110_contimg.database import get_session, Image, MSIndex
+Helper Functions:
+    # Jobs
+    from dsa110_contimg.database import create_job, update_job_status, get_job, list_jobs
     
-    with get_session("products") as session:
-        images = session.query(Image).filter_by(type="dirty").all()
+    # MS Index
+    from dsa110_contimg.database import ms_index_upsert, images_insert, photometry_insert
+    
+    # Calibrators
+    from dsa110_contimg.database import get_bandpass_calibrators, register_bandpass_calibrator
 
 Configuration:
     - PIPELINE_DB: Path to unified pipeline.sqlite3 (default: /data/dsa110-contimg/state/db/pipeline.sqlite3)
     - DB_CONNECTION_TIMEOUT: Connection timeout in seconds (default: 30.0)
 
 See Also:
-    - dsa110_contimg.database.unified: Simplified Database class
-    - dsa110_contimg.database.models: ORM model definitions (legacy)
+    - dsa110_contimg.database.unified: Simplified Database class and helpers
 """
 
 # =============================================================================
 # Simplified Database Layer (RECOMMENDED)
 # =============================================================================
 
-from .unified import Database, DEFAULT_PIPELINE_DB
-
-# =============================================================================
-# Legacy ORM-based Session Management
-# =============================================================================
-
-# Session management
-from .session import (
-    get_session,
-    get_readonly_session,
-    get_scoped_session,
-    get_session_factory,
-    get_engine,
-    get_db_path,
-    get_db_url,
-    get_raw_connection,
-    init_database,
-    reset_engines,
-    DatabaseName,
-    DEFAULT_DB_PATHS,
-    DATABASE_PATHS,  # Alias for Alembic migrations
+from .unified import (
+    # Database class
+    Database,
+    DEFAULT_PIPELINE_DB,
+    # Initialization and singleton
+    init_unified_db,
+    get_db,
+    close_db,
+    ensure_pipeline_db,
+    # Jobs helpers
+    create_job,
+    update_job_status,
+    append_job_log,
+    get_job,
+    list_jobs,
+    # MS/Products helpers
+    ms_index_upsert,
+    images_insert,
+    photometry_insert,
+    # Calibrator helpers
+    get_bandpass_calibrators,
+    register_bandpass_calibrator,
 )
 
-# ORM Models - Products database
-from .models import (
-    # Base classes
-    ProductsBase,
-    CalRegistryBase,
-    HDF5Base,
-    IngestBase,
-    DataRegistryBase,
-    # Products models
-    MSIndex,
-    Image,
-    Photometry,
-    HDF5FileIndexProducts,
-    StorageLocation,
-    BatchJob,
-    BatchJobItem,
-    TransientCandidate,
-    CalibratorTransit,
-    DeadLetterQueue,
-    MonitoringSource,
-    # Cal registry models
-    Caltable,
-    # HDF5 models
-    HDF5FileIndex,
-    HDF5StorageLocation,
-    PointingHistory,
-    # Ingest models
-    PointingHistoryIngest,
-    # Data registry models
-    DataRegistry,
-    DataRelationship,
-    DataTag,
-    # Model collections
-    PRODUCTS_MODELS,
-    CAL_REGISTRY_MODELS,
-    HDF5_MODELS,
-    INGEST_MODELS,
-    DATA_REGISTRY_MODELS,
-)
+# =============================================================================
+# Legacy ORM Compatibility (DEPRECATED)
+# =============================================================================
+
+# Import legacy ORM-based session management for backwards compatibility
+# These are deprecated and will be removed in a future version
+import warnings
+
+try:
+    from .session import (
+        get_session,
+        get_readonly_session,
+        get_scoped_session,
+        get_session_factory,
+        get_engine,
+        get_db_path,
+        get_db_url,
+        get_raw_connection,
+        init_database,
+        reset_engines,
+        DatabaseName,
+        DEFAULT_DB_PATHS,
+        DATABASE_PATHS,
+    )
+    
+    from .models import (
+        ProductsBase,
+        CalRegistryBase,
+        HDF5Base,
+        IngestBase,
+        DataRegistryBase,
+        MSIndex,
+        Image,
+        Photometry,
+        HDF5FileIndexProducts,
+        StorageLocation,
+        BatchJob,
+        BatchJobItem,
+        TransientCandidate,
+        CalibratorTransit,
+        DeadLetterQueue,
+        MonitoringSource,
+        Caltable,
+        HDF5FileIndex,
+        HDF5StorageLocation,
+        PointingHistory,
+        PointingHistoryIngest,
+        DataRegistry,
+        DataRelationship,
+        DataTag,
+        PRODUCTS_MODELS,
+        CAL_REGISTRY_MODELS,
+        HDF5_MODELS,
+        INGEST_MODELS,
+        DATA_REGISTRY_MODELS,
+    )
+    _LEGACY_ORM_AVAILABLE = True
+except ImportError:
+    _LEGACY_ORM_AVAILABLE = False
+
+# =============================================================================
+# Legacy Compatibility Aliases
+# =============================================================================
+
+# Alias for backwards compatibility with products.py imports
+ensure_products_db = ensure_pipeline_db
+ensure_ingest_db = ensure_pipeline_db
 
 # Legacy HDF5 functions (keep for backward compatibility)
 from .hdf5_index import (
@@ -119,56 +151,27 @@ __all__ = [
     # Simplified Database Layer (RECOMMENDED)
     "Database",
     "DEFAULT_PIPELINE_DB",
-    # Legacy Session management
-    "get_session",
-    "get_readonly_session",
-    "get_scoped_session",
-    "get_session_factory",
-    "get_engine",
-    "get_db_path",
-    "get_db_url",
-    "get_raw_connection",
-    "init_database",
-    "reset_engines",
-    "DatabaseName",
-    "DEFAULT_DB_PATHS",
-    # Base classes
-    "ProductsBase",
-    "CalRegistryBase",
-    "HDF5Base",
-    "IngestBase",
-    "DataRegistryBase",
-    # Products models
-    "MSIndex",
-    "Image",
-    "Photometry",
-    "HDF5FileIndexProducts",
-    "StorageLocation",
-    "BatchJob",
-    "BatchJobItem",
-    "TransientCandidate",
-    "CalibratorTransit",
-    "DeadLetterQueue",
-    "MonitoringSource",
-    # Cal registry models
-    "Caltable",
-    # HDF5 models
-    "HDF5FileIndex",
-    "HDF5StorageLocation",
-    "PointingHistory",
-    # Ingest models
-    "PointingHistoryIngest",
-    # Data registry models
-    "DataRegistry",
-    "DataRelationship",
-    "DataTag",
-    # Model collections
-    "PRODUCTS_MODELS",
-    "CAL_REGISTRY_MODELS",
-    "HDF5_MODELS",
-    "INGEST_MODELS",
-    "DATA_REGISTRY_MODELS",
-    # Legacy functions
+    "init_unified_db",
+    "get_db",
+    "close_db",
+    "ensure_pipeline_db",
+    # Jobs helpers
+    "create_job",
+    "update_job_status",
+    "append_job_log",
+    "get_job",
+    "list_jobs",
+    # MS/Products helpers
+    "ms_index_upsert",
+    "images_insert",
+    "photometry_insert",
+    # Calibrator helpers
+    "get_bandpass_calibrators",
+    "register_bandpass_calibrator",
+    # Legacy aliases
+    "ensure_products_db",
+    "ensure_ingest_db",
+    # Legacy HDF5 functions
     "index_hdf5_files",
     "query_hdf5_file",
     "get_hdf5_metadata",
