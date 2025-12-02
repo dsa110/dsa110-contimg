@@ -85,7 +85,7 @@ def extract_module_info(module_name: str) -> Dict:
 
 def generate_api_reference(output_path: Path):
     """Generate API reference from docstrings."""
-    src_path = Path(__file__).parent.parent / "src" / "dsa110_contimg"
+    src_path = REPO_ROOT / "backend" / "src" / "dsa110_contimg"
     
     # Modules to document
     modules_to_doc = [

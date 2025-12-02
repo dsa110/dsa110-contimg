@@ -202,7 +202,7 @@ def verify_workflow_completeness():
     print("PROOF 3: Workflow Completeness")
     print("=" * 70)
 
-    cli_path = Path(__file__).parent.parent / "src" / "dsa110_contimg" / "calibration" / "cli.py"
+    cli_path = REPO_ROOT / "backend" / "src" / "dsa110_contimg" / "calibration" / "cli.py"
 
     if not cli_path.exists():
         print(":cross: CLI file not found")

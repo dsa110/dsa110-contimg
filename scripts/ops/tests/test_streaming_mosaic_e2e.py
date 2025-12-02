@@ -116,7 +116,7 @@ def test_pb_correction_verification():
     print("=" * 70)
 
     # Check that imageweighttype=0 is set in the code
-    cli_path = Path(__file__).parent.parent / "src" / \
+    cli_path = REPO_ROOT / "backend" / "src" / \
         "dsa110_contimg" / "mosaic" / "cli.py"
 
     with open(cli_path, 'r') as f:
@@ -138,7 +138,7 @@ def test_pb_correction_verification():
             all_passed = False
 
     # Check streaming mode integration
-    streaming_path = Path(__file__).parent.parent / "src" / \
+    streaming_path = REPO_ROOT / "backend" / "src" / \
         "dsa110_contimg" / "mosaic" / "streaming_mosaic.py"
     with open(streaming_path, 'r') as f:
         stream_content = f.read()
