@@ -8,7 +8,7 @@ import random
 import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Sequence
 
 import astropy.units as u  # pylint: disable=no-member
 import numpy as np
@@ -17,6 +17,13 @@ from astropy.coordinates import EarthLocation
 from astropy.time import Time
 from pyuvdata import UVData
 
+from dsa110_contimg.simulation.source_models import multi_source_visibility
+from dsa110_contimg.simulation.source_selection import (
+    CatalogRegion,
+    SourceSelector,
+    SyntheticSource,
+    summarize_sources,
+)
 from dsa110_contimg.utils.antpos_local import get_itrf
 from dsa110_contimg.utils.constants import OVRO_ALT, OVRO_LAT, OVRO_LON
 from dsa110_contimg.utils.fringestopping import calc_uvw_blt
@@ -476,6 +483,7 @@ def write_subband_uvh5(
     gain_std: float = 0.1,
     phase_std_deg: float = 10.0,
     rng: Optional[np.random.Generator] = None,
+    sources: Optional[Sequence[SyntheticSource]] = None,
 ) -> Path:
     """Write a single subband UVH5 file.
 
@@ -489,6 +497,9 @@ def write_subband_uvh5(
         uvw_array: UVW array
         amplitude_jy: Source flux density in Jy
         output_dir: Output directory
+        sources: Optional sequence of catalog-based sources. When provided the
+            per-source flux, position, and spectral information supersedes the
+            single point-source model defined by amplitude_jy/source_model.
 
     Returns:
         Path to created UVH5 file
@@ -516,6 +527,10 @@ def write_subband_uvh5(
         uv.extra_keywords["synthetic_has_cal_errors"] = True
         uv.extra_keywords["synthetic_gain_std"] = float(gain_std)
         uv.extra_keywords["synthetic_phase_std_deg"] = float(phase_std_deg)
+    if sources:
+        summary = summarize_sources(list(sources))
+        uv.extra_keywords["synthetic_source_count"] = summary["count"]
+        uv.extra_keywords["synthetic_source_summary"] = json.dumps(summary)
 
     delta_f = abs(config.channel_width_hz)
     nchan = config.channels_per_subband
@@ -578,19 +593,31 @@ def write_subband_uvh5(
         u_lambda = uvw_array[:, 0] / wavelength_m
         v_lambda = uvw_array[:, 1] / wavelength_m
 
-    # Generate visibilities
-    uv.data_array = make_visibilities(
-        nblts,
-        nspws,
-        nfreqs,
-        npols,
-        amplitude_jy,
-        u_lambda=u_lambda,
-        v_lambda=v_lambda,
-        source_model=source_model,
-        source_size_arcsec=source_size_arcsec,
-        source_pa_deg=source_pa_deg,
-    )
+    freq_1d = np.asarray(uv.freq_array).reshape(-1)
+
+    if sources:
+        uv.data_array = multi_source_visibility(
+            sources,
+            uvw_array,
+            freq_1d,
+            config.phase_ra.to_value(u.deg),
+            config.phase_dec.to_value(u.deg),
+            npols,
+        )
+    else:
+        # Generate visibilities using the legacy single-source path
+        uv.data_array = make_visibilities(
+            nblts,
+            nspws,
+            nfreqs,
+            npols,
+            amplitude_jy,
+            u_lambda=u_lambda,
+            v_lambda=v_lambda,
+            source_model=source_model,
+            source_size_arcsec=source_size_arcsec,
+            source_pa_deg=source_pa_deg,
+        )
 
     # Add thermal noise if requested
     if add_noise:
@@ -818,6 +845,49 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Output path for synthetic catalog database (auto-generated if not specified)",
     )
+    parser.add_argument(
+        "--source-catalog-type",
+        type=str,
+        choices=["nvss", "first", "rax", "vlass"],
+        default=None,
+        help="Use real catalog sources instead of a single synthetic point source",
+    )
+    parser.add_argument(
+        "--source-catalog-path",
+        type=Path,
+        default=None,
+        help="Explicit path to catalog (overrides env/auto detection)",
+    )
+    parser.add_argument(
+        "--source-region-ra",
+        type=float,
+        default=None,
+        help="RA center (deg) for catalog query; defaults to telescope phase center",
+    )
+    parser.add_argument(
+        "--source-region-dec",
+        type=float,
+        default=None,
+        help="Dec center (deg) for catalog query; defaults to telescope phase center",
+    )
+    parser.add_argument(
+        "--source-region-radius-deg",
+        type=float,
+        default=1.0,
+        help="Search radius in degrees when querying catalog sources",
+    )
+    parser.add_argument(
+        "--min-source-flux-mjy",
+        type=float,
+        default=None,
+        help="Minimum catalog flux density (mJy) to include in simulation",
+    )
+    parser.add_argument(
+        "--max-source-count",
+        type=int,
+        default=64,
+        help="Maximum number of catalog sources to include",
+    )
     return parser.parse_args()
 
 
@@ -839,6 +909,43 @@ def main() -> None:
         )
 
     start_time = Time(args.start_time, format="isot", scale="utc")
+
+    selected_sources: List[SyntheticSource] = []
+    if args.source_catalog_type:
+        region_ra = (
+            args.source_region_ra
+            if args.source_region_ra is not None
+            else float(config.phase_ra.to_value(u.deg))
+        )
+        region_dec = (
+            args.source_region_dec
+            if args.source_region_dec is not None
+            else float(config.phase_dec.to_value(u.deg))
+        )
+        region = CatalogRegion(
+            ra_deg=region_ra,
+            dec_deg=region_dec,
+            radius_deg=float(args.source_region_radius_deg),
+        )
+        selector = SourceSelector(
+            region,
+            args.source_catalog_type,
+            catalog_path=args.source_catalog_path,
+        )
+        selected_sources = selector.select_sources(
+            min_flux_mjy=args.min_source_flux_mjy,
+            max_sources=args.max_source_count,
+        )
+        if not selected_sources:
+            raise RuntimeError(
+                "Catalog selection returned zero sources. "
+                "Adjust --min-source-flux-mjy or radius and try again."
+            )
+        summary = summarize_sources(selected_sources)
+        print(
+            f"Using {summary['count']} catalog sources "
+            f"(total flux {summary.get('total_flux_jy', 0):.2f} Jy)"
+        )
 
     # Template-free mode: build UVData from scratch
     if args.template_free:
@@ -919,6 +1026,7 @@ def main() -> None:
             gain_std=args.gain_std,
             phase_std_deg=args.phase_std_deg,
             rng=rng,
+            sources=selected_sources if selected_sources else None,
         )
         outputs.append(path)
 
