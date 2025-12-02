@@ -14,7 +14,7 @@ cmake.minimum-version = "3.18"
 cmake.verbose = true
 cmake.build-type = "Release"
 cmake.args = [
-  "-DEVERYBEAM_ROOT=${PROJECT_SOURCE_DIR}/../../external/everybeam",
-  "-DAOCOMMON_ROOT=${PROJECT_SOURCE_DIR}/../../external/aocommon",
+  "-DEVERYBEAM_ROOT=${PROJECT_SOURCE_DIR}/../everybeam",
+  "-DAOCOMMON_ROOT=${PROJECT_SOURCE_DIR}/../aocommon",
   "-DCASACORE_ROOT=/opt/miniforge/envs/casa6",
 ]

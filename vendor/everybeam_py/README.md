@@ -16,8 +16,8 @@ python -m build  # or: pip install .
 
 By default the CMake configuration expects:
 
-- `external/everybeam` – headers + shared libs copied from the Docker image
-- `external/aocommon` – header-only dependency staged from the same image
+- `vendor/everybeam` – headers + shared libs copied from the Docker image
+- `vendor/aocommon` – header-only dependency staged from the same image
 - `CASACORE_ROOT=/opt/miniforge/envs/casa6` – provides casacore, HDF5, FFTW,
   etc.
 

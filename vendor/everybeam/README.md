@@ -22,11 +22,11 @@ or manually:
 ```bash
 docker build -f Dockerfile.everybeam-0.7.4 -t wsclean-everybeam:0.7.4 /home/ubuntu/proj/wsclean
 container=$(docker create wsclean-everybeam:0.7.4)
-docker cp "$container:/usr/local/include/EveryBeam" external/everybeam/include/
+docker cp "$container:/usr/local/include/EveryBeam" vendor/everybeam/include/
 for lib in libeverybeam.so libeverybeam-core.so libeverybeam-hamaker.so \
            libeverybeam-oskar.so libeverybeam-skamidbeam.so; do
-    docker cp "$container:/usr/local/lib/$lib" external/everybeam/lib/
+    docker cp "$container:/usr/local/lib/$lib" vendor/everybeam/lib/
 done
-docker cp "$container:/usr/local/lib/everybeam" external/everybeam/lib/
+docker cp "$container:/usr/local/lib/everybeam" vendor/everybeam/lib/
 docker rm "$container"
 ```

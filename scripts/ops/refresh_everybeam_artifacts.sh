@@ -4,9 +4,9 @@ set -euo pipefail
 IMAGE_NAME="${IMAGE_NAME:-wsclean-everybeam:0.7.4}"
 DOCKERFILE_PATH="${DOCKERFILE_PATH:-/home/ubuntu/proj/wsclean/Dockerfile.everybeam-0.7.4}"
 DOCKER_BUILD_CONTEXT="${DOCKER_BUILD_CONTEXT:-$(dirname "${DOCKERFILE_PATH}")}"
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-EVERYBEAM_DIR="${REPO_ROOT}/external/everybeam"
-AOCOMMON_DIR="${REPO_ROOT}/external/aocommon"
+REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+EVERYBEAM_DIR="${REPO_ROOT}/vendor/everybeam"
+AOCOMMON_DIR="${REPO_ROOT}/vendor/aocommon"
 
 if ! docker image inspect "${IMAGE_NAME}" >/dev/null 2>&1; then
   echo "[refresh_everybeam] Building ${IMAGE_NAME} from ${DOCKERFILE_PATH}"
@@ -44,4 +44,4 @@ docker cp "${container_id}:/usr/local/lib/everybeam" "${EVERYBEAM_DIR}/lib/"
 echo "[refresh_everybeam] Copying aocommon headers"
 docker cp "${container_id}:/src/external/aocommon/include" "${AOCOMMON_DIR}/aocommon"
 
-echo "[refresh_everybeam] Done. Staged artifacts under external/"
+echo "[refresh_everybeam] Done. Staged artifacts under vendor/"

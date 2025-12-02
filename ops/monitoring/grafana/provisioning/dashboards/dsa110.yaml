@@ -10,4 +10,4 @@ providers:
     updateIntervalSeconds: 30
     allowUiUpdates: true
     options:
-      path: /data/dsa110-contimg/monitoring/grafana/dashboards
+      path: /data/dsa110-contimg/ops/monitoring/grafana/dashboards
