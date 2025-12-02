@@ -98,8 +98,15 @@ def get_unified_schema() -> str:
     return _CACHED_SCHEMA
 
 
-# Backward compatibility alias
-UNIFIED_SCHEMA = property(lambda self: get_unified_schema())
+# Backward compatibility: UNIFIED_SCHEMA loaded lazily from schema.sql
+# Use get_unified_schema() for the recommended API
+
+
+def __getattr__(name: str) -> str:
+    """Module-level __getattr__ for lazy loading UNIFIED_SCHEMA."""
+    if name == "UNIFIED_SCHEMA":
+        return get_unified_schema()
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 class Database:
