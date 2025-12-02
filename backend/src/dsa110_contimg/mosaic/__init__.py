@@ -48,10 +48,19 @@ from .jobs import (
 )
 from .pipeline import (
     PipelineResult,
+    PipelineStatus,
+    RetryBackoff,
+    RetryPolicy,
+    NotificationConfig,
     MosaicPipelineConfig,
+    JobNode,
+    MosaicPipeline,
+    NightlyMosaicPipeline,
+    OnDemandMosaicPipeline,
     run_nightly_mosaic,
     run_on_demand_mosaic,
     run_mosaic_pipeline,
+    execute_mosaic_pipeline_task,
 )
 from .schema import (
     MOSAIC_TABLES,
@@ -99,10 +108,19 @@ __all__ = [
     "MosaicQAJob",
     # Pipeline
     "PipelineResult",
+    "PipelineStatus",
+    "RetryBackoff",
+    "RetryPolicy",
+    "NotificationConfig",
     "MosaicPipelineConfig",
+    "JobNode",
+    "MosaicPipeline",
+    "NightlyMosaicPipeline",
+    "OnDemandMosaicPipeline",
     "run_nightly_mosaic",
     "run_on_demand_mosaic",
     "run_mosaic_pipeline",
+    "execute_mosaic_pipeline_task",
     # Schema
     "MOSAIC_TABLES",
     "MOSAIC_INDEXES",

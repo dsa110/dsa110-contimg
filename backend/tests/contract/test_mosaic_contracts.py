@@ -623,3 +623,152 @@ class TestMosaicOrchestrator:
         # (depending on whether the time range matches)
         assert isinstance(result, dict)
         assert "error" in result or "mosaic_path" in result
+
+
+class TestMosaicAPI:
+    """Test FastAPI endpoints for mosaic operations."""
+    
+    def test_api_router_configuration(self, tmp_path: Path) -> None:
+        """Verify API router can be configured."""
+        from dsa110_contimg.mosaic import configure_mosaic_api, mosaic_router
+        
+        configure_mosaic_api(
+            database_path=tmp_path / "test.db",
+            mosaic_dir=tmp_path / "mosaics",
+        )
+        
+        # Router should have routes configured
+        assert mosaic_router.prefix == "/api/mosaic"
+        assert len(mosaic_router.routes) >= 2
+    
+    def test_request_model_validation(self) -> None:
+        """Verify Pydantic request models work correctly."""
+        from dsa110_contimg.mosaic import MosaicRequest
+        
+        # Valid request
+        request = MosaicRequest(
+            name="test_mosaic",
+            start_time=1700000000,
+            end_time=1700086400,
+            tier="science",
+        )
+        assert request.name == "test_mosaic"
+        assert request.tier == "science"
+        
+        # Default tier
+        request2 = MosaicRequest(
+            name="test2",
+            start_time=1700000000,
+            end_time=1700086400,
+        )
+        assert request2.tier == "science"
+    
+    def test_response_models(self) -> None:
+        """Verify Pydantic response models work correctly."""
+        from dsa110_contimg.mosaic import MosaicResponse, MosaicStatusResponse
+        
+        # MosaicResponse
+        response = MosaicResponse(
+            status="accepted",
+            execution_id="exec-123",
+            message="Mosaic started",
+        )
+        assert response.status == "accepted"
+        
+        # MosaicStatusResponse
+        status = MosaicStatusResponse(
+            name="test_mosaic",
+            status="completed",
+            tier="science",
+            n_images=10,
+            mosaic_path="/data/mosaics/test.fits",
+            qa_status="PASS",
+        )
+        assert status.n_images == 10
+        assert status.qa_status == "PASS"
+    
+    @pytest.mark.asyncio
+    async def test_api_create_validates_time_range(
+        self,
+        populated_database: Path,
+        tmp_path: Path,
+    ) -> None:
+        """Test that create endpoint validates time range."""
+        from fastapi.testclient import TestClient
+        from fastapi import FastAPI
+        from dsa110_contimg.mosaic import configure_mosaic_api, mosaic_router
+        
+        app = FastAPI()
+        app.include_router(mosaic_router)
+        
+        configure_mosaic_api(
+            database_path=populated_database,
+            mosaic_dir=tmp_path / "mosaics",
+        )
+        
+        client = TestClient(app)
+        
+        # Invalid time range (end <= start)
+        response = client.post("/api/mosaic/create", json={
+            "name": "invalid_range",
+            "start_time": 1700086400,
+            "end_time": 1700000000,  # Before start
+            "tier": "science",
+        })
+        assert response.status_code == 400
+        assert "time range" in response.json()["detail"].lower()
+    
+    @pytest.mark.asyncio
+    async def test_api_create_validates_tier(
+        self,
+        populated_database: Path,
+        tmp_path: Path,
+    ) -> None:
+        """Test that create endpoint validates tier."""
+        from fastapi.testclient import TestClient
+        from fastapi import FastAPI
+        from dsa110_contimg.mosaic import configure_mosaic_api, mosaic_router
+        
+        app = FastAPI()
+        app.include_router(mosaic_router)
+        
+        configure_mosaic_api(
+            database_path=populated_database,
+            mosaic_dir=tmp_path / "mosaics",
+        )
+        
+        client = TestClient(app)
+        
+        # Invalid tier
+        response = client.post("/api/mosaic/create", json={
+            "name": "invalid_tier",
+            "start_time": 1700000000,
+            "end_time": 1700086400,
+            "tier": "invalid",
+        })
+        assert response.status_code == 400
+        assert "tier" in response.json()["detail"].lower()
+    
+    @pytest.mark.asyncio
+    async def test_api_status_not_found(
+        self,
+        populated_database: Path,
+        tmp_path: Path,
+    ) -> None:
+        """Test that status endpoint returns 404 for unknown mosaic."""
+        from fastapi.testclient import TestClient
+        from fastapi import FastAPI
+        from dsa110_contimg.mosaic import configure_mosaic_api, mosaic_router
+        
+        app = FastAPI()
+        app.include_router(mosaic_router)
+        
+        configure_mosaic_api(
+            database_path=populated_database,
+            mosaic_dir=tmp_path / "mosaics",
+        )
+        
+        client = TestClient(app)
+        
+        response = client.get("/api/mosaic/status/nonexistent_mosaic")
+        assert response.status_code == 404

@@ -33,6 +33,10 @@
       All handlers now use specific exception types: sqlite3.Error, OSError,
       RuntimeError, ValueError, KeyError, TypeError, ImportError, IndexError,
       subprocess.SubprocessError, np.linalg.LinAlgError, json.JSONDecodeError
+- [x] **Mosaicking Module** - Complete implementation of mature mosaicking system
+      following architecture document (`mature-mosaicking-code.md`). Features: - Three-tier system: Quicklook (10 images, 5min), Science (100 images, 30min),
+      Deep (1000 images, 120min) - ABSURD-governed pipeline: MosaicPlanningJob → MosaicBuildJob → MosaicQAJob - Unified database: 3 tables (mosaic_plans, mosaics, mosaic_qa) - FastAPI endpoints: `/api/mosaic/create`, `/api/mosaic/status/{name}` - MosaicOrchestrator for ABSURD adapter integration - Contract tests: 26 tests covering builder, QA, tiers, jobs, pipeline,
+      schema, orchestrator, and API - Module: 9 files, ~2760 lines in `src/dsa110_contimg/mosaic/`
 
 **Status**: 950 unit tests passing, 72% coverage, **0 broad exception handlers**
 
