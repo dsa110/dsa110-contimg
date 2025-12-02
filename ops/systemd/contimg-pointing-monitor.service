@@ -14,7 +14,7 @@ WorkingDirectory=/data/dsa110-contimg
 ExecStart=/bin/bash /data/dsa110-contimg/scripts/ops/casa/casa_wrapper.sh /opt/miniforge/envs/casa6/bin/python -m dsa110_contimg.pointing.monitor \
     ${CONTIMG_INPUT_DIR} \
     ${PIPELINE_PRODUCTS_DB} \
-    --status-file ${PIPELINE_STATE_DIR}/pointing-monitor-status.json \
+    --status-file ${PIPELINE_RUN_DIR}/pointing-monitor-status.json \
     --health-check-interval 300 \
     --log-level ${CONTIMG_LOG_LEVEL}
 Restart=always
