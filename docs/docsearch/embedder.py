@@ -37,7 +37,7 @@ class Embedder:
         Args:
             api_key: OpenAI API key (or set OPENAI_API_KEY env var)
             model: Embedding model name
-            cache_db: Path to cache database (default: state/embedding_cache.sqlite3)
+            cache_db: Path to cache database (default: state/db/embedding_cache.sqlite3)
         """
         self.api_key = api_key or os.environ.get("OPENAI_API_KEY")
         if not self.api_key:
@@ -47,7 +47,7 @@ class Embedder:
             )
 
         self.model = model
-        self.cache_db = cache_db or Path("/data/dsa110-contimg/state/embedding_cache.sqlite3")
+        self.cache_db = cache_db or Path("/data/dsa110-contimg/state/db/embedding_cache.sqlite3")
 
         # Lazy-load OpenAI client
         self._client = None

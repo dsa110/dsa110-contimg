@@ -78,10 +78,10 @@ class DocSearch:
         Initialize the search index.
 
         Args:
-            db_path: Path to SQLite database (default: state/docsearch.sqlite3)
+            db_path: Path to SQLite database (default: state/db/docsearch.sqlite3)
             embedder: Embedder instance (default: creates new one)
         """
-        self.db_path = Path(db_path or "/data/dsa110-contimg/state/docsearch.sqlite3")
+        self.db_path = Path(db_path or "/data/dsa110-contimg/state/db/docsearch.sqlite3")
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
 
         # Initialize embedder (may raise if no API key)

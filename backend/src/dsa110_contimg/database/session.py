@@ -85,8 +85,8 @@ DEFAULT_DB_PATHS = {
     "ingest": DEFAULT_PIPELINE_DB,
     "data_registry": DEFAULT_PIPELINE_DB,
     # Separate utility databases
-    "docsearch": "/data/dsa110-contimg/state/docsearch.sqlite3",
-    "embedding_cache": "/data/dsa110-contimg/state/embedding_cache.sqlite3",
+    "docsearch": "/data/dsa110-contimg/state/db/docsearch.sqlite3",
+    "embedding_cache": "/data/dsa110-contimg/state/db/embedding_cache.sqlite3",
 }
 
 # Alias for Alembic migrations
