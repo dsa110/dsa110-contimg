@@ -8,7 +8,7 @@ Use `./scripts/refresh_everybeam_artifacts.sh` to re-sync both EveryBeam and
 ```
 docker build -f Dockerfile.everybeam-0.7.4 -t wsclean-everybeam:0.7.4 /home/ubuntu/proj/wsclean
 container=$(docker create wsclean-everybeam:0.7.4)
-docker cp "$container:/src/external/aocommon/include" vendor/aocommon/aocommon
+docker cp "$container:/src/vendor/aocommon/include" vendor/aocommon/aocommon
 # (optional) remove stale copy first: rm -rf vendor/aocommon/aocommon
 ```
 

@@ -24,7 +24,7 @@ enabling semantic search over components, hooks, API clients, and utilities.
 **Architecture:**
 
 - Uses same embedding cache as documentation search
-- Separate database: `/data/dsa110-contimg/state/docsearch_code.sqlite3`
+- Separate database: `/data/dsa110-contimg/state/db/docsearch_code.sqlite3`
 - Extracts code blocks preserving function/component boundaries
 - Tracks file modification times for incremental indexing
 """
@@ -244,8 +244,8 @@ class CodeDocSearch(DocSearch):
     - Hooks, utilities, API clients
     - Preserves JSDoc comments for context
     
-    **Database:** `/data/dsa110-contimg/state/docsearch_code.sqlite3`
-    **Shared Cache:** `/data/dsa110-contimg/state/embedding_cache.sqlite3`
+    **Database:** `/data/dsa110-contimg/state/db/docsearch_code.sqlite3`
+    **Shared Cache:** `/data/dsa110-contimg/state/db/embedding_cache.sqlite3`
     
     Example:
         >>> code_search = CodeDocSearch()
@@ -265,11 +265,11 @@ class CodeDocSearch(DocSearch):
         
         Args:
             db_path: Path to code index database 
-                     (default: /data/dsa110-contimg/state/docsearch_code.sqlite3)
+                     (default: /data/dsa110-contimg/state/db/docsearch_code.sqlite3)
             embedder: Embedder instance (default: creates new one with shared cache)
         """
         if db_path is None:
-            db_path = Path("/data/dsa110-contimg/state/docsearch_code.sqlite3")
+            db_path = Path("/data/dsa110-contimg/state/db/docsearch_code.sqlite3")
         
         super().__init__(db_path=db_path, embedder=embedder)
         

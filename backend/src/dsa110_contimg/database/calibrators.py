@@ -1,13 +1,18 @@
 """
 Calibrators Database Management
 
-Manages the calibrators.sqlite3 database for bandpass calibrators,
-gain calibrators, and unified catalog sources.
+Provides calibrator-related functions using the unified pipeline.sqlite3 database.
+All calibrator tables (bandpass_calibrators, gain_calibrators, catalog_sources,
+vla_calibrators, skymodel_metadata) are stored in the unified database.
+
+MIGRATION NOTE: This module previously used a separate calibrators.sqlite3 database.
+As of Dec 2025, all calibrator data is consolidated into pipeline.sqlite3.
 """
 
 from __future__ import annotations
 
 import logging
+import os
 import sqlite3
 from datetime import datetime, timezone
 from pathlib import Path
@@ -15,46 +20,41 @@ from typing import Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
+# Use the unified pipeline database
+DEFAULT_PIPELINE_DB = Path("/data/dsa110-contimg/state/db/pipeline.sqlite3")
+
 
 def get_calibrators_db_path() -> Path:
     """Get the path to the calibrators database.
 
     Returns:
-        Path to calibrators.sqlite3
+        Path to the unified pipeline.sqlite3 database.
+        
+    Note:
+        This function now returns the unified database path.
+        The separate calibrators.sqlite3 has been deprecated.
     """
-    # Try standard locations
-    candidates = [
-        Path("/data/dsa110-contimg/state/db/calibrators.sqlite3"),
-        Path("state/db/calibrators.sqlite3"),
-        Path.cwd() / "state" / "calibrators.sqlite3",
-    ]
-
-    # Try relative to current file
-    try:
-        current_file = Path(__file__).resolve()
-        potential_root = current_file.parents[2]  # src/dsa110_contimg/database -> root
-        candidates.append(potential_root / "state" / "calibrators.sqlite3")
-    except (OSError, IndexError):
-        # OSError: path resolution issues, IndexError: not enough parent directories
-        pass
-
-    # Return first existing, or default to first candidate
-    for candidate in candidates:
-        if candidate.parent.exists():
-            return candidate
-
-    # Default to first candidate (will create parent if needed)
-    return candidates[0]
+    # Check environment variable first
+    env_path = os.environ.get("PIPELINE_DB")
+    if env_path:
+        return Path(env_path)
+    
+    # Use default unified database
+    return DEFAULT_PIPELINE_DB
 
 
 def ensure_calibrators_db(calibrators_db: Optional[Path] = None) -> sqlite3.Connection:
-    """Create/ensure calibrators.sqlite3 database with all required tables.
+    """Get connection to the calibrators tables in the unified database.
 
     Args:
-        calibrators_db: Path to database (auto-resolved if None)
+        calibrators_db: Path to database (uses pipeline.sqlite3 if None)
 
     Returns:
-        Connection to the database
+        Connection to the unified database with calibrator tables
+        
+    Note:
+        This function now connects to the unified pipeline.sqlite3 database.
+        Tables are created by init_unified_db() in unified.py.
     """
     if calibrators_db is None:
         calibrators_db = get_calibrators_db_path()
@@ -62,143 +62,43 @@ def ensure_calibrators_db(calibrators_db: Optional[Path] = None) -> sqlite3.Conn
     calibrators_db = Path(calibrators_db)
     calibrators_db.parent.mkdir(parents=True, exist_ok=True)
 
-    conn = sqlite3.connect(str(calibrators_db))
+    conn = sqlite3.connect(str(calibrators_db), timeout=30.0)
     conn.row_factory = sqlite3.Row
+    
+    # Enable WAL mode for concurrent access
+    conn.execute("PRAGMA journal_mode=WAL")
+    
+    # Tables are created by init_unified_db() in unified.py
+    # We only ensure indexes exist for backwards compatibility
+    _ensure_calibrator_indexes(conn)
 
-    # Create bandpass_calibrators table
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS bandpass_calibrators (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            calibrator_name TEXT NOT NULL,
-            ra_deg REAL NOT NULL,
-            dec_deg REAL NOT NULL,
-            dec_range_min REAL,
-            dec_range_max REAL,
-            source_catalog TEXT,
-            flux_jy REAL,
-            registered_at REAL NOT NULL,
-            registered_by TEXT,
-            status TEXT DEFAULT 'active',
-            notes TEXT,
-            UNIQUE(calibrator_name)
-        )
-    """
-    )
-
-    # Create gain_calibrators table
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS gain_calibrators (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            field_id TEXT NOT NULL,
-            source_name TEXT NOT NULL,
-            ra_deg REAL NOT NULL,
-            dec_deg REAL NOT NULL,
-            flux_jy REAL,
-            catalog_source TEXT,
-            catalog_id TEXT,
-            created_at REAL NOT NULL,
-            skymodel_path TEXT,
-            notes TEXT,
-            UNIQUE(field_id, source_name)
-        )
-    """
-    )
-
-    # Create catalog_sources table (unified VLA/NVSS/FIRST/RACS)
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS catalog_sources (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            source_name TEXT NOT NULL,
-            ra_deg REAL NOT NULL,
-            dec_deg REAL NOT NULL,
-            flux_jy REAL,
-            flux_freq_ghz REAL,
-            spectral_index REAL,
-            catalog TEXT NOT NULL,
-            catalog_id TEXT,
-            position_uncertainty_arcsec REAL,
-            flux_uncertainty REAL,
-            is_extended INTEGER DEFAULT 0,
-            major_axis_arcsec REAL,
-            minor_axis_arcsec REAL,
-            position_angle_deg REAL,
-            matched_to TEXT,
-            created_at REAL NOT NULL,
-            updated_at REAL NOT NULL,
-            UNIQUE(catalog, catalog_id)
-        )
-    """
-    )
-
-    # Create vla_calibrators table (from VLA calibrator list)
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS vla_calibrators (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL UNIQUE,
-            ra_deg REAL NOT NULL,
-            dec_deg REAL NOT NULL,
-            flux_jy REAL,
-            flux_freq_ghz REAL,
-            code_20_cm TEXT,
-            registered_at REAL NOT NULL,
-            notes TEXT
-        )
-    """
-    )
-
-    # Create vla_flux_info table (frequency-specific flux measurements)
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS vla_flux_info (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            vla_calibrator_id INTEGER NOT NULL,
-            frequency_ghz REAL NOT NULL,
-            flux_jy REAL NOT NULL,
-            flux_uncertainty REAL,
-            measurement_date TEXT,
-            FOREIGN KEY (vla_calibrator_id) REFERENCES vla_calibrators(id),
-            UNIQUE(vla_calibrator_id, frequency_ghz)
-        )
-    """
-    )
-
-    # Create skymodel_metadata table
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS skymodel_metadata (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            field_id TEXT NOT NULL,
-            skymodel_path TEXT NOT NULL,
-            n_sources INTEGER NOT NULL,
-            total_flux_jy REAL,
-            created_at REAL NOT NULL,
-            created_by TEXT,
-            notes TEXT,
-            UNIQUE(field_id, skymodel_path)
-        )
-    """
-    )
-
-    # Create indexes
-    conn.execute(
-        "CREATE INDEX IF NOT EXISTS idx_bp_dec_range ON bandpass_calibrators(dec_range_min, dec_range_max)"
-    )
-    conn.execute("CREATE INDEX IF NOT EXISTS idx_bp_status ON bandpass_calibrators(status)")
-    conn.execute("CREATE INDEX IF NOT EXISTS idx_bp_name ON bandpass_calibrators(calibrator_name)")
-    conn.execute("CREATE INDEX IF NOT EXISTS idx_gain_field ON gain_calibrators(field_id)")
-    conn.execute("CREATE INDEX IF NOT EXISTS idx_catalog_radec ON catalog_sources(ra_deg, dec_deg)")
-    conn.execute("CREATE INDEX IF NOT EXISTS idx_catalog_name ON catalog_sources(source_name)")
-    conn.execute("CREATE INDEX IF NOT EXISTS idx_catalog_type ON catalog_sources(catalog)")
-    conn.execute("CREATE INDEX IF NOT EXISTS idx_vla_radec ON vla_calibrators(ra_deg, dec_deg)")
-    conn.execute("CREATE INDEX IF NOT EXISTS idx_vla_name ON vla_calibrators(name)")
-    conn.execute("CREATE INDEX IF NOT EXISTS idx_skymodel_field ON skymodel_metadata(field_id)")
-
-    conn.commit()
     return conn
+
+
+def _ensure_calibrator_indexes(conn: sqlite3.Connection) -> None:
+    """Ensure calibrator table indexes exist.
+    
+    These indexes are also created by init_unified_db(), but we ensure
+    they exist for backwards compatibility with code that calls
+    ensure_calibrators_db() directly.
+    """
+    try:
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_bp_dec_range ON bandpass_calibrators(dec_range_min, dec_range_max)"
+        )
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_bp_status ON bandpass_calibrators(status)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_bp_name ON bandpass_calibrators(calibrator_name)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_gain_field ON gain_calibrators(field_id)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_catalog_radec ON catalog_sources(ra_deg, dec_deg)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_catalog_name ON catalog_sources(source_name)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_catalog_type ON catalog_sources(catalog)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_vla_radec ON vla_calibrators(ra_deg, dec_deg)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_vla_name ON vla_calibrators(name)")
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_skymodel_field ON skymodel_metadata(field_id)")
+        conn.commit()
+    except sqlite3.OperationalError:
+        # Tables may not exist yet if unified DB not initialized
+        pass
 
 
 def register_bandpass_calibrator(

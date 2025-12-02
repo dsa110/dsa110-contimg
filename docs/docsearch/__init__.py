@@ -29,7 +29,7 @@ Usage:
 
 Configuration:
     Set OPENAI_API_KEY environment variable for embeddings.
-    Database stored at: /data/dsa110-contimg/state/docsearch.sqlite3
+    Database stored at: /data/dsa110-contimg/state/db/docsearch.sqlite3
 """
 
 try:

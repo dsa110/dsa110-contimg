@@ -42,6 +42,6 @@ echo "[refresh_everybeam] Copying EveryBeam CMake package metadata"
 docker cp "${container_id}:/usr/local/lib/everybeam" "${EVERYBEAM_DIR}/lib/"
 
 echo "[refresh_everybeam] Copying aocommon headers"
-docker cp "${container_id}:/src/external/aocommon/include" "${AOCOMMON_DIR}/aocommon"
+docker cp "${container_id}:/src/vendor/aocommon/include" "${AOCOMMON_DIR}/aocommon"
 
 echo "[refresh_everybeam] Done. Staged artifacts under vendor/"

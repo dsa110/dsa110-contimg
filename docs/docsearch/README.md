@@ -122,8 +122,8 @@ python cli.py search "query" \
 ┌─────────────────────────────────────────────────────────────┐
 │                    SQLite Databases                          │
 ├─────────────────────────────────────────────────────────────┤
-│  state/docsearch.sqlite3       - Chunks + vector index      │
-│  state/embedding_cache.sqlite3 - Cached embeddings          │
+│  state/db/docsearch.sqlite3       - Chunks + vector index   │
+│  state/db/embedding_cache.sqlite3 - Cached embeddings       │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -150,7 +150,7 @@ Embeddings are cached locally to minimize OpenAI API calls:
 {
     'total_cached': 5000,
     'by_model': {'text-embedding-3-small': 5000},
-    'cache_db': '/data/dsa110-contimg/state/embedding_cache.sqlite3'
+    'cache_db': '/data/dsa110-contimg/state/db/embedding_cache.sqlite3'
 }
 ```
 
@@ -184,10 +184,10 @@ for c in chunks:
 
 ### Database Locations
 
-| Database        | Path                            | Purpose           |
-| --------------- | ------------------------------- | ----------------- |
-| Search Index    | `state/docsearch.sqlite3`       | Chunks + vectors  |
-| Embedding Cache | `state/embedding_cache.sqlite3` | Cached embeddings |
+| Database        | Path                               | Purpose           |
+| --------------- | ---------------------------------- | ----------------- |
+| Search Index    | `state/db/docsearch.sqlite3`       | Chunks + vectors  |
+| Embedding Cache | `state/db/embedding_cache.sqlite3` | Cached embeddings |
 
 ## Comparison with RAGFlow
 
@@ -295,7 +295,7 @@ for r in results:
 
 ### Code Index Architecture
 
-- **Separate database**: `state/docsearch_code.sqlite3`
+- **Separate database**: `state/db/docsearch_code.sqlite3`
 - **Shared cache**: Uses same `embedding_cache.sqlite3` as documentation
 - **Incremental indexing**: Only re-indexes changed files (based on mtime)
 - **Code-aware chunking**: Preserves function/component boundaries

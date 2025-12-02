@@ -49,7 +49,7 @@ API_KEY = os.environ.get("RAGFLOW_API_KEY", "ragflow-Y1ZjQwNWFjY2I5ZjExZjA5MGU5M
 BASE_URL = os.environ.get("RAGFLOW_BASE_URL", "http://localhost:9380")
 DATASET_ID = os.environ.get("RAGFLOW_DATASET_ID", "735f3e9acba011f08a110242ac140006")
 PROJECT_ROOT = Path(os.environ.get("PROJECT_ROOT", "/data/dsa110-contimg"))
-STATE_DB = Path(os.environ.get("RAGFLOW_STATE_DB", "/data/dsa110-contimg/state/ragflow_sync.sqlite3"))
+STATE_DB = Path(os.environ.get("RAGFLOW_STATE_DB", "/data/dsa110-contimg/state/db/ragflow_sync.sqlite3"))
 
 # Source directories and their file patterns
 # Each entry: (relative_path, [patterns])

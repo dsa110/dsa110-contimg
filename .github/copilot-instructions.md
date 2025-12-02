@@ -125,6 +125,8 @@ conda activate casa6
 - `/stage/dsa110-contimg/` - Processed Measurement Sets and images (working
   directory)
 - `/data/dsa110-contimg/state/` - SQLite databases and runtime state
+- `/data/dsa110-contimg/state/db/` - All SQLite databases
+- `/data/dsa110-contimg/state/run/` - Runtime state (PID files, status JSON)
 - `/data/dsa110-contimg/state/logs/` - Pipeline execution logs
 - `/data/dsa110-contimg/products/` - Final data products (symlinked to
   /stage/dsa110-contimg/)
@@ -678,7 +680,10 @@ SQLite databases are organized in `/data/dsa110-contimg/state/`:
 **Other runtime databases** (`state/db/`):
 
 - `docsearch.sqlite3` - Local documentation search index
+- `docsearch_code.sqlite3` - Code-aware documentation search index
 - `embedding_cache.sqlite3` - Cached OpenAI embeddings
+- `hdf5.sqlite3` - HDF5 file metadata index (for fast queries)
+- `ragflow_sync.sqlite3` - RAGFlow synchronization state
 
 **Survey catalogs** (`state/catalogs/`):
 

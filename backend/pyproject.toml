@@ -34,6 +34,8 @@ dev = [
     "pytest",
     "pytest-cov",
     "pytest-asyncio",
+    "pytest-timeout",
+    "pytest-xdist",
     "httpx",
     "black",
     "flake8",
@@ -77,3 +79,13 @@ filterwarnings = [
     # Ignore unawaited coroutine warnings from logging during async exception tests
     "ignore:coroutine 'open_connection' was never awaited:RuntimeWarning",
 ]
+
+# Test timeout configuration
+timeout = 30  # Default 30s per test
+timeout_method = "thread"
+
+# Recommended test commands (for reference):
+# Fast unit tests:     pytest tests/unit/ -q
+# Contract tests:      pytest tests/contract/ -q  
+# Parallel execution:  pytest tests/unit/ -n 4 -q
+# Full suite:          pytest tests/unit/ tests/contract/ --ignore=tests/integration/

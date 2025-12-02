@@ -143,7 +143,7 @@ conda activate casa6
 set -a && source .env && set +a
 
 nohup python -m dsa110_contimg.absurd.worker > /data/dsa110-contimg/state/logs/absurd-worker.log 2>&1 &
-echo $! > /data/dsa110-contimg/state/absurd-worker.pid
+echo $! > /data/dsa110-contimg/state/run/absurd-worker.pid
 ```
 
 **Option C: Run as systemd service (production)**
@@ -175,7 +175,7 @@ python -m dsa110_contimg.absurd.scheduler
 
 # Background
 nohup python -m dsa110_contimg.absurd.scheduler > /data/dsa110-contimg/state/logs/absurd-scheduler.log 2>&1 &
-echo $! > /data/dsa110-contimg/state/absurd-scheduler.pid
+echo $! > /data/dsa110-contimg/state/run/absurd-scheduler.pid
 ```
 
 ---
@@ -360,10 +360,10 @@ Each worker gets a unique ID and competes for tasks atomically.
 
 ```bash
 # Stop worker
-kill $(cat /data/dsa110-contimg/state/absurd-worker.pid)
+kill $(cat /data/dsa110-contimg/state/run/absurd-worker.pid)
 
 # Stop scheduler
-kill $(cat /data/dsa110-contimg/state/absurd-scheduler.pid)
+kill $(cat /data/dsa110-contimg/state/run/absurd-scheduler.pid)
 ```
 
 **Systemd service:**

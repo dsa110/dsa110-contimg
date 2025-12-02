@@ -96,10 +96,10 @@ python -m dsa110_contimg.conversion.cli groups \
 
 **Key files:**
 
-- `conversion/cli.py` - Command-line interface
-- `conversion/strategies/hdf5_orchestrator.py` - Batch conversion logic
-- `conversion/streaming/streaming_converter.py` - Real-time daemon
-- `conversion/strategies/writers.py` - MS writing strategies
+- `conversion/hdf5_orchestrator.py` - Batch conversion logic
+- `conversion/streaming_converter.py` - Real-time streaming daemon
+- `conversion/writers.py` - MS writing strategies
+- `conversion/cli.py` - Command-line interface (deprecated, use ABSURD pipeline)
 
 ### 3. Pipeline Stages (`pipeline/`)
 
@@ -127,22 +127,52 @@ Start here if you're working on data calibration.
 cd /data/dsa110-contimg/backend
 conda activate casa6
 
-# Unit tests (fast, no CASA required for most)
-python -m pytest tests/unit/ -v
+# View available test commands
+make help
 
-# Run all tests with coverage
+# Fast unit tests (~40s, 1077 tests)
+make test-fast
+
+# All unit tests (~55s, 1186 tests)
+make test-unit
+
+# Contract tests (~45s, 163 tests)
+make test-contract
+
+# Parallel execution (faster on multi-core)
+make test-parallel
+
+# Full test suite
+make test
+```
+
+### Direct pytest commands
+
+```bash
+# Run with verbose output
+python -m pytest tests/unit/ -v --tb=short
+
+# Run specific test file
+python -m pytest tests/unit/test_events.py -v
+
+# Run with coverage
 python -m pytest tests/unit/ --cov=dsa110_contimg --cov-report=term-missing
 
-# Specific test file
-python -m pytest tests/unit/api/test_query_batch.py -v
-
-# Integration tests (requires CASA)
+# Integration tests (requires CASA and real data)
 python -m pytest tests/integration/ -v
 ```
 
+### Test Organization
+
+| Directory            | Purpose                       | Typical Runtime |
+| -------------------- | ----------------------------- | --------------- |
+| `tests/unit/`        | Fast isolated tests           | ~55s            |
+| `tests/contract/`    | Tests with real data fixtures | ~45s            |
+| `tests/integration/` | Full pipeline tests           | Minutes         |
+
 ### Test Coverage
 
-Current test coverage status (1143 tests passing):
+Current test suite: **1,400+ tests** across unit, contract, and integration tests.
 
 | Module                | Coverage | Target |
 | --------------------- | -------- | ------ |

@@ -368,8 +368,8 @@ def main():
     batch_parser.add_argument(
         "--hdf5-db",
         type=Path,
-        default=Path("/data/dsa110-contimg/state/db/hdf5.sqlite3"),
-        help="HDF5 database path",
+        default=Path("/data/dsa110-contimg/state/db/pipeline.sqlite3"),
+        help="HDF5 database path (unified pipeline database)",
     )
     batch_parser.add_argument(
         "--output-dir",

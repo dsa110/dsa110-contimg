@@ -56,7 +56,7 @@ sudo systemctl start contimg-pointing-monitor.service
 sudo systemctl status contimg-pointing-monitor.service
 
 # Check status file
-cat /data/dsa110-contimg/state/pointing-monitor-status.json
+cat /data/dsa110-contimg/state/run/pointing-monitor-status.json
 ```
 
 ### 3. Install Dashboard Service (Optional - for production)
@@ -205,10 +205,10 @@ The pointing monitor writes a status JSON file for external monitoring:
 
 ```bash
 # View current status
-cat /data/dsa110-contimg/state/pointing-monitor-status.json | jq
+cat /data/dsa110-contimg/state/run/pointing-monitor-status.json | jq
 
 # Monitor status changes
-watch -n 5 'cat /data/dsa110-contimg/state/pointing-monitor-status.json | jq .metrics'
+watch -n 5 'cat /data/dsa110-contimg/state/run/pointing-monitor-status.json | jq .metrics'
 ```
 
 Status file includes:
