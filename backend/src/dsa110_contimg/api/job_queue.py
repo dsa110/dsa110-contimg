@@ -42,8 +42,8 @@ QUEUE_NAME = os.getenv("DSA110_QUEUE_NAME", "dsa110-pipeline")
 PIPELINE_CMD_TEMPLATE = os.getenv("DSA110_PIPELINE_RUN_CMD", "")
 
 from .repositories import AsyncJobRepository as JobRepository, get_db_connection
-from dsa110_contimg.database.jobs import (
-    ensure_jobs_table,
+from dsa110_contimg.database import (
+    ensure_pipeline_db,  # Ensures jobs table exists
     create_job as db_create_job,
     update_job_status as db_update_job_status,
 )

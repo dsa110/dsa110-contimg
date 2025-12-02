@@ -7,6 +7,7 @@
  * - Flux monitoring status
  * - Validity window timeline
  * - Active alerts
+ * - Storage monitoring
  */
 
 import React from "react";
@@ -17,6 +18,7 @@ import {
   CalibratorMonitoringPanel,
   TransitWidget,
 } from "../components/health";
+import { StorageMonitoringPanel } from "../components/storage";
 
 // Map various status types to display status
 function normalizeStatus(
@@ -289,7 +291,8 @@ export function HealthDashboardPage() {
             Health Dashboard
           </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
-            Monitor system health, calibrator transits, and validity windows
+            Monitor system health, calibrator transits, storage, and validity
+            windows
           </p>
         </div>
       </header>
@@ -303,7 +306,12 @@ export function HealthDashboardPage() {
           <TransitWidget />
         </div>
 
-        {/* Middle row: Calibrator monitoring */}
+        {/* Storage monitoring */}
+        <div className="mb-6">
+          <StorageMonitoringPanel showTrends={true} showCleanup={true} />
+        </div>
+
+        {/* Calibrator monitoring */}
         <div className="mb-6">
           <CalibratorMonitoringPanel />
         </div>

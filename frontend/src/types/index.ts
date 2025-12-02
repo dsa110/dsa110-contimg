@@ -60,3 +60,15 @@ export type {
   SpawnWorkflowRequest,
   CancelTaskRequest,
 } from "./absurd";
+
+// Storage monitoring types
+export type {
+  DirectoryUsage,
+  DiskPartition,
+  StorageAlert,
+  StorageSummary,
+  CleanupCandidate,
+  CleanupRecommendations,
+  StorageTrendPoint,
+  StorageTrend,
+} from "./storage";
