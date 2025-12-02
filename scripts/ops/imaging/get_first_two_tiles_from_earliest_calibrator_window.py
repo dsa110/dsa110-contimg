@@ -27,9 +27,9 @@ from dsa110_contimg.database.products import ensure_products_db
 from dsa110_contimg.mosaic.streaming_mosaic import StreamingMosaicManager
 from dsa110_contimg.pointing.utils import load_pointing
 
-# Add project root to path
-repo_root = Path(__file__).parent.parent
-sys.path.insert(0, str(repo_root / "src"))
+# Add backend/src to path
+REPO_ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(REPO_ROOT / "backend" / "src"))
 
 
 def find_earliest_observation(data_dir: Path) -> Optional[Dict]:

@@ -23,9 +23,9 @@ import logging
 import sys
 from pathlib import Path
 
-# Add src to path before importing project modules
-repo_root = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(repo_root / "src"))
+# Add backend/src to path before importing project modules
+REPO_ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(REPO_ROOT / "backend" / "src"))
 
 from dsa110_contimg.mosaic.orchestrator import MosaicOrchestrator
 

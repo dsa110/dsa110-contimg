@@ -30,11 +30,11 @@ def assert_error_response(data: dict, message: str = ""):
 
 class TestHealthEndpoint:
     """Tests for the health check endpoint."""
-    
+
     def test_health_returns_ok(self, client):
         """Test health endpoint returns healthy status."""
-        response = client.get("/api/health")
-        
+        response = client.get("/api/v1/health")
+
         assert response.status_code == 200
         data = response.json()
         assert data["status"] == "healthy"
@@ -42,62 +42,58 @@ class TestHealthEndpoint:
 
 class TestImagesRoutes:
     """Tests for image routes."""
-    
+
     def test_get_images_returns_list(self, client):
-        """Test GET /api/images returns list of images."""
-        response = client.get("/api/images")
-        
+        """Test GET /api/v1/images returns list of images."""
+        response = client.get("/api/v1/images")
+
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)
-    
+
     def test_get_image_detail_returns_image(self, client):
-        """Test GET /api/images/{id} returns 404 for non-existent image.
-        
+        """Test GET /api/v1/images/{id} returns 404 for non-existent image.
+
         Note: In production, this would return image data from the database.
         For unit tests without a database, we expect 404 for unknown IDs.
         """
-        response = client.get("/api/images/img-001")
-        
+        response = client.get("/api/v1/images/img-001")
+
         # Without a test database, expect 404 for unknown image
         assert response.status_code == 404
         data = response.json()
         assert_error_response(data)
-    
+
     def test_get_image_detail_not_found(self, client):
-        """Test GET /api/images/{id} returns 404 for unknown image."""
-        response = client.get("/api/images/nonexistent-image")
-        
-        # Stub implementation returns data for any ID, so this passes
+        """Test GET /api/v1/images/{id} returns 404 for unknown image."""
+        response = client.get("/api/v1/images/nonexistent-image")        # Stub implementation returns data for any ID, so this passes
         # In real implementation, we'd check for 404
         assert response.status_code in (200, 404)
 
 
 class TestMSRoutes:
     """Tests for measurement set routes."""
-    
+
     def test_get_ms_list_returns_list(self, client):
-        """Test GET /api/ms endpoint does not exist yet.
-        
-        The /api/ms list endpoint is not implemented.
-        Individual MS metadata is available at /api/ms/{path}/metadata.
+        """Test GET /api/v1/ms endpoint does not exist yet.
+
+        The /api/v1/ms list endpoint is not implemented.
+        Individual MS metadata is available at /api/v1/ms/{path}/metadata.
         """
-        response = client.get("/api/ms")
-        
+        response = client.get("/api/v1/ms")
+
         # This route doesn't exist - only /{path}/metadata exists
         assert response.status_code == 404
-    
+
     def test_get_ms_metadata(self, client):
-        """Test GET /api/ms/{path}/metadata returns 404 for non-existent MS.
-        
+        """Test GET /api/v1/ms/{path}/metadata returns 404 for non-existent MS.
+
         Note: In production with a database, this returns MS metadata.
         For unit tests without a database, we expect 404 for unknown paths.
         """
         # URL-encode the path
         ms_path = "data%2Fms%2Ftest.ms"
-        response = client.get(f"/api/ms/{ms_path}/metadata")
-        
-        # Without a test database, expect 404 for unknown MS
+        response = client.get(f"/api/v1/ms/{ms_path}/metadata")        # Without a test database, expect 404 for unknown MS
         assert response.status_code == 404
         data = response.json()
         assert_error_response(data)
@@ -105,24 +101,22 @@ class TestMSRoutes:
 
 class TestSourcesRoutes:
     """Tests for source routes."""
-    
+
     def test_get_sources_returns_list(self, client):
-        """Test GET /api/sources returns list of sources."""
-        response = client.get("/api/sources")
-        
+        """Test GET /api/v1/sources returns list of sources."""
+        response = client.get("/api/v1/sources")
+
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)
-    
+
     def test_get_source_detail_returns_source(self, client):
-        """Test GET /api/sources/{id} returns 404 for non-existent source.
-        
+        """Test GET /api/v1/sources/{id} returns 404 for non-existent source.
+
         Note: In production with a database, this returns source data.
         For unit tests without a database, we expect 404 for unknown IDs.
         """
-        response = client.get("/api/sources/src-001")
-        
-        # Without a test database, expect 404 for unknown source
+        response = client.get("/api/v1/sources/src-001")        # Without a test database, expect 404 for unknown source
         assert response.status_code == 404
         data = response.json()
         assert_error_response(data)
@@ -130,32 +124,32 @@ class TestSourcesRoutes:
 
 class TestJobsRoutes:
     """Tests for job routes."""
-    
+
     def test_get_jobs_returns_list(self, client):
-        """Test GET /api/jobs returns list of jobs."""
-        response = client.get("/api/jobs")
-        
+        """Test GET /api/v1/jobs returns list of jobs."""
+        response = client.get("/api/v1/jobs")
+
         assert response.status_code == 200
         data = response.json()
         assert isinstance(data, list)
-    
+
     def test_get_job_provenance(self, client):
-        """Test GET /api/jobs/{run_id}/provenance returns 404 for unknown job.
-        
-        Note: The actual endpoint is /api/jobs/{run_id}/provenance, not /api/jobs/{id}.
+        """Test GET /api/v1/jobs/{run_id}/provenance returns 404 for unknown job.
+
+        Note: The actual endpoint is /api/v1/jobs/{run_id}/provenance, not /api/v1/jobs/{id}.
         The API creates synthetic job records from MS paths - job-001 matches obs_0001.ms
         in test fixtures, so use a completely non-matching ID.
         """
-        response = client.get("/api/jobs/job-nonexistent-xyz/provenance")
-        
+        response = client.get("/api/v1/jobs/job-nonexistent-xyz/provenance")
+
         # With test database, job-nonexistent-xyz won't match any MS path
         assert response.status_code == 404
         data = response.json()
         assert_error_response(data)
-    
+
     def test_create_job_not_implemented(self, client):
-        """Test POST /api/jobs is not implemented.
-        
+        """Test POST /api/v1/jobs is not implemented.
+
         Job creation is done through the pipeline, not the API.
         The jobs endpoint only provides read access to job provenance.
         """
@@ -163,50 +157,44 @@ class TestJobsRoutes:
             "job_type": "imaging",
             "ms_path": "/data/ms/test.ms",
         }
-        response = client.post("/api/jobs", json=job_data)
-        
+        response = client.post("/api/v1/jobs", json=job_data)
+
         # POST method is not allowed on the jobs list endpoint
         assert response.status_code == 405
-    
+
     def test_cancel_job_not_implemented(self, client):
-        """Test POST /api/jobs/{id}/cancel is not implemented.
-        
+        """Test POST /api/v1/jobs/{id}/cancel is not implemented.
+
         Job cancellation is not currently supported via the API.
         Jobs are managed through the pipeline directly.
         """
-        response = client.post("/api/jobs/job-001/cancel")
-        
-        # Cancel endpoint is not implemented
+        response = client.post("/api/v1/jobs/job-001/cancel")        # Cancel endpoint is not implemented
         assert response.status_code == 404 or response.status_code == 405
 
 
 class TestErrorResponses:
     """Tests for error response formatting."""
-    
+
     def test_post_not_allowed_on_jobs(self, client):
-        """Test that POST to /api/jobs returns 405 Method Not Allowed.
-        
+        """Test that POST to /api/v1/jobs returns 405 Method Not Allowed.
+
         The jobs endpoint only supports GET for listing jobs.
         Job creation happens through the pipeline, not the API.
         """
-        response = client.post("/api/jobs", json={})
-        
+        response = client.post("/api/v1/jobs", json={})
+
         # POST method is not allowed
         assert response.status_code == 405
-
-
 class TestCORSHeaders:
     """Tests for CORS configuration."""
-    
+
     def test_cors_headers_present(self, client):
         """Test that CORS headers are present in response."""
         response = client.options(
-            "/api/health",
+            "/api/v1/health",
             headers={
                 "Origin": "http://localhost:3000",
                 "Access-Control-Request-Method": "GET",
             }
-        )
-        
-        # CORS preflight should return 200
+        )        # CORS preflight should return 200
         assert response.status_code in (200, 204, 400)

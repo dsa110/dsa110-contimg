@@ -13,9 +13,9 @@ from pathlib import Path
 
 from astropy.time import Time, TimeDelta
 
-# Add src to path before importing project modules
-repo_root = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(repo_root / "src"))
+# Add backend/src to path before importing project modules
+REPO_ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(REPO_ROOT / "backend" / "src"))
 
 from dsa110_contimg.calibration.cli_calibrate import handle_calibrate
 from dsa110_contimg.calibration.schedule import next_transit_time

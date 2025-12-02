@@ -37,9 +37,9 @@ from dsa110_contimg.simulation.make_synthetic_uvh5 import (
   load_reference_layout, load_telescope_config)
 from dsa110_contimg.simulation.visibility_models import add_thermal_noise
 
-# Add src to path before importing project modules
-repo_root = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(repo_root / "src"))
+# Add backend/src to path before importing project modules
+REPO_ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(REPO_ROOT / "backend" / "src"))
 
 
 # Suppress ERFA warnings about "dubious years"

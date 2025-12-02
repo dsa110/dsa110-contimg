@@ -6,7 +6,7 @@ set -e
 
 cd /data/dsa110-contimg
 
-export PYTHONPATH=/data/dsa110-contimg/src:$PYTHONPATH
+export PYTHONPATH=/data/dsa110-contimg/backend/src:$PYTHONPATH
 PYTHON=/opt/miniforge/envs/casa6/bin/python
 
 echo "=========================================="
@@ -16,7 +16,6 @@ echo "=========================================="
 $PYTHON << 'PYTHON_EOF'
 import sys
 from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 from dsa110_contimg.mosaic.cli import _fetch_tiles, _build_weighted_mosaic_linearmosaic
 from dsa110_contimg.mosaic.validation import TileQualityMetrics
