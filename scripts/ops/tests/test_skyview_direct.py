@@ -10,8 +10,9 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Optional
 
-# Add src to path
-sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
+# Add backend/src to path
+REPO_ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(REPO_ROOT / "backend" / "src"))
 
 from dsa110_contimg.api.data_access import _connect
 from dsa110_contimg.api.image_utils import get_fits_path, is_casa_image
