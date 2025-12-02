@@ -43,7 +43,7 @@ jobs:
         shell: bash -el {0}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Miniforge
         uses: conda-incubator/setup-miniconda@v3
@@ -125,7 +125,7 @@ jobs:
     # Note: Workflow-level paths filter already restricts when this runs
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -162,7 +162,7 @@ jobs:
         shell: bash -el {0}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Miniforge
         uses: conda-incubator/setup-miniconda@v3
