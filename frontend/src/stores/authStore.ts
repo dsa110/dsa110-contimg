@@ -2,10 +2,12 @@
  * Authentication Store
  *
  * Zustand store for managing authentication state.
+ * Connects to the backend /api/v1/auth/* endpoints.
  */
 
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import apiClient from "../api/client";
 import type {
   User,
   AuthTokens,
@@ -29,6 +31,8 @@ interface AuthActions {
   setLoading: (isLoading: boolean) => void;
   /** Check if token is expired */
   isTokenExpired: () => boolean;
+  /** Fetch current user from API */
+  fetchCurrentUser: () => Promise<void>;
 }
 
 type AuthStore = AuthState & AuthActions;
@@ -36,10 +40,13 @@ type AuthStore = AuthState & AuthActions;
 // Token storage key
 const TOKEN_KEY = "dsa110_auth_tokens";
 
+// API base path
+const AUTH_API_BASE = "/api/v1/auth";
+
 /**
  * Parse JWT token to extract expiration
  */
-function parseJwt(token: string): { exp?: number } | null {
+function parseJwt(token: string): { exp?: number; sub?: string } | null {
   try {
     const base64Url = token.split(".")[1];
     const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
@@ -56,72 +63,129 @@ function parseJwt(token: string): { exp?: number } | null {
 }
 
 /**
- * Simulated API call for login
- * In production, this would call the backend auth endpoint
+ * API response types matching backend schemas
+ */
+interface ApiLoginResponse {
+  user: {
+    id: string;
+    username: string;
+    email: string;
+    role: string;
+    full_name?: string;
+    created_at?: string;
+    last_login?: string;
+  };
+  tokens: {
+    access_token: string;
+    refresh_token?: string;
+    token_type: string;
+    expires_in: number;
+  };
+}
+
+interface ApiUserResponse {
+  id: string;
+  username: string;
+  email: string;
+  role: string;
+  full_name?: string;
+  created_at?: string;
+  last_login?: string;
+}
+
+interface ApiTokenResponse {
+  access_token: string;
+  refresh_token?: string;
+  token_type: string;
+  expires_in: number;
+}
+
+/**
+ * Convert API user response to frontend User type
+ */
+function mapApiUser(apiUser: ApiUserResponse): User {
+  return {
+    id: apiUser.id,
+    username: apiUser.username,
+    email: apiUser.email,
+    role: apiUser.role as UserRole,
+    fullName: apiUser.full_name,
+    createdAt: apiUser.created_at,
+    lastLogin: apiUser.last_login,
+  };
+}
+
+/**
+ * Convert API token response to frontend AuthTokens type
+ */
+function mapApiTokens(apiTokens: ApiTokenResponse): AuthTokens {
+  return {
+    accessToken: apiTokens.access_token,
+    refreshToken: apiTokens.refresh_token,
+    tokenType: apiTokens.token_type,
+    expiresIn: apiTokens.expires_in,
+  };
+}
+
+/**
+ * Call the backend login API
  */
 async function apiLogin(
   credentials: LoginCredentials
 ): Promise<{ user: User; tokens: AuthTokens }> {
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  const response = await apiClient.post<ApiLoginResponse>(
+    `${AUTH_API_BASE}/login`,
+    {
+      username: credentials.username,
+      password: credentials.password,
+      remember_me: credentials.rememberMe ?? false,
+    }
+  );
 
-  // Demo users for development
-  const demoUsers: Record<string, { password: string; user: User }> = {
-    admin: {
-      password: "admin",
-      user: {
-        id: "user-001",
-        username: "admin",
-        email: "admin@dsa110.caltech.edu",
-        role: "admin",
-        fullName: "System Administrator",
-        createdAt: "2024-01-01T00:00:00Z",
-        lastLogin: new Date().toISOString(),
-      },
-    },
-    operator: {
-      password: "operator",
-      user: {
-        id: "user-002",
-        username: "operator",
-        email: "operator@dsa110.caltech.edu",
-        role: "operator",
-        fullName: "Pipeline Operator",
-        createdAt: "2024-01-15T00:00:00Z",
-        lastLogin: new Date().toISOString(),
-      },
-    },
-    viewer: {
-      password: "viewer",
-      user: {
-        id: "user-003",
-        username: "viewer",
-        email: "viewer@dsa110.caltech.edu",
-        role: "viewer",
-        fullName: "Read-only User",
-        createdAt: "2024-02-01T00:00:00Z",
-        lastLogin: new Date().toISOString(),
-      },
-    },
+  return {
+    user: mapApiUser(response.data.user),
+    tokens: mapApiTokens(response.data.tokens),
   };
+}
 
-  const demoUser = demoUsers[credentials.username];
-  if (!demoUser || demoUser.password !== credentials.password) {
-    throw new Error("Invalid username or password");
+/**
+ * Call the backend refresh API
+ */
+async function apiRefresh(refreshToken: string): Promise<AuthTokens> {
+  const response = await apiClient.post<ApiTokenResponse>(
+    `${AUTH_API_BASE}/refresh`,
+    {
+      refresh_token: refreshToken,
+    }
+  );
+
+  return mapApiTokens(response.data);
+}
+
+/**
+ * Call the backend logout API
+ */
+async function apiLogout(refreshToken?: string): Promise<void> {
+  try {
+    await apiClient.post(`${AUTH_API_BASE}/logout`, {
+      refresh_token: refreshToken,
+    });
+  } catch {
+    // Ignore logout errors - we'll clear local state anyway
   }
+}
 
-  // Generate mock tokens
-  const expiresIn = credentials.rememberMe ? 86400 * 30 : 3600; // 30 days or 1 hour
-  const tokens: AuthTokens = {
-    accessToken: `demo_access_${Date.now()}`,
-    refreshToken: credentials.rememberMe
-      ? `demo_refresh_${Date.now()}`
-      : undefined,
-    tokenType: "Bearer",
-    expiresIn,
-  };
+/**
+ * Call the backend /me API to get current user
+ */
+async function apiGetCurrentUser(accessToken: string): Promise<User> {
+  const response = await apiClient.get<ApiUserResponse>(`${AUTH_API_BASE}/me`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  });
 
-  return { user: demoUser.user, tokens };
+  return mapApiUser(response.data);
 }
 
 /**
@@ -162,6 +226,9 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       logout: () => {
+        const { tokens } = get();
+        // Call backend logout to invalidate refresh token
+        apiLogout(tokens?.refreshToken);
         set({
           user: null,
           tokens: null,
@@ -181,15 +248,33 @@ export const useAuthStore = create<AuthStore>()(
 
         set({ isLoading: true });
         try {
-          // In production, this would call the backend refresh endpoint
-          // For demo, just extend the token
-          const newTokens: AuthTokens = {
-            ...tokens,
-            accessToken: `demo_access_${Date.now()}`,
-            expiresIn: 3600,
-          };
-          set({ tokens: newTokens, isLoading: false });
-        } catch (error) {
+          const newTokens = await apiRefresh(tokens.refreshToken);
+          set({
+            tokens: newTokens,
+            isLoading: false,
+          });
+        } catch {
+          // Refresh failed - log out
+          get().logout();
+        }
+      },
+
+      fetchCurrentUser: async () => {
+        const { tokens } = get();
+        if (!tokens?.accessToken) {
+          return;
+        }
+
+        set({ isLoading: true });
+        try {
+          const user = await apiGetCurrentUser(tokens.accessToken);
+          set({
+            user,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+        } catch {
+          // Token invalid - log out
           get().logout();
         }
       },
@@ -211,10 +296,11 @@ export const useAuthStore = create<AuthStore>()(
 
         const payload = parseJwt(tokens.accessToken);
         if (!payload?.exp) {
-          // For demo tokens, check against stored expiration
+          // If no expiration in token, assume valid
           return false;
         }
-        return Date.now() >= payload.exp * 1000;
+        // Add 30 second buffer for clock skew
+        return Date.now() >= (payload.exp * 1000) - 30000;
       },
     }),
     {

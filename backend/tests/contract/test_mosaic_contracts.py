@@ -228,6 +228,80 @@ class TestMosaicBuilder:
                 output_path=tmp_path / "mosaic.fits",
             )
 
+    def test_build_mosaic_with_external_weights(
+        self,
+        synthetic_images: list[Path],
+        tmp_path: Path,
+    ) -> None:
+        """Verify external weight maps are used when provided (VAST/SWarp style).
+        
+        This tests the WEIGHT_TYPE=MAP_WEIGHT approach from VAST post-processing
+        where external weight images control the combination.
+        """
+        pytest.importorskip("reproject", reason="reproject package not available")
+        from dsa110_contimg.mosaic import build_mosaic
+        
+        # Create weight maps for each image
+        # Weight = 1/variance, so higher weight = lower noise = more contribution
+        weight_paths = []
+        for i, img_path in enumerate(synthetic_images):
+            weight_path = tmp_path / f"weight_{i}.fits"
+            
+            # Create weight map - vary weights to test that they matter
+            # Image 0 gets highest weight (10), others decrease
+            weight_value = 10.0 - i * 2  # 10, 8, 6, 4, 2
+            weight_data = np.full((256, 256), weight_value, dtype=np.float32)
+            
+            # Read WCS from original image
+            with fits.open(str(img_path)) as hdul:
+                wcs_header = hdul[0].header.copy()
+            
+            weight_hdu = fits.PrimaryHDU(data=weight_data, header=wcs_header)
+            weight_hdu.header['BUNIT'] = '1/Jy^2'
+            weight_hdu.writeto(str(weight_path))
+            weight_paths.append(weight_path)
+        
+        output = tmp_path / "mosaic_extweight.fits"
+        
+        result = build_mosaic(
+            image_paths=synthetic_images,
+            output_path=output,
+            alignment_order=3,
+            weight_image_paths=weight_paths,
+            rescale_weights=True,
+        )
+        
+        # File should exist
+        assert output.exists()
+        assert result.n_images == len(synthetic_images)
+        assert result.external_weights_used is True
+        
+        # Check header indicates external weights were used
+        with fits.open(str(output)) as hdulist:
+            assert hdulist[0].header.get('EXTWEIGH', False) is True
+
+    def test_build_mosaic_external_weights_count_mismatch_raises(
+        self,
+        synthetic_images: list[Path],
+        tmp_path: Path,
+    ) -> None:
+        """Verify mismatched weight/image counts raise error."""
+        pytest.importorskip("reproject", reason="reproject package not available")
+        from dsa110_contimg.mosaic import build_mosaic
+        
+        # Create fewer weight maps than images
+        weight_paths = [tmp_path / "weight_0.fits"]
+        weight_data = np.ones((256, 256), dtype=np.float32)
+        weight_hdu = fits.PrimaryHDU(data=weight_data)
+        weight_hdu.writeto(str(weight_paths[0]))
+        
+        with pytest.raises(ValueError, match="must match"):
+            build_mosaic(
+                image_paths=synthetic_images,
+                output_path=tmp_path / "mosaic.fits",
+                weight_image_paths=weight_paths,
+            )
+
 
 class TestMosaicQA:
     """Test quality assessment checks."""

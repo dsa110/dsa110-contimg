@@ -17,6 +17,7 @@ import {
   ValidityWindowTimeline,
   CalibratorMonitoringPanel,
   TransitWidget,
+  AlertPolicyList,
 } from "../components/health";
 import { StorageMonitoringPanel } from "../components/storage";
 import { MetricsDashboardPanel } from "../components/metrics";
@@ -312,6 +313,11 @@ export function HealthDashboardPage() {
           <SystemHealthPanel />
           <AlertsPanel />
           <TransitWidget />
+        </div>
+
+        {/* Alert policy management */}
+        <div className="mb-6">
+          <AlertPolicyList />
         </div>
 
         {/* Storage monitoring */}

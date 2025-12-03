@@ -88,6 +88,7 @@ from .config import get_config
 from .middleware import add_exception_handlers
 from .exceptions import ValidationError as DSA110ValidationError, ProcessingError
 from .routes import (
+    auth_router,
     images_router,
     ms_router,
     sources_router,
@@ -263,6 +264,7 @@ def create_app() -> FastAPI:
     
     # Define routers with their tags for cleaner registration
     api_routers = [
+        (auth_router, "Authentication", False),  # Public auth endpoints
         (images_router, "Images", True),
         (ms_router, "Measurement Sets", True),
         (sources_router, "Sources", True),
