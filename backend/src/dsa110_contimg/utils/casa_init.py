@@ -169,17 +169,17 @@ def setup_casa_log_directory() -> Path:
         log_dir = settings.paths.casa_logs_dir
     except ImportError:
         log_dir = Path("/data/dsa110-contimg/state/logs/casa")
-    
+
     try:
         log_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Set CASALOGFILE - some CASA versions may respect this
         os.environ["CASALOGFILE"] = str(log_dir / "casa.log")
-        
+
         # Change CWD to logs directory so CASA writes logs there
         # This is the most reliable way to redirect CASA logs
         os.chdir(log_dir)
-        
+
         return log_dir
     except (OSError, PermissionError):
         # If we can't create/access the directory, logs will go to CWD
@@ -192,44 +192,43 @@ def cleanup_stray_casa_logs(
     delete: bool = False,
 ) -> list:
     """Find and optionally move/delete stray CASA log files.
-    
+
     Args:
         search_dirs: Directories to search for stray logs (default: backend root)
         target_dir: Directory to move logs to (default: CASA logs dir)
         delete: If True, delete logs instead of moving
-        
+
     Returns:
         List of paths found/processed
     """
-    import glob
     import shutil
-    
+
     if target_dir is None:
         try:
             from dsa110_contimg.config import settings
             target_dir = settings.paths.casa_logs_dir
         except ImportError:
             target_dir = Path("/data/dsa110-contimg/state/logs/casa")
-    
+
     if search_dirs is None:
         search_dirs = [
             Path("/data/dsa110-contimg/backend"),
         ]
-    
+
     found_logs = []
     for search_dir in search_dirs:
         search_dir = Path(search_dir)
         if not search_dir.exists():
             continue
-        
+
         # Find casa-*.log files
         for log_path in search_dir.glob("casa-*.log"):
             # Skip if already in target directory
             if log_path.parent == target_dir:
                 continue
-            
+
             found_logs.append(log_path)
-            
+
             if delete:
                 try:
                     log_path.unlink()
@@ -241,7 +240,7 @@ def cleanup_stray_casa_logs(
                     shutil.move(str(log_path), str(target_dir / log_path.name))
                 except (OSError, PermissionError, shutil.Error):
                     pass
-    
+
     return found_logs
 
 

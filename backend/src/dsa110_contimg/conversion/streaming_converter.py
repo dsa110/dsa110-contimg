@@ -1930,6 +1930,25 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                 # Issue #7: Transition to CALIBRATING state
                 _update_state_machine(state_machine, gid, "CALIBRATING", log)
                 
+                # Issue #8: Pre-flag RFI before calibration solve
+                if HAVE_HARDENING and preflag_rfi is not None:
+                    try:
+                        log.info("Pre-flagging RFI for calibrator MS: %s", ms_path)
+                        rfi_stats = preflag_rfi(ms_path)
+                        if rfi_stats.flagged_fraction > 0.3:
+                            log.warning(
+                                "High RFI flagged fraction (%.1f%%) in %s - calibration may be affected",
+                                rfi_stats.flagged_fraction * 100,
+                                ms_path,
+                            )
+                        else:
+                            log.info(
+                                "RFI pre-flagging complete: %.1f%% flagged",
+                                rfi_stats.flagged_fraction * 100,
+                            )
+                    except Exception as e:
+                        log.warning("RFI pre-flagging failed (non-fatal): %s", e)
+                
                 # Issue #4: Use calibration fence to coordinate with other workers
                 fence = None
                 if HAVE_HARDENING and CalibrationFence is not None:
