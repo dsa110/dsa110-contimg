@@ -18,6 +18,7 @@ from ..exceptions import (
 )
 from ..schemas import ImageDetailResponse, ImageListResponse, ProvenanceResponse
 from ..services.async_services import AsyncImageService
+from ..auth import require_write_access, AuthContext
 
 router = APIRouter(prefix="/images", tags=["images"])
 
@@ -284,6 +285,7 @@ async def reimage_from_existing(
     image_id: str,
     request: ReimageRequest,
     service: AsyncImageService = Depends(get_async_image_service),
+    _auth: AuthContext = Depends(require_write_access),
 ):
     """
     Queue a re-imaging job from an existing image.
@@ -380,6 +382,7 @@ async def save_mask(
     image_id: str,
     request: MaskCreateRequest,
     service: AsyncImageService = Depends(get_async_image_service),
+    _auth: AuthContext = Depends(require_write_access),
 ):
     """
     Save a DS9/CRTF region mask for an image.
@@ -487,6 +490,7 @@ async def delete_mask(
     image_id: str,
     mask_id: str,
     service: AsyncImageService = Depends(get_async_image_service),
+    _auth: AuthContext = Depends(require_write_access),
 ):
     """
     Delete a mask file.
