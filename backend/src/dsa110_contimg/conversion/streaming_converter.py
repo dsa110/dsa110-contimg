@@ -149,7 +149,6 @@ from dsa110_contimg.calibration.streaming import (  # noqa: E402
 )
 from dsa110_contimg.database import (  # noqa: E402
     ensure_ingest_db,
-    ensure_pipeline_db,
     ensure_products_db,
     images_insert,
     log_pointing,
@@ -215,7 +214,7 @@ def override_env(values: Dict[str, str]) -> Iterator[None]:
 
 def _get_pipeline_db_path() -> Path:
     """Get unified pipeline database path from centralized settings.
-    
+
     Returns the path to the unified pipeline database, using:
     1. Centralized config settings (preferred)
     2. PIPELINE_PRODUCTS_DB environment variable (legacy)
@@ -229,9 +228,11 @@ def _get_pipeline_db_path() -> Path:
             return settings.database.unified_db
     except (ImportError, Exception):
         pass
-    
+
     # Fall back to env var with new default
-    return Path(os.getenv("PIPELINE_PRODUCTS_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3"))
+    return Path(
+        os.getenv("PIPELINE_PRODUCTS_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3")
+    )
 
 
 def setup_logging(level: str) -> None:
@@ -851,7 +852,7 @@ class QueueDB:
 
 # Import pointing tracker for Dec change detection
 try:
-    from dsa110_contimg.pipeline.precompute import get_pointing_tracker, PointingTracker
+    from dsa110_contimg.pipeline.precompute import PointingTracker, get_pointing_tracker
     HAS_POINTING_TRACKER = True
 except ImportError:
     HAS_POINTING_TRACKER = False
@@ -1497,7 +1498,7 @@ def _register_calibration_tables(
                             qa_result.snr_mean or 0.0,
                             (qa_result.flagged_fraction or 0.0) * 100,
                         )
-                    
+
                     # Get metrics for database storage
                     if get_calibration_quality_metrics is not None:
                         quality_metrics = get_calibration_quality_metrics(bp_table)
@@ -1547,7 +1548,7 @@ def _update_state_machine(
     """
     if state_machine is None or ProcessingState is None:
         return
-    
+
     try:
         target_state = ProcessingState[state_name]
         # Use direct database update instead of context manager
@@ -1582,7 +1583,7 @@ def _update_state_machine(
 def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
     """Poll for pending groups, convert via orchestrator, and mark complete."""
     log = logging.getLogger("stream.worker")
-    
+
     # Issue #10: Initialize disk space monitor if hardening module available
     disk_monitor: DiskSpaceMonitor | None = None
     if HAVE_HARDENING and DiskSpaceMonitor is not None and DiskQuota is not None:
@@ -1605,7 +1606,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
             log.info("Disk space monitor initialized for output and scratch directories")
         except (OSError, ValueError) as e:
             log.warning("Failed to initialize disk monitor: %s", e)
-    
+
     # Issue #7: Initialize processing state machine for crash recovery
     state_machine: ProcessingStateMachine | None = None
     if HAVE_HARDENING and ProcessingStateMachine is not None:
@@ -1616,7 +1617,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
             log.info("Processing state machine initialized for transactional safety")
         except (OSError, sqlite3.Error) as e:
             log.warning("Failed to initialize state machine: %s", e)
-    
+
     while True:
         try:
             # Issue #10: Check disk space before acquiring new work
@@ -1636,7 +1637,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                         record_queue_depth(queue.count_by_state().get("pending", 0))
                     except Exception:
                         pass
-            
+
             gid = queue.acquire_next_pending()
             if gid is None:
                 time.sleep(float(getattr(args, "worker_poll_interval", 5.0)))
@@ -1929,7 +1930,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
             if is_calibrator and getattr(args, "enable_calibration_solving", False):
                 # Issue #7: Transition to CALIBRATING state
                 _update_state_machine(state_machine, gid, "CALIBRATING", log)
-                
+
                 # Issue #8: Pre-flag RFI before calibration solve
                 if HAVE_HARDENING and preflag_rfi is not None:
                     try:
@@ -1948,7 +1949,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                             )
                     except Exception as e:
                         log.warning("RFI pre-flagging failed (non-fatal): %s", e)
-                
+
                 # Issue #4: Use calibration fence to coordinate with other workers
                 fence = None
                 if HAVE_HARDENING and CalibrationFence is not None:
@@ -1956,15 +1957,15 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                         fence = CalibrationFence(Path(args.registry_db))
                     except (OSError, sqlite3.Error) as e:
                         log.warning("Failed to initialize calibration fence: %s", e)
-                
+
                 try:
                     log.info("Solving calibration for calibrator MS: %s", ms_path)
-                    
+
                     # Wrap calibration solve in fence lock to signal other workers
                     if fence is not None:
                         with fence.calibrator_lock(ms_path):
                             success, error_msg = solve_calibration_for_ms(ms_path, do_k=False)
-                            
+
                             # Issue #3: Try backup calibrators if primary fails
                             if not success and HAVE_HARDENING and find_backup_calibrators is not None:
                                 log.warning(
@@ -1990,7 +1991,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                                             # For now, log available alternatives for operator awareness
                                 except Exception as be:
                                     log.debug("Backup calibrator search failed: %s", be)
-                            
+
                             if success:
                                 # Register calibration tables in registry
                                 _register_calibration_tables(
@@ -2003,7 +2004,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                     else:
                         # Fallback without fence
                         success, error_msg = solve_calibration_for_ms(ms_path, do_k=False)
-                        
+
                         # Issue #3: Try backup calibrators if primary fails (no fence case)
                         if not success and HAVE_HARDENING and find_backup_calibrators is not None:
                             log.warning(
@@ -2026,7 +2027,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                                         )
                             except Exception as be:
                                 log.debug("Backup calibrator search failed: %s", be)
-                        
+
                         if success:
                             _register_calibration_tables(args, gid, ms_path, mid_mjd, log)
                             # Issue #7: Transition to CALIBRATED state
@@ -2067,7 +2068,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                             )
                     except (OSError, sqlite3.Error) as e:
                         log.debug("Calibration fence check failed: %s", e)
-                
+
                 # Determine mid_mjd for applylist
                 if mid_mjd is None:
                     # fallback: try extract_ms_time_range again (it has multiple fallbacks)
@@ -2106,10 +2107,10 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                 # Standard tier imaging (production quality)
                 # Note: Data is always reordered for correct multi-SPW processing
                 imgroot = os.path.join(args.output_dir, base + ".img")
-                
+
                 # Issue #7: Transition to IMAGING state
                 _update_state_machine(state_machine, gid, "IMAGING", log)
-                
+
                 img_t0 = time.perf_counter()
                 try:
                     image_ms(
@@ -2334,7 +2335,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
 
             # Issue #7: Transition to COMPLETED state
             _update_state_machine(state_machine, gid, "COMPLETED", log)
-            
+
             queue.update_state(gid, "completed")
             log.info("Completed %s in %.2fs", gid, total)
         except (RuntimeError, OSError, sqlite3.Error, KeyboardInterrupt):

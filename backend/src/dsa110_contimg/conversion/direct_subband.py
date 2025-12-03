@@ -568,7 +568,12 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
         str: Writer type used
     """
     import numpy as np
-    from casatasks import concat as casa_concat
+    try:
+        from dsa110_contimg.utils.tempdirs import casa_log_environment
+        with casa_log_environment():
+            from casatasks import concat as casa_concat
+    except ImportError:
+        from casatasks import concat as casa_concat
 
     ms_stage_path = ms_path
     part_base = Path(scratch_dir or Path(ms_stage_path).parent) / Path(ms_stage_path).stem

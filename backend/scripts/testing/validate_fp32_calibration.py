@@ -797,7 +797,12 @@ def test_casa_calibration_precision(
         thresholds = ValidationThresholds()
     
     try:
-        from casatasks import gaincal
+        try:
+            from dsa110_contimg.utils.tempdirs import casa_log_environment
+            with casa_log_environment():
+                from casatasks import gaincal
+        except ImportError:
+            from casatasks import gaincal
         import casacore.tables as tb
         logger.info(f"Testing CASA calibration on {ms_path}...")
     except ImportError:
