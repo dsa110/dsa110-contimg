@@ -836,6 +836,297 @@ async def trigger_flux_monitoring_check(
 
 
 # ============================================================================
+# Calibration Health Endpoints
+# ============================================================================
+
+
+class CalibrationHealthStatus(BaseModel):
+    """Calibration health status."""
+
+    status: str  # healthy, warning, critical
+    message: str
+    nearest_cal_hours: Optional[float] = None
+    active_sets: int = 0
+    stale_sets: int = 0
+    missing_types: List[str] = Field(default_factory=list)
+    query_mjd: float
+    query_iso: str
+    checked_at: str
+
+
+class CalibrationCandidate(BaseModel):
+    """A calibration candidate."""
+
+    set_name: str
+    mjd: float
+    time_diff_hours: float
+    tables: Dict[str, Optional[str]]
+    source_ms_path: Optional[str] = None
+    staleness_level: str = "fresh"
+
+
+class CalibrationTimelineEntry(BaseModel):
+    """Entry in calibration timeline."""
+
+    set_name: str
+    start_mjd: Optional[float]
+    end_mjd: Optional[float]
+    start_iso: Optional[str]
+    end_iso: Optional[str]
+    table_types: List[str]
+    table_count: int
+
+
+@router.get("/calibration", response_model=CalibrationHealthStatus)
+async def get_calibration_health(
+    mjd: Optional[float] = Query(None, description="Query MJD (default: now)"),
+    warning_hours: float = Query(12.0, description="Hours until warning status"),
+    critical_hours: float = Query(24.0, description="Hours until critical status"),
+) -> CalibrationHealthStatus:
+    """
+    Get calibration health status for a given time.
+
+    Evaluates the freshness of available calibrations and returns
+    health status with recommendations. Useful for monitoring
+    calibration coverage and detecting gaps.
+
+    Args:
+        mjd: Query MJD (default: current time)
+        warning_hours: Hours until warning status (default: 12)
+        critical_hours: Hours until critical status (default: 24)
+    """
+    from astropy.time import Time
+
+    from dsa110_contimg.calibration.caltables import check_calibration_staleness
+
+    if mjd is None:
+        mjd = Time.now().mjd
+
+    query_time = Time(mjd, format="mjd")
+    checked_at = datetime.utcnow().isoformat() + "Z"
+
+    health = check_calibration_staleness(
+        mjd,
+        warning_threshold_hours=warning_hours,
+        critical_threshold_hours=critical_hours,
+    )
+
+    return CalibrationHealthStatus(
+        status=health.status,
+        message=health.message,
+        nearest_cal_hours=health.nearest_cal_hours,
+        active_sets=health.active_sets,
+        stale_sets=health.stale_sets,
+        missing_types=health.missing_types,
+        query_mjd=mjd,
+        query_iso=query_time.isot,
+        checked_at=checked_at,
+    )
+
+
+@router.get("/calibration/nearest")
+async def get_nearest_calibration(
+    mjd: Optional[float] = Query(None, description="Query MJD (default: now)"),
+    search_hours: float = Query(24.0, description="Search window in hours"),
+) -> Dict[str, Any]:
+    """
+    Find the nearest calibration to a given time.
+
+    Performs bidirectional time-based search to find the closest
+    valid calibration tables within the search window.
+
+    Args:
+        mjd: Query MJD (default: current time)
+        search_hours: Maximum search window in hours (default: 24)
+    """
+    from astropy.time import Time
+
+    from dsa110_contimg.calibration.caltables import find_nearest_calibration
+
+    if mjd is None:
+        mjd = Time.now().mjd
+
+    query_time = Time(mjd, format="mjd")
+    checked_at = datetime.utcnow().isoformat() + "Z"
+
+    result = find_nearest_calibration(mjd, search_window_hours=search_hours)
+
+    if result is None:
+        return {
+            "found": False,
+            "query_mjd": mjd,
+            "query_iso": query_time.isot,
+            "search_hours": search_hours,
+            "message": f"No calibrations within ±{search_hours}h",
+            "checked_at": checked_at,
+        }
+
+    return {
+        "found": True,
+        "query_mjd": mjd,
+        "query_iso": query_time.isot,
+        "search_hours": search_hours,
+        "calibration": {
+            "set_name": result.set_name,
+            "mjd": result.mjd,
+            "iso": Time(result.mjd, format="mjd").isot,
+            "time_diff_hours": result.time_diff_hours,
+            "staleness_level": result.staleness_level,
+            "tables": result.tables,
+            "source_ms_path": result.source_ms_path,
+        },
+        "checked_at": checked_at,
+    }
+
+
+@router.get("/calibration/timeline")
+async def get_calibration_coverage_timeline(
+    start_mjd: Optional[float] = Query(None, description="Start MJD"),
+    end_mjd: Optional[float] = Query(None, description="End MJD"),
+    hours: float = Query(48.0, description="Hours to show if start/end not specified"),
+) -> Dict[str, Any]:
+    """
+    Get timeline of calibration coverage.
+
+    Returns all calibration sets and their validity windows within
+    the specified time range. Useful for visualizing calibration
+    coverage and identifying gaps.
+
+    Args:
+        start_mjd: Start of time range
+        end_mjd: End of time range
+        hours: Hours to show (default: 48, centered on now)
+    """
+    from astropy.time import Time
+
+    from dsa110_contimg.calibration.caltables import get_calibration_timeline
+
+    now = Time.now()
+
+    if start_mjd is None:
+        start_mjd = now.mjd - (hours / 48.0)
+    if end_mjd is None:
+        end_mjd = now.mjd + (hours / 48.0)
+
+    timeline = get_calibration_timeline(start_mjd, end_mjd)
+
+    # Calculate coverage statistics
+    total_duration = (end_mjd - start_mjd) * 24  # hours
+    covered_hours = 0
+    gaps = []
+    prev_end = start_mjd
+
+    # Sort by start time
+    sorted_timeline = sorted(
+        timeline,
+        key=lambda x: x.get("start_mjd") or start_mjd,
+    )
+
+    for entry in sorted_timeline:
+        entry_start = entry.get("start_mjd") or start_mjd
+        entry_end = entry.get("end_mjd") or end_mjd
+
+        # Check for gap before this entry
+        if entry_start > prev_end:
+            gap_hours = (entry_start - prev_end) * 24
+            gaps.append({
+                "start_mjd": prev_end,
+                "end_mjd": entry_start,
+                "start_iso": Time(prev_end, format="mjd").isot,
+                "end_iso": Time(entry_start, format="mjd").isot,
+                "duration_hours": gap_hours,
+            })
+
+        # Update coverage
+        if entry_end > prev_end:
+            covered_hours += (min(entry_end, end_mjd) - max(entry_start, prev_end)) * 24
+            prev_end = max(prev_end, entry_end)
+
+    # Check for final gap
+    if prev_end < end_mjd:
+        gap_hours = (end_mjd - prev_end) * 24
+        gaps.append({
+            "start_mjd": prev_end,
+            "end_mjd": end_mjd,
+            "start_iso": Time(prev_end, format="mjd").isot,
+            "end_iso": Time(end_mjd, format="mjd").isot,
+            "duration_hours": gap_hours,
+        })
+
+    coverage_pct = (covered_hours / total_duration * 100) if total_duration > 0 else 0
+
+    return {
+        "timeline_start_mjd": start_mjd,
+        "timeline_end_mjd": end_mjd,
+        "timeline_start_iso": Time(start_mjd, format="mjd").isot,
+        "timeline_end_iso": Time(end_mjd, format="mjd").isot,
+        "current_mjd": now.mjd,
+        "current_iso": now.isot,
+        "entries": timeline,
+        "total_entries": len(timeline),
+        "statistics": {
+            "total_duration_hours": total_duration,
+            "covered_hours": covered_hours,
+            "coverage_percent": round(coverage_pct, 1),
+            "gaps": gaps,
+            "gap_count": len(gaps),
+        },
+    }
+
+
+@router.get("/calibration/applylist")
+async def get_calibration_applylist(
+    mjd: Optional[float] = Query(None, description="Query MJD (default: now)"),
+    search_hours: float = Query(24.0, description="Search window in hours"),
+) -> Dict[str, Any]:
+    """
+    Get ordered list of calibration tables to apply.
+
+    Returns the calibration tables in the correct application order
+    (delay, bandpass, gain) for the nearest calibration to the
+    specified time.
+
+    Args:
+        mjd: Query MJD (default: current time)
+        search_hours: Maximum search window in hours (default: 24)
+    """
+    from astropy.time import Time
+
+    from dsa110_contimg.calibration.caltables import (
+        find_nearest_calibration,
+        get_applylist_for_mjd,
+    )
+
+    if mjd is None:
+        mjd = Time.now().mjd
+
+    query_time = Time(mjd, format="mjd")
+    checked_at = datetime.utcnow().isoformat() + "Z"
+
+    # Get apply list
+    tables = get_applylist_for_mjd(mjd, search_window_hours=search_hours)
+
+    # Get more info about the source
+    result = find_nearest_calibration(mjd, search_window_hours=search_hours)
+
+    return {
+        "query_mjd": mjd,
+        "query_iso": query_time.isot,
+        "applylist": tables,
+        "table_count": len(tables),
+        "source_info": {
+            "set_name": result.set_name if result else None,
+            "mjd": result.mjd if result else None,
+            "time_diff_hours": result.time_diff_hours if result else None,
+            "staleness_level": result.staleness_level if result else None,
+        }
+        if result
+        else None,
+        "checked_at": checked_at,
+    }
+
+
+# ============================================================================
 # GPU Health Endpoints
 # ============================================================================
 
