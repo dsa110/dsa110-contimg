@@ -257,16 +257,13 @@ export function useRetentionSimulation(policyId: string) {
  * Hook for retention policy execution
  */
 export function useRetentionExecution(policyId: string) {
-  const {
-    executePolicy,
-    cancelExecution,
-    isExecuting,
-    error,
-  } = useRetentionStore();
+  const { executePolicy, cancelExecution, isExecuting, error } =
+    useRetentionStore();
 
   const executionHistory = useRetentionStore(
     useCallback(
-      (state) => state.executions.filter((execution) => execution.policyId === policyId),
+      (state) =>
+        state.executions.filter((execution) => execution.policyId === policyId),
       [policyId]
     )
   );
@@ -323,7 +320,7 @@ export function useCreateRetentionPolicy() {
   const { addPolicy, error, setError } = useRetentionStore();
 
   const create = useCallback(
-    (data: RetentionPolicyFormData): RetentionPolicy => {
+    async (data: RetentionPolicyFormData): Promise<RetentionPolicy> => {
       setError(null);
       return addPolicy(data);
     },

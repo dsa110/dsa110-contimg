@@ -65,13 +65,18 @@ const ImageDetailPage: React.FC = () => {
         await saveImageRegions(imageId, { format, regions });
         notifySuccess(
           "Regions saved",
-          `${regions.length} region${regions.length === 1 ? "" : "s"} stored for ${filename}`
+          `${regions.length} region${
+            regions.length === 1 ? "" : "s"
+          } stored for ${filename}`
         );
       } catch (err) {
         const message =
           err instanceof Error ? err.message : "Failed to save image regions";
         notifyError("Failed to save regions", message);
-        logger.error("Failed to save image regions", err);
+        logger.error(
+          "Failed to save image regions",
+          err instanceof Error ? err : undefined
+        );
       }
     },
     [filename, imageId, notifyError, notifySuccess]

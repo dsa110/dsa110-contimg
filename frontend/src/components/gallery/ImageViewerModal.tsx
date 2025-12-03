@@ -10,7 +10,6 @@
  */
 
 import React, { useState, useCallback, useEffect } from "react";
-import { Modal } from "../common";
 import FitsViewer from "../fits/FitsViewer";
 import { config } from "../../config";
 
@@ -492,129 +491,131 @@ const ImageViewerModal: React.FC<ImageViewerModalProps> = ({
     handleZoomFit,
   ]);
 
-  return (
-    <Modal
-      isOpen={isOpen}
-      onClose={onClose}
-      title=""
-      size="fullscreen"
-      showCloseButton={false}
-    >
-      <div className="fixed inset-0 bg-black flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 bg-gray-900/95 backdrop-blur border-b border-gray-800">
-          <div className="flex items-center gap-4">
-            {/* Navigation buttons */}
-            <div className="flex gap-1">
-              <button
-                onClick={onPrevious}
-                disabled={!hasPrevious}
-                className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                title="Previous image (←)"
-              >
-                <svg
-                  className="w-5 h-5 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-              </button>
-              <button
-                onClick={onNext}
-                disabled={!hasNext}
-                className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                title="Next image (→)"
-              >
-                <svg
-                  className="w-5 h-5 text-white"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </button>
-            </div>
+  // Don't render if not open
+  if (!isOpen) {
+    return null;
+  }
 
-            {/* Title */}
-            <h2 className="text-lg font-medium text-white">{filename}</h2>
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black flex flex-col"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="image-viewer-title"
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-4 py-3 bg-gray-900/95 backdrop-blur border-b border-gray-800">
+        <div className="flex items-center gap-4">
+          {/* Navigation buttons */}
+          <div className="flex gap-1">
+            <button
+              onClick={onPrevious}
+              disabled={!hasPrevious}
+              className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Previous image (←)"
+            >
+              <svg
+                className="w-5 h-5 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+            </button>
+            <button
+              onClick={onNext}
+              disabled={!hasNext}
+              className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Next image (→)"
+            >
+              <svg
+                className="w-5 h-5 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </button>
           </div>
 
-          {/* Close button */}
-          <button
-            onClick={onClose}
-            className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
-            title="Close (Esc)"
-          >
-            <svg
-              className="w-5 h-5 text-white"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
+          {/* Title */}
+          <h2 className="text-lg font-medium text-white">{filename}</h2>
         </div>
 
-        {/* Main content */}
-        <div className="flex-1 relative overflow-hidden">
-          {/* FITS Viewer */}
-          <div className="absolute inset-0">
-            <FitsViewer
-              fitsUrl={fitsUrl}
-              displayId="modal-viewer"
-              width={window.innerWidth}
-              height={window.innerHeight - 64}
-              showControls={false}
-              onCoordinateClick={onCoordinateClick}
-              className="w-full h-full"
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="p-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors"
+          title="Close (Esc)"
+        >
+          <svg
+            className="w-5 h-5 text-white"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
             />
-          </div>
+          </svg>
+        </button>
+      </div>
 
-          {/* Settings panel - floating */}
-          <div className="absolute top-4 right-4 z-10">
-            <SettingsPanel
-              settings={settings}
-              onChange={handleSettingsChange}
-              onZoomIn={handleZoomIn}
-              onZoomOut={handleZoomOut}
-              onZoomFit={handleZoomFit}
-              onZoomActual={handleZoomActual}
-              onExportPNG={handleExportPNG}
-              onExportFITS={handleExportFITS}
-            />
-          </div>
+      {/* Main content */}
+      <div className="flex-1 relative overflow-hidden">
+        {/* FITS Viewer */}
+        <div className="absolute inset-0">
+          <FitsViewer
+            fitsUrl={fitsUrl}
+            displayId="modal-viewer"
+            width={window.innerWidth}
+            height={window.innerHeight - 64}
+            showControls={false}
+            onCoordinateClick={onCoordinateClick}
+            className="w-full h-full"
+          />
+        </div>
 
-          {/* Coordinate display */}
-          <CoordinateDisplay {...cursorCoords} />
+        {/* Settings panel - floating */}
+        <div className="absolute top-4 right-4 z-10">
+          <SettingsPanel
+            settings={settings}
+            onChange={handleSettingsChange}
+            onZoomIn={handleZoomIn}
+            onZoomOut={handleZoomOut}
+            onZoomFit={handleZoomFit}
+            onZoomActual={handleZoomActual}
+            onExportPNG={handleExportPNG}
+            onExportFITS={handleExportFITS}
+          />
+        </div>
 
-          {/* Keyboard shortcuts hint */}
-          <div className="absolute bottom-4 right-4 text-xs text-gray-500">
-            <span className="bg-gray-800/80 px-2 py-1 rounded">
-              Press <kbd className="font-mono">?</kbd> for shortcuts
-            </span>
-          </div>
+        {/* Coordinate display */}
+        <CoordinateDisplay {...cursorCoords} />
+
+        {/* Keyboard shortcuts hint */}
+        <div className="absolute bottom-4 right-4 text-xs text-gray-500">
+          <span className="bg-gray-800/80 px-2 py-1 rounded">
+            Press <kbd className="font-mono">?</kbd> for shortcuts
+          </span>
         </div>
       </div>
-    </Modal>
+    </div>
   );
 };
 
