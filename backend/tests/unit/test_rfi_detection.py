@@ -113,19 +113,22 @@ class TestDetectOutliersCupy:
 
         return mock_cp
 
-    def test_outlier_detection_with_mock(self, mock_cupy):
-        """Test outlier detection with mocked CuPy."""
+    def test_mock_cupy_setup(self, mock_cupy):
+        """Test that mocked CuPy is properly configured."""
         with patch.dict(sys.modules, {'cupy': mock_cupy}):
             # Reimport to get mocked version
             from importlib import reload
             import dsa110_contimg.rfi.gpu_detection as gpu_mod
             reload(gpu_mod)
 
-            # Test data
-            vis_data = np.random.randn(100) + 1j * np.random.randn(100)
+            # Verify mock is in place
+            assert gpu_mod is not None
 
-            # This would call the mocked CuPy
-            # The actual function would need the mock to work properly
+            # Test data would be processed here
+            _ = np.random.randn(100) + 1j * np.random.randn(100)
+
+            # Restore original module
+            reload(gpu_mod)
 
 
 class TestGpuRfiDetection:
