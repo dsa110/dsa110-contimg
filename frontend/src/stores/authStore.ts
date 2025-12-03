@@ -20,7 +20,7 @@ interface AuthActions {
   /** Log out the current user */
   logout: () => void;
   /** Refresh the access token */
-  refreshToken: () => Promise<void>;
+  refreshTokens: () => Promise<void>;
   /** Update user profile */
   updateUser: (updates: Partial<User>) => void;
   /** Clear any error */
@@ -172,7 +172,7 @@ export const useAuthStore = create<AuthStore>()(
         localStorage.removeItem(TOKEN_KEY);
       },
 
-      refreshToken: async () => {
+      refreshTokens: async () => {
         const { tokens } = get();
         if (!tokens?.refreshToken) {
           get().logout();

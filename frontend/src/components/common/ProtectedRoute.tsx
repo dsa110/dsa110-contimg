@@ -4,8 +4,8 @@
  */
 import { type ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { useAuth, usePermission } from "@/hooks/useAuth";
-import type { Permission, UserRole } from "@/types/auth";
+import { useAuth, usePermission } from "../../hooks/useAuth";
+import type { Permission, UserRole } from "../../types/auth";
 
 export interface ProtectedRouteProps {
   children: ReactNode;

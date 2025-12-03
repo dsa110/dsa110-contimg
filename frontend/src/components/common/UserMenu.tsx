@@ -2,7 +2,7 @@
  * UserMenu - Dropdown menu showing current user info and actions
  */
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "../../hooks/useAuth";
 
 interface UserMenuProps {
   /** Additional class names */
@@ -79,12 +79,12 @@ export function UserMenu({ className = "" }: UserMenuProps) {
       >
         {/* Avatar */}
         <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white text-sm font-medium">
-          {getInitials(user.name)}
+          {getInitials(user.fullName || user.username)}
         </div>
         {/* User info (hidden on small screens) */}
         <div className="hidden md:block text-left">
           <div className="text-sm font-medium text-gray-900 dark:text-white">
-            {user.name}
+            {user.fullName || user.username}
           </div>
           <div className="text-xs text-gray-500 dark:text-gray-400">
             {user.email}
@@ -114,7 +114,7 @@ export function UserMenu({ className = "" }: UserMenuProps) {
           {/* User info section */}
           <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
             <div className="font-medium text-gray-900 dark:text-white">
-              {user.name}
+              {user.fullName || user.username}
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">
               {user.email}

@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
 import AppLayout from "./components/layout/AppLayout";
 import { PageSkeleton } from "./components/common";
+import { ProtectedRoute } from "./components/common/auth";
 
 const HomePage = lazy(() => import("./pages/HomePage"));
 const HealthDashboardPage = lazy(() => import("./pages/HealthDashboardPage"));
@@ -20,6 +21,7 @@ const CalibratorImagingPage = lazy(
 );
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const WorkflowsPage = lazy(() => import("./pages/WorkflowsPage"));
+const LoginPage = lazy(() => import("./pages/LoginPage"));
 
 /**
  * Application router configuration.
@@ -48,6 +50,14 @@ const basename = config.app.basePath;
 
 export const router = createBrowserRouter(
   [
+    {
+      path: "/login",
+      element: (
+        <Suspense fallback={<PageSkeleton variant="detail" />}>
+          <LoginPage />
+        </Suspense>
+      ),
+    },
     {
       path: "/",
       element: (
@@ -105,7 +115,12 @@ export const router = createBrowserRouter(
           path: "imaging",
           element: (
             <Suspense fallback={<PageSkeleton variant="list" />}>
-              <InteractiveImagingPage />
+              <ProtectedRoute
+                permission="REIMAGE"
+                requiredRoles={["operator", "admin"]}
+              >
+                <InteractiveImagingPage />
+              </ProtectedRoute>
             </Suspense>
           ),
         },
@@ -113,7 +128,12 @@ export const router = createBrowserRouter(
           path: "calibrator-imaging",
           element: (
             <Suspense fallback={<PageSkeleton variant="list" />}>
-              <CalibratorImagingPage />
+              <ProtectedRoute
+                permission="REIMAGE"
+                requiredRoles={["operator", "admin"]}
+              >
+                <CalibratorImagingPage />
+              </ProtectedRoute>
             </Suspense>
           ),
         },
@@ -163,7 +183,12 @@ export const router = createBrowserRouter(
           path: "workflows",
           element: (
             <Suspense fallback={<PageSkeleton variant="list" />}>
-              <WorkflowsPage />
+              <ProtectedRoute
+                permission="CREATE_JOB"
+                requiredRoles={["operator", "admin"]}
+              >
+                <WorkflowsPage />
+              </ProtectedRoute>
             </Suspense>
           ),
         },
