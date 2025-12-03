@@ -6,12 +6,6 @@ Test CASA verbosity settings to see if we can get bandpass to print all channels
 import os
 import sys
 
-# Test different CASA logging configurations
-print("Testing CASA verbosity options...")
-
-try:
-    # Try to import and configure CASA logger
-
 # --- CASA log directory setup ---
 # Ensure CASA logs go to centralized directory, not CWD
 import os as _os
@@ -30,6 +24,11 @@ except (ImportError, OSError):
     pass  # Best effort - CASA logs may go to CWD
 # --- End CASA log directory setup ---
 
+# Test different CASA logging configurations
+print("Testing CASA verbosity options...")
+
+try:
+    # Try to import and configure CASA logger
     from casatasks import casalog
     
     print("\n1. Current CASA logger settings:")
@@ -69,4 +68,3 @@ print("\n5. CASA-related environment variables:")
 casa_env_vars = [k for k in os.environ.keys() if 'CASA' in k.upper() or 'LOG' in k.upper()]
 for var in casa_env_vars:
     print(f"   {var} = {os.environ[var]}")
-
