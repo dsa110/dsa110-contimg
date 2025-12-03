@@ -5,10 +5,8 @@ These tests verify that the GPU safety guards work correctly
 with the new RFI detection module.
 """
 
-import os
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
@@ -22,7 +20,7 @@ from dsa110_contimg.rfi.gpu_detection import cpu_rfi_detection, CUPY_AVAILABLE
 from dsa110_contimg.utils.gpu_safety import (
     check_system_memory_available,
     initialize_gpu_safety,
-    get_gpu_memory_usage,
+    get_gpu_memory_info,
 )
 
 
@@ -35,14 +33,15 @@ class TestGPUSafetyIntegration:
         initialize_gpu_safety()
 
         # After initialization, memory checking should work
-        result = check_system_memory_available(max_system_gb=6.0)
-        assert isinstance(result, bool)
+        is_safe, reason = check_system_memory_available(required_gb=6.0)
+        assert isinstance(is_safe, bool)
+        assert isinstance(reason, str)
 
-    def test_gpu_memory_usage_callable(self):
-        """Test that GPU memory usage function is callable."""
+    def test_gpu_memory_info_callable(self):
+        """Test that GPU memory info function is callable."""
         # Should return a dict or handle no GPU gracefully
         try:
-            usage = get_gpu_memory_usage()
+            usage = get_gpu_memory_info()
             if usage:
                 assert isinstance(usage, dict)
         except RuntimeError:
