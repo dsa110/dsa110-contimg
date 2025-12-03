@@ -32,10 +32,16 @@ StartLimitBurst=5
 StandardOutput=append:/data/dsa110-contimg/state/logs/pipeline-scheduler.log
 StandardError=append:/data/dsa110-contimg/state/logs/pipeline-scheduler.log
 
-# Resource limits (scheduler is lightweight)
+# Resource limits (scheduler is lightweight but may spawn GPU workers)
+# MemoryHigh and LimitAS provide system-level backstops for gpu_safety.py
 LimitNOFILE=4096
-MemoryMax=512M
+MemoryHigh=1G
+MemoryMax=2G
+LimitAS=4G
 CPUQuota=50%
+
+# OOM handling - scheduler is important, moderate score
+OOMScoreAdjust=100
 
 [Install]
 WantedBy=multi-user.target

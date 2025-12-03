@@ -281,7 +281,7 @@ export const useRetentionStore = create<RetentionStore>()(
                   rules: data.rules
                     ? data.rules.map((rule) => ({
                         ...rule,
-                        id: "id" in rule ? rule.id : generateId(),
+                        id: (rule as { id?: string }).id ?? generateId(),
                       }))
                     : policy.rules,
                   updatedAt: new Date().toISOString(),

@@ -121,7 +121,7 @@ async def lifespan(app: FastAPI):
     Application lifespan context manager.
     
     Handles:
-    - Startup: Initialize Bokeh session manager, ABSURD client, and cleanup loop
+    - Startup: Initialize GPU safety, Bokeh session manager, ABSURD client
     - Shutdown: Cleanup all active sessions and close ABSURD client
     """
     import logging
@@ -132,6 +132,18 @@ async def lifespan(app: FastAPI):
     
     # Startup
     logger.info("Starting application lifespan")
+    
+    # Initialize GPU safety module FIRST (before any GPU operations)
+    # This sets up CuPy memory pool limits and system memory thresholds
+    # to prevent OOM crashes that could cause disk disconnection
+    try:
+        from dsa110_contimg.utils.gpu_safety import initialize_gpu_safety
+        initialize_gpu_safety()
+        logger.info("GPU safety module initialized (memory limits enforced)")
+    except ImportError as e:
+        logger.warning(f"GPU safety module not available: {e}")
+    except Exception as e:
+        logger.warning(f"Could not initialize GPU safety module: {e}")
     
     # Initialize Bokeh session manager (for InteractiveClean)
     if test_mode:

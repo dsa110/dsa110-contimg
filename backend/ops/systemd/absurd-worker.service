@@ -30,10 +30,18 @@ StartLimitBurst=5
 StandardOutput=append:/data/dsa110-contimg/state/logs/absurd-worker.log
 StandardError=append:/data/dsa110-contimg/state/logs/absurd-worker.log
 
-# Resource limits
+# Resource limits - GPU worker needs more memory but with safety caps
+# MemoryHigh triggers soft pressure, MemoryMax is hard kill
+# LimitAS limits virtual address space per-process (prevents runaway allocations)
+# These are system-level backstops for the Python-level gpu_safety.py limits
 LimitNOFILE=65536
-MemoryMax=8G
+MemoryHigh=24G
+MemoryMax=28G
+LimitAS=32G
 CPUQuota=400%
+
+# OOM handling - prefer killing this worker over system processes
+OOMScoreAdjust=500
 
 [Install]
 WantedBy=multi-user.target

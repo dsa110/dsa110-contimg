@@ -6,6 +6,11 @@ time, applies calibration, and makes quick continuum images.
 This is a first-pass skeleton that can run in one-shot (scan) mode or in a
 simple polling loop. It records products in a small SQLite DB for later
 mosaicking.
+
+GPU Safety:
+    All imaging entry points are wrapped with @memory_safe decorator to ensure
+    system RAM limits are respected before processing. This prevents OOM crashes
+    that could cause disk disconnection (ref: Dec 2 2025 incident).
 """
 
 import argparse
@@ -23,8 +28,14 @@ from dsa110_contimg.database import (
     get_active_applylist,
 )
 from dsa110_contimg.imaging.fast_imaging import run_fast_imaging
+from dsa110_contimg.utils.gpu_safety import memory_safe, initialize_gpu_safety
 
 logger = logging.getLogger("imaging_worker")
+
+# Initialize GPU safety limits at module load time
+# This sets up CuPy memory pool limits and system memory thresholds
+initialize_gpu_safety()
+
 try:
     from dsa110_contimg.utils.tempdirs import prepare_temp_environment
 except ImportError:  # pragma: no cover
@@ -39,8 +50,15 @@ def setup_logging(level: str) -> None:
     )
 
 
+@memory_safe(max_memory_gb=6.0, description="apply_and_image")
 def _apply_and_image(ms_path: str, out_dir: Path, gaintables: List[str]) -> List[str]:
-    """Apply calibration and produce a quick image; returns artifact paths."""
+    """Apply calibration and produce a quick image; returns artifact paths.
+    
+    Memory Safety:
+        Wrapped with @memory_safe to check system RAM availability before
+        processing. Rejects if less than 30% RAM available or less than 2GB
+        free to prevent OOM conditions.
+    """
     artifacts: List[str] = []
     # Route temp files to scratch and chdir to output directory to avoid repo pollution
     try:
@@ -106,6 +124,7 @@ def _apply_and_image(ms_path: str, out_dir: Path, gaintables: List[str]) -> List
     return artifacts
 
 
+@memory_safe(max_memory_gb=6.0, description="process_once_batch")
 def process_once(
     ms_dir: Path,
     out_dir: Path,

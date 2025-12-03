@@ -9,6 +9,10 @@ Workflow:
 2. Splits observation into short time chunks (e.g. 30s).
 3. Creates dirty images (niter=0) for each chunk.
 4. Performs simple peak finding on the dirty images.
+
+GPU Safety:
+    Entry point run_fast_imaging() is wrapped with @gpu_safe to ensure both
+    GPU VRAM and system RAM limits are respected before processing.
 """
 
 import logging
@@ -36,8 +40,12 @@ from astropy.io import fits
 from dsa110_contimg.imaging.cli_utils import default_cell_arcsec
 from dsa110_contimg.utils.casa_init import ensure_casa_path
 from dsa110_contimg.utils.decorators import timed
+from dsa110_contimg.utils.gpu_safety import gpu_safe, initialize_gpu_safety
 
 ensure_casa_path()
+
+# Initialize GPU safety limits at module load time
+initialize_gpu_safety()
 
 LOG = logging.getLogger(__name__)
 
@@ -387,6 +395,7 @@ def save_candidates_to_db(
         LOG.error(f"Failed to save candidates to DB: {e}")
 
 
+@gpu_safe(max_vram_gb=9.0, description="fast_transient_imaging")
 @timed("imaging.run_fast_imaging")
 def run_fast_imaging(
     ms_path: str,
@@ -398,6 +407,10 @@ def run_fast_imaging(
     work_dir: str = ".",
 ) -> List[Dict[str, Any]]:
     """Main entry point for fast transient imaging.
+    
+    GPU Safety:
+        Wrapped with @gpu_safe to check GPU VRAM and system RAM availability
+        before processing. Rejects if GPU memory or RAM limits would be exceeded.
 
     Args:
         ms_path: Path to measurement set

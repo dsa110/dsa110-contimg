@@ -1,3 +1,12 @@
+"""
+Apply calibration tables to target measurement sets.
+
+GPU Safety:
+    Entry point apply_to_target() is wrapped with @memory_safe to ensure
+    system RAM limits are respected before processing. Calibration is memory-
+    intensive and can cause OOM on large datasets.
+"""
+
 from typing import List, Optional, Union
 
 # Ensure CASAPATH is set before importing CASA modules
@@ -12,6 +21,10 @@ from dsa110_contimg.calibration.validate import (
     validate_caltables_for_use,
 )
 from dsa110_contimg.utils import timed
+from dsa110_contimg.utils.gpu_safety import memory_safe, initialize_gpu_safety
+
+# Initialize GPU safety limits at module load time
+initialize_gpu_safety()
 
 
 def _verify_corrected_data_populated(ms_path: str, min_fraction: float = 0.01) -> None:
@@ -81,6 +94,7 @@ def _verify_corrected_data_populated(ms_path: str, min_fraction: float = 0.01) -
         ) from e
 
 
+@memory_safe(max_memory_gb=6.0, description="apply_calibration")
 @timed("calibration.apply_to_target")
 def apply_to_target(
     ms_target: str,
@@ -94,6 +108,10 @@ def apply_to_target(
     verify: bool = True,
 ) -> None:
     """Apply calibration tables to a target MS field.
+    
+    Memory Safety:
+        Wrapped with @memory_safe to check system RAM availability before
+        processing. Rejects if less than 30% RAM available or less than 2GB free.
 
     **PRECONDITION**: All calibration tables must exist and be compatible with
     the MS. This ensures consistent, reliable calibration application.

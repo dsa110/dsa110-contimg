@@ -342,9 +342,9 @@ This is **far more comprehensive** than typical radio astronomy pipeline UIs (wh
 - ✅ ~~**Disk usage dashboard**~~: DiskUsageWidget and DiskUsageCard now provide storage visibility
 - ❌ **Data cleanup UI**: Can't trigger archival/deletion from frontend
 - ❌ **Backup status**: No indication of data backup state
-- ❌ **Data retention policies**: Not visible or configurable via UI
+- ✅ ~~**Data retention policies**~~: RetentionPolicyList, RetentionPolicyEditor, RetentionSimulationPanel now provide full policy management UI
 
-**Impact**: Operators must use CLI for data management.
+**Impact**: ~~Operators must use CLI for data management.~~ Retention policy management and simulation now available via UI.
 
 ### 3. **Calibration Quality Assessment**
 
@@ -444,7 +444,7 @@ Based on the code structure, recent development appears focused on:
 6. 🔄 **User authentication** for multi-user access - **IN PROGRESS** (auth types, Zustand auth store, useAuth hook, ProtectedRoute, UserMenu components created)
 7. ✅ **~~Notification system~~** (email/Slack alerts) - **COMPLETED** (notification types, notificationStore, NotificationBell/Item/Panel components, useNotifications hook with SSE support)
 8. ✅ **~~Batch operations UI~~** for bulk re-imaging - **COMPLETED** (batch types, batchStore, BatchJobCard/List/Detail/Panel components, useBatchOperations hook)
-9. **Data retention policy UI** for archival management
+9. ✅ **~~Data retention policy UI~~** for archival management - **COMPLETED** (retention types, retentionStore, RetentionPolicyCard/List/Editor, RetentionSimulationPanel components, useRetention hooks)
 10. **Export to VO standards** (VOTable, SAMP)
 
 ### Long-term (1+ years)
@@ -477,9 +477,9 @@ The frontend is a **mature, production-ready scientific application** with sophi
 **Key Gaps (Remaining)**:
 
 - ~~Operational monitoring could be deeper~~ → Prometheus integration added
-- Data cleanup/archival UI still needed
+- ~~Data cleanup/archival UI still needed~~ → Retention policy UI added
 - Multi-user/collaboration features in progress (auth infrastructure built)
-- Some advanced science features require CLI
+- Some advanced science features require CLI (VO export, Jupyter)
 
 **Recent Improvements**:
 
@@ -489,5 +489,6 @@ The frontend is a **mature, production-ready scientific application** with sophi
 - User authentication infrastructure in progress
 - **NEW**: Notification system with in-app alerts, desktop notifications, and channel support (email/Slack/webhook)
 - **NEW**: Batch operations UI for bulk re-imaging, re-calibration, export, and QA rating
+- **NEW**: Data retention policy UI with simulation preview for archival management
 
-**Recommendation**: The frontend is **ready for science operations** today, with excellent operational monitoring now available. User authentication is being implemented for multi-user support. Batch operations enable power users to perform bulk workflows directly from the UI. The development team has made excellent architectural choices that will support long-term maintainability and feature growth.
+**Recommendation**: The frontend is **ready for science operations** today, with excellent operational monitoring now available. User authentication is being implemented for multi-user support. Batch operations enable power users to perform bulk workflows directly from the UI. Data retention policies can now be managed via the UI with simulation previews before execution. The development team has made excellent architectural choices that will support long-term maintainability and feature growth.
