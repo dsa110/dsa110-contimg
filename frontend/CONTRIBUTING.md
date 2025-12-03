@@ -20,12 +20,12 @@ npm run storybook
 
 ## Development URLs
 
-| Service     | URL                         | Notes                      |
-| ----------- | --------------------------- | -------------------------- |
-| Frontend    | http://localhost:3000       | Vite dev server with HMR   |
-| Login Page  | http://localhost:3000/login | Authentication entry point |
-| Backend API | http://localhost:8000       | FastAPI server             |
-| Storybook   | http://localhost:6006       | Component development      |
+| Service     | URL                           | Notes                      |
+| ----------- | ----------------------------- | -------------------------- |
+| Frontend    | <http://localhost:3000>       | Vite dev server with HMR   |
+| Login Page  | <http://localhost:3000/login> | Authentication entry point |
+| Backend API | <http://localhost:8000>       | FastAPI server             |
+| Storybook   | <http://localhost:6006>       | Component development      |
 
 ## Demo Login Credentials
 
