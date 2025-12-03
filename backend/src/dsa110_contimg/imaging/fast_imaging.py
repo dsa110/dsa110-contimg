@@ -26,6 +26,10 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 
+# Ensure CASA environment is initialized before importing CASA modules
+from dsa110_contimg.utils.casa_init import ensure_casa_path
+ensure_casa_path()
+
 # Use casatools for metadata if available
 try:
     from casatools import msmetadata as _msmd
@@ -38,7 +42,6 @@ except ImportError:
 from astropy.io import fits
 
 from dsa110_contimg.imaging.cli_utils import default_cell_arcsec
-from dsa110_contimg.utils.casa_init import ensure_casa_path
 from dsa110_contimg.utils.decorators import timed
 from dsa110_contimg.utils.gpu_safety import gpu_safe, initialize_gpu_safety
 
