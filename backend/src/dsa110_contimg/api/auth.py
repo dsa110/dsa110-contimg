@@ -43,8 +43,17 @@ JWT_EXPIRY_HOURS = 24
 
 
 def is_auth_disabled() -> bool:
-    """Check if auth is disabled via environment."""
-    return os.getenv("DSA110_AUTH_DISABLED", "").lower() == "true"
+    """Check if auth is disabled via environment (dev/test only)."""
+    disabled = os.getenv("DSA110_AUTH_DISABLED", "").lower() == "true"
+    if not disabled:
+        return False
+    env = os.getenv("DSA110_ENV", "development").lower()
+    if env in {"development", "testing"}:
+        return True
+    logger.warning(
+        "Ignoring DSA110_AUTH_DISABLED in environment '%s' (auth always on)", env
+    )
+    return False
 
 
 def get_jwt_secret() -> str:

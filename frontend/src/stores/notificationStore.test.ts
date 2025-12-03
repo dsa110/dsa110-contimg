@@ -57,11 +57,12 @@ describe("useNotificationStore", () => {
     it("should add a notification with generated id", () => {
       const { result } = renderHook(() => useNotificationStore());
 
+      // Use warning severity since system category has minSeverity: "warning"
       act(() => {
         result.current.addNotification({
           title: "Test",
           message: "Test message",
-          severity: "info",
+          severity: "warning",
           category: "system",
         });
       });
@@ -74,12 +75,13 @@ describe("useNotificationStore", () => {
     it("should mark notification as unread by default", () => {
       const { result } = renderHook(() => useNotificationStore());
 
+      // Use pipeline category with info since it has minSeverity: "info"
       act(() => {
         result.current.addNotification({
           title: "Test",
           message: "Test message",
           severity: "info",
-          category: "system",
+          category: "pipeline",
         });
       });
 
@@ -94,7 +96,7 @@ describe("useNotificationStore", () => {
           title: "Test",
           message: "Test message",
           severity: "info",
-          category: "system",
+          category: "pipeline",
         });
       });
 
@@ -110,7 +112,7 @@ describe("useNotificationStore", () => {
           title: "First",
           message: "First message",
           severity: "info",
-          category: "system",
+          category: "pipeline",
         });
       });
 
@@ -120,7 +122,7 @@ describe("useNotificationStore", () => {
           title: "Second",
           message: "Second message",
           severity: "info",
-          category: "system",
+          category: "pipeline",
         });
       });
 
@@ -137,7 +139,7 @@ describe("useNotificationStore", () => {
           title: "Test",
           message: "Test message",
           severity: "info",
-          category: "system",
+          category: "pipeline",
         });
       });
 
@@ -179,9 +181,7 @@ describe("useNotificationStore", () => {
         result.current.markAllAsRead();
       });
 
-      expect(
-        result.current.notifications.every((n) => n.read)
-      ).toBe(true);
+      expect(result.current.notifications.every((n) => n.read)).toBe(true);
     });
   });
 
@@ -194,7 +194,7 @@ describe("useNotificationStore", () => {
           title: "Test",
           message: "Test message",
           severity: "info",
-          category: "system",
+          category: "pipeline",
         });
       });
 
@@ -342,9 +342,9 @@ describe("useNotificationStore", () => {
 
       const filteredNotifications = result.current.getFilteredNotifications();
       expect(filteredNotifications).toHaveLength(2);
-      expect(
-        filteredNotifications.every((n) => n.category === "system")
-      ).toBe(true);
+      expect(filteredNotifications.every((n) => n.category === "system")).toBe(
+        true
+      );
     });
   });
 
