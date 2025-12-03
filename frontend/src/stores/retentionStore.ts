@@ -16,12 +16,28 @@ import type {
   RetentionPolicyFormData,
   RetentionPolicyStatus,
 } from "../types/retention";
+import {
+  listRetentionPolicies,
+  createRetentionPolicy as apiCreateRetentionPolicy,
+  updateRetentionPolicy as apiUpdateRetentionPolicy,
+  deleteRetentionPolicy as apiDeleteRetentionPolicy,
+  simulateRetentionPolicy,
+  executeRetentionPolicy as apiExecuteRetentionPolicy,
+  listRetentionExecutions,
+} from "../api/retention";
 
 /**
  * Generate a unique ID
  */
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+}
+
+function getErrorMessage(error: unknown, fallback: string): string {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return fallback;
 }
 
 /**
