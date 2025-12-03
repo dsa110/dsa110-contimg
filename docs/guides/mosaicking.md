@@ -61,12 +61,31 @@ result = build_mosaic(
     output_path=Path("/stage/dsa110-contimg/mosaics/custom_mosaic.fits"),
     alignment_order=3,
     write_weight_map=True,
+    apply_pb_correction=True,  # Apply primary beam correction
 )
 
 print(f"Mosaic created: {result.output_path}")
 print(f"Combined {result.n_images} images")
 print(f"Coverage: {result.coverage_sq_deg:.4f} sq deg")
 print(f"Effective noise: {result.effective_noise_jy * 1e6:.1f} µJy")
+```
+
+### Primary Beam Correction
+
+The `apply_pb_correction=True` option applies primary beam correction using
+the DSA-110 Airy disk model:
+
+- **Dish diameter**: 4.7 m
+- **Frequency**: 1.405 GHz (L-band center)
+- **Model**: `PB(θ) = (2·J₁(x)/x)²` where `x = π·D·θ/λ`
+- **Cutoff**: Pixels with PB < 0.1 are masked to avoid edge noise amplification
+
+```python
+# Without PB correction (default) - faster, good for quicklook
+result = build_mosaic(image_paths, output_path)
+
+# With PB correction - recommended for science-tier and deep mosaics
+result = build_mosaic(image_paths, output_path, apply_pb_correction=True)
 ```
 
 ## Understanding Tiers
@@ -110,7 +129,25 @@ MEDRMS   = 0.000342            / Median RMS of inputs (Jy)
 EFFNOISE = 0.000051            / Effective noise from weights (Jy)
 COVERAGE = 0.0234              / Sky coverage (sq deg)
 BUNIT    = 'Jy/beam'           / Image units
+PBCORR   = T                   / Primary beam correction applied
+PBCUT    = 0.1                 / PB cutoff threshold
 ```
+
+### Effective Noise Calculation
+
+The `effective_noise_jy` (stored as `EFFNOISE` in FITS header and in the database)
+represents the theoretical noise improvement from inverse-variance weighting:
+
+```
+σ_eff = 1 / √(Σ wᵢ)  where wᵢ = 1/σᵢ²
+```
+
+For N images with equal noise σ₀, this gives σ_eff = σ₀/√N (the √N improvement).
+The actual improvement may be less due to:
+
+- Non-uniform coverage (edge pixels have fewer images)
+- Variable noise across input images
+- Systematic errors not captured by weights
 
 ### Using the Weight Map
 

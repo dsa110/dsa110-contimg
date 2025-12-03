@@ -113,13 +113,16 @@ def run_qa_checks(
     mosaic_path: Path,
     tier: str,
     reference_catalog: str = "radio",
+    n_images: int | None = None,
+    median_rms_jy: float | None = None,
 ) -> QAResult:
     """Run quality checks on mosaic.
     
-    Three checks:
+    Four checks:
     1. Astrometry (compare to reference catalog)
     2. Photometry (noise, dynamic range)
     3. Artifacts (visual inspection heuristics)
+    4. Noise improvement (validate √N improvement if n_images provided)
     
     Args:
         mosaic_path: Path to mosaic FITS file
@@ -128,6 +131,10 @@ def run_qa_checks(
             - "radio" (default): Use unified NVSS+FIRST radio catalog (recommended)
             - "nvss": Use NVSS catalog only
             - "first": Use FIRST catalog only
+        n_images: Number of images combined (for noise validation). If None,
+            attempts to read from FITS header NIMAGES keyword.
+        median_rms_jy: Median RMS noise of input images (for noise validation).
+            If None, attempts to read from FITS header MEDRMS keyword.
         
     Returns:
         QAResult with all metrics and pass/fail status
@@ -147,6 +154,14 @@ def run_qa_checks(
         header = hdulist[0].header.copy()
 
     wcs = WCS(header, naxis=2)
+    
+    # Try to get noise parameters from header if not provided
+    if n_images is None:
+        n_images = header.get('NIMAGES', None)
+    if median_rms_jy is None:
+        median_rms_jy = header.get('MEDRMS', None)
+    effective_noise_jy = header.get('EFFNOISE', None)
+
 
     warnings = []
     failures = []
@@ -185,6 +200,19 @@ def run_qa_checks(
         warnings.append(
             f"Possible artifacts detected (score: {artifact_result.score:.2f})"
         )
+
+    # 4. Noise improvement check (if we have the parameters)
+    if (n_images is not None and median_rms_jy is not None 
+            and effective_noise_jy is not None and n_images > 1):
+        noise_result = validate_noise_improvement(
+            effective_noise_jy=effective_noise_jy,
+            median_rms_jy=median_rms_jy,
+            n_images=n_images,
+            min_efficiency=0.3 if tier == "quicklook" else 0.5,
+        )
+        if not noise_result.passed:
+            warnings.append(noise_result.message)
+        logger.debug(f"Noise improvement: {noise_result.efficiency:.1%} efficiency")
 
     result = QAResult(
         astrometry_rms=astro_result.rms_arcsec,
@@ -514,3 +542,95 @@ def check_artifacts(data: NDArray) -> ArtifactResult:
         has_artifacts=score > 0.3,
         message=f"Artifact score: {score:.2f}",
     )
+
+
+@dataclass
+class NoiseImprovementResult:
+    """Results from noise improvement validation."""
+
+    effective_noise_jy: float
+    median_input_noise_jy: float
+    n_images: int
+    expected_improvement: float  # sqrt(N)
+    actual_improvement: float
+    efficiency: float  # actual / expected (1.0 = perfect)
+    passed: bool
+    message: str = ""
+
+
+def validate_noise_improvement(
+    effective_noise_jy: float,
+    median_rms_jy: float,
+    n_images: int,
+    min_efficiency: float = 0.5,
+) -> NoiseImprovementResult:
+    """Validate that mosaic achieves expected √N noise improvement.
+    
+    For N images with equal noise σ₀, inverse-variance weighting should
+    produce σ_eff = σ₀ / √N. In practice, non-uniform coverage and
+    systematic errors reduce this.
+    
+    Args:
+        effective_noise_jy: Actual effective noise from weight map
+        median_rms_jy: Median noise of input images
+        n_images: Number of images combined
+        min_efficiency: Minimum acceptable efficiency (default 0.5 = 50%)
+        
+    Returns:
+        NoiseImprovementResult with efficiency metrics
+        
+    Example:
+        >>> result = validate_noise_improvement(
+        ...     effective_noise_jy=0.00015,
+        ...     median_rms_jy=0.0003,
+        ...     n_images=4,
+        ... )
+        >>> print(f"Efficiency: {result.efficiency:.1%}")  # ~100% if perfect
+        >>> print(f"Passed: {result.passed}")
+    """
+    if n_images <= 0 or median_rms_jy <= 0:
+        return NoiseImprovementResult(
+            effective_noise_jy=effective_noise_jy,
+            median_input_noise_jy=median_rms_jy,
+            n_images=n_images,
+            expected_improvement=1.0,
+            actual_improvement=1.0,
+            efficiency=0.0,
+            passed=False,
+            message="Invalid input parameters",
+        )
+    
+    # Expected improvement: sqrt(N)
+    expected_improvement = np.sqrt(n_images)
+    
+    # Actual improvement
+    if effective_noise_jy > 0:
+        actual_improvement = median_rms_jy / effective_noise_jy
+    else:
+        actual_improvement = float('inf')
+    
+    # Efficiency: how close to theoretical √N improvement
+    efficiency = actual_improvement / expected_improvement
+    
+    passed = efficiency >= min_efficiency
+    
+    if efficiency >= 0.9:
+        message = f"Excellent noise improvement: {efficiency:.0%} of theoretical √N"
+    elif efficiency >= 0.7:
+        message = f"Good noise improvement: {efficiency:.0%} of theoretical √N"
+    elif efficiency >= min_efficiency:
+        message = f"Acceptable noise improvement: {efficiency:.0%} of theoretical √N"
+    else:
+        message = f"Poor noise improvement: {efficiency:.0%} (expected ≥{min_efficiency:.0%})"
+    
+    return NoiseImprovementResult(
+        effective_noise_jy=effective_noise_jy,
+        median_input_noise_jy=median_rms_jy,
+        n_images=n_images,
+        expected_improvement=expected_improvement,
+        actual_improvement=actual_improvement,
+        efficiency=efficiency,
+        passed=passed,
+        message=message,
+    )
+

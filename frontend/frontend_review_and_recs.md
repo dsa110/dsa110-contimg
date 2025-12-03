@@ -351,10 +351,10 @@ This is **far more comprehensive** than typical radio astronomy pipeline UIs (wh
 **Exists but could be enhanced**:
 
 - ✅ ~~**No automated QA metrics display**~~: CalibrationQualityCard now shows SNR, flagging percentage, and validity indicators
-- ⚠️ **No calibration comparison**: Can't easily compare two calibration sets
+- ✅ ~~**No calibration comparison**~~: CalibrationComparisonPanel now allows side-by-side comparison of two calibration sets with detailed metrics deltas
 - ⚠️ **No calibration rollback**: Can't mark bad calibrations as failed via UI
 
-**Impact**: The calibration quality gap I identified in backend isn't fully addressable from UI.
+**Impact**: ~~The calibration quality gap I identified in backend isn't fully addressable from UI.~~ Calibration QA and comparison now fully supported via UI.
 
 ### 4. **Advanced Science Features**
 

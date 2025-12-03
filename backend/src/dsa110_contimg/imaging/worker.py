@@ -11,6 +11,11 @@ GPU Safety:
     All imaging entry points are wrapped with @memory_safe decorator to ensure
     system RAM limits are respected before processing. This prevents OOM crashes
     that could cause disk disconnection (ref: Dec 2 2025 incident).
+
+GPU Acceleration (Phase 3.3):
+    The worker now supports GPU-accelerated dirty imaging via gpu_grid_visibilities().
+    This provides ~10x speedup for gridding operations when CuPy is available.
+    Falls back to CPU gridding or CASA tclean when GPU is unavailable.
 """
 
 import argparse
@@ -19,7 +24,9 @@ import os
 import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Tuple
+
+import numpy as np
 
 from dsa110_contimg.database import (
     ensure_products_db,
@@ -28,13 +35,33 @@ from dsa110_contimg.database import (
     get_active_applylist,
 )
 from dsa110_contimg.imaging.fast_imaging import run_fast_imaging
-from dsa110_contimg.utils.gpu_safety import memory_safe, initialize_gpu_safety
+from dsa110_contimg.utils.gpu_safety import (
+    memory_safe,
+    gpu_safe,
+    initialize_gpu_safety,
+    check_gpu_memory_available,
+    is_gpu_available,
+)
 
 logger = logging.getLogger("imaging_worker")
 
 # Initialize GPU safety limits at module load time
 # This sets up CuPy memory pool limits and system memory thresholds
 initialize_gpu_safety()
+
+# Check if GPU gridding is available
+try:
+    from dsa110_contimg.imaging.gpu_gridding import (
+        gpu_grid_visibilities,
+        cpu_grid_visibilities,
+        GriddingConfig,
+    )
+    GPU_GRIDDING_AVAILABLE = True
+except ImportError:
+    GPU_GRIDDING_AVAILABLE = False
+    gpu_grid_visibilities = None
+    cpu_grid_visibilities = None
+    GriddingConfig = None
 
 try:
     from dsa110_contimg.utils.tempdirs import prepare_temp_environment
@@ -50,10 +77,198 @@ def setup_logging(level: str) -> None:
     )
 
 
+def _read_ms_visibilities(
+    ms_path: str,
+    datacolumn: str = "CORRECTED_DATA",
+) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Read visibilities from MS for GPU gridding.
+
+    Args:
+        ms_path: Path to Measurement Set
+        datacolumn: Data column to read (default: CORRECTED_DATA)
+
+    Returns:
+        Tuple of (uvw, vis, weights, flags) arrays
+    """
+    from dsa110_contimg.utils.casa_init import ensure_casa_path
+    ensure_casa_path()
+    import casacore.tables as casatables
+
+    with casatables.table(ms_path, readonly=True) as tb:
+        uvw = tb.getcol("UVW")  # (n_rows, 3) in meters
+
+        # Get wavelength from SPECTRAL_WINDOW table for UV conversion
+        try:
+            with casatables.table(f"{ms_path}/SPECTRAL_WINDOW", readonly=True) as spw:
+                ref_freq = spw.getcol("REF_FREQUENCY")[0]  # Hz
+                wavelength = 299792458.0 / ref_freq  # meters
+        except (OSError, KeyError):
+            # Default to 1.4 GHz (21cm line)
+            wavelength = 0.2142
+
+        # Convert UVW from meters to wavelengths
+        uvw = uvw / wavelength
+
+        # Read data
+        data = tb.getcol(datacolumn)  # (n_rows, n_chan, n_pol)
+        flags = tb.getcol("FLAG")  # (n_rows, n_chan, n_pol)
+
+        # Get weights - prefer WEIGHT_SPECTRUM if available
+        colnames = tb.colnames()
+        if "WEIGHT_SPECTRUM" in colnames:
+            weights = tb.getcol("WEIGHT_SPECTRUM")
+        elif "WEIGHT" in colnames:
+            weights = tb.getcol("WEIGHT")
+            # Expand to match data shape if needed
+            if weights.ndim == 2:  # (n_rows, n_pol)
+                weights = np.broadcast_to(
+                    weights[:, np.newaxis, :],
+                    data.shape
+                ).copy()
+        else:
+            weights = np.ones_like(data, dtype=np.float32)
+
+        # Average over channels and polarizations for dirty image
+        # Take first Stokes I (average of XX and YY) or first pol
+        n_pol = data.shape[2]
+        if n_pol >= 2:
+            vis_avg = 0.5 * (data[:, :, 0] + data[:, :, -1])
+            flag_avg = flags[:, :, 0] | flags[:, :, -1]
+            wt_avg = 0.5 * (weights[:, :, 0] + weights[:, :, -1])
+        else:
+            vis_avg = data[:, :, 0]
+            flag_avg = flags[:, :, 0]
+            wt_avg = weights[:, :, 0]
+
+        # Average over frequency channels
+        vis_flat = np.nanmean(vis_avg, axis=1)
+        flag_flat = np.any(flag_avg, axis=1)
+        wt_flat = np.nanmean(wt_avg, axis=1)
+
+        return uvw, vis_flat, wt_flat, flag_flat
+
+
+@gpu_safe(max_gpu_gb=9.0, max_system_gb=6.0)
+def gpu_dirty_image(
+    ms_path: str,
+    output_path: str,
+    *,
+    image_size: int = 512,
+    cell_size_arcsec: float = 12.0,
+    gpu_id: int = 0,
+    datacolumn: str = "CORRECTED_DATA",
+) -> Optional[str]:
+    """Create dirty image using GPU gridding.
+
+    GPU Acceleration:
+        Uses CuPy-based gridding for ~10x speedup over CASA tclean.
+        Falls back to CPU gridding if GPU unavailable.
+
+    Args:
+        ms_path: Path to Measurement Set
+        output_path: Output FITS file path (without extension)
+        image_size: Image size in pixels (default 512)
+        cell_size_arcsec: Cell size in arcseconds (default 12.0)
+        gpu_id: GPU device ID (default 0)
+        datacolumn: Data column to image (default CORRECTED_DATA)
+
+    Returns:
+        Path to output FITS file, or None if failed
+    """
+    if not GPU_GRIDDING_AVAILABLE:
+        logger.warning("GPU gridding not available, skipping GPU dirty image")
+        return None
+
+    start_time = time.time()
+    logger.info(f"GPU dirty imaging {ms_path} -> {output_path}")
+
+    try:
+        # Read visibilities
+        uvw, vis, weights, flags = _read_ms_visibilities(ms_path, datacolumn)
+        logger.info(
+            f"Read {len(vis):,} visibilities, {np.sum(flags):,} flagged "
+            f"({100*np.sum(flags)/len(flags):.1f}%)"
+        )
+
+        # Configure gridding
+        config = GriddingConfig(
+            image_size=image_size,
+            cell_size_arcsec=cell_size_arcsec,
+            gpu_id=gpu_id,
+        )
+
+        # Check GPU memory
+        gpu_ok, gpu_reason = check_gpu_memory_available(2.0)  # Need ~2GB for gridding
+        use_gpu = gpu_ok and is_gpu_available()
+
+        # Run gridding
+        if use_gpu:
+            logger.info(f"Using GPU {gpu_id} for gridding")
+            result = gpu_grid_visibilities(
+                uvw, vis, weights,
+                config=config,
+                flags=flags.astype(np.int32),
+            )
+        else:
+            logger.info(f"Using CPU for gridding (reason: {gpu_reason})")
+            result = cpu_grid_visibilities(
+                uvw, vis, weights,
+                config=config,
+                flags=flags.astype(np.int32),
+            )
+
+        if result.error:
+            logger.error(f"Gridding failed: {result.error}")
+            return None
+
+        # Save as FITS
+        from astropy.io import fits as pyfits
+
+        fits_path = f"{output_path}.dirty.fits"
+        hdu = pyfits.PrimaryHDU(result.image.astype(np.float32))
+        hdu.header["BUNIT"] = "JY/BEAM"
+        hdu.header["CDELT1"] = -cell_size_arcsec / 3600.0
+        hdu.header["CDELT2"] = cell_size_arcsec / 3600.0
+        hdu.header["CRPIX1"] = image_size / 2 + 1
+        hdu.header["CRPIX2"] = image_size / 2 + 1
+        hdu.header["CTYPE1"] = "RA---SIN"
+        hdu.header["CTYPE2"] = "DEC--SIN"
+        hdu.header["NVIS"] = result.n_vis
+        hdu.header["NFLAG"] = result.n_flagged
+        hdu.header["WSUM"] = result.weight_sum
+        hdu.header["GPU"] = use_gpu
+        hdu.header["GPUID"] = gpu_id if use_gpu else -1
+        hdu.header["PROCTIME"] = result.processing_time_s
+
+        hdu.writeto(fits_path, overwrite=True)
+
+        elapsed = time.time() - start_time
+        logger.info(
+            f"GPU dirty image complete in {elapsed:.2f}s "
+            f"(gridding: {result.processing_time_s:.2f}s)"
+        )
+
+        return fits_path
+
+    except (OSError, RuntimeError, ValueError) as exc:
+        logger.error(f"GPU dirty imaging failed: {exc}")
+        return None
+
+
 @memory_safe(max_system_gb=6.0)
-def _apply_and_image(ms_path: str, out_dir: Path, gaintables: List[str]) -> List[str]:
+def _apply_and_image(
+    ms_path: str,
+    out_dir: Path,
+    gaintables: List[str],
+    *,
+    use_gpu: bool = True,
+) -> List[str]:
     """Apply calibration and produce a quick image; returns artifact paths.
-    
+
+    GPU Acceleration (Phase 3.3):
+        When use_gpu=True and CuPy is available, creates an additional
+        GPU-accelerated dirty image for fast initial assessment.
+
     Memory Safety:
         Wrapped with @memory_safe to check system RAM availability before
         processing. Rejects if less than 30% RAM available or less than 2GB
@@ -78,8 +293,8 @@ def _apply_and_image(ms_path: str, out_dir: Path, gaintables: List[str]) -> List
         imgroot = out_dir / (Path(ms_path).stem + ".img")
 
         # Run deep imaging (standard) and fast imaging (transients) in parallel
-        with ThreadPoolExecutor(max_workers=2) as executor:
-            # Task 1: Standard Deep Imaging
+        with ThreadPoolExecutor(max_workers=3) as executor:
+            # Task 1: Standard Deep Imaging (CASA tclean)
             future_deep = executor.submit(
                 image_ms,
                 ms_path,
@@ -101,6 +316,17 @@ def _apply_and_image(ms_path: str, out_dir: Path, gaintables: List[str]) -> List
                 work_dir=str(out_dir),
             )
 
+            # Task 3: GPU Dirty Image (new in Phase 3.3)
+            future_gpu = None
+            if use_gpu and GPU_GRIDDING_AVAILABLE:
+                future_gpu = executor.submit(
+                    gpu_dirty_image,
+                    ms_path,
+                    str(imgroot),
+                    image_size=512,
+                    cell_size_arcsec=12.0,
+                )
+
             # Wait for deep imaging (critical path)
             try:
                 future_deep.result()
@@ -114,12 +340,22 @@ def _apply_and_image(ms_path: str, out_dir: Path, gaintables: List[str]) -> List
             except Exception as e:
                 logger.warning("Fast imaging failed (non-fatal): %s", e)
 
+            # Wait for GPU dirty image (auxiliary)
+            if future_gpu is not None:
+                try:
+                    gpu_fits = future_gpu.result()
+                    if gpu_fits and os.path.exists(gpu_fits):
+                        artifacts.append(gpu_fits)
+                        logger.info("GPU dirty image created: %s", gpu_fits)
+                except (RuntimeError, OSError, ValueError) as e:
+                    logger.warning("GPU dirty imaging failed (non-fatal): %s", e)
+
         # Return whatever CASA produced
         for ext in [".image", ".image.pbcor", ".residual", ".psf", ".pb"]:
             p = f"{imgroot}{ext}"
             if os.path.exists(p):
                 artifacts.append(p)
-    except Exception as e:
+    except (RuntimeError, OSError, ValueError) as e:
         logger.error("apply/image failed for %s: %s", ms_path, e)
     return artifacts
 

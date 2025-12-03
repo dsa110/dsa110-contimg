@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { useParams, Link } from "react-router-dom";
 import ProvenanceStrip from "../components/provenance/ProvenanceStrip";
 import ErrorDisplay from "../components/errors/ErrorDisplay";
@@ -13,6 +13,7 @@ import {
 } from "../components/common";
 import { AladinLiteViewer, GifPlayer } from "../components/widgets";
 import { FitsViewer, MaskToolbar, RegionToolbar } from "../components/fits";
+import WeightMapViewer from "../components/fits/WeightMapViewer";
 import type { Region, RegionFormat } from "../components/fits";
 import { RatingCard, RatingTag } from "../components/rating";
 import { mapProvenanceFromImageDetail } from "../utils/provenanceMappers";
@@ -53,7 +54,15 @@ const ImageDetailPage: React.FC = () => {
   const [showRatingCard, setShowRatingCard] = useState(false);
   const [showMaskTools, setShowMaskTools] = useState(false);
   const [showRegionTools, setShowRegionTools] = useState(false);
+  const [showWeightMap, setShowWeightMap] = useState(false);
   const { notifySuccess, notifyError } = useNotifications();
+
+  // Detect if this is a mosaic image (path contains "mosaic" or ends with .weights.fits exists)
+  const isMosaicImage = useMemo(() => {
+    if (!image?.path) return false;
+    const pathLower = image.path.toLowerCase();
+    return pathLower.includes("mosaic") || pathLower.includes("/mosaics/");
+  }, [image?.path]);
 
   // Handlers for region/mask tools
   const handleRegionSave = useCallback(
@@ -249,6 +258,19 @@ const ImageDetailPage: React.FC = () => {
               >
                 {showRegionTools ? "Hide" : "Show"} Region Tools
               </button>
+
+              {/* Weight Map Viewer for mosaics */}
+              {isMosaicImage && (
+                <button
+                  type="button"
+                  className={`btn ${
+                    showWeightMap ? "btn-primary" : "btn-secondary"
+                  }`}
+                  onClick={() => setShowWeightMap(!showWeightMap)}
+                >
+                  {showWeightMap ? "Hide" : "Show"} Weight Map
+                </button>
+              )}
 
               <div className="border-t border-gray-200 my-2" />
 

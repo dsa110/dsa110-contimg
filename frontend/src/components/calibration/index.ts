@@ -5,5 +5,7 @@
  */
 
 export { CalibrationQAMetricsPanel } from "./CalibrationQAMetricsPanel";
+export { CalibrationComparisonPanel } from "./CalibrationComparisonPanel";
+export type { CalibrationComparisonPanelProps } from "./CalibrationComparisonPanel";
 export { AntennaFlaggingSummary } from "./AntennaFlaggingSummary";
 export { PhotometryResultsPanel } from "./PhotometryResultsPanel";
