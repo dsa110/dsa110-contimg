@@ -277,7 +277,64 @@ All coverage targets have been achieved:
 
 All Phase 1 GPU Acceleration items completed. Ready for Phase 2: CUDA Kernel Development.
 
-### Files Created
+---
+
+## GPU Acceleration (Phase 2 - In Progress)
+
+**Reference**: `GPU_implementation_plan.md`
+
+### Phase 2.1: RFI Detection Module ✅
+
+- [x] **RFI Detection Module Scaffold** - Created `src/dsa110_contimg/rfi/`:
+  - **`__init__.py`** - Module exports (gpu_rfi_detection, RFIDetectionResult, RFIDetectionConfig)
+  - **`gpu_detection.py`** (~420 lines) - CuPy-based GPU RFI detection:
+    - `RFIDetectionConfig` dataclass - Detection parameters (threshold, gpu_id, chunk_size)
+    - `RFIDetectionResult` dataclass - Detection results with stats and timing
+    - `_detect_outliers_cupy()` - GPU MAD-based outlier detection using CuPy
+    - `gpu_rfi_detection()` - Main entry point with chunked MS processing
+    - `cpu_rfi_detection()` - CPU fallback for systems without GPU
+    - Uses `safe_gpu_context` from gpu_safety module
+- [x] **Unit Tests** - `tests/unit/test_rfi_detection.py` (12 tests):
+  - RFIDetectionConfig defaults and custom values
+  - RFIDetectionResult success/failure states
+  - Mock CuPy setup for GPU testing
+  - Missing file error handling
+  - CuPy availability detection
+  - MAD algorithm numerical validation
+- [x] **Integration Tests** - `tests/integration/test_rfi_gpu_integration.py` (13 tests):
+  - GPU safety initialization
+  - Memory checking integration
+  - RFI detection with mock MS structures
+  - MAD algorithm numerical stability
+  - End-to-end workflow testing
+
+### Phase 2.2: Systemd Production Hardening ✅
+
+- [x] **Systemd Services Deployed** - Installed to `/etc/systemd/system/`:
+  - `absurd-worker.service` - MemoryMax=28G, LimitAS=32G
+  - `absurd-scheduler.service` - Memory limits applied
+  - `pipeline-scheduler.service` - Memory limits applied
+  - Services reloaded with `systemctl daemon-reload`
+
+### Phase 2 Next Steps
+
+- [ ] **GPU Gridding with CuPy** - ElementwiseKernel for W-projection
+- [ ] **Calibration Gain Application** - GPU-accelerated gain application
+- [ ] **FFT Operations** - CuPy FFT for imaging pipeline
+- [ ] **Benchmark Suite** - ASV benchmarks for Phase 2 operations
+
+---
+
+### Files Created (Phase 2)
+
+| File                                            | Purpose                          |
+| ----------------------------------------------- | -------------------------------- |
+| `src/dsa110_contimg/rfi/__init__.py`            | RFI module exports               |
+| `src/dsa110_contimg/rfi/gpu_detection.py`       | CuPy-based GPU RFI detection     |
+| `tests/unit/test_rfi_detection.py`              | RFI unit tests (12 tests)        |
+| `tests/integration/test_rfi_gpu_integration.py` | RFI integration tests (13 tests) |
+
+### Files Created (Phase 1)
 
 | File                                              | Purpose                          |
 | ------------------------------------------------- | -------------------------------- |
