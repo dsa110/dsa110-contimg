@@ -52,9 +52,9 @@ def build_mosaic(
     image_paths: list[Path],
     output_path: Path,
     alignment_order: int = 3,
-    timeout_minutes: int = 30,
+    timeout_minutes: int = 30,  # noqa: ARG001 - Reserved for future async support
     write_weight_map: bool = True,
-    apply_pb_correction: bool = False,
+    apply_pb_correction: bool = False,  # noqa: ARG001 - Reserved for DSA-110 PB models
 ) -> MosaicResult:
     """Build mosaic from list of FITS images.
     
@@ -311,16 +311,23 @@ def weighted_combine(
     arrays: list[NDArray],
     weights: NDArray[np.floating],
     footprints: list[NDArray],
-) -> NDArray[np.floating]:
+    return_weights: bool = False,
+) -> NDArray[np.floating] | tuple[NDArray[np.floating], NDArray[np.floating]]:
     """Combine reprojected arrays with inverse-variance weighting.
     
     Args:
         arrays: List of reprojected data arrays
-        weights: Per-image weights
+        weights: Per-image weights (normalized)
         footprints: Per-image footprint masks
+        return_weights: If True, also return the summed weight map
         
     Returns:
-        Combined mosaic array
+        Combined mosaic array, or tuple of (combined, weight_map) if return_weights=True
+        
+    Note:
+        The weight_map can be used for uncertainty propagation:
+        - Per-pixel noise = 1 / sqrt(weight_map)
+        - This assumes the input weights are inverse-variance (1/sigma^2)
     """
     # Stack arrays
     stack = np.array(arrays)
@@ -333,11 +340,15 @@ def weighted_combine(
     weights_3d = weights[:, np.newaxis, np.newaxis] * fp_stack
     
     with np.errstate(invalid='ignore', divide='ignore'):
-        combined = np.nansum(stack * weights_3d, axis=0) / np.nansum(weights_3d, axis=0)
+        sum_weights = np.nansum(weights_3d, axis=0)
+        combined = np.nansum(stack * weights_3d, axis=0) / sum_weights
     
     # Replace NaN with 0 in regions with no coverage
     combined = np.nan_to_num(combined, nan=0.0)
+    sum_weights = np.nan_to_num(sum_weights, nan=0.0)
     
+    if return_weights:
+        return combined, sum_weights
     return combined
 
 

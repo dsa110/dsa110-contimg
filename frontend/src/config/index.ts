@@ -66,6 +66,9 @@ export const FEATURES = {
 
   /** Enable Storybook integration */
   enableStorybook: true,
+
+  /** Enable experimental SAMP integration */
+  enableSAMP: import.meta.env.VITE_ENABLE_SAMP === "true",
 } as const;
 
 /**

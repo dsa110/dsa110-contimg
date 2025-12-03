@@ -2,7 +2,7 @@
  * useBatchOperations hook
  * Provides batch operation actions and helpers
  */
-import { useCallback } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useBatchStore } from "@/stores/batchStore";
 import { useNotifications } from "@/hooks/useNotifications";
 import type {
@@ -309,27 +309,45 @@ export function useBatchOperations() {
  * Hook to check if any items are selected for batch operations
  */
 export function useSelectedItems<T extends { id: string }>(items: T[]) {
-  const selectedIds = new Set<string>();
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
 
-  const toggleSelection = (id: string) => {
-    if (selectedIds.has(id)) {
-      selectedIds.delete(id);
-    } else {
-      selectedIds.add(id);
-    }
-  };
+  // Remove selections that are no longer present in the items array
+  useEffect(() => {
+    setSelectedIds((prev) => {
+      const next = new Set<string>();
+      for (const id of prev) {
+        if (items.some((item) => item.id === id)) {
+          next.add(id);
+        }
+      }
+      return next;
+    });
+  }, [items]);
 
-  const selectAll = () => {
-    items.forEach((item) => selectedIds.add(item.id));
-  };
+  const toggleSelection = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }, []);
 
-  const clearSelection = () => {
-    selectedIds.clear();
-  };
+  const selectAll = useCallback(() => {
+    setSelectedIds(new Set(items.map((item) => item.id)));
+  }, [items]);
 
-  const getSelectedItems = () => {
-    return items.filter((item) => selectedIds.has(item.id));
-  };
+  const clearSelection = useCallback(() => {
+    setSelectedIds(new Set());
+  }, []);
+
+  const selectedItems = useMemo(
+    () => items.filter((item) => selectedIds.has(item.id)),
+    [items, selectedIds]
+  );
 
   return {
     selectedIds: Array.from(selectedIds),
@@ -338,6 +356,6 @@ export function useSelectedItems<T extends { id: string }>(items: T[]) {
     toggleSelection,
     selectAll,
     clearSelection,
-    getSelectedItems,
+    getSelectedItems: () => selectedItems,
   };
 }

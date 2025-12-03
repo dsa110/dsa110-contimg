@@ -715,8 +715,8 @@ def gpu_grid_visibilities(
     try:
         if CUPY_AVAILABLE:
             logger.info(
-                f"GPU gridding {n_vis:,} visibilities to {config.image_size}x"
-                f"{config.image_size} image on GPU {config.gpu_id}"
+                "GPU gridding %s visibilities to %dx%d image on GPU %d",
+                f"{n_vis:,}", config.image_size, config.image_size, config.gpu_id
             )
             image, grid, weight_sum, n_flagged = _grid_visibilities_cupy(
                 uvw, vis, weights, flags, config
@@ -730,8 +730,8 @@ def gpu_grid_visibilities(
         processing_time = time.time() - start_time
 
         logger.info(
-            f"Gridding complete: {n_vis - n_flagged:,} visibilities gridded "
-            f"({n_flagged:,} flagged) in {processing_time:.2f}s"
+            "Gridding complete: %s visibilities gridded (%s flagged) in %.2fs",
+            f"{n_vis - n_flagged:,}", f"{n_flagged:,}", processing_time
         )
 
         return GriddingResult(
@@ -745,14 +745,14 @@ def gpu_grid_visibilities(
         )
 
     except MemoryError as err:
-        logger.error(f"Memory error during gridding: {err}")
+        logger.error("Memory error during gridding: %s", err)
         return GriddingResult(
             error=f"Memory error: {err}",
             n_vis=n_vis,
             gpu_id=config.gpu_id,
         )
     except RuntimeError as err:
-        logger.error(f"Runtime error during gridding: {err}")
+        logger.error("Runtime error during gridding: %s", err)
         return GriddingResult(
             error=f"Runtime error: {err}",
             n_vis=n_vis,
@@ -813,8 +813,8 @@ def cpu_grid_visibilities(
 
     try:
         logger.info(
-            f"CPU gridding {n_vis:,} visibilities to {config.image_size}x"
-            f"{config.image_size} image"
+            "CPU gridding %s visibilities to %dx%d image",
+            f"{n_vis:,}", config.image_size, config.image_size
         )
 
         image, grid, weight_sum, n_flagged = _grid_visibilities_cpu(
@@ -824,8 +824,8 @@ def cpu_grid_visibilities(
         processing_time = time.time() - start_time
 
         logger.info(
-            f"CPU gridding complete: {n_vis - n_flagged:,} visibilities "
-            f"in {processing_time:.2f}s"
+            "CPU gridding complete: %s visibilities in %.2fs",
+            f"{n_vis - n_flagged:,}", processing_time
         )
 
         return GriddingResult(
@@ -839,7 +839,7 @@ def cpu_grid_visibilities(
         )
 
     except MemoryError as err:
-        logger.error(f"Memory error during CPU gridding: {err}")
+        logger.error("Memory error during CPU gridding: %s", err)
         return GriddingResult(
             error=f"Memory error: {err}",
             n_vis=n_vis,

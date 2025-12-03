@@ -50,6 +50,9 @@ export const ROUTES = {
     LIST: "/workflows",
   },
 
+  /** Retention policy manager */
+  RETENTION: "/retention",
+
   /** Measurement Set routes */
   MS: {
     /** MS detail page */
@@ -83,6 +86,7 @@ export const NAV_ITEMS = [
   { path: ROUTES.SOURCES.LIST, label: "Sources" },
   { path: ROUTES.JOBS.LIST, label: "Jobs" },
   { path: ROUTES.WORKFLOWS.LIST, label: "Workflows" },
+  { path: ROUTES.RETENTION, label: "Retention" },
   { path: ROUTES.CALIBRATOR_IMAGING, label: "Cal Test" },
 ] as const;
 

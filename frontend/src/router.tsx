@@ -21,6 +21,9 @@ const CalibratorImagingPage = lazy(
 );
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const WorkflowsPage = lazy(() => import("./pages/WorkflowsPage"));
+const RetentionPoliciesPage = lazy(
+  () => import("./pages/RetentionPoliciesPage")
+);
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 
 /**
@@ -188,6 +191,16 @@ export const router = createBrowserRouter(
                 requiredRoles={["operator", "admin"]}
               >
                 <WorkflowsPage />
+              </ProtectedRoute>
+            </Suspense>
+          ),
+        },
+        {
+          path: "retention",
+          element: (
+            <Suspense fallback={<PageSkeleton variant="list" />}>
+              <ProtectedRoute requiredRoles={["operator", "admin"]}>
+                <RetentionPoliciesPage />
               </ProtectedRoute>
             </Suspense>
           ),

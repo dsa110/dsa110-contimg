@@ -1,14 +1,71 @@
 /**
  * Retention Store Tests
  */
-import { describe, it, expect, beforeEach } from "vitest";
-import { act, renderHook } from "@testing-library/react";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { useRetentionStore } from "./retentionStore";
 import type {
+  RetentionPolicy,
   RetentionPolicyFormData,
   RetentionSimulation,
 } from "../types/retention";
 
+// Mock the API functions
+vi.mock("../api/retention", () => ({
+  listRetentionPolicies: vi.fn(),
+  createRetentionPolicy: vi.fn(),
+  updateRetentionPolicy: vi.fn(),
+  deleteRetentionPolicy: vi.fn(),
+  simulateRetentionPolicy: vi.fn(),
+  executeRetentionPolicy: vi.fn(),
+  listRetentionExecutions: vi.fn(),
+}));
+
+// Import mocked functions
+import {
+  createRetentionPolicy,
+  updateRetentionPolicy,
+  deleteRetentionPolicy,
+  simulateRetentionPolicy,
+  executeRetentionPolicy,
+} from "../api/retention";
+
+const mockCreateRetentionPolicy = createRetentionPolicy as ReturnType<
+  typeof vi.fn
+>;
+const mockUpdateRetentionPolicy = updateRetentionPolicy as ReturnType<
+  typeof vi.fn
+>;
+const mockDeleteRetentionPolicy = deleteRetentionPolicy as ReturnType<
+  typeof vi.fn
+>;
+const mockSimulateRetentionPolicy = simulateRetentionPolicy as ReturnType<
+  typeof vi.fn
+>;
+const mockExecuteRetentionPolicy = executeRetentionPolicy as ReturnType<
+  typeof vi.fn
+>;
+
+// Counter for generating unique IDs
+let idCounter = 0;
+
+// Helper to create a mock policy response
+function createMockPolicy(data: RetentionPolicyFormData): RetentionPolicy {
+  idCounter++;
+  return {
+    id: `policy-${idCounter}`,
+    name: data.name,
+    description: data.description || "",
+    dataType: data.dataType,
+    priority: data.priority,
+    status: data.status,
+    rules: data.rules,
+    requireConfirmation: data.requireConfirmation,
+    createBackupBeforeDelete: data.createBackupBeforeDelete,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  };
+}
 // Helper to create valid form data
 function createTestPolicyData(
   overrides: Partial<RetentionPolicyFormData> = {}
@@ -26,10 +83,45 @@ function createTestPolicyData(
   };
 }
 
-// Reset store between tests
+// Reset store and mocks between tests
 beforeEach(() => {
+  // Reset ID counter
+  idCounter = 0;
+
+  // Clear all mocks
+  vi.clearAllMocks();
+
+  // Setup default mock implementations
+  mockCreateRetentionPolicy.mockImplementation(async (data) =>
+    createMockPolicy(data)
+  );
+  mockUpdateRetentionPolicy.mockImplementation(async (id, data) => ({
+    id,
+    ...data,
+    updatedAt: new Date().toISOString(),
+  }));
+  mockDeleteRetentionPolicy.mockResolvedValue(undefined);
+  mockSimulateRetentionPolicy.mockImplementation(async (id) => ({
+    policyId: id,
+    targetedItems: [],
+    totalSize: 0,
+    totalCount: 0,
+    executionTime: 0,
+  }));
+  mockExecuteRetentionPolicy.mockImplementation(async (id) => ({
+    id: `exec-${Date.now()}`,
+    policyId: id,
+    status: "completed",
+    startedAt: new Date().toISOString(),
+    completedAt: new Date().toISOString(),
+    itemsProcessed: 0,
+    itemsDeleted: 0,
+    bytesFreed: 0,
+    errors: [],
+  }));
+
+  // Reset store state
   act(() => {
-    // Reset to initial state
     useRetentionStore.setState({
       policies: [],
       simulations: {},
@@ -63,11 +155,11 @@ describe("useRetentionStore", () => {
   });
 
   describe("addPolicy", () => {
-    it("should add a new policy", () => {
+    it("should add a new policy", async () => {
       const { result } = renderHook(() => useRetentionStore());
 
-      act(() => {
-        result.current.addPolicy(
+      await act(async () => {
+        await result.current.addPolicy(
           createTestPolicyData({
             name: "Test Policy",
             rules: [
@@ -89,17 +181,17 @@ describe("useRetentionStore", () => {
       expect(result.current.policies[0].id).toBeDefined();
     });
 
-    it("should generate unique IDs for policies", () => {
+    it("should generate unique IDs for policies", async () => {
       const { result } = renderHook(() => useRetentionStore());
 
-      act(() => {
-        result.current.addPolicy(
+      await act(async () => {
+        await result.current.addPolicy(
           createTestPolicyData({
             name: "Policy 1",
             dataType: "measurement_set",
           })
         );
-        result.current.addPolicy(
+        await result.current.addPolicy(
           createTestPolicyData({
             name: "Policy 2",
             dataType: "image",
@@ -114,11 +206,11 @@ describe("useRetentionStore", () => {
   });
 
   describe("updatePolicy", () => {
-    it("should update an existing policy", () => {
+    it("should update an existing policy", async () => {
       const { result } = renderHook(() => useRetentionStore());
 
-      act(() => {
-        result.current.addPolicy(
+      await act(async () => {
+        await result.current.addPolicy(
           createTestPolicyData({
             name: "Original Name",
             status: "active",
@@ -128,8 +220,16 @@ describe("useRetentionStore", () => {
 
       const policyId = result.current.policies[0].id;
 
-      act(() => {
-        result.current.updatePolicy(policyId, {
+      // Setup mock for the update to return merged data
+      mockUpdateRetentionPolicy.mockResolvedValueOnce({
+        ...result.current.policies[0],
+        name: "Updated Name",
+        status: "paused",
+        updatedAt: new Date().toISOString(),
+      });
+
+      await act(async () => {
+        await result.current.updatePolicy(policyId, {
           name: "Updated Name",
           status: "paused",
         });
@@ -139,17 +239,17 @@ describe("useRetentionStore", () => {
       expect(result.current.policies[0].status).toBe("paused");
     });
 
-    it("should not modify other policies", () => {
+    it("should not modify other policies", async () => {
       const { result } = renderHook(() => useRetentionStore());
 
-      act(() => {
-        result.current.addPolicy(
+      await act(async () => {
+        await result.current.addPolicy(
           createTestPolicyData({
             name: "Policy 1",
             dataType: "measurement_set",
           })
         );
-        result.current.addPolicy(
+        await result.current.addPolicy(
           createTestPolicyData({
             name: "Policy 2",
             dataType: "image",
@@ -159,8 +259,15 @@ describe("useRetentionStore", () => {
 
       const policy1Id = result.current.policies[0].id;
 
-      act(() => {
-        result.current.updatePolicy(policy1Id, { name: "Updated" });
+      // Setup mock for the update
+      mockUpdateRetentionPolicy.mockResolvedValueOnce({
+        ...result.current.policies[0],
+        name: "Updated",
+        updatedAt: new Date().toISOString(),
+      });
+
+      await act(async () => {
+        await result.current.updatePolicy(policy1Id, { name: "Updated" });
       });
 
       expect(result.current.policies[1].name).toBe("Policy 2");
@@ -168,11 +275,11 @@ describe("useRetentionStore", () => {
   });
 
   describe("deletePolicy", () => {
-    it("should remove a policy", () => {
+    it("should remove a policy", async () => {
       const { result } = renderHook(() => useRetentionStore());
 
-      act(() => {
-        result.current.addPolicy(
+      await act(async () => {
+        await result.current.addPolicy(
           createTestPolicyData({
             name: "To Delete",
           })
@@ -181,8 +288,8 @@ describe("useRetentionStore", () => {
 
       const policyId = result.current.policies[0].id;
 
-      act(() => {
-        result.current.deletePolicy(policyId);
+      await act(async () => {
+        await result.current.deletePolicy(policyId);
       });
 
       expect(result.current.policies).toHaveLength(0);
@@ -193,8 +300,8 @@ describe("useRetentionStore", () => {
     it("should run a simulation and store results", async () => {
       const { result } = renderHook(() => useRetentionStore());
 
-      act(() => {
-        result.current.addPolicy(
+      await act(async () => {
+        await result.current.addPolicy(
           createTestPolicyData({
             name: "Test Policy",
             rules: [
@@ -224,11 +331,22 @@ describe("useRetentionStore", () => {
     it("should set simulating state during simulation", async () => {
       const { result } = renderHook(() => useRetentionStore());
 
-      act(() => {
-        result.current.addPolicy(createTestPolicyData({ name: "Test Policy" }));
+      await act(async () => {
+        await result.current.addPolicy(
+          createTestPolicyData({ name: "Test Policy" })
+        );
       });
 
       const policyId = result.current.policies[0].id;
+
+      // Make the simulation take a bit of time
+      let resolveSimulation: (value: RetentionSimulation) => void;
+      mockSimulateRetentionPolicy.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveSimulation = resolve;
+          })
+      );
 
       // Start simulation but don't await
       let simulationPromise: Promise<RetentionSimulation>;
@@ -239,8 +357,15 @@ describe("useRetentionStore", () => {
       // Should be simulating
       expect(result.current.isSimulating).toBe(true);
 
-      // Wait for completion
+      // Resolve the simulation
       await act(async () => {
+        resolveSimulation!({
+          policyId,
+          targetedItems: [],
+          totalSize: 0,
+          totalCount: 0,
+          executionTime: 0,
+        });
         await simulationPromise;
       });
 
@@ -252,8 +377,8 @@ describe("useRetentionStore", () => {
     it("should execute a policy and store results", async () => {
       const { result } = renderHook(() => useRetentionStore());
 
-      act(() => {
-        result.current.addPolicy(
+      await act(async () => {
+        await result.current.addPolicy(
           createTestPolicyData({
             name: "Test Policy",
             rules: [
@@ -287,8 +412,10 @@ describe("useRetentionStore", () => {
     it("should update lastExecutedAt on the policy", async () => {
       const { result } = renderHook(() => useRetentionStore());
 
-      act(() => {
-        result.current.addPolicy(createTestPolicyData({ name: "Test Policy" }));
+      await act(async () => {
+        await result.current.addPolicy(
+          createTestPolicyData({ name: "Test Policy" })
+        );
       });
 
       const policyId = result.current.policies[0].id;
