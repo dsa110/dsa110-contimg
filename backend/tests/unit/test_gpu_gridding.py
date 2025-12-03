@@ -21,11 +21,11 @@ class TestGriddingConfig:
 
         config = GriddingConfig()
 
-        assert config.image_size == 4096
-        assert config.cell_size == 1.0
-        assert config.support == 4
+        assert config.image_size == 512
+        assert config.cell_size_arcsec == 12.0
+        assert config.support == 3
         assert config.oversampling == 128
-        assert config.w_projection is False
+        assert config.use_w_projection is False
         assert config.w_planes == 1
         assert config.gpu_id == 0
 
@@ -35,21 +35,31 @@ class TestGriddingConfig:
 
         config = GriddingConfig(
             image_size=2048,
-            cell_size=0.5,
+            cell_size_arcsec=0.5,
             support=6,
             oversampling=64,
-            w_projection=True,
+            use_w_projection=True,
             w_planes=32,
             gpu_id=1,
         )
 
         assert config.image_size == 2048
-        assert config.cell_size == 0.5
+        assert config.cell_size_arcsec == 0.5
         assert config.support == 6
         assert config.oversampling == 64
-        assert config.w_projection is True
+        assert config.use_w_projection is True
         assert config.w_planes == 32
         assert config.gpu_id == 1
+
+    def test_cell_size_rad_property(self):
+        """Test cell_size_rad property conversion."""
+        from dsa110_contimg.imaging.gpu_gridding import GriddingConfig
+        import numpy as np
+
+        config = GriddingConfig(cell_size_arcsec=1.0)
+        # 1 arcsec = pi / (180 * 3600) rad
+        expected_rad = np.pi / (180.0 * 3600.0)
+        np.testing.assert_allclose(config.cell_size_rad, expected_rad, rtol=1e-10)
 
 
 class TestGriddingResult:
