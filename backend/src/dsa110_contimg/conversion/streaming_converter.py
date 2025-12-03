@@ -1809,7 +1809,8 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                         is_failed = False
             except Exception as exc:
                 log.error("Failed to locate MS for %s: %s", gid, exc)
-                queue.update_state(gid, "completed")
+                _update_state_machine(state_machine, gid, "FAILED", log)
+                queue.update_state(gid, "completed")  # Mark as "completed" (with implicit failure)
                 continue
 
             # Record conversion in products DB (stage=converted) with organized path
@@ -2246,6 +2247,9 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
             except (RuntimeError, OSError, sqlite3.Error):
                 log.exception("post-conversion processing failed for %s", gid)
 
+            # Issue #7: Transition to COMPLETED state
+            _update_state_machine(state_machine, gid, "COMPLETED", log)
+            
             queue.update_state(gid, "completed")
             log.info("Completed %s in %.2fs", gid, total)
         except (RuntimeError, OSError, sqlite3.Error, KeyboardInterrupt):
