@@ -159,7 +159,12 @@ def ft_from_cl(
 
     import casacore.tables as casatables  # type: ignore
     import numpy as np
-    from casatasks import ft as casa_ft  # type: ignore
+    try:
+        from dsa110_contimg.utils.tempdirs import casa_log_environment
+        with casa_log_environment():
+            from casatasks import ft as casa_ft  # type: ignore
+    except ImportError:
+        from casatasks import ft as casa_ft  # type: ignore
 
     table = casatables.table  # noqa: N816
 

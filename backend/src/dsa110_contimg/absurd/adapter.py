@@ -1455,9 +1455,14 @@ def _create_mosaic_from_images(
         mosaic_name = f"mosaic_{first_name}_n{len(valid_paths)}.fits"
         mosaic_path = out_dir / mosaic_name
 
-        # Try to use CASA linearmosaic via casatasks
+        # Try to use CASA linearmosaic via casatasks (with log environment protection)
         try:
-            from casatasks import linearmosaic  # type: ignore[import-not-found]
+            try:
+                from dsa110_contimg.utils.tempdirs import casa_log_environment
+                with casa_log_environment():
+                    from casatasks import linearmosaic  # type: ignore[import-not-found]
+            except ImportError:
+                from casatasks import linearmosaic  # type: ignore[import-not-found]
 
             # Run linearmosaic with proper FITS output
             linearmosaic(
@@ -1468,13 +1473,22 @@ def _create_mosaic_from_images(
 
             # Convert to FITS if needed
             if mosaic_path.suffix == ".fits":
-                from casatasks import exportfits  # type: ignore[import-not-found]
+                try:
+                    try:
+                        from dsa110_contimg.utils.tempdirs import casa_log_environment
+                        with casa_log_environment():
+                            from casatasks import exportfits  # type: ignore[import-not-found]
+                    except ImportError:
+                        from casatasks import exportfits  # type: ignore[import-not-found]
 
-                exportfits(
-                    imagename=str(mosaic_path).replace(".fits", ".image"),
-                    fitsimage=str(mosaic_path),
-                    overwrite=True,
-                )
+                    exportfits(
+                        imagename=str(mosaic_path).replace(".fits", ".image"),
+                        fitsimage=str(mosaic_path),
+                        overwrite=True,
+                    )
+                except Exception:
+                    # Conversion failure is non-fatal; continue
+                    logger.exception("Failed to convert CASA image to FITS via exportfits")
 
             return {
                 "mosaic_path": str(mosaic_path),

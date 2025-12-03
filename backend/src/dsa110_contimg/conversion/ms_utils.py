@@ -357,7 +357,12 @@ def _initialize_weights(ms_path: str) -> None:
     When wtmode='weight', it initializes WEIGHT_SPECTRUM from the existing WEIGHT column.
     """
     try:
-        from casatasks import initweights as _initweights  # type: ignore
+        try:
+            from dsa110_contimg.utils.tempdirs import casa_log_environment
+            with casa_log_environment():
+                from casatasks import initweights as _initweights  # type: ignore
+        except ImportError:
+            from casatasks import initweights as _initweights  # type: ignore
 
         # NOTE: When wtmode='weight', initweights initializes WEIGHT_SPECTRUM from WEIGHT column
         # dowtsp=True creates/updates WEIGHT_SPECTRUM column

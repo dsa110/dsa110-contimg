@@ -1260,7 +1260,12 @@ def image_ms(
             # Actually, tclean documentation says 'mask' can be an image name.
             # FITS might work if CASA can read it on the fly, but importfits is safer.
             try:
-                from casatasks import importfits
+                try:
+                    from dsa110_contimg.utils.tempdirs import casa_log_environment
+                    with casa_log_environment():
+                        from casatasks import importfits
+                except ImportError:
+                    from casatasks import importfits
 
                 casa_mask = mask_path.replace(".fits", ".mask.image")
                 if not os.path.exists(casa_mask):

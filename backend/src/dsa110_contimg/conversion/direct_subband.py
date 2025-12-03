@@ -73,7 +73,12 @@ class DirectSubbandWriter(MSWriter):
         """Execute the parallel subband write and concatenation."""
         from concurrent.futures import ProcessPoolExecutor, as_completed
 
-        from casatasks import concat as casa_concat
+        try:
+            from dsa110_contimg.utils.tempdirs import casa_log_environment
+            with casa_log_environment():
+                from casatasks import concat as casa_concat
+        except ImportError:
+            from casatasks import concat as casa_concat
 
         # Determine staging locations
         ms_final_path = Path(self.ms_path)

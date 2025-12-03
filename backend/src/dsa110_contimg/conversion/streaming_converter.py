@@ -122,7 +122,8 @@ import casacore.tables as casatables  # noqa
 table = casatables.table  # noqa: N816
 
 # DEFERRED IMPORT: casatasks.concat import is deferred to avoid CASA log
-# file creation at module import time. Import inside functions with casa_log_environment.
+# file creation at module import time. Import inside functions with
+# casa_log_environment.
 _casa_concat = None
 
 
@@ -141,8 +142,9 @@ def _get_casa_concat():
     return _casa_concat
 
 
-# NOTE: calibration.applycal and calibration.calibration imports are done lazily
-# inside functions to avoid circular imports (calibration -> conversion -> streaming_converter)
+# NOTE: calibration.applycal and calibration.calibration imports are done
+# lazily inside functions to avoid circular imports
+# (calibration -> conversion -> streaming_converter)
 from dsa110_contimg.calibration.streaming import has_calibrator  # noqa
 from dsa110_contimg.calibration.streaming import (
     solve_calibration_for_ms,
