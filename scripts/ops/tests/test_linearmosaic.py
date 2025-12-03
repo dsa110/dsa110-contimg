@@ -49,19 +49,6 @@ def get_test_tiles(mosaic_id=None, max_tiles=3):
             import shutil
             import tempfile
 
-
-# --- CASA log directory setup ---
-# Ensure CASA logs go to centralized directory, not CWD
-import os as _os
-try:
-    from dsa110_contimg.utils.tempdirs import derive_casa_log_dir
-    _casa_log_dir = derive_casa_log_dir()
-    _os.makedirs(str(_casa_log_dir), exist_ok=True)
-    _os.chdir(str(_casa_log_dir))
-except (ImportError, OSError):
-    pass  # Best effort - CASA logs may go to CWD
-# --- End CASA log directory setup ---
-
             from casatasks import importfits
 
             temp_dir = tempfile.mkdtemp(prefix="linearmosaic_test_")
