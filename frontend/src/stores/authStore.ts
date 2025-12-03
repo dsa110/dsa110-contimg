@@ -318,9 +318,26 @@ export const useAuthStore = create<AuthStore>()(
  * Hook to get authentication status
  */
 export function useAuth() {
-  const { user, isAuthenticated, isLoading, error, login, logout } =
-    useAuthStore();
-  return { user, isAuthenticated, isLoading, error, login, logout };
+  const {
+    user,
+    isAuthenticated,
+    isLoading,
+    error,
+    login,
+    logout,
+    refreshTokens,
+    fetchCurrentUser,
+  } = useAuthStore();
+  return {
+    user,
+    isAuthenticated,
+    isLoading,
+    error,
+    login,
+    logout,
+    refreshTokens,
+    fetchCurrentUser,
+  };
 }
 
 /**

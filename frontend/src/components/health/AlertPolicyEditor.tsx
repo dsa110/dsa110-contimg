@@ -151,6 +151,10 @@ function toFormState(policy?: AlertPolicy): {
 }
 
 export function AlertPolicyEditor({ policy, onSave, onCancel, isSaving }: AlertPolicyEditorProps) {
+  const nameId = "alert-policy-name";
+  const severityId = "alert-policy-severity";
+  const descriptionId = "alert-policy-description";
+  const repeatId = "alert-policy-repeat-interval";
   const [formState, setFormState] = useState(() => toFormState(policy));
   const [error, setError] = useState<string | null>(null);
   const dryRunMutation = useAlertPolicyDryRun();
@@ -328,21 +332,29 @@ export function AlertPolicyEditor({ policy, onSave, onCancel, isSaving }: AlertP
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+              <label
+                className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+                htmlFor={nameId}
+              >
                 Name
               </label>
               <input
                 type="text"
+                id={nameId}
                 className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                 value={formState.name}
                 onChange={(e) => setFormState((prev) => ({ ...prev, name: e.target.value }))}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+              <label
+                className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+                htmlFor={severityId}
+              >
                 Severity
               </label>
               <select
+                id={severityId}
                 className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                 value={formState.severity}
                 onChange={(e) =>
@@ -357,10 +369,14 @@ export function AlertPolicyEditor({ policy, onSave, onCancel, isSaving }: AlertP
               </select>
             </div>
             <div className="md:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+              <label
+                className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+                htmlFor={descriptionId}
+              >
                 Description
               </label>
               <textarea
+                id={descriptionId}
                 className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                 value={formState.description ?? ""}
                 onChange={(e) => setFormState((prev) => ({ ...prev, description: e.target.value }))}
@@ -415,12 +431,16 @@ export function AlertPolicyEditor({ policy, onSave, onCancel, isSaving }: AlertP
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-200">
+              <label
+                className="block text-sm font-medium text-gray-700 dark:text-gray-200"
+                htmlFor={repeatId}
+              >
                 Repeat interval (seconds)
               </label>
               <input
                 type="number"
                 min={0}
+                id={repeatId}
                 className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 shadow-sm focus:border-primary-500 focus:ring-primary-500"
                 value={formState.repeat_interval_seconds ?? ""}
                 onChange={(e) =>
@@ -439,6 +459,7 @@ export function AlertPolicyEditor({ policy, onSave, onCancel, isSaving }: AlertP
             title="Rules"
             rules={formState.rules}
             onAdd={addRule}
+            idPrefix="policy-rules"
             onChange={handleRuleChange}
             onRemove={removeRule}
           />
@@ -450,6 +471,7 @@ export function AlertPolicyEditor({ policy, onSave, onCancel, isSaving }: AlertP
             onChange={handleOverrideChange}
             onRemove={removeOverride}
             emptyHint="Use overrides to fine-tune thresholds for specific labels or metrics"
+            idPrefix="policy-overrides"
           />
 
           {dryRunMutation.isPending && (
