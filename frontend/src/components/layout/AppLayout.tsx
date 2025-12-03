@@ -3,6 +3,8 @@ import { Outlet, Link, useLocation } from "react-router-dom";
 import { ConnectionStatus } from "../common/ConnectionStatus";
 import { useNetworkNotifications } from "../../hooks/useNetworkNotifications";
 import { NAV_ITEMS, ROUTES, isRouteActive } from "../../constants/routes";
+import { UserMenu } from "../common/UserMenu";
+import { useAuth } from "../../hooks/useAuth";
 
 /**
  * Main application layout with navigation and content area.
@@ -10,6 +12,7 @@ import { NAV_ITEMS, ROUTES, isRouteActive } from "../../constants/routes";
  */
 const AppLayout: React.FC = () => {
   const location = useLocation();
+  const { isAuthenticated } = useAuth();
 
   // Enable network status notifications (shows toasts on connect/disconnect)
   useNetworkNotifications();
@@ -37,7 +40,7 @@ const AppLayout: React.FC = () => {
         >
           DSA-110 Pipeline
         </Link>
-        <nav className="flex gap-1">
+        <nav className="flex gap-1 flex-1">
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.path}
@@ -56,6 +59,24 @@ const AppLayout: React.FC = () => {
             </Link>
           ))}
         </nav>
+
+        {/* User menu or login link */}
+        <div className="flex items-center gap-4">
+          {isAuthenticated ? (
+            <UserMenu />
+          ) : (
+            <Link
+              to="/login"
+              className="px-4 py-2 rounded-md text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: "var(--color-primary)",
+                color: "white",
+              }}
+            >
+              Sign in
+            </Link>
+          )}
+        </div>
       </header>
 
       {/* Main content */}

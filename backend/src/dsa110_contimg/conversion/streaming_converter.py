@@ -38,14 +38,16 @@ from dsa110_contimg.database import (  # noqa: E402
     register_set_from_prefix,
 )
 
-# Pipeline hardening imports for Issues #4, #9, #10, #13
+# Pipeline hardening imports for Issues #4, #9, #10, #13, #3, #6
 try:
     from dsa110_contimg.pipeline.hardening import (
         CalibrationFence,
         DiskSpaceMonitor,
         DiskQuota,
         ProcessingTransaction,
+        check_calibration_overlap,
         check_disk_space,
+        find_backup_calibrators,
         get_metrics_registry,
         record_conversion_time,
         record_imaging_time,
@@ -58,6 +60,8 @@ except ImportError:  # pragma: no cover
     DiskSpaceMonitor = None  # type: ignore
     DiskQuota = None  # type: ignore
     ProcessingTransaction = None  # type: ignore
+    check_calibration_overlap = None  # type: ignore
+    find_backup_calibrators = None  # type: ignore
     check_disk_space = None  # type: ignore
     get_metrics_registry = None  # type: ignore
     record_conversion_time = None  # type: ignore
@@ -1417,6 +1421,21 @@ def _register_calibration_tables(
     try:
         # Extract calibration table prefix (MS path without .ms extension)
         cal_prefix = Path(ms_path).with_suffix("")
+
+        # Issue #6: Check for calibration overlap before registration
+        if HAVE_HARDENING and check_calibration_overlap is not None and mid_mjd is not None:
+            try:
+                registry_db_path = Path(args.registry_db)
+                if check_calibration_overlap(registry_db_path, mid_mjd):
+                    log.info(
+                        "Calibration overlap detected for MJD %.5f - skipping registration "
+                        "(existing calibration already covers this time)",
+                        mid_mjd,
+                    )
+                    return  # Skip registration, existing calibration is sufficient
+            except Exception as e:
+                log.debug("check_calibration_overlap failed (non-fatal): %s", e)
+
         register_set_from_prefix(
             Path(args.registry_db),
             set_name=f"cal_{gid}",
@@ -1598,6 +1617,14 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
 
             total = time.perf_counter() - t0
             queue.record_metrics(gid, total_time=total, writer_type=writer_type)
+
+            # Issue #13: Record metrics to hardening registry
+            if HAVE_HARDENING and record_conversion_time is not None:
+                try:
+                    record_conversion_time(gid, total)
+                except Exception:
+                    log.debug("record_conversion_time failed (non-fatal)")
+
             if ret != 0:
                 queue.update_state(gid, "failed", error=f"orchestrator exit={ret}")
                 continue
@@ -1765,6 +1792,33 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                     if fence is not None:
                         with fence.calibrator_lock(ms_path):
                             success, error_msg = solve_calibration_for_ms(ms_path, do_k=False)
+                            
+                            # Issue #3: Try backup calibrators if primary fails
+                            if not success and HAVE_HARDENING and find_backup_calibrators is not None:
+                                log.warning(
+                                    "Primary calibration failed: %s - searching for backup calibrators",
+                                    error_msg,
+                                )
+                                try:
+                                    # Find backup calibrators for this observation's pointing
+                                    if dec_deg is not None and mid_mjd is not None:
+                                        backup_cals = find_backup_calibrators(
+                                            dec_deg,  # First arg is dec_deg
+                                            mid_mjd,  # Second arg is target_mjd
+                                            db_path=Path(args.registry_db).parent / "vla_calibrators.sqlite3",
+                                            max_candidates=3,
+                                        )
+                                        for backup in backup_cals:
+                                            log.info(
+                                                "Available backup calibrator: %s (flux=%.2f Jy)",
+                                                backup.name,
+                                                backup.flux_jy,
+                                            )
+                                            # Note: Would need to re-solve with specific calibrator
+                                            # For now, log available alternatives for operator awareness
+                                except Exception as be:
+                                    log.debug("Backup calibrator search failed: %s", be)
+                            
                             if success:
                                 # Register calibration tables in registry
                                 _register_calibration_tables(
@@ -1775,6 +1829,30 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                     else:
                         # Fallback without fence
                         success, error_msg = solve_calibration_for_ms(ms_path, do_k=False)
+                        
+                        # Issue #3: Try backup calibrators if primary fails (no fence case)
+                        if not success and HAVE_HARDENING and find_backup_calibrators is not None:
+                            log.warning(
+                                "Primary calibration failed: %s - searching for backup calibrators",
+                                error_msg,
+                            )
+                            try:
+                                if dec_deg is not None and mid_mjd is not None:
+                                    backup_cals = find_backup_calibrators(
+                                        dec_deg,  # First arg is dec_deg
+                                        mid_mjd,  # Second arg is target_mjd
+                                        db_path=Path(args.registry_db).parent / "vla_calibrators.sqlite3",
+                                        max_candidates=3,
+                                    )
+                                    for backup in backup_cals:
+                                        log.info(
+                                            "Available backup calibrator: %s (flux=%.2f Jy)",
+                                            backup.name,
+                                            backup.flux_jy,
+                                        )
+                            except Exception as be:
+                                log.debug("Backup calibrator search failed: %s", be)
+                        
                         if success:
                             _register_calibration_tables(args, gid, ms_path, mid_mjd, log)
                         else:
@@ -1852,6 +1930,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                 # Standard tier imaging (production quality)
                 # Note: Data is always reordered for correct multi-SPW processing
                 imgroot = os.path.join(args.output_dir, base + ".img")
+                img_t0 = time.perf_counter()
                 try:
                     image_ms(
                         ms_path,
@@ -1860,6 +1939,14 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                         quality_tier="standard",
                         skip_fits=False,
                     )
+                    img_time = time.perf_counter() - img_t0
+
+                    # Issue #13: Record imaging metrics to hardening registry
+                    if HAVE_HARDENING and record_imaging_time is not None:
+                        try:
+                            record_imaging_time(gid, img_time)
+                        except Exception:
+                            log.debug("record_imaging_time failed (non-fatal)")
 
                     # Run catalog-based flux scale validation
                     try:

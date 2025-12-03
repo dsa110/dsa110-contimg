@@ -148,6 +148,16 @@ def solve_calibration_for_ms(
                 logger.error(error_msg, exc_info=True)
                 return False, error_msg
 
+        # Issue #8: Pre-calibration RFI flagging
+        try:
+            from dsa110_contimg.pipeline.hardening import preflag_rfi
+            preflag_rfi(ms_path, backend="aoflagger")
+            logger.info(f"Pre-calibration RFI flagging complete for {ms_path}")
+        except ImportError:
+            logger.debug("preflag_rfi not available (hardening module)")
+        except Exception as e:
+            logger.warning(f"Pre-calibration RFI flagging failed (non-fatal): {e}")
+
         # Run calibration solves
         logger.info(
             f"Solving calibration for {ms_path} "
