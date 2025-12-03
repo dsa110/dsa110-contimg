@@ -12,23 +12,18 @@ Tests cover:
 
 from __future__ import annotations
 
-import json
 import sqlite3
-import tempfile
 import time
 from pathlib import Path
 from typing import Generator
-from unittest.mock import patch
 
 import pytest
 
 from dsa110_contimg.database.state_machine import (
     MSState,
     MSStateMachine,
-    StateNotFoundError,
     StateRecord,
     StateTransitionError,
-    TransitionResult,
     close_state_machine,
     get_state_machine,
     state_transition_context,
@@ -49,8 +44,8 @@ def temp_db_path(tmp_path: Path) -> str:
 @pytest.fixture
 def state_machine(temp_db_path: str) -> Generator[MSStateMachine, None, None]:
     """Create a state machine with temporary database."""
-    sm = MSStateMachine(db_path=temp_db_path)
-    yield sm
+    state_mach = MSStateMachine(db_path=temp_db_path)
+    yield state_mach
     # Cleanup - close any connections
 
 
@@ -260,7 +255,7 @@ class TestMSStateMachineBasic:
 
     def test_schema_created(self, temp_db_path: str):
         """Test that schema is created on initialization."""
-        sm = MSStateMachine(db_path=temp_db_path)
+        MSStateMachine(db_path=temp_db_path)
 
         # Check table exists
         conn = sqlite3.connect(temp_db_path)
@@ -479,32 +474,32 @@ class TestRetryLogic:
         self, state_machine: MSStateMachine, sample_ms_path: str
     ):
         """Test multiple retry resets increment counter."""
-        sm = MSStateMachine(db_path=state_machine.db_path, max_retries=5)
+        state_mach = MSStateMachine(db_path=state_machine.db_path, max_retries=5)
 
-        for i in range(3):
-            sm.transition(sample_ms_path, MSState.CONVERTING)
-            sm.transition(sample_ms_path, MSState.FAILED)
-            sm.reset_for_retry(sample_ms_path)
+        for _ in range(3):
+            state_mach.transition(sample_ms_path, MSState.CONVERTING)
+            state_mach.transition(sample_ms_path, MSState.FAILED)
+            state_mach.reset_for_retry(sample_ms_path)
 
-        record = sm.get_record(sample_ms_path)
+        record = state_mach.get_record(sample_ms_path)
         assert record is not None
         assert record.retry_count == 3
 
     def test_cannot_retry_after_max_retries(self, temp_db_path: str, sample_ms_path: str):
         """Test can_retry returns False after max retries exceeded."""
-        sm = MSStateMachine(db_path=temp_db_path, max_retries=2)
+        state_mach = MSStateMachine(db_path=temp_db_path, max_retries=2)
 
         # Do 2 retries (max)
         for _ in range(2):
-            sm.transition(sample_ms_path, MSState.CONVERTING)
-            sm.transition(sample_ms_path, MSState.FAILED)
-            sm.reset_for_retry(sample_ms_path)
+            state_mach.transition(sample_ms_path, MSState.CONVERTING)
+            state_mach.transition(sample_ms_path, MSState.FAILED)
+            state_mach.reset_for_retry(sample_ms_path)
 
         # Third failure
-        sm.transition(sample_ms_path, MSState.CONVERTING)
-        sm.transition(sample_ms_path, MSState.FAILED)
+        state_mach.transition(sample_ms_path, MSState.CONVERTING)
+        state_mach.transition(sample_ms_path, MSState.FAILED)
 
-        assert sm.can_retry(sample_ms_path) is False
+        assert state_mach.can_retry(sample_ms_path) is False
 
     def test_escalate_to_error(
         self, state_machine: MSStateMachine, sample_ms_path: str
