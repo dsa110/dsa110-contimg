@@ -6,10 +6,10 @@ import AntennaLayoutWidget, {
   AntennaLayoutResponse,
 } from "./AntennaLayoutWidget";
 
-// Create a properly typed mock function
-const mockGet = vi.fn();
+const { mockGet } = vi.hoisted(() => ({
+  mockGet: vi.fn(),
+}));
 
-// Mock the API client
 vi.mock("../../api/client", () => ({
   default: {
     get: mockGet,
@@ -80,11 +80,12 @@ describe("AntennaLayoutWidget", () => {
 
   it("renders antenna positions after loading", async () => {
     mockGet.mockResolvedValue({ data: mockAntennaData });
-    renderComponent();
+    const { container } = renderComponent();
 
     await waitFor(() => {
       // Check for SVG element
-      expect(screen.getByRole("img", { hidden: true })).toBeInTheDocument();
+      const svg = container.querySelector("svg.bg-gray-900");
+      expect(svg).toBeInTheDocument();
     });
   });
 

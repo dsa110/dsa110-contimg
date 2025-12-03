@@ -18,6 +18,8 @@ import numpy as np
 from astropy.io import fits
 from astropy.wcs import WCS
 
+from dsa110_contimg.utils.decorators import timed
+
 if TYPE_CHECKING:
     from numpy.typing import NDArray
 
@@ -41,6 +43,7 @@ class MosaicResult:
     coverage_sq_deg: float
 
 
+@timed("mosaic.build_mosaic")
 def build_mosaic(
     image_paths: list[Path],
     output_path: Path,

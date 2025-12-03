@@ -21,6 +21,7 @@ from dsa110_contimg.photometry.variability import (
     calculate_eta_metric,
     calculate_sigma_deviation,
 )
+from dsa110_contimg.utils.decorators import timed
 
 logger = logging.getLogger(__name__)
 
@@ -213,6 +214,7 @@ def update_variability_stats_for_source(
     return True
 
 
+@timed("photometry.auto_detect_ese_after_photometry")
 def auto_detect_ese_after_photometry(
     products_db: Path,
     source_ids: Optional[List[str]] = None,

@@ -20,6 +20,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from dsa110_contimg.utils.decorators import timed
+
 logger = logging.getLogger(__name__)
 
 
@@ -93,6 +95,7 @@ class MosaicOrchestrator:
             f"mosaic_dir={self.mosaic_dir}, photometry={self.enable_photometry}"
         )
     
+    @timed("mosaic.create_mosaic_for_group")
     def create_mosaic_for_group(
         self,
         group_id: str,
@@ -168,6 +171,7 @@ class MosaicOrchestrator:
             "num_tiles": 0,  # TODO: Get from pipeline result
         }
     
+    @timed("mosaic.process_observation")
     def process_observation(
         self,
         center_ra_deg: float | None = None,
@@ -249,6 +253,7 @@ class MosaicOrchestrator:
             "num_tiles": 0,
         }
     
+    @timed("mosaic.create_mosaic_from_images")
     def create_mosaic_from_images(
         self,
         image_paths: list[str | Path],

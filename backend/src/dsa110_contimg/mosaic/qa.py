@@ -18,6 +18,8 @@ import numpy as np
 from astropy.io import fits
 from astropy.wcs import WCS
 
+from dsa110_contimg.utils.decorators import timed
+
 if TYPE_CHECKING:
     from numpy.typing import NDArray
 
@@ -203,6 +205,7 @@ def run_qa_checks(
     return result
 
 
+@timed("mosaic.check_astrometry")
 def check_astrometry(
     wcs: WCS,
     data: NDArray,

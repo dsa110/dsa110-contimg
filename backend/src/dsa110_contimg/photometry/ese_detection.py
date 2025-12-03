@@ -19,10 +19,12 @@ from dsa110_contimg.photometry.scoring import (
     get_confidence_level,
 )
 from dsa110_contimg.photometry.variability import calculate_sigma_deviation
+from dsa110_contimg.utils.decorators import timed
 
 logger = logging.getLogger(__name__)
 
 
+@timed("photometry.detect_ese_candidates")
 def detect_ese_candidates(
     products_db: Path,
     min_sigma: float = 5.0,

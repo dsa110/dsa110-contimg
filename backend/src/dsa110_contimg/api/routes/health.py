@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import os
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
@@ -451,6 +452,25 @@ async def get_validity_window_timeline(
 
     conn = sqlite3.connect(str(registry_path), timeout=10.0)
     conn.row_factory = sqlite3.Row
+
+    # Ensure the consolidated caltables exist before querying
+    table_exists = conn.execute(
+        """
+        SELECT name FROM sqlite_master 
+        WHERE type='table' AND name='caltables'
+        """
+    ).fetchone()
+
+    if not table_exists:
+        conn.close()
+        return {
+            "timeline_start": Time(start_mjd, format="mjd").isot,
+            "timeline_end": Time(end_mjd, format="mjd").isot,
+            "current_time": now.isot,
+            "current_mjd": now.mjd,
+            "windows": [],
+            "message": "caltables table not initialized",
+        }
 
     # Get all windows that overlap with timeline
     rows = conn.execute(

@@ -35,6 +35,7 @@ from astropy.io import fits
 
 from dsa110_contimg.imaging.cli_utils import default_cell_arcsec
 from dsa110_contimg.utils.casa_init import ensure_casa_path
+from dsa110_contimg.utils.decorators import timed
 
 ensure_casa_path()
 
@@ -99,6 +100,7 @@ def get_integration_time(ms_path: str) -> float:
         return 1.0
 
 
+@timed("imaging.wsclean_snapshots")
 def run_wsclean_snapshots(
     ms_path: str,
     output_prefix: str,
@@ -385,6 +387,7 @@ def save_candidates_to_db(
         LOG.error(f"Failed to save candidates to DB: {e}")
 
 
+@timed("imaging.run_fast_imaging")
 def run_fast_imaging(
     ms_path: str,
     interval_seconds: Optional[float] = None,
