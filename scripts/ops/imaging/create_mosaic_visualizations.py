@@ -22,6 +22,19 @@ sys.path.insert(0, str(REPO_ROOT / "backend" / "src"))
 
 import os
 
+
+# --- CASA log directory setup ---
+# Ensure CASA logs go to centralized directory, not CWD
+import os as _os
+try:
+    from dsa110_contimg.utils.tempdirs import derive_casa_log_dir
+    _casa_log_dir = derive_casa_log_dir()
+    _os.makedirs(str(_casa_log_dir), exist_ok=True)
+    _os.chdir(str(_casa_log_dir))
+except (ImportError, OSError):
+    pass  # Best effort - CASA logs may go to CWD
+# --- End CASA log directory setup ---
+
 from casatasks import exportfits
 
 
