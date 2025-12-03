@@ -46,6 +46,54 @@ from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, TypeVar
 logger = logging.getLogger(__name__)
 
 
+# Public API exports
+__all__ = [
+    # Issue #1: Bidirectional calibration validity
+    "CalibrationSelection",
+    "get_active_applylist_bidirectional",
+    "DEFAULT_CAL_VALIDITY_HOURS",
+    "DEFAULT_CAL_VALIDITY_DAYS",
+    # Issue #3: Calibrator redundancy
+    "CalibrationSelector",
+    # Issue #4: Race condition fix
+    "CalibrationFence",
+    # Issue #5: Calibration QA
+    "CalibrationQAResult",
+    "assess_calibration_quality",
+    "CALIBRATION_QA_THRESHOLDS",
+    # Issue #6: Overlapping calibration
+    "OverlappingCalibrationResolver",
+    # Issue #7: Transactional safety
+    "ProcessingState",
+    "ProcessingStateMachine",
+    "ProcessingTransaction",
+    "VALID_TRANSITIONS",
+    # Issue #8: RFI mitigation
+    "RFIMitigator",
+    "RFIStrategy",
+    # Issue #10: Disk monitoring
+    "DiskQuota",
+    "DiskStatus",
+    "DiskSpaceMonitor",
+    "check_disk_space",
+    "default_cleanup_callback",
+    # Issue #11: Pointing detection
+    "PointingChangeHandler",
+    # Issue #12: Subprocess consistency
+    "ConsistentExecutor",
+    "ExecutionMode",
+    # Issue #13: Observability metrics
+    "get_metrics_registry",
+    "record_conversion_time",
+    "record_imaging_time",
+    "record_queue_depth",
+    "record_disk_usage",
+    # Issue #15: Mosaic grouping
+    "DeclinationBand",
+    "MosaicGrouping",
+]
+
+
 # =============================================================================
 # Issue #1: Bidirectional Calibration Validity Windows
 # =============================================================================
@@ -848,6 +896,98 @@ class ProcessingStateMachine:
             (to_state.name, time.time(), group_id, ProcessingState.FAILED.name),
         )
         conn.commit()
+        conn.close()
+
+
+@contextmanager
+def ProcessingTransaction(
+    db_path: Path,
+    group_id: str,
+    operation: str,
+    cleanup_callback: Optional[Callable[[], None]] = None,
+) -> Iterator[Dict[str, Any]]:
+    """
+    Simple transactional wrapper for processing operations.
+    
+    This is a lighter-weight alternative to ProcessingStateMachine for
+    single operations that need transactional safety.
+    
+    Args:
+        db_path: Path to SQLite database for tracking
+        group_id: Group identifier being processed
+        operation: Description of the operation (e.g., "conversion", "imaging")
+        cleanup_callback: Optional function to call on failure for cleanup
+        
+    Yields:
+        Dict for storing operation metadata
+        
+    Usage:
+        with ProcessingTransaction(db, "group_123", "conversion") as ctx:
+            ctx['ms_path'] = convert_data(...)
+            # If exception occurs, transaction is rolled back
+    """
+    conn = sqlite3.connect(str(db_path), timeout=30.0)
+    now = time.time()
+    transaction_id = None
+    context: Dict[str, Any] = {'started_at': now, 'operation': operation}
+    
+    try:
+        # Record transaction start
+        cursor = conn.execute(
+            """
+            INSERT INTO operation_metrics 
+            (group_id, operation, started_at, status)
+            VALUES (?, ?, ?, 'in_progress')
+            """,
+            (group_id, operation, now),
+        )
+        transaction_id = cursor.lastrowid
+        conn.commit()
+        
+        yield context
+        
+        # Record success
+        conn.execute(
+            """
+            UPDATE operation_metrics 
+            SET status = 'completed', completed_at = ?, 
+                duration_s = ?, metadata_json = ?
+            WHERE id = ?
+            """,
+            (
+                time.time(),
+                time.time() - now,
+                json.dumps(context),
+                transaction_id,
+            ),
+        )
+        conn.commit()
+        
+    except Exception as e:
+        # Record failure
+        if transaction_id:
+            conn.execute(
+                """
+                UPDATE operation_metrics 
+                SET status = 'failed', completed_at = ?, 
+                    duration_s = ?, error = ?
+                WHERE id = ?
+                """,
+                (time.time(), time.time() - now, str(e), transaction_id),
+            )
+            conn.commit()
+        
+        # Call cleanup callback if provided
+        if cleanup_callback:
+            try:
+                cleanup_callback()
+            except Exception as cleanup_error:
+                logger.warning(
+                    f"Cleanup callback failed for {group_id}: {cleanup_error}"
+                )
+        
+        raise
+    finally:
         conn.close()
 
 

@@ -105,10 +105,12 @@ describe("serviceHealthChecker", () => {
         };
 
         // First call fails, second succeeds
-        mockFetch.mockRejectedValueOnce(new Error("Network error")).mockResolvedValueOnce({
-          ok: true,
-          json: () => Promise.resolve(backendResponse),
-        });
+        mockFetch
+          .mockRejectedValueOnce(new Error("Network error"))
+          .mockResolvedValueOnce({
+            ok: true,
+            json: () => Promise.resolve(backendResponse),
+          });
 
         const checker = new ServiceHealthChecker();
         const resultPromise = checker.checkAllServices();
@@ -143,6 +145,10 @@ describe("serviceHealthChecker", () => {
       it("uses exponential backoff between retries", async () => {
         const fetchTimes: number[] = [];
         let callCount = 0;
+        // Mock Math.random to remove jitter and make test deterministic
+        const originalRandom = Math.random;
+        vi.spyOn(Math, "random").mockReturnValue(0.5); // Neutral jitter (0 effect)
+
         mockFetch.mockImplementation(() => {
           callCount++;
           fetchTimes.push(Date.now());
@@ -161,15 +167,20 @@ describe("serviceHealthChecker", () => {
         await vi.advanceTimersByTimeAsync(20000);
         await resultPromise;
 
+        // Restore Math.random
+        vi.mocked(Math.random).mockRestore();
+
         // Should have at least 3 backend attempts
         expect(fetchTimes.length).toBeGreaterThanOrEqual(3);
 
-        // Delays should increase (with some jitter)
+        // Delays should increase - with deterministic jitter (0.5 returns neutral),
+        // delay2 should be exactly 2x delay1 (the backoff multiplier)
         if (fetchTimes.length >= 3) {
           const delay1 = fetchTimes[1] - fetchTimes[0];
           const delay2 = fetchTimes[2] - fetchTimes[1];
-          // Second delay should be roughly 2x the first (with jitter)
-          expect(delay2).toBeGreaterThanOrEqual(delay1 * 1.5);
+          // With neutral jitter, delay2 should be ~2x delay1
+          // Allow some tolerance for timer resolution
+          expect(delay2).toBeGreaterThanOrEqual(delay1 * 1.8);
         }
       });
     });

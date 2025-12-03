@@ -194,10 +194,28 @@ All coverage targets have been achieved:
     - GPU FFT 512: 7.8x faster (0.0011s vs 0.0086s)
     - GPU vis correction: 9.5x faster (0.0015s vs 0.0142s)
 
-- [ ] **GPU Monitoring Dashboard** (Weeks 3-6)
+- [x] **GPU Monitoring Dashboard** (Weeks 3-6)
 
-  - Create GPUStatus frontend component
-  - Integrate into Health Dashboard
+  - Created `monitoring/gpu.py` - Comprehensive GPU monitoring module:
+    - `GPUMonitor` class with pynvml/CuPy backends
+    - Real-time metrics collection (memory, utilization, temperature, power)
+    - Historical metrics storage (1 hour rolling window)
+    - Alert thresholds and callbacks
+    - Health status determination (healthy, warning, critical)
+  - Added GPU health API endpoints in `api/routes/health.py`:
+    - `GET /health/gpus` - All GPU health status with alerts
+    - `GET /health/gpus/{gpu_id}` - Individual GPU metrics
+    - `GET /health/gpus/{gpu_id}/history` - Historical metrics (1-1440 min)
+    - `GET /health/gpus/alerts/recent` - Recent GPU alerts with filtering
+  - Added WebSocket real-time streaming in `api/websocket.py`:
+    - `WS /ws/gpu-metrics` - Real-time GPU metrics stream (1s interval)
+  - Created Grafana GPU dashboard `ops/grafana/dsa110-gpu-dashboard.json`:
+    - GPU overview (health status, device info)
+    - Memory utilization panel (time series)
+    - GPU utilization panel (time series)
+    - Temperature panel (time series)
+    - Power consumption panel (time series)
+    - Alerts panel with severity filtering
   - Add real-time memory/utilization charts
 
 - [ ] **Improved Calibration Discovery** (Weeks 5-8)
@@ -219,6 +237,8 @@ All coverage targets have been achieved:
 | `benchmarks/benchmarks/bench_gpu.py`              | GPU vs CPU comparison benchmarks |
 | `benchmarks/benchmarks/bench_conversion.py`       | HDF5/MS conversion benchmarks    |
 | `src/dsa110_contimg/api/routes/performance.py`    | Performance API endpoints        |
+| `src/dsa110_contimg/monitoring/gpu.py`            | GPU monitoring module            |
+| `ops/grafana/dsa110-gpu-dashboard.json`           | Grafana GPU dashboard            |
 
 ### Known Constraints
 

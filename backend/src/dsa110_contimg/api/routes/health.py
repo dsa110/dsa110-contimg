@@ -238,7 +238,7 @@ async def check_systemd_service(service_name: str) -> ServiceHealthStatus:
 @router.get("/databases")
 async def check_database_health() -> Dict[str, Any]:
     """Check health of all pipeline databases.
-    
+
     Note: All domains are now unified in pipeline.sqlite3.
     Legacy database names are shown for backward compatibility monitoring.
     """
@@ -251,7 +251,7 @@ async def check_database_health() -> Dict[str, Any]:
     unified_db = os.environ.get(
         "PIPELINE_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3"
     )
-    
+
     # Check unified database with domain labels for clarity
     databases = {
         "pipeline": unified_db,
@@ -456,7 +456,7 @@ async def get_validity_window_timeline(
     # Ensure the consolidated caltables exist before querying
     table_exists = conn.execute(
         """
-        SELECT name FROM sqlite_master 
+        SELECT name FROM sqlite_master
         WHERE type='table' AND name='caltables'
         """
     ).fetchone()
@@ -554,7 +554,7 @@ async def get_flux_monitoring_status(
     # Check if calibration_monitoring table exists
     table_exists = conn.execute(
         """
-        SELECT name FROM sqlite_master 
+        SELECT name FROM sqlite_master
         WHERE type='table' AND name='calibration_monitoring'
         """
     ).fetchone()
@@ -757,7 +757,7 @@ async def get_monitoring_alerts(
     # Check if table exists
     table_exists = conn.execute(
         """
-        SELECT name FROM sqlite_master 
+        SELECT name FROM sqlite_master
         WHERE type='table' AND name='flux_monitoring_alerts'
         """
     ).fetchone()
@@ -1075,7 +1075,7 @@ async def get_gpu_alerts(
 
 class TransitPrediction(BaseModel):
     """Transit prediction for a calibrator."""
-    
+
     calibrator: str
     ra_deg: float
     dec_deg: float
@@ -1088,7 +1088,7 @@ class TransitPrediction(BaseModel):
 
 class PointingStatusResponse(BaseModel):
     """Current pointing status and upcoming transits."""
-    
+
     current_lst: float
     current_lst_deg: float
     active_calibrator: Optional[str] = None
@@ -1100,46 +1100,46 @@ class PointingStatusResponse(BaseModel):
 async def get_pointing_status() -> PointingStatusResponse:
     """
     Get current pointing status including LST and upcoming calibrator transits.
-    
+
     This endpoint aggregates data from the pointing tracker and transit
     prediction systems to provide a unified view for the health dashboard.
     """
     from astropy.time import Time
     from astropy.coordinates import Longitude
     import astropy.units as u
-    
+
     try:
         # Get current LST
         now = Time.now()
-        
+
         # DSA-110 location
         dsa_longitude = -118.2819  # degrees West
         lst = now.sidereal_time('apparent', longitude=dsa_longitude * u.deg)
         current_lst_hours = lst.hour
         current_lst_deg = lst.deg
-        
+
         # Try to get upcoming transits
         upcoming_transits = []
         active_calibrator = None
-        
+
         try:
             from dsa110_contimg.pointing.monitor import get_all_upcoming_transits
             from dsa110_contimg.pipeline.precompute import get_pointing_tracker
-            
+
             # Get current pointing
             tracker = get_pointing_tracker()
             current_dec = tracker.current_dec if tracker else None
-            
+
             # Get upcoming transits
             transits_data = get_all_upcoming_transits(
                 target_dec_deg=current_dec,
                 hours_ahead=24,
                 max_transits=10,
             )
-            
+
             for t in transits_data.get("transits", []):
                 time_to_transit = t.get("time_to_transit_sec", t.get("seconds_until_transit", 0))
-                
+
                 # Determine status based on time to transit
                 if time_to_transit < 0:
                     status = "in_progress"
@@ -1149,7 +1149,7 @@ async def get_pointing_status() -> PointingStatusResponse:
                     status = "upcoming"
                 else:
                     status = "scheduled"
-                
+
                 upcoming_transits.append(TransitPrediction(
                     calibrator=t.get("calibrator", t.get("name", "Unknown")),
                     ra_deg=t.get("ra_deg", 0),
@@ -1164,7 +1164,7 @@ async def get_pointing_status() -> PointingStatusResponse:
             logger.warning("Pointing monitor not available, returning empty transits")
         except Exception as e:
             logger.warning(f"Failed to get transit data: {e}")
-        
+
         return PointingStatusResponse(
             current_lst=current_lst_hours,
             current_lst_deg=current_lst_deg,
@@ -1172,7 +1172,7 @@ async def get_pointing_status() -> PointingStatusResponse:
             upcoming_transits=upcoming_transits,
             timestamp=now.iso,
         )
-        
+
     except Exception as e:
         logger.exception("Failed to get pointing status")
         # Return minimal valid response

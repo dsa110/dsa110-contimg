@@ -120,28 +120,60 @@ def _build_command_string(task_name: str, kwargs: Dict[str, Any]) -> str:
     return f"{task_name}({', '.join(params)})"
 
 
+# QA thresholds for calibration quality assessment (Issue #5 fix)
+QA_SNR_MIN_THRESHOLD = 5.0  # Minimum acceptable mean SNR
+QA_SNR_WARN_THRESHOLD = 10.0  # SNR below this triggers warning
+QA_FLAGGED_MAX_THRESHOLD = 0.5  # Maximum acceptable flagged fraction
+QA_FLAGGED_WARN_THRESHOLD = 0.2  # Flagged fraction above this triggers warning
+QA_MIN_ANTENNAS = 10  # Minimum antennas for valid calibration
+
+
 def _extract_quality_metrics(
     caltable_path: str,
+    *,
+    snr_min: float = QA_SNR_MIN_THRESHOLD,
+    snr_warn: float = QA_SNR_WARN_THRESHOLD,
+    flagged_max: float = QA_FLAGGED_MAX_THRESHOLD,
+    flagged_warn: float = QA_FLAGGED_WARN_THRESHOLD,
+    min_antennas: int = QA_MIN_ANTENNAS,
 ) -> Optional[Dict[str, Any]]:
-    """Extract quality metrics from a calibration table.
+    """Extract quality metrics from a calibration table with QA assessment.
+
+    This function fixes Issue #5: No calibration QA before registration.
+    It extracts metrics AND performs quality assessment, adding qa_passed
+    and any issues/warnings to the metrics dict.
 
     Args:
         caltable_path: Path to calibration table
+        snr_min: Minimum acceptable mean SNR (default: 5.0)
+        snr_warn: SNR threshold for warnings (default: 10.0)
+        flagged_max: Maximum acceptable flagged fraction (default: 0.5)
+        flagged_warn: Flagged fraction threshold for warnings (default: 0.2)
+        min_antennas: Minimum number of antennas (default: 10)
 
     Returns:
-        Dictionary with quality metrics (SNR, flagged_fraction, etc.), or None
+        Dictionary with quality metrics (SNR, flagged_fraction, etc.),
+        qa_passed (bool), and any issues/warnings. Returns None on read error.
     """
     import numpy as np  # type: ignore[import]
+    import time
 
     try:
         with table(caltable_path, readonly=True) as tb:
-            metrics: Dict[str, Any] = {}
+            metrics: Dict[str, Any] = {
+                "qa_passed": True,  # Assume pass until proven otherwise
+                "issues": [],
+                "warnings": [],
+                "assessed_at": time.time(),
+            }
 
             # Number of solutions
             nrows = tb.nrows()
             metrics["n_solutions"] = nrows
 
             if nrows == 0:
+                metrics["qa_passed"] = False
+                metrics["issues"].append("Calibration table has zero solutions")
                 return metrics
 
             # Check for FLAG column
@@ -150,7 +182,20 @@ def _extract_quality_metrics(
                 if flags.size > 0:
                     flagged_count = np.sum(flags)
                     total_count = flags.size
-                    metrics["flagged_fraction"] = float(flagged_count / total_count)
+                    flagged_fraction = float(flagged_count / total_count)
+                    metrics["flagged_fraction"] = flagged_fraction
+                    
+                    # QA check: flagged fraction
+                    if flagged_fraction > flagged_max:
+                        metrics["qa_passed"] = False
+                        metrics["issues"].append(
+                            f"Flagged fraction too high: {flagged_fraction:.1%} "
+                            f"(max: {flagged_max:.1%})"
+                        )
+                    elif flagged_fraction > flagged_warn:
+                        metrics["warnings"].append(
+                            f"High flagged fraction: {flagged_fraction:.1%}"
+                        )
 
             # Check for SNR column
             if "SNR" in tb.colnames():
@@ -159,16 +204,42 @@ def _extract_quality_metrics(
                     snr_flat = snr.flatten()
                     snr_valid = snr_flat[~np.isnan(snr_flat)]
                     if len(snr_valid) > 0:
-                        metrics["snr_mean"] = float(np.mean(snr_valid))
-                        metrics["snr_median"] = float(np.median(snr_valid))
-                        metrics["snr_min"] = float(np.min(snr_valid))
-                        metrics["snr_max"] = float(np.max(snr_valid))
+                        snr_mean = float(np.mean(snr_valid))
+                        snr_median = float(np.median(snr_valid))
+                        snr_min_val = float(np.min(snr_valid))
+                        snr_max_val = float(np.max(snr_valid))
+                        
+                        metrics["snr_mean"] = snr_mean
+                        metrics["snr_median"] = snr_median
+                        metrics["snr_min"] = snr_min_val
+                        metrics["snr_max"] = snr_max_val
+                        
+                        # QA check: mean SNR
+                        if snr_mean < snr_min:
+                            metrics["qa_passed"] = False
+                            metrics["issues"].append(
+                                f"Mean SNR too low: {snr_mean:.1f} "
+                                f"(min: {snr_min:.1f})"
+                            )
+                        elif snr_mean < snr_warn:
+                            metrics["warnings"].append(
+                                f"Low mean SNR: {snr_mean:.1f}"
+                            )
 
             # Number of antennas
             if "ANTENNA1" in tb.colnames():
                 ant1 = tb.getcol("ANTENNA1")
                 unique_ants = np.unique(ant1)
-                metrics["n_antennas"] = len(unique_ants)
+                n_antennas = len(unique_ants)
+                metrics["n_antennas"] = n_antennas
+                
+                # QA check: minimum antennas
+                if n_antennas < min_antennas:
+                    metrics["qa_passed"] = False
+                    metrics["issues"].append(
+                        f"Too few antennas: {n_antennas} "
+                        f"(min: {min_antennas})"
+                    )
 
             # Number of spectral windows
             if "SPECTRAL_WINDOW_ID" in tb.colnames():
@@ -176,7 +247,13 @@ def _extract_quality_metrics(
                 unique_spws = np.unique(spw_ids)
                 metrics["n_spws"] = len(unique_spws)
 
-            return metrics if metrics else None
+            # Clean up empty lists
+            if not metrics["issues"]:
+                del metrics["issues"]
+            if not metrics["warnings"]:
+                del metrics["warnings"]
+
+            return metrics
 
     except Exception as e:
         logger.warning(f"Failed to extract quality metrics from {caltable_path}: {e}")

@@ -38,6 +38,32 @@ from dsa110_contimg.database import (  # noqa: E402
     register_set_from_prefix,
 )
 
+# Pipeline hardening imports for Issues #4, #9, #10, #13
+try:
+    from dsa110_contimg.pipeline.hardening import (
+        CalibrationFence,
+        DiskSpaceMonitor,
+        DiskQuota,
+        ProcessingTransaction,
+        check_disk_space,
+        get_metrics_registry,
+        record_conversion_time,
+        record_imaging_time,
+        record_queue_depth,
+    )
+    HAVE_HARDENING = True
+except ImportError:  # pragma: no cover
+    HAVE_HARDENING = False
+    CalibrationFence = None  # type: ignore
+    DiskSpaceMonitor = None  # type: ignore
+    DiskQuota = None  # type: ignore
+    ProcessingTransaction = None  # type: ignore
+    check_disk_space = None  # type: ignore
+    get_metrics_registry = None  # type: ignore
+    record_conversion_time = None  # type: ignore
+    record_imaging_time = None  # type: ignore
+    record_queue_depth = None  # type: ignore
+
 # Photometry is optional - may have network-dependent imports
 try:
     from dsa110_contimg.photometry.manager import PhotometryConfig, PhotometryManager
@@ -1376,11 +1402,89 @@ def trigger_group_mosaic_creation(
         return None
 
 
+def _register_calibration_tables(
+    args: argparse.Namespace,
+    gid: str,
+    ms_path: str,
+    mid_mjd: float | None,
+    log: logging.Logger,
+) -> None:
+    """
+    Register calibration tables in the registry database.
+    
+    Helper function extracted for Issue #4 fence integration.
+    """
+    try:
+        # Extract calibration table prefix (MS path without .ms extension)
+        cal_prefix = Path(ms_path).with_suffix("")
+        register_set_from_prefix(
+            Path(args.registry_db),
+            set_name=f"cal_{gid}",
+            prefix=cal_prefix,
+            cal_field=None,  # Auto-detected during solve
+            refant=None,  # Auto-detected during solve
+            valid_start_mjd=mid_mjd,
+            valid_end_mjd=None,  # No end time limit
+        )
+        log.info(
+            "Registered calibration tables for %s in registry (set_name=cal_%s)",
+            ms_path, gid,
+        )
+    except Exception as e:
+        log.warning(
+            "Failed to register calibration tables: %s",
+            e,
+            exc_info=True,
+        )
+
+
 def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
     """Poll for pending groups, convert via orchestrator, and mark complete."""
     log = logging.getLogger("stream.worker")
+    
+    # Issue #10: Initialize disk space monitor if hardening module available
+    disk_monitor: DiskSpaceMonitor | None = None
+    if HAVE_HARDENING and DiskSpaceMonitor is not None and DiskQuota is not None:
+        try:
+            quotas = [
+                DiskQuota(
+                    path=Path(args.output_dir),
+                    warning_threshold_gb=50.0,  # Warn at 50GB free
+                    critical_threshold_gb=10.0,  # Block at 10GB free
+                    cleanup_target_gb=100.0,
+                ),
+                DiskQuota(
+                    path=Path(args.scratch_dir),
+                    warning_threshold_gb=20.0,
+                    critical_threshold_gb=5.0,
+                    cleanup_target_gb=50.0,
+                ),
+            ]
+            disk_monitor = DiskSpaceMonitor(quotas=quotas)
+            log.info("Disk space monitor initialized for output and scratch directories")
+        except (OSError, ValueError) as e:
+            log.warning("Failed to initialize disk monitor: %s", e)
+    
     while True:
         try:
+            # Issue #10: Check disk space before acquiring new work
+            if disk_monitor is not None:
+                if not disk_monitor.is_safe_to_process():
+                    log.error(
+                        "Disk space critical! Pausing processing until space freed."
+                    )
+                    # Try cleanup if callback configured
+                    disk_monitor.trigger_cleanup_if_needed()
+                    # Wait longer when disk is critically full
+                    time.sleep(60.0)
+                    continue
+                # Record queue depth with disk status for observability (Issue #13)
+                if HAVE_HARDENING and record_queue_depth is not None:
+                    try:
+                        record_queue_depth(queue.count_by_state().get("pending", 0))
+                    except Exception:
+                        pass
+            
             gid = queue.acquire_next_pending()
             if gid is None:
                 time.sleep(float(getattr(args, "worker_poll_interval", 5.0)))
@@ -1646,37 +1750,39 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
 
             # Solve calibration if this is a calibrator MS (before applying to science MS)
             if is_calibrator and getattr(args, "enable_calibration_solving", False):
+                # Issue #4: Use calibration fence to coordinate with other workers
+                fence = None
+                if HAVE_HARDENING and CalibrationFence is not None:
+                    try:
+                        fence = CalibrationFence(Path(args.registry_db))
+                    except (OSError, sqlite3.Error) as e:
+                        log.warning("Failed to initialize calibration fence: %s", e)
+                
                 try:
-                    log.info(f"Solving calibration for calibrator MS: {ms_path}")
-                    success, error_msg = solve_calibration_for_ms(ms_path, do_k=False)
-                    if success:
-                        # Register calibration tables in registry
-                        try:
-                            # Extract calibration table prefix (MS path without .ms extension)
-                            cal_prefix = Path(ms_path).with_suffix("")
-                            register_set_from_prefix(
-                                Path(args.registry_db),
-                                set_name=f"cal_{gid}",
-                                prefix=cal_prefix,
-                                cal_field=None,  # Auto-detected during solve
-                                refant=None,  # Auto-detected during solve
-                                valid_start_mjd=mid_mjd,
-                                valid_end_mjd=None,  # No end time limit
-                            )
-                            log.info(
-                                f"Registered calibration tables for {ms_path} "
-                                f"in registry (set_name=cal_{gid})"
-                            )
-                        except Exception as e:
-                            log.warning(
-                                f"Failed to register calibration tables: {e}",
-                                exc_info=True,
-                            )
+                    log.info("Solving calibration for calibrator MS: %s", ms_path)
+                    
+                    # Wrap calibration solve in fence lock to signal other workers
+                    if fence is not None:
+                        with fence.calibrator_lock(ms_path):
+                            success, error_msg = solve_calibration_for_ms(ms_path, do_k=False)
+                            if success:
+                                # Register calibration tables in registry
+                                _register_calibration_tables(
+                                    args, gid, ms_path, mid_mjd, log
+                                )
+                            else:
+                                log.error("Calibration solve failed for %s: %s", ms_path, error_msg)
                     else:
-                        log.error(f"Calibration solve failed for {ms_path}: {error_msg}")
+                        # Fallback without fence
+                        success, error_msg = solve_calibration_for_ms(ms_path, do_k=False)
+                        if success:
+                            _register_calibration_tables(args, gid, ms_path, mid_mjd, log)
+                        else:
+                            log.error("Calibration solve failed for %s: %s", ms_path, error_msg)
                 except Exception as e:
                     log.warning(
-                        f"Calibration solve exception for {ms_path}: {e}",
+                        "Calibration solve exception for %s: %s",
+                        ms_path, e,
                         exc_info=True,
                     )
 
@@ -1689,10 +1795,25 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                 )
                 conn_queue.commit()
             except Exception as e:
-                log.debug(f"Failed to update has_calibrator in ingest_queue: {e}")
+                log.debug("Failed to update has_calibrator in ingest_queue: %s", e)
 
             # Apply calibration from registry if available, then image (development tier)
             try:
+                # Issue #4: Wait for any in-progress calibrations before applying
+                # This prevents applying stale calibration while new one is being computed
+                if HAVE_HARDENING and CalibrationFence is not None:
+                    try:
+                        fence = CalibrationFence(Path(args.registry_db))
+                        if not fence.wait_for_pending_calibrations(
+                            max_age_seconds=300,  # Only consider recent calibrations
+                            timeout_seconds=getattr(args, "cal_fence_timeout", 60.0),
+                        ):
+                            log.warning(
+                                "Proceeding with calibration apply despite pending calibrations"
+                            )
+                    except (OSError, sqlite3.Error) as e:
+                        log.debug("Calibration fence check failed: %s", e)
+                
                 # Determine mid_mjd for applylist
                 if mid_mjd is None:
                     # fallback: try extract_ms_time_range again (it has multiple fallbacks)
@@ -1707,9 +1828,13 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
 
                 applylist = []
                 try:
+                    # Issue #1 & #2: Using enhanced get_active_applylist with bidirectional
+                    # validity and temporal interpolation (implemented in unified.py)
                     applylist = get_active_applylist(
                         Path(args.registry_db),
                         (float(mid_mjd) if mid_mjd is not None else time.time() / 86400.0),
+                        bidirectional=True,  # Issue #1: ±12hr instead of forward-only
+                        validity_hours=12.0,  # Issue #1: Default validity window
                     )
                 except (sqlite3.Error, ValueError, OSError):
                     applylist = []
@@ -2071,8 +2196,28 @@ def build_parser() -> argparse.ArgumentParser:
         default=None,
         help="Maximum number of sources to measure (default: no limit)",
     )
-    p.add_argument("--stage-to-tmpfs", action="store_true")
+    # Issue #9: tmpfs staging enabled by default for I/O optimization
+    # Use --no-stage-to-tmpfs to disable if /dev/shm is unavailable
+    p.add_argument(
+        "--stage-to-tmpfs",
+        action="store_true",
+        default=True,
+        help="Stage intermediate files to tmpfs (default: enabled)",
+    )
+    p.add_argument(
+        "--no-stage-to-tmpfs",
+        dest="stage_to_tmpfs",
+        action="store_false",
+        help="Disable tmpfs staging (write directly to scratch)",
+    )
     p.add_argument("--tmpfs-path", default="/dev/shm")
+    # Issue #4: Calibration fence timeout (seconds to wait for cal registration)
+    p.add_argument(
+        "--cal-fence-timeout",
+        type=float,
+        default=60.0,
+        help="Seconds to wait for calibration registration propagation (default: 60)",
+    )
     p.set_defaults(enable_photometry=True)
     return p
 
