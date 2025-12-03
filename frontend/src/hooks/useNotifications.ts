@@ -55,7 +55,11 @@ export function useNotifications() {
    * Send an info notification
    */
   const notifyInfo = useCallback(
-    (title: string, message: string, options?: { link?: string; category?: NotificationCategory }) => {
+    (
+      title: string,
+      message: string,
+      options?: { link?: string; category?: NotificationCategory }
+    ) => {
       notify({ title, message, severity: "info", ...options });
     },
     [notify]
@@ -65,7 +69,11 @@ export function useNotifications() {
    * Send a success notification
    */
   const notifySuccess = useCallback(
-    (title: string, message: string, options?: { link?: string; category?: NotificationCategory }) => {
+    (
+      title: string,
+      message: string,
+      options?: { link?: string; category?: NotificationCategory }
+    ) => {
       notify({ title, message, severity: "success", ...options });
     },
     [notify]
@@ -75,7 +83,11 @@ export function useNotifications() {
    * Send a warning notification
    */
   const notifyWarning = useCallback(
-    (title: string, message: string, options?: { link?: string; category?: NotificationCategory }) => {
+    (
+      title: string,
+      message: string,
+      options?: { link?: string; category?: NotificationCategory }
+    ) => {
       notify({ title, message, severity: "warning", ...options });
     },
     [notify]
@@ -85,7 +97,11 @@ export function useNotifications() {
    * Send an error notification
    */
   const notifyError = useCallback(
-    (title: string, message: string, options?: { link?: string; category?: NotificationCategory }) => {
+    (
+      title: string,
+      message: string,
+      options?: { link?: string; category?: NotificationCategory }
+    ) => {
       notify({ title, message, severity: "error", ...options });
     },
     [notify]
@@ -130,7 +146,8 @@ export function useNotificationSubscription(
   endpoint: string = "/api/v1/notifications/stream",
   enabled: boolean = false // Disabled by default until backend implements the endpoint
 ) {
-  const { addNotification, setConnectionStatus } = useNotificationStore.getState();
+  const { addNotification, setConnectionStatus } =
+    useNotificationStore.getState();
 
   useEffect(() => {
     // Skip connection if disabled or endpoint not provided
@@ -149,7 +166,7 @@ export function useNotificationSubscription(
       if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
         console.warn(
           `Notifications stream: Giving up after ${MAX_RECONNECT_ATTEMPTS} failed attempts. ` +
-          `Endpoint ${endpoint} may not be implemented.`
+            `Endpoint ${endpoint} may not be implemented.`
         );
         setConnectionStatus("disconnected");
         return;
@@ -182,13 +199,19 @@ export function useNotificationSubscription(
           eventSource?.close();
 
           // Attempt to reconnect with exponential backoff
-          const delay = Math.min(5000 * Math.pow(2, reconnectAttempts - 1), 30000);
+          const delay = Math.min(
+            5000 * Math.pow(2, reconnectAttempts - 1),
+            30000
+          );
           reconnectTimeout = setTimeout(connect, delay);
         };
       } catch {
         setConnectionStatus("disconnected");
         // Attempt to reconnect with exponential backoff
-        const delay = Math.min(5000 * Math.pow(2, reconnectAttempts - 1), 30000);
+        const delay = Math.min(
+          5000 * Math.pow(2, reconnectAttempts - 1),
+          30000
+        );
         reconnectTimeout = setTimeout(connect, delay);
       }
     };
@@ -210,9 +233,7 @@ export function useNotificationSubscription(
  */
 export function useNotificationsByCategory(category: NotificationCategory) {
   const notifications = useNotificationStore((state) =>
-    state.notifications.filter(
-      (n) => n.category === category && !n.dismissed
-    )
+    state.notifications.filter((n) => n.category === category && !n.dismissed)
   );
 
   return notifications;
@@ -223,9 +244,7 @@ export function useNotificationsByCategory(category: NotificationCategory) {
  */
 export function useNotificationsBySeverity(severity: NotificationSeverity) {
   const notifications = useNotificationStore((state) =>
-    state.notifications.filter(
-      (n) => n.severity === severity && !n.dismissed
-    )
+    state.notifications.filter((n) => n.severity === severity && !n.dismissed)
   );
 
   return notifications;

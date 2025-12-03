@@ -42,23 +42,21 @@ from dsa110_contimg.database import (  # noqa: E402
 try:
     from dsa110_contimg.pipeline.hardening import (
         CalibrationFence,
-        DiskSpaceMonitor,
         DiskQuota,
-        ProcessingStateMachine,
+        DiskSpaceMonitor,
         ProcessingState,
+        ProcessingStateMachine,
         ProcessingTransaction,
+        assess_calibration_quality,
         check_calibration_overlap,
         check_disk_space,
         find_backup_calibrators,
+        get_calibration_quality_metrics,
         get_metrics_registry,
+        preflag_rfi,
         record_conversion_time,
         record_imaging_time,
         record_queue_depth,
-        # Issue #5: Calibration QA
-        assess_calibration_quality,
-        get_calibration_quality_metrics,
-        # Issue #8: RFI preflagging
-        preflag_rfi,
     )
     HAVE_HARDENING = True
 except ImportError:  # pragma: no cover

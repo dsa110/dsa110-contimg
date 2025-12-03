@@ -59,7 +59,9 @@ describe("sanitization", () => {
     });
 
     it("should encode special characters in paths", () => {
-      expect(sanitizePath("/data/file name.fits")).toBe("%2Fdata%2Ffile%20name.fits");
+      expect(sanitizePath("/data/file name.fits")).toBe(
+        "%2Fdata%2Ffile%20name.fits"
+      );
     });
   });
 
@@ -86,7 +88,9 @@ describe("sanitization", () => {
     });
 
     it("should preserve safe query characters", () => {
-      expect(sanitizeQuery("query term with spaces")).toBe("query term with spaces");
+      expect(sanitizeQuery("query term with spaces")).toBe(
+        "query term with spaces"
+      );
       expect(sanitizeQuery("ra=180 dec=45")).toBe("ra=180 dec=45");
     });
   });
@@ -124,23 +128,33 @@ describe("sanitization", () => {
 
   describe("buildApiUrl", () => {
     it("should build URL from base and segments", () => {
-      expect(buildApiUrl("/api/v1", "images", "123")).toBe("/api/v1/images/123");
-      expect(buildApiUrl("http://localhost:8000/api/v1", "sources", "456")).toBe(
-        "http://localhost:8000/api/v1/sources/456"
+      expect(buildApiUrl("/api/v1", "images", "123")).toBe(
+        "/api/v1/images/123"
       );
+      expect(
+        buildApiUrl("http://localhost:8000/api/v1", "sources", "456")
+      ).toBe("http://localhost:8000/api/v1/sources/456");
     });
 
     it("should sanitize string segments", () => {
-      expect(buildApiUrl("/api/v1", "images", "test/image")).toBe("/api/v1/images/test%2Fimage");
+      expect(buildApiUrl("/api/v1", "images", "test/image")).toBe(
+        "/api/v1/images/test%2Fimage"
+      );
     });
 
     it("should handle numeric segments", () => {
-      expect(buildApiUrl("/api/v1", "sources", 123)).toBe("/api/v1/sources/123");
-      expect(buildApiUrl("/api/v1", "jobs", 456, "logs")).toBe("/api/v1/jobs/456/logs");
+      expect(buildApiUrl("/api/v1", "sources", 123)).toBe(
+        "/api/v1/sources/123"
+      );
+      expect(buildApiUrl("/api/v1", "jobs", 456, "logs")).toBe(
+        "/api/v1/jobs/456/logs"
+      );
     });
 
     it("should handle mixed segment types", () => {
-      expect(buildApiUrl("/api/v1", "images", 123, "metadata")).toBe("/api/v1/images/123/metadata");
+      expect(buildApiUrl("/api/v1", "images", 123, "metadata")).toBe(
+        "/api/v1/images/123/metadata"
+      );
     });
 
     it("should handle empty segments", () => {
@@ -193,7 +207,9 @@ describe("sanitization", () => {
 
   describe("Path traversal prevention", () => {
     it("should encode path traversal attempts", () => {
-      expect(sanitizePath("../../../etc/passwd")).toBe("..%2F..%2F..%2Fetc%2Fpasswd");
+      expect(sanitizePath("../../../etc/passwd")).toBe(
+        "..%2F..%2F..%2Fetc%2Fpasswd"
+      );
       expect(sanitizePath("..\\..\\..\\windows\\system32")).toBe(
         "..%5C..%5C..%5Cwindows%5Csystem32"
       );
