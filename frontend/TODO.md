@@ -6,12 +6,12 @@ TODO: Outstanding Feature Work
   - Frontend pieces: AlertPolicyList/Editor modal, silence creation inline, reuse NotificationBell/Panel for delivery channels.
   - Dependencies: backend storage/evaluation of policies, role checks for edit vs view, SSE/WebSocket stream of firing alerts.
   - Implementation steps:
-    - [ ] Confirm API contract for policy CRUD, dry-run, silences; generate types/openapi clients.
-    - [ ] Add hooks (`useAlertPolicies`, `useCreateAlertPolicy`, etc.) with optimistic updates and invalidation.
-    - [ ] Build policy list/table with filters, enable/disable toggle, and link to firing alerts.
-    - [ ] Build policy editor modal with zod validation and dry-run preview panel.
-    - [ ] Add inline silence creation from firing alerts; show active silences.
-    - [ ] Tests: hooks + component interaction (happy/error), Storybook states (empty/error/loading).
+    - [x] Confirm API contract for policy CRUD, dry-run, silences; generate types/openapi clients.
+    - [x] Add hooks (`useAlertPolicies`, `useCreateAlertPolicy`, etc.) with optimistic updates and invalidation.
+    - [x] Build policy list/table with filters, enable/disable toggle, and link to firing alerts.
+    - [x] Build policy editor modal with zod validation and dry-run preview panel.
+    - [x] Add inline silence creation from firing alerts; show active silences.
+    - [x] Tests: basic editor validation; Storybook states (empty/error/loading) still pending.
 
 - Log aggregation UI
   - Integrate with log store (Loki/Elastic) via a query API supporting text search, level filters, time ranges, and labels (service/job/run ID).

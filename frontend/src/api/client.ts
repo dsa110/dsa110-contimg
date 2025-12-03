@@ -7,7 +7,11 @@
  * - Error normalization to standard ErrorResponse shape
  */
 
-import axios, { AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from "axios";
+import axios, {
+  AxiosError,
+  AxiosRequestConfig,
+  InternalAxiosRequestConfig,
+} from "axios";
 import type { ProvenanceStripProps } from "../types/provenance";
 import type { ErrorResponse } from "../types/errors";
 import { config } from "../config";
@@ -45,15 +49,41 @@ const apiClient = axios.create({
 });
 
 /**
- * Request interceptor to check circuit breaker.
+ * Get the current access token from localStorage.
+ * We read directly from localStorage to avoid circular dependency with authStore.
+ */
+function getAccessToken(): string | null {
+  try {
+    const stored = localStorage.getItem("dsa110-auth");
+    if (!stored) return null;
+    const parsed = JSON.parse(stored);
+    return parsed?.state?.tokens?.accessToken ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Request interceptor to add authentication header and check circuit breaker.
  */
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     if (!canMakeRequest()) {
-      const error = new Error("Circuit breaker is open - API temporarily unavailable");
+      const error = new Error(
+        "Circuit breaker is open - API temporarily unavailable"
+      );
       (error as Error & { code: string }).code = "CIRCUIT_OPEN";
       return Promise.reject(error);
     }
+
+    // Add Authorization header if we have a token
+    // Skip for auth endpoints to avoid sending expired token on login/refresh
+    const token = getAccessToken();
+    const isAuthEndpoint = config.url?.includes("/auth/");
+    if (token && !isAuthEndpoint && !config.headers?.Authorization) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+
     return config;
   },
   (error) => Promise.reject(error)
@@ -82,7 +112,10 @@ apiClient.interceptors.response.use(
     const retryConfig = config.__retryConfig;
 
     // Check if we should retry
-    if (config.__retryCount < retryConfig.maxRetries && isRetryable(error, retryConfig)) {
+    if (
+      config.__retryCount < retryConfig.maxRetries &&
+      isRetryable(error, retryConfig)
+    ) {
       config.__retryCount++;
 
       const delay = calculateBackoffDelay(config.__retryCount - 1, retryConfig);
@@ -110,12 +143,17 @@ apiClient.interceptors.response.use(
 /**
  * Normalize error to standard ErrorResponse shape
  */
-function normalizeError(error: AxiosError<ErrorResponse> | Error): Partial<ErrorResponse> {
+function normalizeError(
+  error: AxiosError<ErrorResponse> | Error
+): Partial<ErrorResponse> {
   if ("response" in error && error.response?.data) {
     return error.response.data;
   }
 
-  if ("code" in error && (error as Error & { code?: string }).code === "CIRCUIT_OPEN") {
+  if (
+    "code" in error &&
+    (error as Error & { code?: string }).code === "CIRCUIT_OPEN"
+  ) {
     return {
       code: "CIRCUIT_OPEN",
       http_status: 503,
@@ -165,8 +203,12 @@ export function noRetry(config: AxiosRequestConfig = {}): AxiosRequestConfig {
  * Fetch provenance data for a given run/job ID.
  * Used by the ProvenanceStrip component to display pipeline context.
  */
-export const fetchProvenanceData = async (runId: string): Promise<ProvenanceStripProps> => {
-  const response = await apiClient.get<ProvenanceStripProps>(`/jobs/${runId}/provenance`);
+export const fetchProvenanceData = async (
+  runId: string
+): Promise<ProvenanceStripProps> => {
+  const response = await apiClient.get<ProvenanceStripProps>(
+    `/jobs/${runId}/provenance`
+  );
   return response.data;
 };
 

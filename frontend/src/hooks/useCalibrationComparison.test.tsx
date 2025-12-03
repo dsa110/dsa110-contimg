@@ -25,7 +25,7 @@ vi.mock("../api/client", () => ({
 
 import apiClient from "../api/client";
 
-const mockApiClient = vi.mocked(apiClient);
+const mockApiClient = vi.mocked(apiClient, true);
 
 // Helper to create a wrapper with QueryClientProvider
 const createWrapper = () => {

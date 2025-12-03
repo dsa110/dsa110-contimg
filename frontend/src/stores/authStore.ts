@@ -300,7 +300,7 @@ export const useAuthStore = create<AuthStore>()(
           return false;
         }
         // Add 30 second buffer for clock skew
-        return Date.now() >= (payload.exp * 1000) - 30000;
+        return Date.now() >= payload.exp * 1000 - 30000;
       },
     }),
     {

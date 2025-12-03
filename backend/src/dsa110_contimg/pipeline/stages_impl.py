@@ -4,6 +4,12 @@ Concrete pipeline stage implementations.
 
 These stages wrap existing conversion, calibration, and imaging functions
 to provide a unified pipeline interface.
+
+Integration features (Phase 3.4):
+- State machine transitions via MSStateMachine
+- Error recovery with automatic retry via with_stage_retry decorator
+- Pipeline metrics collection via stage_context
+- GPU utilization tracking per stage
 """
 
 from __future__ import annotations
@@ -22,6 +28,12 @@ from dsa110_contimg.catalog.coverage import validate_catalog_choice
 from dsa110_contimg.pipeline.config import PipelineConfig
 from dsa110_contimg.pipeline.context import PipelineContext
 from dsa110_contimg.pipeline.stages import PipelineStage
+from dsa110_contimg.pipeline.stage_integration import (
+    metrics_context,
+    state_machine_context,
+    tracked_stage_execute,
+    with_stage_retry,
+)
 from dsa110_contimg.utils.ms_organization import (
     create_path_mapper,
     determine_ms_type,
@@ -444,9 +456,17 @@ class ConversionStage(PipelineStage):
 
         return True, None
 
+    @tracked_stage_execute(
+        enable_state_machine=True,
+        enable_retry=True,
+        enable_metrics=True,
+        max_retries=2,
+        base_delay=5.0,
+        alert_on_failure=True,
+    )
     @progress_monitor(operation_name="UVH5 to MS Conversion", warn_threshold=300.0)
     def execute(self, context: PipelineContext) -> PipelineContext:
-        """Execute conversion stage."""
+        """Execute conversion stage with state machine and metrics tracking."""
         import time
 
         start_time_sec = time.time()
@@ -725,10 +745,18 @@ class CalibrationSolveStage(PipelineStage):
 
         return True, None
 
+    @tracked_stage_execute(
+        enable_state_machine=True,
+        enable_retry=True,
+        enable_metrics=True,
+        max_retries=2,
+        base_delay=10.0,
+        alert_on_failure=True,
+    )
     @require_casa6_python
     @progress_monitor(operation_name="Calibration Solving", warn_threshold=600.0)
     def execute(self, context: PipelineContext) -> PipelineContext:
-        """Execute calibration solve stage."""
+        """Execute calibration solve stage with state machine and metrics tracking."""
         log_progress("Starting calibration solve stage...")
 
         from dsa110_contimg.utils.locking import LockError, file_lock
@@ -1405,10 +1433,18 @@ class CalibrationStage(PipelineStage):
 
         return True, None
 
+    @tracked_stage_execute(
+        enable_state_machine=True,
+        enable_retry=True,
+        enable_metrics=True,
+        max_retries=2,
+        base_delay=5.0,
+        alert_on_failure=True,
+    )
     @require_casa6_python
     @progress_monitor(operation_name="Calibration Application", warn_threshold=300.0)
     def execute(self, context: PipelineContext) -> PipelineContext:
-        """Execute calibration stage.
+        """Execute calibration stage with state machine and metrics tracking.
 
         Applies calibration from registry (consistent with streaming mode).
         Uses get_active_applylist() to lookup calibration tables by observation time,
@@ -1792,10 +1828,18 @@ class ImagingStage(PipelineStage):
 
         return True, None
 
+    @tracked_stage_execute(
+        enable_state_machine=True,
+        enable_retry=True,
+        enable_metrics=True,
+        max_retries=2,
+        base_delay=10.0,
+        alert_on_failure=True,
+    )
     @require_casa6_python
     @progress_monitor(operation_name="Imaging", warn_threshold=1800.0)
     def execute(self, context: PipelineContext) -> PipelineContext:
-        """Execute imaging stage."""
+        """Execute imaging stage with state machine and metrics tracking."""
         import time
 
         start_time_sec = time.time()

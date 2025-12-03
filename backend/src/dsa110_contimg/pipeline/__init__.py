@@ -90,6 +90,19 @@ from .error_recovery import (
     STANDARD_RETRY_POLICY,
     AGGRESSIVE_RETRY_POLICY,
 )
+from .stage_integration import (
+    StageExecutionConfig,
+    StageExecutionResult,
+    StageStateMapping,
+    STAGE_STATE_MAP,
+    STAGE_METRIC_MAP,
+    state_machine_context,
+    metrics_context,
+    MetricsContextHelper,
+    with_stage_retry,
+    execute_stage_with_tracking,
+    tracked_stage_execute,
+)
 
 __all__ = [
     # Base classes
@@ -146,4 +159,16 @@ __all__ = [
     "QUICK_RETRY_POLICY",
     "STANDARD_RETRY_POLICY",
     "AGGRESSIVE_RETRY_POLICY",
+    # Stage Integration
+    "StageExecutionConfig",
+    "StageExecutionResult",
+    "StageStateMapping",
+    "STAGE_STATE_MAP",
+    "STAGE_METRIC_MAP",
+    "state_machine_context",
+    "metrics_context",
+    "MetricsContextHelper",
+    "with_stage_retry",
+    "execute_stage_with_tracking",
+    "tracked_stage_execute",
 ]

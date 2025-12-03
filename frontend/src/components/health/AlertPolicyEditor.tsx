@@ -532,6 +532,7 @@ function RuleList({
   onChange,
   onRemove,
   emptyHint,
+  idPrefix,
 }: {
   title: string;
   rules: RuleForm[];
@@ -539,6 +540,7 @@ function RuleList({
   onChange: (index: number, field: keyof RuleForm, value: string) => void;
   onRemove: (index: number) => void;
   emptyHint?: string;
+  idPrefix: string;
 }) {
   return (
     <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
@@ -559,88 +561,115 @@ function RuleList({
       </div>
 
       <div className="space-y-3">
-        {rules.map((rule, index) => (
-          <div
-            key={index}
-            className="p-3 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-              <div className="md:col-span-2">
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-300">
-                  Metric
+        {rules.map((rule, index) => {
+          const metricId = `${idPrefix}-metric-${index}`;
+          const operatorId = `${idPrefix}-operator-${index}`;
+          const thresholdId = `${idPrefix}-threshold-${index}`;
+          const durationId = `${idPrefix}-duration-${index}`;
+          const labelsId = `${idPrefix}-labels-${index}`;
+          return (
+            <div
+              key={index}
+              className="p-3 rounded-md border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+                <div className="md:col-span-2">
+                  <label
+                    className="block text-xs font-medium text-gray-600 dark:text-gray-300"
+                    htmlFor={metricId}
+                  >
+                    Metric
+                  </label>
+                  <input
+                    id={metricId}
+                    type="text"
+                    className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                    value={rule.metric}
+                    onChange={(e) => onChange(index, "metric", e.target.value)}
+                    placeholder="e.g. pipeline_latency_seconds"
+                  />
+                </div>
+                <div>
+                  <label
+                    className="block text-xs font-medium text-gray-600 dark:text-gray-300"
+                    htmlFor={operatorId}
+                  >
+                    Operator
+                  </label>
+                  <select
+                    id={operatorId}
+                    className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                    value={rule.operator}
+                    onChange={(e) => onChange(index, "operator", e.target.value)}
+                  >
+                    {OPERATORS.map((op) => (
+                      <option key={op} value={op}>
+                        {op}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label
+                    className="block text-xs font-medium text-gray-600 dark:text-gray-300"
+                    htmlFor={thresholdId}
+                  >
+                    Threshold
+                  </label>
+                  <input
+                    id={thresholdId}
+                    type="number"
+                    className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                    value={rule.threshold}
+                    onChange={(e) => onChange(index, "threshold", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label
+                    className="block text-xs font-medium text-gray-600 dark:text-gray-300"
+                    htmlFor={durationId}
+                  >
+                    For (seconds)
+                  </label>
+                  <input
+                    id={durationId}
+                    type="number"
+                    className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                    value={rule.for_seconds ?? ""}
+                    onChange={(e) => onChange(index, "for_seconds", e.target.value)}
+                    placeholder="Optional"
+                    min={0}
+                  />
+                </div>
+              </div>
+              <div className="mt-3">
+                <label
+                  className="block text-xs font-medium text-gray-600 dark:text-gray-300"
+                  htmlFor={labelsId}
+                >
+                  Labels (key=value, comma-separated)
                 </label>
                 <input
+                  id={labelsId}
                   type="text"
                   className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                  value={rule.metric}
-                  onChange={(e) => onChange(index, "metric", e.target.value)}
-                  placeholder="e.g. pipeline_latency_seconds"
+                  value={rule.labelsText ?? ""}
+                  onChange={(e) => onChange(index, "labelsText", e.target.value)}
+                  placeholder="env=prod, service=imager"
                 />
               </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-300">
-                  Operator
-                </label>
-                <select
-                  className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                  value={rule.operator}
-                  onChange={(e) => onChange(index, "operator", e.target.value)}
+              <div className="mt-3 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => onRemove(index)}
+                  className="text-xs text-red-600 hover:text-red-700 dark:text-red-400"
                 >
-                  {OPERATORS.map((op) => (
-                    <option key={op} value={op}>
-                      {op}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-300">
-                  Threshold
-                </label>
-                <input
-                  type="number"
-                  className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                  value={rule.threshold}
-                  onChange={(e) => onChange(index, "threshold", e.target.value)}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-gray-600 dark:text-gray-300">
-                  For (seconds)
-                </label>
-                <input
-                  type="number"
-                  className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                  value={rule.for_seconds ?? ""}
-                  onChange={(e) => onChange(index, "for_seconds", e.target.value)}
-                  placeholder="Optional"
-                  min={0}
-                />
+                  Remove
+                </button>
               </div>
             </div>
-            <div className="mt-3">
-              <label className="block text-xs font-medium text-gray-600 dark:text-gray-300">
-                Labels (key=value, comma-separated)
-              </label>
-              <input
-                type="text"
-                className="mt-1 w-full rounded-md border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 shadow-sm focus:border-primary-500 focus:ring-primary-500"
-                value={rule.labelsText ?? ""}
-                onChange={(e) => onChange(index, "labelsText", e.target.value)}
-                placeholder="env=prod, service=imager"
-              />
-            </div>
-            <div className="mt-3 flex justify-end">
-              <button
-                type="button"
-                onClick={() => onRemove(index)}
-                className="text-xs text-red-600 hover:text-red-700 dark:text-red-400"
-              >
-                Remove
-              </button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
