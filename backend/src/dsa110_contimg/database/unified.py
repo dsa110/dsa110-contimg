@@ -1012,6 +1012,7 @@ def register_caltable_set_from_prefix(
     valid_start_mjd: Optional[float],
     valid_end_mjd: Optional[float],
     status: str = "active",
+    quality_metrics: Optional[Dict[str, Any]] = None,
 ) -> List[CalTableRow]:
     """Register calibration tables found with a common prefix.
 
@@ -1027,6 +1028,7 @@ def register_caltable_set_from_prefix(
         valid_start_mjd: Start of validity window (MJD)
         valid_end_mjd: End of validity window (MJD)
         status: Status for registered tables (default: "active")
+        quality_metrics: Optional QA metrics dict (Issue #5)
         
     Returns:
         List of CalTableRow objects that were registered
@@ -1065,6 +1067,7 @@ def register_caltable_set_from_prefix(
                 valid_end_mjd=valid_end_mjd,
                 status=status,
                 notes=None,
+                quality_metrics=quality_metrics,
             )
         )
 
@@ -1083,6 +1086,7 @@ def register_caltable_set_from_prefix(
                 valid_end_mjd=valid_end_mjd,
                 status=status,
                 notes=None,
+                quality_metrics=quality_metrics,
             )
         )
 
