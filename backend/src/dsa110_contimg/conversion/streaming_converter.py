@@ -38,7 +38,7 @@ from dsa110_contimg.database import (  # noqa: E402
     register_set_from_prefix,
 )
 
-# Pipeline hardening imports for Issues #4, #9, #10, #13, #3, #6, #7
+# Pipeline hardening imports for Issues #3, #4, #5, #6, #7, #8, #10, #13
 try:
     from dsa110_contimg.pipeline.hardening import (
         CalibrationFence,
@@ -54,6 +54,11 @@ try:
         record_conversion_time,
         record_imaging_time,
         record_queue_depth,
+        # Issue #5: Calibration QA
+        assess_calibration_quality,
+        get_calibration_quality_metrics,
+        # Issue #8: RFI preflagging
+        preflag_rfi,
     )
     HAVE_HARDENING = True
 except ImportError:  # pragma: no cover
@@ -71,6 +76,9 @@ except ImportError:  # pragma: no cover
     record_conversion_time = None  # type: ignore
     record_imaging_time = None  # type: ignore
     record_queue_depth = None  # type: ignore
+    assess_calibration_quality = None  # type: ignore
+    get_calibration_quality_metrics = None  # type: ignore
+    preflag_rfi = None  # type: ignore
 
 # Photometry is optional - may have network-dependent imports
 try:

@@ -820,8 +820,6 @@ def flag_problematic_channels(
     Raises:
         RuntimeError: If flagdata fails
     """
-    from casatasks import flagdata
-
     logger = logging.getLogger(__name__)
 
     if not problematic_channels:
@@ -852,13 +850,15 @@ def flag_problematic_channels(
     )
 
     try:
-        flagdata(
-            vis=ms_path,
-            spw=spw_sel,
-            mode="manual",
-            datacolumn=datacolumn,
-            flagbackup=False,
-        )
+        with casa_log_environment():
+            from casatasks import flagdata
+            flagdata(
+                vis=ms_path,
+                spw=spw_sel,
+                mode="manual",
+                datacolumn=datacolumn,
+                flagbackup=False,
+            )
         logger.info(f":check: Flagged {total_channels} problematic channel(s) before calibration")
     except Exception as e:
         logger.error(f"Failed to flag problematic channels: {e}")
