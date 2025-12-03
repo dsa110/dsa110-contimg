@@ -1717,6 +1717,8 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                 cal_applied = 0
                 if applylist:
                     try:
+                        # Lazy import to avoid circular import
+                        from dsa110_contimg.calibration.applycal import apply_to_target
                         apply_to_target(ms_path, field="", gaintables=applylist, calwt=True)
                         cal_applied = 1
                     except (RuntimeError, OSError):

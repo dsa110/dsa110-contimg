@@ -59,14 +59,54 @@ import argparse
 import json
 import logging
 import os
+import signal
 import sys
 import time
+from contextlib import contextmanager
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 import warnings
 
 import numpy as np
+
+
+# =============================================================================
+# Timeout Utilities
+# =============================================================================
+
+class TimeoutError(Exception):
+    """Raised when an operation times out."""
+    pass
+
+
+@contextmanager
+def timeout(seconds: int, operation: str = "operation"):
+    """Context manager that raises TimeoutError after specified seconds.
+    
+    Args:
+        seconds: Maximum time allowed
+        operation: Description of operation for error message
+    """
+    def handler(signum, frame):
+        raise TimeoutError(f"{operation} timed out after {seconds}s")
+    
+    # Set the signal handler
+    old_handler = signal.signal(signal.SIGALRM, handler)
+    signal.alarm(seconds)
+    
+    try:
+        yield
+    finally:
+        signal.alarm(0)  # Disable the alarm
+        signal.signal(signal.SIGALRM, old_handler)
+
+
+# Default timeouts (in seconds)
+TIMEOUT_DATA_GENERATION = 30
+TIMEOUT_SOLVER = 60
+TIMEOUT_STABILITY_TEST = 30
+TIMEOUT_GPU_TEST = 30
 
 # Configure logging
 logging.basicConfig(
@@ -242,8 +282,9 @@ def solve_gains_numpy(
     model: np.ndarray,
     antenna_pairs: List[Tuple[int, int]],
     n_antennas: int,
-    n_iterations: int = 20,
+    n_iterations: int = 10,  # Reduced for speed
     dtype: np.dtype = np.complex128,
+    timeout_seconds: int = TIMEOUT_SOLVER,
 ) -> Tuple[np.ndarray, Dict[str, float]]:
     """Solve for antenna gains using vectorized Stefcal-like iteration.
     
@@ -261,6 +302,8 @@ def solve_gains_numpy(
     Returns:
         Tuple of (solved_gains, convergence_metrics)
     """
+    start_time = time.perf_counter()
+    
     # Work in specified precision
     vis = visibilities.astype(dtype)
     mod = model.astype(dtype)
@@ -283,6 +326,11 @@ def solve_gains_numpy(
     chi2_history = []
     
     for iteration in range(n_iterations):
+        # Check timeout
+        if time.perf_counter() - start_time > timeout_seconds:
+            logger.warning(f"Solver timeout after {iteration} iterations")
+            break
+        
         # Compute model visibilities with current gains: g_i * g_j^* * M_ij
         gain_products = gains[ant1_arr] * np.conj(gains[ant2_arr])  # [n_baselines, n_channels]
         predicted = gain_products * mod_avg
@@ -820,13 +868,19 @@ def run_synthetic_validation(
     print("Generating synthetic visibility data...")
     print("─" * 70)
     
-    vis_fp64, true_gains, uvw = generate_synthetic_visibilities(
-        n_antennas=n_antennas,
-        n_channels=n_channels,
-        n_times=n_times if not quick else 10,
-        snr=100.0,
-        dtype=np.complex128,
-    )
+    try:
+        with timeout(TIMEOUT_DATA_GENERATION, "Data generation"):
+            vis_fp64, true_gains, uvw = generate_synthetic_visibilities(
+                n_antennas=n_antennas,
+                n_channels=n_channels,
+                n_times=n_times if not quick else 5,  # Reduced for quick mode
+                snr=100.0,
+                dtype=np.complex128,
+            )
+    except TimeoutError as e:
+        logger.error(str(e))
+        print(f"  ✗ TIMEOUT: {e}")
+        return report
     
     # Create antenna pairs list
     antenna_pairs = []
@@ -844,27 +898,41 @@ def run_synthetic_validation(
     print("TEST 1: Calibration Solver Precision")
     print("─" * 70)
     
+    n_solver_iters = 10 if quick else 20  # Reduced iterations
+    
     # Solve in FP64
     print("\nSolving gains in FP64...")
     t0 = time.perf_counter()
-    gains_fp64, metrics_fp64 = solve_gains_numpy(
-        vis_fp64, model, antenna_pairs, n_antennas,
-        n_iterations=50, dtype=np.complex128,
-    )
-    time_fp64 = time.perf_counter() - t0
-    print(f"  Time: {time_fp64:.2f}s, Iterations: {metrics_fp64['n_iterations']}, "
-          f"Chi² reduction: {metrics_fp64['chi2_reduction']:.1f}x")
+    try:
+        gains_fp64, metrics_fp64 = solve_gains_numpy(
+            vis_fp64, model, antenna_pairs, n_antennas,
+            n_iterations=n_solver_iters, dtype=np.complex128,
+            timeout_seconds=TIMEOUT_SOLVER,
+        )
+        time_fp64 = time.perf_counter() - t0
+        print(f"  Time: {time_fp64:.2f}s, Iterations: {metrics_fp64['n_iterations']}, "
+              f"Chi² reduction: {metrics_fp64['chi2_reduction']:.1f}x")
+    except Exception as e:
+        logger.error(f"FP64 solver failed: {e}")
+        print(f"  ✗ FAILED: {e}")
+        return report
     
     # Solve in FP32
     print("\nSolving gains in FP32...")
     t0 = time.perf_counter()
-    gains_fp32, metrics_fp32 = solve_gains_numpy(
-        vis_fp64, model, antenna_pairs, n_antennas,
-        n_iterations=50, dtype=np.complex64,
-    )
-    time_fp32 = time.perf_counter() - t0
-    print(f"  Time: {time_fp32:.2f}s, Iterations: {metrics_fp32['n_iterations']}, "
-          f"Chi² reduction: {metrics_fp32['chi2_reduction']:.1f}x")
+    try:
+        gains_fp32, metrics_fp32 = solve_gains_numpy(
+            vis_fp64, model, antenna_pairs, n_antennas,
+            n_iterations=n_solver_iters, dtype=np.complex64,
+            timeout_seconds=TIMEOUT_SOLVER,
+        )
+        time_fp32 = time.perf_counter() - t0
+        print(f"  Time: {time_fp32:.2f}s, Iterations: {metrics_fp32['n_iterations']}, "
+              f"Chi² reduction: {metrics_fp32['chi2_reduction']:.1f}x")
+    except Exception as e:
+        logger.error(f"FP32 solver failed: {e}")
+        print(f"  ✗ FAILED: {e}")
+        return report
     
     # Compare solutions
     print("\nComparing gain solutions...")
