@@ -11,7 +11,10 @@ from typing import Callable, Optional
 from fastapi import Request, Response
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from slowapi.util import get_remote_address
+
+from .client_ip import get_client_ip
+
+API_KEY_HEADER_NAME = os.getenv("DSA110_API_KEY_HEADER", "X-API-Key")
 
 
 def get_client_identifier(request: Request) -> str:
@@ -19,24 +22,14 @@ def get_client_identifier(request: Request) -> str:
     Get client identifier for rate limiting.
     
     Priority:
-    1. X-Forwarded-For header (for clients behind proxies)
-    2. X-API-Key header (for authenticated API clients)
-    3. Remote address
+    1. API key (when provided)
+    2. Hardened client IP (honors XFF only for trusted proxies)
     """
-    # Check for forwarded header (when behind reverse proxy)
-    forwarded_for = request.headers.get("X-Forwarded-For")
-    if forwarded_for:
-        # Get the first IP in the chain (original client)
-        return forwarded_for.split(",")[0].strip()
-    
-    # Check for API key (allows per-key rate limiting)
-    api_key = request.headers.get("X-API-Key")
+    api_key = request.headers.get(API_KEY_HEADER_NAME)
     if api_key:
-        # Use first 8 chars of API key as identifier
         return f"apikey:{api_key[:8]}"
     
-    # Fall back to remote address
-    return get_remote_address(request)
+    return get_client_ip(request)
 
 
 def create_limiter(
