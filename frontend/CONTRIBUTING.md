@@ -18,6 +18,25 @@ npm test
 npm run storybook
 ```
 
+## Development URLs
+
+| Service     | URL                         | Notes                      |
+| ----------- | --------------------------- | -------------------------- |
+| Frontend    | http://localhost:3000       | Vite dev server with HMR   |
+| Login Page  | http://localhost:3000/login | Authentication entry point |
+| Backend API | http://localhost:8000       | FastAPI server             |
+| Storybook   | http://localhost:6006       | Component development      |
+
+## Demo Login Credentials
+
+For local development, use these pre-configured accounts:
+
+| Username   | Password   | Role     | Access Level                   |
+| ---------- | ---------- | -------- | ------------------------------ |
+| `admin`    | `admin`    | Admin    | Full access (read/write/admin) |
+| `operator` | `operator` | Operator | Read + write access            |
+| `viewer`   | `viewer`   | Viewer   | Read-only access               |
+
 ## Where to Find Things
 
 | What you're looking for     | Where to look               |

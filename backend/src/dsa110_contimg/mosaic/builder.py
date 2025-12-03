@@ -126,9 +126,9 @@ def build_mosaic(
             # Create 2D WCS from potentially 4D header
             wcs_2d = WCS(header, naxis=2)
             header_2d = wcs_2d.to_header()
-            # Preserve key metadata
+            # Preserve key metadata (but NOT CRVAL3/NAXIS3 which break 2D WCS)
             for key in ['BUNIT', 'BMAJ', 'BMIN', 'BPA', 'TELESCOP', 'DATE-OBS',
-                        'RESTFRQ', 'CRVAL3', 'OBJECT']:
+                        'RESTFRQ', 'OBJECT']:
                 if key in header:
                     header_2d[key] = header[key]
             
