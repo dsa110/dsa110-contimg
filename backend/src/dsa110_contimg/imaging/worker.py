@@ -373,10 +373,8 @@ def _process_single_ms(ms: Path, out_dir: Path, registry_db: Path, conn) -> bool
     _record_ms_status(conn, ms, start_mjd, end_mjd, mid_mjd, status)
 
     for art in artifacts:
-        images_insert(
-            conn, art, os.fspath(ms), time.time(), "5min",
-            1 if art.endswith(".image.pbcor") else 0,
-        )
+        img_type = "pbcor" if art.endswith(".image.pbcor") else "5min"
+        images_insert(conn, art, os.fspath(ms), img_type, created_at=time.time())
     conn.commit()
 
     logger.info("Processed %s (artifacts: %d)", ms, len(artifacts))

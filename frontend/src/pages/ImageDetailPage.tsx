@@ -416,6 +416,26 @@ const ImageDetailPage: React.FC = () => {
             </Card>
           )}
 
+          {/* Weight Map Viewer for mosaics */}
+          {showWeightMap && isMosaicImage && (
+            <Card title="Mosaic Weight Map">
+              <WidgetErrorBoundary
+                widgetName="Weight Map Viewer"
+                minHeight={500}
+              >
+                <WeightMapViewer
+                  mosaicUrl={`${config.api.baseUrl}/images/${encodedImageId}/fits`}
+                  weightMapUrl={`${config.api.baseUrl}/images/${encodedImageId}/fits?variant=weights`}
+                  nImages={imageData.n_images}
+                  medianRmsJy={imageData.noise_jy}
+                  effectiveNoiseJy={imageData.effective_noise_jy}
+                  width={600}
+                  height={500}
+                />
+              </WidgetErrorBoundary>
+            </Card>
+          )}
+
           {/* Rating Card */}
           {showRatingCard && (
             <Card title="Image Rating">

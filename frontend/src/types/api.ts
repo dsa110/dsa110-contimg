@@ -67,7 +67,10 @@ export interface CalibratorMatch {
 /**
  * Summary view of an image (used in list views).
  */
-export interface ImageSummary extends BaseEntity, WithTimestamps, WithProvenance {
+export interface ImageSummary
+  extends BaseEntity,
+    WithTimestamps,
+    WithProvenance {
   path: string;
   qa_grade: QAGrade;
   created_at: string; // Required for images
@@ -91,6 +94,9 @@ export interface ImageDetail extends ImageSummary, WithCoordinates {
   beam_minor_arcsec?: number;
   beam_pa_deg?: number;
   peak_flux_jy?: number;
+  // Mosaic-specific fields
+  n_images?: number;
+  effective_noise_jy?: number;
   // Provenance data (when embedded)
   provenance?: ProvenanceStripProps;
 }
@@ -145,7 +151,10 @@ export interface SourceDetail extends SourceSummary {
 /**
  * Measurement Set metadata response.
  */
-export interface MSMetadata extends WithCoordinates, WithTimestamps, WithProvenance {
+export interface MSMetadata
+  extends WithCoordinates,
+    WithTimestamps,
+    WithProvenance {
   path: string;
   cal_table?: string;
   scan_id?: string;
