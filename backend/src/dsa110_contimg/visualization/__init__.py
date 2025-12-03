@@ -46,6 +46,18 @@ from dsa110_contimg.visualization.source_plots import (
     plot_spectrum,
     plot_source_comparison,
 )
+from dsa110_contimg.visualization.mosaic_plots import (
+    plot_tile_grid,
+    plot_mosaic_footprints,
+    plot_coverage_map,
+)
+from dsa110_contimg.visualization.report import (
+    ReportSection,
+    ReportMetadata,
+    generate_html_report,
+    generate_pdf_report,
+    create_diagnostic_report,
+)
 
 __all__ = [
     # Config
@@ -65,4 +77,14 @@ __all__ = [
     "plot_lightcurve",
     "plot_spectrum",
     "plot_source_comparison",
+    # Mosaics
+    "plot_tile_grid",
+    "plot_mosaic_footprints",
+    "plot_coverage_map",
+    # Reports
+    "ReportSection",
+    "ReportMetadata",
+    "generate_html_report",
+    "generate_pdf_report",
+    "create_diagnostic_report",
 ]
