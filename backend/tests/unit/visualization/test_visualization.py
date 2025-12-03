@@ -2,10 +2,8 @@
 Tests for the visualization module.
 """
 
-import io
 import tempfile
 from pathlib import Path
-from unittest.mock import MagicMock, patch
 
 import numpy as np
 import pytest
@@ -26,29 +24,32 @@ class TestFigureConfig:
     def test_default_config(self):
         """Default config should have sensible values."""
         config = FigureConfig()
-        assert config.dpi == 100
-        assert config.figsize == (8, 6)
+        # Default is quicklook style with these values
+        assert config.dpi == 140  # Quicklook DPI
+        assert config.figsize == (6, 5)  # Quicklook figsize
         assert config.style == PlotStyle.QUICKLOOK
     
     def test_quicklook_preset(self):
-        """Quicklook style should have lower DPI."""
+        """Quicklook style should have moderate DPI."""
         config = FigureConfig(style=PlotStyle.QUICKLOOK)
-        assert config.effective_dpi <= 150
+        assert config.dpi == 140
+        assert config.figsize == (6, 5)
     
     def test_publication_preset(self):
         """Publication style should have higher DPI."""
         config = FigureConfig(style=PlotStyle.PUBLICATION)
-        assert config.dpi == 100  # base dpi
-        # Publication should have font_scale > 1
-        assert config.font_scale >= 1.0
+        # Publication preset sets 300 DPI
+        assert config.dpi == 300
+        # Font scale should be appropriate
+        assert config.font_size >= 12
     
     def test_effective_properties(self):
-        """Effective properties should apply font scaling."""
-        config = FigureConfig(font_scale=2.0, base_font_size=12)
-        assert config.effective_font_size == 24
-        assert config.effective_tick_size == 24 * 0.8
-        assert config.effective_label_size == 24
-        assert config.effective_title_size == 24 * 1.2
+        """Effective properties should compute derived values."""
+        config = FigureConfig(font_size=10)
+        # Effective sizes should be based on font_size
+        assert config.effective_tick_size == int(10 * 0.9)  # 9
+        assert config.effective_label_size == 10
+        assert config.effective_title_size == int(10 * 1.2)  # 12
 
 
 class TestReportGeneration:
@@ -110,48 +111,45 @@ class TestReportGeneration:
 
 
 class TestPlotFunctions:
-    """Tests for plotting functions (mocked matplotlib)."""
+    """Tests for plotting functions."""
     
-    @pytest.fixture
-    def mock_matplotlib(self):
-        """Mock matplotlib for headless testing."""
-        with patch("matplotlib.pyplot") as mock_plt:
-            mock_fig = MagicMock()
-            mock_ax = MagicMock()
-            mock_plt.subplots.return_value = (mock_fig, mock_ax)
-            mock_plt.figure.return_value = mock_fig
-            mock_fig.add_subplot.return_value = mock_ax
-            yield mock_plt
-    
-    def test_plot_lightcurve_basic(self, mock_matplotlib, tmp_path):
+    def test_plot_lightcurve_basic(self, tmp_path):
         """plot_lightcurve should work with basic inputs."""
+        from astropy.time import Time
         from dsa110_contimg.visualization.source_plots import plot_lightcurve
         
         flux = np.array([1.0, 1.1, 0.9, 1.2])
-        times = np.array([60000.0, 60000.1, 60000.2, 60000.3])  # MJD
+        # Use proper astropy Time objects with MJD format
+        times = Time([60000.0, 60000.1, 60000.2, 60000.3], format="mjd")
         
-        fig = plot_lightcurve(flux, times)
+        output = tmp_path / "lightcurve.png"
+        fig = plot_lightcurve(flux, times, output=output)
         assert fig is not None
+        assert output.exists()
     
-    def test_plot_spectrum_basic(self, mock_matplotlib):
+    def test_plot_spectrum_basic(self, tmp_path):
         """plot_spectrum should work with basic inputs."""
         from dsa110_contimg.visualization.source_plots import plot_spectrum
         
         flux = np.array([1.0, 0.9, 0.8, 0.7])
         freq_ghz = np.array([1.0, 1.2, 1.4, 1.6])
         
-        fig = plot_spectrum(flux, freq_ghz)
+        output = tmp_path / "spectrum.png"
+        fig = plot_spectrum(flux, freq_ghz, output=output)
         assert fig is not None
+        assert output.exists()
     
-    def test_plot_source_comparison_basic(self, mock_matplotlib):
+    def test_plot_source_comparison_basic(self, tmp_path):
         """plot_source_comparison should work with basic inputs."""
         from dsa110_contimg.visualization.source_plots import plot_source_comparison
         
         measured = np.array([1.0, 2.0, 3.0, 4.0])
         reference = np.array([1.1, 1.9, 3.2, 3.8])
         
-        fig = plot_source_comparison(measured, reference, show_ratio=False)
+        output = tmp_path / "comparison.png"
+        fig = plot_source_comparison(measured, reference, output=output, show_ratio=False)
         assert fig is not None
+        assert output.exists()
 
 
 class TestTileGrid:

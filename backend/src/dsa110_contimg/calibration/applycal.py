@@ -347,9 +347,16 @@ def apply_to_target(
         kwargs["spwmap"] = spwmap
 
     print(f"Applying {len(gaintables)} calibration table(s) to {ms_target}...")
-    from casatasks import applycal as casa_applycal
-
-    casa_applycal(**kwargs)
+    
+    # Import and call applycal with CASA log environment protection
+    try:
+        from dsa110_contimg.utils.tempdirs import casa_log_environment
+        with casa_log_environment():
+            from casatasks import applycal as casa_applycal
+            casa_applycal(**kwargs)
+    except ImportError:
+        from casatasks import applycal as casa_applycal
+        casa_applycal(**kwargs)
 
     # POSTCONDITION CHECK: Verify CORRECTED_DATA was populated successfully
     # This ensures we follow "measure twice, cut once" - verify calibration was

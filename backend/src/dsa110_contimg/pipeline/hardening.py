@@ -1315,7 +1315,6 @@ def preflag_rfi(
     Returns:
         RFIStats with flagging results
     """
-    from casatasks import flagdata
     import casacore.tables as casatables
     import numpy as np
     
@@ -1326,11 +1325,28 @@ def preflag_rfi(
         flags = tb.getcol("FLAG")
         original_flagged = np.sum(flags) / flags.size
     
+    # Import flagdata with CASA log environment protection
+    try:
+        from dsa110_contimg.utils.tempdirs import casa_log_environment
+        with casa_log_environment():
+            from casatasks import flagdata
+    except ImportError:
+        from casatasks import flagdata
+    
+    def _call_flagdata(**kwargs):
+        """Call flagdata with CASA log environment protection."""
+        try:
+            from dsa110_contimg.utils.tempdirs import casa_log_environment
+            with casa_log_environment():
+                return flagdata(**kwargs)
+        except ImportError:
+            return flagdata(**kwargs)
+    
     # Apply flagging based on strategy
     if strategy == "tfcrop":
         # Time-frequency crop: good for broadband RFI
         threshold = 3.0 if aggressive else 4.0
-        flagdata(
+        _call_flagdata(
             vis=ms_path,
             mode="tfcrop",
             datacolumn="DATA",
