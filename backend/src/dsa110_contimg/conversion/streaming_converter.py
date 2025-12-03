@@ -320,7 +320,7 @@ class QueueDB:
             # eliminating the need for unbounded in-memory sets
             self._conn.execute(
                 """
-                CREATE UNIQUE INDEX IF NOT EXISTS idx_subband_files_path 
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_subband_files_path
                 ON subband_files(path)
                 """
             )
@@ -355,10 +355,12 @@ class QueueDB:
                 self._conn.execute("ALTER TABLE ingest_queue ADD COLUMN checkpoint_path TEXT")
             if "processing_stage" not in columns:
                 self._conn.execute(
-                    "ALTER TABLE ingest_queue ADD COLUMN processing_stage TEXT DEFAULT 'collecting'"
+                    "ALTER TABLE ingest_queue ADD COLUMN "
+                    "processing_stage TEXT DEFAULT 'collecting'"
                 )
                 self._conn.execute(
-                    "UPDATE ingest_queue SET processing_stage = 'collecting' WHERE processing_stage IS NULL"
+                    "UPDATE ingest_queue SET processing_stage = 'collecting' "
+                    "WHERE processing_stage IS NULL"
                 )
             if "chunk_minutes" not in columns:
                 self._conn.execute("ALTER TABLE ingest_queue ADD COLUMN chunk_minutes REAL")
@@ -366,7 +368,8 @@ class QueueDB:
                 self._conn.execute("ALTER TABLE ingest_queue ADD COLUMN expected_subbands INTEGER")
                 try:
                     self._conn.execute(
-                        "UPDATE ingest_queue SET expected_subbands = ? WHERE expected_subbands IS NULL",
+                        "UPDATE ingest_queue SET expected_subbands = ? "
+                        "WHERE expected_subbands IS NULL",
                         (self.expected_subbands,),
                     )
                 except sqlite3.DatabaseError:
@@ -474,9 +477,9 @@ class QueueDB:
                 # Get all collecting/pending groups ordered by timestamp
                 rows = self._conn.execute(
                     """
-                    SELECT group_id, 
+                    SELECT group_id,
                            (SELECT COUNT(*) FROM subband_files WHERE subband_files.group_id = ingest_queue.group_id) as subband_count
-                    FROM ingest_queue 
+                    FROM ingest_queue
                     WHERE state IN ('collecting', 'pending')
                     ORDER BY group_id
                     """
@@ -578,7 +581,7 @@ class QueueDB:
         try:
             rows = self._conn.execute(
                 """
-                SELECT group_id FROM ingest_queue 
+                SELECT group_id FROM ingest_queue
                 WHERE state IN ('collecting', 'pending')
                 ORDER BY received_at DESC
                 LIMIT 100
@@ -1448,7 +1451,7 @@ def _register_calibration_tables(
 ) -> None:
     """
     Register calibration tables in the registry database.
-    
+
     Helper function extracted for Issue #4 fence integration.
     Includes Issue #5 QA check before registration.
     """
@@ -1536,11 +1539,11 @@ def _update_state_machine(
 ) -> None:
     """
     Helper to update processing state machine (Issue #7).
-    
+
     This provides a simple way to track processing state without
     needing to wrap code in context managers. State transitions
     are logged but failures are non-fatal.
-    
+
     Args:
         state_machine: The ProcessingStateMachine instance (or None)
         group_id: The group being processed
@@ -1558,7 +1561,7 @@ def _update_state_machine(
         now = time.time()
         conn.execute(
             """
-            UPDATE processing_state 
+            UPDATE processing_state
             SET current_state = ?, updated_at = ?
             WHERE group_id = ?
             """,
@@ -1567,7 +1570,7 @@ def _update_state_machine(
         # Log the transition
         conn.execute(
             """
-            INSERT INTO state_transitions 
+            INSERT INTO state_transitions
             (group_id, from_state, to_state, timestamp, success)
             SELECT current_state, ?, ?, ?, 1
             FROM processing_state WHERE group_id = ?
