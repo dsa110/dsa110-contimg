@@ -179,10 +179,12 @@ describe("MsRasterPlot", () => {
   it("renders description text", () => {
     renderComponent();
 
-    expect(screen.getByText(/amplitude/i)).toBeInTheDocument();
+    // Use more specific query to find the description paragraph
     expect(
       screen.getByText(/averaged over polarizations/i)
     ).toBeInTheDocument();
+    // The description should contain the axis info
+    expect(screen.getByText(/Showing.*vs.*time/i)).toBeInTheDocument();
   });
 
   it("applies custom className", () => {

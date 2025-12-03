@@ -3,31 +3,36 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ServiceStatusPanel } from "./ServiceStatusPanel";
-import * as healthChecker from "../../utils/serviceHealthChecker";
+
+// Hoisted mock for ServiceHealthChecker class
+const mockChecker = vi.hoisted(() => ({
+  checkAllServices: vi.fn(),
+  abort: vi.fn(),
+  reset: vi.fn(),
+}));
 
 // Mock the health checker module
-vi.mock("../../utils/serviceHealthChecker", async () => {
-  const actual = await vi.importActual("../../utils/serviceHealthChecker");
-  return {
-    ...actual,
-    ServiceHealthChecker: vi.fn(),
-  };
-});
+vi.mock("../../utils/serviceHealthChecker", () => ({
+  ServiceHealthChecker: class MockServiceHealthChecker {
+    checkAllServices = mockChecker.checkAllServices;
+    abort = mockChecker.abort;
+    reset = mockChecker.reset;
+  },
+}));
 
-// Create mock health checker instance
-const createMockHealthChecker = (overrides = {}) => ({
-  checkAllServices: vi.fn().mockResolvedValue({
-    results: [
-      {
-        name: "Vite Dev Server",
-        port: 3000,
-        description: "Frontend development server with HMR",
-        status: "running",
-        responseTime: 50,
-        lastChecked: new Date(),
-        source: "backend-api",
-        failureCount: 0,
-      },
+// Create mock result for health checker
+const createMockHealthResult = (overrides = {}) => ({
+  results: [
+    {
+      name: "Vite Dev Server",
+      port: 3000,
+      description: "Frontend development server with HMR",
+      status: "running",
+      responseTime: 50,
+      lastChecked: new Date(),
+      source: "backend-api",
+      failureCount: 0,
+    },
       {
         name: "Grafana",
         port: 3030,
@@ -115,9 +120,9 @@ describe("ServiceStatusPanel", () => {
     vi.clearAllMocks();
     vi.useFakeTimers({ shouldAdvanceTime: true });
     mockChecker = createMockHealthChecker();
-    (healthChecker.ServiceHealthChecker as unknown as ReturnType<typeof vi.fn>).mockImplementation(
-      () => mockChecker
-    );
+    (
+      healthChecker.ServiceHealthChecker as unknown as ReturnType<typeof vi.fn>
+    ).mockImplementation(() => mockChecker);
   });
 
   afterEach(() => {
@@ -151,14 +156,18 @@ describe("ServiceStatusPanel", () => {
     it("shows service descriptions", async () => {
       render(<ServiceStatusPanel />);
       await waitFor(() => {
-        expect(screen.getByText(/frontend development server/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/frontend development server/i)
+        ).toBeInTheDocument();
       });
     });
   });
 
   describe("status checking", () => {
     it("shows checking state initially", () => {
-      mockChecker.checkAllServices.mockImplementation(() => new Promise(() => {})); // Never resolves
+      mockChecker.checkAllServices.mockImplementation(
+        () => new Promise(() => {})
+      ); // Never resolves
       render(<ServiceStatusPanel />);
       expect(screen.getAllByText(/checking/i).length).toBeGreaterThan(0);
     });
@@ -201,7 +210,11 @@ describe("ServiceStatusPanel", () => {
           backendError: "Connection refused",
           fallbackUsed: true,
           individualProbes: [
-            { service: "Vite Dev Server", success: true, source: "client-probe" },
+            {
+              service: "Vite Dev Server",
+              success: true,
+              source: "client-probe",
+            },
             {
               service: "Redis",
               success: false,
@@ -214,7 +227,9 @@ describe("ServiceStatusPanel", () => {
 
       render(<ServiceStatusPanel />);
       await waitFor(() => {
-        expect(screen.getByText(/backend api unavailable/i)).toBeInTheDocument();
+        expect(
+          screen.getByText(/backend api unavailable/i)
+        ).toBeInTheDocument();
       });
     });
 
@@ -266,7 +281,9 @@ describe("ServiceStatusPanel", () => {
     it("renders refresh button", async () => {
       render(<ServiceStatusPanel />);
       await waitFor(() => {
-        const button = screen.queryByRole("button", { name: /refresh|checking/i });
+        const button = screen.queryByRole("button", {
+          name: /refresh|checking/i,
+        });
         expect(button).toBeInTheDocument();
       });
     });
@@ -291,7 +308,9 @@ describe("ServiceStatusPanel", () => {
         expect(mockChecker.checkAllServices).toHaveBeenCalled();
       });
 
-      mockChecker.checkAllServices.mockImplementation(() => new Promise(() => {})); // Never resolves
+      mockChecker.checkAllServices.mockImplementation(
+        () => new Promise(() => {})
+      ); // Never resolves
       await userEvent.click(screen.getByRole("button", { name: /refresh/i }));
 
       expect(screen.getByRole("button", { name: /checking/i })).toBeDisabled();
@@ -312,7 +331,9 @@ describe("ServiceStatusPanel", () => {
       vi.advanceTimersByTime(30000);
 
       await waitFor(() => {
-        expect(mockChecker.checkAllServices.mock.calls.length).toBeGreaterThan(initialCallCount);
+        expect(mockChecker.checkAllServices.mock.calls.length).toBeGreaterThan(
+          initialCallCount
+        );
       });
     });
   });
@@ -321,7 +342,9 @@ describe("ServiceStatusPanel", () => {
     it("shows count of running services", async () => {
       render(<ServiceStatusPanel />);
       await waitFor(() => {
-        expect(screen.getByText(/\d+\/\d+ services running/)).toBeInTheDocument();
+        expect(
+          screen.getByText(/\d+\/\d+ services running/)
+        ).toBeInTheDocument();
       });
     });
   });

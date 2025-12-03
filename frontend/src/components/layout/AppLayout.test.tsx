@@ -1,9 +1,19 @@
 import React from "react";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import AppLayout from "./AppLayout";
+
+vi.mock("../common/ConnectionStatus", () => ({
+  ConnectionStatus: () => (
+    <div data-testid="connection-status">Connection Status Banner</div>
+  ),
+}));
+
+vi.mock("../../hooks/useNetworkNotifications", () => ({
+  useNetworkNotifications: vi.fn(),
+}));
 
 // Create a test QueryClient
 const createTestQueryClient = () =>
