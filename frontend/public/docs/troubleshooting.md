@@ -23,6 +23,11 @@ using the DSA-110 Continuum Imaging Pipeline.
   - [Streaming Status Stale](#streaming_stale)
 - [Validation Errors](#validation-errors)
   - [Input Validation Failed](#validation_failed)
+- [Browser Console Warnings](#browser-console-warnings)
+  - [React DevTools DCE Warning](#react-devtools-dce-warning)
+  - [Duplicate Custom Element Definition](#duplicate-custom-element-definition)
+  - [CSP frame-ancestors Warning](#csp-frame-ancestors-warning)
+- [Server CSP Configuration](#server-csp-configuration)
 
 ---
 
@@ -315,6 +320,103 @@ error details will show which fields failed validation.
 - Invalid date formats (use ISO 8601: `2025-01-15T10:30:00Z`)
 - Invalid coordinate values
 - Path characters that need URL encoding
+
+---
+
+## Browser Console Warnings
+
+Some console warnings you may see are **not errors in the application** but come
+from browser extensions or development tools:
+
+### React DevTools DCE Warning
+
+**Message:** `React is running in production mode, but dead code elimination has not been applied`
+
+**Source:** React DevTools browser extension (`installHook.js`)
+
+**Why it happens:** This warning comes from the React DevTools extension when
+running the development server. It's checking if your build has proper dead code
+elimination.
+
+**Resolution:** This is expected in development. The warning will not appear in
+production builds (`npm run build`). You can safely ignore it during development.
+
+### Duplicate Custom Element Definition
+
+**Message:** `A custom element with name 'mce-autosize-textarea' has already been defined`
+
+**Source:** Browser extensions (TinyMCE-related extensions, content editors)
+
+**Why it happens:** A browser extension is trying to register a custom element
+that's already registered. This is not from the DSA-110 application.
+
+**Resolution:** Disable conflicting browser extensions, or ignore the warning.
+It does not affect application functionality.
+
+### CSP frame-ancestors Warning
+
+**Message:** `The Content Security Policy directive 'frame-ancestors' is ignored when delivered via a <meta> element`
+
+**Source:** Browser CSP parser
+
+**Why it happens:** The `frame-ancestors` directive only works when set via HTTP
+headers, not `<meta>` tags.
+
+**Resolution:** For production, configure your web server to send CSP headers.
+See the [Server Configuration](#server-csp-configuration) section below.
+
+---
+
+<a id="server-csp-configuration"></a>
+
+## Server CSP Configuration
+
+For production deployments, set Content Security Policy via HTTP headers instead
+of `<meta>` tags. Here are configurations for common servers:
+
+### FastAPI (Python Backend)
+
+```python
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
+from starlette.responses import Response
+
+class CSPMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "img-src 'self' data: blob: https://js9.si.edu; "
+            "style-src 'self' 'unsafe-inline' https://js9.si.edu; "
+            "script-src 'self' https://js9.si.edu https://cdnjs.cloudflare.com; "
+            "connect-src 'self' http://127.0.0.1:* http://localhost:* ws://localhost:* ws://127.0.0.1:*; "
+            "frame-ancestors 'self';"
+        )
+        return response
+
+app = FastAPI()
+app.add_middleware(CSPMiddleware)
+```
+
+### Nginx
+
+```nginx
+server {
+    # ... other config ...
+
+    add_header Content-Security-Policy "default-src 'self'; img-src 'self' data: blob: https://js9.si.edu; style-src 'self' 'unsafe-inline' https://js9.si.edu; script-src 'self' https://js9.si.edu https://cdnjs.cloudflare.com; connect-src 'self' http://127.0.0.1:* http://localhost:* ws://localhost:* ws://127.0.0.1:*; frame-ancestors 'self';";
+}
+```
+
+### Apache
+
+```apache
+<IfModule mod_headers.c>
+    Header set Content-Security-Policy "default-src 'self'; img-src 'self' data: blob: https://js9.si.edu; style-src 'self' 'unsafe-inline' https://js9.si.edu; script-src 'self' https://js9.si.edu https://cdnjs.cloudflare.com; connect-src 'self' http://127.0.0.1:* http://localhost:* ws://localhost:* ws://127.0.0.1:*; frame-ancestors 'self';"
+</IfModule>
+```
 
 ---
 

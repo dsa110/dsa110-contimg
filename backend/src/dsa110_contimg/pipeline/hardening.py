@@ -1358,7 +1358,7 @@ def preflag_rfi(
     elif strategy == "rflag":
         # R-flag: statistical outlier detection
         threshold = 4.0 if aggressive else 5.0
-        flagdata(
+        _call_flagdata(
             vis=ms_path,
             mode="rflag",
             datacolumn="DATA",

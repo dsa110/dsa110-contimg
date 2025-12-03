@@ -133,13 +133,16 @@ def generate_gain_plots(
     Raises:
         RuntimeError: If plot generation fails
     """
-    # Import plotcal with CASA log environment protection
-    try:
-        from dsa110_contimg.utils.tempdirs import casa_log_environment
-        with casa_log_environment():
+    # Helper to call plotcal with CASA log environment protection
+    def _call_plotcal(**kwargs):
+        try:
+            from dsa110_contimg.utils.tempdirs import casa_log_environment
+            with casa_log_environment():
+                from casatasks import plotcal  # pylint: disable=no-name-in-module
+                return plotcal(**kwargs)
+        except ImportError:
             from casatasks import plotcal  # pylint: disable=no-name-in-module
-    except ImportError:
-        from casatasks import plotcal  # pylint: disable=no-name-in-module
+            return plotcal(**kwargs)
 
     if output_dir is None:
         output_dir = os.path.dirname(gcal_table) or "."
@@ -156,7 +159,7 @@ def generate_gain_plots(
     try:
         if plot_amplitude:
             amp_plot = f"{plot_prefix}_amp"
-            plotcal(
+            _call_plotcal(
                 caltable=gcal_table,
                 xaxis="time",
                 yaxis="amp",
@@ -173,7 +176,7 @@ def generate_gain_plots(
 
         if plot_phase:
             phase_plot = f"{plot_prefix}_phase"
-            plotcal(
+            _call_plotcal(
                 caltable=gcal_table,
                 xaxis="time",
                 yaxis="phase",

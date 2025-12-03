@@ -73,23 +73,21 @@ def plot_bandpass(
     
     generated = []
     
-    try:
-        # Try CASA plotbandpass first (higher quality)
-        # Import with CASA log environment protection
+    # Helper to call plotbandpass with log environment protection
+    def _call_plotbandpass(**kwargs):
         try:
             from dsa110_contimg.utils.tempdirs import casa_log_environment
             with casa_log_environment():
                 from casatasks import plotbandpass
+                return plotbandpass(**kwargs)
         except ImportError:
             from casatasks import plotbandpass
-        
+            return plotbandpass(**kwargs)
+    
+    try:
         if plot_amplitude:
             amp_plot = str(output / f"{caltable.name}_amp")
-            # Wrap plotbandpass call
-            try:
-                from dsa110_contimg.utils.tempdirs import casa_log_environment
-                with casa_log_environment():
-                    plotbandpass(
+            _call_plotbandpass(
                 caltable=str(caltable),
                 xaxis="freq",
                 yaxis="amp",
@@ -106,7 +104,7 @@ def plot_bandpass(
         
         if plot_phase:
             phase_plot = str(output / f"{caltable.name}_phase")
-            plotbandpass(
+            _call_plotbandpass(
                 caltable=str(caltable),
                 xaxis="freq",
                 yaxis="phase",
