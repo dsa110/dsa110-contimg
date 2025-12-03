@@ -23,6 +23,21 @@ if TYPE_CHECKING:
     from ..repositories import ImageRecord, MSRecord, SourceRecord, JobRecord
 
 
+DEFAULT_MS_ROOTS = "/data/dsa110-contimg,/stage/dsa110-contimg"
+DEFAULT_LOG_ROOTS = "/data/dsa110-contimg/state/logs,/data/dsa110-contimg/logs"
+
+
+def _parse_root_list(env_var: str, default: str) -> list[Path]:
+    """Parse a comma-separated list of filesystem roots."""
+    raw = os.getenv(env_var) or default
+    roots: list[Path] = []
+    for item in raw.split(","):
+        path_str = item.strip()
+        if path_str:
+            roots.append(Path(path_str).expanduser().resolve())
+    return roots
+
+
 class AsyncImageService:
     """Async business logic for image operations."""
     
@@ -107,6 +122,8 @@ class AsyncImageService:
 class AsyncMSService:
     """Async business logic for Measurement Set operations."""
     
+    MS_ALLOWED_ROOTS = _parse_root_list("DSA110_ALLOWED_MS_ROOTS", DEFAULT_MS_ROOTS)
+    
     def __init__(self, repository: "AsyncMSRepository"):
         self.repo = repository
     
@@ -164,15 +181,25 @@ class AsyncMSService:
             },
         }
     
-    def validate_ms_path(self, ms_path: str) -> tuple[bool, Optional[str]]:
-        """Validate that MS path exists."""
+    def validate_ms_path(self, ms_path: str) -> tuple[bool, Optional[str], Optional[Path]]:
+        """Validate that MS path exists and is inside allowed directories."""
         if not ms_path:
-            return False, "No MS path specified"
+            return False, "No MS path specified", None
         
-        if not os.path.exists(ms_path):
-            return False, f"MS not found: {ms_path}"
+        resolved = Path(ms_path).expanduser().resolve()
         
-        return True, None
+        if not self._is_ms_path_allowed(resolved):
+            return False, "MS path outside allowed directories", None
+        
+        if not resolved.exists():
+            return False, f"MS not found: {ms_path}", None
+        
+        return True, None, resolved
+    
+    @classmethod
+    def _is_ms_path_allowed(cls, path: Path) -> bool:
+        """Check if a path is within the allowed MS roots."""
+        return any(path.is_relative_to(root) for root in cls.MS_ALLOWED_ROOTS)
 
 
 class AsyncSourceService:
