@@ -131,7 +131,7 @@
 
 ## Test Coverage Goals ✅ COMPLETE
 
-**Status:** 1143 unit tests passing
+**Status:** 1222 unit tests (18 new GPU safety tests)
 
 All coverage targets have been achieved:
 
@@ -183,6 +183,20 @@ All coverage targets have been achieved:
   - **Integration**:
     - Connects to `monitoring/gpu.py` for alert callbacks
     - `initialize_gpu_safety()` sets up pools at startup
+- [x] **GPU Safety Integration** - Production hardening to prevent Dec 2 crash scenario:
+  - **Entry Points Protected**:
+    - `imaging/worker.py` - `@memory_safe` on `_apply_and_image()`, `process_once()`
+    - `imaging/fast_imaging.py` - `@gpu_safe` on `run_fast_imaging()`
+    - `calibration/applycal.py` - `@memory_safe` on `apply_to_target()`
+  - **Application Startup**: `api/app.py` calls `initialize_gpu_safety()` in lifespan
+  - **System-level Protection**: `LimitAS=24G` in systemd services (absurd-worker,
+    absurd-scheduler, pipeline-scheduler)
+  - **Unit Tests**: 18 tests in `tests/unit/test_gpu_safety.py` covering:
+    - System memory checks and rejection
+    - `@memory_safe` and `@gpu_safe` decorators
+    - Visibility memory estimation (including Dec 2 scenario: 96 ant × 768 chan)
+    - OOM rejection before allocation
+    - `safe_gpu_context` manager
 
 ### Precision Strategy Decision
 
@@ -281,6 +295,7 @@ All Phase 1 GPU Acceleration items completed. Ready for Phase 2: CUDA Kernel Dev
 | `ops/grafana/dsa110-gpu-dashboard.json`           | Grafana GPU dashboard            |
 | `src/dsa110_contimg/calibration/caltables.py`     | Improved calibration discovery   |
 | `src/dsa110_contimg/utils/gpu_safety.py`          | Production GPU/RAM safety guards |
+| `tests/unit/test_gpu_safety.py`                   | GPU safety unit tests (18 tests) |
 
 ### Known Constraints
 

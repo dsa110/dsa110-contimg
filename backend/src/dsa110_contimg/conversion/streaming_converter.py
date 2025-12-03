@@ -38,12 +38,14 @@ from dsa110_contimg.database import (  # noqa: E402
     register_set_from_prefix,
 )
 
-# Pipeline hardening imports for Issues #4, #9, #10, #13, #3, #6
+# Pipeline hardening imports for Issues #4, #9, #10, #13, #3, #6, #7
 try:
     from dsa110_contimg.pipeline.hardening import (
         CalibrationFence,
         DiskSpaceMonitor,
         DiskQuota,
+        ProcessingStateMachine,
+        ProcessingState,
         ProcessingTransaction,
         check_calibration_overlap,
         check_disk_space,
@@ -59,6 +61,8 @@ except ImportError:  # pragma: no cover
     CalibrationFence = None  # type: ignore
     DiskSpaceMonitor = None  # type: ignore
     DiskQuota = None  # type: ignore
+    ProcessingStateMachine = None  # type: ignore
+    ProcessingState = None  # type: ignore
     ProcessingTransaction = None  # type: ignore
     check_calibration_overlap = None  # type: ignore
     find_backup_calibrators = None  # type: ignore
@@ -1484,6 +1488,17 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
         except (OSError, ValueError) as e:
             log.warning("Failed to initialize disk monitor: %s", e)
     
+    # Issue #7: Initialize processing state machine for crash recovery
+    state_machine: ProcessingStateMachine | None = None
+    if HAVE_HARDENING and ProcessingStateMachine is not None:
+        try:
+            # Use same database as registry for state tracking
+            state_db_path = Path(getattr(args, "registry_db", args.queue_db))
+            state_machine = ProcessingStateMachine(state_db_path)
+            log.info("Processing state machine initialized for transactional safety")
+        except (OSError, sqlite3.Error) as e:
+            log.warning("Failed to initialize state machine: %s", e)
+    
     while True:
         try:
             # Issue #10: Check disk space before acquiring new work
@@ -1515,6 +1530,14 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
             writer_type = None
             ret = 0
 
+            # Issue #7: Initialize state machine tracking for this group
+            if state_machine is not None:
+                try:
+                    state_machine.initialize(gid)
+                    log.debug("State machine initialized for group %s", gid)
+                except Exception as e:
+                    log.debug("State machine initialization failed for %s: %s", gid, e)
+
             # Create path mapper for organized output (default to science, will be corrected if needed)
             # Extract date from group ID to determine organized path
             extract_date_from_filename(gid)
@@ -1524,6 +1547,9 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
             # Initialize calibrator status (will be updated if detection enabled)
             is_calibrator = False
             is_failed = False
+
+            # Issue #7: Update state to CONVERTING
+            _update_state_machine(state_machine, gid, "CONVERTING", log)
 
             try:
                 if getattr(args, "use_subprocess", False):
