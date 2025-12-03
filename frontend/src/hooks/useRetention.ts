@@ -49,6 +49,8 @@ export function useRetention() {
     cancelExecution,
     getExecutionHistory,
     setError,
+    fetchPolicies,
+    fetchExecutions,
   } = useRetentionStore();
 
   const filteredPolicies = useFilteredPolicies();
@@ -95,6 +97,8 @@ export function useRetention() {
 
     // Utility
     setError,
+    fetchPolicies,
+    fetchExecutions,
   };
 }
 
@@ -103,28 +107,31 @@ export function useRetention() {
  */
 export function useRetentionPolicy(policyId: string) {
   const {
-    getPolicy,
     updatePolicy,
     deletePolicy,
     togglePolicyStatus,
     setPolicyStatus,
     runSimulation,
     clearSimulation,
-    getSimulation,
     executePolicy,
-    getExecutionHistory,
     isSimulating,
     isExecuting,
   } = useRetentionStore();
 
-  const policy = useMemo(() => getPolicy(policyId), [getPolicy, policyId]);
-  const simulation = useMemo(
-    () => getSimulation(policyId),
-    [getSimulation, policyId]
+  const policy = useRetentionStore(
+    useCallback(
+      (state) => state.policies.find((p) => p.id === policyId),
+      [policyId]
+    )
   );
-  const executionHistory = useMemo(
-    () => getExecutionHistory(policyId),
-    [getExecutionHistory, policyId]
+  const simulation = useRetentionStore(
+    useCallback((state) => state.simulations[policyId], [policyId])
+  );
+  const executionHistory = useRetentionStore(
+    useCallback(
+      (state) => state.executions.filter((e) => e.policyId === policyId),
+      [policyId]
+    )
   );
 
   const update = useCallback(
@@ -221,10 +228,11 @@ export function useRetentionFilter() {
  * Hook for retention policy simulation
  */
 export function useRetentionSimulation(policyId: string) {
-  const { runSimulation, clearSimulation, getSimulation, isSimulating, error } =
+  const { runSimulation, clearSimulation, isSimulating, error } =
     useRetentionStore();
-
-  const simulation = getSimulation(policyId);
+  const simulation = useRetentionStore(
+    useCallback((state) => state.simulations[policyId], [policyId])
+  );
 
   const run = useCallback(
     () => runSimulation(policyId),
@@ -252,12 +260,16 @@ export function useRetentionExecution(policyId: string) {
   const {
     executePolicy,
     cancelExecution,
-    getExecutionHistory,
     isExecuting,
     error,
   } = useRetentionStore();
 
-  const executionHistory = getExecutionHistory(policyId);
+  const executionHistory = useRetentionStore(
+    useCallback(
+      (state) => state.executions.filter((execution) => execution.policyId === policyId),
+      [policyId]
+    )
+  );
   const latestExecution = executionHistory[0];
 
   const execute = useCallback(

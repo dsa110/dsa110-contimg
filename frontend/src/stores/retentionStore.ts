@@ -232,63 +232,69 @@ export const useRetentionStore = create<RetentionStore>()(
         }
       },
 
-      updatePolicy: (id: string, data: Partial<RetentionPolicyFormData>) => {
-        set((state) => ({
-          policies: state.policies.map((policy) =>
-            policy.id === id
-              ? {
-                  ...policy,
-                  ...data,
-                  rules: data.rules
-                    ? data.rules.map((rule) => ({
-                        ...rule,
-                        id: (rule as { id?: string }).id ?? generateId(),
-                      }))
-                    : policy.rules,
-                  updatedAt: new Date().toISOString(),
-                }
-              : policy
-          ),
-        }));
+      updatePolicy: async (
+        id: string,
+        data: Partial<RetentionPolicyFormData>
+      ) => {
+        try {
+          const updated = await apiUpdateRetentionPolicy(id, data);
+          set((state) => ({
+            policies: state.policies.map((policy) =>
+              policy.id === id ? updated : policy
+            ),
+          }));
+        } catch (error) {
+          set({
+            error: getErrorMessage(error, "Failed to update retention policy"),
+          });
+          throw error;
+        }
       },
 
-      deletePolicy: (id: string) => {
-        set((state) => ({
-          policies: state.policies.filter((p) => p.id !== id),
-          selectedPolicyId:
-            state.selectedPolicyId === id ? null : state.selectedPolicyId,
-          simulations: Object.fromEntries(
-            Object.entries(state.simulations).filter(([key]) => key !== id)
-          ),
-        }));
+      deletePolicy: async (id: string) => {
+        try {
+          await apiDeleteRetentionPolicy(id);
+          set((state) => ({
+            policies: state.policies.filter((p) => p.id !== id),
+            selectedPolicyId:
+              state.selectedPolicyId === id ? null : state.selectedPolicyId,
+            simulations: Object.fromEntries(
+              Object.entries(state.simulations).filter(([key]) => key !== id)
+            ),
+          }));
+        } catch (error) {
+          set({
+            error: getErrorMessage(error, "Failed to delete retention policy"),
+          });
+          throw error;
+        }
       },
 
-      togglePolicyStatus: (id: string) => {
-        set((state) => ({
-          policies: state.policies.map((policy) =>
-            policy.id === id
-              ? {
-                  ...policy,
-                  status: policy.status === "active" ? "paused" : "active",
-                  updatedAt: new Date().toISOString(),
-                }
-              : policy
-          ),
-        }));
+      togglePolicyStatus: async (id: string) => {
+        const policy = get().getPolicy(id);
+        if (!policy) return;
+        const newStatus: RetentionPolicyStatus =
+          policy.status === "active" ? "paused" : "active";
+        await get().setPolicyStatus(id, newStatus);
       },
 
-      setPolicyStatus: (id: string, status: RetentionPolicyStatus) => {
-        set((state) => ({
-          policies: state.policies.map((policy) =>
-            policy.id === id
-              ? {
-                  ...policy,
-                  status,
-                  updatedAt: new Date().toISOString(),
-                }
-              : policy
-          ),
-        }));
+      setPolicyStatus: async (id: string, status: RetentionPolicyStatus) => {
+        try {
+          const updated = await apiUpdateRetentionPolicy(id, { status });
+          set((state) => ({
+            policies: state.policies.map((policy) =>
+              policy.id === id ? updated : policy
+            ),
+          }));
+        } catch (error) {
+          set({
+            error: getErrorMessage(
+              error,
+              "Failed to update retention policy status"
+            ),
+          });
+          throw error;
+        }
       },
 
       selectPolicy: (id: string | null) => {
@@ -343,85 +349,26 @@ export const useRetentionStore = create<RetentionStore>()(
       runSimulation: async (policyId: string): Promise<RetentionSimulation> => {
         set({ isSimulating: true, error: null });
 
-        const policy = get().getPolicy(policyId);
-        if (!policy) {
-          const error = "Policy not found";
-          set({ isSimulating: false, error });
-          throw new Error(error);
+        try {
+          const simulation = await simulateRetentionPolicy(policyId);
+          set((state) => ({
+            isSimulating: false,
+            simulations: {
+              ...state.simulations,
+              [policyId]: simulation,
+            },
+          }));
+          return simulation;
+        } catch (error) {
+          set({
+            isSimulating: false,
+            error: getErrorMessage(
+              error,
+              "Failed to simulate retention policy"
+            ),
+          });
+          throw error;
         }
-
-        // Simulate API call delay
-        await new Promise((resolve) => setTimeout(resolve, 1500));
-
-        // Generate mock simulation results
-        const candidateCount = Math.floor(Math.random() * 50) + 10;
-        const candidates = Array.from({ length: candidateCount }, (_, i) => ({
-          id: `candidate-${i}`,
-          path: `/data/${policy.dataType}/${generateId()}.${
-            policy.dataType === "image" ? "fits" : "ms"
-          }`,
-          name: `${policy.dataType}_${i}_${generateId().substring(0, 6)}`,
-          dataType: policy.dataType,
-          sizeBytes: Math.floor(Math.random() * 10 * 1024 * 1024 * 1024), // 0-10GB
-          createdAt: new Date(
-            Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000
-          ).toISOString(),
-          ageDays: Math.floor(Math.random() * 365),
-          triggeredByRule: policy.rules[0]?.id || "unknown",
-          action: policy.rules[0]?.action || "notify",
-          isProtected: Math.random() > 0.9,
-          protectionReason:
-            Math.random() > 0.9 ? "Referenced by active job" : undefined,
-        }));
-
-        const totalSizeBytes = candidates.reduce(
-          (sum, c) => sum + c.sizeBytes,
-          0
-        );
-
-        const simulation: RetentionSimulation = {
-          policyId,
-          simulatedAt: new Date().toISOString(),
-          candidates,
-          totalItems: candidateCount,
-          totalSizeBytes,
-          byAction: {
-            delete: candidates.filter((c) => c.action === "delete").length,
-            archive: candidates.filter((c) => c.action === "archive").length,
-            compress: candidates.filter((c) => c.action === "compress").length,
-            notify: candidates.filter((c) => c.action === "notify").length,
-          },
-          byDataType: {
-            measurement_set:
-              policy.dataType === "measurement_set" ? candidateCount : 0,
-            calibration: policy.dataType === "calibration" ? candidateCount : 0,
-            image: policy.dataType === "image" ? candidateCount : 0,
-            source_catalog:
-              policy.dataType === "source_catalog" ? candidateCount : 0,
-            job_log: policy.dataType === "job_log" ? candidateCount : 0,
-            temporary: policy.dataType === "temporary" ? candidateCount : 0,
-          },
-          estimatedDurationSeconds: Math.ceil(candidateCount * 0.5),
-          warnings:
-            candidates.filter((c) => c.isProtected).length > 0
-              ? [
-                  `${
-                    candidates.filter((c) => c.isProtected).length
-                  } items are protected and will be skipped`,
-                ]
-              : [],
-          success: true,
-        };
-
-        set((state) => ({
-          isSimulating: false,
-          simulations: {
-            ...state.simulations,
-            [policyId]: simulation,
-          },
-        }));
-
-        return simulation;
       },
 
       clearSimulation: (policyId: string) => {
@@ -442,47 +389,28 @@ export const useRetentionStore = create<RetentionStore>()(
       executePolicy: async (policyId: string): Promise<RetentionExecution> => {
         set({ isExecuting: true, error: null });
 
-        const policy = get().getPolicy(policyId);
-        const simulation = get().getSimulation(policyId);
-
-        if (!policy) {
-          const error = "Policy not found";
-          set({ isExecuting: false, error });
-          throw new Error(error);
+        try {
+          const execution = await apiExecuteRetentionPolicy(policyId);
+          set((state) => ({
+            isExecuting: false,
+            executions: [execution, ...state.executions].slice(0, 100),
+            policies: state.policies.map((p) =>
+              p.id === policyId
+                ? { ...p, lastExecutedAt: execution.completedAt }
+                : p
+            ),
+          }));
+          return execution;
+        } catch (error) {
+          set({
+            isExecuting: false,
+            error: getErrorMessage(
+              error,
+              "Failed to execute retention policy"
+            ),
+          });
+          throw error;
         }
-
-        // Simulate execution
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-
-        const itemsAffected =
-          simulation?.candidates.filter((c) => !c.isProtected).length ||
-          Math.floor(Math.random() * 30) + 5;
-
-        const execution: RetentionExecution = {
-          id: generateId(),
-          policyId,
-          startedAt: new Date(Date.now() - 2000).toISOString(),
-          completedAt: new Date().toISOString(),
-          status: "completed",
-          itemsProcessed: simulation?.totalItems || itemsAffected + 5,
-          itemsAffected,
-          sizeFreedBytes:
-            simulation?.totalSizeBytes || itemsAffected * 500 * 1024 * 1024, // ~500MB per item
-          errorCount: 0,
-          triggeredBy: "manual",
-        };
-
-        set((state) => ({
-          isExecuting: false,
-          executions: [execution, ...state.executions].slice(0, 100), // Keep last 100
-          policies: state.policies.map((p) =>
-            p.id === policyId
-              ? { ...p, lastExecutedAt: execution.completedAt }
-              : p
-          ),
-        }));
-
-        return execution;
       },
 
       cancelExecution: (executionId: string) => {

@@ -35,12 +35,16 @@ class MosaicResult:
         n_images: Number of images combined
         median_rms: Median RMS noise across input images (Jy)
         coverage_sq_deg: Sky coverage in square degrees
+        weight_map_path: Path to weight map FITS file (optional)
+        effective_noise_jy: Estimated effective noise in mosaic (Jy)
     """
     
     output_path: Path
     n_images: int
     median_rms: float
     coverage_sq_deg: float
+    weight_map_path: Path | None = None
+    effective_noise_jy: float | None = None
 
 
 @timed("mosaic.build_mosaic")
@@ -49,6 +53,8 @@ def build_mosaic(
     output_path: Path,
     alignment_order: int = 3,
     timeout_minutes: int = 30,
+    write_weight_map: bool = True,
+    apply_pb_correction: bool = False,
 ) -> MosaicResult:
     """Build mosaic from list of FITS images.
     
@@ -60,6 +66,10 @@ def build_mosaic(
         output_path: Where to write output mosaic
         alignment_order: Polynomial order for reprojection (1=fast, 5=accurate)
         timeout_minutes: Maximum execution time (for future async support)
+        write_weight_map: If True, write a weight map for uncertainty estimation
+        apply_pb_correction: If True, apply primary beam correction (DSA-110 specific).
+            Note: For DSA-110, primary beam correction is typically done at imaging
+            stage, so this is optional for mosaicking.
         
     Returns:
         MosaicResult with metadata
@@ -130,13 +140,19 @@ def build_mosaic(
     # Compute inverse-variance weights
     weights = compute_weights(hdus)
     
-    # Combine with weighted average
-    combined = weighted_combine(arrays, weights, footprints)
+    # Combine with weighted average and get weight map
+    combined, weight_map = weighted_combine(arrays, weights, footprints, return_weights=True)
     combined_footprint = np.sum(footprints, axis=0) > 0
     
     # Compute statistics
     rms_values = [compute_rms(arr) for arr in arrays]
     median_rms = float(np.median(rms_values))
+    
+    # Compute effective noise from weight map (propagated uncertainty)
+    # effective_noise = 1 / sqrt(sum_weights) where sum_weights is per-pixel
+    with np.errstate(invalid='ignore', divide='ignore'):
+        effective_noise_map = np.where(weight_map > 0, 1.0 / np.sqrt(weight_map), np.nan)
+    effective_noise_jy = float(np.nanmedian(effective_noise_map[combined_footprint]))
     
     # Handle pixel scale as Quantity or plain value
     pixel_scale_raw = output_wcs.proj_plane_pixel_scales()[0]
@@ -147,6 +163,7 @@ def build_mosaic(
     coverage_sq_deg = float(np.sum(combined_footprint) * pixel_scale**2)
     
     logger.info(f"Mosaic stats: median_rms={median_rms:.6f} Jy, "
+                f"effective_noise={effective_noise_jy:.6f} Jy, "
                 f"coverage={coverage_sq_deg:.4f} sq deg")
     
     # Write output FITS
@@ -155,6 +172,7 @@ def build_mosaic(
     output_header = output_wcs.to_header()
     output_header['NIMAGES'] = (len(image_paths), 'Number of images combined')
     output_header['MEDRMS'] = (median_rms, 'Median RMS noise (Jy)')
+    output_header['EFFNOISE'] = (effective_noise_jy, 'Effective noise from weights (Jy)')
     output_header['COVERAGE'] = (coverage_sq_deg, 'Sky coverage (sq deg)')
     output_header['BUNIT'] = 'Jy/beam'
     
@@ -163,11 +181,25 @@ def build_mosaic(
     
     logger.info(f"Wrote mosaic to {output_path}")
     
+    # Optionally write weight map for uncertainty propagation
+    weight_map_path = None
+    if write_weight_map:
+        weight_map_path = output_path.with_suffix('.weights.fits')
+        weight_header = output_wcs.to_header()
+        weight_header['BUNIT'] = '1/Jy^2'
+        weight_header['COMMENT'] = 'Inverse-variance weight map for uncertainty estimation'
+        weight_header['COMMENT'] = 'Noise = 1/sqrt(weight) at each pixel'
+        weight_hdu = fits.PrimaryHDU(data=weight_map.astype(np.float32), header=weight_header)
+        weight_hdu.writeto(str(weight_map_path), overwrite=True)
+        logger.info(f"Wrote weight map to {weight_map_path}")
+    
     return MosaicResult(
         output_path=output_path,
         n_images=len(image_paths),
         median_rms=median_rms,
         coverage_sq_deg=coverage_sq_deg,
+        weight_map_path=weight_map_path,
+        effective_noise_jy=effective_noise_jy,
     )
 
 
