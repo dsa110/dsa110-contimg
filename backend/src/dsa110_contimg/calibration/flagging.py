@@ -14,6 +14,15 @@ from typing import Dict, List, Optional
 from dsa110_contimg.utils.casa_init import ensure_casa_path
 from dsa110_contimg.utils.error_context import format_ms_error_with_suggestions
 
+# Import CASA log environment for proper log redirection
+try:
+    from dsa110_contimg.utils.tempdirs import casa_log_environment
+except ImportError:
+    # Fallback no-op context manager if tempdirs unavailable
+    @contextmanager
+    def casa_log_environment():
+        yield None
+
 ensure_casa_path()
 
 
@@ -62,14 +71,14 @@ def suppress_subprocess_stderr():
 
 
 def reset_flags(ms: str) -> None:
-    with suppress_subprocess_stderr():
+    with suppress_subprocess_stderr(), casa_log_environment():
         from casatasks import flagdata
 
         flagdata(vis=ms, mode="unflag")
 
 
 def flag_zeros(ms: str, datacolumn: str = "data") -> None:
-    with suppress_subprocess_stderr():
+    with suppress_subprocess_stderr(), casa_log_environment():
         from casatasks import flagdata
 
         flagdata(vis=ms, mode="clip", datacolumn=datacolumn, clipzeros=True)
@@ -135,7 +144,7 @@ def flag_rfi(
                     )
     else:
         # Two-stage RFI flagging using flagdata modes (tfcrop then rflag)
-        with suppress_subprocess_stderr():
+        with suppress_subprocess_stderr(), casa_log_environment():
             from casatasks import flagdata
 
             flagdata(
@@ -389,14 +398,14 @@ def flag_antenna(
     ms: str, antenna: str, datacolumn: str = "data", pol: Optional[str] = None
 ) -> None:
     antenna_sel = antenna if pol is None else f"{antenna}&{pol}"
-    with suppress_subprocess_stderr():
+    with suppress_subprocess_stderr(), casa_log_environment():
         from casatasks import flagdata
 
         flagdata(vis=ms, mode="manual", antenna=antenna_sel, datacolumn=datacolumn)
 
 
 def flag_baselines(ms: str, uvrange: str = "2~50m", datacolumn: str = "data") -> None:
-    with suppress_subprocess_stderr():
+    with suppress_subprocess_stderr(), casa_log_environment():
         from casatasks import flagdata
 
         flagdata(vis=ms, mode="manual", uvrange=uvrange, datacolumn=datacolumn)
@@ -462,7 +471,7 @@ def flag_manual(
         )
         raise ValueError(error_msg)
 
-    with suppress_subprocess_stderr():
+    with suppress_subprocess_stderr(), casa_log_environment():
         from casatasks import flagdata
 
         flagdata(**kwargs)
@@ -479,7 +488,7 @@ def flag_shadow(ms: str, tolerance: float = 0.0) -> None:
         ms: Path to Measurement Set
         tolerance: Shadowing tolerance in degrees (default: 0.0)
     """
-    with suppress_subprocess_stderr():
+    with suppress_subprocess_stderr(), casa_log_environment():
         from casatasks import flagdata
 
         flagdata(vis=ms, mode="shadow", tolerance=tolerance)
@@ -503,7 +512,7 @@ def flag_quack(
         quackmode: 'beg' (beginning), 'end', 'tail', or 'endb' (default: 'beg')
         datacolumn: Data column to use (default: 'data')
     """
-    with suppress_subprocess_stderr():
+    with suppress_subprocess_stderr(), casa_log_environment():
         from casatasks import flagdata
 
         flagdata(
@@ -538,7 +547,7 @@ def flag_elevation(
         kwargs["lowerlimit"] = lowerlimit
     if upperlimit is not None:
         kwargs["upperlimit"] = upperlimit
-    with suppress_subprocess_stderr():
+    with suppress_subprocess_stderr(), casa_log_environment():
         from casatasks import flagdata
 
         flagdata(**kwargs)
@@ -587,7 +596,7 @@ def flag_clip(
         kwargs["timeavg"] = timeavg
         if timebin:
             kwargs["timebin"] = timebin
-    with suppress_subprocess_stderr():
+    with suppress_subprocess_stderr(), casa_log_environment():
         from casatasks import flagdata
 
         flagdata(**kwargs)
@@ -621,7 +630,7 @@ def flag_extend(
     """
     # Try using CASA flagdata first
     try:
-        with suppress_subprocess_stderr():
+        with suppress_subprocess_stderr(), casa_log_environment():
             from casatasks import flagdata
 
             flagdata(
