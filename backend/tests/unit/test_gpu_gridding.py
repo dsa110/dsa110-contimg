@@ -6,7 +6,7 @@ and verifies the gridding logic works correctly.
 """
 
 import sys
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import numpy as np
 import pytest
@@ -195,12 +195,12 @@ class TestMemoryEstimation:
         """Test that memory scales with visibility count."""
         from dsa110_contimg.imaging.gpu_gridding import estimate_gridding_memory_gb
 
-        gpu_small, sys_small = estimate_gridding_memory_gb(
+        _, sys_small = estimate_gridding_memory_gb(
             n_vis=10_000,
             image_size=2048,
         )
 
-        gpu_large, sys_large = estimate_gridding_memory_gb(
+        _, sys_large = estimate_gridding_memory_gb(
             n_vis=1_000_000,
             image_size=2048,
         )
@@ -493,7 +493,7 @@ class TestGridMSFunction:
     """Tests for grid_ms function with mocked MS file."""
 
     @patch("dsa110_contimg.imaging.gpu_gridding.tb")
-    def test_grid_ms_not_found(self, mock_tb):
+    def test_grid_ms_not_found(self, _mock_tb):
         """Test grid_ms with non-existent file."""
         from dsa110_contimg.imaging.gpu_gridding import grid_ms
 

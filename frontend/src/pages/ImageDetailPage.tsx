@@ -22,6 +22,8 @@ import type { ErrorResponse, ImageDetail } from "../types";
 import { useImageDetail } from "../hooks/useImageDetail";
 import { ROUTES } from "../constants/routes";
 import { config } from "../config";
+import { saveImageRegions } from "../api/images";
+import { useNotifications } from "../hooks/useNotifications";
 
 /**
  * Detail page for a single image.
@@ -51,14 +53,28 @@ const ImageDetailPage: React.FC = () => {
   const [showRatingCard, setShowRatingCard] = useState(false);
   const [showMaskTools, setShowMaskTools] = useState(false);
   const [showRegionTools, setShowRegionTools] = useState(false);
+  const { notifySuccess, notifyError } = useNotifications();
 
   // Handlers for region/mask tools
   const handleRegionSave = useCallback(
-    (regions: Region[], format: RegionFormat) => {
-      logger.info("Saving regions", { count: regions.length, format });
-      // TODO: Implement region save to backend
+    async (regions: Region[], format: RegionFormat) => {
+      if (!imageId) {
+        return;
+      }
+      try {
+        await saveImageRegions(imageId, { format, regions });
+        notifySuccess(
+          "Regions saved",
+          `${regions.length} region${regions.length === 1 ? "" : "s"} stored for ${filename}`
+        );
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : "Failed to save image regions";
+        notifyError("Failed to save regions", message);
+        logger.error("Failed to save image regions", err);
+      }
     },
-    []
+    [filename, imageId, notifyError, notifySuccess]
   );
 
   const handleMaskSaved = useCallback((maskPath: string) => {
