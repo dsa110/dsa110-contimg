@@ -159,6 +159,30 @@ All coverage targets have been achieved:
 - [x] **Resource Limiting Utilities** - `scripts/testing/resource_limits.py` with
       MemoryLimiter, ResourceLimitedRunner, safe_run(), pre-flight memory checks.
       Prevents runaway memory/CPU from crashing system.
+- [x] **Production GPU Safety Module** - `utils/gpu_safety.py` (~900 lines):
+  - **System RAM Protection**:
+    - Hard limits: max 6GB per operation, always keep 2GB free
+    - Pre-flight checks before allocations
+    - Usage limit: never exceed 70% of system RAM
+  - **GPU VRAM Protection**:
+    - CuPy memory pool limits (9GB max per GPU)
+    - Pre-flight checks before GPU allocations
+    - Usage limit: never exceed 85% of GPU VRAM
+  - **Safe Context Managers**:
+    - `safe_memory_context()` - System RAM protection with timeout
+    - `safe_gpu_context()` - GPU memory protection with pool limits
+  - **Safe Decorators**:
+    - `@memory_safe` - Wrap functions with RAM protection
+    - `@gpu_safe` - Wrap functions with GPU memory protection
+  - **Safe Allocation Functions**:
+    - `safe_gpu_array()` - Pre-checked GPU array allocation
+    - `safe_to_gpu()` - Pre-checked host-to-GPU transfer
+  - **Estimation Utilities**:
+    - `estimate_visibility_memory_gb()` - Critical for preventing OOM
+    - `check_visibility_allocation_safe()` - Validates before allocating
+  - **Integration**:
+    - Connects to `monitoring/gpu.py` for alert callbacks
+    - `initialize_gpu_safety()` sets up pools at startup
 
 ### Precision Strategy Decision
 
@@ -256,6 +280,7 @@ All Phase 1 GPU Acceleration items completed. Ready for Phase 2: CUDA Kernel Dev
 | `src/dsa110_contimg/monitoring/gpu.py`            | GPU monitoring module            |
 | `ops/grafana/dsa110-gpu-dashboard.json`           | Grafana GPU dashboard            |
 | `src/dsa110_contimg/calibration/caltables.py`     | Improved calibration discovery   |
+| `src/dsa110_contimg/utils/gpu_safety.py`          | Production GPU/RAM safety guards |
 
 ### Known Constraints
 
