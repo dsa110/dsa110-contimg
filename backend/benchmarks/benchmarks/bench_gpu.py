@@ -257,3 +257,177 @@ class GPUMemSuite:
         # Report GPU memory used
         mem_pool = self.cp.get_default_memory_pool()
         return mem_pool.used_bytes() / 1e9  # GB
+
+
+class GPUGriddingTimeSuite:
+    """GPU Gridding benchmarks for Phase 2 operations."""
+
+    timeout = 120.0
+    processes = 1
+    number = 1
+    repeat = 3
+
+    params = [
+        (64, 256, 512, 1024),  # image sizes
+        (10000, 100000, 500000),  # n_vis
+    ]
+    param_names = ["image_size", "n_vis"]
+
+    def setup(self, image_size, n_vis):
+        """Setup gridding test data."""
+        import numpy as np
+
+        # Check for CuPy
+        try:
+            import cupy as cp
+            self.cp = cp
+            self.has_gpu = True
+            cp.get_default_memory_pool().free_all_blocks()
+        except (ImportError, Exception):
+            self.has_gpu = False
+            return
+
+        self.image_size = image_size
+        self.n_vis = n_vis
+
+        # Import gridding module
+        try:
+            from dsa110_contimg.imaging.gpu_gridding import (
+                gpu_grid_visibilities,
+                GriddingConfig,
+                _cpu_gridding_fallback,
+            )
+            self.gpu_grid = gpu_grid_visibilities
+            self.cpu_grid = _cpu_gridding_fallback
+            self.GriddingConfig = GriddingConfig
+        except ImportError:
+            self.has_gpu = False
+            return
+
+        # Create test data
+        np.random.seed(42)
+        config = GriddingConfig(image_size=image_size)
+        max_uv = 25 * config.cell_size_rad
+
+        self.uvw = np.random.uniform(-max_uv, max_uv, (n_vis, 3)).astype(np.float64)
+        self.vis = (
+            np.random.randn(n_vis) + 1j * np.random.randn(n_vis)
+        ).astype(np.complex128)
+        self.weights = np.ones(n_vis, dtype=np.float64)
+        self.config = config
+
+    def time_gridding_cpu(self, image_size, n_vis):
+        """CPU gridding baseline."""
+        if not self.has_gpu:
+            return
+
+        result = self.cpu_grid(
+            self.uvw, self.vis, self.weights, None, self.config
+        )
+        return result[0]
+
+    def time_gridding_gpu(self, image_size, n_vis):
+        """GPU gridding."""
+        if not self.has_gpu:
+            return
+
+        result = self.gpu_grid(
+            self.uvw, self.vis, self.weights, config=self.config
+        )
+        return result.image
+
+
+class GPUCalibrationTimeSuite:
+    """GPU Calibration benchmarks for Phase 2 operations."""
+
+    timeout = 120.0
+    processes = 1
+    number = 1
+    repeat = 3
+
+    params = [
+        (5, 20, 64, 110),  # n_antennas
+        (1000, 10000, 100000),  # n_vis
+    ]
+    param_names = ["n_antennas", "n_vis"]
+
+    def setup(self, n_antennas, n_vis):
+        """Setup calibration test data."""
+        import numpy as np
+
+        # Check for calibration module
+        try:
+            from dsa110_contimg.calibration.gpu_calibration import (
+                apply_gains,
+                solve_per_antenna_gains,
+                CUPY_AVAILABLE,
+            )
+            self.apply_gains = apply_gains
+            self.solve_gains = solve_per_antenna_gains
+            self.has_gpu = CUPY_AVAILABLE
+        except ImportError:
+            self.has_gpu = False
+            return
+
+        self.n_antennas = n_antennas
+        self.n_vis = n_vis
+
+        # Create test data
+        np.random.seed(42)
+        self.vis = (
+            np.random.randn(n_vis) + 1j * np.random.randn(n_vis)
+        ).astype(np.complex128)
+        self.gains = (
+            np.random.uniform(0.9, 1.1, n_antennas) +
+            1j * np.random.uniform(-0.05, 0.05, n_antennas)
+        ).astype(np.complex128)
+        self.ant1 = np.random.randint(0, n_antennas, n_vis).astype(np.int32)
+        self.ant2 = np.random.randint(0, n_antennas, n_vis).astype(np.int32)
+        self.weights = np.ones(n_vis, dtype=np.float64)
+
+        # Model visibilities
+        self.model = self.vis * self.gains[self.ant1] * np.conj(self.gains[self.ant2])
+
+    def time_apply_gains_cpu(self, n_antennas, n_vis):
+        """CPU gain application baseline."""
+        if not self.has_gpu:
+            return
+
+        vis_copy = self.vis.copy()
+        result = self.apply_gains(
+            vis_copy, self.gains, self.ant1, self.ant2, use_gpu=False
+        )
+        return result
+
+    def time_apply_gains_gpu(self, n_antennas, n_vis):
+        """GPU gain application."""
+        if not self.has_gpu:
+            return
+
+        vis_copy = self.vis.copy()
+        result = self.apply_gains(
+            vis_copy, self.gains, self.ant1, self.ant2, use_gpu=True
+        )
+        return result
+
+    def time_solve_gains_cpu(self, n_antennas, n_vis):
+        """CPU gain solving baseline."""
+        if not self.has_gpu:
+            return
+
+        result = self.solve_gains(
+            self.vis, self.model, self.ant1, self.ant2,
+            self.weights, self.n_antennas, use_gpu=False
+        )
+        return result
+
+    def time_solve_gains_gpu(self, n_antennas, n_vis):
+        """GPU gain solving."""
+        if not self.has_gpu:
+            return
+
+        result = self.solve_gains(
+            self.vis, self.model, self.ant1, self.ant2,
+            self.weights, self.n_antennas, use_gpu=True
+        )
+        return result
