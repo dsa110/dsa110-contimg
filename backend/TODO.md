@@ -131,7 +131,7 @@
 
 ## Test Coverage Goals ✅ COMPLETE
 
-**Status:** 1222 unit tests (18 new GPU safety tests)
+**Status:** 1505 unit tests (66 GPU-related tests: 18 safety + 28 gridding + 19 calibration + 1 detection)
 
 All coverage targets have been achieved:
 
@@ -145,7 +145,7 @@ All coverage targets have been achieved:
 
 ---
 
-## GPU Acceleration (Phase 1 - In Progress)
+## GPU Acceleration (Phase 1 - COMPLETE) ✅
 
 **Reference**: `GPU_implementation_plan.md`
 
@@ -424,6 +424,88 @@ All Phase 2 GPU CUDA Kernel Development items completed:
 - **Ubuntu 18.04**: User cannot upgrade OS
 - **CuPy-only approach**: Recommended until driver upgrade possible
 - **FP64 performance**: ~20-30x slower than FP32 on RTX 2080 Ti (CC 7.5)
+
+---
+
+## GPU Acceleration (Phase 3 - Pipeline Integration)
+
+**Reference**: `GPU_implementation_plan.md` (Months 8-10)
+
+**Goal**: Integrate GPU modules into production pipeline with state machine, automated QA, and reliability improvements.
+
+### Phase 3.1: State Machine Integration
+
+- [ ] **MS Processing State Machine** - Create `database/state_machine.py`:
+
+  - `MSState` enum - PENDING, CONVERTING, FLAGGING_RFI, SOLVING_CAL, APPLYING_CAL, IMAGING, DONE, FAILED
+  - `MSStateMachine` class - State transition management with validation
+  - State persistence in SQLite with transaction safety
+  - Checkpoint/resume capability for long-running operations
+  - Retry logic with configurable max retries
+
+- [ ] **Pipeline Stage Integration** - Update `pipeline/stages_impl.py`:
+  - Add state transitions at each pipeline stage
+  - Integrate GPU module calls (RFI, gridding, calibration)
+  - Error handling with automatic state rollback
+  - Progress tracking via state machine
+
+### Phase 3.2: Automated Calibration QA
+
+- [ ] **QA Metrics Module** - Create `calibration/qa.py`:
+
+  - `compute_calibration_metrics()` - Extract SNR, flagging, amplitude stats from caltables
+  - `assess_calibration_quality()` - Pass/fail assessment with configurable thresholds
+  - Integration with existing `batch/qa.py` patterns
+
+- [ ] **QA API Endpoints** - Add to `api/routes/health.py`:
+  - `GET /health/calibration/qa/recent` - Recent QA results
+  - `GET /health/calibration/qa/{ms_path}` - QA for specific MS
+  - QA result persistence in database
+
+### Phase 3.3: GPU Pipeline Workers
+
+- [ ] **GPU-Enabled Imaging Worker** - Update `imaging/worker.py`:
+
+  - Replace CASA tclean with GPU gridding + FFT
+  - Integrate `gpu_grid_visibilities()` for dirty images
+  - Add GPU memory pre-flight checks
+  - Benchmark: Target 10x speedup over CASA
+
+- [ ] **GPU-Enabled Calibration Worker** - Update `calibration/applycal.py`:
+
+  - Integrate `apply_gains()` from gpu_calibration module
+  - GPU path for gain application with CPU fallback
+  - Memory-safe chunked processing for large datasets
+
+- [ ] **GPU RFI Integration** - Update pipeline RFI stage:
+  - Integrate `gpu_rfi_detection()` into pipeline
+  - Add RFI statistics to QA metrics
+  - Configurable thresholds per observation type
+
+### Phase 3.4: Reliability & Monitoring
+
+- [ ] **Enhanced Error Recovery**:
+
+  - Automatic retry with exponential backoff
+  - Checkpoint-based resume for failed jobs
+  - Dead letter queue for persistent failures
+  - Alert integration for critical failures
+
+- [ ] **Pipeline Metrics**:
+  - GPU utilization per pipeline stage
+  - Processing time breakdown (CPU vs GPU)
+  - Memory high-water marks per job
+  - Throughput metrics (MS/hour)
+
+### Phase 3 Deliverables
+
+| Component              | Files                              | Tests Target |
+| ---------------------- | ---------------------------------- | ------------ |
+| State Machine          | `database/state_machine.py`        | 15 tests     |
+| Calibration QA         | `calibration/qa.py`                | 12 tests     |
+| GPU Imaging Worker     | `imaging/worker.py` (update)       | 8 tests      |
+| GPU Calibration Worker | `calibration/applycal.py` (update) | 8 tests      |
+| Pipeline Integration   | `pipeline/stages_impl.py` (update) | 10 tests     |
 
 ---
 
