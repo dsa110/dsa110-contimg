@@ -21,6 +21,7 @@ configure_h5py_cache_defaults()  # Sets 16MB cache for all h5py.File() calls
 
 import argparse  # noqa: E402
 import logging  # noqa: E402
+import math  # noqa: E402
 import os  # noqa: E402
 import re  # noqa: E402
 import sqlite3  # noqa: E402
@@ -1795,8 +1796,8 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                     from dsa110_contimg.utils.fast_meta import peek_uvh5_phase_and_midtime
 
                     pt_ra_rad, pt_dec_rad, _ = peek_uvh5_phase_and_midtime(files[0])
-                    ra_deg = float(np.degrees(pt_ra_rad))
-                    dec_deg = float(np.degrees(pt_dec_rad))
+                    ra_deg = float(math.degrees(pt_ra_rad))
+                    dec_deg = float(math.degrees(pt_dec_rad))
                     log.debug(
                         f"Extracted pointing from HDF5: RA={ra_deg:.6f} deg, Dec={dec_deg:.6f} deg"
                     )
@@ -2134,8 +2135,6 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
 
                     # Run catalog-based flux scale validation
                     try:
-                        from pathlib import Path
-
                         from dsa110_contimg.qa.catalog_validation import (
                             validate_flux_scale,
                         )

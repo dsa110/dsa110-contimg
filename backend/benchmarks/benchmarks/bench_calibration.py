@@ -21,6 +21,14 @@ from pathlib import Path
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
+# Set up CASA log directory to avoid polluting benchmark directory
+try:
+    from dsa110_contimg.utils.tempdirs import derive_casa_log_dir
+    _casa_log_dir = derive_casa_log_dir()
+    os.chdir(str(_casa_log_dir))
+except (ImportError, OSError):
+    pass  # Best effort
+
 
 class TimeSuite:
     """Timing benchmarks for calibration operations."""
