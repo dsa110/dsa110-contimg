@@ -678,5 +678,188 @@ def get_websocket_stats() -> Dict[str, Any]:
         "active_connections": manager.get_connection_count(),
         "topics": {
             "pipeline:all": manager.get_topic_subscribers("pipeline:all"),
+            "gpu:metrics": manager.get_topic_subscribers("gpu:metrics"),
         },
     }
+
+
+# ============================================================================
+# GPU Metrics WebSocket
+# ============================================================================
+
+
+@ws_router.websocket("/gpu/metrics")
+async def websocket_gpu_metrics(
+    websocket: WebSocket,
+    client_id: str = Query(None),
+    interval: float = Query(1.0, ge=0.1, le=10.0),
+):
+    """
+    WebSocket endpoint for real-time GPU metrics streaming.
+
+    Streams GPU utilization, memory, temperature metrics at configurable interval.
+    Messages are JSON objects with structure:
+    {
+        "type": "gpu_metrics",
+        "data": {
+            "timestamp": "...",
+            "gpus": [
+                {
+                    "id": 0,
+                    "memory_used_gb": 2.5,
+                    "memory_total_gb": 11.0,
+                    "memory_utilization_pct": 22.7,
+                    "gpu_utilization_pct": 45.0,
+                    "temperature_c": 52,
+                    "power_draw_w": 120.5
+                },
+                ...
+            ]
+        },
+        "timestamp": "..."
+    }
+
+    Query parameters:
+    - client_id: Optional client identifier
+    - interval: Sampling interval in seconds (0.1-10.0, default 1.0)
+    """
+    import uuid
+
+    if not client_id:
+        client_id = f"gpu-{uuid.uuid4().hex[:8]}"
+
+    reconnect_token = await manager.connect(websocket, client_id)
+    await manager.subscribe(client_id, "gpu:metrics")
+
+    # Import GPU monitor
+    try:
+        from dsa110_contimg.monitoring.gpu import get_gpu_monitor
+
+        gpu_monitor = get_gpu_monitor()
+    except ImportError:
+        await manager.send_to_client(
+            client_id,
+            {
+                "type": "error",
+                "message": "GPU monitoring module not available",
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+            },
+        )
+        await manager.disconnect(client_id, DisconnectReason.ERROR)
+        return
+
+    # Send initial connection message
+    await manager.send_to_client(
+        client_id,
+        {
+            "type": "connected",
+            "client_id": client_id,
+            "reconnect_token": reconnect_token,
+            "interval": interval,
+            "gpu_count": len(gpu_monitor.devices),
+            "timestamp": datetime.utcnow().isoformat() + "Z",
+        },
+    )
+
+    try:
+        while True:
+            try:
+                # Wait for either message or timeout
+                message_task = asyncio.create_task(
+                    asyncio.wait_for(websocket.receive_json(), timeout=interval)
+                )
+
+                try:
+                    message = await message_task
+                    msg_type = message.get("type")
+
+                    if msg_type == "heartbeat_response":
+                        manager.record_heartbeat(client_id)
+                    elif msg_type == "set_interval":
+                        new_interval = message.get("interval", interval)
+                        if 0.1 <= new_interval <= 10.0:
+                            interval = new_interval
+                            await manager.send_to_client(
+                                client_id,
+                                {
+                                    "type": "interval_updated",
+                                    "interval": interval,
+                                    "timestamp": datetime.utcnow().isoformat() + "Z",
+                                },
+                            )
+                    elif msg_type == "get_history":
+                        gpu_id = message.get("gpu_id", 0)
+                        minutes = message.get("minutes", 60)
+                        history = gpu_monitor.get_history(gpu_id, minutes)
+                        await manager.send_to_client(
+                            client_id,
+                            {
+                                "type": "history",
+                                "gpu_id": gpu_id,
+                                "data": history,
+                                "timestamp": datetime.utcnow().isoformat() + "Z",
+                            },
+                        )
+                    elif msg_type == "get_alerts":
+                        alerts = gpu_monitor.get_recent_alerts(100)
+                        await manager.send_to_client(
+                            client_id,
+                            {
+                                "type": "alerts",
+                                "data": alerts,
+                                "timestamp": datetime.utcnow().isoformat() + "Z",
+                            },
+                        )
+
+                except asyncio.TimeoutError:
+                    # No message received, send metrics update
+                    pass
+
+                # Sample and send GPU metrics
+                samples = gpu_monitor.sample_metrics()
+                if samples:
+                    gpus_data = []
+                    for sample in samples:
+                        gpus_data.append(
+                            {
+                                "id": sample.gpu_id,
+                                "memory_used_gb": sample.memory_used_gb,
+                                "memory_total_gb": sample.memory_total_gb,
+                                "memory_utilization_pct": sample.memory_utilization_pct,
+                                "gpu_utilization_pct": sample.gpu_utilization_pct,
+                                "temperature_c": sample.temperature_c,
+                                "power_draw_w": sample.power_draw_w,
+                            }
+                        )
+
+                    await manager.send_to_client(
+                        client_id,
+                        {
+                            "type": "gpu_metrics",
+                            "data": {
+                                "timestamp": datetime.utcnow().isoformat() + "Z",
+                                "gpus": gpus_data,
+                            },
+                            "timestamp": datetime.utcnow().isoformat() + "Z",
+                        },
+                    )
+
+            except WebSocketDisconnect:
+                break
+
+    except WebSocketDisconnect:
+        logger.info(f"GPU metrics client disconnected: {client_id}")
+    except Exception as exc:
+        logger.error(f"GPU metrics WebSocket error for {client_id}: {exc}")
+    finally:
+        await manager.disconnect(client_id, DisconnectReason.CLIENT_DISCONNECT)
+
+
+async def notify_gpu_alert(alert_data: Dict[str, Any]) -> int:
+    """Broadcast GPU alert to all gpu:metrics subscribers."""
+    update = {
+        "type": "gpu_alert",
+        "data": alert_data,
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+    }
+    return await manager.broadcast(update, topic="gpu:metrics")

@@ -836,6 +836,239 @@ async def trigger_flux_monitoring_check(
 
 
 # ============================================================================
+# GPU Health Endpoints
+# ============================================================================
+
+
+class GPUHealthInfo(BaseModel):
+    """GPU health information."""
+
+    id: int
+    name: str
+    health_status: str  # healthy, warning, critical, unavailable
+    memory_total_gb: float
+    memory_used_gb: Optional[float] = None
+    memory_utilization_pct: Optional[float] = None
+    gpu_utilization_pct: Optional[float] = None
+    temperature_c: Optional[float] = None
+    power_draw_w: Optional[float] = None
+    driver_version: Optional[str] = None
+    compute_capability: Optional[str] = None
+
+
+class GPUHealthResponse(BaseModel):
+    """GPU health status response."""
+
+    available: bool
+    gpu_count: int
+    overall_status: str  # healthy, warning, critical, unavailable
+    monitoring_backend: str  # pynvml, cupy, none
+    gpus: List[GPUHealthInfo]
+    recent_alerts: List[Dict[str, Any]] = []
+    thresholds: Dict[str, float] = {}
+    checked_at: str
+
+
+@router.get("/gpus", response_model=GPUHealthResponse)
+async def get_gpu_health() -> GPUHealthResponse:
+    """
+    Get comprehensive GPU health status.
+
+    Returns health status, utilization, temperature, and recent alerts
+    for all available GPUs. Used by the Health Dashboard for GPU monitoring.
+    """
+    checked_at = datetime.utcnow().isoformat() + "Z"
+
+    try:
+        from dsa110_contimg.monitoring.gpu import get_gpu_monitor
+
+        monitor = get_gpu_monitor()
+        summary = monitor.get_all_summaries()
+
+        # Determine overall status
+        statuses = [d.get("health_status", "unavailable") for d in summary["devices"]]
+        if "critical" in statuses:
+            overall_status = "critical"
+        elif "warning" in statuses:
+            overall_status = "warning"
+        elif "healthy" in statuses:
+            overall_status = "healthy"
+        else:
+            overall_status = "unavailable"
+
+        gpus = []
+        for device in summary["devices"]:
+            metrics = device.get("current_metrics") or {}
+            gpus.append(
+                GPUHealthInfo(
+                    id=device["id"],
+                    name=device["name"],
+                    health_status=device.get("health_status", "unavailable"),
+                    memory_total_gb=device["memory_total_gb"],
+                    memory_used_gb=metrics.get("memory_used_gb"),
+                    memory_utilization_pct=metrics.get("memory_utilization_pct"),
+                    gpu_utilization_pct=metrics.get("gpu_utilization_pct"),
+                    temperature_c=metrics.get("temperature_c"),
+                    power_draw_w=metrics.get("power_draw_w"),
+                    driver_version=device.get("driver_version"),
+                    compute_capability=device.get("compute_capability"),
+                )
+            )
+
+        return GPUHealthResponse(
+            available=summary["available"],
+            gpu_count=summary["gpu_count"],
+            overall_status=overall_status,
+            monitoring_backend=summary["monitoring_backend"],
+            gpus=gpus,
+            recent_alerts=monitor.get_recent_alerts(10),
+            thresholds=summary["thresholds"],
+            checked_at=checked_at,
+        )
+
+    except ImportError:
+        return GPUHealthResponse(
+            available=False,
+            gpu_count=0,
+            overall_status="unavailable",
+            monitoring_backend="none",
+            gpus=[],
+            recent_alerts=[],
+            thresholds={},
+            checked_at=checked_at,
+        )
+
+
+@router.get("/gpus/{gpu_id}", response_model=GPUHealthInfo)
+async def get_gpu_health_by_id(gpu_id: int) -> GPUHealthInfo:
+    """
+    Get health status for a specific GPU.
+
+    Args:
+        gpu_id: GPU index (0-based)
+    """
+    try:
+        from dsa110_contimg.monitoring.gpu import get_gpu_monitor
+
+        monitor = get_gpu_monitor()
+        summary = monitor.get_device_summary(gpu_id)
+
+        if not summary:
+            from fastapi import HTTPException
+
+            raise HTTPException(status_code=404, detail=f"GPU {gpu_id} not found")
+
+        metrics = summary.get("current_metrics") or {}
+        return GPUHealthInfo(
+            id=summary["id"],
+            name=summary["name"],
+            health_status=summary.get("health_status", "unavailable"),
+            memory_total_gb=summary["memory_total_gb"],
+            memory_used_gb=metrics.get("memory_used_gb"),
+            memory_utilization_pct=metrics.get("memory_utilization_pct"),
+            gpu_utilization_pct=metrics.get("gpu_utilization_pct"),
+            temperature_c=metrics.get("temperature_c"),
+            power_draw_w=metrics.get("power_draw_w"),
+            driver_version=summary.get("driver_version"),
+            compute_capability=summary.get("compute_capability"),
+        )
+
+    except ImportError:
+        from fastapi import HTTPException
+
+        raise HTTPException(status_code=503, detail="GPU monitoring not available")
+
+
+@router.get("/gpus/{gpu_id}/history")
+async def get_gpu_history(
+    gpu_id: int,
+    minutes: int = Query(60, ge=1, le=1440, description="Minutes of history"),
+) -> Dict[str, Any]:
+    """
+    Get historical metrics for a GPU.
+
+    Returns time series data for memory, utilization, temperature.
+    Useful for rendering charts in the dashboard.
+
+    Args:
+        gpu_id: GPU index (0-based)
+        minutes: Number of minutes of history (1-1440, default 60)
+    """
+    try:
+        from dsa110_contimg.monitoring.gpu import get_gpu_monitor
+
+        monitor = get_gpu_monitor()
+        history = monitor.get_history(gpu_id, minutes)
+
+        if not history:
+            return {
+                "gpu_id": gpu_id,
+                "minutes": minutes,
+                "data_points": 0,
+                "history": [],
+            }
+
+        return {
+            "gpu_id": gpu_id,
+            "minutes": minutes,
+            "data_points": len(history),
+            "history": history,
+        }
+
+    except ImportError:
+        return {
+            "gpu_id": gpu_id,
+            "minutes": minutes,
+            "data_points": 0,
+            "history": [],
+            "error": "GPU monitoring not available",
+        }
+
+
+@router.get("/gpus/alerts/recent")
+async def get_gpu_alerts(
+    limit: int = Query(100, ge=1, le=1000, description="Maximum alerts to return"),
+    gpu_id: Optional[int] = Query(None, description="Filter by GPU ID"),
+    severity: Optional[str] = Query(None, description="Filter by severity"),
+) -> Dict[str, Any]:
+    """
+    Get recent GPU alerts.
+
+    Args:
+        limit: Maximum number of alerts to return
+        gpu_id: Optional filter by GPU ID
+        severity: Optional filter by severity (warning, critical)
+    """
+    try:
+        from dsa110_contimg.monitoring.gpu import get_gpu_monitor
+
+        monitor = get_gpu_monitor()
+        alerts = monitor.get_recent_alerts(limit)
+
+        # Apply filters
+        if gpu_id is not None:
+            alerts = [a for a in alerts if a["gpu_id"] == gpu_id]
+        if severity:
+            alerts = [a for a in alerts if a["severity"] == severity]
+
+        return {
+            "alerts": alerts,
+            "total": len(alerts),
+            "filters": {
+                "gpu_id": gpu_id,
+                "severity": severity,
+            },
+        }
+
+    except ImportError:
+        return {
+            "alerts": [],
+            "total": 0,
+            "error": "GPU monitoring not available",
+        }
+
+
+# ============================================================================
 # Pointing Status Endpoint
 # ============================================================================
 
