@@ -166,9 +166,49 @@ def solve_calibration_for_ms(
             logger.error(error_msg)
             return False, error_msg
 
+        # Issue #5: Automated QA assessment of calibration solutions
+        qa_warnings = []
+        try:
+            from dsa110_contimg.pipeline.hardening import (
+                assess_calibration_quality,
+                CalibrationQAResult,
+            )
+            
+            for caltable in caltables:
+                qa_result: CalibrationQAResult = assess_calibration_quality(
+                    caltable_path=caltable,
+                    snr_min=3.0,  # Default minimum SNR threshold
+                    flagged_max=0.5,  # Max 50% flagged
+                )
+                
+                if not qa_result.passed:
+                    qa_warnings.append(
+                        f"QA failed for {caltable}: {', '.join(qa_result.issues)}"
+                    )
+                    logger.warning(
+                        "Calibration QA failed for %s: %s",
+                        caltable, qa_result.issues
+                    )
+                elif qa_result.warnings:
+                    qa_warnings.extend(qa_result.warnings)
+                    logger.info(
+                        "Calibration QA warnings for %s: %s",
+                        caltable, qa_result.warnings
+                    )
+                else:
+                    logger.debug(
+                        "Calibration QA passed for %s (SNR=%.1f, flagged=%.1f%%)",
+                        caltable, qa_result.snr_median, qa_result.flagged_fraction * 100
+                    )
+        except ImportError:
+            logger.debug("Hardening module not available, skipping QA")
+        except Exception as qa_err:
+            logger.warning("QA assessment error: %s", qa_err)
+
         logger.info(
-            f"Successfully solved calibration for {ms_path}: "
-            f"produced {len(caltables)} calibration table(s)"
+            "Successfully solved calibration for %s: produced %d calibration table(s)%s",
+            ms_path, len(caltables),
+            f" (QA warnings: {len(qa_warnings)})" if qa_warnings else ""
         )
         return True, None
 

@@ -46,51 +46,50 @@ from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, TypeVar
 logger = logging.getLogger(__name__)
 
 
-# Public API exports
+# Public API exports - only items that actually exist
 __all__ = [
     # Issue #1: Bidirectional calibration validity
     "CalibrationSelection",
     "get_active_applylist_bidirectional",
     "DEFAULT_CAL_VALIDITY_HOURS",
     "DEFAULT_CAL_VALIDITY_DAYS",
-    # Issue #3: Calibrator redundancy
-    "CalibrationSelector",
+    # Issue #3: Calibrator redundancy  
+    "CalibratorCandidate",
+    "find_backup_calibrators",
     # Issue #4: Race condition fix
     "CalibrationFence",
     # Issue #5: Calibration QA
     "CalibrationQAResult",
     "assess_calibration_quality",
-    "CALIBRATION_QA_THRESHOLDS",
+    "get_calibration_quality_metrics",
     # Issue #6: Overlapping calibration
-    "OverlappingCalibrationResolver",
+    "check_calibration_overlap",
+    "resolve_calibration_overlap",
     # Issue #7: Transactional safety
     "ProcessingState",
     "ProcessingStateMachine",
     "ProcessingTransaction",
+    "StateTransition",
     "VALID_TRANSITIONS",
     # Issue #8: RFI mitigation
-    "RFIMitigator",
-    "RFIStrategy",
+    "RFIStats",
+    "preflag_rfi",
     # Issue #10: Disk monitoring
     "DiskQuota",
     "DiskStatus",
     "DiskSpaceMonitor",
     "check_disk_space",
     "default_cleanup_callback",
-    # Issue #11: Pointing detection
-    "PointingChangeHandler",
-    # Issue #12: Subprocess consistency
-    "ConsistentExecutor",
-    "ExecutionMode",
     # Issue #13: Observability metrics
+    "MetricsRegistry",
     "get_metrics_registry",
     "record_conversion_time",
+    "record_calibration_quality",
     "record_imaging_time",
     "record_queue_depth",
-    "record_disk_usage",
     # Issue #15: Mosaic grouping
-    "DeclinationBand",
-    "MosaicGrouping",
+    "MosaicGroup",
+    "find_mosaic_groups",
 ]
 
 
