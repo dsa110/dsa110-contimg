@@ -298,6 +298,7 @@ async def get_ms_raster(
     height: int = Query(600, ge=200, le=2000, description="Height in pixels"),
     spw: Optional[int] = Query(None, ge=0, description="Spectral window"),
     antenna: Optional[str] = Query(None, description="Antenna selection"),
+    service: AsyncMSService = Depends(get_async_ms_service),
 ) -> StreamingResponse:
     """
     Generate a visibility raster plot for a Measurement Set.
@@ -327,13 +328,14 @@ async def get_ms_raster(
     """
     ms_path = unquote(encoded_path)
     
-    # Validate MS exists
-    if not Path(ms_path).exists():
-        raise HTTPException(status_code=404, detail=f"MS not found: {ms_path}")
+    valid, error, resolved_path = service.validate_ms_path(ms_path)
+    if not valid:
+        status_code = 404 if error and "not found" in (error or "").lower() else 400
+        raise HTTPException(status_code=status_code, detail=error or "Invalid MS path")
     
     try:
         png_bytes = _generate_raster_plot(
-            ms_path=ms_path,
+            ms_path=str(resolved_path),
             xaxis=xaxis,
             yaxis=yaxis,
             colormap=colormap,
