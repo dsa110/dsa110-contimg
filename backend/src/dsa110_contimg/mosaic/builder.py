@@ -108,17 +108,34 @@ def build_mosaic(
             raise FileNotFoundError(f"Image not found: {path}")
     
     # Read input images and WCS
+    # Squeeze degenerate axes (freq, Stokes) for 2D reprojection
     hdus = []
     for path in image_paths:
         with fits.open(str(path)) as hdulist:
-            # Copy data and header to avoid file handle issues
-            hdu = fits.PrimaryHDU(
-                data=hdulist[0].data.copy(),
-                header=hdulist[0].header.copy()
-            )
+            data = hdulist[0].data.copy()
+            header = hdulist[0].header.copy()
+            
+            # Squeeze degenerate axes (e.g., 4D CASA images to 2D)
+            # This follows VAST's add_degenerate_axes pattern but in reverse
+            while data.ndim > 2:
+                if data.shape[0] == 1:
+                    data = data[0]
+                else:
+                    break
+            
+            # Create 2D WCS from potentially 4D header
+            wcs_2d = WCS(header, naxis=2)
+            header_2d = wcs_2d.to_header()
+            # Preserve key metadata
+            for key in ['BUNIT', 'BMAJ', 'BMIN', 'BPA', 'TELESCOP', 'DATE-OBS',
+                        'RESTFRQ', 'CRVAL3', 'OBJECT']:
+                if key in header:
+                    header_2d[key] = header[key]
+            
+            hdu = fits.PrimaryHDU(data=data, header=header_2d)
             hdus.append(hdu)
     
-    logger.debug(f"Loaded {len(hdus)} FITS images")
+    logger.debug("Loaded %d FITS images", len(hdus))
     
     # Compute optimal output WCS (covers all inputs)
     output_wcs, output_shape = compute_optimal_wcs(hdus)
