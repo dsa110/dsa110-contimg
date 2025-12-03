@@ -347,6 +347,19 @@ class TestMosaicSyntheticValidation:
         
         return images
     
+    @staticmethod
+    def _check_reproject_available() -> bool:
+        """Check if reproject package is available."""
+        try:
+            from reproject import reproject_interp  # noqa: F401
+            return True
+        except ImportError:
+            return False
+    
+    @pytest.mark.skipif(
+        not _check_reproject_available.__func__(),  # type: ignore[attr-defined]
+        reason="reproject package not available - required for weight map tests"
+    )
     def test_sqrt_n_improvement_synthetic(
         self,
         uniform_noise_images: list[Path],
@@ -388,6 +401,10 @@ class TestMosaicSyntheticValidation:
                 err_msg=f"Effective noise for N={n} doesn't match sqrt(N) expectation"
             )
     
+    @pytest.mark.skipif(
+        not _check_reproject_available.__func__(),  # type: ignore[attr-defined]
+        reason="reproject package not available - required for weight map tests"
+    )
     def test_weight_map_sum(
         self,
         uniform_noise_images: list[Path],

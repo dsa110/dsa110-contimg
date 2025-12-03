@@ -433,15 +433,33 @@ All Phase 2 GPU CUDA Kernel Development items completed:
 
 **Goal**: Integrate GPU modules into production pipeline with state machine, automated QA, and reliability improvements.
 
-### Phase 3.1: State Machine Integration
+### Phase 3.1: State Machine Integration ✅ COMPLETE
 
-- [ ] **MS Processing State Machine** - Create `database/state_machine.py`:
+- [x] **MS Processing State Machine** - Created `database/state_machine.py`:
 
-  - `MSState` enum - PENDING, CONVERTING, FLAGGING_RFI, SOLVING_CAL, APPLYING_CAL, IMAGING, DONE, FAILED
+  - `MSState` enum - PENDING, CONVERTING, CONVERTED, FLAGGING_RFI, SOLVING_CAL, APPLYING_CAL, IMAGING, DONE, FAILED, ERROR
   - `MSStateMachine` class - State transition management with validation
-  - State persistence in SQLite with transaction safety
-  - Checkpoint/resume capability for long-running operations
-  - Retry logic with configurable max retries
+  - State persistence in SQLite with WAL mode and transaction safety
+  - Checkpoint/resume capability with JSON-serialized checkpoint data
+  - Retry logic with configurable max retries (default 3)
+  - `StateRecord` dataclass for MS state records
+  - `state_transition_context` context manager for automatic state tracking
+  - Singleton pattern via `get_state_machine()`/`close_state_machine()`
+
+- [x] **Unit Tests** - Created `tests/unit/test_state_machine.py`:
+  - 55 tests covering all state machine functionality
+  - Tests for MSState enum, StateRecord, MSStateMachine class
+  - State transitions, retry logic, checkpoints, cleanup
+  - Context manager and edge cases
+
+**Files Created:**
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| `database/state_machine.py` | ~1054 | Full state machine implementation |
+| `tests/unit/test_state_machine.py` | ~783 | Comprehensive unit tests (55 tests) |
+
+**Updated:** `database/__init__.py` - Added state machine exports
 
 - [ ] **Pipeline Stage Integration** - Update `pipeline/stages_impl.py`:
   - Add state transitions at each pipeline stage
