@@ -126,11 +126,10 @@ class GPUTimeSuite:
         """CPU matrix multiply (baseline)."""
         if not self.has_gpu:
             return
-        import numpy as np
 
         # 96x768 @ 768x96 = 96x96 (per-channel gain covariance)
-        A = self.gains_np  # 96 x 768
-        return A @ A.conj().T
+        matrix = self.gains_np  # 96 x 768
+        return matrix @ matrix.conj().T
 
     def time_matmul_gpu(self):
         """GPU matrix multiply."""
@@ -251,7 +250,7 @@ class GPUMemSuite:
         ).astype(np.complex64)
 
         grid_gpu = self.cp.asarray(grid)
-        result = self.cp.fft.fft2(grid_gpu)
+        self.cp.fft.fft2(grid_gpu)
         self.cp.cuda.Stream.null.synchronize()
 
         # Report GPU memory used
@@ -294,11 +293,11 @@ class GPUGriddingTimeSuite:
         try:
             from dsa110_contimg.imaging.gpu_gridding import (
                 gpu_grid_visibilities,
+                cpu_grid_visibilities,
                 GriddingConfig,
-                _cpu_gridding_fallback,
             )
             self.gpu_grid = gpu_grid_visibilities
-            self.cpu_grid = _cpu_gridding_fallback
+            self.cpu_grid = cpu_grid_visibilities
             self.GriddingConfig = GriddingConfig
         except ImportError:
             self.has_gpu = False
@@ -316,18 +315,28 @@ class GPUGriddingTimeSuite:
         self.weights = np.ones(n_vis, dtype=np.float64)
         self.config = config
 
-    def time_gridding_cpu(self, image_size, n_vis):
-        """CPU gridding baseline."""
+    def time_gridding_cpu(self, _image_size, _n_vis):
+        """CPU gridding baseline.
+
+        Args:
+            _image_size: ASV parameterized image size (used in setup).
+            _n_vis: ASV parameterized visibility count (used in setup).
+        """
         if not self.has_gpu:
             return
 
         result = self.cpu_grid(
-            self.uvw, self.vis, self.weights, None, self.config
+            self.uvw, self.vis, self.weights, config=self.config
         )
-        return result[0]
+        return result.image
 
-    def time_gridding_gpu(self, image_size, n_vis):
-        """GPU gridding."""
+    def time_gridding_gpu(self, _image_size, _n_vis):
+        """GPU gridding.
+
+        Args:
+            _image_size: ASV parameterized image size (used in setup).
+            _n_vis: ASV parameterized visibility count (used in setup).
+        """
         if not self.has_gpu:
             return
 
@@ -388,8 +397,13 @@ class GPUCalibrationTimeSuite:
         # Model visibilities
         self.model = self.vis * self.gains[self.ant1] * np.conj(self.gains[self.ant2])
 
-    def time_apply_gains_cpu(self, n_antennas, n_vis):
-        """CPU gain application baseline."""
+    def time_apply_gains_cpu(self, _n_antennas, _n_vis):
+        """CPU gain application baseline.
+
+        Args:
+            _n_antennas: ASV parameterized antenna count (used in setup).
+            _n_vis: ASV parameterized visibility count (used in setup).
+        """
         if not self.has_gpu:
             return
 
@@ -399,8 +413,13 @@ class GPUCalibrationTimeSuite:
         )
         return result
 
-    def time_apply_gains_gpu(self, n_antennas, n_vis):
-        """GPU gain application."""
+    def time_apply_gains_gpu(self, _n_antennas, _n_vis):
+        """GPU gain application.
+
+        Args:
+            _n_antennas: ASV parameterized antenna count (used in setup).
+            _n_vis: ASV parameterized visibility count (used in setup).
+        """
         if not self.has_gpu:
             return
 
@@ -410,8 +429,13 @@ class GPUCalibrationTimeSuite:
         )
         return result
 
-    def time_solve_gains_cpu(self, n_antennas, n_vis):
-        """CPU gain solving baseline."""
+    def time_solve_gains_cpu(self, _n_antennas, _n_vis):
+        """CPU gain solving baseline.
+
+        Args:
+            _n_antennas: ASV parameterized antenna count (used in setup).
+            _n_vis: ASV parameterized visibility count (used in setup).
+        """
         if not self.has_gpu:
             return
 
@@ -421,8 +445,13 @@ class GPUCalibrationTimeSuite:
         )
         return result
 
-    def time_solve_gains_gpu(self, n_antennas, n_vis):
-        """GPU gain solving."""
+    def time_solve_gains_gpu(self, _n_antennas, _n_vis):
+        """GPU gain solving.
+
+        Args:
+            _n_antennas: ASV parameterized antenna count (used in setup).
+            _n_vis: ASV parameterized visibility count (used in setup).
+        """
         if not self.has_gpu:
             return
 
