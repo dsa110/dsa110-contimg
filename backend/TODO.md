@@ -279,7 +279,7 @@ All Phase 1 GPU Acceleration items completed. Ready for Phase 2: CUDA Kernel Dev
 
 ---
 
-## GPU Acceleration (Phase 2 - In Progress)
+## GPU Acceleration (Phase 2 - COMPLETE) ✅
 
 **Reference**: `GPU_implementation_plan.md`
 
@@ -316,23 +316,87 @@ All Phase 1 GPU Acceleration items completed. Ready for Phase 2: CUDA Kernel Dev
   - `pipeline-scheduler.service` - Memory limits applied
   - Services reloaded with `systemctl daemon-reload`
 
-### Phase 2 Next Steps
+### Phase 2.3: GPU Gridding Module ✅
 
-- [ ] **GPU Gridding with CuPy** - ElementwiseKernel for W-projection
-- [ ] **Calibration Gain Application** - GPU-accelerated gain application
-- [ ] **FFT Operations** - CuPy FFT for imaging pipeline
-- [ ] **Benchmark Suite** - ASV benchmarks for Phase 2 operations
+- [x] **GPU Gridding with CuPy** - Created `src/dsa110_contimg/imaging/gpu_gridding.py` (~936 lines):
+  - `GriddingConfig` dataclass - image_size, cell_size_arcsec, support, oversampling
+  - `GriddingResult` dataclass - image, grid, sum_weights, n_vis_gridded, processing_time_s
+  - `_compute_spheroidal_gcf()` - Gridding convolution function computation
+  - `gpu_grid_visibilities()` - CuPy-based GPU gridding with integrated FFT
+  - `cpu_grid_visibilities()` - NumPy CPU fallback with identical interface
+  - Uses `safe_gpu_context` and memory estimation from gpu_safety module
+- [x] **Unit Tests** - `tests/unit/test_gpu_gridding.py` (28 tests):
+  - GriddingConfig/GriddingResult dataclass validation
+  - Spheroidal GCF computation and normalization
+  - Memory estimation scaling tests
+  - CPU and GPU gridding with flags
+  - Empty/invalid input handling
+  - CuPy availability detection
+- [x] **Integration Tests** - `tests/integration/test_gridding_gpu_integration.py` (19 tests):
+  - GPU safety initialization for gridding
+  - Memory estimation reasonable bounds
+  - Mock MS structure handling
+  - Point source and random visibility gridding
+  - CPU/GPU consistency verification
+  - GCF symmetry and normalization
+  - Weighting schemes (uniform, varied, zero)
+  - End-to-end workflow testing
+
+### Phase 2.4: GPU Calibration Module ✅
+
+- [x] **Calibration Gain Application** - Created `src/dsa110_contimg/calibration/gpu_calibration.py` (~795 lines):
+  - `CalibrationConfig` dataclass - gpu_id, n_pol, chunk_size, tolerance, max_iterations
+  - `GainSolutionResult` dataclass - gains, weights, n_iterations, converged, residual_rms
+  - `ApplyCalResult` dataclass - n_vis_processed, n_vis_calibrated, n_vis_flagged
+  - `apply_gains_gpu()` - CuPy kernel for g_i \* conj(g_j) correction
+  - `apply_gains_cpu()` - NumPy CPU fallback
+  - `solve_per_antenna_gains_gpu()` - Iterative GPU gain solver with reference antenna
+  - `solve_per_antenna_gains_cpu()` - CPU fallback solver
+  - `apply_gains()` / `solve_per_antenna_gains()` - Dispatch functions with GPU/CPU fallback
+- [x] **Unit Tests** - `tests/unit/test_gpu_calibration.py` (19 tests):
+  - CalibrationConfig defaults and custom values
+  - GainSolutionResult/ApplyCalResult success properties
+  - Memory estimation for apply and solve operations
+  - Unit gains and constant gains application
+  - Zero gains flagging behavior
+  - Known gains recovery in solver
+  - Noisy data gain solving
+  - CPU/GPU dispatch testing
+  - CuPy availability detection
+
+### Phase 2.5: ASV Benchmarks ✅
+
+- [x] **Benchmark Suite** - Updated `benchmarks/benchmarks/bench_gpu.py`:
+  - `GPUGriddingTimeSuite` - CPU/GPU gridding benchmarks (512, 1024, 2048 images)
+  - `GPUCalibrationTimeSuite` - CPU/GPU calibration benchmarks (5-110 antennas, 1K-100K vis)
+  - Parameterized benchmarks for scaling analysis
+  - All benchmarks verified working
+
+### Phase 2 COMPLETE ✅
+
+All Phase 2 GPU CUDA Kernel Development items completed:
+
+- RFI Detection Module (12 unit + 13 integration tests)
+- Systemd Production Hardening (memory limits deployed)
+- GPU Gridding Module (28 unit + 19 integration tests)
+- GPU Calibration Module (19 unit tests)
+- ASV Benchmark Suite (gridding + calibration benchmarks)
 
 ---
 
 ### Files Created (Phase 2)
 
-| File                                            | Purpose                          |
-| ----------------------------------------------- | -------------------------------- |
-| `src/dsa110_contimg/rfi/__init__.py`            | RFI module exports               |
-| `src/dsa110_contimg/rfi/gpu_detection.py`       | CuPy-based GPU RFI detection     |
-| `tests/unit/test_rfi_detection.py`              | RFI unit tests (12 tests)        |
-| `tests/integration/test_rfi_gpu_integration.py` | RFI integration tests (13 tests) |
+| File                                                 | Purpose                               |
+| ---------------------------------------------------- | ------------------------------------- |
+| `src/dsa110_contimg/rfi/__init__.py`                 | RFI module exports                    |
+| `src/dsa110_contimg/rfi/gpu_detection.py`            | CuPy-based GPU RFI detection          |
+| `src/dsa110_contimg/imaging/gpu_gridding.py`         | CuPy-based GPU visibility gridding    |
+| `src/dsa110_contimg/calibration/gpu_calibration.py`  | CuPy-based GPU calibration            |
+| `tests/unit/test_rfi_detection.py`                   | RFI unit tests (12 tests)             |
+| `tests/unit/test_gpu_gridding.py`                    | GPU gridding unit tests (28 tests)    |
+| `tests/unit/test_gpu_calibration.py`                 | GPU calibration unit tests (19 tests) |
+| `tests/integration/test_rfi_gpu_integration.py`      | RFI integration tests (13 tests)      |
+| `tests/integration/test_gridding_gpu_integration.py` | Gridding integration tests (19 tests) |
 
 ### Files Created (Phase 1)
 
