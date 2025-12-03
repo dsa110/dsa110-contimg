@@ -163,7 +163,7 @@ describe("useNotificationStore", () => {
           title: "First",
           message: "First",
           severity: "info",
-          category: "system",
+          category: "pipeline",
         });
       });
 
@@ -218,7 +218,7 @@ describe("useNotificationStore", () => {
           title: "First",
           message: "First",
           severity: "info",
-          category: "system",
+          category: "pipeline",
         });
       });
 
@@ -228,7 +228,7 @@ describe("useNotificationStore", () => {
           title: "Second",
           message: "Second",
           severity: "info",
-          category: "system",
+          category: "pipeline",
         });
       });
 
@@ -277,7 +277,7 @@ describe("useNotificationStore", () => {
           title: "First",
           message: "First",
           severity: "info",
-          category: "system",
+          category: "pipeline",
         });
       });
 
@@ -287,7 +287,7 @@ describe("useNotificationStore", () => {
           title: "Second",
           message: "Second",
           severity: "info",
-          category: "system",
+          category: "pipeline",
         });
       });
 
@@ -305,16 +305,18 @@ describe("useNotificationStore", () => {
     it("should return notifications filtered by filters", () => {
       const { result } = renderHook(() => useNotificationStore());
 
+      // Use warning severity for system (category requires warning+)
       act(() => {
         dateNowSpy.mockReturnValue(MOCK_TIMESTAMP);
         result.current.addNotification({
           title: "System",
           message: "System message",
-          severity: "info",
+          severity: "warning",
           category: "system",
         });
       });
 
+      // Pipeline allows info severity
       act(() => {
         dateNowSpy.mockReturnValue(MOCK_TIMESTAMP + 1);
         result.current.addNotification({
@@ -330,7 +332,7 @@ describe("useNotificationStore", () => {
         result.current.addNotification({
           title: "Another System",
           message: "Another system message",
-          severity: "warning",
+          severity: "error",
           category: "system",
         });
       });

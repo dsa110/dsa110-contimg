@@ -16,7 +16,7 @@ import os
 from datetime import datetime
 from pathlib import Path
 
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -82,6 +82,8 @@ def is_ip_allowed(client_ip: str, allowed_networks: list, special_hosts: set = N
     except ValueError:
         return False
 
+from .auth import require_auth
+from .client_ip import get_client_ip
 from .config import get_config
 from .middleware import add_exception_handlers
 from .exceptions import ValidationError as DSA110ValidationError, ProcessingError
@@ -261,21 +263,21 @@ def create_app() -> FastAPI:
     
     # Define routers with their tags for cleaner registration
     api_routers = [
-        (images_router, "Images"),
-        (ms_router, "Measurement Sets"),
-        (sources_router, "Sources"),
-        (jobs_router, "Jobs"),
-        (queue_router, "Queue"),
-        (qa_router, "Quality Assurance"),
-        (cal_router, "Calibration"),
-        (logs_router, "Logs"),
-        (stats_router, "Statistics"),
-        (cache_router, "Cache"),
-        (services_router, "Services"),
-        (imaging_router, "Interactive Imaging"),
-        (calibrator_imaging_router, "Calibrator Imaging"),
-        (health_router, "Health Monitoring"),
-        (performance_router, "Performance Monitoring"),
+        (images_router, "Images", True),
+        (ms_router, "Measurement Sets", True),
+        (sources_router, "Sources", True),
+        (jobs_router, "Jobs", True),
+        (queue_router, "Queue", True),
+        (qa_router, "Quality Assurance", True),
+        (cal_router, "Calibration", True),
+        (logs_router, "Logs", True),
+        (stats_router, "Statistics", True),
+        (cache_router, "Cache", True),
+        (services_router, "Services", True),
+        (imaging_router, "Interactive Imaging", True),
+        (calibrator_imaging_router, "Calibrator Imaging", True),
+        (health_router, "Health Monitoring", False),
+        (performance_router, "Performance Monitoring", True),
     ]
     
     # Mosaic router is pre-prefixed with /api/mosaic, include directly
@@ -288,18 +290,33 @@ def create_app() -> FastAPI:
             database_path=config.database.products_path,
             mosaic_dir=default_mosaic_dir,
         )
-        app.include_router(mosaic_router, tags=["Mosaics"])
+        app.include_router(
+            mosaic_router,
+            tags=["Mosaics"],
+            dependencies=[Depends(require_auth)],
+        )
     except Exception as e:
         import logging
         logging.getLogger(__name__).warning(f"Failed to configure mosaic API: {e}")
     
     # Register API routers with versioned prefix
-    for router, tag in api_routers:
-        app.include_router(router, prefix=api_prefix, tags=[tag])
+    for router, tag, secured in api_routers:
+        dependencies = [Depends(require_auth)] if secured else None
+        app.include_router(
+            router,
+            prefix=api_prefix,
+            tags=[tag],
+            dependencies=dependencies,
+        )
     
     # ABSURD workflow manager - registered at /absurd (not versioned)
     # This is a separate subsystem with its own versioning
-    app.include_router(absurd_router, prefix="/absurd", tags=["ABSURD Workflows"])
+    app.include_router(
+        absurd_router,
+        prefix="/absurd",
+        tags=["ABSURD Workflows"],
+        dependencies=[Depends(require_auth)],
+    )
     
     # WebSocket routes for real-time updates
     app.include_router(ws_router, prefix="/api/v1", tags=["WebSocket"])
