@@ -1691,6 +1691,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                     writer_type = "auto"
             except Exception as exc:
                 log.error("Conversion failed for %s: %s", gid, exc)
+                _update_state_machine(state_machine, gid, "FAILED", log)
                 queue.update_state(gid, "failed", error=str(exc))
                 continue
 
