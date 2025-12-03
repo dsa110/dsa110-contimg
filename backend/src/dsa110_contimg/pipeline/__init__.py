@@ -72,6 +72,24 @@ from .registry import (
     reset_registries,
 )
 from .scheduler import PipelineScheduler, run_scheduler
+from .error_recovery import (
+    BackoffStrategy,
+    Checkpoint,
+    CheckpointManager,
+    DeadLetterEntry,
+    DeadLetterQueue,
+    DeadLetterReason,
+    ErrorRecoveryManager,
+    RetryAttempt,
+    RetryOutcome,
+    RetryResult,
+    execute_with_retry_sync,
+    with_retry,
+    with_retry_sync,
+    QUICK_RETRY_POLICY,
+    STANDARD_RETRY_POLICY,
+    AGGRESSIVE_RETRY_POLICY,
+)
 
 __all__ = [
     # Base classes
@@ -111,4 +129,21 @@ __all__ = [
     "register_job",
     "register_pipeline",
     "reset_registries",
+    # Error Recovery
+    "BackoffStrategy",
+    "Checkpoint",
+    "CheckpointManager",
+    "DeadLetterEntry",
+    "DeadLetterQueue",
+    "DeadLetterReason",
+    "ErrorRecoveryManager",
+    "RetryAttempt",
+    "RetryOutcome",
+    "RetryResult",
+    "execute_with_retry_sync",
+    "with_retry",
+    "with_retry_sync",
+    "QUICK_RETRY_POLICY",
+    "STANDARD_RETRY_POLICY",
+    "AGGRESSIVE_RETRY_POLICY",
 ]

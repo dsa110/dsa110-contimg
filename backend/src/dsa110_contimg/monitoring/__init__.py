@@ -47,6 +47,22 @@ from .tasks import (
     DEFAULT_MONITORING_SCHEDULES,
 )
 
+from .pipeline_metrics import (
+    GPUUtilizationMetrics,
+    JobMetrics,
+    MemoryMetrics,
+    PipelineMetricsCollector,
+    PipelineStage,
+    ProcessingMode,
+    StageContext,
+    StageTimingMetrics,
+    ThroughputMetrics,
+    close_metrics_collector,
+    get_metrics_collector,
+    record_memory_sample,
+    record_stage_timing,
+)
+
 __all__ = [
     # Service health
     "ServiceStatus",
@@ -79,4 +95,18 @@ __all__ = [
     "register_monitoring_tasks",
     "setup_monitoring_schedules",
     "DEFAULT_MONITORING_SCHEDULES",
+    # Pipeline Metrics
+    "GPUUtilizationMetrics",
+    "JobMetrics",
+    "MemoryMetrics",
+    "PipelineMetricsCollector",
+    "PipelineStage",
+    "ProcessingMode",
+    "StageContext",
+    "StageTimingMetrics",
+    "ThroughputMetrics",
+    "close_metrics_collector",
+    "get_metrics_collector",
+    "record_memory_sample",
+    "record_stage_timing",
 ]

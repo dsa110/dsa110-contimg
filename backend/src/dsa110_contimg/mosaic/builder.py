@@ -37,6 +37,7 @@ class MosaicResult:
         coverage_sq_deg: Sky coverage in square degrees
         weight_map_path: Path to weight map FITS file (optional)
         effective_noise_jy: Estimated effective noise in mosaic (Jy)
+        external_weights_used: Whether external weight maps were used
     """
     
     output_path: Path
@@ -45,6 +46,7 @@ class MosaicResult:
     coverage_sq_deg: float
     weight_map_path: Path | None = None
     effective_noise_jy: float | None = None
+    external_weights_used: bool = False
 
 
 @timed("mosaic.build_mosaic")
@@ -55,6 +57,8 @@ def build_mosaic(
     timeout_minutes: int = 30,  # noqa: ARG001 - Reserved for future async support
     write_weight_map: bool = True,
     apply_pb_correction: bool = False,
+    weight_image_paths: list[Path] | None = None,
+    rescale_weights: bool = True,
 ) -> MosaicResult:
     """Build mosaic from list of FITS images.
     
@@ -71,6 +75,12 @@ def build_mosaic(
             Airy disk model (4.7m dish). This divides each pixel by the primary
             beam response to correct for attenuation away from the phase center.
             The correction is limited at PB < 0.1 to avoid amplifying edge noise.
+        weight_image_paths: Optional list of external weight map FITS files,
+            one per input image. If provided, these are used instead of computing
+            weights from RMS. This follows SWarp's WEIGHT_TYPE=MAP_WEIGHT approach
+            used in VAST post-processing for combining pre-calibrated images.
+        rescale_weights: If True and using external weights, normalize them to
+            have consistent scaling. Similar to SWarp's RESCALE_WEIGHTS=Y option.
         
     Returns:
         MosaicResult with metadata
@@ -138,8 +148,26 @@ def build_mosaic(
         arrays.append(array)
         footprints.append(footprint)
     
-    # Compute inverse-variance weights
-    weights = compute_weights(hdus)
+    # Compute weights - either from external maps or from RMS (inverse-variance)
+    # This follows VAST's SWarp approach: WEIGHT_TYPE=MAP_WEIGHT when external provided
+    external_weights_used = False
+    if weight_image_paths is not None:
+        if len(weight_image_paths) != len(image_paths):
+            raise ValueError(
+                f"Number of weight images ({len(weight_image_paths)}) must match "
+                f"number of input images ({len(image_paths)})"
+            )
+        logger.info("Using external weight maps (VAST/SWarp style)")
+        weights = compute_weights_from_maps(
+            weight_image_paths,
+            output_wcs,
+            output_shape,
+            rescale=rescale_weights,
+        )
+        external_weights_used = True
+    else:
+        # Default: compute inverse-variance weights from image RMS
+        weights = compute_weights(hdus)
     
     # Combine with weighted average and get weight map
     combined, weight_map = weighted_combine(arrays, weights, footprints, return_weights=True)
@@ -196,6 +224,8 @@ def build_mosaic(
     output_header['EFFNOISE'] = (effective_noise_jy, 'Effective noise from weights (Jy)')
     output_header['COVERAGE'] = (coverage_sq_deg, 'Sky coverage (sq deg)')
     output_header['BUNIT'] = 'Jy/beam'
+    if external_weights_used:
+        output_header['EXTWEIGH'] = (True, 'External weight maps used')
     
     output_hdu = fits.PrimaryHDU(data=combined, header=output_header)
     output_hdu.writeto(str(output_path), overwrite=True)
@@ -221,6 +251,7 @@ def build_mosaic(
         coverage_sq_deg=coverage_sq_deg,
         weight_map_path=weight_map_path,
         effective_noise_jy=effective_noise_jy,
+        external_weights_used=external_weights_used,
     )
 
 
@@ -328,11 +359,81 @@ def compute_weights(hdus: list[fits.PrimaryHDU]) -> NDArray[np.floating]:
     return weights
 
 
+def compute_weights_from_maps(
+    weight_paths: list[Path],
+    output_wcs: WCS,
+    output_shape: tuple[int, int],
+    rescale: bool = True,
+) -> NDArray[np.floating]:
+    """Compute per-image weights from external weight map FITS files.
+    
+    This follows VAST's SWarp approach where WEIGHT_TYPE=MAP_WEIGHT and
+    external weight images are used for combining pre-calibrated data.
+    
+    The weight maps are reprojected to the output grid and the median
+    value is used as the per-image weight (representing overall data quality).
+    
+    Args:
+        weight_paths: List of paths to weight map FITS files
+        output_wcs: Target WCS for reprojection
+        output_shape: Target image shape (ny, nx)
+        rescale: If True, normalize weights (like SWarp RESCALE_WEIGHTS=Y)
+        
+    Returns:
+        Array of per-image weights (normalized if rescale=True)
+        
+    Note:
+        Weight maps should have values proportional to 1/sigma^2 (inverse variance).
+        Common sources include RMS maps inverted, or quality/flag maps.
+    """
+    try:
+        from reproject import reproject_interp
+    except ImportError:
+        logger.warning("reproject not available, cannot use external weight maps")
+        return np.ones(len(weight_paths)) / len(weight_paths)
+    
+    weights = []
+    for weight_path in weight_paths:
+        if not weight_path.exists():
+            logger.warning("Weight map not found: %s, using weight=0", weight_path)
+            weights.append(0.0)
+            continue
+            
+        with fits.open(str(weight_path)) as hdul:
+            weight_hdu = hdul[0]
+            # Reproject weight map to output grid
+            weight_reproj, _ = reproject_interp(
+                weight_hdu,
+                output_wcs,
+                shape_out=output_shape,
+                order='bilinear',
+            )
+            # Use median of non-zero weights as overall image weight
+            valid_weights = weight_reproj[np.isfinite(weight_reproj) & (weight_reproj > 0)]
+            if len(valid_weights) > 0:
+                weights.append(float(np.median(valid_weights)))
+            else:
+                weights.append(0.0)
+    
+    weights = np.array(weights)
+    
+    if rescale:
+        total = np.sum(weights)
+        if total > 0:
+            weights /= total
+        else:
+            weights = np.ones(len(weight_paths)) / len(weight_paths)
+    
+    logger.debug("External weight map weights: %s", weights)
+    return weights
+
+
 def weighted_combine(
     arrays: list[NDArray],
     weights: NDArray[np.floating],
     footprints: list[NDArray],
     return_weights: bool = False,
+    mask_zero_weight: bool = True,
 ) -> NDArray[np.floating] | tuple[NDArray[np.floating], NDArray[np.floating]]:
     """Combine reprojected arrays with inverse-variance weighting.
     
@@ -341,6 +442,9 @@ def weighted_combine(
         weights: Per-image weights (normalized)
         footprints: Per-image footprint masks
         return_weights: If True, also return the summed weight map
+        mask_zero_weight: If True (default), set pixels with zero weight to NaN.
+            This follows VAST's approach of explicitly masking weightless pixels
+            to avoid contaminating downstream statistics with zero-value artifacts.
         
     Returns:
         Combined mosaic array, or tuple of (combined, weight_map) if return_weights=True
@@ -349,6 +453,10 @@ def weighted_combine(
         The weight_map can be used for uncertainty propagation:
         - Per-pixel noise = 1 / sqrt(weight_map)
         - This assumes the input weights are inverse-variance (1/sigma^2)
+        
+        The mask_zero_weight behavior (from VAST vast-post-processing) ensures
+        that pixels without coverage remain NaN rather than being filled with 0,
+        which is important for proper statistics and visualization.
     """
     # Stack arrays
     stack = np.array(arrays)
@@ -364,8 +472,16 @@ def weighted_combine(
         sum_weights = np.nansum(weights_3d, axis=0)
         combined = np.nansum(stack * weights_3d, axis=0) / sum_weights
     
-    # Replace NaN with 0 in regions with no coverage
-    combined = np.nan_to_num(combined, nan=0.0)
+    # Handle zero-weight pixels (VAST-inspired approach)
+    if mask_zero_weight:
+        # Keep NaN for zero-weight pixels - better for downstream analysis
+        # This follows VAST's mask_weightless_pixels() pattern
+        combined = np.where(sum_weights > 0, combined, np.nan)
+    else:
+        # Legacy behavior: replace NaN with 0
+        combined = np.nan_to_num(combined, nan=0.0)
+    
+    # Weight map always has 0 for uncovered regions (not NaN)
     sum_weights = np.nan_to_num(sum_weights, nan=0.0)
     
     if return_weights:

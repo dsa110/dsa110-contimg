@@ -1118,6 +1118,153 @@ class CheckpointManager:
 
 
 # =============================================================================
+# Alert Integration
+# =============================================================================
+
+
+async def create_alert_callback(
+    webhook_url: Optional[str] = None,
+    slack_webhook: Optional[str] = None,
+) -> Callable[[str, str, str], Awaitable[None]]:
+    """Create an alert callback for error recovery.
+
+    This callback sends alerts via the monitoring tasks system.
+
+    Args:
+        webhook_url: Optional webhook URL for alerts
+        slack_webhook: Optional Slack webhook URL
+
+    Returns:
+        Async callback function for sending alerts
+    """
+    from ..monitoring.tasks import _execute_send_alert
+
+    async def alert_callback(severity: str, title: str, message: str) -> None:
+        """Send alert via monitoring system."""
+        params = {
+            "severity": severity,
+            "title": title,
+            "message": message,
+            "channels": [],
+        }
+
+        if webhook_url:
+            params["channels"].append("webhook")
+            params["webhook_url"] = webhook_url
+
+        if slack_webhook:
+            params["channels"].append("slack")
+            params["slack_webhook"] = slack_webhook
+
+        if params["channels"]:
+            await _execute_send_alert(params)
+
+    return alert_callback
+
+
+def create_metrics_callback() -> Callable[[str, RetryResult], None]:
+    """Create a metrics callback for error recovery.
+
+    Records retry metrics to the pipeline metrics collector.
+
+    Returns:
+        Callback function for recording metrics
+    """
+    from ..monitoring.pipeline_metrics import get_metrics_collector
+
+    def metrics_callback(operation_name: str, result: RetryResult) -> None:
+        """Record retry metrics."""
+        collector = get_metrics_collector()
+
+        # Log retry statistics
+        if result.attempt_count > 1:
+            logger.info(
+                "Retry stats for %s: attempts=%d, success=%s, duration=%.1fs",
+                operation_name,
+                result.attempt_count,
+                result.success,
+                result.total_duration,
+            )
+
+    return metrics_callback
+
+
+class IntegratedErrorRecovery:
+    """Error recovery with integrated alerting and metrics.
+
+    Convenience class that sets up ErrorRecoveryManager with
+    alert and metrics callbacks pre-configured.
+    """
+
+    def __init__(
+        self,
+        policy: Optional[RetryPolicy] = None,
+        webhook_url: Optional[str] = None,
+        slack_webhook: Optional[str] = None,
+        enable_metrics: bool = True,
+    ):
+        """Initialize integrated error recovery.
+
+        Args:
+            policy: Retry policy (default: STANDARD_RETRY_POLICY)
+            webhook_url: Webhook URL for failure alerts
+            slack_webhook: Slack webhook for failure alerts
+            enable_metrics: Whether to record retry metrics
+        """
+        self.policy = policy or STANDARD_RETRY_POLICY
+        self.webhook_url = webhook_url
+        self.slack_webhook = slack_webhook
+        self.enable_metrics = enable_metrics
+        self._manager: Optional[ErrorRecoveryManager] = None
+
+    async def get_manager(self) -> ErrorRecoveryManager:
+        """Get or create the error recovery manager.
+
+        Returns:
+            Configured ErrorRecoveryManager
+        """
+        if self._manager is None:
+            alert_callback = None
+            if self.webhook_url or self.slack_webhook:
+                alert_callback = await create_alert_callback(
+                    self.webhook_url, self.slack_webhook
+                )
+
+            metrics_callback = create_metrics_callback() if self.enable_metrics else None
+
+            self._manager = ErrorRecoveryManager(
+                policy=self.policy,
+                alert_callback=alert_callback,
+                metrics_callback=metrics_callback,
+            )
+
+        return self._manager
+
+    async def execute_with_retry(
+        self,
+        func: Callable[..., Awaitable[T]],
+        *args,
+        operation_name: Optional[str] = None,
+        **kwargs,
+    ) -> RetryResult[T]:
+        """Execute function with retry and integrated monitoring.
+
+        Args:
+            func: Async function to execute
+            *args: Function arguments
+            operation_name: Name for logging/metrics
+            **kwargs: Function keyword arguments
+
+        Returns:
+            RetryResult with outcome
+        """
+        manager = await self.get_manager()
+        return await manager.execute_with_retry(
+            func, *args, operation_name=operation_name, **kwargs
+        )
+
+
+# =============================================================================
 # Module Exports
 # =============================================================================
 
@@ -1145,4 +1292,8 @@ __all__ = [
     # Checkpoints
     "Checkpoint",
     "CheckpointManager",
+    # Alert Integration
+    "create_alert_callback",
+    "create_metrics_callback",
+    "IntegratedErrorRecovery",
 ]
