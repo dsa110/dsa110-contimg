@@ -1448,6 +1448,7 @@ def _register_calibration_tables(
     Register calibration tables in the registry database.
     
     Helper function extracted for Issue #4 fence integration.
+    Includes Issue #5 QA check before registration.
     """
     try:
         # Extract calibration table prefix (MS path without .ms extension)
@@ -1467,6 +1468,42 @@ def _register_calibration_tables(
             except Exception as e:
                 log.debug("check_calibration_overlap failed (non-fatal): %s", e)
 
+        # Issue #5: Run QA checks on calibration tables before registration
+        quality_metrics = None
+        if HAVE_HARDENING and assess_calibration_quality is not None:
+            try:
+                # Check bandpass table (most important)
+                bp_table = f"{cal_prefix}.B"
+                if Path(bp_table).exists():
+                    qa_result = assess_calibration_quality(bp_table)
+                    if not qa_result.passed:
+                        log.warning(
+                            "Calibration QA FAILED for %s: %s",
+                            bp_table,
+                            "; ".join(qa_result.issues),
+                        )
+                        # Still register but mark as lower quality
+                        # This allows operators to review and decide
+                    elif qa_result.warnings:
+                        log.info(
+                            "Calibration QA warnings for %s: %s",
+                            bp_table,
+                            "; ".join(qa_result.warnings),
+                        )
+                    else:
+                        log.info(
+                            "Calibration QA PASSED for %s (SNR=%.1f, flagged=%.1f%%)",
+                            bp_table,
+                            qa_result.snr_mean or 0.0,
+                            (qa_result.flagged_fraction or 0.0) * 100,
+                        )
+                    
+                    # Get metrics for database storage
+                    if get_calibration_quality_metrics is not None:
+                        quality_metrics = get_calibration_quality_metrics(bp_table)
+            except Exception as e:
+                log.debug("Calibration QA check failed (non-fatal): %s", e)
+
         register_set_from_prefix(
             Path(args.registry_db),
             set_name=f"cal_{gid}",
@@ -1475,6 +1512,7 @@ def _register_calibration_tables(
             refant=None,  # Auto-detected during solve
             valid_start_mjd=mid_mjd,
             valid_end_mjd=None,  # No end time limit
+            quality_metrics=quality_metrics,  # Issue #5: Store QA results
         )
         log.info(
             "Registered calibration tables for %s in registry (set_name=cal_%s)",

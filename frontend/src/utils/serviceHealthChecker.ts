@@ -126,7 +126,8 @@ const DEFAULT_RETRY_CONFIG: RetryConfig = {
  * Calculate delay for a given attempt using exponential backoff with jitter
  */
 function calculateBackoffDelay(attempt: number, config: RetryConfig): number {
-  const exponentialDelay = config.initialDelayMs * Math.pow(config.backoffMultiplier, attempt);
+  const exponentialDelay =
+    config.initialDelayMs * Math.pow(config.backoffMultiplier, attempt);
   const cappedDelay = Math.min(exponentialDelay, config.maxDelayMs);
   // Add jitter (±25%) to prevent thundering herd
   const jitter = cappedDelay * 0.25 * (Math.random() * 2 - 1);
@@ -256,7 +257,7 @@ export class ServiceHealthChecker {
   constructor(
     services: ServiceConfig[] = DEFAULT_SERVICES,
     retryConfig: RetryConfig = DEFAULT_RETRY_CONFIG,
-    backendApiUrl: string = "/api/services/status"
+    backendApiUrl: string = "/api/v1/services/status"
   ) {
     this.services = services;
     this.retryConfig = retryConfig;
@@ -295,7 +296,10 @@ export class ServiceHealthChecker {
     };
 
     // First, try backend API with retry
-    const backendResult = await this.fetchFromBackendWithRetry(signal, diagnostics);
+    const backendResult = await this.fetchFromBackendWithRetry(
+      signal,
+      diagnostics
+    );
 
     if (backendResult) {
       // Backend succeeded - use its results but update failure tracking
@@ -348,7 +352,9 @@ export class ServiceHealthChecker {
   /**
    * Single fetch attempt to backend API
    */
-  private async fetchFromBackend(signal: AbortSignal): Promise<BackendServicesResponse> {
+  private async fetchFromBackend(
+    signal: AbortSignal
+  ): Promise<BackendServicesResponse> {
     const timeoutMs = 10000;
     const timeoutId = setTimeout(() => {
       // Create a new AbortController specifically for this timeout
@@ -377,7 +383,9 @@ export class ServiceHealthChecker {
   /**
    * Process backend API results into our internal format
    */
-  private processBackendResults(response: BackendServicesResponse): ServiceHealthResult[] {
+  private processBackendResults(
+    response: BackendServicesResponse
+  ): ServiceHealthResult[] {
     return response.services.map((svc) => {
       const isSuccess = svc.status === "running";
       if (isSuccess) {
@@ -468,7 +476,9 @@ export class ServiceHealthChecker {
     try {
       // Build the probe URL
       const baseUrl = `http://127.0.0.1:${service.port}`;
-      const url = service.healthPath ? `${baseUrl}${service.healthPath}` : baseUrl;
+      const url = service.healthPath
+        ? `${baseUrl}${service.healthPath}`
+        : baseUrl;
 
       // Use a shorter timeout for client probes
       const timeoutMs = 5000;
@@ -528,7 +538,8 @@ export class ServiceHealthChecker {
       if (error.includes("NetworkError") || error.includes("Failed to fetch")) {
         // Could be CORS, service down, or network issue
         status = "error";
-        errorMessage = "Network error (may be CORS restriction or service down)";
+        errorMessage =
+          "Network error (may be CORS restriction or service down)";
       } else if (error.includes("abort")) {
         status = "unknown";
         errorMessage = "Request timed out";
