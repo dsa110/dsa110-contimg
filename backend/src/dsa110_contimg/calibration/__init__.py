@@ -24,6 +24,18 @@ from dsa110_contimg.calibration.pipeline import (
     run_calibration_pipeline,
 )
 
+# QA module
+from dsa110_contimg.calibration.qa import (
+    CalibrationMetrics,
+    CalibrationQAResult,
+    CalibrationQAStore,
+    QAIssue,
+    QAThresholds,
+    assess_calibration_quality,
+    compute_calibration_metrics,
+    get_qa_store,
+)
+
 __all__ = [
     # Transit utilities
     "next_transit_time",
@@ -43,4 +55,13 @@ __all__ = [
     "CalibrationStatus",
     "StreamingCalibrationPipeline",
     "run_calibration_pipeline",
+    # QA
+    "CalibrationMetrics",
+    "CalibrationQAResult",
+    "CalibrationQAStore",
+    "QAIssue",
+    "QAThresholds",
+    "assess_calibration_quality",
+    "compute_calibration_metrics",
+    "get_qa_store",
 ]

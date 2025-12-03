@@ -1127,6 +1127,200 @@ async def get_calibration_applylist(
 
 
 # ============================================================================
+# Calibration QA Endpoints
+# ============================================================================
+
+
+class CalibrationQAMetrics(BaseModel):
+    """Metrics from a single calibration table."""
+
+    caltable_path: str
+    cal_type: str
+    n_solutions: int
+    n_flagged: int
+    flag_fraction: float
+    mean_amplitude: float
+    std_amplitude: float
+    median_snr: Optional[float] = None
+    extraction_error: Optional[str] = None
+
+
+class CalibrationQAIssue(BaseModel):
+    """A QA issue found during assessment."""
+
+    severity: str
+    cal_type: str
+    metric: str
+    value: float
+    threshold: float
+    message: str
+
+
+class CalibrationQAResponse(BaseModel):
+    """Calibration QA assessment response."""
+
+    ms_path: str
+    passed: bool
+    severity: str
+    overall_grade: str
+    issues: List[CalibrationQAIssue] = Field(default_factory=list)
+    metrics: List[CalibrationQAMetrics] = Field(default_factory=list)
+    summary: Dict[str, Any] = Field(default_factory=dict)
+    assessment_time_s: float
+    timestamp: float
+
+
+class CalibrationQASummaryStats(BaseModel):
+    """Summary statistics for QA results."""
+
+    by_grade: Dict[str, int]
+    passed: int
+    failed: int
+    total: int
+    avg_flagging: Optional[float]
+    avg_assessment_time_s: Optional[float]
+
+
+@router.get("/calibration/qa/recent")
+async def get_recent_calibration_qa(
+    limit: int = Query(10, ge=1, le=100, description="Maximum results"),
+    passed_only: bool = Query(False, description="Only return passed results"),
+    failed_only: bool = Query(False, description="Only return failed results"),
+    min_grade: Optional[str] = Query(
+        None,
+        description="Minimum grade ('excellent', 'good', 'marginal', 'poor')",
+    ),
+) -> Dict[str, Any]:
+    """
+    Get recent calibration QA results.
+
+    Returns a list of recent QA assessments with filtering options.
+    Results are ordered by timestamp (most recent first).
+
+    Args:
+        limit: Maximum number of results to return
+        passed_only: Only return passed assessments
+        failed_only: Only return failed assessments
+        min_grade: Minimum acceptable grade
+    """
+    from dsa110_contimg.calibration.qa import get_qa_store
+
+    store = get_qa_store()
+
+    results = store.list_recent(
+        limit=limit,
+        passed_only=passed_only,
+        failed_only=failed_only,
+        min_grade=min_grade,
+    )
+
+    checked_at = datetime.utcnow().isoformat() + "Z"
+
+    return {
+        "results": [r.to_dict() for r in results],
+        "count": len(results),
+        "checked_at": checked_at,
+    }
+
+
+@router.get("/calibration/qa/stats")
+async def get_calibration_qa_stats(
+    since_hours: Optional[float] = Query(
+        None, description="Only include results from last N hours"
+    ),
+) -> CalibrationQASummaryStats:
+    """
+    Get summary statistics for calibration QA results.
+
+    Returns aggregate statistics including pass/fail counts,
+    grade distribution, and average metrics.
+
+    Args:
+        since_hours: Only include results from the last N hours
+    """
+    import time
+
+    from dsa110_contimg.calibration.qa import get_qa_store
+
+    store = get_qa_store()
+
+    since_timestamp = None
+    if since_hours:
+        since_timestamp = time.time() - (since_hours * 3600)
+
+    stats = store.get_summary_stats(since_timestamp=since_timestamp)
+
+    return CalibrationQASummaryStats(
+        by_grade=stats.get("by_grade", {}),
+        passed=stats.get("passed", 0),
+        failed=stats.get("failed", 0),
+        total=stats.get("total", 0),
+        avg_flagging=stats.get("avg_flagging"),
+        avg_assessment_time_s=stats.get("avg_assessment_time_s"),
+    )
+
+
+@router.get("/calibration/qa/{ms_path:path}")
+async def get_calibration_qa_for_ms(
+    ms_path: str,
+    run_assessment: bool = Query(
+        False, description="Run new assessment if not found"
+    ),
+    save_result: bool = Query(True, description="Save result to database"),
+) -> Dict[str, Any]:
+    """
+    Get calibration QA for a specific Measurement Set.
+
+    Returns the most recent QA assessment for the specified MS.
+    Optionally runs a new assessment if none exists.
+
+    Args:
+        ms_path: Path to the Measurement Set
+        run_assessment: Run new assessment if not found in database
+        save_result: Save new assessment result to database
+    """
+    from pathlib import Path
+
+    from dsa110_contimg.calibration.qa import (
+        assess_calibration_quality,
+        get_qa_store,
+    )
+
+    store = get_qa_store()
+    checked_at = datetime.utcnow().isoformat() + "Z"
+
+    # Try to get existing result
+    result = store.get_result(ms_path)
+
+    if result is None and run_assessment:
+        # Check if MS exists
+        if not Path(ms_path).exists():
+            return {
+                "ms_path": ms_path,
+                "error": f"Measurement Set not found: {ms_path}",
+                "checked_at": checked_at,
+            }
+
+        # Run assessment
+        result = assess_calibration_quality(ms_path)
+
+        if save_result:
+            store.save_result(result)
+
+    if result is None:
+        return {
+            "ms_path": ms_path,
+            "error": "No QA result found. Set run_assessment=true to assess.",
+            "checked_at": checked_at,
+        }
+
+    return {
+        "result": result.to_dict(),
+        "checked_at": checked_at,
+    }
+
+
+# ============================================================================
 # GPU Health Endpoints
 # ============================================================================
 
