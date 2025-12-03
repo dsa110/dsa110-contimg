@@ -1461,6 +1461,59 @@ def _register_calibration_tables(
         )
 
 
+def _update_state_machine(
+    state_machine: "ProcessingStateMachine | None",
+    group_id: str,
+    state_name: str,
+    log: logging.Logger,
+) -> None:
+    """
+    Helper to update processing state machine (Issue #7).
+    
+    This provides a simple way to track processing state without
+    needing to wrap code in context managers. State transitions
+    are logged but failures are non-fatal.
+    
+    Args:
+        state_machine: The ProcessingStateMachine instance (or None)
+        group_id: The group being processed
+        state_name: Name of the state (e.g., "CONVERTING", "CALIBRATING")
+        log: Logger for debug messages
+    """
+    if state_machine is None or ProcessingState is None:
+        return
+    
+    try:
+        target_state = ProcessingState[state_name]
+        # Use direct database update instead of context manager
+        # This is simpler for linear processing without nested transactions
+        conn = sqlite3.connect(str(state_machine.db_path), timeout=30.0)
+        now = time.time()
+        conn.execute(
+            """
+            UPDATE processing_state 
+            SET current_state = ?, updated_at = ?
+            WHERE group_id = ?
+            """,
+            (target_state.name, now, group_id),
+        )
+        # Log the transition
+        conn.execute(
+            """
+            INSERT INTO state_transitions 
+            (group_id, from_state, to_state, timestamp, success)
+            SELECT current_state, ?, ?, ?, 1
+            FROM processing_state WHERE group_id = ?
+            """,
+            (target_state.name, now, group_id),
+        )
+        conn.commit()
+        conn.close()
+        log.debug("State machine: %s -> %s", group_id, state_name)
+    except Exception as e:
+        log.debug("State machine update failed for %s -> %s: %s", group_id, state_name, e)
+
+
 def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
     """Poll for pending groups, convert via orchestrator, and mark complete."""
     log = logging.getLogger("stream.worker")
@@ -1652,8 +1705,12 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                     log.debug("record_conversion_time failed (non-fatal)")
 
             if ret != 0:
+                _update_state_machine(state_machine, gid, "FAILED", log)
                 queue.update_state(gid, "failed", error=f"orchestrator exit={ret}")
                 continue
+
+            # Issue #7: Transition to CONVERTED state
+            _update_state_machine(state_machine, gid, "CONVERTED", log)
 
             # Derive MS path from first subband filename (already organized if path_mapper was used)
             products_db_path = _get_pipeline_db_path()
@@ -1803,6 +1860,9 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
 
             # Solve calibration if this is a calibrator MS (before applying to science MS)
             if is_calibrator and getattr(args, "enable_calibration_solving", False):
+                # Issue #7: Transition to CALIBRATING state
+                _update_state_machine(state_machine, gid, "CALIBRATING", log)
+                
                 # Issue #4: Use calibration fence to coordinate with other workers
                 fence = None
                 if HAVE_HARDENING and CalibrationFence is not None:
@@ -1850,6 +1910,8 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                                 _register_calibration_tables(
                                     args, gid, ms_path, mid_mjd, log
                                 )
+                                # Issue #7: Transition to CALIBRATED state
+                                _update_state_machine(state_machine, gid, "CALIBRATED", log)
                             else:
                                 log.error("Calibration solve failed for %s: %s", ms_path, error_msg)
                     else:
@@ -1881,6 +1943,8 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                         
                         if success:
                             _register_calibration_tables(args, gid, ms_path, mid_mjd, log)
+                            # Issue #7: Transition to CALIBRATED state
+                            _update_state_machine(state_machine, gid, "CALIBRATED", log)
                         else:
                             log.error("Calibration solve failed for %s: %s", ms_path, error_msg)
                 except Exception as e:
@@ -1956,6 +2020,10 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                 # Standard tier imaging (production quality)
                 # Note: Data is always reordered for correct multi-SPW processing
                 imgroot = os.path.join(args.output_dir, base + ".img")
+                
+                # Issue #7: Transition to IMAGING state
+                _update_state_machine(state_machine, gid, "IMAGING", log)
+                
                 img_t0 = time.perf_counter()
                 try:
                     image_ms(
@@ -1966,6 +2034,9 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                         skip_fits=False,
                     )
                     img_time = time.perf_counter() - img_t0
+
+                    # Issue #7: Transition to IMAGED state
+                    _update_state_machine(state_machine, gid, "IMAGED", log)
 
                     # Issue #13: Record imaging metrics to hardening registry
                     if HAVE_HARDENING and record_imaging_time is not None:
