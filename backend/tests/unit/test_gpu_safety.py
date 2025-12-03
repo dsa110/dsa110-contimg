@@ -13,10 +13,11 @@ Test Categories:
 6. Integration tests - verify safety module initializes correctly
 """
 
-import pytest
-from unittest.mock import patch, MagicMock
-from typing import NamedTuple
 import sys
+from typing import NamedTuple
+from unittest.mock import patch
+
+import pytest
 
 
 class MockMemoryInfo(NamedTuple):
@@ -75,7 +76,7 @@ class TestSystemMemoryChecks:
 
         with patch("psutil.virtual_memory", return_value=mock_mem):
             # Should not raise for reasonable allocation
-            is_safe, reason = check_system_memory_available(4.0)  # 4 GB request
+            is_safe, _reason = check_system_memory_available(4.0)  # 4 GB request
             assert is_safe is True
             # Reason may contain "OK" or similar message when safe
 
@@ -356,7 +357,7 @@ class TestOOMRejection:
         )
 
         with patch("psutil.virtual_memory", return_value=mock_mem):
-            is_safe, reason = check_system_memory_available(mem_required)
+            is_safe, _reason = check_system_memory_available(mem_required)
 
             # Should accept
             assert is_safe is True
