@@ -625,7 +625,9 @@ const ImageGalleryGrid: React.FC<ImageGalleryGridProps> = ({
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && visibleCount < sortedImages.length) {
-          setVisibleCount((prev) => Math.min(prev + pageSize, sortedImages.length));
+          setVisibleCount((prev) =>
+            Math.min(prev + pageSize, sortedImages.length)
+          );
         }
       },
       { threshold: 0.1 }
