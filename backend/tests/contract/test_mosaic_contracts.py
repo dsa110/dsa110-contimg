@@ -68,22 +68,40 @@ def synthetic_images(tmp_path: Path) -> list[Path]:
 
 @pytest.fixture
 def test_database(tmp_path: Path) -> Path:
-    """Create a test database with unified schema including images table.
+    """Create a test database with images and mosaic tables.
     
-    Uses init_unified_db which creates the full schema including the images table.
-    The mosaic tables are also included in the unified schema.
+    Creates only the tables needed for mosaic tests:
+    - images: from minimal schema for storing image records
+    - mosaic_plans, mosaics, mosaic_qa: from mosaic/schema.py
+    
+    Note: We don't use the full unified schema because it has a different
+    'mosaics' table definition that conflicts with mosaic/schema.py.
     """
-    from dsa110_contimg.database.unified import init_unified_db, get_unified_schema
     from dsa110_contimg.mosaic.schema import ensure_mosaic_tables
     
     db_path = tmp_path / "test.sqlite3"
+    conn = sqlite3.connect(str(db_path))
     
-    # Create database with unified schema (includes images table)
-    db = init_unified_db(db_path)
+    # Create minimal images table needed for tests
+    conn.execute("""
+        CREATE TABLE IF NOT EXISTS images (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            path TEXT NOT NULL UNIQUE,
+            ms_path TEXT,
+            created_at INTEGER NOT NULL,
+            type TEXT,
+            noise_jy REAL,
+            center_ra_deg REAL,
+            center_dec_deg REAL
+        )
+    """)
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_images_created ON images(created_at)")
+    conn.execute("CREATE INDEX IF NOT EXISTS idx_images_type ON images(type)")
     
-    # Ensure mosaic tables exist (may already be in unified schema)
-    ensure_mosaic_tables(db.conn)
-    db.conn.commit()
+    # Create mosaic tables
+    ensure_mosaic_tables(conn)
+    conn.commit()
+    conn.close()
     
     return db_path
 
