@@ -1,17 +1,36 @@
 /**
  * Batch Operations Store Tests
  */
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { act, renderHook } from "@testing-library/react";
-import { useBatchStore } from "../batchStore";
+import { useBatchStore } from "./batchStore";
+import type { CreateBatchJobRequest } from "../types/batch";
+
+// Helper to create valid job request
+function createTestJobRequest(
+  overrides: Partial<CreateBatchJobRequest> = {}
+): CreateBatchJobRequest {
+  return {
+    operationType: "reimage",
+    name: "Test Job",
+    parameters: {
+      type: "reimage",
+      params: { robust: 0, cellSize: 2 },
+    },
+    resourceIds: ["img-1"],
+    resourceType: "image",
+    ...overrides,
+  };
+}
 
 // Reset store between tests
 beforeEach(() => {
   act(() => {
     useBatchStore.setState({
       jobs: [],
-      isLoading: false,
-      error: null,
+      filters: {},
+      selectedJobId: null,
+      isPanelOpen: false,
     });
   });
 });
@@ -23,79 +42,73 @@ describe("useBatchStore", () => {
       expect(result.current.jobs).toEqual([]);
     });
 
-    it("should not be loading by default", () => {
+    it("should have empty filters by default", () => {
       const { result } = renderHook(() => useBatchStore());
-      expect(result.current.isLoading).toBe(false);
+      expect(result.current.filters).toEqual({});
     });
 
-    it("should have no error by default", () => {
+    it("should have no selected job by default", () => {
       const { result } = renderHook(() => useBatchStore());
-      expect(result.current.error).toBeNull();
+      expect(result.current.selectedJobId).toBeNull();
     });
   });
 
-  describe("submitJob", () => {
-    it("should add a new job with pending status", async () => {
+  describe("createJob", () => {
+    it("should add a new job with pending status", () => {
       const { result } = renderHook(() => useBatchStore());
 
-      await act(async () => {
-        await result.current.submitJob({
-          type: "reimage",
-          params: { imageIds: ["img-1", "img-2"] },
-        });
+      act(() => {
+        result.current.createJob(createTestJobRequest());
       });
 
       expect(result.current.jobs).toHaveLength(1);
       expect(result.current.jobs[0].status).toBe("pending");
-      expect(result.current.jobs[0].type).toBe("reimage");
+      expect(result.current.jobs[0].operationType).toBe("reimage");
     });
 
-    it("should generate unique job IDs", async () => {
+    it("should generate unique job IDs", () => {
       const { result } = renderHook(() => useBatchStore());
 
-      await act(async () => {
-        await result.current.submitJob({
-          type: "reimage",
-          params: { imageIds: ["img-1"] },
-        });
-        await result.current.submitJob({
-          type: "export",
-          params: { format: "votable" },
-        });
+      act(() => {
+        result.current.createJob(createTestJobRequest({ name: "Job 1" }));
+        result.current.createJob(
+          createTestJobRequest({
+            name: "Job 2",
+            operationType: "export",
+            parameters: {
+              type: "export",
+              params: { format: "votable" },
+            },
+          })
+        );
       });
 
       expect(result.current.jobs[0].id).not.toBe(result.current.jobs[1].id);
     });
 
-    it("should set createdAt timestamp", async () => {
+    it("should set submittedAt timestamp", () => {
       const { result } = renderHook(() => useBatchStore());
 
       const before = new Date().toISOString();
 
-      await act(async () => {
-        await result.current.submitJob({
-          type: "reimage",
-          params: {},
-        });
+      act(() => {
+        result.current.createJob(createTestJobRequest());
       });
 
       const after = new Date().toISOString();
-      const createdAt = result.current.jobs[0].createdAt;
+      const submittedAt = result.current.jobs[0].submittedAt;
 
-      expect(createdAt >= before).toBe(true);
-      expect(createdAt <= after).toBe(true);
+      expect(submittedAt >= before).toBe(true);
+      expect(submittedAt <= after).toBe(true);
     });
   });
 
   describe("updateJobStatus", () => {
-    it("should update job status", async () => {
+    it("should update job status", () => {
       const { result } = renderHook(() => useBatchStore());
 
-      await act(async () => {
-        await result.current.submitJob({
-          type: "reimage",
-          params: {},
-        });
+      act(() => {
+        result.current.createJob(createTestJobRequest());
       });
 
       const jobId = result.current.jobs[0].id;
@@ -107,41 +120,56 @@ describe("useBatchStore", () => {
       expect(result.current.jobs[0].status).toBe("running");
     });
 
-    it("should update progress when provided", async () => {
+    it("should update error when provided", () => {
       const { result } = renderHook(() => useBatchStore());
 
-      await act(async () => {
-        await result.current.submitJob({
-          type: "reimage",
-          params: {},
-        });
+      act(() => {
+        result.current.createJob(createTestJobRequest());
       });
 
       const jobId = result.current.jobs[0].id;
 
       act(() => {
-        result.current.updateJobStatus(jobId, "running", 50);
+        result.current.updateJobStatus(jobId, "failed", "Connection timeout");
       });
 
-      expect(result.current.jobs[0].progress).toBe(50);
+      expect(result.current.jobs[0].status).toBe("failed");
+      expect(result.current.jobs[0].error).toBe("Connection timeout");
     });
   });
 
-  describe("cancelJob", () => {
-    it("should set job status to cancelled", async () => {
+  describe("updateJobProgress", () => {
+    it("should update job progress", () => {
       const { result } = renderHook(() => useBatchStore());
 
-      await act(async () => {
-        await result.current.submitJob({
-          type: "reimage",
-          params: {},
-        });
+      act(() => {
+        result.current.createJob(createTestJobRequest());
       });
 
       const jobId = result.current.jobs[0].id;
 
-      await act(async () => {
-        await result.current.cancelJob(jobId);
+      act(() => {
+        result.current.updateJobProgress(jobId, 50, 5, 1);
+      });
+
+      expect(result.current.jobs[0].progress).toBe(50);
+      expect(result.current.jobs[0].completedCount).toBe(5);
+      expect(result.current.jobs[0].failedCount).toBe(1);
+    });
+  });
+
+  describe("cancelJob", () => {
+    it("should set job status to cancelled", () => {
+      const { result } = renderHook(() => useBatchStore());
+
+      act(() => {
+        result.current.createJob(createTestJobRequest());
+      });
+
+      const jobId = result.current.jobs[0].id;
+
+      act(() => {
+        result.current.cancelJob(jobId);
       });
 
       expect(result.current.jobs[0].status).toBe("cancelled");
@@ -149,14 +177,11 @@ describe("useBatchStore", () => {
   });
 
   describe("removeJob", () => {
-    it("should remove a job from the list", async () => {
+    it("should remove a job from the list", () => {
       const { result } = renderHook(() => useBatchStore());
 
-      await act(async () => {
-        await result.current.submitJob({
-          type: "reimage",
-          params: {},
-        });
+      act(() => {
+        result.current.createJob(createTestJobRequest());
       });
 
       const jobId = result.current.jobs[0].id;
@@ -168,109 +193,154 @@ describe("useBatchStore", () => {
       expect(result.current.jobs).toHaveLength(0);
     });
 
-    it("should only remove the specified job", async () => {
+    it("should only remove the specified job", () => {
       const { result } = renderHook(() => useBatchStore());
 
-      await act(async () => {
-        await result.current.submitJob({
-          type: "reimage",
-          params: {},
-        });
-        await result.current.submitJob({
-          type: "export",
-          params: {},
-        });
+      // Create first job
+      act(() => {
+        result.current.createJob(createTestJobRequest({ name: "Job 1" }));
       });
-
       const firstJobId = result.current.jobs[0].id;
 
+      // Create second job (will be at index 0 since it's prepended)
+      act(() => {
+        result.current.createJob(
+          createTestJobRequest({
+            name: "Job 2",
+            operationType: "export",
+            parameters: {
+              type: "export",
+              params: { format: "votable" },
+            },
+          })
+        );
+      });
+
+      // Remove first job
       act(() => {
         result.current.removeJob(firstJobId);
       });
 
       expect(result.current.jobs).toHaveLength(1);
-      expect(result.current.jobs[0].type).toBe("export");
+      // The remaining job should be the export job (Job 2)
+      expect(result.current.jobs[0].operationType).toBe("export");
     });
   });
 
-  describe("clearCompletedJobs", () => {
-    it("should remove all completed jobs", async () => {
+  describe("clearCompleted", () => {
+    it("should remove all completed jobs", () => {
       const { result } = renderHook(() => useBatchStore());
 
-      await act(async () => {
-        await result.current.submitJob({ type: "reimage", params: {} });
-        await result.current.submitJob({ type: "export", params: {} });
+      act(() => {
+        result.current.createJob(createTestJobRequest({ name: "Job 1" }));
+      });
+      act(() => {
+        result.current.createJob(
+          createTestJobRequest({
+            name: "Job 2",
+            operationType: "export",
+            parameters: {
+              type: "export",
+              params: { format: "votable" },
+            },
+          })
+        );
+      });
+
+      // Mark first created job as completed (it's at index 1 after second job prepended)
+      act(() => {
+        result.current.updateJobStatus(result.current.jobs[1].id, "completed");
       });
 
       act(() => {
-        result.current.updateJobStatus(result.current.jobs[0].id, "completed");
-      });
-
-      act(() => {
-        result.current.clearCompletedJobs();
+        result.current.clearCompleted();
       });
 
       expect(result.current.jobs).toHaveLength(1);
       expect(result.current.jobs[0].status).not.toBe("completed");
     });
 
-    it("should also remove failed and cancelled jobs", async () => {
+    it("should also remove cancelled and partial jobs", () => {
       const { result } = renderHook(() => useBatchStore());
 
-      await act(async () => {
-        await result.current.submitJob({ type: "reimage", params: {} });
-        await result.current.submitJob({ type: "export", params: {} });
-        await result.current.submitJob({ type: "rating", params: {} });
-        await result.current.submitJob({ type: "reimage", params: {} });
+      // Create 4 jobs
+      act(() => {
+        result.current.createJob(createTestJobRequest({ name: "Job 1" }));
+      });
+      act(() => {
+        result.current.createJob(createTestJobRequest({ name: "Job 2" }));
+      });
+      act(() => {
+        result.current.createJob(createTestJobRequest({ name: "Job 3" }));
+      });
+      act(() => {
+        result.current.createJob(createTestJobRequest({ name: "Job 4" }));
+      });
+
+      // Jobs are in reverse order: [Job4, Job3, Job2, Job1]
+      // Mark statuses - note: clearCompleted removes completed, cancelled, partial (not failed)
+      act(() => {
+        result.current.updateJobStatus(result.current.jobs[3].id, "completed"); // Job1
+        result.current.updateJobStatus(result.current.jobs[2].id, "cancelled"); // Job2
+        result.current.updateJobStatus(result.current.jobs[1].id, "partial"); // Job3
+        // jobs[0] (Job4) remains pending
       });
 
       act(() => {
-        result.current.updateJobStatus(result.current.jobs[0].id, "completed");
-        result.current.updateJobStatus(result.current.jobs[1].id, "failed");
-        result.current.updateJobStatus(result.current.jobs[2].id, "cancelled");
-        // jobs[3] remains pending
+        result.current.clearCompleted();
       });
 
-      act(() => {
-        result.current.clearCompletedJobs();
-      });
-
+      // Only Job4 (pending) should remain
       expect(result.current.jobs).toHaveLength(1);
       expect(result.current.jobs[0].status).toBe("pending");
     });
   });
 
-  describe("getJobById", () => {
-    it("should return the job with matching ID", async () => {
+  describe("getJob", () => {
+    it("should return the job with matching ID", () => {
       const { result } = renderHook(() => useBatchStore());
 
-      await act(async () => {
-        await result.current.submitJob({ type: "reimage", params: {} });
-        await result.current.submitJob({ type: "export", params: {} });
+      act(() => {
+        result.current.createJob(createTestJobRequest({ name: "Job 1" }));
+      });
+      // Get the ID of the first job before creating second
+      const firstJobId = result.current.jobs[0].id;
+
+      act(() => {
+        result.current.createJob(
+          createTestJobRequest({
+            name: "Job 2",
+            operationType: "export",
+            parameters: {
+              type: "export",
+              params: { format: "votable" },
+            },
+          })
+        );
       });
 
-      const targetId = result.current.jobs[1].id;
-      const job = result.current.getJobById(targetId);
+      // Get the job by ID
+      const job = result.current.getJob(firstJobId);
 
-      expect(job?.id).toBe(targetId);
-      expect(job?.type).toBe("export");
+      expect(job?.id).toBe(firstJobId);
+      expect(job?.operationType).toBe("reimage");
     });
 
     it("should return undefined for non-existent ID", () => {
       const { result } = renderHook(() => useBatchStore());
-      const job = result.current.getJobById("non-existent");
+      const job = result.current.getJob("non-existent");
       expect(job).toBeUndefined();
     });
   });
 
-  describe("getJobsByStatus", () => {
-    it("should return jobs matching the status", async () => {
+  describe("getFilteredJobs", () => {
+    it("should return jobs matching the filter", () => {
       const { result } = renderHook(() => useBatchStore());
 
-      await act(async () => {
-        await result.current.submitJob({ type: "reimage", params: {} });
-        await result.current.submitJob({ type: "export", params: {} });
-        await result.current.submitJob({ type: "rating", params: {} });
+      act(() => {
+        result.current.createJob(createTestJobRequest({ name: "Job 1" }));
+        result.current.createJob(createTestJobRequest({ name: "Job 2" }));
+        result.current.createJob(createTestJobRequest({ name: "Job 3" }));
       });
 
       act(() => {
@@ -278,26 +348,49 @@ describe("useBatchStore", () => {
         result.current.updateJobStatus(result.current.jobs[1].id, "running");
       });
 
-      const runningJobs = result.current.getJobsByStatus("running");
-      expect(runningJobs).toHaveLength(2);
+      act(() => {
+        result.current.setFilters({ status: ["running"] });
+      });
+
+      const filteredJobs = result.current.getFilteredJobs();
+      expect(filteredJobs).toHaveLength(2);
+      expect(filteredJobs.every((j) => j.status === "running")).toBe(true);
     });
   });
 
-  describe("clearError", () => {
-    it("should clear the error state", () => {
+  describe("selectJob", () => {
+    it("should select a job", () => {
       const { result } = renderHook(() => useBatchStore());
 
       act(() => {
-        useBatchStore.setState({ error: "Test error" });
+        result.current.createJob(createTestJobRequest());
       });
 
-      expect(result.current.error).toBe("Test error");
+      const jobId = result.current.jobs[0].id;
 
       act(() => {
-        result.current.clearError();
+        result.current.selectJob(jobId);
       });
 
-      expect(result.current.error).toBeNull();
+      expect(result.current.selectedJobId).toBe(jobId);
+    });
+
+    it("should clear selection when null", () => {
+      const { result } = renderHook(() => useBatchStore());
+
+      act(() => {
+        result.current.createJob(createTestJobRequest());
+      });
+
+      act(() => {
+        result.current.selectJob(result.current.jobs[0].id);
+      });
+
+      act(() => {
+        result.current.selectJob(null);
+      });
+
+      expect(result.current.selectedJobId).toBeNull();
     });
   });
 });

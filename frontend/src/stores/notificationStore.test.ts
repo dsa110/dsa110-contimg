@@ -3,11 +3,23 @@
  */
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { act, renderHook } from "@testing-library/react";
-import { useNotificationStore } from "../notificationStore";
+import { useNotificationStore } from "./notificationStore";
+import type { NotificationPreferences } from "../types/notifications";
+import { DEFAULT_NOTIFICATION_PREFERENCES } from "../types/notifications";
 
 // Mock Date.now for consistent IDs
 const MOCK_TIMESTAMP = 1700000000000;
 let dateNowSpy: ReturnType<typeof vi.spyOn>;
+
+// Helper to create valid preferences
+function createTestPreferences(
+  overrides: Partial<NotificationPreferences> = {}
+): NotificationPreferences {
+  return {
+    ...DEFAULT_NOTIFICATION_PREFERENCES,
+    ...overrides,
+  };
+}
 
 beforeEach(() => {
   dateNowSpy = vi.spyOn(Date, "now").mockReturnValue(MOCK_TIMESTAMP);
@@ -15,12 +27,10 @@ beforeEach(() => {
   act(() => {
     useNotificationStore.setState({
       notifications: [],
-      preferences: {
-        enableDesktop: false,
-        enableSound: false,
-        minimumSeverity: "info",
-        mutedCategories: [],
-      },
+      preferences: createTestPreferences(),
+      filters: {},
+      isPanelOpen: false,
+      connectionStatus: "disconnected",
     });
   });
 });
@@ -38,8 +48,8 @@ describe("useNotificationStore", () => {
 
     it("should have default preferences", () => {
       const { result } = renderHook(() => useNotificationStore());
-      expect(result.current.preferences.enableDesktop).toBe(false);
-      expect(result.current.preferences.minimumSeverity).toBe("info");
+      expect(result.current.preferences.desktopEnabled).toBe(false);
+      expect(result.current.preferences.enabled).toBe(true);
     });
   });
 
@@ -153,12 +163,15 @@ describe("useNotificationStore", () => {
           severity: "info",
           category: "system",
         });
+      });
+
+      act(() => {
         dateNowSpy.mockReturnValue(MOCK_TIMESTAMP + 1);
         result.current.addNotification({
           title: "Second",
           message: "Second",
           severity: "warning",
-          category: "job",
+          category: "pipeline",
         });
       });
 
@@ -166,12 +179,14 @@ describe("useNotificationStore", () => {
         result.current.markAllAsRead();
       });
 
-      expect(result.current.notifications.every((n) => n.read)).toBe(true);
+      expect(
+        result.current.notifications.every((n) => n.read)
+      ).toBe(true);
     });
   });
 
-  describe("removeNotification", () => {
-    it("should remove a notification", () => {
+  describe("dismiss", () => {
+    it("should dismiss a notification", () => {
       const { result } = renderHook(() => useNotificationStore());
 
       act(() => {
@@ -186,10 +201,10 @@ describe("useNotificationStore", () => {
       const notificationId = result.current.notifications[0].id;
 
       act(() => {
-        result.current.removeNotification(notificationId);
+        result.current.dismiss(notificationId);
       });
 
-      expect(result.current.notifications).toHaveLength(0);
+      expect(result.current.notifications[0].dismissed).toBe(true);
     });
   });
 
@@ -205,6 +220,9 @@ describe("useNotificationStore", () => {
           severity: "info",
           category: "system",
         });
+      });
+
+      act(() => {
         dateNowSpy.mockReturnValue(MOCK_TIMESTAMP + 1);
         result.current.addNotification({
           title: "Second",
@@ -228,13 +246,11 @@ describe("useNotificationStore", () => {
 
       act(() => {
         result.current.updatePreferences({
-          enableDesktop: true,
-          minimumSeverity: "warning",
+          desktopEnabled: true,
         });
       });
 
-      expect(result.current.preferences.enableDesktop).toBe(true);
-      expect(result.current.preferences.minimumSeverity).toBe("warning");
+      expect(result.current.preferences.desktopEnabled).toBe(true);
     });
 
     it("should preserve other preferences when updating", () => {
@@ -242,16 +258,16 @@ describe("useNotificationStore", () => {
 
       act(() => {
         result.current.updatePreferences({
-          enableSound: true,
+          soundEnabled: true,
         });
       });
 
-      expect(result.current.preferences.enableDesktop).toBe(false);
-      expect(result.current.preferences.enableSound).toBe(true);
+      expect(result.current.preferences.desktopEnabled).toBe(false);
+      expect(result.current.preferences.soundEnabled).toBe(true);
     });
   });
 
-  describe("getUnreadCount", () => {
+  describe("getSummary", () => {
     it("should return count of unread notifications", () => {
       const { result } = renderHook(() => useNotificationStore());
 
@@ -263,6 +279,9 @@ describe("useNotificationStore", () => {
           severity: "info",
           category: "system",
         });
+      });
+
+      act(() => {
         dateNowSpy.mockReturnValue(MOCK_TIMESTAMP + 1);
         result.current.addNotification({
           title: "Second",
@@ -272,18 +291,18 @@ describe("useNotificationStore", () => {
         });
       });
 
-      expect(result.current.getUnreadCount()).toBe(2);
+      expect(result.current.getSummary().unreadCount).toBe(2);
 
       act(() => {
         result.current.markAsRead(result.current.notifications[0].id);
       });
 
-      expect(result.current.getUnreadCount()).toBe(1);
+      expect(result.current.getSummary().unreadCount).toBe(1);
     });
   });
 
-  describe("getNotificationsByCategory", () => {
-    it("should return notifications filtered by category", () => {
+  describe("getFilteredNotifications", () => {
+    it("should return notifications filtered by filters", () => {
       const { result } = renderHook(() => useNotificationStore());
 
       act(() => {
@@ -294,13 +313,19 @@ describe("useNotificationStore", () => {
           severity: "info",
           category: "system",
         });
+      });
+
+      act(() => {
         dateNowSpy.mockReturnValue(MOCK_TIMESTAMP + 1);
         result.current.addNotification({
-          title: "Job",
-          message: "Job message",
+          title: "Pipeline",
+          message: "Pipeline message",
           severity: "info",
-          category: "job",
+          category: "pipeline",
         });
+      });
+
+      act(() => {
         dateNowSpy.mockReturnValue(MOCK_TIMESTAMP + 2);
         result.current.addNotification({
           title: "Another System",
@@ -310,47 +335,36 @@ describe("useNotificationStore", () => {
         });
       });
 
-      const systemNotifications =
-        result.current.getNotificationsByCategory("system");
-      expect(systemNotifications).toHaveLength(2);
-      expect(systemNotifications.every((n) => n.category === "system")).toBe(
-        true
-      );
+      // Set filter to show only system notifications
+      act(() => {
+        result.current.setFilters({ categories: ["system"] });
+      });
+
+      const filteredNotifications = result.current.getFilteredNotifications();
+      expect(filteredNotifications).toHaveLength(2);
+      expect(
+        filteredNotifications.every((n) => n.category === "system")
+      ).toBe(true);
     });
   });
 
-  describe("getNotificationsBySeverity", () => {
-    it("should return notifications filtered by severity", () => {
+  describe("togglePanel", () => {
+    it("should toggle panel open state", () => {
       const { result } = renderHook(() => useNotificationStore());
 
+      expect(result.current.isPanelOpen).toBe(false);
+
       act(() => {
-        dateNowSpy.mockReturnValue(MOCK_TIMESTAMP);
-        result.current.addNotification({
-          title: "Info",
-          message: "Info message",
-          severity: "info",
-          category: "system",
-        });
-        dateNowSpy.mockReturnValue(MOCK_TIMESTAMP + 1);
-        result.current.addNotification({
-          title: "Warning",
-          message: "Warning message",
-          severity: "warning",
-          category: "system",
-        });
-        dateNowSpy.mockReturnValue(MOCK_TIMESTAMP + 2);
-        result.current.addNotification({
-          title: "Error",
-          message: "Error message",
-          severity: "error",
-          category: "system",
-        });
+        result.current.togglePanel();
       });
 
-      const warningNotifications =
-        result.current.getNotificationsBySeverity("warning");
-      expect(warningNotifications).toHaveLength(1);
-      expect(warningNotifications[0].severity).toBe("warning");
+      expect(result.current.isPanelOpen).toBe(true);
+
+      act(() => {
+        result.current.togglePanel();
+      });
+
+      expect(result.current.isPanelOpen).toBe(false);
     });
   });
 });

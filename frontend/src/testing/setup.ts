@@ -24,6 +24,35 @@ import "@testing-library/jest-dom/vitest";
  * in *.test.ts or *.test.tsx files, they can be safely ignored.
  */
 
+// Mock localStorage and sessionStorage for Zustand persist middleware
+const createStorageMock = (): Storage => {
+  let store: Record<string, string> = {};
+  return {
+    getItem: (key: string) => store[key] || null,
+    setItem: (key: string, value: string) => {
+      store[key] = value;
+    },
+    removeItem: (key: string) => {
+      delete store[key];
+    },
+    clear: () => {
+      store = {};
+    },
+    key: (index: number) => Object.keys(store)[index] || null,
+    get length() {
+      return Object.keys(store).length;
+    },
+  };
+};
+
+Object.defineProperty(window, "localStorage", {
+  value: createStorageMock(),
+});
+
+Object.defineProperty(window, "sessionStorage", {
+  value: createStorageMock(),
+});
+
 // Mock ResizeObserver which is not available in jsdom
 global.ResizeObserver = class ResizeObserver {
   observe() {}
