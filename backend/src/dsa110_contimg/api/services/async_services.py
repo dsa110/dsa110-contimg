@@ -8,6 +8,7 @@ for non-blocking database operations.
 from __future__ import annotations
 
 import os
+import re
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, List, TYPE_CHECKING
@@ -351,10 +352,8 @@ class AsyncSourceService:
 class AsyncJobService:
     """Async business logic for pipeline job operations."""
     
-    LOG_PATHS = [
-        "/data/dsa110-contimg/state/logs",
-        "/data/dsa110-contimg/logs",
-    ]
+    LOG_ROOTS = _parse_root_list("DSA110_ALLOWED_LOG_ROOTS", DEFAULT_LOG_ROOTS)
+    RUN_ID_PATTERN = re.compile(r"^[A-Za-z0-9._-]+$")
     
     def __init__(self, repository: "AsyncJobRepository"):
         self.repo = repository
@@ -396,14 +395,30 @@ class AsyncJobService:
     
     def find_log_file(self, run_id: str) -> Optional[Path]:
         """Find log file for a job, checking multiple paths."""
-        for log_dir in self.LOG_PATHS:
-            log_path = Path(log_dir) / f"{run_id}.log"
-            if log_path.exists():
-                return log_path
+        if not self._is_safe_run_id(run_id):
+            return None
+        
+        for log_root in self.LOG_ROOTS:
+            candidate = (log_root / f"{run_id}.log").expanduser().resolve()
+            try:
+                if not candidate.is_relative_to(log_root):
+                    continue
+            except ValueError:
+                continue
+            
+            if candidate.exists():
+                return candidate
         return None
     
     def read_log_tail(self, run_id: str, tail: int = 100) -> dict:
         """Read the last N lines of a job's log file."""
+        if not self._is_safe_run_id(run_id):
+            return {
+                "run_id": run_id,
+                "logs": [],
+                "error": "Invalid run_id format",
+            }
+        
         log_path = self.find_log_file(run_id)
         
         if not log_path:
@@ -427,6 +442,11 @@ class AsyncJobService:
                 "logs": [],
                 "error": f"Failed to read log file: {str(e)}",
             }
+    
+    @classmethod
+    def _is_safe_run_id(cls, run_id: str) -> bool:
+        """Ensure run IDs do not contain path separators or unsafe chars."""
+        return bool(run_id) and cls.RUN_ID_PATTERN.match(run_id) is not None
     
     def build_job_summary(self, job: "JobRecord") -> dict:
         """Build summary information for a job."""
