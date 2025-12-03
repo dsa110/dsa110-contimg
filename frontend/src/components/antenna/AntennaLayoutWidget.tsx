@@ -52,7 +52,7 @@ export function useAntennaPositions(msPath: string | undefined) {
     queryFn: async () => {
       const encodedPath = encodeURIComponent(msPath ?? "");
       const response = await apiClient.get<AntennaLayoutResponse>(
-        `/ms/${encodedPath}/antennas`
+        `/v1/ms/${encodedPath}/antennas`
       );
       return response.data;
     },

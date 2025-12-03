@@ -14,7 +14,7 @@ import type {
   RetentionExecution,
 } from "../types/retention";
 
-const BASE_PATH = "/retention";
+const BASE_PATH = "/v1/retention";
 
 /**
  * Fetch all retention policies.
@@ -57,7 +57,9 @@ export async function updateRetentionPolicy(
  * Delete a policy.
  */
 export async function deleteRetentionPolicy(policyId: string): Promise<void> {
-  await apiClient.delete(`${BASE_PATH}/policies/${encodeURIComponent(policyId)}`);
+  await apiClient.delete(
+    `${BASE_PATH}/policies/${encodeURIComponent(policyId)}`
+  );
 }
 
 /**

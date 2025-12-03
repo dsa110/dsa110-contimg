@@ -13,7 +13,7 @@ import type {
   CalibrationComparison,
 } from "../types/calibration";
 
-const BASE_PATH = "/api/v1/health/calibration";
+const BASE_PATH = "/v1/health/calibration";
 
 // =============================================================================
 // Query Keys

@@ -15,7 +15,7 @@ import type {
   CreateSilenceInput,
 } from "@/types/alerts";
 
-const BASE_PATH = "/api/v1/alert-policies";
+const BASE_PATH = "/v1/alert-policies";
 
 // =============================================================================
 // Query Keys
@@ -48,7 +48,9 @@ export interface AlertPolicyListQuery {
 export async function getAlertPolicies(
   params?: AlertPolicyListQuery
 ): Promise<AlertPolicyListResponse> {
-  const response = await apiClient.get<AlertPolicyListResponse>(BASE_PATH, { params });
+  const response = await apiClient.get<AlertPolicyListResponse>(BASE_PATH, {
+    params,
+  });
   return response.data;
 }
 
@@ -57,7 +59,9 @@ export async function getAlertPolicy(id: string): Promise<AlertPolicy> {
   return response.data;
 }
 
-export async function createAlertPolicy(input: AlertPolicyInput): Promise<AlertPolicy> {
+export async function createAlertPolicy(
+  input: AlertPolicyInput
+): Promise<AlertPolicy> {
   const response = await apiClient.post<AlertPolicy>(BASE_PATH, input);
   return response.data;
 }
@@ -66,7 +70,10 @@ export async function updateAlertPolicy(
   id: string,
   input: AlertPolicyInput
 ): Promise<AlertPolicy> {
-  const response = await apiClient.put<AlertPolicy>(`${BASE_PATH}/${id}`, input);
+  const response = await apiClient.put<AlertPolicy>(
+    `${BASE_PATH}/${id}`,
+    input
+  );
   return response.data;
 }
 
@@ -74,8 +81,14 @@ export async function deleteAlertPolicy(id: string): Promise<void> {
   await apiClient.delete(`${BASE_PATH}/${id}`);
 }
 
-export async function toggleAlertPolicy(id: string, enabled: boolean): Promise<AlertPolicy> {
-  const response = await apiClient.post<AlertPolicy>(`${BASE_PATH}/${id}/toggle`, { enabled });
+export async function toggleAlertPolicy(
+  id: string,
+  enabled: boolean
+): Promise<AlertPolicy> {
+  const response = await apiClient.post<AlertPolicy>(
+    `${BASE_PATH}/${id}/toggle`,
+    { enabled }
+  );
   return response.data;
 }
 
@@ -89,8 +102,12 @@ export async function dryRunAlertPolicy(
   return response.data;
 }
 
-export async function getAlertSilences(policyId?: string): Promise<AlertSilence[]> {
-  const url = policyId ? `${BASE_PATH}/${policyId}/silences` : `${BASE_PATH}/silences`;
+export async function getAlertSilences(
+  policyId?: string
+): Promise<AlertSilence[]> {
+  const url = policyId
+    ? `${BASE_PATH}/${policyId}/silences`
+    : `${BASE_PATH}/silences`;
   const response = await apiClient.get<AlertSilence[]>(url);
   return response.data;
 }
@@ -121,7 +138,8 @@ export function useAlertPolicies(params?: AlertPolicyListQuery) {
 export function useAlertPolicy(id?: string) {
   return useQuery({
     queryKey: alertPolicyKeys.detail(id ?? "unknown"),
-    queryFn: () => (id ? getAlertPolicy(id) : Promise.reject(new Error("Missing ID"))),
+    queryFn: () =>
+      id ? getAlertPolicy(id) : Promise.reject(new Error("Missing ID")),
     enabled: Boolean(id),
   });
 }
@@ -142,7 +160,9 @@ export function useUpdateAlertPolicy() {
     mutationFn: ({ id, input }: { id: string; input: AlertPolicyInput }) =>
       updateAlertPolicy(id, input),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: alertPolicyKeys.detail(data.id) });
+      queryClient.invalidateQueries({
+        queryKey: alertPolicyKeys.detail(data.id),
+      });
       queryClient.invalidateQueries({ queryKey: alertPolicyKeys.all });
     },
   });
@@ -164,7 +184,9 @@ export function useToggleAlertPolicy() {
     mutationFn: ({ id, enabled }: { id: string; enabled: boolean }) =>
       toggleAlertPolicy(id, enabled),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: alertPolicyKeys.detail(data.id) });
+      queryClient.invalidateQueries({
+        queryKey: alertPolicyKeys.detail(data.id),
+      });
       queryClient.invalidateQueries({ queryKey: alertPolicyKeys.all });
     },
   });
@@ -188,10 +210,17 @@ export function useAlertSilences(policyId?: string) {
 export function useCreateAlertSilence() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ policyId, input }: { policyId: string; input: CreateSilenceInput }) =>
-      createAlertSilence(policyId, input),
+    mutationFn: ({
+      policyId,
+      input,
+    }: {
+      policyId: string;
+      input: CreateSilenceInput;
+    }) => createAlertSilence(policyId, input),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: alertPolicyKeys.silences(data.policy_id) });
+      queryClient.invalidateQueries({
+        queryKey: alertPolicyKeys.silences(data.policy_id),
+      });
       queryClient.invalidateQueries({ queryKey: alertPolicyKeys.all });
     },
   });

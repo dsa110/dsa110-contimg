@@ -25,7 +25,7 @@ import type {
 // Base Path
 // =============================================================================
 
-const BASE_PATH = "/absurd";
+const BASE_PATH = "/v1/absurd";
 
 // =============================================================================
 // Task Operations
@@ -200,10 +200,10 @@ export async function listWorkflows(params?: {
   limit?: number;
   offset?: number;
 }): Promise<{ workflows: Workflow[]; total: number }> {
-  const response = await apiClient.get<{ workflows: Workflow[]; total: number }>(
-    `${BASE_PATH}/workflows`,
-    { params }
-  );
+  const response = await apiClient.get<{
+    workflows: Workflow[];
+    total: number;
+  }>(`${BASE_PATH}/workflows`, { params });
   return response.data;
 }
 

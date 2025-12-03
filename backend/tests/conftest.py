@@ -13,6 +13,10 @@ Python's atexit sequence. We work around this by:
 2. Using os._exit(0) after tests pass to skip Python's normal shutdown
 
 This approach ensures tests pass cleanly without the spurious C++ error.
+
+Additionally, CASA writes log files (casa-YYYYMMDD-HHMMSS.log) to the current
+working directory. We redirect these to a centralized logs directory to prevent
+test runs from polluting the workspace root.
 """
 
 import gc
@@ -20,10 +24,24 @@ import os
 import sys
 import pytest
 import importlib
+from pathlib import Path
 from typing import Generator, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from fastapi.testclient import TestClient
+
+# --- CASA Log Redirection ---
+# CASA writes log files to CWD. Redirect to centralized logs directory
+# BEFORE any CASA modules are imported (which happens during test collection).
+_CASA_LOG_DIR = Path("/data/dsa110-contimg/state/logs/casa")
+_ORIGINAL_CWD = os.getcwd()
+
+try:
+    _CASA_LOG_DIR.mkdir(parents=True, exist_ok=True)
+    os.chdir(_CASA_LOG_DIR)
+except (OSError, PermissionError):
+    # Best effort - if we can't change to the log dir, logs will go to CWD
+    pass
 
 
 def pytest_configure(config):

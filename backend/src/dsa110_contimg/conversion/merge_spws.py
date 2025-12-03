@@ -20,7 +20,26 @@ ensure_casa_path()
 import casacore.tables as casatables  # type: ignore[import]
 
 table = casatables.table  # noqa: N816
-from casatasks import mstransform  # type: ignore[import]
+
+# DEFERRED IMPORT: casatasks.mstransform import is deferred to avoid CASA log
+# file creation at module import time. Import inside functions with casa_log_environment.
+_mstransform = None
+
+
+def _get_mstransform():
+    """Lazily import mstransform with CASA log environment protection."""
+    global _mstransform
+    if _mstransform is None:
+        try:
+            from dsa110_contimg.utils.tempdirs import casa_log_environment
+            with casa_log_environment():
+                from casatasks import mstransform  # type: ignore[import]
+                _mstransform = mstransform
+        except ImportError:
+            from casatasks import mstransform  # type: ignore[import]
+            _mstransform = mstransform
+    return _mstransform
+
 
 from dsa110_contimg.utils.runtime_safeguards import require_casa6_python
 

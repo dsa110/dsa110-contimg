@@ -6,7 +6,7 @@ import os
 import shutil
 import subprocess
 import time
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 
 # Initialize CASA environment before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
@@ -19,7 +19,57 @@ import numpy as np  # noqa: E402
 
 # Back-compat symbol for tests that patch dsa110_contimg.imaging.cli_imaging.table
 table = casatables.table  # noqa: N816 (kept for test patchability)
-from casatasks import exportfits, tclean  # type: ignore[import]  # noqa: E402
+
+# DEFERRED IMPORTS: casatasks imports are deferred to avoid CASA log file creation
+# at module import time. CASA writes log files to CWD when casatasks is imported.
+# Import these inside functions that need them, wrapped in casa_log_environment().
+# from casatasks import exportfits, tclean  # MOVED TO _get_casatasks()
+
+if TYPE_CHECKING:
+    from casatasks import exportfits as _exportfits_type, tclean as _tclean_type
+
+# Lazy-loaded casatasks references
+_casatasks_loaded = False
+_exportfits = None
+_tclean = None
+
+
+def _get_casatasks():
+    """Lazily import casatasks with CASA log environment protection.
+    
+    CASA writes log files to CWD when casatasks is first imported.
+    This function defers that import and wraps it in the log environment
+    context manager to ensure logs go to the correct directory.
+    """
+    global _casatasks_loaded, _exportfits, _tclean
+    if not _casatasks_loaded:
+        try:
+            from dsa110_contimg.utils.tempdirs import casa_log_environment
+            with casa_log_environment():
+                from casatasks import exportfits, tclean  # type: ignore[import]
+                _exportfits = exportfits
+                _tclean = tclean
+        except ImportError:
+            # Fallback: import without log environment protection
+            from casatasks import exportfits, tclean  # type: ignore[import]
+            _exportfits = exportfits
+            _tclean = tclean
+        _casatasks_loaded = True
+    return _exportfits, _tclean
+
+
+# For backwards compatibility, provide module-level names that trigger lazy load
+def exportfits(*args, **kwargs):
+    """Wrapper for casatasks.exportfits with deferred import."""
+    _ef, _ = _get_casatasks()
+    return _ef(*args, **kwargs)
+
+
+def tclean(*args, **kwargs):
+    """Wrapper for casatasks.tclean with deferred import."""
+    _, _tc = _get_casatasks()
+    return _tc(*args, **kwargs)
+
 
 try:
     from casatools import msmetadata as _msmd  # type: ignore[import]

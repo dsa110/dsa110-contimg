@@ -16,7 +16,7 @@ import type {
   AlertsResponse,
 } from "../types/health";
 
-const BASE_PATH = "/api/v1/health";
+const BASE_PATH = "/v1/health";
 
 // =============================================================================
 // Query Keys
@@ -28,12 +28,17 @@ export const healthKeys = {
   validityWindows: (mjd?: number) =>
     [...healthKeys.all, "validity-windows", { mjd }] as const,
   validityTimeline: (hoursBack?: number, hoursForward?: number) =>
-    [...healthKeys.all, "validity-timeline", { hoursBack, hoursForward }] as const,
+    [
+      ...healthKeys.all,
+      "validity-timeline",
+      { hoursBack, hoursForward },
+    ] as const,
   fluxMonitoring: () => [...healthKeys.all, "flux-monitoring"] as const,
   fluxHistory: (calibrator: string, days?: number) =>
     [...healthKeys.all, "flux-history", calibrator, { days }] as const,
   pointing: () => [...healthKeys.all, "pointing"] as const,
-  alerts: (params?: AlertsQueryParams) => [...healthKeys.all, "alerts", params] as const,
+  alerts: (params?: AlertsQueryParams) =>
+    [...healthKeys.all, "alerts", params] as const,
 };
 
 // =============================================================================
@@ -54,14 +59,18 @@ interface AlertsQueryParams {
  * Get system health report.
  */
 export async function getSystemHealth(): Promise<SystemHealthReport> {
-  const response = await apiClient.get<SystemHealthReport>(`${BASE_PATH}/system`);
+  const response = await apiClient.get<SystemHealthReport>(
+    `${BASE_PATH}/system`
+  );
   return response.data;
 }
 
 /**
  * Get active validity windows.
  */
-export async function getValidityWindows(mjd?: number): Promise<ActiveValidityWindows> {
+export async function getValidityWindows(
+  mjd?: number
+): Promise<ActiveValidityWindows> {
   const params = mjd ? { mjd } : {};
   const response = await apiClient.get<ActiveValidityWindows>(
     `${BASE_PATH}/validity-windows`,
@@ -88,14 +97,19 @@ export async function getValidityTimeline(
  * Get flux monitoring summary.
  */
 export async function getFluxMonitoring(): Promise<FluxMonitoringSummary> {
-  const response = await apiClient.get<FluxMonitoringSummary>(`${BASE_PATH}/flux-monitoring`);
+  const response = await apiClient.get<FluxMonitoringSummary>(
+    `${BASE_PATH}/flux-monitoring`
+  );
   return response.data;
 }
 
 /**
  * Get flux history for a calibrator.
  */
-export async function getFluxHistory(calibrator: string, days = 30): Promise<FluxHistory> {
+export async function getFluxHistory(
+  calibrator: string,
+  days = 30
+): Promise<FluxHistory> {
   const response = await apiClient.get<FluxHistory>(
     `${BASE_PATH}/flux-monitoring/${encodeURIComponent(calibrator)}/history`,
     { params: { days } }
@@ -114,8 +128,12 @@ export async function getPointingStatus(): Promise<PointingStatus> {
 /**
  * Get monitoring alerts.
  */
-export async function getAlerts(params?: AlertsQueryParams): Promise<AlertsResponse> {
-  const response = await apiClient.get<AlertsResponse>(`${BASE_PATH}/alerts`, { params });
+export async function getAlerts(
+  params?: AlertsQueryParams
+): Promise<AlertsResponse> {
+  const response = await apiClient.get<AlertsResponse>(`${BASE_PATH}/alerts`, {
+    params,
+  });
   return response.data;
 }
 
@@ -208,7 +226,7 @@ export function usePointingStatus(refetchInterval = 15000) {
 
 /**
  * Hook to fetch monitoring alerts.
- * 
+ *
  * @param params - Optional query parameters
  *   - severity: Filter by severity (info, warning, critical)
  *   - acknowledged: Filter by acknowledgement status (true/false)
@@ -229,7 +247,7 @@ export function useAlerts(params?: AlertsQueryParams, refetchInterval = 30000) {
  */
 export function useAcknowledgeAlert() {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: acknowledgeAlert,
     onSuccess: () => {

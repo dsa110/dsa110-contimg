@@ -87,12 +87,15 @@ export function useImageDetail(imageId: string | undefined) {
 
     try {
       const encodedId = encodeURIComponent(imageId);
-      await apiClient.delete(`/images/${encodedId}`, noRetry());
+      await apiClient.delete(`/v1/images/${encodedId}`, noRetry());
       // Navigate to images list after successful delete
       window.location.href = ROUTES.IMAGES.LIST;
     } catch (e) {
       const message = e instanceof Error ? e.message : "Failed to delete image";
-      logger.error("Failed to delete image", e instanceof Error ? e : { error: e });
+      logger.error(
+        "Failed to delete image",
+        e instanceof Error ? e : { error: e }
+      );
       setDeleteState((s) => ({ ...s, isDeleting: false, error: message }));
     }
   }, [imageId]);
@@ -101,18 +104,25 @@ export function useImageDetail(imageId: string | undefined) {
    * Submit a rating for this image.
    */
   const submitRating = useCallback(
-    async (rating: { confidence: "true" | "false" | "unsure"; tagId: string; notes: string }) => {
+    async (rating: {
+      confidence: "true" | "false" | "unsure";
+      tagId: string;
+      notes: string;
+    }) => {
       if (!imageId) return;
 
       try {
-        await apiClient.post(`/images/${imageId}/rating`, {
+        await apiClient.post(`/v1/images/${imageId}/rating`, {
           itemId: imageId,
           ...rating,
         });
         // Refresh image data to show updated rating
         refetch();
       } catch (e) {
-        logger.error("Failed to submit rating", e instanceof Error ? e : { error: e });
+        logger.error(
+          "Failed to submit rating",
+          e instanceof Error ? e : { error: e }
+        );
         throw e;
       }
     },

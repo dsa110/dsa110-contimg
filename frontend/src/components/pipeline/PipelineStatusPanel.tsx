@@ -157,7 +157,7 @@ const EMPTY_COUNTS: StageStatusCounts = {
  */
 async function fetchPipelineStatus(): Promise<PipelineStatusResponse> {
   const response = await apiClient.get<PipelineStatusResponse>(
-    "/absurd/status"
+    "/v1/absurd/status"
   );
   return response.data;
 }
