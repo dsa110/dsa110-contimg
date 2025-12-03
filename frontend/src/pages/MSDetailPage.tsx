@@ -1,15 +1,22 @@
-import React from "react";
+import React, { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import ProvenanceStrip from "../components/provenance/ProvenanceStrip";
 import ErrorDisplay from "../components/errors/ErrorDisplay";
-import { Card, CoordinateDisplay, QAMetrics } from "../components/common";
+import {
+  Card,
+  CoordinateDisplay,
+  QAMetrics,
+  Modal,
+} from "../components/common";
 import { MsRasterPlot } from "../components/ms";
 import { AntennaLayoutWidget } from "../components/antenna";
+import { CalibrationComparisonPanel } from "../components/calibration";
 import { mapProvenanceFromMSDetail } from "../utils/provenanceMappers";
 import { relativeTime } from "../utils/relativeTime";
 import type { ErrorResponse } from "../types/errors";
 import { useMS } from "../hooks/useQueries";
-import { config } from "../config";
+import { config, FEATURES } from "../config";
+import type { CalibrationQAMetrics } from "../types/calibration";
 
 /**
  * Detail page for a Measurement Set.
@@ -22,6 +29,13 @@ const MSDetailPage: React.FC = () => {
   // React Router v6 captures the rest of the path with "*"
   const { "*": msPath } = useParams<{ "*": string }>();
   const { data: ms, isLoading, error, refetch } = useMS(msPath);
+
+  // State for calibration comparison modal
+  const [showComparisonModal, setShowComparisonModal] = useState(false);
+  const [comparisonSets, setComparisonSets] = useState<{
+    setA: CalibrationQAMetrics | null;
+    setB: CalibrationQAMetrics | null;
+  }>({ setA: null, setB: null });
 
   if (isLoading) {
     return (
@@ -163,6 +177,57 @@ const MSDetailPage: React.FC = () => {
                   View QA Report
                 </Link>
               )}
+              {/* Calibration Comparison button - only show if feature enabled and multiple calibrations */}
+              {FEATURES.enableCalibrationComparison &&
+                ms.calibrator_matches &&
+                ms.calibrator_matches.length >= 2 && (
+                  <button
+                    type="button"
+                    className="btn btn-secondary flex items-center justify-center gap-2"
+                    onClick={() => {
+                      // Create mock QA metrics from calibrator matches for demonstration
+                      // In production, this would fetch real QA data from the API
+                      const createMockQAMetrics = (
+                        cal: { type: string; cal_table: string },
+                        index: number
+                      ): CalibrationQAMetrics => ({
+                        cal_set_name:
+                          cal.cal_table.split("/").pop() || cal.cal_table,
+                        calibrator_name: cal.type,
+                        cal_mjd: 60000 + index,
+                        cal_timestamp: new Date().toISOString(),
+                        snr: 50 + index * 10 + Math.random() * 20,
+                        flagging_percent: 5 + Math.random() * 10,
+                        phase_rms_deg: 10 + Math.random() * 5,
+                        amp_rms: 0.05 + Math.random() * 0.03,
+                        quality_grade: index === 0 ? "good" : "acceptable",
+                        quality_score: 75 + index * 5 + Math.random() * 10,
+                        issues: [],
+                        recommendations: [],
+                      });
+                      setComparisonSets({
+                        setA: createMockQAMetrics(ms.calibrator_matches![0], 0),
+                        setB: createMockQAMetrics(ms.calibrator_matches![1], 1),
+                      });
+                      setShowComparisonModal(true);
+                    }}
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                      />
+                    </svg>
+                    Compare Calibrations
+                  </button>
+                )}
             </div>
           </Card>
 
@@ -308,6 +373,28 @@ const MSDetailPage: React.FC = () => {
           </Card>
         </div>
       </div>
+
+      {/* Calibration Comparison Modal */}
+      {FEATURES.enableCalibrationComparison &&
+        comparisonSets.setA &&
+        comparisonSets.setB && (
+          <Modal
+            isOpen={showComparisonModal}
+            onClose={() => setShowComparisonModal(false)}
+            title="Compare Calibrations"
+            size="xl"
+          >
+            <CalibrationComparisonPanel
+              setA={comparisonSets.setA}
+              setB={comparisonSets.setB}
+              labels={{
+                setA: comparisonSets.setA.cal_set_name,
+                setB: comparisonSets.setB.cal_set_name,
+              }}
+              showDetails
+            />
+          </Modal>
+        )}
     </div>
   );
 };

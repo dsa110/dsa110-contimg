@@ -56,3 +56,14 @@ export {
   useReplayDeadLetterTask,
   usePruneTasks,
 } from "./useAbsurdQueries";
+
+// Calibration comparison hooks
+export {
+  calibrationComparisonKeys,
+  useCalibrationQA,
+  useCalibrationComparison,
+  useRecentCalibrations,
+  calculateComparisonDeltas,
+  isCalibrationImproved,
+} from "./useCalibrationComparison";
+export type { CalibrationComparisonResult } from "./useCalibrationComparison";

@@ -69,6 +69,10 @@ export const FEATURES = {
 
   /** Enable experimental SAMP integration */
   enableSAMP: import.meta.env.VITE_ENABLE_SAMP === "true",
+
+  /** Enable calibration comparison feature */
+  enableCalibrationComparison:
+    import.meta.env.VITE_ENABLE_CALIBRATION_COMPARISON !== "false",
 } as const;
 
 /**

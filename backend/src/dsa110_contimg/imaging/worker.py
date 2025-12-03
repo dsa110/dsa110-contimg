@@ -87,7 +87,7 @@ def _get_wavelength_from_ms(ms_path: str) -> float:
         with casatables.table(f"{ms_path}/SPECTRAL_WINDOW", readonly=True) as spw:
             ref_freq = spw.getcol("REF_FREQUENCY")[0]  # Hz
             return 299792458.0 / ref_freq  # meters
-    except (OSError, KeyError):
+    except (OSError, KeyError, RuntimeError):
         # Default to 1.4 GHz (21cm line)
         return 0.2142
 

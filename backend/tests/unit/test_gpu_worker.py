@@ -24,9 +24,10 @@ class TestWorkerGPUHelpers:
         """Test wavelength default when SPECTRAL_WINDOW unavailable."""
         from dsa110_contimg.imaging.worker import _get_wavelength_from_ms
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            # Non-existent MS should return default wavelength
-            wavelength = _get_wavelength_from_ms(f"{tmpdir}/nonexistent.ms")
+        # Mock casacore to raise OSError for non-existent file
+        with mock.patch("casacore.tables.table") as mock_table:
+            mock_table.side_effect = RuntimeError("Table does not exist")
+            wavelength = _get_wavelength_from_ms("/fake/nonexistent.ms")
             assert wavelength == pytest.approx(0.2142, rel=0.01)
 
     def test_average_polarizations_dual_pol(self):
@@ -175,9 +176,15 @@ class TestApplyAndImage:
 class TestProcessOnce:
     """Tests for process_once function."""
 
-    def test_process_once_creates_output_dir(self):
+    @mock.patch("dsa110_contimg.imaging.worker.ensure_products_db")
+    def test_process_once_creates_output_dir(self, mock_ensure_db):
         """Test that process_once creates output directory."""
         from dsa110_contimg.imaging.worker import process_once
+
+        # Mock database connection
+        mock_conn = mock.MagicMock()
+        mock_conn.execute.return_value.fetchone.return_value = None
+        mock_ensure_db.return_value = mock_conn
 
         with tempfile.TemporaryDirectory() as tmpdir:
             ms_dir = Path(tmpdir) / "ms_input"
