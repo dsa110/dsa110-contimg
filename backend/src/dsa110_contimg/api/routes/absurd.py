@@ -27,9 +27,14 @@ from dsa110_contimg.absurd import AbsurdClient, AbsurdConfig
 from dsa110_contimg.absurd.monitoring import AbsurdMonitor, TaskMetrics
 from dsa110_contimg.api.websocket import manager
 
+from ..auth import require_write_access
+
 logger = logging.getLogger(__name__)
 
-router = APIRouter(tags=["absurd"])
+router = APIRouter(
+    tags=["absurd"],
+    dependencies=[Depends(require_write_access)],
+)
 
 # Global client instance (initialized on startup)
 _client: Optional[AbsurdClient] = None

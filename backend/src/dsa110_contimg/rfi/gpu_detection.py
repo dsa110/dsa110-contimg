@@ -13,16 +13,15 @@ CuPy's ElementwiseKernel provides similar performance with better compatibility.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Optional, Tuple
 
 import numpy as np
 
 from dsa110_contimg.utils.gpu_safety import (
     check_system_memory_available,
     safe_gpu_context,
-    estimate_visibility_memory_gb,
     initialize_gpu_safety,
 )
 

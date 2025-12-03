@@ -465,10 +465,8 @@ def create_app() -> FastAPI:
         if request.url.path in ("/api/health", "/metrics"):
             return await call_next(request)
         
-        # Get client IP (handle proxies)
-        client_ip = request.headers.get("X-Forwarded-For", "").split(",")[0].strip()
-        if not client_ip:
-            client_ip = request.client.host if request.client else "0.0.0.0"
+        # Get client IP (handle proxies via trusted list)
+        client_ip = get_client_ip(request)
         
         if not is_ip_allowed(client_ip, allowed_networks, special_hosts):
             return JSONResponse(

@@ -6,7 +6,6 @@ and verifies the detection logic works correctly.
 """
 
 import sys
-from typing import NamedTuple
 from unittest.mock import MagicMock, patch
 
 import numpy as np
@@ -170,7 +169,6 @@ class TestModuleImports:
 
     def test_module_imports(self):
         """Test that the module can be imported."""
-        from dsa110_contimg import rfi
         from dsa110_contimg.rfi import (
             gpu_rfi_detection,
             RFIDetectionResult,
