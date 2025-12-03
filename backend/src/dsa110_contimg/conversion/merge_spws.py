@@ -133,7 +133,14 @@ def merge_spws(
             interpolation=interpolation,
         )
 
-    mstransform(**kwargs)
+    # Use deferred import with CASA log environment protection
+    mstransform = _get_mstransform()
+    try:
+        from dsa110_contimg.utils.tempdirs import casa_log_environment
+        with casa_log_environment():
+            mstransform(**kwargs)
+    except ImportError:
+        mstransform(**kwargs)
 
     if not os.path.exists(ms_out):
         raise RuntimeError(f"mstransform failed to create output MS: {ms_out}")

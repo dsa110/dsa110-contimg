@@ -3,7 +3,25 @@ import logging
 import os
 from typing import Any, Dict, List, Optional, Union
 
-from casatasks import gaincal as casa_gaincal  # type: ignore[import]
+# DEFERRED IMPORT: casatasks.gaincal import is deferred to avoid CASA log
+# file creation at module import time. Import inside functions with casa_log_environment.
+_casa_gaincal = None
+
+
+def _get_gaincal():
+    """Lazily import gaincal with CASA log environment protection."""
+    global _casa_gaincal
+    if _casa_gaincal is None:
+        try:
+            from dsa110_contimg.utils.tempdirs import casa_log_environment
+            with casa_log_environment():
+                from casatasks import gaincal  # type: ignore[import]
+                _casa_gaincal = gaincal
+        except ImportError:
+            from casatasks import gaincal  # type: ignore[import]
+            _casa_gaincal = gaincal
+    return _casa_gaincal
+
 
 from dsa110_contimg.calibration.validate import (
     validate_caltables_for_use,
@@ -23,6 +41,21 @@ logger = logging.getLogger(__name__)
 import casacore.tables as _casatables  # type: ignore
 
 table = _casatables.table  # noqa: N816
+
+
+def _call_gaincal(**kwargs):
+    """Call casa_gaincal with CASA log environment protection.
+    
+    This wrapper ensures CASA log files are written to the designated
+    logs directory rather than the current working directory.
+    """
+    gaincal = _get_gaincal()
+    try:
+        from dsa110_contimg.utils.tempdirs import casa_log_environment
+        with casa_log_environment():
+            return gaincal(**kwargs)
+    except ImportError:
+        return gaincal(**kwargs)
 
 
 def _get_caltable_spw_count(caltable_path: str) -> Optional[int]:
@@ -619,7 +652,7 @@ def solve_delay(
             if uvrange:
                 kwargs["uvrange"] = uvrange
                 logger.debug(f"Using uvrange filter: {uvrange}")
-            casa_gaincal(**kwargs)
+            _call_gaincal(**kwargs)
             # PRECONDITION CHECK: Verify K-calibration solve completed successfully
             # This ensures we follow "measure twice, cut once" - verify solutions exist
             # immediately after solve completes, before proceeding.
@@ -651,7 +684,7 @@ def solve_delay(
                 )
                 if uvrange:
                     kwargs["uvrange"] = uvrange
-                casa_gaincal(**kwargs)
+                _call_gaincal(**kwargs)
                 # PRECONDITION CHECK: Verify K-calibration solve completed successfully
                 # This ensures we follow "measure twice, cut once" - verify solutions exist
                 # immediately after solve completes, before proceeding.
@@ -692,7 +725,7 @@ def solve_delay(
             )
             if uvrange:
                 kwargs["uvrange"] = uvrange
-            casa_gaincal(**kwargs)
+            _call_gaincal(**kwargs)
             # PRECONDITION CHECK: Verify fast K-calibration solve completed successfully
             # This ensures we follow "measure twice, cut once" - verify solutions exist
             # immediately after solve completes, before proceeding.
@@ -906,7 +939,7 @@ def solve_prebandpass_phase(
     if minblperant is not None:
         kwargs["minblperant"] = minblperant
 
-    casa_gaincal(**kwargs)
+    _call_gaincal(**kwargs)
     _validate_solve_success(caltable_name, refant=refant)
     # Track provenance after successful solve
     _track_calibration_provenance(
@@ -1332,7 +1365,7 @@ def solve_gains(
         kwargs["uvrange"] = uvrange
     if spwmap:
         kwargs["spwmap"] = spwmap
-    casa_gaincal(**kwargs)
+    _call_gaincal(**kwargs)
     # PRECONDITION CHECK: Verify phase-only gain solve completed successfully
     # This ensures we follow "measure twice, cut once" - verify solutions exist
     # immediately after solve completes, before proceeding.
@@ -1373,7 +1406,7 @@ def solve_gains(
         # Note: spwmap applies to bandpass tables in gaintable2; the gain table doesn't need it
         if spwmap:
             kwargs["spwmap"] = spwmap
-        casa_gaincal(**kwargs)
+        _call_gaincal(**kwargs)
         # PRECONDITION CHECK: Verify short-timescale phase-only gain solve completed successfully
         # This ensures we follow "measure twice, cut once" - verify solutions exist
         # immediately after solve completes, before proceeding.

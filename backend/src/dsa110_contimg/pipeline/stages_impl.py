@@ -1114,10 +1114,16 @@ class CalibrationSolveStage(PipelineStage):
 
             # Flag autocorrelations (after RFI flagging)
             if flag_autocorr:
-                from casatasks import flagdata
-
-                logger.info("Flagging autocorrelations...")
-                flagdata(vis=str(ms_path), autocorr=True, flagbackup=False)
+                try:
+                    from dsa110_contimg.utils.tempdirs import casa_log_environment
+                    with casa_log_environment():
+                        from casatasks import flagdata
+                        logger.info("Flagging autocorrelations...")
+                        flagdata(vis=str(ms_path), autocorr=True, flagbackup=False)
+                except ImportError:
+                    from casatasks import flagdata
+                    logger.info("Flagging autocorrelations...")
+                    flagdata(vis=str(ms_path), autocorr=True, flagbackup=False)
                 logger.info(":check_mark: Autocorrelations flagged")
 
         else:

@@ -3,6 +3,10 @@
  *
  * Provides useQuery and useMutation hooks for all ABSURD API operations
  * with automatic cache invalidation and optimistic updates.
+ *
+ * Note: ABSURD is an optional service. When not running, these queries
+ * will fail silently without polluting the console with rapid retries.
+ * The queries use retry: false and long staleTime to minimize 404 noise.
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -100,7 +104,9 @@ export function useTasks(params?: {
   return useQuery<TaskListResponse>({
     queryKey: absurdQueryKeys.taskList(params),
     queryFn: () => listTasks(params),
-    refetchInterval: 5000, // Auto-refresh every 5s
+    refetchInterval: 30000, // Refresh every 30s (ABSURD may not be running)
+    retry: false, // Don't retry on failure - ABSURD is optional
+    staleTime: 60000, // Consider data stale after 1 minute
   });
 }
 
@@ -112,8 +118,9 @@ export function useTask(taskId: string | undefined) {
     queryKey: absurdQueryKeys.task(taskId ?? ""),
     queryFn: () => getTask(taskId!),
     enabled: !!taskId,
+    retry: false,
     refetchInterval: (query) =>
-      query.state.data?.status === "claimed" ? 2000 : 10000, // Faster refresh for running tasks
+      query.state.data?.status === "claimed" ? 5000 : 30000, // Faster refresh for running tasks
   });
 }
 
@@ -176,6 +183,8 @@ export function useQueues() {
   return useQuery<string[]>({
     queryKey: absurdQueryKeys.queueList(),
     queryFn: listQueues,
+    retry: false,
+    staleTime: 60000,
   });
 }
 
@@ -187,7 +196,9 @@ export function useQueueStats(queueName: string | undefined) {
     queryKey: absurdQueryKeys.queueStats(queueName ?? ""),
     queryFn: () => getQueueStats(queueName!),
     enabled: !!queueName,
-    refetchInterval: 5000,
+    retry: false,
+    refetchInterval: 30000,
+    staleTime: 60000,
   });
 }
 
@@ -202,7 +213,9 @@ export function useWorkers() {
   return useQuery<WorkerListResponse>({
     queryKey: absurdQueryKeys.workerList(),
     queryFn: listWorkers,
-    refetchInterval: 10000,
+    retry: false,
+    refetchInterval: 30000,
+    staleTime: 60000,
   });
 }
 
@@ -214,6 +227,8 @@ export function useWorker(workerId: string | undefined) {
     queryKey: absurdQueryKeys.worker(workerId ?? ""),
     queryFn: () => getWorker(workerId!),
     enabled: !!workerId,
+    retry: false,
+    staleTime: 60000,
   });
 }
 
@@ -224,7 +239,9 @@ export function useWorkerMetrics() {
   return useQuery<WorkerMetrics>({
     queryKey: absurdQueryKeys.workerMetrics(),
     queryFn: getWorkerMetrics,
-    refetchInterval: 10000,
+    retry: false,
+    refetchInterval: 30000,
+    staleTime: 60000,
   });
 }
 
@@ -239,7 +256,9 @@ export function useAbsurdMetrics() {
   return useQuery<AbsurdMetrics>({
     queryKey: absurdQueryKeys.metrics(),
     queryFn: getMetrics,
-    refetchInterval: 10000,
+    retry: false,
+    refetchInterval: 30000,
+    staleTime: 60000,
   });
 }
 
@@ -250,7 +269,9 @@ export function useAbsurdHealth() {
   return useQuery<AbsurdHealth>({
     queryKey: absurdQueryKeys.health(),
     queryFn: getHealth,
-    refetchInterval: 30000, // Less frequent for health
+    retry: false,
+    refetchInterval: 60000, // Less frequent for health
+    staleTime: 120000,
   });
 }
 
@@ -269,7 +290,9 @@ export function useWorkflows(params?: {
   return useQuery<{ workflows: Workflow[]; total: number }>({
     queryKey: absurdQueryKeys.workflowList(params),
     queryFn: () => listWorkflows(params),
-    refetchInterval: 5000,
+    retry: false,
+    refetchInterval: 30000,
+    staleTime: 60000,
   });
 }
 
@@ -281,8 +304,10 @@ export function useWorkflow(workflowId: string | undefined) {
     queryKey: absurdQueryKeys.workflow(workflowId ?? ""),
     queryFn: () => getWorkflow(workflowId!),
     enabled: !!workflowId,
+    retry: false,
     refetchInterval: (query) =>
-      query.state.data?.status === "running" ? 2000 : 10000,
+      query.state.data?.status === "running" ? 5000 : 30000,
+    staleTime: 60000,
   });
 }
 

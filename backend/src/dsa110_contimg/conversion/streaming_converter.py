@@ -112,7 +112,26 @@ ensure_casa_path()
 import casacore.tables as casatables  # noqa
 
 table = casatables.table  # noqa: N816
-from casatasks import concat as casa_concat  # noqa
+
+# DEFERRED IMPORT: casatasks.concat import is deferred to avoid CASA log
+# file creation at module import time. Import inside functions with casa_log_environment.
+_casa_concat = None
+
+
+def _get_casa_concat():
+    """Lazily import casa concat with CASA log environment protection."""
+    global _casa_concat
+    if _casa_concat is None:
+        try:
+            from dsa110_contimg.utils.tempdirs import casa_log_environment
+            with casa_log_environment():
+                from casatasks import concat  # noqa
+                _casa_concat = concat
+        except ImportError:
+            from casatasks import concat  # noqa
+            _casa_concat = concat
+    return _casa_concat
+
 
 # NOTE: calibration.applycal and calibration.calibration imports are done lazily
 # inside functions to avoid circular imports (calibration -> conversion -> streaming_converter)
