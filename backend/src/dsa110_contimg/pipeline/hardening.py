@@ -53,6 +53,9 @@ __all__ = [
     "get_active_applylist_bidirectional",
     "DEFAULT_CAL_VALIDITY_HOURS",
     "DEFAULT_CAL_VALIDITY_DAYS",
+    # Issue #2: Calibration interpolation between sets
+    "InterpolatedCalibration",
+    "get_interpolated_calibration",
     # Issue #3: Calibrator redundancy  
     "CalibratorCandidate",
     "find_backup_calibrators",
@@ -280,6 +283,244 @@ def get_active_applylist_bidirectional(
     
     raise ValueError(
         f"No calibration found within ±{validity_hours:.1f}h of MJD {target_mjd:.6f}"
+    )
+
+
+# =============================================================================
+# Issue #2: Calibration Interpolation Between Sets
+# =============================================================================
+
+@dataclass
+class InterpolatedCalibration:
+    """Result of interpolated calibration selection.
+    
+    When a target observation falls between two calibration observations,
+    this provides both sets with appropriate temporal weights for combination.
+    
+    The weight_before value indicates how much weight to give the "before"
+    calibration set (weight_after = 1.0 - weight_before). A weight of 0.5
+    means the target is equidistant from both calibrations.
+    """
+    
+    # Before calibration (earlier in time)
+    set_before: Optional[str]
+    paths_before: List[str]
+    mid_mjd_before: Optional[float]
+    
+    # After calibration (later in time)  
+    set_after: Optional[str]
+    paths_after: List[str]
+    mid_mjd_after: Optional[float]
+    
+    # Interpolation weight for "before" set (0.0-1.0)
+    # weight_after = 1.0 - weight_before
+    weight_before: float
+    
+    # Metadata
+    target_mjd: float
+    selection_method: str  # 'single', 'interpolated', 'extrapolated'
+    hours_from_before: Optional[float] = None
+    hours_from_after: Optional[float] = None
+    warnings: List[str] = field(default_factory=list)
+    
+    @property
+    def weight_after(self) -> float:
+        """Weight for the 'after' calibration set."""
+        return 1.0 - self.weight_before
+    
+    @property
+    def is_interpolated(self) -> bool:
+        """True if this is a true interpolation (both before and after sets)."""
+        return self.set_before is not None and self.set_after is not None
+    
+    @property
+    def effective_paths(self) -> List[str]:
+        """Return the paths to use for application.
+        
+        If interpolation is available, returns paths_before (the primary).
+        The caller should handle weight-based combination separately.
+        For single-set selection, returns the available paths.
+        """
+        if self.paths_before:
+            return self.paths_before
+        return self.paths_after
+
+
+def get_interpolated_calibration(
+    db_path: Path,
+    target_mjd: float,
+    *,
+    validity_hours: float = DEFAULT_CAL_VALIDITY_HOURS,
+    min_interpolation_gap_hours: float = 1.0,
+) -> InterpolatedCalibration:
+    """
+    Find calibration sets for interpolation across calibrator observations.
+    
+    This fixes Issue #2: The pipeline only interpolates within a single
+    calibration table's time axis, not between different calibration
+    observations (e.g., yesterday's 3pm calibrator and today's 3pm calibrator).
+    
+    Strategy:
+    1. Find the nearest calibration set BEFORE target_mjd
+    2. Find the nearest calibration set AFTER target_mjd
+    3. Calculate interpolation weights based on temporal distance
+    4. Return both sets with weights for the caller to combine
+    
+    If only one set is found (extrapolation case), returns that set
+    with weight=1.0.
+    
+    Args:
+        db_path: Path to calibration registry database
+        target_mjd: Target observation MJD
+        validity_hours: Maximum time offset for calibration validity
+        min_interpolation_gap_hours: Minimum gap between sets to use interpolation
+            (if sets are very close, just use the nearest one)
+        
+    Returns:
+        InterpolatedCalibration with both sets and weights
+        
+    Raises:
+        ValueError: If no suitable calibration found within validity window
+    """
+    from dsa110_contimg.database.unified import ensure_db
+    
+    conn = ensure_db(db_path)
+    validity_days = validity_hours / 24.0
+    search_min = target_mjd - validity_days
+    search_max = target_mjd + validity_days
+    
+    # Find calibration set BEFORE target
+    before_rows = conn.execute(
+        """
+        SELECT DISTINCT set_name,
+               (valid_start_mjd + COALESCE(valid_end_mjd, valid_start_mjd)) / 2.0 AS mid_mjd,
+               MAX(created_at) AS newest
+        FROM caltables
+        WHERE status = 'active'
+          AND valid_start_mjd IS NOT NULL
+          AND ((valid_start_mjd + COALESCE(valid_end_mjd, valid_start_mjd)) / 2.0) <= ?
+          AND ((valid_start_mjd + COALESCE(valid_end_mjd, valid_start_mjd)) / 2.0) >= ?
+        GROUP BY set_name
+        ORDER BY mid_mjd DESC, newest DESC
+        LIMIT 1
+        """,
+        (target_mjd, search_min),
+    ).fetchall()
+    
+    # Find calibration set AFTER target
+    after_rows = conn.execute(
+        """
+        SELECT DISTINCT set_name,
+               (valid_start_mjd + COALESCE(valid_end_mjd, valid_start_mjd)) / 2.0 AS mid_mjd,
+               MAX(created_at) AS newest
+        FROM caltables
+        WHERE status = 'active'
+          AND valid_start_mjd IS NOT NULL
+          AND ((valid_start_mjd + COALESCE(valid_end_mjd, valid_start_mjd)) / 2.0) > ?
+          AND ((valid_start_mjd + COALESCE(valid_end_mjd, valid_start_mjd)) / 2.0) <= ?
+        GROUP BY set_name
+        ORDER BY mid_mjd ASC, newest DESC
+        LIMIT 1
+        """,
+        (target_mjd, search_max),
+    ).fetchall()
+    
+    set_before: Optional[str] = None
+    mid_mjd_before: Optional[float] = None
+    paths_before: List[str] = []
+    
+    set_after: Optional[str] = None
+    mid_mjd_after: Optional[float] = None
+    paths_after: List[str] = []
+    
+    if before_rows:
+        set_before = before_rows[0][0]
+        mid_mjd_before = before_rows[0][1]
+        paths_before = _get_set_paths(conn, set_before)
+    
+    if after_rows:
+        set_after = after_rows[0][0]
+        mid_mjd_after = after_rows[0][1]
+        paths_after = _get_set_paths(conn, set_after)
+    
+    # Calculate time offsets
+    hours_from_before: Optional[float] = None
+    hours_from_after: Optional[float] = None
+    
+    if mid_mjd_before is not None:
+        hours_from_before = (target_mjd - mid_mjd_before) * 24.0
+    if mid_mjd_after is not None:
+        hours_from_after = (mid_mjd_after - target_mjd) * 24.0
+    
+    # Determine selection method and calculate weights
+    warnings: List[str] = []
+    
+    if set_before and set_after:
+        # Both found - calculate interpolation weights
+        total_gap_hours = (mid_mjd_after - mid_mjd_before) * 24.0  # type: ignore
+        
+        if total_gap_hours < min_interpolation_gap_hours:
+            # Gap too small - just use nearest
+            if hours_from_before <= hours_from_after:  # type: ignore
+                weight_before = 1.0
+                selection_method = 'single'
+            else:
+                weight_before = 0.0
+                selection_method = 'single'
+        else:
+            # True interpolation
+            # Weight inversely proportional to distance
+            # If target is at mid_mjd_before, weight_before=1.0
+            # If target is at mid_mjd_after, weight_before=0.0
+            weight_before = hours_from_after / total_gap_hours  # type: ignore
+            selection_method = 'interpolated'
+            
+            # Warn if gap is large
+            if total_gap_hours > 24.0:
+                warnings.append(
+                    f"Large gap between calibrations: {total_gap_hours:.1f}h. "
+                    f"Interpolation quality may be degraded."
+                )
+    
+    elif set_before:
+        # Only before found - extrapolation forward
+        weight_before = 1.0
+        selection_method = 'extrapolated'
+        if hours_from_before is not None and hours_from_before > validity_hours / 2:
+            warnings.append(
+                f"Extrapolating {hours_from_before:.1f}h forward from calibration. "
+                f"Consider observing a calibrator."
+            )
+    
+    elif set_after:
+        # Only after found - extrapolation backward
+        weight_before = 0.0
+        selection_method = 'extrapolated'
+        if hours_from_after is not None and hours_from_after > validity_hours / 2:
+            warnings.append(
+                f"Extrapolating {hours_from_after:.1f}h backward from calibration. "
+                f"Consider observing a calibrator."
+            )
+    
+    else:
+        # No calibration found
+        raise ValueError(
+            f"No calibration found within ±{validity_hours:.1f}h of MJD {target_mjd:.6f}"
+        )
+    
+    return InterpolatedCalibration(
+        set_before=set_before,
+        paths_before=paths_before,
+        mid_mjd_before=mid_mjd_before,
+        set_after=set_after,
+        paths_after=paths_after,
+        mid_mjd_after=mid_mjd_after,
+        weight_before=weight_before,
+        target_mjd=target_mjd,
+        selection_method=selection_method,
+        hours_from_before=hours_from_before,
+        hours_from_after=hours_from_after,
+        warnings=warnings,
     )
 
 

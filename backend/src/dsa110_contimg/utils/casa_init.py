@@ -38,6 +38,46 @@ warnings.filterwarnings(
 # These are informational warnings about data characteristics, not code errors.
 
 
+# =============================================================================
+# CASA Log Directory Setup (MUST happen before any CASA imports)
+# =============================================================================
+
+def _setup_casa_log_directory_early() -> Path:
+    """Set up CASA log file directory BEFORE any CASA imports.
+    
+    CASA writes log files (casa-YYYYMMDD-HHMMSS.log) to the current working
+    directory when any CASA module is first imported. This function changes
+    CWD to the dedicated logs directory so any log files end up there.
+    
+    This is an internal function called at module import time.
+    """
+    # Default path - avoid importing settings to prevent circular imports
+    log_dir = Path("/data/dsa110-contimg/state/logs/casa")
+    
+    try:
+        log_dir.mkdir(parents=True, exist_ok=True)
+        
+        # Set CASALOGFILE - some CASA versions may respect this
+        os.environ["CASALOGFILE"] = str(log_dir / "casa.log")
+        
+        # Change CWD to logs directory so CASA writes logs there
+        # This is the most reliable way to redirect CASA logs
+        os.chdir(log_dir)
+        
+        return log_dir
+    except (OSError, PermissionError):
+        # If we can't create/access the directory, logs will go to CWD
+        return Path.cwd()
+
+
+# CRITICAL: Set up log directory IMMEDIATELY before any CASA imports can happen
+_casa_log_dir_early = _setup_casa_log_directory_early()
+
+
+# =============================================================================
+# CASA Path Setup
+# =============================================================================
+
 def ensure_casa_path() -> None:
     """
     Set CASAPATH environment variable and ensure casacore can find data tables.
@@ -144,12 +184,8 @@ def ensure_casa_path() -> None:
             pass
 
 
-# Auto-initialize when module is imported
-ensure_casa_path()
-
-
 def setup_casa_log_directory() -> Path:
-    """Set up CASA log file directory.
+    """Set up CASA log file directory (public API).
     
     CASA writes log files (casa-YYYYMMDD-HHMMSS.log) to the current working
     directory when any CASA module is first imported. This function:
@@ -161,7 +197,9 @@ def setup_casa_log_directory() -> Path:
     Returns the logs directory path. The caller is responsible for restoring
     CWD if needed (though for log redirection, we typically don't restore).
     
-    This should be called BEFORE any casatasks/casatools imports.
+    Note: This is called automatically at module import time via
+    _setup_casa_log_directory_early(). This public function is provided
+    for cases where you need to re-run the setup or get the log directory path.
     """
     # Use centralized settings if available, otherwise use default path
     try:
@@ -244,6 +282,5 @@ def cleanup_stray_casa_logs(
     return found_logs
 
 
-# Also set up CASA log directory at module import time
-# This ensures logs go to the right place even before any CASA imports
-_casa_log_dir = setup_casa_log_directory()
+# Initialize CASA path setup (log directory was already set up at the top of the file)
+ensure_casa_path()

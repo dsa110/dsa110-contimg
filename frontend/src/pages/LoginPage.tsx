@@ -55,7 +55,14 @@ export default function LoginPage() {
 
   // Redirect if already authenticated
   useEffect(() => {
+    console.log(
+      "[LOGIN_PAGE] useEffect triggered - isAuthenticated:",
+      isAuthenticated,
+      "from:",
+      from
+    );
     if (isAuthenticated) {
+      console.log("[LOGIN_PAGE] Navigating to:", from);
       navigate(from, { replace: true });
     }
   }, [isAuthenticated, navigate, from]);
@@ -71,6 +78,7 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    console.log("[LOGIN_PAGE] handleSubmit called");
 
     // Validate inputs
     if (!username.trim()) {
@@ -83,9 +91,12 @@ export default function LoginPage() {
     }
 
     try {
+      console.log("[LOGIN_PAGE] Calling login() with:", username.trim());
       await login({ username: username.trim(), password, rememberMe });
+      console.log("[LOGIN_PAGE] login() returned successfully");
       // Navigation happens via the useEffect when isAuthenticated changes
-    } catch {
+    } catch (err) {
+      console.error("[LOGIN_PAGE] login() threw error:", err);
       // Error is handled by the store
     }
   };

@@ -84,6 +84,7 @@
     "msw": "^2.12.3",
     "openapi-typescript": "^7.10.1",
     "postcss": "^8.5.6",
+    "puppeteer": "^24.32.0",
     "storybook": "^10.1.2",
     "tailwindcss": "^3.4.18",
     "vite": "^7.2.4",

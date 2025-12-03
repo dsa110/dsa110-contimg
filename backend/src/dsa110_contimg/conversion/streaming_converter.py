@@ -2085,28 +2085,102 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                     except (OSError, RuntimeError, KeyError, ValueError):
                         pass
 
-                applylist = []
-                try:
-                    # Issue #1 & #2: Using enhanced get_active_applylist with bidirectional
-                    # validity and temporal interpolation (implemented in unified.py)
-                    applylist = get_active_applylist(
-                        Path(args.registry_db),
-                        (float(mid_mjd) if mid_mjd is not None else time.time() / 86400.0),
-                        bidirectional=True,  # Issue #1: ±12hr instead of forward-only
-                        validity_hours=12.0,  # Issue #1: Default validity window
-                    )
-                except (sqlite3.Error, ValueError, OSError):
-                    applylist = []
-
+                # Issue #2: Try interpolated calibration first, then fall back to
+                # single-set selection via get_active_applylist
                 cal_applied = 0
-                if applylist:
+                use_interpolation = getattr(args, 'use_interpolated_cal', True)
+                
+                if use_interpolation and mid_mjd is not None:
                     try:
-                        # Lazy import to avoid circular import
-                        from dsa110_contimg.calibration.applycal import apply_to_target
-                        apply_to_target(ms_path, field="", gaintables=applylist, calwt=True)
-                        cal_applied = 1
-                    except (RuntimeError, OSError):
-                        log.warning("applycal failed for %s", ms_path, exc_info=True)
+                        # Issue #2: Get interpolated calibration between sets
+                        from dsa110_contimg.pipeline.hardening import (
+                            get_interpolated_calibration,
+                        )
+                        from dsa110_contimg.calibration.applycal import (
+                            apply_interpolated_calibration,
+                        )
+                        
+                        interp_cal = get_interpolated_calibration(
+                            Path(args.registry_db),
+                            float(mid_mjd),
+                            validity_hours=12.0,
+                        )
+                        
+                        if interp_cal.is_interpolated:
+                            # True interpolation between two calibration sets
+                            log.info(
+                                "Issue #2: Applying interpolated calibration "
+                                "(before=%.1f%%, after=%.1f%%) for %s",
+                                interp_cal.weight_before * 100,
+                                interp_cal.weight_after * 100,
+                                ms_path,
+                            )
+                            for warn in interp_cal.warnings:
+                                log.warning("Calibration interpolation: %s", warn)
+                            
+                            apply_interpolated_calibration(
+                                ms_path,
+                                field="",
+                                paths_before=interp_cal.paths_before,
+                                paths_after=interp_cal.paths_after,
+                                weight_before=interp_cal.weight_before,
+                                calwt=True,
+                            )
+                            cal_applied = 1
+                        elif interp_cal.effective_paths:
+                            # Single set (extrapolation) - use standard apply
+                            log.info(
+                                "Issue #2: Using %s calibration (no interpolation "
+                                "available) for %s",
+                                interp_cal.selection_method,
+                                ms_path,
+                            )
+                            from dsa110_contimg.calibration.applycal import (
+                                apply_to_target,
+                            )
+                            apply_to_target(
+                                ms_path,
+                                field="",
+                                gaintables=interp_cal.effective_paths,
+                                calwt=True,
+                            )
+                            cal_applied = 1
+                    except (sqlite3.Error, ValueError, OSError, ImportError) as e:
+                        log.debug(
+                            "Interpolated calibration not available: %s. "
+                            "Falling back to single-set selection.",
+                            e,
+                        )
+                
+                # Fallback: standard single-set selection (Issue #1)
+                if not cal_applied:
+                    applylist = []
+                    try:
+                        # Issue #1: Using bidirectional get_active_applylist
+                        applylist = get_active_applylist(
+                            Path(args.registry_db),
+                            (float(mid_mjd) if mid_mjd is not None
+                             else time.time() / 86400.0),
+                            bidirectional=True,  # Issue #1: ±12hr
+                            validity_hours=12.0,
+                        )
+                    except (sqlite3.Error, ValueError, OSError):
+                        applylist = []
+
+                    if applylist:
+                        try:
+                            # Lazy import to avoid circular import
+                            from dsa110_contimg.calibration.applycal import (
+                                apply_to_target,
+                            )
+                            apply_to_target(
+                                ms_path, field="", gaintables=applylist, calwt=True
+                            )
+                            cal_applied = 1
+                        except (RuntimeError, OSError):
+                            log.warning(
+                                "applycal failed for %s", ms_path, exc_info=True
+                            )
 
                 # Standard tier imaging (production quality)
                 # Note: Data is always reordered for correct multi-SPW processing

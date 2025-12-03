@@ -451,10 +451,7 @@ def check_performance_threshold(
 # Ensure unbuffered output on import
 ensure_unbuffered_output()
 
-# Warn if not in casa6 environment (but don't fail)
-if not check_casa6_python():
-    warnings.warn(
-        f"Not running in casa6 Python environment. Current: {sys.executable}. "
-        f"Some functionality may not work correctly.",
-        RuntimeWarning,
-    )
+# NOTE: We no longer call check_casa6_python() at module import time.
+# This avoids triggering casatools import (and CASA log file creation)
+# before the log directory is properly set up. The check is performed
+# lazily when @require_casa6_python decorated functions are called.

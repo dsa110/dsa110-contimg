@@ -203,9 +203,17 @@ export const useAuthStore = create<AuthStore>()(
 
       // Actions
       login: async (credentials: LoginCredentials) => {
+        console.log("[AUTH_STORE] login() called with:", credentials.username);
         set({ isLoading: true, error: null });
         try {
+          console.log("[AUTH_STORE] Calling apiLogin...");
           const { user, tokens } = await apiLogin(credentials);
+          console.log(
+            "[AUTH_STORE] apiLogin returned user:",
+            user.username,
+            "tokens present:",
+            !!tokens.accessToken
+          );
           set({
             user,
             tokens,
@@ -213,7 +221,9 @@ export const useAuthStore = create<AuthStore>()(
             isLoading: false,
             error: null,
           });
+          console.log("[AUTH_STORE] State updated - isAuthenticated: true");
         } catch (error) {
+          console.error("[AUTH_STORE] login() error:", error);
           set({
             user: null,
             tokens: null,
