@@ -38,6 +38,24 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# --- CASA log directory setup ---
+# Ensure CASA logs go to centralized directory, not CWD
+# This must happen before any casatasks/casatools import (including deferred ones)
+import os as _os
+try:
+    from pathlib import Path as _Path
+    _REPO_ROOT = _Path(__file__).resolve().parents[2]
+    _sys_path_entry = str(_REPO_ROOT / 'backend' / 'src')
+    if _sys_path_entry not in sys.path:
+        sys.path.insert(0, _sys_path_entry)
+    from dsa110_contimg.utils.tempdirs import derive_casa_log_dir
+    _casa_log_dir = derive_casa_log_dir()
+    _os.makedirs(str(_casa_log_dir), exist_ok=True)
+    _os.chdir(str(_casa_log_dir))
+except (ImportError, OSError):
+    pass  # Best effort - CASA logs may go to CWD
+# --- End CASA log directory setup ---
+
 
 @dataclass
 class TimingResult:
@@ -305,25 +323,6 @@ def time_calibration(ms_path: Path) -> List[TimingResult]:
             # Fall back to setjy if populate_model_from_catalog fails
             logger.warning(f"populate_model_from_catalog failed: {e}, trying setjy")
             try:
-
-# --- CASA log directory setup ---
-# Ensure CASA logs go to centralized directory, not CWD
-import os as _os
-try:
-    from pathlib import Path as _Path
-    _REPO_ROOT = _Path(__file__).resolve().parents[2]
-    _sys_path_entry = str(_REPO_ROOT / 'backend' / 'src')
-    import sys as _sys
-    if _sys_path_entry not in _sys.path:
-        _sys.path.insert(0, _sys_path_entry)
-    from dsa110_contimg.utils.tempdirs import derive_casa_log_dir
-    _casa_log_dir = derive_casa_log_dir()
-    _os.makedirs(str(_casa_log_dir), exist_ok=True)
-    _os.chdir(str(_casa_log_dir))
-except (ImportError, OSError):
-    pass  # Best effort - CASA logs may go to CWD
-# --- End CASA log directory setup ---
-
                 from casatasks import setjy
                 setjy(vis=ms_str, field=cal_field, standard="Perley-Butler 2017")
             except Exception as e2:

@@ -36,8 +36,6 @@ import numpy as np
 import yaml
 from scipy import stats
 
-try:
-
 # --- CASA log directory setup ---
 # Ensure CASA logs go to centralized directory, not CWD
 import os as _os
@@ -45,9 +43,8 @@ try:
     from pathlib import Path as _Path
     _REPO_ROOT = _Path(__file__).resolve().parents[2]
     _sys_path_entry = str(_REPO_ROOT / 'backend' / 'src')
-    import sys as _sys
-    if _sys_path_entry not in _sys.path:
-        _sys.path.insert(0, _sys_path_entry)
+    if _sys_path_entry not in sys.path:
+        sys.path.insert(0, _sys_path_entry)
     from dsa110_contimg.utils.tempdirs import derive_casa_log_dir
     _casa_log_dir = derive_casa_log_dir()
     _os.makedirs(str(_casa_log_dir), exist_ok=True)
@@ -56,6 +53,7 @@ except (ImportError, OSError):
     pass  # Best effort - CASA logs may go to CWD
 # --- End CASA log directory setup ---
 
+try:
     import casatools
     from casacore import tables as casatables
 except ImportError:

@@ -16,6 +16,19 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT / 'backend' / 'src'))
 
+# --- CASA log directory setup ---
+# Ensure CASA logs go to centralized directory, not CWD
+# This must happen before any casatasks/casatools import (including deferred ones)
+import os as _os
+try:
+    from dsa110_contimg.utils.tempdirs import derive_casa_log_dir
+    _casa_log_dir = derive_casa_log_dir()
+    _os.makedirs(str(_casa_log_dir), exist_ok=True)
+    _os.chdir(str(_casa_log_dir))
+except (ImportError, OSError):
+    pass  # Best effort - CASA logs may go to CWD
+# --- End CASA log directory setup ---
+
 from dsa110_contimg.mosaic.cli import (_build_weighted_mosaic,
                                        _build_weighted_mosaic_linearmosaic)
 from dsa110_contimg.mosaic.validation import TileQualityMetrics

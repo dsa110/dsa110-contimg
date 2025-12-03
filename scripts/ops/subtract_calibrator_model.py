@@ -26,8 +26,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-try:
-    import numpy as np
 
 # --- CASA log directory setup ---
 # Ensure CASA logs go to centralized directory, not CWD
@@ -47,6 +45,8 @@ except (ImportError, OSError):
     pass  # Best effort - CASA logs may go to CWD
 # --- End CASA log directory setup ---
 
+try:
+    import numpy as np
     from casatools import table
 except ImportError:
     print("ERROR: Required tools not found. Run in casa6 environment:")

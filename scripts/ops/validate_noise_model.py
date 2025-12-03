@@ -51,7 +51,6 @@ import numpy as np
 import yaml
 from scipy import stats
 
-try:
 
 # --- CASA log directory setup ---
 # Ensure CASA logs go to centralized directory, not CWD
@@ -71,6 +70,7 @@ except (ImportError, OSError):
     pass  # Best effort - CASA logs may go to CWD
 # --- End CASA log directory setup ---
 
+try:
     import casatools
     from casacore import tables as casatables
 except ImportError:
