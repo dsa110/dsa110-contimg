@@ -10,6 +10,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { config } from "../config";
 import {
   spawnTask,
   getTask,
@@ -107,6 +108,7 @@ export function useTasks(params?: {
     refetchInterval: 30000, // Refresh every 30s (ABSURD may not be running)
     retry: false, // Don't retry on failure - ABSURD is optional
     staleTime: 60000, // Consider data stale after 1 minute
+    enabled: config.features.enableABSURD,
   });
 }
 
@@ -117,7 +119,7 @@ export function useTask(taskId: string | undefined) {
   return useQuery<Task>({
     queryKey: absurdQueryKeys.task(taskId ?? ""),
     queryFn: () => getTask(taskId!),
-    enabled: !!taskId,
+    enabled: !!taskId && config.features.enableABSURD,
     retry: false,
     refetchInterval: (query) =>
       query.state.data?.status === "claimed" ? 5000 : 30000, // Faster refresh for running tasks
@@ -185,6 +187,7 @@ export function useQueues() {
     queryFn: listQueues,
     retry: false,
     staleTime: 60000,
+    enabled: config.features.enableABSURD,
   });
 }
 
@@ -195,7 +198,7 @@ export function useQueueStats(queueName: string | undefined) {
   return useQuery<QueueStats>({
     queryKey: absurdQueryKeys.queueStats(queueName ?? ""),
     queryFn: () => getQueueStats(queueName!),
-    enabled: !!queueName,
+    enabled: !!queueName && config.features.enableABSURD,
     retry: false,
     refetchInterval: 30000,
     staleTime: 60000,
@@ -216,6 +219,7 @@ export function useWorkers() {
     retry: false,
     refetchInterval: 30000,
     staleTime: 60000,
+    enabled: config.features.enableABSURD,
   });
 }
 
@@ -226,7 +230,7 @@ export function useWorker(workerId: string | undefined) {
   return useQuery({
     queryKey: absurdQueryKeys.worker(workerId ?? ""),
     queryFn: () => getWorker(workerId!),
-    enabled: !!workerId,
+    enabled: !!workerId && config.features.enableABSURD,
     retry: false,
     staleTime: 60000,
   });
@@ -242,6 +246,7 @@ export function useWorkerMetrics() {
     retry: false,
     refetchInterval: 30000,
     staleTime: 60000,
+    enabled: config.features.enableABSURD,
   });
 }
 
@@ -259,6 +264,7 @@ export function useAbsurdMetrics() {
     retry: false,
     refetchInterval: 30000,
     staleTime: 60000,
+    enabled: config.features.enableABSURD,
   });
 }
 
@@ -272,6 +278,7 @@ export function useAbsurdHealth() {
     retry: false,
     refetchInterval: 60000, // Less frequent for health
     staleTime: 120000,
+    enabled: config.features.enableABSURD,
   });
 }
 
@@ -293,6 +300,7 @@ export function useWorkflows(params?: {
     retry: false,
     refetchInterval: 30000,
     staleTime: 60000,
+    enabled: config.features.enableABSURD,
   });
 }
 
@@ -303,7 +311,7 @@ export function useWorkflow(workflowId: string | undefined) {
   return useQuery<WorkflowDetail>({
     queryKey: absurdQueryKeys.workflow(workflowId ?? ""),
     queryFn: () => getWorkflow(workflowId!),
-    enabled: !!workflowId,
+    enabled: !!workflowId && config.features.enableABSURD,
     retry: false,
     refetchInterval: (query) =>
       query.state.data?.status === "running" ? 5000 : 30000,
@@ -356,6 +364,9 @@ export function useDeadLetterTasks(params?: {
   return useQuery<TaskListResponse>({
     queryKey: absurdQueryKeys.dlqList(params),
     queryFn: () => listDeadLetterTasks(params),
+    retry: false,
+    staleTime: 60000,
+    enabled: config.features.enableABSURD,
   });
 }
 

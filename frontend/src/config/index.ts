@@ -73,6 +73,8 @@ export const FEATURES = {
   /** Enable calibration comparison feature */
   enableCalibrationComparison:
     import.meta.env.VITE_ENABLE_CALIBRATION_COMPARISON !== "false",
+  /** Enable ABSURD workflow integration (optional service) */
+  enableABSURD: import.meta.env.VITE_ENABLE_ABSURD === "true",
 } as const;
 
 /**

@@ -37,7 +37,7 @@ def _setup_matplotlib() -> None:
     matplotlib.use("Agg")
 
 
-def _get_2d_data_and_wcs(fits_path: Union[str, Path]) -> tuple["NDArray", "WCS", dict]:
+def _get_2d_data_and_wcs(fits_path: Union[str, Path]) -> tuple:  # Returns (NDArray, WCS, dict):
     """Load FITS file and extract 2D data with WCS.
     
     Handles 4D FITS cubes by squeezing degenerate axes.
@@ -278,8 +278,6 @@ def plot_cutout(
     import matplotlib.pyplot as plt
     from astropy.coordinates import SkyCoord
     from astropy.nddata import Cutout2D
-    from astropy.wcs import WCS
-    from astropy.io import fits
     import astropy.units as u
     
     if config is None:

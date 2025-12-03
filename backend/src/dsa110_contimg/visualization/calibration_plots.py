@@ -61,7 +61,6 @@ def plot_bandpass(
         List of generated plot file paths
     """
     _setup_matplotlib()
-    import matplotlib.pyplot as plt
     
     if config is None:
         config = FigureConfig(style=PlotStyle.QUICKLOOK)
@@ -149,7 +148,7 @@ def _plot_bandpass_fallback(
         
         nant = len(np.unique(antenna1))
         nchan = cparam.shape[1]
-        npol = cparam.shape[2]
+        _npol = cparam.shape[2]  # Stored for potential future use
         
         # Frequency axis
         if freq is None:
@@ -261,7 +260,7 @@ def plot_gains(
         time_min = (time - time.min()) / 60.0
         
         nant = len(np.unique(antenna1))
-        npol = cparam.shape[-1]
+        _npol = cparam.shape[-1]  # Stored for potential future use
         
         # Plot amplitude
         if plot_amplitude:
@@ -496,7 +495,7 @@ def plot_dynamic_spectrum(
             ax_idx = pol_idx * nbl + bl_idx
             ax = axes[ax_idx]
             
-            im = ax.imshow(
+            ax.imshow(
                 dplot[bl_idx, :, :, pol_idx].T,
                 origin="lower",
                 interpolation="none",

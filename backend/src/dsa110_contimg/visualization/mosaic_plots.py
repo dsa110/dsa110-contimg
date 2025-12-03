@@ -156,7 +156,6 @@ def plot_mosaic_footprints(
     """
     _setup_matplotlib()
     import matplotlib.pyplot as plt
-    from matplotlib.patches import Rectangle
     from astropy.io import fits
     from astropy.wcs import WCS
     
