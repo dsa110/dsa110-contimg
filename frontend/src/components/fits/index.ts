@@ -9,5 +9,5 @@ export type {
   FitsViewerControlsValues,
 } from "./FitsViewerControls";
 export type { FitsViewerGridProps } from "./FitsViewerGrid";
-export type { Region, RegionFormat, RegionShape } from "./RegionToolbar";
+export type { Region, RegionFormat, RegionShape } from "../../types/regions";
 export type { MaskToolbarProps } from "./MaskToolbar";

@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from "react";
-import RegionToolbar, { Region, RegionFormat } from "./RegionToolbar";
+import RegionToolbar from "./RegionToolbar";
+import type { Region, RegionFormat } from "../../types/regions";
 import { logger } from "../../utils/logger";
 import { config } from "../../config";
 

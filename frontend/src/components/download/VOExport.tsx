@@ -21,6 +21,7 @@ import type {
   ExportDataSelection,
   ColumnMapping,
 } from "../../types/vo";
+import { config } from "../../config";
 
 // ============================================================================
 // Export Dialog Component
@@ -58,6 +59,7 @@ export function VOExportDialog({
   );
   const [isExporting, setIsExporting] = useState(false);
   const [exportError, setExportError] = useState<string | null>(null);
+  const isSampFeatureEnabled = config.features.enableSAMP;
 
   const {
     isConnected,
@@ -337,87 +339,102 @@ export function VOExportDialog({
                 border: "1px solid var(--color-border)",
               }}
             >
-              <div className="flex items-center justify-between mb-3">
-                <div>
-                  <h3
-                    className="text-sm font-medium"
-                    style={{ color: "var(--color-text-primary)" }}
-                  >
-                    SAMP Integration
-                  </h3>
-                  <p
-                    className="text-xs"
-                    style={{ color: "var(--color-text-secondary)" }}
-                  >
-                    Send directly to astronomy applications
-                  </p>
-                </div>
-                <SAMPStatusBadge status={sampStatus} />
-              </div>
-
-              {!isConnected ? (
-                <button
-                  type="button"
-                  onClick={() => connect()}
-                  className="w-full px-4 py-2 rounded-md text-sm font-medium transition-colors"
-                  style={{
-                    backgroundColor: "var(--color-bg-default)",
-                    color: "var(--color-text-primary)",
-                    border: "1px solid var(--color-border)",
-                  }}
-                >
-                  Connect to SAMP Hub
-                </button>
-              ) : (
-                <div className="space-y-2">
-                  <div
-                    className="text-xs"
-                    style={{ color: "var(--color-text-secondary)" }}
-                  >
-                    {tableClients.length > 0
-                      ? `${tableClients.length} application(s) available:`
-                      : "No applications accepting tables"}
-                  </div>
-                  <div className="flex flex-wrap gap-1">
-                    {tableClients.map((client) => (
-                      <span
-                        key={client.id}
-                        className="px-2 py-1 rounded text-xs"
-                        style={{
-                          backgroundColor: "var(--color-bg-default)",
-                          color: "var(--color-text-primary)",
-                        }}
+              {isSampFeatureEnabled ? (
+                <>
+                  <div className="flex items-center justify-between mb-3">
+                    <div>
+                      <h3
+                        className="text-sm font-medium"
+                        style={{ color: "var(--color-text-primary)" }}
                       >
-                        {client.metadata["samp.name"]}
-                      </span>
-                    ))}
+                        SAMP Integration
+                      </h3>
+                      <p
+                        className="text-xs"
+                        style={{ color: "var(--color-text-secondary)" }}
+                      >
+                        Send directly to astronomy applications
+                      </p>
+                    </div>
+                    <SAMPStatusBadge status={sampStatus} />
                   </div>
-                  <div className="flex gap-2 mt-2">
+
+                  {!isConnected ? (
                     <button
                       type="button"
-                      onClick={handleSAMPExport}
-                      disabled={isExporting || tableClients.length === 0}
-                      className="flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50"
-                      style={{
-                        backgroundColor: "var(--color-success)",
-                        color: "white",
-                      }}
-                    >
-                      {isExporting ? "Sending..." : "Send via SAMP"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => disconnect()}
-                      className="px-3 py-2 rounded-md text-sm transition-colors"
+                      onClick={() => connect()}
+                      className="w-full px-4 py-2 rounded-md text-sm font-medium transition-colors"
                       style={{
                         backgroundColor: "var(--color-bg-default)",
-                        color: "var(--color-text-secondary)",
+                        color: "var(--color-text-primary)",
                         border: "1px solid var(--color-border)",
                       }}
                     >
-                      Disconnect
+                      Connect to SAMP Hub
                     </button>
-                  </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div
+                        className="text-xs"
+                        style={{ color: "var(--color-text-secondary)" }}
+                      >
+                        {tableClients.length > 0
+                          ? `${tableClients.length} application(s) available:`
+                          : "No applications accepting tables"}
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        {tableClients.map((client) => (
+                          <span
+                            key={client.id}
+                            className="px-2 py-1 rounded text-xs"
+                            style={{
+                              backgroundColor: "var(--color-bg-default)",
+                              color: "var(--color-text-primary)",
+                            }}
+                          >
+                            {client.metadata["samp.name"]}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex gap-2 mt-2">
+                        <button
+                          type="button"
+                          onClick={handleSAMPExport}
+                          disabled={isExporting || tableClients.length === 0}
+                          className="flex-1 px-4 py-2 rounded-md text-sm font-medium transition-colors disabled:opacity-50"
+                          style={{
+                            backgroundColor: "var(--color-success)",
+                            color: "white",
+                          }}
+                        >
+                          {isExporting ? "Sending..." : "Send via SAMP"}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => disconnect()}
+                          className="px-3 py-2 rounded-md text-sm transition-colors"
+                          style={{
+                            backgroundColor: "var(--color-bg-default)",
+                            color: "var(--color-text-secondary)",
+                            border: "1px solid var(--color-border)",
+                          }}
+                        >
+                          Disconnect
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div
+                  className="text-sm text-gray-500 dark:text-gray-400"
+                  data-testid="samp-disabled-message"
+                >
+                  SAMP export is disabled in this environment. Enable it by setting{" "}
+                  <code className="px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-700">
+                    VITE_ENABLE_SAMP=true
+                  </code>{" "}
+                  and providing a reachable hub before attempting to broadcast tables.
                 </div>
               )}
             </div>

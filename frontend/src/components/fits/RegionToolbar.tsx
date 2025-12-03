@@ -1,32 +1,7 @@
 import React, { useState, useCallback } from "react";
 import type { JS9Region } from "../../types/js9.d";
+import type { Region, RegionFormat, RegionShape } from "../../types/regions";
 import { logger } from "../../utils/logger";
-
-/**
- * Region shape types that can be created.
- */
-export type RegionShape = "circle" | "box" | "ellipse" | "polygon" | "point";
-
-/**
- * Region format for export.
- */
-export type RegionFormat = "ds9" | "crtf" | "json";
-
-/**
- * Region created or exported from the toolbar.
- */
-export interface Region {
-  id: string;
-  shape: RegionShape;
-  x: number;
-  y: number;
-  radius?: number;
-  width?: number;
-  height?: number;
-  points?: Array<{ x: number; y: number }>;
-  text?: string;
-  color?: string;
-}
 
 /**
  * Props for the RegionToolbar component.
