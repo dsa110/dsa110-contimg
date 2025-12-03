@@ -4,6 +4,27 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { act, renderHook } from "@testing-library/react";
 import { useRetentionStore } from "./retentionStore";
+import type {
+  RetentionPolicyFormData,
+  RetentionSimulation,
+} from "../types/retention";
+
+// Helper to create valid form data
+function createTestPolicyData(
+  overrides: Partial<RetentionPolicyFormData> = {}
+): RetentionPolicyFormData {
+  return {
+    name: "Test Policy",
+    description: "Test description",
+    dataType: "measurement_set",
+    priority: "medium",
+    status: "active",
+    rules: [],
+    requireConfirmation: false,
+    createBackupBeforeDelete: false,
+    ...overrides,
+  };
+}
 
 // Reset store between tests
 beforeEach(() => {
@@ -12,9 +33,13 @@ beforeEach(() => {
     useRetentionStore.setState({
       policies: [],
       simulations: {},
-      executions: {},
+      executions: [],
+      isSimulating: false,
+      isExecuting: false,
       isLoading: false,
       error: null,
+      selectedPolicyId: null,
+      filter: {},
     });
   });
 });
@@ -42,19 +67,21 @@ describe("useRetentionStore", () => {
       const { result } = renderHook(() => useRetentionStore());
 
       act(() => {
-        result.current.addPolicy({
-          name: "Test Policy",
-          description: "Test description",
-          dataType: "measurement_set",
-          enabled: true,
-          rules: [
-            {
-              triggerType: "age",
-              triggerValue: 30,
-              action: "delete",
-            },
-          ],
-        });
+        result.current.addPolicy(
+          createTestPolicyData({
+            name: "Test Policy",
+            rules: [
+              {
+                name: "Age Rule",
+                triggerType: "age",
+                threshold: 30,
+                thresholdUnit: "days",
+                action: "delete",
+                enabled: true,
+              },
+            ],
+          })
+        );
       });
 
       expect(result.current.policies).toHaveLength(1);
@@ -66,18 +93,18 @@ describe("useRetentionStore", () => {
       const { result } = renderHook(() => useRetentionStore());
 
       act(() => {
-        result.current.addPolicy({
-          name: "Policy 1",
-          dataType: "measurement_set",
-          enabled: true,
-          rules: [],
-        });
-        result.current.addPolicy({
-          name: "Policy 2",
-          dataType: "image",
-          enabled: true,
-          rules: [],
-        });
+        result.current.addPolicy(
+          createTestPolicyData({
+            name: "Policy 1",
+            dataType: "measurement_set",
+          })
+        );
+        result.current.addPolicy(
+          createTestPolicyData({
+            name: "Policy 2",
+            dataType: "image",
+          })
+        );
       });
 
       expect(result.current.policies[0].id).not.toBe(
@@ -91,12 +118,12 @@ describe("useRetentionStore", () => {
       const { result } = renderHook(() => useRetentionStore());
 
       act(() => {
-        result.current.addPolicy({
-          name: "Original Name",
-          dataType: "measurement_set",
-          enabled: true,
-          rules: [],
-        });
+        result.current.addPolicy(
+          createTestPolicyData({
+            name: "Original Name",
+            status: "active",
+          })
+        );
       });
 
       const policyId = result.current.policies[0].id;
@@ -104,30 +131,30 @@ describe("useRetentionStore", () => {
       act(() => {
         result.current.updatePolicy(policyId, {
           name: "Updated Name",
-          enabled: false,
+          status: "paused",
         });
       });
 
       expect(result.current.policies[0].name).toBe("Updated Name");
-      expect(result.current.policies[0].enabled).toBe(false);
+      expect(result.current.policies[0].status).toBe("paused");
     });
 
     it("should not modify other policies", () => {
       const { result } = renderHook(() => useRetentionStore());
 
       act(() => {
-        result.current.addPolicy({
-          name: "Policy 1",
-          dataType: "measurement_set",
-          enabled: true,
-          rules: [],
-        });
-        result.current.addPolicy({
-          name: "Policy 2",
-          dataType: "image",
-          enabled: true,
-          rules: [],
-        });
+        result.current.addPolicy(
+          createTestPolicyData({
+            name: "Policy 1",
+            dataType: "measurement_set",
+          })
+        );
+        result.current.addPolicy(
+          createTestPolicyData({
+            name: "Policy 2",
+            dataType: "image",
+          })
+        );
       });
 
       const policy1Id = result.current.policies[0].id;
@@ -145,12 +172,11 @@ describe("useRetentionStore", () => {
       const { result } = renderHook(() => useRetentionStore());
 
       act(() => {
-        result.current.addPolicy({
-          name: "To Delete",
-          dataType: "measurement_set",
-          enabled: true,
-          rules: [],
-        });
+        result.current.addPolicy(
+          createTestPolicyData({
+            name: "To Delete",
+          })
+        );
       });
 
       const policyId = result.current.policies[0].id;
@@ -168,18 +194,21 @@ describe("useRetentionStore", () => {
       const { result } = renderHook(() => useRetentionStore());
 
       act(() => {
-        result.current.addPolicy({
-          name: "Test Policy",
-          dataType: "measurement_set",
-          enabled: true,
-          rules: [
-            {
-              triggerType: "age",
-              triggerValue: 30,
-              action: "delete",
-            },
-          ],
-        });
+        result.current.addPolicy(
+          createTestPolicyData({
+            name: "Test Policy",
+            rules: [
+              {
+                name: "Age Rule",
+                triggerType: "age",
+                threshold: 30,
+                thresholdUnit: "days",
+                action: "delete",
+                enabled: true,
+              },
+            ],
+          })
+        );
       });
 
       const policyId = result.current.policies[0].id;
@@ -192,35 +221,30 @@ describe("useRetentionStore", () => {
       expect(result.current.simulations[policyId].policyId).toBe(policyId);
     });
 
-    it("should set loading state during simulation", async () => {
+    it("should set simulating state during simulation", async () => {
       const { result } = renderHook(() => useRetentionStore());
 
       act(() => {
-        result.current.addPolicy({
-          name: "Test Policy",
-          dataType: "measurement_set",
-          enabled: true,
-          rules: [],
-        });
+        result.current.addPolicy(createTestPolicyData({ name: "Test Policy" }));
       });
 
       const policyId = result.current.policies[0].id;
 
       // Start simulation but don't await
-      let simulationPromise: Promise<void>;
+      let simulationPromise: Promise<RetentionSimulation>;
       act(() => {
         simulationPromise = result.current.runSimulation(policyId);
       });
 
-      // Should be loading
-      expect(result.current.isLoading).toBe(true);
+      // Should be simulating
+      expect(result.current.isSimulating).toBe(true);
 
       // Wait for completion
       await act(async () => {
         await simulationPromise;
       });
 
-      expect(result.current.isLoading).toBe(false);
+      expect(result.current.isSimulating).toBe(false);
     });
   });
 
@@ -229,18 +253,21 @@ describe("useRetentionStore", () => {
       const { result } = renderHook(() => useRetentionStore());
 
       act(() => {
-        result.current.addPolicy({
-          name: "Test Policy",
-          dataType: "measurement_set",
-          enabled: true,
-          rules: [
-            {
-              triggerType: "age",
-              triggerValue: 30,
-              action: "delete",
-            },
-          ],
-        });
+        result.current.addPolicy(
+          createTestPolicyData({
+            name: "Test Policy",
+            rules: [
+              {
+                name: "Age Rule",
+                triggerType: "age",
+                threshold: 30,
+                thresholdUnit: "days",
+                action: "delete",
+                enabled: true,
+              },
+            ],
+          })
+        );
       });
 
       const policyId = result.current.policies[0].id;
@@ -249,35 +276,34 @@ describe("useRetentionStore", () => {
         await result.current.executePolicy(policyId);
       });
 
-      expect(result.current.executions[policyId]).toBeDefined();
-      expect(result.current.executions[policyId].policyId).toBe(policyId);
+      // Executions is an array, find by policyId
+      const execution = result.current.executions.find(
+        (e) => e.policyId === policyId
+      );
+      expect(execution).toBeDefined();
+      expect(execution?.policyId).toBe(policyId);
     });
 
-    it("should update lastRun on the policy", async () => {
+    it("should update lastExecutedAt on the policy", async () => {
       const { result } = renderHook(() => useRetentionStore());
 
       act(() => {
-        result.current.addPolicy({
-          name: "Test Policy",
-          dataType: "measurement_set",
-          enabled: true,
-          rules: [],
-        });
+        result.current.addPolicy(createTestPolicyData({ name: "Test Policy" }));
       });
 
       const policyId = result.current.policies[0].id;
-      const beforeRun = result.current.policies[0].lastRun;
+      const beforeRun = result.current.policies[0].lastExecutedAt;
 
       await act(async () => {
         await result.current.executePolicy(policyId);
       });
 
-      expect(result.current.policies[0].lastRun).not.toBe(beforeRun);
+      expect(result.current.policies[0].lastExecutedAt).not.toBe(beforeRun);
     });
   });
 
-  describe("clearError", () => {
-    it("should clear any error", () => {
+  describe("setError", () => {
+    it("should set and be able to clear error via setState", () => {
       const { result } = renderHook(() => useRetentionStore());
 
       act(() => {
@@ -287,7 +313,7 @@ describe("useRetentionStore", () => {
       expect(result.current.error).toBe("Test error");
 
       act(() => {
-        result.current.clearError();
+        useRetentionStore.setState({ error: null });
       });
 
       expect(result.current.error).toBeNull();
