@@ -612,7 +612,7 @@ All Phase 2 GPU CUDA Kernel Development items completed:
 | GPU Calibration Worker | `calibration/applycal.py` (update) | 12 tests ✅  | DONE   |
 | Error Recovery         | `pipeline/error_recovery.py`       | 37 tests ✅  | DONE   |
 | Pipeline Metrics       | `monitoring/pipeline_metrics.py`   | 38 tests ✅  | DONE   |
-| Pipeline Integration   | `pipeline/stages_impl.py` (update) | 10 tests     | -      |
+| Pipeline Integration   | `pipeline/stage_integration.py`    | 36 tests ✅  | DONE   |
 
 ### Phase 3 COMPLETE ✅
 
@@ -624,8 +624,9 @@ All Phase 3 Pipeline Integration items completed:
 - GPU Calibration Worker (12 tests)
 - Error Recovery (37 tests)
 - Pipeline Metrics (38 tests)
+- Pipeline Stage Integration (36 tests)
 
-**Total Phase 3 Tests: 179 new tests**
+**Total Phase 3 Tests: 215 new tests**
 
 ---
 

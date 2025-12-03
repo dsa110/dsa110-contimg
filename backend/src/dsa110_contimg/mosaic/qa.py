@@ -10,6 +10,7 @@ Three checks:
 from __future__ import annotations
 
 import logging
+import warnings
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -522,11 +523,14 @@ def check_artifacts(data: NDArray) -> ArtifactResult:
 
     # Check 3: Row/column correlations (banding)
     if ny > 10 and nx > 10:
-        row_means = np.nanmean(data, axis=1)
-        col_means = np.nanmean(data, axis=0)
+        # Suppress warnings for all-NaN rows/columns (normal at mosaic edges)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            row_means = np.nanmean(data, axis=1)
+            col_means = np.nanmean(data, axis=0)
 
-        row_var = np.nanvar(row_means)
-        col_var = np.nanvar(col_means)
+            row_var = np.nanvar(row_means)
+            col_var = np.nanvar(col_means)
         total_var = np.nanvar(finite_data)
 
         if total_var > 0:

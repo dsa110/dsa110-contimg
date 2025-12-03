@@ -40,8 +40,8 @@ type AuthStore = AuthState & AuthActions;
 // Token storage key
 const TOKEN_KEY = "dsa110_auth_tokens";
 
-// API base path
-const AUTH_API_BASE = "/api/v1/auth";
+// API base path (relative to apiClient baseURL which is already /api)
+const AUTH_API_BASE = "/v1/auth";
 
 /**
  * Parse JWT token to extract expiration

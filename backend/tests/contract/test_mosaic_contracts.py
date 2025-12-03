@@ -30,6 +30,10 @@ def synthetic_images(tmp_path: Path) -> list[Path]:
     - Gaussian noise background
     - Point sources at random positions with high SNR
     - Valid WCS with slightly different pointings
+    
+    Note: Uses 50 sources per image to achieve DR > 100 for QA tests.
+    The percentile-based DR calculation requires >1% of pixels to have
+    significant flux for the 99th percentile to capture source signal.
     """
     images = []
     
@@ -40,13 +44,14 @@ def synthetic_images(tmp_path: Path) -> list[Path]:
         # Use lower noise to get better dynamic range
         data = np.random.normal(0, 0.0001, (256, 256)).astype(np.float32)
         
-        # Add point sources with high flux for good dynamic range
-        for _ in range(10):
-            x, y = np.random.randint(50, 206, 2)
+        # Add point sources - need ~50 sources for DR > 100
+        # (each 7x7 PSF covers ~49 pixels, need >1% coverage for percentiles)
+        for _ in range(50):
+            x, y = np.random.randint(10, 246, 2)
             # Simple Gaussian PSF
             yy, xx = np.ogrid[-3:4, -3:4]
             psf = np.exp(-(xx**2 + yy**2) / 2)
-            flux = np.random.uniform(0.05, 0.2)  # Higher flux
+            flux = np.random.uniform(0.05, 0.2)
             data[y-3:y+4, x-3:x+4] += flux * psf
         
         # Create WCS with slightly different pointing
@@ -327,23 +332,24 @@ class TestMosaicQA:
             alignment_order=3,
         )
         
-        # Use quicklook tier - synthetic data doesn't have enough
-        # dynamic range for science tier thresholds
-        qa_result = run_qa_checks(output, tier='quicklook')
+        # With improved synthetic data (50 sources), science tier should pass
+        qa_result = run_qa_checks(output, tier='science')
         
         # QA should run without errors and return valid result
         assert qa_result.status in ['PASS', 'WARN', 'FAIL']
         assert isinstance(qa_result.dynamic_range, float)
         assert isinstance(qa_result.artifact_score, float)
         
-        # With reproject available, quality should be higher
-        # Without it, simple stacking may have lower DR
+        # With reproject available and sufficient sources, expect high DR
         try:
             import reproject  # noqa: F401
-            # With reprojection, expect reasonable DR from synthetic data
-            # Note: science tier requires DR>100, quicklook requires DR>50
-            # Synthetic data typically achieves DR~20-50
-            assert qa_result.dynamic_range > 10
+            # Science tier requires DR > 100
+            # 50 sources per image should achieve DR > 100 after mosaicking
+            assert qa_result.dynamic_range > 100, (
+                f"Expected DR > 100, got {qa_result.dynamic_range:.1f}"
+            )
+            # Should pass or warn, not fail on DR
+            assert 'dynamic range' not in str(qa_result.critical_failures).lower()
         except ImportError:
             # Without reproject, just verify QA runs and returns metrics
             assert qa_result.dynamic_range > 1  # At least some signal
