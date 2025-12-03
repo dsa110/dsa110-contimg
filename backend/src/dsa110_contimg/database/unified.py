@@ -1102,18 +1102,28 @@ def list_caltable_sets(db_path: Path) -> List[tuple]:
 def get_active_applylist(
     db_path: Path, 
     mjd: float, 
-    set_name: Optional[str] = None
+    set_name: Optional[str] = None,
+    *,
+    bidirectional: bool = True,
+    validity_hours: float = 12.0,
 ) -> List[str]:
     """Return ordered list of active calibration tables applicable to MJD.
 
     When set_name is provided, restrict to that group; otherwise choose among
     active sets whose validity window includes mjd. If multiple sets match,
     pick the most recently created set.
+    
+    ISSUE #1 FIX: With bidirectional=True (default), also searches for
+    calibrations AFTER the target MJD, not just before. This prevents
+    the "calibration validity gap" where pre-calibrator observations
+    have no valid calibration.
 
     Args:
         db_path: Path to calibration registry database
         mjd: Modified Julian Date to find applicable tables for
         set_name: Optional specific set name to query
+        bidirectional: If True, search ±validity_hours (fixes Issue #1)
+        validity_hours: Maximum time offset for calibration validity (default: 12h)
         
     Returns:
         Ordered list of calibration table paths (by apply order)
@@ -1134,7 +1144,7 @@ def get_active_applylist(
         ).fetchall()
         return [r[0] for r in rows]
 
-    # Select all sets that cover mjd
+    # Select all sets that cover mjd (exact match first)
     all_matching_sets = conn.execute(
         """
         SELECT DISTINCT set_name, MAX(created_at) AS t
@@ -1147,6 +1157,61 @@ def get_active_applylist(
         """,
         (mjd, mjd),
     ).fetchall()
+
+    # ISSUE #1 FIX: If no exact match and bidirectional enabled,
+    # search for nearest calibration within ±validity_hours
+    if not all_matching_sets and bidirectional:
+        validity_days = validity_hours / 24.0
+        search_min = mjd - validity_days
+        search_max = mjd + validity_days
+        
+        # Find nearest calibration set (before OR after target)
+        nearby_sets = conn.execute(
+            """
+            SELECT DISTINCT set_name,
+                   (valid_start_mjd + COALESCE(valid_end_mjd, valid_start_mjd)) / 2.0 AS mid_mjd,
+                   ABS((valid_start_mjd + COALESCE(valid_end_mjd, valid_start_mjd)) / 2.0 - ?) AS distance,
+                   MAX(created_at) AS newest
+            FROM caltables
+            WHERE status = 'active'
+              AND valid_start_mjd IS NOT NULL
+              AND (
+                  -- Set's midpoint is within search range
+                  ((valid_start_mjd + COALESCE(valid_end_mjd, valid_start_mjd)) / 2.0 BETWEEN ? AND ?)
+              )
+            GROUP BY set_name
+            ORDER BY distance ASC, newest DESC
+            LIMIT 1
+            """,
+            (mjd, search_min, search_max),
+        ).fetchall()
+        
+        if nearby_sets:
+            chosen_set = nearby_sets[0][0]
+            distance_days = nearby_sets[0][2]
+            distance_hours = distance_days * 24.0
+            
+            # Determine if calibration is before or after target
+            mid_mjd = nearby_sets[0][1]
+            direction = "before" if mid_mjd < mjd else "after"
+            
+            logger.info(
+                f"BIDIRECTIONAL SEARCH: No exact calibration match at MJD {mjd:.6f}. "
+                f"Using nearest set '{chosen_set}' ({distance_hours:.1f}h {direction} target)."
+            )
+            
+            if distance_hours > validity_hours / 2:
+                logger.warning(
+                    f"Calibration '{chosen_set}' is {distance_hours:.1f}h from target "
+                    f"(recommended max: {validity_hours / 2:.1f}h). "
+                    f"Data quality may be degraded."
+                )
+            
+            out = conn.execute(
+                "SELECT path FROM caltables WHERE set_name = ? AND status='active' ORDER BY order_index ASC",
+                (chosen_set,),
+            ).fetchall()
+            return [r[0] for r in out]
 
     if not all_matching_sets:
         return []

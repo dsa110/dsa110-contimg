@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import json
 import logging
-from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -125,7 +124,7 @@ def load_latest_benchmark() -> Optional[Dict[str, Any]]:
 
     if latest_file.exists():
         try:
-            with open(latest_file) as f:
+            with open(latest_file, encoding="utf-8") as f:
                 return json.load(f)
         except (json.JSONDecodeError, OSError) as e:
             logger.warning(f"Failed to load latest benchmark: {e}")
@@ -135,7 +134,7 @@ def load_latest_benchmark() -> Optional[Dict[str, Any]]:
     result_files = sorted(results_dir.glob("benchmark_*.json"))
     if result_files:
         try:
-            with open(result_files[-1]) as f:
+            with open(result_files[-1], encoding="utf-8") as f:
                 return json.load(f)
         except (json.JSONDecodeError, OSError):
             return None
@@ -185,7 +184,7 @@ async def get_benchmark_results(
     results = []
     for result_file in result_files:
         try:
-            with open(result_file) as f:
+            with open(result_file, encoding="utf-8") as f:
                 data = json.load(f)
 
             # Filter by suite if specified
@@ -379,7 +378,7 @@ async def get_performance_trends(
 
     for result_file in result_files:
         try:
-            with open(result_file) as f:
+            with open(result_file, encoding="utf-8") as f:
                 data = json.load(f)
 
             timestamp = data.get("system", {}).get("timestamp")
