@@ -46,7 +46,7 @@ describe("useQueries hooks", () => {
 
     await waitFor(() => expect(result.current.data).toEqual(mockData));
     expect((apiClient as unknown as MockedApiClient).get).toHaveBeenCalledWith(
-      "/images"
+      "/v1/images"
     );
   });
 });

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 export interface TagFilterProps {
   /** Available tags */
@@ -30,6 +30,22 @@ const TagFilter: React.FC<TagFilterProps> = ({
   const [excludeInput, setExcludeInput] = useState("");
   const [showIncludeSuggestions, setShowIncludeSuggestions] = useState(false);
   const [showExcludeSuggestions, setShowExcludeSuggestions] = useState(false);
+  const includeHideTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const excludeHideTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearHideTimeout = (ref: React.MutableRefObject<ReturnType<typeof setTimeout> | null>) => {
+    if (ref.current) {
+      clearTimeout(ref.current);
+      ref.current = null;
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      clearHideTimeout(includeHideTimeout);
+      clearHideTimeout(excludeHideTimeout);
+    };
+  }, []);
 
   const getFilteredSuggestions = (input: string, currentTags: string[]) => {
     if (!input.trim()) return [];
@@ -106,10 +122,23 @@ const TagFilter: React.FC<TagFilterProps> = ({
             value={input}
             onChange={(e) => {
               setInput(e.target.value);
+              clearHideTimeout(
+                label === "Include Tags" ? includeHideTimeout : excludeHideTimeout
+              );
               setShowSuggestions(true);
             }}
-            onFocus={() => setShowSuggestions(true)}
-            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+            onFocus={() => {
+              clearHideTimeout(
+                label === "Include Tags" ? includeHideTimeout : excludeHideTimeout
+              );
+              setShowSuggestions(true);
+            }}
+            onBlur={() => {
+              const targetRef =
+                label === "Include Tags" ? includeHideTimeout : excludeHideTimeout;
+              clearHideTimeout(targetRef);
+              targetRef.current = setTimeout(() => setShowSuggestions(false), 200);
+            }}
             onKeyDown={(e) => {
               if (e.key === "Enter" && input.trim()) {
                 e.preventDefault();

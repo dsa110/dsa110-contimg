@@ -108,7 +108,7 @@ describe("useCalibrationComparison", () => {
 
       expect(result.current.data).toEqual(mockQAMetrics);
       expect(mockApiClient.get).toHaveBeenCalledWith(
-        "/api/v1/health/calibration/qa/%2Fpath%2Fto%2Fcal"
+        "/v1/health/calibration/qa/%2Fpath%2Fto%2Fcal"
       );
     });
 
@@ -148,7 +148,7 @@ describe("useCalibrationComparison", () => {
       expect(result.current.data?.current).toEqual(mockQAMetrics);
       expect(result.current.data?.reference).toEqual(mockReferenceMetrics);
       expect(mockApiClient.get).toHaveBeenCalledWith(
-        "/api/v1/health/calibration/compare",
+        "/v1/health/calibration/compare",
         {
           params: {
             current_path: "/path/a",
@@ -188,7 +188,7 @@ describe("useCalibrationComparison", () => {
 
       expect(result.current.data).toEqual(mockRecentList);
       expect(mockApiClient.get).toHaveBeenCalledWith(
-        "/api/v1/health/calibration/recent/3C286",
+        "/v1/health/calibration/recent/3C286",
         { params: { limit: 5 } }
       );
     });
