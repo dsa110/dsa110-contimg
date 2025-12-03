@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ServiceStatusPanel } from "./ServiceStatusPanel";
+import * as healthChecker from "../../utils/serviceHealthChecker";
 
 // Hoisted mock for ServiceHealthChecker class
 const mockChecker = vi.hoisted(() => ({
@@ -12,13 +13,17 @@ const mockChecker = vi.hoisted(() => ({
 }));
 
 // Mock the health checker module
-vi.mock("../../utils/serviceHealthChecker", () => ({
-  ServiceHealthChecker: class MockServiceHealthChecker {
-    checkAllServices = mockChecker.checkAllServices;
-    abort = mockChecker.abort;
-    reset = mockChecker.reset;
-  },
-}));
+vi.mock("../../utils/serviceHealthChecker", async (importOriginal) => {
+  const actual = await importOriginal<typeof healthChecker>();
+  return {
+    ...actual,
+    ServiceHealthChecker: class MockServiceHealthChecker {
+      checkAllServices = mockChecker.checkAllServices;
+      abort = mockChecker.abort;
+      reset = mockChecker.reset;
+    },
+  };
+});
 
 // Create mock result for health checker
 const createMockHealthResult = (overrides = {}) => ({
@@ -33,68 +38,65 @@ const createMockHealthResult = (overrides = {}) => ({
       source: "backend-api",
       failureCount: 0,
     },
-      {
-        name: "Grafana",
-        port: 3030,
-        description: "Metrics visualization dashboards",
-        status: "running",
-        responseTime: 100,
-        lastChecked: new Date(),
-        source: "backend-api",
-        failureCount: 0,
-      },
-      {
-        name: "Redis",
-        port: 6379,
-        description: "API response caching",
-        status: "running",
-        responseTime: 10,
-        lastChecked: new Date(),
-        source: "backend-api",
-        failureCount: 0,
-      },
-      {
-        name: "FastAPI Backend",
-        port: 8000,
-        description: "REST API for pipeline data",
-        status: "running",
-        responseTime: 30,
-        lastChecked: new Date(),
-        source: "backend-api",
-        failureCount: 0,
-      },
-      {
-        name: "MkDocs",
-        port: 8001,
-        description: "Documentation server (dev only)",
-        status: "stopped",
-        responseTime: undefined,
-        lastChecked: new Date(),
-        error: "Connection refused",
-        source: "backend-api",
-        failureCount: 2,
-      },
-      {
-        name: "Prometheus",
-        port: 9090,
-        description: "Metrics collection and storage",
-        status: "running",
-        responseTime: 20,
-        lastChecked: new Date(),
-        source: "backend-api",
-        failureCount: 0,
-      },
-    ],
-    apiAvailable: true,
-    diagnostics: {
-      backendAttempts: 1,
-      backendError: null,
-      fallbackUsed: false,
-      individualProbes: [],
+    {
+      name: "Grafana",
+      port: 3030,
+      description: "Metrics visualization dashboards",
+      status: "running",
+      responseTime: 100,
+      lastChecked: new Date(),
+      source: "backend-api",
+      failureCount: 0,
     },
-  }),
-  abort: vi.fn(),
-  reset: vi.fn(),
+    {
+      name: "Redis",
+      port: 6379,
+      description: "API response caching",
+      status: "running",
+      responseTime: 10,
+      lastChecked: new Date(),
+      source: "backend-api",
+      failureCount: 0,
+    },
+    {
+      name: "FastAPI Backend",
+      port: 8000,
+      description: "REST API for pipeline data",
+      status: "running",
+      responseTime: 30,
+      lastChecked: new Date(),
+      source: "backend-api",
+      failureCount: 0,
+    },
+    {
+      name: "MkDocs",
+      port: 8001,
+      description: "Documentation server (dev only)",
+      status: "stopped",
+      responseTime: undefined,
+      lastChecked: new Date(),
+      error: "Connection refused",
+      source: "backend-api",
+      failureCount: 2,
+    },
+    {
+      name: "Prometheus",
+      port: 9090,
+      description: "Metrics collection and storage",
+      status: "running",
+      responseTime: 20,
+      lastChecked: new Date(),
+      source: "backend-api",
+      failureCount: 0,
+    },
+  ],
+  apiAvailable: true,
+  diagnostics: {
+    backendAttempts: 1,
+    backendError: null,
+    fallbackUsed: false,
+    individualProbes: [],
+  },
   ...overrides,
 });
 
@@ -114,15 +116,11 @@ afterEach(() => {
 });
 
 describe("ServiceStatusPanel", () => {
-  let mockChecker: ReturnType<typeof createMockHealthChecker>;
-
   beforeEach(() => {
     vi.clearAllMocks();
     vi.useFakeTimers({ shouldAdvanceTime: true });
-    mockChecker = createMockHealthChecker();
-    (
-      healthChecker.ServiceHealthChecker as unknown as ReturnType<typeof vi.fn>
-    ).mockImplementation(() => mockChecker);
+    // Set up default mock implementation
+    mockChecker.checkAllServices.mockResolvedValue(createMockHealthResult());
   });
 
   afterEach(() => {

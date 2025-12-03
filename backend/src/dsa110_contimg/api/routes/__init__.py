@@ -19,6 +19,7 @@ from .imaging import router as imaging_router
 from .absurd import router as absurd_router
 from .calibrator_imaging import router as calibrator_imaging_router
 from .health import router as health_router
+from .performance import router as performance_router
 
 __all__ = [
     "images_router",
@@ -36,4 +37,5 @@ __all__ = [
     "absurd_router",
     "calibrator_imaging_router",
     "health_router",
+    "performance_router",
 ]

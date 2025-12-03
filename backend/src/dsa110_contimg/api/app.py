@@ -101,6 +101,7 @@ from .routes import (
     absurd_router,
     calibrator_imaging_router,
     health_router,
+    performance_router,
 )
 from .rate_limit import limiter, rate_limit_exceeded_handler
 from .websocket import ws_router
@@ -262,6 +263,7 @@ def create_app() -> FastAPI:
         (imaging_router, "Interactive Imaging"),
         (calibrator_imaging_router, "Calibrator Imaging"),
         (health_router, "Health Monitoring"),
+        (performance_router, "Performance Monitoring"),
     ]
     
     # Mosaic router is pre-prefixed with /api/mosaic, include directly

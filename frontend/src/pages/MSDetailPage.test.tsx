@@ -61,7 +61,9 @@ describe("MSDetailPage", () => {
       } as unknown as ReturnType<typeof useMS>);
 
       renderPage();
-      expect(screen.getByText(/loading measurement set details/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/loading measurement set details/i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -75,7 +77,9 @@ describe("MSDetailPage", () => {
       } as unknown as ReturnType<typeof useMS>);
 
       renderPage();
-      expect(screen.getByRole("button", { name: /retry/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /retry/i })
+      ).toBeInTheDocument();
     });
 
     it("calls refetch when retry clicked", async () => {
@@ -103,7 +107,9 @@ describe("MSDetailPage", () => {
       } as unknown as ReturnType<typeof useMS>);
 
       renderPage();
-      expect(screen.getByText(/measurement set not found/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/measurement set not found/i)
+      ).toBeInTheDocument();
     });
 
     it("shows back to images link when not found", () => {
@@ -115,7 +121,9 @@ describe("MSDetailPage", () => {
       } as unknown as ReturnType<typeof useMS>);
 
       renderPage();
-      expect(screen.getByRole("link", { name: /back to images/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("link", { name: /back to images/i })
+      ).toBeInTheDocument();
     });
   });
 
@@ -145,7 +153,8 @@ describe("MSDetailPage", () => {
     it("renders ProvenanceStrip", () => {
       renderPage();
       // ProvenanceStrip should be rendered with MS provenance data
-      expect(screen.getByText(/quality/i)).toBeInTheDocument();
+      // Check for provenance strip class
+      expect(document.querySelector(".provenance-strip")).toBeInTheDocument();
     });
   });
 
@@ -207,7 +216,9 @@ describe("MSDetailPage", () => {
       } as unknown as ReturnType<typeof useMS>);
 
       renderPage();
-      expect(screen.getByText(/no calibration tables applied/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(/no calibration tables applied/i)
+      ).toBeInTheDocument();
     });
   });
 
@@ -251,17 +262,23 @@ describe("MSDetailPage", () => {
 
     it("renders Download MS button", () => {
       renderPage();
-      expect(screen.getByRole("button", { name: /download ms/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /download ms/i })
+      ).toBeInTheDocument();
     });
 
     it("renders Open in CARTA button", () => {
       renderPage();
-      expect(screen.getByRole("button", { name: /open in carta/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: /open in carta/i })
+      ).toBeInTheDocument();
     });
 
     it("renders View QA Report link when qa_grade present", () => {
       renderPage();
-      expect(screen.getByRole("link", { name: /view qa report/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("link", { name: /view qa report/i })
+      ).toBeInTheDocument();
     });
   });
 

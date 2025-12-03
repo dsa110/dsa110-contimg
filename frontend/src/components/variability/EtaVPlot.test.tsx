@@ -3,9 +3,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import EtaVPlot, { EtaVPlotProps, SourcePoint } from "./EtaVPlot";
 
-// Mock ECharts - complex charting library
-vi.mock("echarts", () => ({
-  init: vi.fn(() => ({
+// Hoist mock functions so they're available to vi.mock
+const mockInit = vi.hoisted(() =>
+  vi.fn(() => ({
     setOption: vi.fn(),
     resize: vi.fn(),
     dispose: vi.fn(),
@@ -14,7 +14,12 @@ vi.mock("echarts", () => ({
     getZr: vi.fn(() => ({
       on: vi.fn(),
     })),
-  })),
+  }))
+);
+
+// Mock ECharts - complex charting library
+vi.mock("echarts", () => ({
+  init: mockInit,
 }));
 
 describe("EtaVPlot", () => {
@@ -68,7 +73,9 @@ describe("EtaVPlot", () => {
     });
 
     it("applies custom className", () => {
-      const { container } = render(<EtaVPlot {...defaultProps} className="custom-class" />);
+      const { container } = render(
+        <EtaVPlot {...defaultProps} className="custom-class" />
+      );
       expect(container.firstChild).toHaveClass("custom-class");
     });
 
@@ -143,10 +150,9 @@ describe("EtaVPlot", () => {
 
   describe("chart initialization", () => {
     it("initializes ECharts when mounted", async () => {
-      const echarts = await import("echarts");
       render(<EtaVPlot {...defaultProps} />);
       await waitFor(() => {
-        expect(echarts.init).toHaveBeenCalled();
+        expect(mockInit).toHaveBeenCalled();
       });
     });
   });
@@ -155,7 +161,9 @@ describe("EtaVPlot", () => {
     it("accepts onSourceSelect callback", () => {
       // Just verify the prop is accepted without error
       expect(() => {
-        render(<EtaVPlot {...defaultProps} onSourceSelect={mockOnSourceSelect} />);
+        render(
+          <EtaVPlot {...defaultProps} onSourceSelect={mockOnSourceSelect} />
+        );
       }).not.toThrow();
     });
   });

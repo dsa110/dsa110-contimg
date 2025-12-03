@@ -1,0 +1,52 @@
+{
+  "system": {
+    "platform": "Linux-4.15.0-213-generic-x86_64-with-glibc2.27",
+    "python_version": "3.11.13",
+    "processor": "x86_64",
+    "timestamp": "2025-12-02T16:32:33.094376",
+    "memory_total_gb": 99.9,
+    "memory_available_gb": 79.7,
+    "cpu_count": 40,
+    "gpus": [
+      {
+        "id": 0,
+        "name": "GeForce RTX 2080 Ti",
+        "memory_gb": 11.6,
+        "compute_capability": "7.5"
+      },
+      {
+        "id": 1,
+        "name": "GeForce RTX 2080 Ti",
+        "memory_gb": 11.6,
+        "compute_capability": "7.5"
+      }
+    ],
+    "git_commit": "581928b246b2",
+    "git_branch": "master-dev"
+  },
+  "benchmarks": {
+    "calibration": {
+      "SyntheticTimeSuite": {
+        "error": "invalid syntax (__init__.py, line 3)"
+      },
+      "TimeSuite": {
+        "error": "invalid syntax (__init__.py, line 3)"
+      }
+    },
+    "imaging": {
+      "SyntheticTimeSuite": {
+        "error": "invalid syntax (__init__.py, line 3)"
+      }
+    },
+    "gpu": {
+      "GPUTimeSuite": {
+        "error": "invalid syntax (__init__.py, line 3)"
+      }
+    },
+    "conversion": {
+      "SyntheticTimeSuite": {
+        "error": "invalid syntax (__init__.py, line 3)"
+      }
+    }
+  }
+}

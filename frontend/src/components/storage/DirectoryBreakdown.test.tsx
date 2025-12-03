@@ -35,9 +35,12 @@ describe("DirectoryBreakdown", () => {
   it("renders directory names and sizes", () => {
     render(<DirectoryBreakdown directories={mockDirectories} />);
 
-    expect(screen.getByText("HDF5 Data")).toBeInTheDocument();
+    // Names appear in both list and legend
+    expect(screen.getAllByText("HDF5 Data").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("500.00 GB")).toBeInTheDocument();
-    expect(screen.getByText("Measurement Sets")).toBeInTheDocument();
+    expect(
+      screen.getAllByText("Measurement Sets").length
+    ).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("300.00 GB")).toBeInTheDocument();
   });
 
@@ -66,10 +69,12 @@ describe("DirectoryBreakdown", () => {
   it("renders category legend", () => {
     render(<DirectoryBreakdown directories={mockDirectories} />);
 
-    // Category labels should appear in the legend
-    expect(screen.getByText("HDF5 Data")).toBeInTheDocument();
-    expect(screen.getByText("Measurement Sets")).toBeInTheDocument();
-    expect(screen.getByText("Images")).toBeInTheDocument();
+    // Category labels should appear in the legend (may also appear in list)
+    expect(screen.getAllByText("HDF5 Data").length).toBeGreaterThanOrEqual(1);
+    expect(
+      screen.getAllByText("Measurement Sets").length
+    ).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Images").length).toBeGreaterThanOrEqual(1);
   });
 
   it("shows empty message when no directories", () => {
