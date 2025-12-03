@@ -111,7 +111,7 @@ except ImportError:  # pragma: no cover - optional helper
 
 
 # Ensure CASAPATH is set before importing CASA modules
-from dsa110_contimg.utils.casa_init import ensure_casa_path
+from dsa110_contimg.utils.casa_init import ensure_casa_path  # noqa: E402
 
 ensure_casa_path()
 
@@ -143,21 +143,21 @@ def _get_casa_concat():
 # NOTE: calibration.applycal and calibration.calibration imports are done
 # lazily inside functions to avoid circular imports
 # (calibration -> conversion -> streaming_converter)
-from dsa110_contimg.calibration.streaming import has_calibrator  # noqa
-from dsa110_contimg.calibration.streaming import (
+from dsa110_contimg.calibration.streaming import (  # noqa: E402
+    has_calibrator,
     solve_calibration_for_ms,
 )
-from dsa110_contimg.database import (
+from dsa110_contimg.database import (  # noqa: E402
+    ensure_ingest_db,
     ensure_pipeline_db,
-    ensure_products_db,  # alias for ensure_pipeline_db
-    ensure_ingest_db,  # alias for ensure_pipeline_db
+    ensure_products_db,
     images_insert,
-    ms_index_upsert,
     log_pointing,
+    ms_index_upsert,
 )
-from dsa110_contimg.imaging.cli import image_ms  # noqa
-from dsa110_contimg.utils.ms_organization import create_path_mapper  # noqa
-from dsa110_contimg.utils.ms_organization import (
+from dsa110_contimg.imaging.cli import image_ms  # noqa: E402
+from dsa110_contimg.utils.ms_organization import (  # noqa: E402
+    create_path_mapper,
     determine_ms_type,
     extract_date_from_filename,
     organize_ms_file,
