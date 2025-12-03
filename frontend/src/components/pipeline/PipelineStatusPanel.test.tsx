@@ -188,21 +188,47 @@ describe("PipelineStatusPanel", () => {
   });
 
   describe("error state", () => {
-    // Note: These tests are timing-sensitive due to React Query retry behavior
-    // In the actual app, error state shows after retries exhaust
-    it.skip("shows error message when fetch fails", async () => {
+    // Error state tests need special handling because:
+    // 1. The component's usePipelineStatus hook has retry: 2 which overrides QueryClient defaults
+    // 2. placeholderData is provided, so data is shown while loading/retrying
+    // We need to set a very short retry delay for tests
+
+    it("shows error message when fetch fails", async () => {
       mockApiClient.get.mockRejectedValue(new Error("Network error"));
 
-      render(<PipelineStatusPanel />, { wrapper: createWrapper() });
+      // Create a wrapper with faster retry settings
+      const queryClient = new QueryClient({
+        defaultOptions: {
+          queries: {
+            retry: false, // This doesn't override the hook's retry: 2
+            gcTime: 0,
+          },
+        },
+      });
 
-      // Wait for error state - needs to wait for retries to complete
+      // Override the query to have retry: false
+      queryClient.setQueryDefaults(["absurd", "status"], {
+        retry: false,
+      });
+
+      function ErrorWrapper({ children }: { children: React.ReactNode }) {
+        return (
+          <QueryClientProvider client={queryClient}>
+            <BrowserRouter>{children}</BrowserRouter>
+          </QueryClientProvider>
+        );
+      }
+
+      render(<PipelineStatusPanel />, { wrapper: ErrorWrapper });
+
+      // Wait for error state
       await waitFor(
         () => {
           expect(
             screen.getByText("Unable to load pipeline status")
           ).toBeInTheDocument();
         },
-        { timeout: 3000 }
+        { timeout: 5000 }
       );
 
       expect(
@@ -210,10 +236,31 @@ describe("PipelineStatusPanel", () => {
       ).toBeInTheDocument();
     });
 
-    it.skip("shows retry button on error", async () => {
+    it("shows retry button on error", async () => {
       mockApiClient.get.mockRejectedValue(new Error("Network error"));
 
-      render(<PipelineStatusPanel />, { wrapper: createWrapper() });
+      const queryClient = new QueryClient({
+        defaultOptions: {
+          queries: {
+            retry: false,
+            gcTime: 0,
+          },
+        },
+      });
+
+      queryClient.setQueryDefaults(["absurd", "status"], {
+        retry: false,
+      });
+
+      function ErrorWrapper({ children }: { children: React.ReactNode }) {
+        return (
+          <QueryClientProvider client={queryClient}>
+            <BrowserRouter>{children}</BrowserRouter>
+          </QueryClientProvider>
+        );
+      }
+
+      render(<PipelineStatusPanel />, { wrapper: ErrorWrapper });
 
       await waitFor(
         () => {
@@ -221,7 +268,7 @@ describe("PipelineStatusPanel", () => {
             screen.getByRole("button", { name: /retry/i })
           ).toBeInTheDocument();
         },
-        { timeout: 3000 }
+        { timeout: 5000 }
       );
     });
   });

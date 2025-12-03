@@ -70,19 +70,29 @@ interface RetentionState {
 interface RetentionActions {
   // Policy management
   /** Add a new policy */
-  addPolicy: (data: RetentionPolicyFormData) => RetentionPolicy;
+  addPolicy: (data: RetentionPolicyFormData) => Promise<RetentionPolicy>;
   /** Update an existing policy */
-  updatePolicy: (id: string, data: Partial<RetentionPolicyFormData>) => void;
+  updatePolicy: (
+    id: string,
+    data: Partial<RetentionPolicyFormData>
+  ) => Promise<void>;
   /** Delete a policy */
-  deletePolicy: (id: string) => void;
+  deletePolicy: (id: string) => Promise<void>;
   /** Toggle policy status (active/paused) */
-  togglePolicyStatus: (id: string) => void;
+  togglePolicyStatus: (id: string) => Promise<void>;
   /** Set policy status */
-  setPolicyStatus: (id: string, status: RetentionPolicyStatus) => void;
+  setPolicyStatus: (
+    id: string,
+    status: RetentionPolicyStatus
+  ) => Promise<void>;
   /** Select a policy */
   selectPolicy: (id: string | null) => void;
   /** Get policy by ID */
   getPolicy: (id: string) => RetentionPolicy | undefined;
+  /** Fetch policies/executions from backend */
+  fetchPolicies: () => Promise<void>;
+  /** Fetch execution history (all or specific policy) */
+  fetchExecutions: (policyId?: string) => Promise<void>;
 
   // Filtering
   /** Set filter */
@@ -139,124 +149,8 @@ const initialState: RetentionState = {
 };
 
 /**
- * Demo policies for development
+ * Create the retention store
  */
-const demoPolicies: RetentionPolicy[] = [
-  {
-    id: "demo-1",
-    name: "Temporary Files Cleanup",
-    description: "Remove temporary files older than 7 days",
-    dataType: "temporary",
-    priority: "high",
-    status: "active",
-    rules: [
-      {
-        id: "rule-1",
-        name: "Age-based cleanup",
-        description: "Delete files older than 7 days",
-        triggerType: "age",
-        action: "delete",
-        threshold: 7,
-        thresholdUnit: "days",
-        enabled: true,
-      },
-    ],
-    filePattern: "/tmp/**/*",
-    requireConfirmation: false,
-    createBackupBeforeDelete: false,
-    createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    createdBy: "system",
-    lastExecutedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-    nextScheduledAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: "demo-2",
-    name: "Old Job Logs Archive",
-    description: "Archive job logs older than 90 days",
-    dataType: "job_log",
-    priority: "medium",
-    status: "active",
-    rules: [
-      {
-        id: "rule-2",
-        name: "Archive old logs",
-        triggerType: "age",
-        action: "archive",
-        threshold: 90,
-        thresholdUnit: "days",
-        enabled: true,
-      },
-    ],
-    requireConfirmation: true,
-    createBackupBeforeDelete: false,
-    createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString(),
-    createdBy: "admin",
-  },
-  {
-    id: "demo-3",
-    name: "Large MS File Compression",
-    description: "Compress measurement sets larger than 100GB after 30 days",
-    dataType: "measurement_set",
-    priority: "low",
-    status: "paused",
-    rules: [
-      {
-        id: "rule-3a",
-        name: "Size threshold",
-        triggerType: "size",
-        action: "compress",
-        threshold: 100,
-        thresholdUnit: "GB",
-        enabled: true,
-      },
-      {
-        id: "rule-3b",
-        name: "Age threshold",
-        triggerType: "age",
-        action: "compress",
-        threshold: 30,
-        thresholdUnit: "days",
-        enabled: true,
-      },
-    ],
-    minFileSize: 50 * 1024 * 1024 * 1024, // 50GB
-    requireConfirmation: true,
-    createBackupBeforeDelete: true,
-    createdAt: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-    createdBy: "operator",
-  },
-  {
-    id: "demo-4",
-    name: "Calibration Data Retention",
-    description:
-      "Keep only the 50 most recent calibration tables per calibrator",
-    dataType: "calibration",
-    priority: "medium",
-    status: "active",
-    rules: [
-      {
-        id: "rule-4",
-        name: "Count limit",
-        triggerType: "count",
-        action: "archive",
-        threshold: 50,
-        thresholdUnit: "count",
-        enabled: true,
-      },
-    ],
-    requireConfirmation: true,
-    createBackupBeforeDelete: true,
-    createdAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000).toISOString(),
-    updatedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
-    createdBy: "admin",
-    lastExecutedAt: new Date(
-      Date.now() - 7 * 24 * 60 * 60 * 1000
-    ).toISOString(),
-  },
-];
 
 /**
  * Create the retention store
@@ -265,26 +159,77 @@ export const useRetentionStore = create<RetentionStore>()(
   persist(
     (set, get) => ({
       ...initialState,
-      // Initialize with demo data in development
-      policies: import.meta.env.DEV ? demoPolicies : [],
+      policies: [],
 
       // Policy management
-      addPolicy: (data: RetentionPolicyFormData): RetentionPolicy => {
-        const now = new Date().toISOString();
-        const policy: RetentionPolicy = {
-          id: generateId(),
-          ...data,
-          rules: data.rules.map((rule) => ({
-            ...rule,
-            id: generateId(),
-          })),
-          createdAt: now,
-          updatedAt: now,
-        };
-        set((state) => ({
-          policies: [...state.policies, policy],
-        }));
-        return policy;
+      fetchPolicies: async () => {
+        set({ isLoading: true, error: null });
+        try {
+          const [policies, executions] = await Promise.all([
+            listRetentionPolicies(),
+            listRetentionExecutions(),
+          ]);
+          set({
+            policies,
+            executions,
+            isLoading: false,
+            error: null,
+          });
+        } catch (error) {
+          set({
+            isLoading: false,
+            error: getErrorMessage(
+              error,
+              "Failed to load retention policies from the server"
+            ),
+          });
+          throw error;
+        }
+      },
+
+      fetchExecutions: async (policyId?: string) => {
+        try {
+          const executions = await listRetentionExecutions(policyId);
+          set((state) => {
+            if (!policyId) {
+              return { executions };
+            }
+            const remaining = state.executions.filter(
+              (execution) => execution.policyId !== policyId
+            );
+            return {
+              executions: [...executions, ...remaining],
+            };
+          });
+        } catch (error) {
+          set({
+            error: getErrorMessage(
+              error,
+              "Failed to load retention execution history"
+            ),
+          });
+          throw error;
+        }
+      },
+
+      addPolicy: async (
+        data: RetentionPolicyFormData
+      ): Promise<RetentionPolicy> => {
+        set({ isLoading: true, error: null });
+        try {
+          const policy = await apiCreateRetentionPolicy(data);
+          set((state) => ({
+            policies: [...state.policies, policy],
+            isLoading: false,
+          }));
+          return policy;
+        } catch (error) {
+          set({
+            isLoading: false,
+            error: getErrorMessage(error, "Failed to create retention policy"),
+          });
+          throw error;
+        }
       },
 
       updatePolicy: (id: string, data: Partial<RetentionPolicyFormData>) => {
