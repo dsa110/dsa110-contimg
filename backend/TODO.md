@@ -461,11 +461,23 @@ All Phase 2 GPU CUDA Kernel Development items completed:
 
 **Updated:** `database/__init__.py` - Added state machine exports
 
-- [ ] **Pipeline Stage Integration** - Update `pipeline/stages_impl.py`:
-  - Add state transitions at each pipeline stage
-  - Integrate GPU module calls (RFI, gridding, calibration)
-  - Error handling with automatic state rollback
-  - Progress tracking via state machine
+- [x] **Pipeline Stage Integration** - Update `pipeline/stages_impl.py`:
+  - Add state transitions at each pipeline stage via state machine integration
+  - Created `pipeline/stage_integration.py` (~550 lines):
+    - `StageStateMapping` dataclass - Maps stages to MSState processing/success states
+    - `StageExecutionConfig` dataclass - Configuration for tracking behavior
+    - `StageExecutionResult` dataclass - Result with success/error/timing
+    - `state_machine_context()` - Context manager for state transitions
+    - `metrics_context()` - Context manager for pipeline metrics
+    - `MetricsContextHelper` - Helper for CPU/GPU timing in metrics context
+    - `with_stage_retry()` - Decorator adding retry logic with exponential backoff
+    - `tracked_stage_execute()` - Main wrapper combining all tracking
+    - `execute_stage_with_tracking()` - Top-level integration function
+    - `STAGE_STATE_MAP` / `STAGE_METRIC_MAP` - Stage-to-state/metric mappings
+  - Integrated tracking into 4 stages: ConversionStage, CalibrationSolveStage, CalibrationStage, ImagingStage
+  - Error handling with automatic state rollback via state machine
+  - Progress tracking via state machine context manager
+  - 36 unit tests in `tests/unit/test_stage_integration.py` (~617 lines)
 
 ### Phase 3.2: Automated Calibration QA ✅ COMPLETE
 
