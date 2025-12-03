@@ -147,7 +147,6 @@ class TestApplyGainsCPU:
     def test_zero_gains_flagged(self):
         """Test that zero gains are handled by flagging."""
         n_vis = 10
-        n_ant = 3
 
         vis = np.ones(n_vis, dtype=np.complex128)
         gains = np.array([0.0, 1.0, 1.0], dtype=np.complex128)
