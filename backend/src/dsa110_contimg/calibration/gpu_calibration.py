@@ -18,16 +18,13 @@ from __future__ import annotations
 
 import logging
 import time
-from dataclasses import dataclass, field
-from pathlib import Path
+from dataclasses import dataclass
 from typing import Optional, Tuple, Dict, Any
 
 import numpy as np
 
 from dsa110_contimg.utils.gpu_safety import (
-    check_system_memory_available,
     safe_gpu_context,
-    initialize_gpu_safety,
     memory_safe,
     gpu_safe,
 )
@@ -390,9 +387,8 @@ def estimate_solve_memory_gb(
     return (gpu_gb, system_gb)
 
 
-@memory_safe(estimate_func=lambda n_vis, n_chan, n_pol, n_ant, **kw:
-             estimate_applycal_memory_gb(n_vis, n_chan, n_pol, n_ant)[1])
-@gpu_safe
+@memory_safe()
+@gpu_safe()
 def apply_gains_gpu(
     vis: np.ndarray,
     gains: np.ndarray,
@@ -512,10 +508,10 @@ def apply_gains_gpu(
                 gpu_id=config.gpu_id,
             )
 
-    except Exception as e:
-        logger.error("GPU gain application failed: %s", str(e))
+    except (RuntimeError, MemoryError, ValueError) as exc:
+        logger.error("GPU gain application failed: %s", str(exc))
         return ApplyCalResult(
-            error=str(e),
+            error=str(exc),
             gpu_id=config.gpu_id,
         )
 
@@ -525,8 +521,6 @@ def apply_gains_cpu(
     gains: np.ndarray,
     ant1: np.ndarray,
     ant2: np.ndarray,
-    *,
-    n_pol: int = 1,
 ) -> Tuple[np.ndarray, int]:
     """CPU fallback for gain application.
 
@@ -535,31 +529,28 @@ def apply_gains_cpu(
         gains: Complex gains (n_ant,) - per-antenna gains
         ant1: Antenna 1 indices
         ant2: Antenna 2 indices
-        n_pol: Number of polarizations
 
     Returns:
         Tuple of (corrected_vis, n_flagged)
     """
-    n_vis = len(vis)
-
     # Reshape if needed
     if vis.ndim == 1:
         vis = vis.reshape(-1, 1)
 
     # Get gains for each baseline
-    g1 = gains[ant1]  # (n_vis,)
-    g2 = gains[ant2]  # (n_vis,)
+    gain_ant1 = gains[ant1]  # (n_vis,)
+    gain_ant2 = gains[ant2]  # (n_vis,)
 
-    # g1 * conj(g2)
-    gg = g1 * np.conj(g2)
+    # gain_ant1 * conj(gain_ant2)
+    gain_product = gain_ant1 * np.conj(gain_ant2)
 
     # Avoid division by zero
-    gg_norm2 = np.abs(gg) ** 2
-    small_gain = gg_norm2 < 1e-10
+    gain_norm2 = np.abs(gain_product) ** 2
+    small_gain = gain_norm2 < 1e-10
 
     # Corrected = vis / (g1 * conj(g2))
     with np.errstate(divide='ignore', invalid='ignore'):
-        corrected = vis / gg.reshape(-1, 1)
+        corrected = vis / gain_product.reshape(-1, 1)
 
     # Flag bad gains
     corrected[small_gain] = np.nan
@@ -669,9 +660,8 @@ def solve_per_antenna_gains_cpu(
     )
 
 
-@memory_safe(estimate_func=lambda n_vis, n_ant, **kw:
-             estimate_solve_memory_gb(n_vis, n_ant)[1])
-@gpu_safe
+@memory_safe()
+@gpu_safe()
 def solve_per_antenna_gains_gpu(
     vis: np.ndarray,
     model: np.ndarray,
@@ -748,16 +738,16 @@ def apply_gains(
     """
     if use_gpu and CUPY_AVAILABLE:
         return apply_gains_gpu(vis, gains, ant1, ant2, config=config)
-    else:
-        start_time = time.time()
-        corrected, n_flagged = apply_gains_cpu(vis, gains, ant1, ant2)
-        vis[:] = corrected
-        return ApplyCalResult(
-            n_vis_processed=len(vis),
-            n_vis_calibrated=len(vis) - n_flagged,
-            n_vis_flagged=n_flagged,
-            processing_time_s=time.time() - start_time,
-        )
+
+    start_time = time.time()
+    corrected, n_flagged = apply_gains_cpu(vis, gains, ant1, ant2)
+    vis[:] = corrected
+    return ApplyCalResult(
+        n_vis_processed=len(vis),
+        n_vis_calibrated=len(vis) - n_flagged,
+        n_vis_flagged=n_flagged,
+        processing_time_s=time.time() - start_time,
+    )
 
 
 def solve_per_antenna_gains(
@@ -797,8 +787,8 @@ def solve_per_antenna_gains(
             vis, model, ant1, ant2, weights, n_antennas,
             config=config, max_iter=max_iter, tol=tol, refant=refant
         )
-    else:
-        return solve_per_antenna_gains_cpu(
-            vis, model, ant1, ant2, weights, n_antennas,
-            max_iter=max_iter, tol=tol, refant=refant
-        )
+
+    return solve_per_antenna_gains_cpu(
+        vis, model, ant1, ant2, weights, n_antennas,
+        max_iter=max_iter, tol=tol, refant=refant
+    )

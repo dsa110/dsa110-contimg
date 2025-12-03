@@ -70,17 +70,16 @@ def synthetic_images(tmp_path: Path) -> list[Path]:
 def test_database(tmp_path: Path) -> Path:
     """Create a test database with images table populated."""
     from dsa110_contimg.mosaic.schema import ensure_mosaic_tables
-    from dsa110_contimg.database.schema import create_products_tables
+    from dsa110_contimg.database import ensure_products_db
     
     db_path = tmp_path / "test.sqlite3"
+    
+    # Create products tables using SQLAlchemy (includes images)
+    ensure_products_db(db_path)
+    
+    # Create mosaic tables using raw SQL
     conn = sqlite3.connect(str(db_path))
-    
-    # Create products tables (includes images)
-    create_products_tables(conn)
-    
-    # Create mosaic tables
     ensure_mosaic_tables(conn)
-    
     conn.commit()
     conn.close()
     
