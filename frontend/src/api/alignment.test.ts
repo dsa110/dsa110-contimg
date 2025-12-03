@@ -1191,7 +1191,7 @@ const CORE_FIXTURES = {
     status: "completed",
     started_at: "2025-06-02T09:00:00Z",
     finished_at: "2025-06-02T10:00:00Z",
-    logs_url: "/api/jobs/run-abc123/logs",
+    logs_url: "/api/v1/jobs/run-abc123/logs",
     config: { wsclean_args: ["-niter", "10000"] },
   } satisfies JobDetail,
 };

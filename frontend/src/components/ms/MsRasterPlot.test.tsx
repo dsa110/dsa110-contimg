@@ -7,7 +7,7 @@ import MsRasterPlot from "./MsRasterPlot";
 vi.mock("../../config", () => ({
   config: {
     api: {
-      baseUrl: "/api",
+      baseUrl: "/api/v1",
     },
   },
 }));
@@ -62,7 +62,7 @@ describe("MsRasterPlot", () => {
     const img = screen.getByRole("img");
     const src = img.getAttribute("src");
 
-    expect(src).toContain("/api/ms/");
+    expect(src).toContain("/api/v1/ms/");
     expect(src).toContain("xaxis=time");
     expect(src).toContain("yaxis=amp");
     expect(src).toContain("colormap=viridis");

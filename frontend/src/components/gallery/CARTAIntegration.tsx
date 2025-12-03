@@ -51,10 +51,15 @@ export interface CARTAConfig {
 // Constants
 // ============================================================================
 
+/**
+ * Default CARTA configuration.
+ * NOTE: CARTA endpoints (/api/v1/carta/*) are not yet implemented in the backend.
+ * The component gracefully handles unavailable status when CARTA is not deployed.
+ */
 const DEFAULT_CARTA_CONFIG: CARTAConfig = {
   baseUrl: "/viewer/carta",
-  checkEndpoint: "/api/carta/status",
-  openEndpoint: "/api/carta/open",
+  checkEndpoint: "/api/v1/carta/status",
+  openEndpoint: "/api/v1/carta/open",
 };
 
 // ============================================================================

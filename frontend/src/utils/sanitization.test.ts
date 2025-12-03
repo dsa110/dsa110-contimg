@@ -124,33 +124,33 @@ describe("sanitization", () => {
 
   describe("buildApiUrl", () => {
     it("should build URL from base and segments", () => {
-      expect(buildApiUrl("/api", "images", "123")).toBe("/api/images/123");
-      expect(buildApiUrl("http://localhost:8000/api", "sources", "456")).toBe(
-        "http://localhost:8000/api/sources/456"
+      expect(buildApiUrl("/api/v1", "images", "123")).toBe("/api/v1/images/123");
+      expect(buildApiUrl("http://localhost:8000/api/v1", "sources", "456")).toBe(
+        "http://localhost:8000/api/v1/sources/456"
       );
     });
 
     it("should sanitize string segments", () => {
-      expect(buildApiUrl("/api", "images", "test/image")).toBe("/api/images/test%2Fimage");
+      expect(buildApiUrl("/api/v1", "images", "test/image")).toBe("/api/v1/images/test%2Fimage");
     });
 
     it("should handle numeric segments", () => {
-      expect(buildApiUrl("/api", "sources", 123)).toBe("/api/sources/123");
-      expect(buildApiUrl("/api", "jobs", 456, "logs")).toBe("/api/jobs/456/logs");
+      expect(buildApiUrl("/api/v1", "sources", 123)).toBe("/api/v1/sources/123");
+      expect(buildApiUrl("/api/v1", "jobs", 456, "logs")).toBe("/api/v1/jobs/456/logs");
     });
 
     it("should handle mixed segment types", () => {
-      expect(buildApiUrl("/api", "images", 123, "metadata")).toBe("/api/images/123/metadata");
+      expect(buildApiUrl("/api/v1", "images", 123, "metadata")).toBe("/api/v1/images/123/metadata");
     });
 
     it("should handle empty segments", () => {
-      expect(buildApiUrl("/api", "", "123")).toBe("/api//123");
+      expect(buildApiUrl("/api/v1", "", "123")).toBe("/api/v1//123");
     });
 
     it("should not double-encode", () => {
       // If a segment is already encoded, it should be re-encoded
-      const encoded = buildApiUrl("/api", "test%2Fimage");
-      expect(encoded).toBe("/api/test%252Fimage");
+      const encoded = buildApiUrl("/api/v1", "test%2Fimage");
+      expect(encoded).toBe("/api/v1/test%252Fimage");
     });
   });
 

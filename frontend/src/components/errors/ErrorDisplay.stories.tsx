@@ -53,7 +53,7 @@ export const WithDetails: Story = {
       ref_id: "req-002",
       details: {
         statusCode: 503,
-        endpoint: "/api/sources",
+        endpoint: "/api/v1/sources",
         timestamp: new Date().toISOString(),
       },
     },
@@ -168,7 +168,7 @@ export const PermissionError: Story = {
       action: "Contact your administrator to request access.",
       ref_id: "perm-008",
       details: {
-        resource: "/api/admin/users",
+        resource: "/api/v1/admin/users",
         requiredRole: "admin",
         userRole: "viewer",
       },

@@ -1184,40 +1184,35 @@ def solve_bandpass(
     logger.info(f":check: Bandpass solve completed: {table_prefix}_bpcal")
 
     # Optional smoothing of bandpass table (post-solve), off by default
-    try:
-        if (
-            bp_smooth_type
-            and str(bp_smooth_type).lower() != "none"
-            and bp_smooth_window
-            and int(bp_smooth_window) > 1
-        ):
+    if (
+        bp_smooth_type
+        and str(bp_smooth_type).lower() != "none"
+        and bp_smooth_window
+        and int(bp_smooth_window) > 1
+    ):
+        try:
+            # Prefer CASA smoothcal if available
             try:
-                # Prefer CASA smoothcal if available
-                try:
-                    try:
-                        from dsa110_contimg.utils.tempdirs import casa_log_environment
-                        with casa_log_environment():
-                            from casatasks import smoothcal as casa_smoothcal  # type: ignore[import]
-                    except ImportError:
-                        from casatasks import smoothcal as casa_smoothcal  # type: ignore[import]
+                from dsa110_contimg.utils.tempdirs import casa_log_environment
+                with casa_log_environment():
+                    from casatasks import smoothcal as casa_smoothcal  # type: ignore[import]
+            except ImportError:
+                from casatasks import smoothcal as casa_smoothcal  # type: ignore[import]
 
-                    logger.info(
-                        f"Smoothing bandpass table '{table_prefix}_bpcal' with {bp_smooth_type} (window={bp_smooth_window})..."
-                    )
-                    # Best-effort: in-place smoothing using same output table
-                    casa_smoothcal(
-                        vis=ms,
-                        tablein=f"{table_prefix}_bpcal",
-                        tableout=f"{table_prefix}_bpcal",
-                        smoothtype=str(bp_smooth_type).lower(),
-                        smoothwindow=int(bp_smooth_window),
-                    )
-                    logger.info(":check: Bandpass table smoothing complete")
-                except Exception as e:
-                    logger.warning(f"Could not smooth bandpass table via CASA smoothcal: {e}")
-    except (ValueError, TypeError):
-        # Do not fail calibration if smoothing parameters are malformed
-        pass
+            logger.info(
+                f"Smoothing bandpass table '{table_prefix}_bpcal' with {bp_smooth_type} (window={bp_smooth_window})..."
+            )
+            # Best-effort: in-place smoothing using same output table
+            casa_smoothcal(
+                vis=ms,
+                tablein=f"{table_prefix}_bpcal",
+                tableout=f"{table_prefix}_bpcal",
+                smoothtype=str(bp_smooth_type).lower(),
+                smoothwindow=int(bp_smooth_window),
+            )
+            logger.info(":check: Bandpass table smoothing complete")
+        except Exception as e:
+            logger.warning(f"Could not smooth bandpass table via CASA smoothcal: {e}")
 
     out = [f"{table_prefix}_bpcal"]
 

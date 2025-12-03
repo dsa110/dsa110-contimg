@@ -121,23 +121,48 @@ export function useNotifications() {
 
 /**
  * Hook for subscribing to real-time notifications via SSE or WebSocket
+ *
+ * NOTE: The notifications stream endpoint (/api/v1/notifications/stream) is not yet
+ * implemented in the backend. This hook is disabled by default and will gracefully
+ * handle the missing endpoint when enabled.
  */
 export function useNotificationSubscription(
-  endpoint: string = "/api/notifications/stream"
+  endpoint: string = "/api/v1/notifications/stream",
+  enabled: boolean = false // Disabled by default until backend implements the endpoint
 ) {
   const { addNotification, setConnectionStatus } = useNotificationStore.getState();
 
   useEffect(() => {
+    // Skip connection if disabled or endpoint not provided
+    if (!enabled || !endpoint) {
+      setConnectionStatus("disconnected");
+      return;
+    }
+
     let eventSource: EventSource | null = null;
     let reconnectTimeout: NodeJS.Timeout | null = null;
+    let reconnectAttempts = 0;
+    const MAX_RECONNECT_ATTEMPTS = 3;
 
     const connect = () => {
+      // Stop trying after max attempts to avoid spamming logs
+      if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+        console.warn(
+          `Notifications stream: Giving up after ${MAX_RECONNECT_ATTEMPTS} failed attempts. ` +
+          `Endpoint ${endpoint} may not be implemented.`
+        );
+        setConnectionStatus("disconnected");
+        return;
+      }
+
       setConnectionStatus("connecting");
+      reconnectAttempts++;
 
       try {
         eventSource = new EventSource(endpoint);
 
         eventSource.onopen = () => {
+          reconnectAttempts = 0; // Reset on successful connection
           setConnectionStatus("connected");
         };
 
@@ -156,18 +181,20 @@ export function useNotificationSubscription(
           setConnectionStatus("disconnected");
           eventSource?.close();
 
-          // Attempt to reconnect after 5 seconds
-          reconnectTimeout = setTimeout(connect, 5000);
+          // Attempt to reconnect with exponential backoff
+          const delay = Math.min(5000 * Math.pow(2, reconnectAttempts - 1), 30000);
+          reconnectTimeout = setTimeout(connect, delay);
         };
       } catch {
         setConnectionStatus("disconnected");
-        // Attempt to reconnect after 5 seconds
-        reconnectTimeout = setTimeout(connect, 5000);
+        // Attempt to reconnect with exponential backoff
+        const delay = Math.min(5000 * Math.pow(2, reconnectAttempts - 1), 30000);
+        reconnectTimeout = setTimeout(connect, delay);
       }
     };
 
-    // Don't auto-connect in development without a real endpoint
-    // connect();
+    // Only connect if enabled
+    connect();
 
     return () => {
       eventSource?.close();
@@ -175,7 +202,7 @@ export function useNotificationSubscription(
         clearTimeout(reconnectTimeout);
       }
     };
-  }, [endpoint, addNotification, setConnectionStatus]);
+  }, [endpoint, enabled, addNotification, setConnectionStatus]);
 }
 
 /**

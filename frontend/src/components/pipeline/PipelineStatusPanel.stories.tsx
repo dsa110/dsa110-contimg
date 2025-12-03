@@ -132,7 +132,7 @@ export const Healthy: Story = {
   parameters: {
     msw: {
       handlers: [
-        http.get("/api/absurd/status", () => {
+        http.get("/absurd/status", () => {
           return HttpResponse.json(healthyPipelineData);
         }),
       ],
@@ -147,7 +147,7 @@ export const WithFailures: Story = {
   parameters: {
     msw: {
       handlers: [
-        http.get("/api/absurd/status", () => {
+        http.get("/absurd/status", () => {
           return HttpResponse.json(withFailuresData);
         }),
       ],
@@ -162,7 +162,7 @@ export const Empty: Story = {
   parameters: {
     msw: {
       handlers: [
-        http.get("/api/absurd/status", () => {
+        http.get("/absurd/status", () => {
           return HttpResponse.json(emptyPipelineData);
         }),
       ],
@@ -177,7 +177,7 @@ export const Busy: Story = {
   parameters: {
     msw: {
       handlers: [
-        http.get("/api/absurd/status", () => {
+        http.get("/absurd/status", () => {
           return HttpResponse.json(busyPipelineData);
         }),
       ],
@@ -195,7 +195,7 @@ export const Compact: Story = {
   parameters: {
     msw: {
       handlers: [
-        http.get("/api/absurd/status", () => {
+        http.get("/absurd/status", () => {
           return HttpResponse.json(healthyPipelineData);
         }),
       ],
@@ -210,7 +210,7 @@ export const Loading: Story = {
   parameters: {
     msw: {
       handlers: [
-        http.get("/api/absurd/status", async () => {
+        http.get("/absurd/status", async () => {
           await delay("infinite");
           return HttpResponse.json(healthyPipelineData);
         }),
@@ -226,7 +226,7 @@ export const Error: Story = {
   parameters: {
     msw: {
       handlers: [
-        http.get("/api/absurd/status", () => {
+        http.get("/absurd/status", () => {
           return HttpResponse.error();
         }),
       ],
