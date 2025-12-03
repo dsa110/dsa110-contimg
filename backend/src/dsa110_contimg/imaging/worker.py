@@ -50,7 +50,7 @@ def setup_logging(level: str) -> None:
     )
 
 
-@memory_safe(max_memory_gb=6.0, description="apply_and_image")
+@memory_safe(max_system_gb=6.0)
 def _apply_and_image(ms_path: str, out_dir: Path, gaintables: List[str]) -> List[str]:
     """Apply calibration and produce a quick image; returns artifact paths.
     
