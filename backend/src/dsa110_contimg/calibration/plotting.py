@@ -30,7 +30,16 @@ def generate_bandpass_plots(
     Raises:
         RuntimeError: If plot generation fails
     """
-    from casatasks import plotbandpass
+    # Helper to call plotbandpass with CASA log environment protection
+    def _call_plotbandpass(**kwargs):
+        try:
+            from dsa110_contimg.utils.tempdirs import casa_log_environment
+            with casa_log_environment():
+                from casatasks import plotbandpass
+                return plotbandpass(**kwargs)
+        except ImportError:
+            from casatasks import plotbandpass
+            return plotbandpass(**kwargs)
 
     if output_dir is None:
         output_dir = os.path.dirname(bpcal_table) or "."
@@ -47,7 +56,7 @@ def generate_bandpass_plots(
     try:
         if plot_amplitude:
             amp_plot = f"{plot_prefix}_amp"
-            plotbandpass(
+            _call_plotbandpass(
                 caltable=bpcal_table,
                 xaxis="freq",
                 yaxis="amp",
@@ -64,7 +73,7 @@ def generate_bandpass_plots(
 
         if plot_phase:
             phase_plot = f"{plot_prefix}_phase"
-            plotbandpass(
+            _call_plotbandpass(
                 caltable=bpcal_table,
                 xaxis="freq",
                 yaxis="phase",

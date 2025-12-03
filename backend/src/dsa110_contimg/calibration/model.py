@@ -359,8 +359,14 @@ def write_point_model_with_ft(
         _calculate_manual_model_data(ms_path, ra_deg, dec_deg, flux_jy, field=field)
         return
 
-    from casatasks import ft
-    from casatools import componentlist as cltool
+    try:
+        from dsa110_contimg.utils.tempdirs import casa_log_environment
+        with casa_log_environment():
+            from casatasks import ft
+            from casatools import componentlist as cltool
+    except ImportError:
+        from casatasks import ft
+        from casatools import componentlist as cltool
 
     logger.info(
         "Writing point model using ft() (use_manual=False). "
@@ -477,7 +483,12 @@ def write_component_model_with_ft(ms_path: str, component_path: str) -> None:
         DeprecationWarning,
         stacklevel=2,
     )
-    from casatasks import ft
+    try:
+        from dsa110_contimg.utils.tempdirs import casa_log_environment
+        with casa_log_environment():
+            from casatasks import ft
+    except ImportError:
+        from casatasks import ft
 
     if not os.path.exists(component_path):
         raise FileNotFoundError(f"Component list not found: {component_path}")
@@ -514,7 +525,12 @@ def write_image_model_with_ft(ms_path: str, image_path: str) -> None:
         DeprecationWarning,
         stacklevel=2,
     )
-    from casatasks import ft
+    try:
+        from dsa110_contimg.utils.tempdirs import casa_log_environment
+        with casa_log_environment():
+            from casatasks import ft
+    except ImportError:
+        from casatasks import ft
 
     if not os.path.exists(image_path):
         raise FileNotFoundError(f"Model image not found: {image_path}")
@@ -546,7 +562,12 @@ def export_model_as_fits(
     """
     import logging
 
-    from casatasks import exportfits, tclean
+    try:
+        from dsa110_contimg.utils.tempdirs import casa_log_environment
+        with casa_log_environment():
+            from casatasks import exportfits, tclean
+    except ImportError:
+        from casatasks import exportfits, tclean
 
     LOG = logging.getLogger(__name__)
 
@@ -625,7 +646,12 @@ def write_setjy_model(
         DeprecationWarning,
         stacklevel=2,
     )
-    from casatasks import setjy
+    try:
+        from dsa110_contimg.utils.tempdirs import casa_log_environment
+        with casa_log_environment():
+            from casatasks import setjy
+    except ImportError:
+        from casatasks import setjy
 
     _ensure_imaging_columns(ms_path)
     setjy(vis=ms_path, field=str(field), spw=spw, standard=standard, usescratch=usescratch)
@@ -732,7 +758,12 @@ def populate_model_from_catalog(
 
     # Clear existing MODEL_DATA before writing
     try:
-        from casatasks import clearcal
+        try:
+            from dsa110_contimg.utils.tempdirs import casa_log_environment
+            with casa_log_environment():
+                from casatasks import clearcal
+        except ImportError:
+            from casatasks import clearcal
 
         clearcal(vis=ms_path, addmodel=True)
         logger.debug("Cleared existing MODEL_DATA before writing new model")

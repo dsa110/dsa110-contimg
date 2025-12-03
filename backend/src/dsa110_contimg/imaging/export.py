@@ -30,7 +30,12 @@ def export_fits(
         List of exported FITS file paths
     """
     try:
-        from casatasks import exportfits as _exportfits  # type: ignore
+        try:
+            from dsa110_contimg.utils.tempdirs import casa_log_environment
+            with casa_log_environment():
+                from casatasks import exportfits as _exportfits  # type: ignore
+        except ImportError:
+            from casatasks import exportfits as _exportfits  # type: ignore
     except Exception as e:
         print("casatasks.exportfits not available:", e, file=__import__("sys").stderr)
         return []
