@@ -13,7 +13,6 @@ import pytest
 
 from dsa110_contimg.imaging.gpu_gridding import (
     GriddingConfig,
-    GriddingResult,
     gpu_grid_visibilities,
     cpu_grid_visibilities,
     grid_ms,
@@ -24,7 +23,6 @@ from dsa110_contimg.imaging.gpu_gridding import (
 from dsa110_contimg.utils.gpu_safety import (
     check_system_memory_available,
     initialize_gpu_safety,
-    get_gpu_memory_info,
 )
 
 
