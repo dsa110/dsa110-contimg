@@ -591,8 +591,6 @@ def solve_per_antenna_gains_cpu(
     """
     start_time = time.time()
 
-    n_vis = len(vis)
-
     # Initialize gains to 1
     gains = np.ones(n_antennas, dtype=np.complex128)
 
