@@ -454,10 +454,10 @@ All Phase 2 GPU CUDA Kernel Development items completed:
 
 **Files Created:**
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| `database/state_machine.py` | ~1054 | Full state machine implementation |
-| `tests/unit/test_state_machine.py` | ~783 | Comprehensive unit tests (55 tests) |
+| File                               | Lines | Purpose                             |
+| ---------------------------------- | ----- | ----------------------------------- |
+| `database/state_machine.py`        | ~1054 | Full state machine implementation   |
+| `tests/unit/test_state_machine.py` | ~783  | Comprehensive unit tests (55 tests) |
 
 **Updated:** `database/__init__.py` - Added state machine exports
 
@@ -517,13 +517,13 @@ All Phase 2 GPU CUDA Kernel Development items completed:
 
 ### Phase 3 Deliverables
 
-| Component              | Files                              | Tests Target |
-| ---------------------- | ---------------------------------- | ------------ |
-| State Machine          | `database/state_machine.py`        | 15 tests     |
-| Calibration QA         | `calibration/qa.py`                | 12 tests     |
-| GPU Imaging Worker     | `imaging/worker.py` (update)       | 8 tests      |
-| GPU Calibration Worker | `calibration/applycal.py` (update) | 8 tests      |
-| Pipeline Integration   | `pipeline/stages_impl.py` (update) | 10 tests     |
+| Component              | Files                              | Tests Target | Status |
+| ---------------------- | ---------------------------------- | ------------ | ------ |
+| State Machine          | `database/state_machine.py`        | 55 tests ✅  | DONE   |
+| Calibration QA         | `calibration/qa.py`                | 12 tests     | -      |
+| GPU Imaging Worker     | `imaging/worker.py` (update)       | 8 tests      | -      |
+| GPU Calibration Worker | `calibration/applycal.py` (update) | 8 tests      | -      |
+| Pipeline Integration   | `pipeline/stages_impl.py` (update) | 10 tests     | -      |
 
 ---
 

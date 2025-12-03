@@ -6,7 +6,12 @@
  */
 
 // Coordinate formatting (display strings with symbols)
-export { formatRA, formatDec, formatCoordinates, formatDegrees } from "./coordinateFormatter";
+export {
+  formatRA,
+  formatDec,
+  formatCoordinates,
+  formatDegrees,
+} from "./coordinateFormatter";
 
 // Coordinate parsing (parse various formats to decimal degrees)
 export {
@@ -31,7 +36,10 @@ export {
 } from "./provenanceMappers";
 
 // Fetch utilities with retry
-export { fetchWithRetry, DEFAULT_EXTERNAL_RETRY_CONFIG } from "./fetchWithRetry";
+export {
+  fetchWithRetry,
+  DEFAULT_EXTERNAL_RETRY_CONFIG,
+} from "./fetchWithRetry";
 
 // Service health checker
 export {
@@ -65,3 +73,35 @@ export {
 
 // Centralized logging
 export { logger } from "./logger";
+
+// Timestamp utilities
+export {
+  toDate,
+  toISO,
+  toUnixMillis,
+  toUnixSeconds,
+  nowISO,
+  nowMillis,
+  nowSeconds,
+  formatTimestamp,
+  formatDate,
+  formatTime,
+  formatRelative,
+  isValidISO,
+  isUnixSeconds,
+  isUnixMillis,
+  compareTimestamps,
+  isWithin,
+  isPast,
+  isFuture,
+  addDuration,
+  subtractDuration,
+  DURATION,
+} from "./timestamp";
+
+export type {
+  ISOTimestamp,
+  UnixMillis,
+  UnixSeconds,
+  TimestampInput,
+} from "./timestamp";

@@ -452,6 +452,7 @@ CREATE TABLE IF NOT EXISTS mosaics (
     dec_min_deg REAL,
     dec_max_deg REAL,
     noise_jy REAL,
+    effective_noise_jy REAL,  -- Propagated noise from inverse-variance weighting
     beam_major_arcsec REAL,
     beam_minor_arcsec REAL,
     beam_pa_deg REAL,

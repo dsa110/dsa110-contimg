@@ -25,6 +25,15 @@ export type UnixMillis = number;
 /** Unix timestamp in seconds (Prometheus format) */
 export type UnixSeconds = number;
 
+/** Any timestamp input type */
+export type TimestampInput =
+  | ISOTimestamp
+  | UnixMillis
+  | UnixSeconds
+  | Date
+  | null
+  | undefined;
+
 // =============================================================================
 // Conversion Functions
 // =============================================================================
@@ -32,9 +41,7 @@ export type UnixSeconds = number;
 /**
  * Convert any timestamp format to a Date object
  */
-export function toDate(
-  timestamp: ISOTimestamp | UnixMillis | UnixSeconds | Date | null | undefined
-): Date | null {
+export function toDate(timestamp: TimestampInput): Date | null {
   if (timestamp === null || timestamp === undefined) {
     return null;
   }
@@ -61,9 +68,7 @@ export function toDate(
 /**
  * Convert any timestamp to ISO string
  */
-export function toISO(
-  timestamp: ISOTimestamp | UnixMillis | UnixSeconds | Date | null | undefined
-): ISOTimestamp | null {
+export function toISO(timestamp: TimestampInput): ISOTimestamp | null {
   const date = toDate(timestamp);
   return date ? date.toISOString() : null;
 }
@@ -71,9 +76,7 @@ export function toISO(
 /**
  * Convert any timestamp to Unix milliseconds
  */
-export function toUnixMillis(
-  timestamp: ISOTimestamp | UnixMillis | UnixSeconds | Date | null | undefined
-): UnixMillis | null {
+export function toUnixMillis(timestamp: TimestampInput): UnixMillis | null {
   const date = toDate(timestamp);
   return date ? date.getTime() : null;
 }
@@ -81,9 +84,7 @@ export function toUnixMillis(
 /**
  * Convert any timestamp to Unix seconds (for Prometheus)
  */
-export function toUnixSeconds(
-  timestamp: ISOTimestamp | UnixMillis | UnixSeconds | Date | null | undefined
-): UnixSeconds | null {
+export function toUnixSeconds(timestamp: TimestampInput): UnixSeconds | null {
   const millis = toUnixMillis(timestamp);
   return millis !== null ? Math.floor(millis / 1000) : null;
 }
@@ -117,7 +118,7 @@ export function nowSeconds(): UnixSeconds {
  * Format timestamp for display (locale-aware)
  */
 export function formatTimestamp(
-  timestamp: ISOTimestamp | UnixMillis | UnixSeconds | Date | null | undefined,
+  timestamp: TimestampInput,
   options?: Intl.DateTimeFormatOptions
 ): string {
   const date = toDate(timestamp);
@@ -137,9 +138,7 @@ export function formatTimestamp(
 /**
  * Format timestamp as date only
  */
-export function formatDate(
-  timestamp: ISOTimestamp | UnixMillis | UnixSeconds | Date | null | undefined
-): string {
+export function formatDate(timestamp: TimestampInput): string {
   const date = toDate(timestamp);
   if (!date) return "—";
 
@@ -153,9 +152,7 @@ export function formatDate(
 /**
  * Format timestamp as time only
  */
-export function formatTime(
-  timestamp: ISOTimestamp | UnixMillis | UnixSeconds | Date | null | undefined
-): string {
+export function formatTime(timestamp: TimestampInput): string {
   const date = toDate(timestamp);
   if (!date) return "—";
 
@@ -170,7 +167,7 @@ export function formatTime(
  * Format timestamp as relative time (e.g., "5 minutes ago")
  */
 export function formatRelative(
-  timestamp: ISOTimestamp | UnixMillis | UnixSeconds | Date | null | undefined,
+  timestamp: TimestampInput,
   relativeTo?: Date
 ): string {
   const date = toDate(timestamp);
@@ -241,8 +238,8 @@ export function isUnixMillis(value: number): boolean {
  * Returns negative if a < b, positive if a > b, 0 if equal
  */
 export function compareTimestamps(
-  a: ISOTimestamp | UnixMillis | UnixSeconds | Date | null | undefined,
-  b: ISOTimestamp | UnixMillis | UnixSeconds | Date | null | undefined
+  a: TimestampInput,
+  b: TimestampInput
 ): number {
   const aMillis = toUnixMillis(a) ?? 0;
   const bMillis = toUnixMillis(b) ?? 0;
@@ -253,7 +250,7 @@ export function compareTimestamps(
  * Check if timestamp is within a duration from now
  */
 export function isWithin(
-  timestamp: ISOTimestamp | UnixMillis | UnixSeconds | Date | null | undefined,
+  timestamp: TimestampInput,
   durationMs: number
 ): boolean {
   const millis = toUnixMillis(timestamp);
@@ -264,9 +261,7 @@ export function isWithin(
 /**
  * Check if timestamp is in the past
  */
-export function isPast(
-  timestamp: ISOTimestamp | UnixMillis | UnixSeconds | Date | null | undefined
-): boolean {
+export function isPast(timestamp: TimestampInput): boolean {
   const millis = toUnixMillis(timestamp);
   if (millis === null) return false;
   return millis < Date.now();
@@ -275,9 +270,7 @@ export function isPast(
 /**
  * Check if timestamp is in the future
  */
-export function isFuture(
-  timestamp: ISOTimestamp | UnixMillis | UnixSeconds | Date | null | undefined
-): boolean {
+export function isFuture(timestamp: TimestampInput): boolean {
   const millis = toUnixMillis(timestamp);
   if (millis === null) return false;
   return millis > Date.now();
@@ -300,7 +293,7 @@ export const DURATION = {
  * Add duration to timestamp
  */
 export function addDuration(
-  timestamp: ISOTimestamp | UnixMillis | UnixSeconds | Date | null | undefined,
+  timestamp: TimestampInput,
   durationMs: number
 ): Date | null {
   const millis = toUnixMillis(timestamp);
@@ -312,7 +305,7 @@ export function addDuration(
  * Subtract duration from timestamp
  */
 export function subtractDuration(
-  timestamp: ISOTimestamp | UnixMillis | UnixSeconds | Date | null | undefined,
+  timestamp: TimestampInput,
   durationMs: number
 ): Date | null {
   return addDuration(timestamp, -durationMs);

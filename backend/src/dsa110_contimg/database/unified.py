@@ -355,6 +355,7 @@ def init_unified_db(db_path: Optional[Union[str, Path]] = None) -> Database:
     
     Creates the database file and all tables if they don't exist.
     The schema is loaded from schema.sql in the same directory.
+    Also runs pending migrations for schema updates.
     
     Args:
         db_path: Path to database. Uses PIPELINE_DB env var or default.
@@ -364,7 +365,39 @@ def init_unified_db(db_path: Optional[Union[str, Path]] = None) -> Database:
     """
     db = Database(db_path)
     db.execute_script(get_unified_schema())
+    # Run any pending migrations
+    _run_migrations(db)
     return db
+
+
+def _run_migrations(db: Database) -> None:
+    """Run schema migrations for existing databases.
+    
+    This handles adding new columns to existing tables.
+    Uses PRAGMA table_info to check if columns exist before adding.
+    
+    Args:
+        db: Database instance
+    """
+    migrations = [
+        # Add effective_noise_jy to mosaics table
+        ("mosaics", "effective_noise_jy", "ALTER TABLE mosaics ADD COLUMN effective_noise_jy REAL"),
+    ]
+    
+    for table, column, sql in migrations:
+        # Check if column exists
+        cursor = db.conn.execute(f"PRAGMA table_info({table})")
+        columns = [row[1] for row in cursor.fetchall()]
+        
+        if column not in columns:
+            try:
+                db.conn.execute(sql)
+                db.conn.commit()
+                logger.info(f"Migration: added column {column} to table {table}")
+            except sqlite3.OperationalError as e:
+                # Column might already exist in some edge cases
+                if "duplicate column" not in str(e).lower():
+                    logger.warning(f"Migration failed for {table}.{column}: {e}")
 
 
 

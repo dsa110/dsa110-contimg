@@ -54,7 +54,7 @@ def build_mosaic(
     alignment_order: int = 3,
     timeout_minutes: int = 30,  # noqa: ARG001 - Reserved for future async support
     write_weight_map: bool = True,
-    apply_pb_correction: bool = False,  # noqa: ARG001 - Reserved for DSA-110 PB models
+    apply_pb_correction: bool = False,
 ) -> MosaicResult:
     """Build mosaic from list of FITS images.
     
@@ -67,9 +67,10 @@ def build_mosaic(
         alignment_order: Polynomial order for reprojection (1=fast, 5=accurate)
         timeout_minutes: Maximum execution time (for future async support)
         write_weight_map: If True, write a weight map for uncertainty estimation
-        apply_pb_correction: If True, apply primary beam correction (DSA-110 specific).
-            Note: For DSA-110, primary beam correction is typically done at imaging
-            stage, so this is optional for mosaicking.
+        apply_pb_correction: If True, apply primary beam correction using DSA-110
+            Airy disk model (4.7m dish). This divides each pixel by the primary
+            beam response to correct for attenuation away from the phase center.
+            The correction is limited at PB < 0.1 to avoid amplifying edge noise.
         
     Returns:
         MosaicResult with metadata
@@ -143,6 +144,26 @@ def build_mosaic(
     # Combine with weighted average and get weight map
     combined, weight_map = weighted_combine(arrays, weights, footprints, return_weights=True)
     combined_footprint = np.sum(footprints, axis=0) > 0
+    
+    # Apply primary beam correction if requested
+    if apply_pb_correction:
+        logger.info("Applying primary beam correction")
+        # Get frequency from first image header (default to 1.4 GHz if not found)
+        freq_hz = 1.4e9
+        if 'CRVAL3' in hdus[0].header:
+            freq_hz = float(hdus[0].header['CRVAL3'])
+        elif 'RESTFRQ' in hdus[0].header:
+            freq_hz = float(hdus[0].header['RESTFRQ'])
+        
+        pb_correction = compute_pb_correction_map(
+            output_wcs,
+            output_shape,
+            freq_hz=freq_hz,
+            dish_dia_m=4.7,  # DSA-110 dish diameter
+            pb_cutoff=0.1,
+        )
+        combined = combined * pb_correction
+        logger.info(f"Applied PB correction with freq={freq_hz/1e9:.3f} GHz")
     
     # Compute statistics
     rms_values = [compute_rms(arr) for arr in arrays]
@@ -390,6 +411,109 @@ def _clamp_order(order: int) -> str:
         return "bilinear"
     else:
         return "biquadratic"
+
+
+def compute_pb_correction_map(
+    wcs: WCS,
+    shape: tuple[int, int],
+    freq_hz: float = 1.4e9,
+    dish_dia_m: float = 4.7,
+    pb_cutoff: float = 0.1,
+) -> NDArray:
+    """Compute primary beam correction map for DSA-110.
+    
+    Creates a 2D map of primary beam correction factors (1/PB) that can
+    be multiplied with the image to correct for primary beam attenuation.
+    
+    The DSA-110 primary beam is modeled as an Airy disk pattern:
+      PB(theta) = (2 * J1(x) / x)²
+      where x = π * D * sin(theta) / λ
+    
+    Args:
+        wcs: WCS of the output mosaic
+        shape: (ny, nx) shape of the output mosaic
+        freq_hz: Observation frequency in Hz (default: 1.4 GHz)
+        dish_dia_m: Dish diameter in meters (default: 4.7m for DSA-110)
+        pb_cutoff: Minimum PB response to apply correction (default: 0.1).
+            Pixels with PB < pb_cutoff will have correction = 1/pb_cutoff
+            to avoid amplifying noise at the edges.
+            
+    Returns:
+        2D array of primary beam correction factors (1/PB)
+        
+    Note:
+        The phase center is taken from the WCS CRVAL. For DSA-110 drift-scan
+        observations, the images are typically phased to the meridian, so
+        CRVAL should be the pointing center of each tile.
+    """
+    ny, nx = shape
+    
+    # Get phase center from WCS
+    center_ra_deg = wcs.wcs.crval[0]
+    center_dec_deg = wcs.wcs.crval[1]
+    center_ra = np.radians(center_ra_deg)
+    center_dec = np.radians(center_dec_deg)
+    
+    # Compute wavelength
+    c = 299792458.0  # m/s
+    wavelength = c / freq_hz
+    
+    # Pre-compute factor for Airy disk
+    # x = π * D * sin(theta) / λ
+    factor = np.pi * dish_dia_m / wavelength
+    
+    # Create coordinate grid
+    y_idx, x_idx = np.indices((ny, nx))
+    
+    # Convert pixels to world coordinates
+    coords = wcs.pixel_to_world(x_idx.ravel(), y_idx.ravel())
+    
+    # Handle SkyCoord array or list
+    if hasattr(coords, 'ra'):
+        # Single SkyCoord array
+        ra_deg = coords.ra.deg
+        dec_deg = coords.dec.deg
+    else:
+        # List of SkyCoords
+        ra_deg = np.array([c.ra.deg for c in coords])
+        dec_deg = np.array([c.dec.deg for c in coords])
+    
+    ra_rad = np.radians(ra_deg)
+    dec_rad = np.radians(dec_deg)
+    
+    # Compute angular separation from phase center using haversine
+    # sin²(d/2) = sin²(Δdec/2) + cos(dec1)*cos(dec2)*sin²(Δra/2)
+    delta_dec = dec_rad - center_dec
+    delta_ra = ra_rad - center_ra
+    
+    a = np.sin(delta_dec / 2)**2 + np.cos(center_dec) * np.cos(dec_rad) * np.sin(delta_ra / 2)**2
+    theta = 2 * np.arcsin(np.sqrt(np.clip(a, 0, 1)))  # angular separation in radians
+    
+    # Compute Airy disk primary beam response
+    # PB(theta) = (2 * J1(x) / x)² where x = factor * sin(theta)
+    from scipy.special import j1
+    
+    x = factor * np.sin(theta)
+    
+    # Handle x=0 (on-axis) separately to avoid division by zero
+    pb_response = np.ones_like(x)
+    nonzero = x > 1e-10
+    pb_response[nonzero] = (2 * j1(x[nonzero]) / x[nonzero])**2
+    
+    # Apply cutoff to avoid extreme corrections at edges
+    pb_response = np.maximum(pb_response, pb_cutoff)
+    
+    # Correction factor is 1/PB
+    pb_correction = 1.0 / pb_response
+    
+    # Reshape to image dimensions
+    pb_correction = pb_correction.reshape((ny, nx))
+    
+    logger.debug(f"PB correction map: min={pb_correction.min():.3f}, "
+                 f"max={pb_correction.max():.3f}, "
+                 f"center correction={pb_correction[ny//2, nx//2]:.3f}")
+    
+    return pb_correction.astype(np.float32)
 
 
 def _build_simple_mosaic(

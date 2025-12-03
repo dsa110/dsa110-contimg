@@ -53,6 +53,7 @@ MOSAIC_TABLES: dict[str, str] = {
             tier TEXT NOT NULL,
             n_images INTEGER NOT NULL,
             median_rms_jy REAL,
+            effective_noise_jy REAL,  -- Propagated noise from inverse-variance weighting
             coverage_sq_deg REAL,
             
             -- Quality assessment
