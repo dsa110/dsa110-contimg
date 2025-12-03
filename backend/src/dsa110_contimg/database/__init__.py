@@ -93,6 +93,27 @@ from .unified import (
 )
 
 # =============================================================================
+# State Machine for Pipeline Processing
+# =============================================================================
+
+from .state_machine import (
+    # State enum and exceptions
+    MSState,
+    StateTransitionError,
+    StateNotFoundError,
+    # Data classes
+    StateRecord,
+    TransitionResult,
+    # State machine class
+    MSStateMachine,
+    # Context manager for state-tracked processing
+    state_transition_context,
+    # Singleton access
+    get_state_machine,
+    close_state_machine,
+)
+
+# =============================================================================
 # Legacy ORM Compatibility (DEPRECATED)
 # =============================================================================
 

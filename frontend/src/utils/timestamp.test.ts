@@ -30,8 +30,8 @@ import {
 describe("timestamp utilities", () => {
   // Fixed timestamp for testing: 2025-06-15T12:30:45.000Z
   const FIXED_ISO = "2025-06-15T12:30:45.000Z";
-  const FIXED_MILLIS = 1750077045000;
-  const FIXED_SECONDS = 1750077045;
+  const FIXED_MILLIS = 1749990645000;
+  const FIXED_SECONDS = 1749990645;
   const FIXED_DATE = new Date(FIXED_ISO);
 
   describe("toDate", () => {
