@@ -49,7 +49,8 @@ describe("CalibrationQAMetricsPanel", () => {
   it("renders calibrator name and timestamp", () => {
     render(<CalibrationQAMetricsPanel metrics={mockMetrics} />);
 
-    expect(screen.getByText("3C286")).toBeInTheDocument();
+    // Use regex for partial match since calibrator and timestamp are in same element
+    expect(screen.getByText(/3C286/)).toBeInTheDocument();
     expect(screen.getByText(/2024/)).toBeInTheDocument();
   });
 

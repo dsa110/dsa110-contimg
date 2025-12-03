@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "project": "dsa110-contimg",
+  "project_url": "https://github.com/dsa110/dsa110-contimg",
+  "repo": "..",
+  "branches": ["master-dev"],
+  "dvcs": "git",
+  "environment_type": "existing",
+  "show_commit_url": "https://github.com/dsa110/dsa110-contimg/commit/",
+  "pythons": ["same"],
+  "benchmark_dir": "benchmarks",
+  "env_dir": ".asv/env",
+  "results_dir": "benchmarks/results",
+  "html_dir": "benchmarks/html",
+  "regressions_first_commits": {},
+  "regressions_thresholds": {
+    "time": 1.2,
+    "memory": 1.5
+  }
+}

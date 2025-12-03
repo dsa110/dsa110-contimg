@@ -356,6 +356,7 @@ class PhotometryManager:
             )
             return None
 
+    @timed("photometry.measure_for_mosaic")
     def measure_for_mosaic(
         self,
         mosaic_path: Path,

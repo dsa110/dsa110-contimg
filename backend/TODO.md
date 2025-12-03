@@ -145,6 +145,73 @@ All coverage targets have been achieved:
 
 ---
 
+## GPU Acceleration (Phase 1 - In Progress)
+
+**Reference**: `GPU_implementation_plan.md`
+
+### Phase 1 Completed ✅
+
+- [x] **GPU Environment Assessment** - Verified 2x RTX 2080 Ti (CC 7.5, 11GB each),
+      Driver 455.23.05, CUDA 11.1 max. Ubuntu 18.04 constraints documented.
+- [x] **CuPy Installation** - CuPy 13.6.0 installed with cuda-nvrtc 11.8 workaround.
+      Numba CUDA blocked due to PTX version mismatch (requires driver upgrade).
+- [x] **Precision Validation** - FP32 vs FP64 comparison complete. 7/7 tests passed: - Complex multiply: 6.55e-07 error (threshold 1.57e-05) ✓ - Sum accumulation: 1.60e-07 relative error ✓ - Phase computation: 2.59e-05 degrees (threshold 0.01°) ✓ - Matrix solve: 1.22e-06 relative error ✓ - 2D FFT: 5.92e-08 relative error ✓ - Visibility simulation: 2.00e-07 relative error ✓ - GPU FFT (FP32): 5.74e-07 relative error ✓
+- [x] **Resource Limiting Utilities** - `scripts/testing/resource_limits.py` with
+      MemoryLimiter, ResourceLimitedRunner, safe_run(), pre-flight memory checks.
+      Prevents runaway memory/CPU from crashing system.
+
+### Precision Strategy Decision
+
+**FP32 acceptable for:**
+
+- Gain application (complex multiplication)
+- FFT/imaging operations
+- Basic accumulations
+- GPU kernel operations
+
+**FP64 required for:**
+
+- Calibration solver inner loops (large accumulations)
+- Iterative convergence tests
+- Ill-conditioned matrix operations
+
+### Next Steps (Phase 1 Remaining)
+
+- [ ] **Performance Monitoring with casabench** (Weeks 1-4)
+
+  - Set up ASV benchmarking infrastructure
+  - Create calibration/imaging/conversion benchmarks
+  - Add `/api/v1/performance/benchmarks` endpoint
+  - Add nightly benchmark cron job
+
+- [ ] **GPU Monitoring Dashboard** (Weeks 3-6)
+
+  - Add `/api/v1/health/gpus` endpoint with pynvml
+  - Create GPUStatus frontend component
+  - Integrate into Health Dashboard
+
+- [ ] **Improved Calibration Discovery** (Weeks 5-8)
+  - Add bidirectional time-based search to `caltables.py`
+  - Add calibration staleness monitoring
+  - Add `/api/v1/health/calibration` endpoint
+
+### Files Created
+
+| File                                              | Purpose                          |
+| ------------------------------------------------- | -------------------------------- |
+| `scripts/testing/resource_limits.py`              | Resource limiting utilities      |
+| `scripts/testing/validate_fp32_precision_safe.py` | Safe FP32 validation             |
+| `scripts/testing/validate_fp32_calibration.py`    | Original validation (deprecated) |
+
+### Known Constraints
+
+- **Driver 455.23.05**: Max CUDA 11.1, PTX 7.1 - blocks Numba CUDA
+- **Ubuntu 18.04**: User cannot upgrade OS
+- **CuPy-only approach**: Recommended until driver upgrade possible
+- **FP64 performance**: ~20-30x slower than FP32 on RTX 2080 Ti (CC 7.5)
+
+---
+
 ## Documentation
 
 See `docs/` for:

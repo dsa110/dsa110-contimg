@@ -53,10 +53,22 @@ describe("AppLayout", () => {
 
     it("has correct href for navigation links", () => {
       renderWithRouter();
-      expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute("href", "/");
-      expect(screen.getByRole("link", { name: "Images" })).toHaveAttribute("href", "/images");
-      expect(screen.getByRole("link", { name: "Sources" })).toHaveAttribute("href", "/sources");
-      expect(screen.getByRole("link", { name: "Jobs" })).toHaveAttribute("href", "/jobs");
+      expect(screen.getByRole("link", { name: "Home" })).toHaveAttribute(
+        "href",
+        "/"
+      );
+      expect(screen.getByRole("link", { name: "Images" })).toHaveAttribute(
+        "href",
+        "/images"
+      );
+      expect(screen.getByRole("link", { name: "Sources" })).toHaveAttribute(
+        "href",
+        "/sources"
+      );
+      expect(screen.getByRole("link", { name: "Jobs" })).toHaveAttribute(
+        "href",
+        "/jobs"
+      );
     });
   });
 
@@ -64,25 +76,34 @@ describe("AppLayout", () => {
     it("highlights Home when at root", () => {
       renderWithRouter("/");
       const homeLink = screen.getByRole("link", { name: "Home" });
-      expect(homeLink).toHaveClass("bg-slate-700");
+      // Active link has background color style set
+      expect(homeLink).toHaveStyle({
+        backgroundColor: "var(--color-bg-surface)",
+      });
     });
 
     it("highlights Images when on images path", () => {
       renderWithRouter("/images");
       const imagesLink = screen.getByRole("link", { name: "Images" });
-      expect(imagesLink).toHaveClass("bg-slate-700");
+      expect(imagesLink).toHaveStyle({
+        backgroundColor: "var(--color-bg-surface)",
+      });
     });
 
     it("highlights Sources when on sources path", () => {
       renderWithRouter("/sources");
       const sourcesLink = screen.getByRole("link", { name: "Sources" });
-      expect(sourcesLink).toHaveClass("bg-slate-700");
+      expect(sourcesLink).toHaveStyle({
+        backgroundColor: "var(--color-bg-surface)",
+      });
     });
 
     it("highlights Jobs when on jobs path", () => {
       renderWithRouter("/jobs");
       const jobsLink = screen.getByRole("link", { name: "Jobs" });
-      expect(jobsLink).toHaveClass("bg-slate-700");
+      expect(jobsLink).toHaveStyle({
+        backgroundColor: "var(--color-bg-surface)",
+      });
     });
   });
 

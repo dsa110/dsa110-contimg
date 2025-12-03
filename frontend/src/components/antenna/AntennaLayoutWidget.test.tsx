@@ -126,7 +126,9 @@ describe("AntennaLayoutWidget", () => {
 
     await waitFor(() => {
       expect(screen.getByText(/antennas/i)).toBeInTheDocument();
-      expect(screen.getByText("3")).toBeInTheDocument(); // antenna count and baselines
+      // Check that there are elements showing "3" for both antennas and baselines
+      const threeElements = screen.getAllByText("3");
+      expect(threeElements.length).toBeGreaterThanOrEqual(2);
     });
   });
 
@@ -160,13 +162,13 @@ describe("AntennaLayoutWidget", () => {
     const { container } = renderComponent({ onAntennaClick });
 
     await waitFor(() => {
-      const circles = container.querySelectorAll("circle");
-      expect(circles.length).toBeGreaterThan(0);
+      const antennaMarkers = container.querySelectorAll(".antenna-marker");
+      expect(antennaMarkers.length).toBeGreaterThan(0);
     });
 
-    // Click the first antenna marker
-    const circles = container.querySelectorAll("circle");
-    fireEvent.click(circles[0]);
+    // Click the first antenna marker group (not just the circle)
+    const antennaMarkers = container.querySelectorAll(".antenna-marker");
+    fireEvent.click(antennaMarkers[0]);
 
     expect(onAntennaClick).toHaveBeenCalledWith(mockAntennaData.antennas[0]);
   });
@@ -262,6 +264,9 @@ describe("AntennaLayoutWidget", () => {
 
 describe("useAntennaPositions hook", () => {
   it("is disabled when msPath is undefined", async () => {
+    // Clear all mocks before this specific test
+    vi.clearAllMocks();
+
     const queryClient = new QueryClient({
       defaultOptions: {
         queries: {
