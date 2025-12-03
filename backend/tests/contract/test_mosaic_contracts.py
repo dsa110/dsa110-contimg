@@ -68,20 +68,22 @@ def synthetic_images(tmp_path: Path) -> list[Path]:
 
 @pytest.fixture
 def test_database(tmp_path: Path) -> Path:
-    """Create a test database with images table populated."""
+    """Create a test database with unified schema including images table.
+    
+    Uses init_unified_db which creates the full schema including the images table.
+    The mosaic tables are also included in the unified schema.
+    """
+    from dsa110_contimg.database.unified import init_unified_db, get_unified_schema
     from dsa110_contimg.mosaic.schema import ensure_mosaic_tables
-    from dsa110_contimg.database import ensure_products_db
     
     db_path = tmp_path / "test.sqlite3"
     
-    # Create products tables using SQLAlchemy (includes images)
-    ensure_products_db(db_path)
+    # Create database with unified schema (includes images table)
+    db = init_unified_db(db_path)
     
-    # Create mosaic tables using raw SQL
-    conn = sqlite3.connect(str(db_path))
-    ensure_mosaic_tables(conn)
-    conn.commit()
-    conn.close()
+    # Ensure mosaic tables exist (may already be in unified schema)
+    ensure_mosaic_tables(db.conn)
+    db.conn.commit()
     
     return db_path
 
