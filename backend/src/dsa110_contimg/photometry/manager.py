@@ -36,6 +36,7 @@ from dsa110_contimg.photometry.helpers import (
     query_sources_for_fits,
     query_sources_for_mosaic,
 )
+from dsa110_contimg.utils.decorators import timed
 
 logger = logging.getLogger(__name__)
 
@@ -188,6 +189,7 @@ class PhotometryManager:
         self.data_registry_db_path = data_registry_db_path
         self.default_config = default_config or PhotometryConfig()
 
+    @timed("photometry.measure_for_fits")
     def measure_for_fits(
         self,
         fits_path: Path,

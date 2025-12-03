@@ -105,9 +105,9 @@ describe("AntennaLayoutWidget", () => {
 
     await waitFor(() => {
       expect(screen.getByText(/flagging status/i)).toBeInTheDocument();
-      expect(screen.getByText(/good/i)).toBeInTheDocument();
-      expect(screen.getByText(/moderate/i)).toBeInTheDocument();
-      expect(screen.getByText(/severe/i)).toBeInTheDocument();
+      expect(screen.getByText(/good \(/i)).toBeInTheDocument();
+      expect(screen.getByText(/moderate \(/i)).toBeInTheDocument();
+      expect(screen.getByText(/severe \(/i)).toBeInTheDocument();
     });
   });
 
