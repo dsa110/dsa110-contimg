@@ -329,11 +329,11 @@ This is **far more comprehensive** than typical radio astronomy pipeline UIs (wh
 
 - ✅ ~~**Prometheus/Grafana integration**~~: Time-series metrics visualization now available via PrometheusMetricsPanel
 - ❌ **Configurable alerts**: Alert thresholds hardcoded in backend
-- ❌ **Notification system**: No email/Slack/webhook alerts from UI
+- ✅ ~~**Notification system**~~: NotificationBell, NotificationPanel, useNotifications hook with email/Slack/webhook channel support
 - ❌ **Log aggregation UI**: Can't browse pipeline logs from dashboard
 - ❌ **Resource utilization**: No CPU/memory/disk monitoring
 
-**Impact**: Operators need external tools (Grafana) for deep system monitoring.
+**Impact**: ~~Operators need external tools (Grafana) for deep system monitoring.~~ Core monitoring and notification infrastructure now built in.
 
 ### 2. **Data Management Gaps**
 
@@ -361,11 +361,11 @@ This is **far more comprehensive** than typical radio astronomy pipeline UIs (wh
 **Could add**:
 
 - ❌ **Custom pipeline triggers**: Can't create custom imaging workflows from UI
-- ❌ **Batch operations**: No bulk re-imaging or re-calibration
+- ✅ ~~**Batch operations**~~: BatchPanel, BatchJobCard, useBatchOperations hook for bulk re-imaging, re-calibration, export, QA rating
 - ❌ **Export to VO services**: No direct integration with Virtual Observatory
 - ❌ **Jupyter integration**: No embedded notebook for ad-hoc analysis
 
-**Impact**: Power users still need CLI for advanced tasks.
+**Impact**: ~~Power users still need CLI for advanced tasks.~~ Batch operations now support bulk workflows.
 
 ### 5. **Collaboration Features**
 
@@ -442,8 +442,8 @@ Based on the code structure, recent development appears focused on:
 ### Medium-term (6-12 months)
 
 6. 🔄 **User authentication** for multi-user access - **IN PROGRESS** (auth types, Zustand auth store, useAuth hook, ProtectedRoute, UserMenu components created)
-7. **Notification system** (email/Slack alerts)
-8. **Batch operations UI** for bulk re-imaging
+7. ✅ **~~Notification system~~** (email/Slack alerts) - **COMPLETED** (notification types, notificationStore, NotificationBell/Item/Panel components, useNotifications hook with SSE support)
+8. ✅ **~~Batch operations UI~~** for bulk re-imaging - **COMPLETED** (batch types, batchStore, BatchJobCard/List/Detail/Panel components, useBatchOperations hook)
 9. **Data retention policy UI** for archival management
 10. **Export to VO standards** (VOTable, SAMP)
 
@@ -487,5 +487,7 @@ The frontend is a **mature, production-ready scientific application** with sophi
 - 114 TypeScript errors resolved
 - 1280+ tests passing
 - User authentication infrastructure in progress
+- **NEW**: Notification system with in-app alerts, desktop notifications, and channel support (email/Slack/webhook)
+- **NEW**: Batch operations UI for bulk re-imaging, re-calibration, export, and QA rating
 
-**Recommendation**: The frontend is **ready for science operations** today, with excellent operational monitoring now available. User authentication is being implemented for multi-user support. The development team has made excellent architectural choices that will support long-term maintainability and feature growth.
+**Recommendation**: The frontend is **ready for science operations** today, with excellent operational monitoring now available. User authentication is being implemented for multi-user support. Batch operations enable power users to perform bulk workflows directly from the UI. The development team has made excellent architectural choices that will support long-term maintainability and feature growth.

@@ -218,10 +218,26 @@ All coverage targets have been achieved:
     - Alerts panel with severity filtering
   - Add real-time memory/utilization charts
 
-- [ ] **Improved Calibration Discovery** (Weeks 5-8)
-  - Add bidirectional time-based search to `caltables.py`
-  - Add calibration staleness monitoring
-  - Add `/api/v1/health/calibration` endpoint
+- [x] **Improved Calibration Discovery** (Weeks 5-8)
+  - Rewrote `calibration/caltables.py` with comprehensive improvements (~550 lines):
+    - `CalibrationCandidate` dataclass with MJD, age, source metadata
+    - `CalibrationHealth` dataclass with staleness thresholds
+    - `find_nearest_calibration()` - Bidirectional time-based search
+    - `_search_registry()` - Database search with MJD windows
+    - `_search_filesystem()` - Filesystem fallback search
+    - `get_applylist_for_mjd()` - Ordered calibration table paths
+    - `check_calibration_staleness()` - Health evaluation with thresholds
+    - `get_calibration_timeline()` - Coverage timeline with gap analysis
+  - Staleness thresholds: fresh (≤6h), aging (6-12h), stale (12-24h), critical (>24h)
+  - Added calibration health API endpoints in `api/routes/health.py`:
+    - `GET /health/calibration` - Calibration health status
+    - `GET /health/calibration/nearest` - Find nearest calibration (bidirectional)
+    - `GET /health/calibration/timeline` - Coverage timeline with gap analysis
+    - `GET /health/calibration/applylist` - Ordered tables to apply
+
+### Phase 1 COMPLETE ✅
+
+All Phase 1 GPU Acceleration items completed. Ready for Phase 2: CUDA Kernel Development.
 
 ### Files Created
 
@@ -239,6 +255,7 @@ All coverage targets have been achieved:
 | `src/dsa110_contimg/api/routes/performance.py`    | Performance API endpoints        |
 | `src/dsa110_contimg/monitoring/gpu.py`            | GPU monitoring module            |
 | `ops/grafana/dsa110-gpu-dashboard.json`           | Grafana GPU dashboard            |
+| `src/dsa110_contimg/calibration/caltables.py`     | Improved calibration discovery   |
 
 ### Known Constraints
 
