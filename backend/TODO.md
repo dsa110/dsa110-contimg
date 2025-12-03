@@ -467,18 +467,40 @@ All Phase 2 GPU CUDA Kernel Development items completed:
   - Error handling with automatic state rollback
   - Progress tracking via state machine
 
-### Phase 3.2: Automated Calibration QA
+### Phase 3.2: Automated Calibration QA ✅ COMPLETE
 
-- [ ] **QA Metrics Module** - Create `calibration/qa.py`:
+- [x] **QA Metrics Module** - Created `calibration/qa.py` (~650 lines):
 
-  - `compute_calibration_metrics()` - Extract SNR, flagging, amplitude stats from caltables
+  - `QAThresholds` dataclass - Configurable thresholds (min_snr, max_flag_fraction, etc.)
+  - `CalibrationMetrics` dataclass - Extracted metrics from caltables
+  - `CalibrationQAResult` dataclass - Assessment results with issues and grades
+  - `compute_calibration_metrics()` - Extract SNR, flagging, amplitude, phase stats from caltables
   - `assess_calibration_quality()` - Pass/fail assessment with configurable thresholds
-  - Integration with existing `batch/qa.py` patterns
+  - `CalibrationQAStore` class - SQLite persistence for QA results
+  - Singleton pattern via `get_qa_store()`/`close_qa_store()`
 
-- [ ] **QA API Endpoints** - Add to `api/routes/health.py`:
-  - `GET /health/calibration/qa/recent` - Recent QA results
-  - `GET /health/calibration/qa/{ms_path}` - QA for specific MS
-  - QA result persistence in database
+- [x] **QA API Endpoints** - Added to `api/routes/health.py`:
+
+  - `GET /health/calibration/qa/recent` - Recent QA results with filtering
+  - `GET /health/calibration/qa/stats` - Summary statistics by grade
+  - `GET /health/calibration/qa/{ms_path}` - QA for specific MS (with optional run_assessment)
+
+- [x] **Unit Tests** - Created `tests/unit/test_calibration_qa.py`:
+  - 27 tests covering QAThresholds, CalibrationMetrics, CalibrationQAResult
+  - Tests for compute_calibration_metrics, assess_calibration_quality
+  - Tests for CalibrationQAStore persistence and singleton pattern
+
+**Files Created:**
+
+| File                                | Lines | Purpose                             |
+| ----------------------------------- | ----- | ----------------------------------- |
+| `calibration/qa.py`                 | ~650  | Full QA metrics and assessment      |
+| `tests/unit/test_calibration_qa.py` | ~550  | Comprehensive unit tests (27 tests) |
+
+**Updated:**
+
+- `calibration/__init__.py` - Added QA exports
+- `api/routes/health.py` - Added 3 QA API endpoints
 
 ### Phase 3.3: GPU Pipeline Workers
 
@@ -520,7 +542,7 @@ All Phase 2 GPU CUDA Kernel Development items completed:
 | Component              | Files                              | Tests Target | Status |
 | ---------------------- | ---------------------------------- | ------------ | ------ |
 | State Machine          | `database/state_machine.py`        | 55 tests ✅  | DONE   |
-| Calibration QA         | `calibration/qa.py`                | 12 tests     | -      |
+| Calibration QA         | `calibration/qa.py`                | 27 tests ✅  | DONE   |
 | GPU Imaging Worker     | `imaging/worker.py` (update)       | 8 tests      | -      |
 | GPU Calibration Worker | `calibration/applycal.py` (update) | 8 tests      | -      |
 | Pipeline Integration   | `pipeline/stages_impl.py` (update) | 10 tests     | -      |
