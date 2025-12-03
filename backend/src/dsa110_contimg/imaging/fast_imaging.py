@@ -395,7 +395,7 @@ def save_candidates_to_db(
         LOG.error(f"Failed to save candidates to DB: {e}")
 
 
-@gpu_safe(max_vram_gb=9.0, description="fast_transient_imaging")
+@gpu_safe(max_gpu_gb=9.0, max_system_gb=6.0)
 @timed("imaging.run_fast_imaging")
 def run_fast_imaging(
     ms_path: str,

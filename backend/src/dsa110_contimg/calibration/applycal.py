@@ -94,7 +94,7 @@ def _verify_corrected_data_populated(ms_path: str, min_fraction: float = 0.01) -
         ) from e
 
 
-@memory_safe(max_memory_gb=6.0, description="apply_calibration")
+@memory_safe(max_system_gb=6.0)
 @timed("calibration.apply_to_target")
 def apply_to_target(
     ms_target: str,

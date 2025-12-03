@@ -124,13 +124,14 @@ def _apply_and_image(ms_path: str, out_dir: Path, gaintables: List[str]) -> List
     return artifacts
 
 
-@memory_safe(max_memory_gb=6.0, description="process_once_batch")
+@memory_safe(max_system_gb=6.0)
 def process_once(
     ms_dir: Path,
     out_dir: Path,
     registry_db: Path,
     products_db: Path,
 ) -> int:
+    """Process all MS files in directory once."""
     out_dir.mkdir(parents=True, exist_ok=True)
     conn = ensure_products_db(products_db)
     processed = 0
