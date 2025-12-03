@@ -4,16 +4,13 @@
  * Displays simulation results showing what data would be affected by a retention policy.
  */
 
-import React from 'react';
-import { formatDistanceToNow } from 'date-fns';
+import React from "react";
+import { formatDistanceToNow } from "date-fns";
 import type {
   RetentionSimulation,
   RetentionCandidate,
-} from '../../types/retention';
-import {
-  formatBytes,
-  ACTION_LABELS,
-} from '../../types/retention';
+} from "../../types/retention";
+import { formatBytes, ACTION_LABELS } from "../../types/retention";
 
 interface RetentionSimulationPanelProps {
   /** Simulation results to display */
