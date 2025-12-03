@@ -27,6 +27,10 @@ using the DSA-110 Continuum Imaging Pipeline.
   - [React DevTools DCE Warning](#react-devtools-dce-warning)
   - [Duplicate Custom Element Definition](#duplicate-custom-element-definition)
   - [CSP frame-ancestors Warning](#csp-frame-ancestors-warning)
+  - [JS9 fabric not loaded](#js9-fabric-not-loaded)
+  - [JS9 worker blocked by CSP](#js9-worker-blocked-by-csp)
+- [Testing Issues](#testing-issues)
+  - [Contract tests returning 401](#contract-tests-returning-401)
 - [Server CSP Configuration](#server-csp-configuration)
 
 ---
@@ -362,8 +366,61 @@ It does not affect application functionality.
 **Why it happens:** The `frame-ancestors` directive only works when set via HTTP
 headers, not `<meta>` tags.
 
-**Resolution:** For production, configure your web server to send CSP headers.
-See the [Server Configuration](#server-csp-configuration) section below.
+**Resolution:** Configure your web server to send CSP headers (the dev/preview
+servers now do this via `vite.config.ts`). The inline `<meta>` tag omits
+`frame-ancestors` to avoid the warning; keep the header and meta directives in
+sync. See the [Server Configuration](#server-csp-configuration) section below.
+
+### JS9 fabric not loaded
+
+**Message:** `js9.min.js:345 Uncaught ReferenceError: fabric is not defined`
+
+**Source:** JS9 FITS viewer overlays depend on Fabric.js.
+
+**Why it happens:** Fabric.js failed to load (CSP blocked the CDN, or the CDN
+returned 404), so JS9 runs without its drawing dependency.
+
+**Resolution:** Fabric is now self-hosted at `/vendor/fabric-4.6.0.min.js`; make
+sure that script loads before `js9.min.js` and that `script-src` allows `'self'`
+(and `https://cdnjs.cloudflare.com` if you keep the CDN fallback). Restart the
+dev server after changing CSP so the new header is served.
+
+### JS9 worker blocked by CSP
+
+**Message:** `Creating a worker from 'blob:http://localhost:3000/... violates the Content Security Policy directive: "script-src 'self' https://js9.si.edu". The action has been blocked.`
+
+**Source:** JS9 spawns a Web Worker to parse FITS/FOV data.
+
+**Why it happens:** If `worker-src` is missing or disallows `blob:`, browsers
+fall back to `script-src` for worker creation and block the blob URL.
+
+**Resolution:** Add `worker-src 'self' blob:` to the CSP header (already present
+in `vite.config.ts` and the server snippets below) and keep `connect-src`
+allowing localhost/ws for HMR. Reload after updating the policy.
+
+---
+
+## Testing Issues
+
+### Contract tests returning 401
+
+**Message:** Unauthenticated contract tests hit `/api/v1/ms/{path}/metadata`,
+`/api/v1/images/{image_id}`, or `/api/v1/images?limit=...` and receive `401`
+instead of the expected `200/404/422/5xx` responses.
+
+**Why it happens:** Those endpoints are protected by authentication middleware.
+The contract test fixture (`api_client`) does not send credentials, so the
+request is rejected before the endpoint logic runs.
+
+**Resolution:**
+
+1. Decide whether these GET endpoints should be public. If yes, relax the auth
+   dependency for read-only routes (or add an unauthenticated role).
+2. If they must stay protected, teach the test client to send credentials
+   (e.g., inject a bearer/Basic header from an env var) and update the expected
+   status codes accordingly.
+3. Document the required roles/scopes so contract tests know which endpoints
+   need authentication up front.
 
 ---
 
@@ -392,6 +449,8 @@ class CSPMiddleware(BaseHTTPMiddleware):
             "style-src 'self' 'unsafe-inline' https://js9.si.edu; "
             "script-src 'self' https://js9.si.edu https://cdnjs.cloudflare.com; "
             "connect-src 'self' http://127.0.0.1:* http://localhost:* ws://localhost:* ws://127.0.0.1:*; "
+            "worker-src 'self' blob:; "
+            "object-src 'none'; "
             "frame-ancestors 'self';"
         )
         return response
@@ -406,7 +465,7 @@ app.add_middleware(CSPMiddleware)
 server {
     # ... other config ...
 
-    add_header Content-Security-Policy "default-src 'self'; img-src 'self' data: blob: https://js9.si.edu; style-src 'self' 'unsafe-inline' https://js9.si.edu; script-src 'self' https://js9.si.edu https://cdnjs.cloudflare.com; connect-src 'self' http://127.0.0.1:* http://localhost:* ws://localhost:* ws://127.0.0.1:*; frame-ancestors 'self';";
+    add_header Content-Security-Policy "default-src 'self'; img-src 'self' data: blob: https://js9.si.edu; style-src 'self' 'unsafe-inline' https://js9.si.edu; script-src 'self' https://js9.si.edu https://cdnjs.cloudflare.com; connect-src 'self' http://127.0.0.1:* http://localhost:* ws://localhost:* ws://127.0.0.1:*; worker-src 'self' blob:; object-src 'none'; frame-ancestors 'self';";
 }
 ```
 
@@ -414,7 +473,7 @@ server {
 
 ```apache
 <IfModule mod_headers.c>
-    Header set Content-Security-Policy "default-src 'self'; img-src 'self' data: blob: https://js9.si.edu; style-src 'self' 'unsafe-inline' https://js9.si.edu; script-src 'self' https://js9.si.edu https://cdnjs.cloudflare.com; connect-src 'self' http://127.0.0.1:* http://localhost:* ws://localhost:* ws://127.0.0.1:*; frame-ancestors 'self';"
+    Header set Content-Security-Policy "default-src 'self'; img-src 'self' data: blob: https://js9.si.edu; style-src 'self' 'unsafe-inline' https://js9.si.edu; script-src 'self' https://js9.si.edu https://cdnjs.cloudflare.com; connect-src 'self' http://127.0.0.1:* http://localhost:* ws://localhost:* ws://127.0.0.1:*; worker-src 'self' blob:; object-src 'none'; frame-ancestors 'self';"
 </IfModule>
 ```
 

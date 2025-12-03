@@ -1,8 +1,44 @@
 import React, { useMemo, useCallback, useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import apiClient from "../../api/client";
+import axios from "axios";
 import { ROUTES } from "../../constants/routes";
+
+// =============================================================================
+// ABSURD Client for Pipeline Status
+// =============================================================================
+
+/**
+ * Dedicated axios instance for ABSURD status endpoint.
+ * ABSURD routes are mounted at /absurd/* on the backend.
+ */
+const absurdStatusClient = axios.create({
+  baseURL: "/absurd",
+  timeout: 30000,
+});
+
+/**
+ * Get the current access token from localStorage.
+ */
+function getAccessToken(): string | null {
+  try {
+    const stored = localStorage.getItem("dsa110-auth");
+    if (!stored) return null;
+    const parsed = JSON.parse(stored);
+    return parsed?.state?.tokens?.accessToken ?? null;
+  } catch {
+    return null;
+  }
+}
+
+// Add auth interceptor
+absurdStatusClient.interceptors.request.use((config) => {
+  const token = getAccessToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 // =============================================================================
 // Types
@@ -156,8 +192,8 @@ const EMPTY_COUNTS: StageStatusCounts = {
  * Fetch pipeline status from ABSURD endpoint.
  */
 async function fetchPipelineStatus(): Promise<PipelineStatusResponse> {
-  const response = await apiClient.get<PipelineStatusResponse>(
-    "/v1/absurd/status"
+  const response = await absurdStatusClient.get<PipelineStatusResponse>(
+    "/status"
   );
   return response.data;
 }

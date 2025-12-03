@@ -1,0 +1,14 @@
+[Unit]
+Description=DSA-110 Nightly Mosaic Pipeline Timer
+Documentation=file:///data/dsa110-contimg/docs/guides/mosaicking.md
+
+[Timer]
+# Run at 03:00 UTC daily (same as NightlyMosaicPipeline.schedule)
+OnCalendar=*-*-* 03:00:00 UTC
+# Ensures job runs even if system was off at scheduled time (catches up)
+Persistent=true
+# Small random delay to avoid thundering herd
+RandomizedDelaySec=60
+
+[Install]
+WantedBy=timers.target

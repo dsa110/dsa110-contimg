@@ -2,6 +2,19 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
+const CSP_DIRECTIVES = [
+  "default-src 'self'",
+  "img-src 'self' data: blob: https://js9.si.edu",
+  "style-src 'self' 'unsafe-inline' https://js9.si.edu",
+  "script-src 'self' https://js9.si.edu https://cdnjs.cloudflare.com",
+  "connect-src 'self' http://127.0.0.1:* http://localhost:* ws://localhost:* ws://127.0.0.1:*",
+  "worker-src 'self' blob:",
+  "object-src 'none'",
+  "frame-ancestors 'self'",
+];
+
+const CSP_HEADER = `${CSP_DIRECTIVES.join("; ")};`;
+
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
@@ -19,6 +32,9 @@ export default defineConfig({
     strictPort: true, // Fail if port 3000 is occupied
     open: false, // Disabled to prevent SSH disconnection issues
     host: "127.0.0.1", // Bind only to localhost
+    headers: {
+      "Content-Security-Policy": CSP_HEADER,
+    },
     allowedHosts: [
       "localhost",
       ".trycloudflare.com",
@@ -30,14 +46,25 @@ export default defineConfig({
         target: "http://127.0.0.1:8000",
         changeOrigin: true,
       },
+      "/absurd": {
+        target: "http://127.0.0.1:8000",
+        changeOrigin: true,
+      },
     },
   },
   preview: {
     port: 3210,
     strictPort: true,
     host: "127.0.0.1",
+    headers: {
+      "Content-Security-Policy": CSP_HEADER,
+    },
     proxy: {
       "/api": {
+        target: "http://127.0.0.1:8000",
+        changeOrigin: true,
+      },
+      "/absurd": {
         target: "http://127.0.0.1:8000",
         changeOrigin: true,
       },

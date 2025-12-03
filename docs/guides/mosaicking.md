@@ -123,7 +123,7 @@ For each mosaic, two files are produced:
 
 ### FITS Header Keywords
 
-```
+```text
 NIMAGES  = 47                  / Number of images combined
 MEDRMS   = 0.000342            / Median RMS of inputs (Jy)
 EFFNOISE = 0.000051            / Effective noise from weights (Jy)
@@ -138,7 +138,7 @@ PBCUT    = 0.1                 / PB cutoff threshold
 The `effective_noise_jy` (stored as `EFFNOISE` in FITS header and in the database)
 represents the theoretical noise improvement from inverse-variance weighting:
 
-```
+```text
 σ_eff = 1 / √(Σ wᵢ)  where wᵢ = 1/σᵢ²
 ```
 
@@ -343,6 +343,114 @@ for day in range(1, 8):  # One week
             config=config,
         )
         build_job.execute()
+```
+
+## Automated Nightly Mosaics
+
+The pipeline includes an automated nightly mosaic system that processes the
+previous 24 hours of data at 03:00 UTC daily.
+
+### Enabling Nightly Mosaics
+
+Install and enable the systemd timer:
+
+```bash
+# Copy service and timer to systemd
+sudo cp /data/dsa110-contimg/ops/systemd/contimg-mosaic-nightly.service /etc/systemd/system/
+sudo cp /data/dsa110-contimg/ops/systemd/contimg-mosaic-nightly.timer /etc/systemd/system/
+
+# Reload systemd and enable the timer
+sudo systemctl daemon-reload
+sudo systemctl enable contimg-mosaic-nightly.timer
+sudo systemctl start contimg-mosaic-nightly.timer
+
+# Verify timer is active
+systemctl list-timers contimg-mosaic-nightly.timer
+```
+
+### Manual Execution
+
+Run the nightly mosaic manually for testing:
+
+```bash
+# Activate environment
+conda activate casa6
+
+# Run nightly mosaic (processes previous 24 hours)
+python -m dsa110_contimg.mosaic nightly
+
+# Run for a specific date
+python -m dsa110_contimg.mosaic nightly --date 2025-01-15
+
+# Dry run (shows plan without executing)
+python -m dsa110_contimg.mosaic nightly --dry-run
+
+# Check mosaic status
+python -m dsa110_contimg.mosaic status
+```
+
+### On-Demand Mosaics via CLI
+
+```bash
+# Create a custom mosaic
+python -m dsa110_contimg.mosaic on-demand \
+    --name custom_mosaic \
+    --start 1700000000 \
+    --end 1700086400 \
+    --tier science
+```
+
+### Environment Variables
+
+Configure mosaic paths via environment variables (or `/data/dsa110-contimg/ops/systemd/contimg.env`):
+
+| Variable                  | Default                                          | Description                  |
+| ------------------------- | ------------------------------------------------ | ---------------------------- |
+| `PIPELINE_DB`             | `/data/dsa110-contimg/state/db/pipeline.sqlite3` | Unified database path        |
+| `CONTIMG_MOSAICS_DIR`     | `/stage/dsa110-contimg/mosaics`                  | Output directory for mosaics |
+| `SCHED_MOSAIC_OUTPUT_DIR` | (fallback)                                       | Alternative output directory |
+
+### Monitoring Nightly Mosaics
+
+Check timer status and recent runs:
+
+```bash
+# See timer schedule
+systemctl status contimg-mosaic-nightly.timer
+
+# View last execution logs
+tail -100 /data/dsa110-contimg/state/logs/mosaic-nightly.log
+
+# Check recent mosaic status via API
+curl http://localhost:8000/api/mosaic/recent?limit=7
+```
+
+### Nightly Mosaic Troubleshooting
+
+**Timer not firing:**
+
+```bash
+# Ensure timer is started
+sudo systemctl start contimg-mosaic-nightly.timer
+
+# Check next scheduled time
+systemctl list-timers --all | grep mosaic
+
+# Force immediate run for testing
+sudo systemctl start contimg-mosaic-nightly.service
+```
+
+**Mosaic failing:**
+
+```bash
+# Check logs
+journalctl -u contimg-mosaic-nightly.service -e
+
+# Run in dry-run mode to debug
+python -m dsa110_contimg.mosaic nightly --dry-run
+
+# Check database connectivity
+python -c "from dsa110_contimg.mosaic.pipeline import get_config; c = get_config(); print(c)"
 ```
 
 ## See Also

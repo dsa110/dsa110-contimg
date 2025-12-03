@@ -2,10 +2,11 @@
  * ABSURD Workflow Manager API Client.
  *
  * Provides functions for interacting with the ABSURD durable task queue
- * REST API. All functions use the shared axios client with resilience features.
+ * REST API. Uses a dedicated axios instance since ABSURD routes are mounted
+ * at /absurd/* (separate from the main /api/* routes).
  */
 
-import apiClient from "./client";
+import axios from "axios";
 import type {
   Task,
   TaskListResponse,
@@ -20,12 +21,50 @@ import type {
   SpawnTaskRequest,
   SpawnWorkflowRequest,
 } from "../types/absurd";
+import { config } from "../config";
 
 // =============================================================================
-// Base Path
+// ABSURD API Client
 // =============================================================================
 
-const BASE_PATH = "/v1/absurd";
+/**
+ * Dedicated axios instance for ABSURD API.
+ * ABSURD routes are mounted at /absurd/* on the backend, separate from /api/v1/*.
+ */
+const absurdClient = axios.create({
+  baseURL: "/absurd",
+  timeout: config.api.timeout,
+});
+
+/**
+ * Get the current access token from localStorage.
+ * ABSURD endpoints require authentication.
+ */
+function getAccessToken(): string | null {
+  try {
+    const stored = localStorage.getItem("dsa110-auth");
+    if (!stored) return null;
+    const parsed = JSON.parse(stored);
+    return parsed?.state?.tokens?.accessToken ?? null;
+  } catch {
+    return null;
+  }
+}
+
+// Add auth interceptor
+absurdClient.interceptors.request.use((config) => {
+  const token = getAccessToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// =============================================================================
+// Base Path (empty since baseURL is /absurd)
+// =============================================================================
+
+const BASE_PATH = "";
 
 // =============================================================================
 // Task Operations
@@ -35,7 +74,7 @@ const BASE_PATH = "/v1/absurd";
  * Spawn a new task in the queue.
  */
 export async function spawnTask(request: SpawnTaskRequest): Promise<string> {
-  const response = await apiClient.post<{ task_id: string }>(
+  const response = await absurdClient.post<{ task_id: string }>(
     `${BASE_PATH}/spawn`,
     request
   );
@@ -46,7 +85,7 @@ export async function spawnTask(request: SpawnTaskRequest): Promise<string> {
  * Get task details by ID.
  */
 export async function getTask(taskId: string): Promise<Task> {
-  const response = await apiClient.get<Task>(`${BASE_PATH}/tasks/${taskId}`);
+  const response = await absurdClient.get<Task>(`${BASE_PATH}/tasks/${taskId}`);
   return response.data;
 }
 
@@ -59,9 +98,12 @@ export async function listTasks(params?: {
   limit?: number;
   offset?: number;
 }): Promise<TaskListResponse> {
-  const response = await apiClient.get<TaskListResponse>(`${BASE_PATH}/tasks`, {
-    params,
-  });
+  const response = await absurdClient.get<TaskListResponse>(
+    `${BASE_PATH}/tasks`,
+    {
+      params,
+    }
+  );
   return response.data;
 }
 
@@ -72,7 +114,7 @@ export async function cancelTask(
   taskId: string,
   reason?: string
 ): Promise<void> {
-  await apiClient.delete(`${BASE_PATH}/tasks/${taskId}`, {
+  await absurdClient.delete(`${BASE_PATH}/tasks/${taskId}`, {
     data: reason ? { reason } : undefined,
   });
 }
@@ -81,7 +123,7 @@ export async function cancelTask(
  * Retry a failed task.
  */
 export async function retryTask(taskId: string): Promise<string> {
-  const response = await apiClient.post<{ task_id: string }>(
+  const response = await absurdClient.post<{ task_id: string }>(
     `${BASE_PATH}/tasks/${taskId}/retry`
   );
   return response.data.task_id;
@@ -95,7 +137,7 @@ export async function retryTask(taskId: string): Promise<string> {
  * Get statistics for a queue.
  */
 export async function getQueueStats(queueName: string): Promise<QueueStats> {
-  const response = await apiClient.get<QueueStats>(
+  const response = await absurdClient.get<QueueStats>(
     `${BASE_PATH}/queues/${queueName}/stats`
   );
   return response.data;
@@ -105,7 +147,7 @@ export async function getQueueStats(queueName: string): Promise<QueueStats> {
  * List all known queues.
  */
 export async function listQueues(): Promise<string[]> {
-  const response = await apiClient.get<{ queues: string[] }>(
+  const response = await absurdClient.get<{ queues: string[] }>(
     `${BASE_PATH}/queues`
   );
   return response.data.queues;
@@ -119,7 +161,7 @@ export async function listQueues(): Promise<string[]> {
  * List all workers.
  */
 export async function listWorkers(): Promise<WorkerListResponse> {
-  const response = await apiClient.get<WorkerListResponse>(
+  const response = await absurdClient.get<WorkerListResponse>(
     `${BASE_PATH}/workers`
   );
   return response.data;
@@ -129,7 +171,7 @@ export async function listWorkers(): Promise<WorkerListResponse> {
  * Get worker details.
  */
 export async function getWorker(workerId: string): Promise<Worker> {
-  const response = await apiClient.get<Worker>(
+  const response = await absurdClient.get<Worker>(
     `${BASE_PATH}/workers/${workerId}`
   );
   return response.data;
@@ -139,7 +181,7 @@ export async function getWorker(workerId: string): Promise<Worker> {
  * Get worker pool metrics.
  */
 export async function getWorkerMetrics(): Promise<WorkerMetrics> {
-  const response = await apiClient.get<WorkerMetrics>(
+  const response = await absurdClient.get<WorkerMetrics>(
     `${BASE_PATH}/workers/metrics`
   );
   return response.data;
@@ -153,7 +195,9 @@ export async function getWorkerMetrics(): Promise<WorkerMetrics> {
  * Get ABSURD system metrics.
  */
 export async function getMetrics(): Promise<AbsurdMetrics> {
-  const response = await apiClient.get<AbsurdMetrics>(`${BASE_PATH}/metrics`);
+  const response = await absurdClient.get<AbsurdMetrics>(
+    `${BASE_PATH}/metrics`
+  );
   return response.data;
 }
 
@@ -161,7 +205,7 @@ export async function getMetrics(): Promise<AbsurdMetrics> {
  * Get ABSURD health status.
  */
 export async function getHealth(): Promise<AbsurdHealth> {
-  const response = await apiClient.get<AbsurdHealth>(`${BASE_PATH}/health`);
+  const response = await absurdClient.get<AbsurdHealth>(`${BASE_PATH}/health`);
   return response.data;
 }
 
@@ -175,7 +219,7 @@ export async function getHealth(): Promise<AbsurdHealth> {
 export async function spawnWorkflow(
   request: SpawnWorkflowRequest
 ): Promise<string> {
-  const response = await apiClient.post<{ workflow_id: string }>(
+  const response = await absurdClient.post<{ workflow_id: string }>(
     `${BASE_PATH}/workflows`,
     request
   );
@@ -186,7 +230,7 @@ export async function spawnWorkflow(
  * Get workflow details by ID.
  */
 export async function getWorkflow(workflowId: string): Promise<WorkflowDetail> {
-  const response = await apiClient.get<WorkflowDetail>(
+  const response = await absurdClient.get<WorkflowDetail>(
     `${BASE_PATH}/workflows/${workflowId}`
   );
   return response.data;
@@ -200,7 +244,7 @@ export async function listWorkflows(params?: {
   limit?: number;
   offset?: number;
 }): Promise<{ workflows: Workflow[]; total: number }> {
-  const response = await apiClient.get<{
+  const response = await absurdClient.get<{
     workflows: Workflow[];
     total: number;
   }>(`${BASE_PATH}/workflows`, { params });
@@ -214,7 +258,7 @@ export async function cancelWorkflow(
   workflowId: string,
   reason?: string
 ): Promise<void> {
-  await apiClient.delete(`${BASE_PATH}/workflows/${workflowId}`, {
+  await absurdClient.delete(`${BASE_PATH}/workflows/${workflowId}`, {
     data: reason ? { reason } : undefined,
   });
 }
@@ -227,7 +271,7 @@ export async function cancelWorkflow(
  * List scheduled tasks.
  */
 export async function listScheduledTasks(): Promise<TaskListResponse> {
-  const response = await apiClient.get<TaskListResponse>(
+  const response = await absurdClient.get<TaskListResponse>(
     `${BASE_PATH}/scheduled`
   );
   return response.data;
@@ -242,7 +286,7 @@ export async function scheduleTask(
     cron?: string; // Cron expression
   }
 ): Promise<string> {
-  const response = await apiClient.post<{ task_id: string }>(
+  const response = await absurdClient.post<{ task_id: string }>(
     `${BASE_PATH}/scheduled`,
     request
   );
@@ -260,9 +304,12 @@ export async function listDeadLetterTasks(params?: {
   limit?: number;
   offset?: number;
 }): Promise<TaskListResponse> {
-  const response = await apiClient.get<TaskListResponse>(`${BASE_PATH}/dlq`, {
-    params,
-  });
+  const response = await absurdClient.get<TaskListResponse>(
+    `${BASE_PATH}/dlq`,
+    {
+      params,
+    }
+  );
   return response.data;
 }
 
@@ -270,7 +317,7 @@ export async function listDeadLetterTasks(params?: {
  * Replay a task from the dead letter queue.
  */
 export async function replayDeadLetterTask(taskId: string): Promise<string> {
-  const response = await apiClient.post<{ task_id: string }>(
+  const response = await absurdClient.post<{ task_id: string }>(
     `${BASE_PATH}/dlq/${taskId}/replay`
   );
   return response.data.task_id;
@@ -282,7 +329,7 @@ export async function replayDeadLetterTask(taskId: string): Promise<string> {
 export async function purgeDeadLetterQueue(params?: {
   before?: string; // ISO timestamp
 }): Promise<{ purged: number }> {
-  const response = await apiClient.delete<{ purged: number }>(
+  const response = await absurdClient.delete<{ purged: number }>(
     `${BASE_PATH}/dlq`,
     { params }
   );
@@ -301,7 +348,7 @@ export async function pruneTasks(params?: {
   queue_name?: string;
   statuses?: string[];
 }): Promise<{ pruned: number }> {
-  const response = await apiClient.post<{ pruned: number }>(
+  const response = await absurdClient.post<{ pruned: number }>(
     `${BASE_PATH}/prune`,
     params
   );
