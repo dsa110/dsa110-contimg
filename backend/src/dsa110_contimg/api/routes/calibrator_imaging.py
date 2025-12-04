@@ -503,9 +503,10 @@ async def _run_ms_generation(
         else:
             ms_path = os.path.join(output_ms_dir, f"{calibrator_name}_{observation_id}.ms")
         
-        # In a real implementation, this would call the conversion pipeline
+        # In a real implementation, this would use the execution module
         # For now, we simulate the conversion
-        from dsa110_contimg.conversion.cli import main as conversion_main
+        # Import deferred to avoid import-time side effects
+        from dsa110_contimg.execution import InProcessExecutor  # noqa: F401
         
         # Find the observation files
         # This would query the HDF5 database and run the converter

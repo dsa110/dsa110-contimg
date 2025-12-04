@@ -9,7 +9,7 @@ import os
 from typing import Callable, Optional
 
 from fastapi import Request, Response
-from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi import Limiter
 from slowapi.errors import RateLimitExceeded
 
 from .client_ip import get_client_ip

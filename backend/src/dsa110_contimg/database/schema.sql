@@ -7,7 +7,7 @@
 --
 -- Table Domains:
 --   - Products: ms_index, images, photometry, transients
---   - Calibration: calibration_tables, calibrator_transits
+--   - Calibration: caltables, calibrator_transits
 --   - HDF5: hdf5_files, pointing_history
 --   - Queue: processing_queue, performance_metrics
 -- =============================================================================
@@ -75,34 +75,58 @@ CREATE INDEX IF NOT EXISTS idx_images_created_at ON images(created_at);
 -- Photometric measurements
 CREATE TABLE IF NOT EXISTS photometry (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    source_id TEXT,
     image_path TEXT NOT NULL,
-    source_id TEXT NOT NULL,
     ra_deg REAL NOT NULL,
     dec_deg REAL NOT NULL,
-    flux_jy REAL NOT NULL,
-    flux_err_jy REAL,
-    peak_flux_jy REAL,
-    rms_jy REAL,
+    nvss_flux_mjy REAL,
+    peak_jyb REAL,
+    peak_err_jyb REAL,
+    measured_at REAL,
     snr REAL,
-    major_arcsec REAL,
-    minor_arcsec REAL,
-    pa_deg REAL,
-    measured_at REAL NOT NULL,
+    mjd REAL,
+    flux_jy REAL,
+    flux_err_jy REAL,
+    normalized_flux_jy REAL,
+    normalized_flux_err_jy REAL,
+    mosaic_path TEXT,
+    sep_from_center_deg REAL,
+    local_rms REAL,
+    rms_jy REAL,
+    peak_flux_jy REAL,
     quality_flag TEXT,
+    flags INTEGER DEFAULT 0,
     FOREIGN KEY (image_path) REFERENCES images(path) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_photometry_image ON photometry(image_path);
 CREATE INDEX IF NOT EXISTS idx_photometry_source ON photometry(source_id);
 CREATE INDEX IF NOT EXISTS idx_photometry_coords ON photometry(ra_deg, dec_deg);
+CREATE INDEX IF NOT EXISTS idx_photometry_mjd ON photometry(mjd);
+
+-- Source catalog (lightweight, legacy compatibility)
+CREATE TABLE IF NOT EXISTS sources (
+    id TEXT PRIMARY KEY,
+    name TEXT,
+    ra_deg REAL NOT NULL,
+    dec_deg REAL NOT NULL,
+    catalog_match TEXT,
+    source_type TEXT,
+    first_detected_mjd REAL,
+    last_detected_mjd REAL,
+    detection_count INTEGER DEFAULT 0
+);
+
+CREATE INDEX IF NOT EXISTS idx_sources_ra_dec ON sources(ra_deg, dec_deg);
+CREATE INDEX IF NOT EXISTS idx_sources_catalog ON sources(catalog_match);
 
 -- ---------------------------------------------------------------------------
 -- Calibration Domain
 -- ---------------------------------------------------------------------------
 
--- Calibration table registry
-CREATE TABLE IF NOT EXISTS calibration_tables (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
+-- Calibration table registry (unified 'caltables' table)
+CREATE TABLE IF NOT EXISTS caltables (
+    id INTEGER PRIMARY KEY,
     set_name TEXT NOT NULL,
     path TEXT NOT NULL UNIQUE,
     table_type TEXT NOT NULL,
@@ -113,18 +137,18 @@ CREATE TABLE IF NOT EXISTS calibration_tables (
     valid_start_mjd REAL,
     valid_end_mjd REAL,
     status TEXT NOT NULL DEFAULT 'active',
+    notes TEXT,
     source_ms_path TEXT,
     solver_command TEXT,
     solver_version TEXT,
     solver_params TEXT,
-    quality_metrics TEXT,
-    notes TEXT,
-    FOREIGN KEY (source_ms_path) REFERENCES ms_index(path) ON DELETE SET NULL
+    quality_metrics TEXT
 );
 
-CREATE INDEX IF NOT EXISTS idx_caltables_set ON calibration_tables(set_name);
-CREATE INDEX IF NOT EXISTS idx_caltables_valid ON calibration_tables(valid_start_mjd, valid_end_mjd);
-CREATE INDEX IF NOT EXISTS idx_caltables_status ON calibration_tables(status);
+CREATE INDEX IF NOT EXISTS idx_caltables_set ON caltables(set_name);
+CREATE INDEX IF NOT EXISTS idx_caltables_valid ON caltables(valid_start_mjd, valid_end_mjd);
+CREATE INDEX IF NOT EXISTS idx_caltables_status ON caltables(status);
+CREATE INDEX IF NOT EXISTS idx_caltables_source ON caltables(source_ms_path);
 
 -- Record of calibration applications
 CREATE TABLE IF NOT EXISTS calibration_applied (
@@ -136,7 +160,7 @@ CREATE TABLE IF NOT EXISTS calibration_applied (
     success INTEGER DEFAULT 1,
     error_message TEXT,
     FOREIGN KEY (ms_path) REFERENCES ms_index(path) ON DELETE CASCADE,
-    FOREIGN KEY (caltable_path) REFERENCES calibration_tables(path) ON DELETE CASCADE
+    FOREIGN KEY (caltable_path) REFERENCES caltables(path) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_cal_applied_ms ON calibration_applied(ms_path);

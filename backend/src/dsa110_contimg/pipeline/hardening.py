@@ -88,6 +88,7 @@ __all__ = [
     "record_calibration_quality",
     "record_imaging_time",
     "record_queue_depth",
+    "record_execution_metrics",  # Issue #11: Unified execution metrics
     # Issue #15: Mosaic grouping
     "MosaicGroup",
     "find_mosaic_groups",
@@ -1795,6 +1796,48 @@ def record_queue_depth(state: str, count: int) -> None:
     """Record queue depth by state."""
     registry = get_metrics_registry()
     registry.set_gauge("contimg_queue_depth", count, {"state": state})
+
+
+def record_execution_metrics(
+    group_id: str,
+    execution_mode: str,
+    seconds: float,
+    memory_mb: float,
+    success: bool,
+    error_code: Optional[str] = None,
+) -> None:
+    """Record unified execution metrics (Issue #11).
+
+    Args:
+        group_id: The group being processed
+        execution_mode: "inprocess" or "subprocess"
+        seconds: Total execution time in seconds
+        memory_mb: Peak memory usage in MB
+        success: Whether conversion succeeded
+        error_code: Error code name if failed
+    """
+    registry = get_metrics_registry()
+
+    # Record execution time histogram by mode
+    registry.observe_histogram(
+        f"contimg_execution_{execution_mode}_seconds", seconds
+    )
+
+    # Record memory usage
+    registry.set_gauge(
+        "contimg_execution_memory_mb",
+        memory_mb,
+        {"mode": execution_mode, "group_id": group_id},
+    )
+
+    # Record success/failure counter
+    if success:
+        registry.inc_counter(f"contimg_execution_{execution_mode}_success_total")
+    else:
+        registry.inc_counter(
+            f"contimg_execution_{execution_mode}_failure_total",
+            labels={"error_code": error_code or "unknown"},
+        )
 
 
 # =============================================================================
