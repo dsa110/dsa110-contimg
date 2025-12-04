@@ -14,14 +14,12 @@ Uses FastAPI's TestClient with mocked ABSURD client.
 import os
 import sqlite3
 import tempfile
-import time
 from pathlib import Path
 from typing import Generator
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi.testclient import TestClient
-
 
 # =============================================================================
 # Fixtures
@@ -65,9 +63,9 @@ def temp_pipeline_db() -> Generator[Path, None, None]:
 
     # Insert test data
     conn.execute("""
-        INSERT INTO pipeline_executions 
+        INSERT INTO pipeline_executions
         (execution_id, pipeline_name, status, started_at, completed_at)
-        VALUES 
+        VALUES
         ('exec-001', 'nightly_mosaic', 'completed', '2025-01-15T03:00:00Z', '2025-01-15T03:45:00Z'),
         ('exec-002', 'on_demand_mosaic', 'running', '2025-01-15T10:30:00Z', NULL),
         ('exec-003', 'calibration_refresh', 'failed', '2025-01-14T18:00:00Z', '2025-01-14T18:15:00Z')
@@ -228,7 +226,7 @@ class TestRegisteredPipelines:
                 (p for p in data["pipelines"] if p["name"] == "nightly_mosaic"), None
             )
             assert nightly is not None
-            assert nightly["is_scheduled"] == True
+            assert nightly["is_scheduled"]
             assert nightly["schedule"] == "0 3 * * *"
 
             # Find non-scheduled pipeline
@@ -236,7 +234,7 @@ class TestRegisteredPipelines:
                 (p for p in data["pipelines"] if p["name"] == "on_demand_mosaic"), None
             )
             assert on_demand is not None
-            assert on_demand["is_scheduled"] == False
+            assert not on_demand["is_scheduled"]
 
 
 # =============================================================================
