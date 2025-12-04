@@ -726,32 +726,55 @@ class AsyncSourceRepository(SourceRepositoryInterface):
         start_mjd: Optional[float] = None,
         end_mjd: Optional[float] = None
     ) -> List[dict]:
-        """Get lightcurve data points for a source."""
+        """Get lightcurve data points for a source.
+        
+        Args:
+            source_id: The source identifier
+            start_mjd: Optional start MJD for filtering
+            end_mjd: Optional end MJD for filtering
+            
+        Returns:
+            List of data point dicts with mjd, flux_jy, flux_err_jy, snr, image_path
+            
+        Note:
+            The photometry table stores measured_at as Unix timestamp.
+            We convert to MJD for the API response (MJD = Unix/86400 + 40587).
+        """
+        from astropy.time import Time
+        
         async with get_async_connection(self.db_path) as conn:
+            # Schema: measured_at (Unix timestamp), flux_jy, flux_err_jy, peak_flux_jy, snr
             query = """
-                SELECT mjd, flux_jy, flux_err_jy, peak_jyb, peak_err_jyb, snr, image_path
+                SELECT measured_at, flux_jy, flux_err_jy, peak_flux_jy, snr, image_path
                 FROM photometry
                 WHERE source_id IS NOT NULL
                   AND source_id = ?
             """
             params: List[Any] = [source_id]
             
+            # Convert MJD filter bounds to Unix timestamps
             if start_mjd is not None:
-                query += " AND mjd >= ?"
-                params.append(start_mjd)
+                start_unix = Time(start_mjd, format="mjd").unix
+                query += " AND measured_at >= ?"
+                params.append(start_unix)
             if end_mjd is not None:
-                query += " AND mjd <= ?"
-                params.append(end_mjd)
+                end_unix = Time(end_mjd, format="mjd").unix
+                query += " AND measured_at <= ?"
+                params.append(end_unix)
             
-            query += " ORDER BY mjd"
+            query += " ORDER BY measured_at"
             
             cursor = await conn.execute(query, params)
             data_points = []
             async for row in cursor:
+                # Convert Unix timestamp to MJD for API response
+                unix_ts = row["measured_at"]
+                mjd = Time(unix_ts, format="unix").mjd
+                
                 data_points.append({
-                    "mjd": row["mjd"],
-                    "flux_jy": row["flux_jy"] or row["peak_jyb"],
-                    "flux_err_jy": row["flux_err_jy"] or row["peak_err_jyb"],
+                    "mjd": mjd,
+                    "flux_jy": row["flux_jy"] or row["peak_flux_jy"],
+                    "flux_err_jy": row["flux_err_jy"],
                     "snr": row["snr"],
                     "image_path": row["image_path"],
                 })
