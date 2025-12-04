@@ -294,17 +294,25 @@ def find_transit_observations(
                         group_id=group_id,
                         timestamp_iso=mg["timestamp_iso"],
                         file_count=mg["file_count"],
-                        altitude_deg=altaz.alt.deg,
+                        altitude_deg=altitude,
                         azimuth_deg=altaz.az.deg,
                         file_paths=mg["file_paths"],
                     )
-                )
+                    
             except Exception as e:
                 logger.warning(f"Error processing group {mg['group_id']}: {e}")
                 continue
         
+        # Add the best observation for this day (ONE per day)
+        if best_for_day is not None:
+            results.append(best_for_day)
+            logger.debug(
+                f"Selected peak transit for {obs_date}: {best_for_day.group_id} "
+                f"(alt={best_for_day.altitude_deg:.1f}°)"
+            )
+        
         # Stop if we have enough results
-        if len(results) >= num_transits * 2:
+        if len(results) >= num_transits:
             break
 
     conn.close()
