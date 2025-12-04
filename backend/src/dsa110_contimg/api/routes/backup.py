@@ -214,7 +214,64 @@ def _perform_backup(
 # ============================================================================
 
 
-@router.post("/create", response_model=BackupInfo, status_code=201)
+@router.get("", response_model=BackupListResponse)
+async def list_backups(
+    backup_type: Optional[str] = Query(None, description="Filter by backup type"),
+    status: Optional[str] = Query(None, description="Filter by status"),
+    limit: int = Query(100, ge=1, le=1000),
+    db: sqlite3.Connection = Depends(get_pipeline_db),
+):
+    """List all backups."""
+    query = "SELECT * FROM backup_history WHERE 1=1"
+    params = []
+    
+    if backup_type:
+        query += " AND backup_type = ?"
+        params.append(backup_type)
+    if status:
+        query += " AND status = ?"
+        params.append(status)
+    
+    query += " ORDER BY created_at DESC LIMIT ?"
+    params.append(limit)
+    
+    cursor = db.execute(query, params)
+    cursor.row_factory = sqlite3.Row
+    rows = cursor.fetchall()
+    
+    backups = [_row_to_backup(row) for row in rows]
+    
+    # Get total count
+    count_cursor = db.execute("SELECT COUNT(*) FROM backup_history")
+    total = count_cursor.fetchone()[0]
+    
+    return BackupListResponse(backups=backups, total=total)
+
+
+@router.get("/status", response_model=BackupInfo)
+async def get_latest_backup_status(
+    db: sqlite3.Connection = Depends(get_pipeline_db),
+):
+    """Get status of the most recent backup."""
+    cursor = db.execute(
+        "SELECT * FROM backup_history ORDER BY created_at DESC LIMIT 1"
+    )
+    cursor.row_factory = sqlite3.Row
+    row = cursor.fetchone()
+    
+    if not row:
+        return BackupInfo(
+            id="none",
+            backup_path="",
+            backup_type="none",
+            created_at="",
+            status="no_backups",
+        )
+    
+    return _row_to_backup(row)
+
+
+@router.post("", response_model=BackupInfo, status_code=201)
 async def create_backup(
     data: BackupCreateInput,
     background_tasks: BackgroundTasks,
@@ -311,6 +368,25 @@ async def list_backups(
     
     backups = [_row_to_backup(row) for row in rows]
     return BackupListResponse(backups=backups, total=len(backups))
+
+
+@router.get("/{backup_id}", response_model=BackupInfo)
+async def get_backup(
+    backup_id: str,
+    db: sqlite3.Connection = Depends(get_pipeline_db),
+):
+    """Get a specific backup by ID."""
+    cursor = db.execute(
+        "SELECT * FROM backup_history WHERE id = ?",
+        (backup_id,),
+    )
+    cursor.row_factory = sqlite3.Row
+    row = cursor.fetchone()
+    
+    if not row:
+        raise HTTPException(status_code=404, detail=f"Backup {backup_id} not found")
+    
+    return _row_to_backup(row)
 
 
 @router.post("/validate/{backup_id}", response_model=BackupValidationResult)

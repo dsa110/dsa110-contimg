@@ -23,7 +23,7 @@ from ..dependencies import get_pipeline_db
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/vo-export", tags=["vo-export"])
+router = APIRouter(prefix="/vo", tags=["vo-export"])
 
 # Configuration
 EXPORT_DIR = Path(os.getenv("EXPORT_DIR", "/stage/dsa110-contimg/exports"))
@@ -344,7 +344,42 @@ def _write_fits_table(rows: List[sqlite3.Row], output_path: Path):
 # ============================================================================
 
 
-@router.post("/create", response_model=ExportJob, status_code=201)
+class ExportJobList(BaseModel):
+    """List of export jobs response."""
+    jobs: List[ExportJob]
+    total: int
+
+
+@router.get("/exports", response_model=ExportJobList)
+async def list_exports(
+    status: Optional[str] = Query(None, description="Filter by status"),
+    limit: int = Query(100, ge=1, le=1000),
+    db: sqlite3.Connection = Depends(get_pipeline_db),
+):
+    """List export jobs."""
+    if status:
+        cursor = db.execute(
+            "SELECT * FROM export_jobs WHERE status = ? ORDER BY created_at DESC LIMIT ?",
+            (status, limit),
+        )
+    else:
+        cursor = db.execute(
+            "SELECT * FROM export_jobs ORDER BY created_at DESC LIMIT ?",
+            (limit,),
+        )
+    cursor.row_factory = sqlite3.Row
+    rows = cursor.fetchall()
+    
+    jobs = [_row_to_job(row) for row in rows]
+    
+    # Get total count
+    count_cursor = db.execute("SELECT COUNT(*) FROM export_jobs")
+    total = count_cursor.fetchone()[0]
+    
+    return ExportJobList(jobs=jobs, total=total)
+
+
+@router.post("/exports", response_model=ExportJob, status_code=201)
 async def create_export(
     request: ExportRequest,
     background_tasks: BackgroundTasks,
@@ -389,7 +424,7 @@ async def create_export(
     )
 
 
-@router.get("/status/{job_id}", response_model=ExportJob)
+@router.get("/exports/{job_id}", response_model=ExportJob)
 async def get_export_status(
     job_id: str,
     db: sqlite3.Connection = Depends(get_pipeline_db),

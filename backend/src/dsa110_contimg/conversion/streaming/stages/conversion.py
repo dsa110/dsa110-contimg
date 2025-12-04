@@ -249,18 +249,22 @@ class ConversionStage:
         try:
             from dsa110_contimg.conversion import convert_subband_groups_to_ms
 
+            # Note: The orchestrator signature is:
+            # convert_subband_groups_to_ms(input_dir, output_dir, start_time, end_time, ...)
+            # It does NOT take scratch_dir or expected_subbands
             results = convert_subband_groups_to_ms(
                 input_dir=str(self.config.input_dir),
                 output_dir=str(self.config.output_dir),
                 start_time=start_time,
                 end_time=end_time,
-                scratch_dir=str(self.config.scratch_dir),
-                expected_subbands=self.config.expected_subbands,
             )
 
-            if results and len(results) > 0:
-                # Get first result (should be only one for single group)
-                ms_path = results[0] if isinstance(results[0], str) else str(results[0])
+            # Results is a dict with 'converted', 'skipped', 'failed' keys
+            if results and results.get("converted"):
+                # Get the MS path from the first converted group
+                # The converted list contains group_ids, we need to derive MS path
+                converted_group = results["converted"][0]
+                ms_path = str(self.config.output_dir / f"{converted_group}.ms")
                 
                 return ConversionResult(
                     success=True,
@@ -269,10 +273,13 @@ class ConversionStage:
                     writer_type="fallback",
                 )
             else:
+                error_msg = "Orchestrator returned no converted results"
+                if results and results.get("failed"):
+                    error_msg = f"Conversion failed: {results['failed']}"
                 return ConversionResult(
                     success=False,
                     group_id=group_id,
-                    error_message="Orchestrator returned no results",
+                    error_message=error_msg,
                 )
 
         except Exception as e:

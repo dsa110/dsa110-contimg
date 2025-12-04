@@ -953,7 +953,9 @@ describe("SharedQueriesPage", () => {
       render(<SharedQueriesPage />, { wrapper: createWrapper() });
 
       expect(screen.getByText("Total Queries")).toBeInTheDocument();
-      expect(screen.getByText("125")).toBeInTheDocument();
+      // 125 appears in tab badge and stats panel
+      const count125 = screen.getAllByText("125");
+      expect(count125.length).toBeGreaterThan(0);
     });
 
     it("displays public, team, private counts", () => {
@@ -1234,8 +1236,10 @@ describe("SharedQueriesPage", () => {
 
       fireEvent.click(screen.getByRole("button", { name: /new query/i }));
 
-      const targetSelect = screen.getByLabelText(/target type/i);
-      fireEvent.change(targetSelect, { target: { value: "observation" } });
+      // Use ID to select the specific form field (query-target)
+      const targetSelect = document.getElementById("query-target");
+      expect(targetSelect).not.toBeNull();
+      fireEvent.change(targetSelect!, { target: { value: "observation" } });
 
       expect(targetSelect).toHaveValue("observation");
     });

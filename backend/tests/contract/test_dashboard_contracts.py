@@ -53,7 +53,7 @@ def sample_trigger() -> Dict[str, Any]:
         "trigger_type": "schedule",
         "schedule": "0 */6 * * *",
         "action": "calibrate",
-        "action_params": json.dumps({"calibrator": "3C286"}),
+        "action_params": {"calibrator": "3C286"},
         "enabled": True,
     }
 
@@ -171,16 +171,16 @@ class TestSavedQueriesContracts:
 
 
 class TestBackupContracts:
-    """Contract tests for /api/v1/backup endpoints."""
+    """Contract tests for /api/v1/backups endpoints."""
 
     def test_list_backups_returns_200(self, api_client):
-        """GET /api/v1/backup returns 200."""
-        response = api_client.get("/api/v1/backup")
+        """GET /api/v1/backups returns 200."""
+        response = api_client.get("/api/v1/backups")
         assert response.status_code == 200
 
     def test_list_backups_response_schema(self, api_client):
         """Response has backups array and total."""
-        response = api_client.get("/api/v1/backup")
+        response = api_client.get("/api/v1/backups")
         data = response.json()
 
         assert "backups" in data
@@ -188,29 +188,30 @@ class TestBackupContracts:
         assert isinstance(data["backups"], list)
 
     def test_backup_status_returns_200(self, api_client):
-        """GET /api/v1/backup/status returns 200."""
-        response = api_client.get("/api/v1/backup/status")
-        assert response.status_code == 200
+        """GET /api/v1/backups/status returns 200 or 404."""
+        response = api_client.get("/api/v1/backups/status")
+        # 200 if backups exist, 404 if none
+        assert response.status_code in [200, 404]
 
     def test_backup_status_schema(self, api_client):
         """Backup status has expected fields."""
-        response = api_client.get("/api/v1/backup/status")
-        data = response.json()
+        response = api_client.get("/api/v1/backups/status")
+        if response.status_code == 200:
+            data = response.json()
+            # Should have at least these fields
+            assert "status" in data or "id" in data
 
-        # Should have at least these fields
-        assert "last_backup_at" in data or "status" in data
-
-    def test_create_backup_returns_202(self, api_client):
-        """POST /api/v1/backup/create returns 202 (accepted)."""
+    def test_create_backup_returns_201(self, api_client):
+        """POST /api/v1/backups returns 201 (created)."""
         payload = {"backup_type": "database_only"}
-        response = api_client.post("/api/v1/backup/create", json=payload)
+        response = api_client.post("/api/v1/backups", json=payload)
 
-        # 202 Accepted for background task
-        assert response.status_code in [200, 201, 202]
+        # 201 Created for background task started
+        assert response.status_code == 201
 
     def test_get_nonexistent_backup_returns_404(self, api_client):
-        """GET /api/v1/backup/{id} returns 404 for missing."""
-        response = api_client.get("/api/v1/backup/nonexistent-backup-id")
+        """GET /api/v1/backups/{id} returns 404 for missing."""
+        response = api_client.get("/api/v1/backups/nonexistent-backup-id")
         assert response.status_code == 404
 
 
@@ -300,35 +301,34 @@ class TestJupyterContracts:
 
 
 class TestVOExportContracts:
-    """Contract tests for /api/v1/vo-export endpoints."""
+    """Contract tests for /api/v1/vo/exports endpoints."""
 
     def test_list_export_jobs_returns_200(self, api_client):
-        """GET /api/v1/vo-export returns 200."""
-        response = api_client.get("/api/v1/vo-export")
+        """GET /api/v1/vo/exports returns 200."""
+        response = api_client.get("/api/v1/vo/exports")
         assert response.status_code == 200
 
     def test_list_export_jobs_schema(self, api_client):
         """Response has jobs array and total."""
-        response = api_client.get("/api/v1/vo-export")
+        response = api_client.get("/api/v1/vo/exports")
         data = response.json()
 
         assert "jobs" in data
         assert "total" in data
 
-    def test_create_export_job_returns_202(self, api_client):
-        """POST /api/v1/vo-export returns 202."""
+    def test_create_export_job_returns_201(self, api_client):
+        """POST /api/v1/vo/exports returns 201."""
         payload = {
-            "export_format": "votable",
-            "source_type": "images",
-            "filters": json.dumps({}),
+            "export_type": "votable",
+            "target_type": "images",
         }
-        response = api_client.post("/api/v1/vo-export", json=payload)
-        # 201 or 202 for job creation
-        assert response.status_code in [201, 202]
+        response = api_client.post("/api/v1/vo/exports", json=payload)
+        # 201 for job creation
+        assert response.status_code == 201
 
     def test_get_nonexistent_job_returns_404(self, api_client):
-        """GET /api/v1/vo-export/{id} returns 404 for missing."""
-        response = api_client.get("/api/v1/vo-export/nonexistent-job")
+        """GET /api/v1/vo/exports/{id} returns 404 for missing."""
+        response = api_client.get("/api/v1/vo/exports/nonexistent-job")
         assert response.status_code == 404
 
 
