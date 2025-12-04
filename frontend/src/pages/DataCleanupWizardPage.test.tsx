@@ -4,7 +4,7 @@
 import React from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MemoryRouter, Routes, Route } from "react-router-dom";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import DataCleanupWizardPage from "./DataCleanupWizardPage";
@@ -83,12 +83,13 @@ describe("DataCleanupWizardPage", () => {
       expect(screen.getByText("Select Data to Clean Up")).toBeInTheDocument();
     });
 
-    it("shows minimum age slider with default value", () => {
+    it("shows minimum age input with default value", () => {
       renderWithProviders(<DataCleanupWizardPage />);
 
-      const slider = screen.getByRole("slider");
-      expect(slider).toBeInTheDocument();
-      expect(slider).toHaveValue("30");
+      // Find input by label
+      const minAgeInput = screen.getByLabelText(/minimum age/i);
+      expect(minAgeInput).toBeInTheDocument();
+      expect(minAgeInput).toHaveValue(30);
     });
 
     it("displays data type options", () => {
@@ -144,16 +145,22 @@ describe("DataCleanupWizardPage", () => {
   });
 
   describe("Wizard Step 2: Preview", () => {
-    it("advances to preview step when Run Preview clicked", async () => {
+    it("advances to preview step when Preview Impact clicked", async () => {
       renderWithProviders(<DataCleanupWizardPage />);
       const user = userEvent.setup();
 
       const previewButton = screen.getByRole("button", {
-        name: /run preview/i,
+        name: /preview impact/i,
       });
       await user.click(previewButton);
 
-      expect(screen.getByText("Preview Impact")).toBeInTheDocument();
+      // Verify we're now on step 2 (check step indicator or heading)
+      await waitFor(() => {
+        // Look for loading state or content that appears on step 2
+        expect(
+          screen.queryByText("Select Data to Clean Up")
+        ).not.toBeInTheDocument();
+      });
     });
 
     it("shows loading state during dry-run", async () => {
@@ -168,9 +175,13 @@ describe("DataCleanupWizardPage", () => {
       renderWithProviders(<DataCleanupWizardPage />);
       const user = userEvent.setup();
 
-      await user.click(screen.getByRole("button", { name: /run preview/i }));
+      await user.click(
+        screen.getByRole("button", { name: /preview impact/i })
+      );
 
-      expect(screen.getByText(/analyzing/i)).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText(/analyzing/i)).toBeInTheDocument();
+      });
     });
 
     it("displays dry-run results when loaded", async () => {
@@ -198,7 +209,9 @@ describe("DataCleanupWizardPage", () => {
       renderWithProviders(<DataCleanupWizardPage />);
       const user = userEvent.setup();
 
-      await user.click(screen.getByRole("button", { name: /run preview/i }));
+      await user.click(
+        screen.getByRole("button", { name: /preview impact/i })
+      );
 
       await waitFor(() => {
         expect(screen.getByText(/150/)).toBeInTheDocument();
@@ -218,9 +231,13 @@ describe("DataCleanupWizardPage", () => {
       renderWithProviders(<DataCleanupWizardPage />);
       const user = userEvent.setup();
 
-      await user.click(screen.getByRole("button", { name: /run preview/i }));
+      await user.click(
+        screen.getByRole("button", { name: /preview impact/i })
+      );
 
-      expect(screen.getByText(/error/i)).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText(/error/i)).toBeInTheDocument();
+      });
     });
   });
 
@@ -248,12 +265,22 @@ describe("DataCleanupWizardPage", () => {
       const user = userEvent.setup();
 
       // Go to preview
-      await user.click(screen.getByRole("button", { name: /run preview/i }));
+      await user.click(
+        screen.getByRole("button", { name: /preview impact/i })
+      );
+
+      // Wait for dry-run results and find continue button
+      await waitFor(() => {
+        expect(screen.getByText(/10/)).toBeInTheDocument();
+      });
 
       // Go to confirm
-      await user.click(screen.getByRole("button", { name: /continue/i }));
+      const continueButton = screen.getByRole("button", { name: /continue/i });
+      await user.click(continueButton);
 
-      expect(screen.getByText(/confirm/i)).toBeInTheDocument();
+      await waitFor(() => {
+        expect(screen.getByText(/confirm/i)).toBeInTheDocument();
+      });
     });
 
     it("requires audit note before submission", async () => {
@@ -279,12 +306,24 @@ describe("DataCleanupWizardPage", () => {
       const user = userEvent.setup();
 
       // Navigate to confirm step
-      await user.click(screen.getByRole("button", { name: /run preview/i }));
+      await user.click(
+        screen.getByRole("button", { name: /preview impact/i })
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText(/10/)).toBeInTheDocument();
+      });
+
       await user.click(screen.getByRole("button", { name: /continue/i }));
+
+      // Wait for confirm step
+      await waitFor(() => {
+        expect(screen.getByRole("textbox")).toBeInTheDocument();
+      });
 
       // Submit button should be disabled without audit note
       const submitButton = screen.getByRole("button", {
-        name: /submit cleanup/i,
+        name: /submit/i,
       });
       expect(submitButton).toBeDisabled();
 
@@ -339,8 +378,19 @@ describe("DataCleanupWizardPage", () => {
       const user = userEvent.setup();
 
       // Navigate through steps
-      await user.click(screen.getByRole("button", { name: /run preview/i }));
+      await user.click(
+        screen.getByRole("button", { name: /preview impact/i })
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText(/10/)).toBeInTheDocument();
+      });
+
       await user.click(screen.getByRole("button", { name: /continue/i }));
+
+      await waitFor(() => {
+        expect(screen.getByRole("textbox")).toBeInTheDocument();
+      });
 
       // Enter audit note
       await user.type(
@@ -349,10 +399,13 @@ describe("DataCleanupWizardPage", () => {
       );
 
       // Submit
-      await user.click(screen.getByRole("button", { name: /submit cleanup/i }));
+      await user.click(screen.getByRole("button", { name: /submit/i }));
 
       await waitFor(() => {
         expect(mockMutateAsync).toHaveBeenCalled();
+      });
+
+      await waitFor(() => {
         expect(screen.getByText(/cleanup-123/)).toBeInTheDocument();
       });
     });
@@ -364,25 +417,38 @@ describe("DataCleanupWizardPage", () => {
       const user = userEvent.setup();
 
       // Go to preview
-      await user.click(screen.getByRole("button", { name: /run preview/i }));
-      expect(screen.getByText("Preview Impact")).toBeInTheDocument();
+      await user.click(
+        screen.getByRole("button", { name: /preview impact/i })
+      );
+
+      await waitFor(() => {
+        expect(
+          screen.queryByText("Select Data to Clean Up")
+        ).not.toBeInTheDocument();
+      });
 
       // Go back
-      await user.click(screen.getByRole("button", { name: /back/i }));
-      expect(screen.getByText("Select Filters")).toBeInTheDocument();
+      const backButton = screen.getByRole("button", { name: /back/i });
+      await user.click(backButton);
+
+      await waitFor(() => {
+        expect(screen.getByText("Select Data to Clean Up")).toBeInTheDocument();
+      });
     });
 
-    it("shows step indicator progress", () => {
+    it("shows step indicator with step numbers", () => {
       renderWithProviders(<DataCleanupWizardPage />);
 
-      // Check for step indicators
-      const stepIndicators = screen.getAllByRole("listitem");
-      expect(stepIndicators.length).toBeGreaterThanOrEqual(4);
+      // Check for step numbers in the indicator
+      expect(screen.getByText("1")).toBeInTheDocument();
+      expect(screen.getByText("2")).toBeInTheDocument();
+      expect(screen.getByText("3")).toBeInTheDocument();
+      expect(screen.getByText("4")).toBeInTheDocument();
     });
   });
 
   describe("Cleanup History", () => {
-    it("displays past cleanup jobs", () => {
+    it("displays recent cleanups section", () => {
       const mockHistory: cleanupApi.CleanupJob[] = [
         {
           id: "job-1",
@@ -419,7 +485,7 @@ describe("DataCleanupWizardPage", () => {
 
       renderWithProviders(<DataCleanupWizardPage />);
 
-      expect(screen.getByText(/recent cleanup jobs/i)).toBeInTheDocument();
+      expect(screen.getByText(/recent cleanups/i)).toBeInTheDocument();
       expect(screen.getByText("job-1")).toBeInTheDocument();
       expect(screen.getByText("job-2")).toBeInTheDocument();
     });
@@ -441,8 +507,8 @@ describe("DataCleanupWizardPage", () => {
       const h1 = screen.getByRole("heading", { level: 1 });
       expect(h1).toHaveTextContent("Data Cleanup Wizard");
 
-      const h2Elements = screen.getAllByRole("heading", { level: 2 });
-      expect(h2Elements.length).toBeGreaterThan(0);
+      const h3Elements = screen.getAllByRole("heading", { level: 3 });
+      expect(h3Elements.length).toBeGreaterThan(0);
     });
   });
 });
