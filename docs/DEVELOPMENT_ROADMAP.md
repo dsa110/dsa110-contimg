@@ -57,4 +57,5 @@ Pipeline.
 1.  **Full Production Deployment:** Move all components to
     `/data/dsa110-contimg/` (Done) and finalize `/stage/` directory structure.
 2.  **Automated Self-Healing:** Expand the "Health Check" system to
-    automatically recover from common failures (e.g., WSClean hangs).
+    automatically recover from common failures. _(Note: WSClean Docker hangs
+    have been fixed by removing NTFS-FUSE volume mounts.)_

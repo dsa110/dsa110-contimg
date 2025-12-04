@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-Simple self-calibration test - NO NVSS seeding to avoid Docker hang.
+Simple self-calibration test without NVSS seeding.
 
 This test uses standard self-calibration without catalog-based MODEL_DATA
-seeding, which avoids the Docker container cleanup hang issue.
+seeding. Note: The Docker hang issue has been fixed (NTFS-FUSE mount removed),
+so NVSS seeding can now be enabled if desired.
 """
 
 import sys
@@ -29,7 +30,7 @@ print("=" * 80)
 print("SIMPLE SELF-CALIBRATION TEST")
 print("=" * 80)
 print("Strategy: Standard self-cal without NVSS seeding")
-print("         (avoids Docker container hang issue)")
+print("         (NVSS seeding now works - Docker hang fixed)")
 print("=" * 80)
 print()
 
@@ -43,7 +44,7 @@ config = SelfCalConfig(
     threshold="0.0001Jy",
     robust=-0.5,
     field="0",
-    # NO NVSS seeding (avoids Docker hang)
+    # NVSS seeding disabled for this simple test (but works now - Docker hang fixed)
     use_nvss_seeding=False,
     # Use calibrator model for initial MODEL_DATA
     calib_ra_deg=129.278,

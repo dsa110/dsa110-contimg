@@ -71,14 +71,32 @@ Cleaning up temporary files...
 |              |                                   |
 | ------------ | --------------------------------- |
 | **Severity** | HIGH                              |
-| **Status**   | 🔴 Open                           |
+| **Status**   | 🟢 Fixed                          |
 | **Affects**  | Image filtering, database queries |
 
-**Impact:**
+**Root Cause:**
 
-- `noise_jy`, `center_ra_deg`, `center_dec_deg` set to NULL
-- Noise filtering returns no results
-- Declination filtering requires reading FITS files (slow)
+The `images_insert()` function in `streaming_converter.py` was called with
+positional arguments in the wrong order, causing `created_at` timestamp to be
+stored in the wrong field position.
+
+**Fix Applied:**
+
+Changed to explicit keyword arguments in `streaming_converter.py`:
+
+```python
+# Before (wrong):
+images_insert(conn, p, ms_path, now_ts, "5min", pbcor)
+
+# After (correct):
+images_insert(conn, p, ms_path, "5min", created_at=now_ts, pbcor=pbcor)
+```
+
+**Impact (historical):**
+
+- `noise_jy`, `center_ra_deg`, `center_dec_deg` were set to NULL
+- Noise filtering returned no results
+- Declination filtering required reading FITS files (slow)
 
 ---
 

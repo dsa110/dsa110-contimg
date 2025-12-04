@@ -46,10 +46,10 @@ Development**
 **Code Location:** `backend/src/dsa110_contimg/imaging/` &
 `backend/src/dsa110_contimg/calibration/` **Status:** :green_circle: **Production**
 
-| Component           | Code File                | Documentation                                                  |
-| :------------------ | :----------------------- | :------------------------------------------------------------- |
-| **WSClean Wrapper** | `imaging/cli_imaging.py` | [Docker Issues](troubleshooting/docker_wsclean_known_issue.md) |
-| **Self-Cal**        | `calibration/selfcal.py` | [Architecture](architecture/architecture/architecture.md)      |
+| Component           | Code File                | Documentation                                             |
+| :------------------ | :----------------------- | :-------------------------------------------------------- |
+| **WSClean Wrapper** | `imaging/cli_imaging.py` | [Troubleshooting](TROUBLESHOOTING.md#docker-wsclean-hang) |
+| **Self-Cal**        | `calibration/selfcal.py` | [Architecture](architecture/architecture/architecture.md) |
 
 ### 5. Frontend Dashboard
 
