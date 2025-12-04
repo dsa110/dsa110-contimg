@@ -91,6 +91,9 @@ export const ROUTES = {
   /** VO Export */
   VO_EXPORT: "/vo-export",
 
+  /** Jupyter notebooks */
+  JUPYTER: "/jupyter",
+
   /** Calibrator Imaging Test */
   CALIBRATOR_IMAGING: "/calibrator-imaging",
 } as const;

@@ -387,15 +387,14 @@ class StreamingPipeline:
             Exit code (0 for success, non-zero for error)
         """
         self._setup_signal_handlers()
-        
+
         # Initialize queue
-        registry_db = self.args.registry_db or self.args.queue_db
         self._queue = SubbandQueue(
             db_path=Path(self.args.queue_db),
             expected_subbands=self.args.expected_subbands,
             chunk_duration_minutes=self.args.chunk_duration,
         )
-        
+
         # Start filesystem watching
         self._start_watcher()
         
