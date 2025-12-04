@@ -402,13 +402,26 @@ du -h /data/dsa110-contimg/state/db/pipeline.sqlite3
 
 ## Health Checks
 
+### Automated Health Checks
+
+Health checks run automatically via ABSURD every hour at :15.
+
+```bash
+# View recent health check results
+curl -s "http://localhost:8000/absurd/tasks?task_name=health-check&limit=3" | jq '.[].result'
+
+# Trigger manual health check
+curl -X POST http://localhost:8000/absurd/schedules/hourly_health_check/trigger
+```
+
 ### Daily Checklist
 
 - [ ] Services running: `systemctl status contimg-api contimg-stream`
 - [ ] Queue not backed up: `< 50 pending`
 - [ ] Disk space: `> 20% free on /data and /stage`
 - [ ] Recent calibration: Within last 24 hours
-- [ ] Backups completing: Check `/stage/backups/hourly/`
+- [ ] Backups completing: Check ABSURD task history or `/stage/backups/hourly/`
+- [ ] Maintenance tasks running: `curl http://localhost:8000/absurd/schedules | jq`
 
 ### Weekly Checklist
 
@@ -416,15 +429,18 @@ du -h /data/dsa110-contimg/state/db/pipeline.sqlite3
 - [ ] Check backup retention (old backups cleaned up)
 - [ ] Review failed jobs and error patterns
 - [ ] Verify calibration quality trending
+- [ ] Review ABSURD task failure rate
 
 ### Monitoring URLs
 
-| Service    | URL                           |
-| ---------- | ----------------------------- |
-| API Health | http://localhost:8000/health  |
-| Metrics    | http://localhost:8000/metrics |
-| Prometheus | http://localhost:9090         |
-| Grafana    | http://localhost:3000         |
+| Service          | URL                                    |
+| ---------------- | -------------------------------------- |
+| API Health       | http://localhost:8000/health           |
+| Metrics          | http://localhost:8000/metrics          |
+| ABSURD Queues    | http://localhost:8000/absurd/queues    |
+| ABSURD Schedules | http://localhost:8000/absurd/schedules |
+| Prometheus       | http://localhost:9090                  |
+| Grafana          | http://localhost:3000                  |
 
 ---
 

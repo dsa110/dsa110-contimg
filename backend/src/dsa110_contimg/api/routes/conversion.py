@@ -205,12 +205,17 @@ async def list_pending_groups(
             else:
                 incomplete_count += 1
 
+            # Convert Unix timestamp to ISO format
+            first_seen_str = None
+            if row["first_seen"]:
+                first_seen_str = datetime.fromtimestamp(row["first_seen"]).isoformat()
+
             group = SubbandGroup(
                 group_id=row["group_id"],
                 file_count=row["file_count"],
                 expected_subbands=16,
                 is_complete=is_complete,
-                first_seen=row["first_seen"],
+                first_seen=first_seen_str,
                 files=row["file_paths"].split(",") if include_files and row["file_paths"] else None,
             )
             groups.append(group)
@@ -250,24 +255,24 @@ async def get_conversion_stats():
         # Count by state
         cursor = conn.execute(
             """
-            SELECT state, COUNT(DISTINCT group_id) as count
+            SELECT state, COUNT(*) as count
             FROM processing_queue
             GROUP BY state
             """
         )
         state_counts = {row[0]: row[1] for row in cursor.fetchall()}
 
-        # Count converted/failed today
-        today = datetime.utcnow().date().isoformat()
+        # Count completed/failed today (last_update within today)
+        today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
         cursor = conn.execute(
             """
-            SELECT state, COUNT(DISTINCT group_id) as count
+            SELECT state, COUNT(*) as count
             FROM processing_queue
-            WHERE DATE(updated_at) = ?
-              AND state IN ('converted', 'failed')
+            WHERE last_update >= ?
+              AND state IN ('completed', 'failed')
             GROUP BY state
             """,
-            (today,),
+            (today_start,),
         )
         today_counts = {row[0]: row[1] for row in cursor.fetchall()}
 
