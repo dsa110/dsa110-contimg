@@ -125,6 +125,8 @@ export interface SkyCoverageMapProps {
   showSurveyFootprints?: boolean;
   /** Which survey footprints to show (defaults to all pipeline-used surveys) */
   surveyFootprints?: SurveyFootprint[];
+  /** Whether to show the Global Sky Model radio background (Mollweide only) */
+  showRadioBackground?: boolean;
   /** Color scheme for pointings */
   colorScheme?: "status" | "epoch" | "uniform";
   /** Default radius for pointings without radius (degrees) */
@@ -257,6 +259,7 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
   showConstellations = false,
   showSurveyFootprints = true,
   surveyFootprints = SURVEY_FOOTPRINTS.filter((s) => s.usedInPipeline),
+  showRadioBackground = true, // Default to showing GSM background
   colorScheme = "status",
   defaultRadius = 1.5,
   onPointingClick,
@@ -449,7 +452,47 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
       .append("rect")
       .attr("width", width)
       .attr("height", height)
-      .attr("fill", "#1a1a2e");
+      .attr("fill", "#0a0a20"); // Dark blue background like VAST
+
+    // Add GSM radio sky background (Mollweide projection only for now)
+    if (showRadioBackground && selectedProjection === "mollweide") {
+      // Create a clip path for the projection outline
+      const clipId = `projection-clip-${Math.random()
+        .toString(36)
+        .substr(2, 9)}`;
+
+      // Define clip path from graticule outline
+      const graticuleOutline = d3.geoGraticule().outline();
+      svg
+        .append("defs")
+        .append("clipPath")
+        .attr("id", clipId)
+        .append("path")
+        .datum(graticuleOutline)
+        .attr("d", path);
+
+      // Add the GSM background image, clipped to the projection
+      // The image is pre-rendered in Mollweide projection at 2400x1200
+      const bgGroup = svg.append("g").attr("clip-path", `url(#${clipId})`);
+
+      // Calculate image positioning to match the projection
+      // The graticule outline gives us the bounds
+      const outlineBounds = path.bounds(graticuleOutline);
+      const imgX = outlineBounds[0][0];
+      const imgY = outlineBounds[0][1];
+      const imgWidth = outlineBounds[1][0] - outlineBounds[0][0];
+      const imgHeight = outlineBounds[1][1] - outlineBounds[0][1];
+
+      bgGroup
+        .append("image")
+        .attr("href", "/gsm_mollweide.png")
+        .attr("x", imgX)
+        .attr("y", imgY)
+        .attr("width", imgWidth)
+        .attr("height", imgHeight)
+        .attr("preserveAspectRatio", "none")
+        .attr("opacity", 0.8); // Slightly transparent to allow grid to show through
+    }
 
     // Graticule (coordinate grid)
     const graticule = d3.geoGraticule().step([30, 15]);
@@ -1074,6 +1117,7 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
     showConstellations,
     showSurveyFootprints,
     surveyFootprints,
+    showRadioBackground,
     constOptions,
     constellationNames,
     constellationLines,

@@ -1968,139 +1968,33 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
             # Issue #7: Update state to CONVERTING
             _update_state_machine(state_machine, gid, "CONVERTING", log)
 
+            # Issue #11: Use unified execution module for conversion
+            # This provides consistent behavior between in-process and subprocess modes
+            execution_result = None  # Will be set if execution module is used
             try:
-                if getattr(args, "use_subprocess", False):
-                    # Note: Subprocess mode doesn't support path_mapper yet
-                    # Files will be written to flat location and organized afterward
-                    # Validate and sanitize user-controlled arguments to prevent command injection
-                    # Validate paths are absolute and exist (or are valid for creation)
-                    input_dir = str(Path(args.input_dir).resolve())
-                    output_dir = str(Path(args.output_dir).resolve())
-                    scratch_dir = str(Path(args.scratch_dir).resolve())
+                # Try the new execution module first
+                ret, writer_type, execution_result = _run_conversion_with_executor(
+                    args, gid, start_time, end_time, log
+                )
 
-                    # Validate max_workers is a reasonable integer
-                    max_workers = getattr(args, "max_workers", 4)
-                    try:
-                        max_workers_int = int(max_workers)
-                        if max_workers_int < 1 or max_workers_int > 128:
-                            raise ValueError(
-                                f"max_workers must be between 1 and 128, got {max_workers_int}"
-                            )
-                    except (ValueError, TypeError) as e:
-                        log.warning(
-                            f"Invalid max_workers value: {max_workers}, using default 4. Error: {e}"
-                        )
-                        max_workers_int = 4
+                # Log execution metrics if available
+                if execution_result is not None and execution_result.metrics is not None:
+                    metrics = execution_result.metrics
+                    log.info(
+                        "Conversion metrics for %s: time=%.1fs, memory=%.0fMB, files=%d",
+                        gid,
+                        metrics.total_time_s,
+                        metrics.memory_peak_mb,
+                        metrics.files_processed,
+                    )
 
-                    # Validate tmpfs_path if provided
-                    tmpfs_path = "/dev/shm"  # default
-                    if getattr(args, "stage_to_tmpfs", False):
-                        tmpfs_path_attr = getattr(args, "tmpfs_path", "/dev/shm")
-                        tmpfs_path = str(Path(tmpfs_path_attr).resolve())
+                if ret != 0 and execution_result is not None:
+                    # Error handling is done by the executor
+                    error_msg = execution_result.error_message or f"exit code {ret}"
+                    queue.update_state(gid, "failed", error=error_msg)
+                    _update_state_machine(state_machine, gid, "FAILED", log)
+                    continue
 
-                    # Build command with validated arguments
-                    # Static command parts (safe from injection)
-                    static_cmd_parts = [
-                        sys.executable,
-                        "-m",
-                        "dsa110_contimg.conversion.strategies.hdf5_orchestrator",
-                    ]
-                    # Validated dynamic arguments (all validated above)
-                    validated_args = [
-                        input_dir,  # Resolved absolute path
-                        output_dir,  # Resolved absolute path
-                        start_time,  # From gid, not user input
-                        end_time,  # From gid, not user input
-                        "--writer",
-                        "auto",  # Literal string
-                        "--scratch-dir",
-                        scratch_dir,  # Resolved absolute path
-                        "--max-workers",
-                        str(max_workers_int),  # Validated integer 1-128
-                    ]
-                    cmd = static_cmd_parts + validated_args
-                    if getattr(args, "stage_to_tmpfs", False):
-                        cmd.extend(["--stage-to-tmpfs", "--tmpfs-path", tmpfs_path])
-
-                    env = os.environ.copy()
-                    env.setdefault("HDF5_USE_FILE_LOCKING", "FALSE")
-                    env.setdefault("OMP_NUM_THREADS", os.getenv("OMP_NUM_THREADS", "4"))
-                    env.setdefault("MKL_NUM_THREADS", os.getenv("MKL_NUM_THREADS", "4"))
-                    # Safe: Using list form (not shell=True) prevents shell injection.
-                    # All user inputs validated: paths resolved to absolute, max_workers bounded 1-128
-                    # Using subprocess.run() (modern API) instead of subprocess.call()
-                    # Note: Semgrep warning is a false positive - all inputs are validated above
-                    result = subprocess.run(cmd, env=env, check=False)  # noqa: S603
-                    ret = result.returncode
-                    writer_type = "auto"
-                else:
-                    # Use flattened import from top-level conversion module
-                    # Before converting, validate recorded file paths and acquire
-                    # a group-level exclusive lock to prevent races with watchdog
-                    from dsa110_contimg.conversion import convert_subband_groups_to_ms
-                    try:
-                        from dsa110_contimg.utils.fuse_lock import get_fuse_lock_manager
-                        lock_mgr = get_fuse_lock_manager()
-                    except Exception:
-                        lock_mgr = None
-
-                    try:
-                        # Validate files recorded for this group and remove any stale paths
-                        valid_paths, invalid_paths = queue.validate_group_files(gid)
-                        if invalid_paths:
-                            log.warning(
-                                "Removing stale paths for %s: %s",
-                                gid,
-                                invalid_paths,
-                            )
-                            try:
-                                queue.remove_invalid_files(gid, invalid_paths)
-                            except Exception:
-                                log.debug("Failed to remove invalid paths for %s", gid, exc_info=True)
-
-                        if not valid_paths:
-                            raise RuntimeError("no valid subband files available for group")
-
-                        if lock_mgr is not None:
-                            # Acquire exclusive group lock for the duration of conversion
-                            with lock_mgr.group_lock(gid, valid_paths, timeout=30.0):
-                                convert_subband_groups_to_ms(
-                                    args.input_dir,
-                                    args.output_dir,
-                                    start_time,
-                                    end_time,
-                                    scratch_dir=args.scratch_dir,
-                                    writer="auto",
-                                    writer_kwargs={
-                                        "max_workers": getattr(args, "max_workers", 4),
-                                        "stage_to_tmpfs": getattr(args, "stage_to_tmpfs", False),
-                                        "tmpfs_path": getattr(args, "tmpfs_path", "/dev/shm"),
-                                    },
-                                    path_mapper=path_mapper,  # Write directly to organized location
-                                )
-                        else:
-                            # No lock manager available - fall back to direct call
-                            convert_subband_groups_to_ms(
-                                args.input_dir,
-                                args.output_dir,
-                                start_time,
-                                end_time,
-                                scratch_dir=args.scratch_dir,
-                                writer="auto",
-                                writer_kwargs={
-                                    "max_workers": getattr(args, "max_workers", 4),
-                                    "stage_to_tmpfs": getattr(args, "stage_to_tmpfs", False),
-                                    "tmpfs_path": getattr(args, "tmpfs_path", "/dev/shm"),
-                                },
-                                path_mapper=path_mapper,  # Write directly to organized location
-                            )
-
-                        ret = 0
-                        writer_type = "auto"
-                    except Exception as e:
-                        log.error("Conversion failed for %s: %s", gid, e, exc_info=True)
-                        queue.update_state(gid, "failed", error=str(e))
-                        continue
             except Exception as exc:
                 log.error("Conversion failed for %s: %s", gid, exc)
                 _update_state_machine(state_machine, gid, "FAILED", log)
