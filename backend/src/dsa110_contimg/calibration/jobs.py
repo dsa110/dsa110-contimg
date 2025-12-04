@@ -108,6 +108,7 @@ class CalibrationSolveJob(Job):
         - cal_field: Calibrator field (optional, auto-detected)
         - refant: Reference antenna (optional, auto-detected)
         - do_k: Whether to solve K (delay) calibration
+        - calibrator_name: Expected calibrator name for model lookup (optional)
 
     Outputs:
         - solve_id: Database record ID
@@ -123,6 +124,7 @@ class CalibrationSolveJob(Job):
     cal_field: str | None = None
     refant: str | None = None
     do_k: bool = False
+    calibrator_name: str | None = None
     config: CalibrationJobConfig | None = None
 
     def validate(self) -> tuple[bool, str | None]:
@@ -187,6 +189,7 @@ class CalibrationSolveJob(Job):
                 refant=self.refant,
                 do_k=self.do_k,
                 catalog_path=str(self.config.catalog_path) if self.config.catalog_path else None,
+                calibrator_name=self.calibrator_name,
             )
 
             if not success:

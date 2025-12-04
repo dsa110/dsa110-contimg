@@ -161,6 +161,7 @@ class CalibrationPipeline(Pipeline):
         do_k: bool | None = None,
         skip_apply: bool = False,
         skip_validate: bool = False,
+        calibrator_name: str | None = None,
     ):
         """Initialize calibration pipeline.
 
@@ -173,6 +174,7 @@ class CalibrationPipeline(Pipeline):
             do_k: Whether to solve K calibration (uses config default if None)
             skip_apply: If True, only solve calibration (no apply step)
             skip_validate: If True, skip validation step
+            calibrator_name: Expected calibrator name for model lookup (e.g., "0834+555")
         """
         self.ms_path = ms_path
         self.cal_field = cal_field
@@ -180,6 +182,7 @@ class CalibrationPipeline(Pipeline):
         self.refant = refant
         self.skip_apply = skip_apply
         self.skip_validate = skip_validate
+        self.calibrator_name = calibrator_name
 
         # Use config default for do_k if not specified
         if do_k is not None:
@@ -202,6 +205,7 @@ class CalibrationPipeline(Pipeline):
                 "cal_field": self.cal_field,
                 "refant": self.refant or (self.config.default_refant if self.config else None),
                 "do_k": self.do_k,
+                "calibrator_name": self.calibrator_name,
             },
         )
 
@@ -347,6 +351,7 @@ async def run_calibration_pipeline(
     cal_field: str | None = None,
     refant: str | None = None,
     do_k: bool = False,
+    calibrator_name: str | None = None,
 ) -> CalibrationResult:
     """Run calibration pipeline and return result.
 
@@ -360,6 +365,7 @@ async def run_calibration_pipeline(
         cal_field: Calibrator field (auto-detected if None)
         refant: Reference antenna (auto-detected if None)
         do_k: Whether to solve K calibration
+        calibrator_name: Expected calibrator name for model lookup (e.g., "0834+555")
 
     Returns:
         CalibrationResult with execution status and outputs
@@ -376,6 +382,7 @@ async def run_calibration_pipeline(
         target_field=target_field,
         refant=refant,
         do_k=do_k,
+        calibrator_name=calibrator_name,
     )
 
     # Execute

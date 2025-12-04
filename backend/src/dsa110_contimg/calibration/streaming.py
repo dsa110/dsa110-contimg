@@ -164,7 +164,7 @@ def solve_calibration_for_ms(
         # Run calibration solves
         logger.info(
             f"Solving calibration for {ms_path} "
-            f"(field={cal_field}, refant={refant}, do_k={do_k})"
+            f"(field={cal_field}, refant={refant}, do_k={do_k}, calibrator_name={calibrator_name})"
         )
         caltables = run_calibrator(
             ms_path,
@@ -172,6 +172,7 @@ def solve_calibration_for_ms(
             refant,
             do_flagging=True,
             do_k=do_k,
+            calibrator_name=calibrator_name,
         )
 
         if not caltables:

@@ -481,9 +481,17 @@ def run_calibration(
     caltables_dir: Path,
     db_path: Path,
     dry_run: bool = False,
+    calibrator_name: str | None = None,
 ) -> bool:
     """
     Run calibration pipeline on the MS.
+
+    Args:
+        ms_path: Path to the MS file
+        caltables_dir: Directory for calibration tables
+        db_path: Path to pipeline database
+        dry_run: If True, skip actual calibration
+        calibrator_name: Expected calibrator name (e.g., "0834+555")
 
     Returns True if successful.
     """
@@ -491,7 +499,7 @@ def run_calibration(
         logger.info(f"[DRY-RUN] Would calibrate {ms_path}")
         return True
 
-    logger.info(f"Running calibration on {ms_path}")
+    logger.info(f"Running calibration on {ms_path} (calibrator={calibrator_name})")
 
     try:
         import asyncio
@@ -511,6 +519,7 @@ def run_calibration(
                 target_field="0",  # Usually field 0 for calibrator
                 config=config,
                 do_k=False,  # Skip K calibration for speed
+                calibrator_name=calibrator_name,
             )
         )
 
