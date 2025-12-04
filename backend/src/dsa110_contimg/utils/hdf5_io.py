@@ -366,6 +366,8 @@ def open_uvh5_large_cache(
 def open_uvh5_mmap(
     path: Union[str, Path],
     preload: bool = False,
+    use_fuse_lock: bool = True,
+    lock_timeout: float = 5.0,
 ) -> Iterator["h5py.File"]:
     """Open UVH5/HDF5 file using memory-mapped I/O.
 
@@ -375,10 +377,18 @@ def open_uvh5_mmap(
     - Sequential reads of the entire file
     - When chunk caching overhead is undesirable
 
+    RACE CONDITION FIX (Issue #6):
+    On FUSE filesystems, if this file is moved/deleted while memory-mapped,
+    FUSE creates a .fuse_hidden* file. This function optionally acquires a
+    FUSE-aware read lock to coordinate with file move operations.
+
     Args:
         path: Path to HDF5 file
         preload: If True, preload entire file into memory (faster access,
                  higher initial latency). If False, load on demand.
+        use_fuse_lock: If True, acquire a read lock to prevent races with
+                       file moves on FUSE mounts (default: True)
+        lock_timeout: Timeout for lock acquisition in seconds (default: 5.0)
 
     Yields:
         h5py.File object with memory-mapped I/O
@@ -393,19 +403,33 @@ def open_uvh5_mmap(
         ...     data = f['visdata'][:]  # Very fast sequential read
     """
     import h5py
+    from contextlib import nullcontext
 
-    # 'core' driver loads entire file into memory
-    # backing_store=False prevents writeback (read-only)
-    with h5py.File(
-        path,
-        "r",
-        driver="core",
-        backing_store=False,
-        # When using core driver, we don't need chunk cache
-        rdcc_nbytes=0,
-        rdcc_nslots=1,
-    ) as f:
-        yield f
+    # Acquire FUSE-aware read lock if requested
+    lock_context = nullcontext()
+    if use_fuse_lock:
+        try:
+            from dsa110_contimg.utils.fuse_lock import get_fuse_lock_manager
+            lock_mgr = get_fuse_lock_manager()
+            lock_context = lock_mgr.read_lock(str(path), timeout=lock_timeout)
+        except ImportError:
+            pass
+        except Exception as e:
+            logger.debug(f"Could not acquire FUSE read lock for {path}: {e}")
+
+    with lock_context:
+        # 'core' driver loads entire file into memory
+        # backing_store=False prevents writeback (read-only)
+        with h5py.File(
+            path,
+            "r",
+            driver="core",
+            backing_store=False,
+            # When using core driver, we don't need chunk cache
+            rdcc_nbytes=0,
+            rdcc_nslots=1,
+        ) as f:
+            yield f
 
 
 def get_chunk_info(path: Union[str, Path], dataset_name: str) -> Optional[dict]:
