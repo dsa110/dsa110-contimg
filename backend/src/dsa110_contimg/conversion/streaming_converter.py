@@ -1612,7 +1612,7 @@ def trigger_group_mosaic_creation(
         return None
 
 
-def _register_calibration_tables(
+def _register_caltables(
     args: argparse.Namespace,
     gid: str,
     ms_path: str,
@@ -2253,7 +2253,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
 
                             if success:
                                 # Register calibration tables in registry
-                                _register_calibration_tables(
+                                _register_caltables(
                                     args, gid, ms_path, mid_mjd, log
                                 )
                                 # Issue #7: Transition to CALIBRATED state
@@ -2288,7 +2288,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                                 log.debug("Backup calibrator search failed: %s", be)
 
                         if success:
-                            _register_calibration_tables(args, gid, ms_path, mid_mjd, log)
+                            _register_caltables(args, gid, ms_path, mid_mjd, log)
                             # Issue #7: Transition to CALIBRATED state
                             _update_state_machine(state_machine, gid, "CALIBRATED", log)
                         else:

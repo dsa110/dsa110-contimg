@@ -8,11 +8,7 @@ interface ProvenanceLinkProps {
 const ProvenanceLink: React.FC<ProvenanceLinkProps> = ({ logsUrl, qaUrl }) => {
   return (
     <div>
-      {logsUrl && (
-        <a href={logsUrl} target="_blank" rel="noopener noreferrer">
-          View Logs
-        </a>
-      )}
+      {logsUrl && <a href={logsUrl}>View Logs</a>}
       {qaUrl && (
         <a href={qaUrl} target="_blank" rel="noopener noreferrer">
           QA Report

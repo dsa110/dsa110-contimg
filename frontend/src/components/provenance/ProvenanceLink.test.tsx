@@ -10,6 +10,7 @@ describe("ProvenanceLink", () => {
       const link = screen.getByRole("link", { name: /view logs/i });
       expect(link).toBeInTheDocument();
       expect(link).toHaveAttribute("href", "/logs/run-123");
+      expect(link).not.toHaveAttribute("target");
     });
 
     it("renders QA Report link when qaUrl is provided", () => {
@@ -33,18 +34,19 @@ describe("ProvenanceLink", () => {
   });
 
   describe("link attributes", () => {
-    it("opens logs in new tab", () => {
-      render(<ProvenanceLink logsUrl="/logs/run-123" />);
-      const link = screen.getByRole("link", { name: /view logs/i });
-      expect(link).toHaveAttribute("target", "_blank");
-      expect(link).toHaveAttribute("rel", "noopener noreferrer");
-    });
-
     it("opens QA report in new tab", () => {
       render(<ProvenanceLink qaUrl="/qa/run-123" />);
       const link = screen.getByRole("link", { name: /qa report/i });
       expect(link).toHaveAttribute("target", "_blank");
       expect(link).toHaveAttribute("rel", "noopener noreferrer");
+    });
+
+    it("keeps QA in new tab while logs are inline when both present", () => {
+      render(<ProvenanceLink logsUrl="/logs/run-123" qaUrl="/qa/run-123" />);
+      const logLink = screen.getByRole("link", { name: /view logs/i });
+      const qaLink = screen.getByRole("link", { name: /qa report/i });
+      expect(logLink).not.toHaveAttribute("target");
+      expect(qaLink).toHaveAttribute("target", "_blank");
     });
   });
 });

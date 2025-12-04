@@ -170,7 +170,7 @@ def save_group_definition(
     start_time: str,
     end_time: str,
     calibrator: Optional[str] = None,
-    calibration_tables: Optional[list] = None,
+    caltables: Optional[list] = None,
     date_str: Optional[str] = None,
 ) -> Path:
     """Save a group definition to JSON file.
@@ -181,7 +181,7 @@ def save_group_definition(
         start_time: Start time (ISO format)
         end_time: End time (ISO format)
         calibrator: Optional calibrator name
-        calibration_tables: Optional list of calibration table paths
+        caltables: Optional list of calibration table paths
         date_str: Date string (extracted if not provided)
 
     Returns:
@@ -206,7 +206,7 @@ def save_group_definition(
         "end_time": end_time,
         "ms_files": [str(p) for p in ms_files],
         "calibrator": calibrator,
-        "calibration_tables": [str(p) for p in (calibration_tables or [])],
+        "caltables": [str(p) for p in (caltables or [])],
         "created_at": datetime.now().isoformat(),
     }
 

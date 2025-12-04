@@ -354,7 +354,7 @@ class CalibrationComparison:
         print("=" * 70)
 
 
-def compare_calibration_tables(
+def compare_caltables(
     caltable1_path: str,
     caltable2_path: str,
     tolerance: float = 1e-6,

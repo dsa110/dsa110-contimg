@@ -265,7 +265,7 @@ async def execute_calibration_solve(params: Dict[str, Any]) -> Dict[str, Any]:
         logger.info(f"[Absurd] Solving calibration for: {ms_path}")
         result_context = await asyncio.to_thread(stage.execute, context)
 
-        cal_tables = result_context.outputs.get("calibration_tables", {})
+        cal_tables = result_context.outputs.get("caltables", {})
         table_names = list(cal_tables.keys())
         logger.info(f"[Absurd] Calibration solve complete. " f"Generated tables: {table_names}")
 
@@ -290,7 +290,7 @@ async def execute_calibration_apply(params: Dict[str, Any]) -> Dict[str, Any]:
                 - inputs: Dict (optional)
                              - outputs: Dict with:
                      - ms_path: Path to MS
-                     - calibration_tables: Cal table paths dict
+                     - caltables: Cal table paths dict
 
         Returns:
             Result dict with:
@@ -304,7 +304,7 @@ async def execute_calibration_apply(params: Dict[str, Any]) -> Dict[str, Any]:
             ...     "config": config_dict,
             ...     "outputs": {
             ...         "ms_path": "/data/obs.ms",
-    ...         "calibration_tables": {"K": "/cal/K.cal"}
+    ...         "caltables": {"K": "/cal/K.cal"}
             ...     }
             ... })
     """
@@ -318,7 +318,7 @@ async def execute_calibration_apply(params: Dict[str, Any]) -> Dict[str, Any]:
 
         # Validate required outputs
         ms_path = outputs.get("ms_path")
-        cal_tables = outputs.get("calibration_tables")
+        cal_tables = outputs.get("caltables")
 
         if not ms_path:
             return {
@@ -330,15 +330,15 @@ async def execute_calibration_apply(params: Dict[str, Any]) -> Dict[str, Any]:
         if not cal_tables:
             return {
                 "status": "error",
-                "message": "Missing required output: calibration_tables",
-                "errors": ["calibration_tables not found in outputs"],
+                "message": "Missing required output: caltables",
+                "errors": ["caltables not found in outputs"],
             }
 
         # Create pipeline context
         context = PipelineContext(
             config=config,
             inputs=inputs,
-            outputs={"ms_path": ms_path, "calibration_tables": cal_tables},
+            outputs={"ms_path": ms_path, "caltables": cal_tables},
         )
 
         # Initialize stage

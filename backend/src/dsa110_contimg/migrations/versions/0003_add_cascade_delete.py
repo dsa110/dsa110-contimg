@@ -124,7 +124,7 @@ def upgrade() -> None:
             success INTEGER DEFAULT 1,
             error_message TEXT,
             FOREIGN KEY (ms_path) REFERENCES ms_index(path) ON DELETE CASCADE,
-            FOREIGN KEY (caltable_path) REFERENCES calibration_tables(path) ON DELETE CASCADE
+            FOREIGN KEY (caltable_path) REFERENCES caltables(path) ON DELETE CASCADE
         )
     """)
 
@@ -231,7 +231,7 @@ def downgrade() -> None:
             success INTEGER DEFAULT 1,
             error_message TEXT,
             FOREIGN KEY (ms_path) REFERENCES ms_index(path),
-            FOREIGN KEY (caltable_path) REFERENCES calibration_tables(path)
+            FOREIGN KEY (caltable_path) REFERENCES caltables(path)
         )
     """)
 

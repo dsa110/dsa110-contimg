@@ -711,7 +711,7 @@ class CalibrationSolveStage(PipelineStage):
         ...     # Execute calibration solving
         ...     result_context = stage.execute(context)
         ...     # Get calibration tables
-        ...     cal_tables = result_context.outputs["calibration_tables"]
+        ...     cal_tables = result_context.outputs["caltables"]
         ...     # Tables include: K, BA, BP, GA, GP, 2G
         ...     assert "K" in cal_tables
 
@@ -719,7 +719,7 @@ class CalibrationSolveStage(PipelineStage):
         - `ms_path` (str): Path to Measurement Set (from context.outputs)
 
     Outputs:
-        - `calibration_tables` (dict): Dictionary of calibration table paths
+        - `caltables` (dict): Dictionary of calibration table paths
           Keys: "K", "BA", "BP", "GA", "GP", "2G" (depending on config)
     """
 
@@ -1347,14 +1347,14 @@ class CalibrationSolveStage(PipelineStage):
             f"Completed calibration solve stage. Generated {len(all_tables)} calibration table(s).",
             start_time_sec,
         )
-        return context.with_output("calibration_tables", all_tables)
+        return context.with_output("caltables", all_tables)
 
     def validate_outputs(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
         """Validate calibration solve outputs."""
-        if "calibration_tables" not in context.outputs:
-            return False, "calibration_tables not found in outputs"
+        if "caltables" not in context.outputs:
+            return False, "caltables not found in outputs"
 
-        caltables = context.outputs["calibration_tables"]
+        caltables = context.outputs["caltables"]
         if not caltables:
             return False, "No calibration tables generated"
 
@@ -1367,8 +1367,8 @@ class CalibrationSolveStage(PipelineStage):
 
     def cleanup(self, context: PipelineContext) -> None:
         """Cleanup partial calibration tables on failure."""
-        if "calibration_tables" in context.outputs:
-            caltables = context.outputs["calibration_tables"]
+        if "caltables" in context.outputs:
+            caltables = context.outputs["caltables"]
             for table_path in caltables:
                 table = Path(table_path)
                 if table.exists():
@@ -1477,7 +1477,7 @@ class CalibrationStage(PipelineStage):
         logger.info(f"Calibration stage: {ms_path}")
 
         # Check if calibration tables were provided by a previous stage (e.g., CalibrationSolveStage)
-        caltables = context.outputs.get("calibration_tables")
+        caltables = context.outputs.get("caltables")
         cal_applied = 0
         applylist = []  # Initialize applylist for use in registration
 
@@ -1709,7 +1709,7 @@ class CalibrationStage(PipelineStage):
                 metadata = {
                     "original_ms_path": str(ms_path_obj),
                     "calibration_applied": True,
-                    "calibration_tables": applylist,  # applylist is defined earlier in this function
+                    "caltables": applylist,  # applylist is defined earlier in this function
                 }
                 try:
                     start_mjd, end_mjd, mid_mjd = extract_ms_time_range(ms_path)
@@ -1916,7 +1916,7 @@ class SelfCalibrationStage(PipelineStage):
         output_dir.mkdir(parents=True, exist_ok=True)
 
         # Get initial calibration tables if available
-        initial_tables = context.outputs.get("calibration_tables", [])
+        initial_tables = context.outputs.get("caltables", [])
         if isinstance(initial_tables, dict):
             initial_tables = list(initial_tables.values())
 
