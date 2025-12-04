@@ -361,9 +361,9 @@ class StreamingWorker:
                 f"complete={group.is_complete}"
             )
             
-            # === CONVERSION STAGE (using SubbandGroup) ===
+            # === CONVERSION STAGE ===
             self._update_state(group.group_id, "CONVERTING")
-            conv_result = self.conversion_stage.execute_group(group)
+            conv_result = self.conversion_stage.execute(group)
             
             if not conv_result.success:
                 result.error_message = conv_result.error_message
@@ -382,11 +382,11 @@ class StreamingWorker:
             dec_deg = conv_result.dec_deg
             mid_mjd = conv_result.mid_mjd
             
-            # === CALIBRATION STAGE (using SubbandGroup) ===
+            # === CALIBRATION STAGE ===
             self._update_state(group.group_id, "CALIBRATING")
             # Set ms_path on group for calibration stage
             group.ms_path = Path(ms_path)
-            cal_result = self.calibration_stage.execute_group(
+            cal_result = self.calibration_stage.execute(
                 group=group,
                 mid_mjd=mid_mjd,
             )
@@ -405,7 +405,7 @@ class StreamingWorker:
                 result.error_message = img_result.error_message
                 result.stage = "imaging"
                 logger.error(
-                    f"Imaging failed for {group.group_id}: {img_result.error_message}"
+                    "Imaging failed for %s: %s", group.group_id, img_result.error_message
                 )
                 # Continue - imaging failure is not fatal
             else:

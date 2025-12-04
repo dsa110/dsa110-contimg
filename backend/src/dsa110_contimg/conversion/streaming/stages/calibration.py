@@ -48,14 +48,6 @@ class CalibrationConfig:
     validity_hours: float = 12.0
     use_interpolation: bool = True
     fence_timeout_seconds: float = 60.0
-    # Alias for backwards compatibility
-    fence_timeout: float = 60.0  # Deprecated, use fence_timeout_seconds
-
-    def __post_init__(self) -> None:
-        """Handle deprecated field aliases."""
-        # Use fence_timeout if fence_timeout_seconds is default
-        if self.fence_timeout_seconds == 60.0 and self.fence_timeout != 60.0:
-            self.fence_timeout_seconds = self.fence_timeout
 
 
 class CalibrationStage:
@@ -301,17 +293,17 @@ class CalibrationStage:
             else:
                 return False, "No calibration tables available"
 
-        except Exception as e:
-            logger.warning(f"Single-set calibration failed: {e}")
-            return False, str(e)
+        except Exception as exc:
+            logger.warning("Single-set calibration failed: %s", exc)
+            return False, str(exc)
 
-    def execute(
+    def _calibrate_ms(
         self,
         ms_path: str,
         mid_mjd: Optional[float] = None,
         is_calibrator: Optional[bool] = None,
     ) -> CalibrationResult:
-        """Execute the calibration stage.
+        """Internal: Execute calibration on a Measurement Set.
         
         Args:
             ms_path: Path to the Measurement Set
@@ -347,20 +339,17 @@ class CalibrationStage:
             result.calibration_applied = success
             if not success:
                 # Non-fatal: calibration may not be available yet
-                logger.warning(f"Calibration not applied: {error}")
+                logger.warning("Calibration not applied: %s", error)
 
         result.elapsed_seconds = time.perf_counter() - t0
         return result
 
-    def execute_group(
+    def execute(
         self,
         group: "SubbandGroup",
         mid_mjd: Optional[float] = None,
     ) -> CalibrationResult:
         """Execute calibration for a converted SubbandGroup.
-        
-        This is a convenience method for the pipeline - takes a SubbandGroup
-        that has already been converted (has ms_path set).
         
         Args:
             group: SubbandGroup with ms_path set from conversion
@@ -384,7 +373,7 @@ class CalibrationStage:
         # Use group's calibrator info if available
         is_calibrator = group.has_calibrator
         
-        result = self.execute(
+        result = self._calibrate_ms(
             ms_path=str(group.ms_path),
             mid_mjd=mid_mjd,
             is_calibrator=is_calibrator,

@@ -137,41 +137,7 @@ class ConversionStage:
 
         return start_time, end_time
 
-    def validate(
-        self, group_id: str, file_paths: List[str]
-    ) -> Tuple[bool, Optional[str]]:
-        """Validate prerequisites for conversion.
-
-        Args:
-            group_id: Group identifier
-            file_paths: List of subband file paths
-
-        Returns:
-            Tuple of (is_valid, error_message)
-        """
-        if not file_paths:
-            return False, "No subband files provided"
-
-        if len(file_paths) < self.config.expected_subbands:
-            return False, (
-                f"Incomplete group: {len(file_paths)}/{self.config.expected_subbands} subbands"
-            )
-
-        # Check all files exist
-        missing = [p for p in file_paths if not os.path.exists(p)]
-        if missing:
-            return False, f"Missing files: {missing[:3]}{'...' if len(missing) > 3 else ''}"
-
-        # Check output directory
-        if not self.config.output_dir.exists():
-            try:
-                self.config.output_dir.mkdir(parents=True, exist_ok=True)
-            except OSError as e:
-                return False, f"Cannot create output directory: {e}"
-
-        return True, None
-
-    def validate_group(self, group: "SubbandGroup") -> Tuple[bool, Optional[str]]:
+    def validate(self, group: "SubbandGroup") -> Tuple[bool, Optional[str]]:
         """Validate a SubbandGroup for conversion.
         
         Args:
@@ -195,16 +161,13 @@ class ConversionStage:
         if not self.config.output_dir.exists():
             try:
                 self.config.output_dir.mkdir(parents=True, exist_ok=True)
-            except OSError as e:
-                return False, f"Cannot create output directory: {e}"
+            except OSError as exc:
+                return False, f"Cannot create output directory: {exc}"
         
         return True, None
 
-    def execute_group(self, group: "SubbandGroup") -> "ConversionResult":
+    def execute(self, group: "SubbandGroup") -> "ConversionResult":
         """Execute conversion for a SubbandGroup.
-        
-        This is the preferred method - accepts a SubbandGroup and returns
-        an updated ConversionResult with the group attached.
         
         Args:
             group: SubbandGroup to convert
@@ -221,7 +184,7 @@ class ConversionStage:
         group.stage = ProcessingStage.VALIDATING
         
         # Validate
-        is_valid, error = self.validate_group(group)
+        is_valid, error = self.validate(group)
         if not is_valid:
             group.set_error("validation_failed", error)
             return ModelResult(
@@ -275,52 +238,6 @@ class ConversionStage:
                 elapsed_seconds=elapsed,
                 error_message=legacy_result.error_message,
             )
-
-    def execute(
-        self,
-        group_id: str,
-        file_paths: List[str],
-        start_time: Optional[str] = None,
-        end_time: Optional[str] = None,
-    ) -> ConversionResult:
-        """Execute the conversion stage.
-
-        Args:
-            group_id: Group identifier (timestamp-based)
-            file_paths: List of subband file paths
-            start_time: Optional start time override
-            end_time: Optional end time override
-
-        Returns:
-            ConversionResult with status and output paths
-        """
-        t0 = time.perf_counter()
-
-        # Store file_paths for fallback to use
-        self._current_file_paths = file_paths
-
-        # Derive time window from file paths for accurate grouping
-        # Subbands arrive at slightly different times, so we need a window
-        if start_time is None or end_time is None:
-            start_time, end_time = self._derive_time_window(group_id, file_paths)
-
-        # Validate inputs
-        is_valid, error = self.validate(group_id, file_paths)
-        if not is_valid:
-            return ConversionResult(
-                success=False,
-                group_id=group_id,
-                error_message=error,
-            )
-
-        # Try execution module first, then fallback
-        if self._execution_module_available and self.config.execution_mode != "inprocess":
-            result = self._execute_with_module(group_id, start_time, end_time)
-        else:
-            result = self._execute_fallback(group_id, start_time, end_time)
-
-        result.elapsed_seconds = time.perf_counter() - t0
-        return result
 
     def _execute_with_module(
         self, group_id: str, start_time: str, end_time: str
