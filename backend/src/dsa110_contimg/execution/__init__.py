@@ -9,7 +9,7 @@ Part of Issue #11: Subprocess vs In-Process Execution Consistency.
 Main exports:
     - ExecutionTask: Task specification dataclass
     - ExecutionResult: Result dataclass with success/failure info
-    - ExecutionErrorCode: Standardized error codes
+    - ErrorCode: Standardized error codes
     - Executor: Abstract base class for executors
     - InProcessExecutor: Execute in current process
     - SubprocessExecutor: Execute in isolated subprocess
@@ -24,7 +24,7 @@ Main exports:
 
 Example:
     from dsa110_contimg.execution import (
-        ExecutionTask, get_executor, ExecutionErrorCode
+        ExecutionTask, get_executor, ErrorCode
     )
 
     task = ExecutionTask(
@@ -44,7 +44,13 @@ Example:
         print(f"Error {result.error_code}: {result.message}")
 """
 
-from dsa110_contimg.execution.errors import ExecutionErrorCode, map_exception_to_code
+from dsa110_contimg.execution.errors import (
+    ErrorCode,
+    ExecutionError,
+    ValidationError,
+    map_exception_to_error_code,
+    map_return_code_to_error_code,
+)
 from dsa110_contimg.execution.executor import (
     Executor,
     InProcessExecutor,
@@ -59,7 +65,6 @@ from dsa110_contimg.execution.resources import (
 )
 from dsa110_contimg.execution.task import ExecutionResult, ExecutionTask
 from dsa110_contimg.execution.validate import (
-    ValidationError,
     ValidationResult,
     validate_execution_task,
 )
@@ -69,8 +74,11 @@ __all__ = [
     "ExecutionTask",
     "ExecutionResult",
     # Error handling
-    "ExecutionErrorCode",
-    "map_exception_to_code",
+    "ErrorCode",
+    "ExecutionError",
+    "ValidationError",
+    "map_exception_to_error_code",
+    "map_return_code_to_error_code",
     # Executors
     "Executor",
     "InProcessExecutor",
@@ -84,5 +92,4 @@ __all__ = [
     # Validation
     "validate_execution_task",
     "ValidationResult",
-    "ValidationError",
 ]

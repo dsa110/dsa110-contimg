@@ -614,9 +614,20 @@ class QueueDB:
         Subbands within cluster_tolerance_s (default 60s) are assigned to the same group.
 
         All operations within this method are atomic via explicit transactions.
+        
+        RACE CONDITION FIX: Registers inode for stale path detection.
         """
         now = time.time()
         normalized_group = self._normalize_group_id_datetime(group_id)
+        
+        # Register inode for later validation (detects file replacement)
+        try:
+            from dsa110_contimg.utils.fuse_lock import get_inode_tracker
+            inode_tracker = get_inode_tracker()
+            inode_tracker.register(str(file_path))
+        except ImportError:
+            pass
+
         with self._lock:
             try:
                 # CRITICAL: Check for existing group within time tolerance BEFORE starting transaction
@@ -867,6 +878,12 @@ class QueueDB:
         all paths are still valid. On FUSE mounts, files can be moved or
         deleted between queueing and processing.
 
+        Uses multiple validation strategies:
+        1. Path existence check
+        2. Read permission check  
+        3. Non-zero file size check
+        4. Inode tracking (if available) - detects file replacement
+
         Args:
             group_id: The group identifier
 
@@ -876,6 +893,13 @@ class QueueDB:
         all_paths = self.group_files(group_id)
         valid_paths = []
         invalid_paths = []
+
+        # Get inode tracker if available for robust stale path detection
+        try:
+            from dsa110_contimg.utils.fuse_lock import get_inode_tracker
+            inode_tracker = get_inode_tracker()
+        except ImportError:
+            inode_tracker = None
 
         for path in all_paths:
             try:
@@ -890,6 +914,11 @@ class QueueDB:
                     continue
                 # Check non-zero size
                 if p.stat().st_size == 0:
+                    invalid_paths.append(path)
+                    continue
+                # Inode tracking: detect if file was replaced (different inode)
+                if inode_tracker is not None and not inode_tracker.is_valid(path):
+                    logging.warning(f"File inode changed (may have been replaced): {path}")
                     invalid_paths.append(path)
                     continue
                 valid_paths.append(path)
