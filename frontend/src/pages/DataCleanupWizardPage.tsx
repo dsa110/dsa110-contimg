@@ -162,10 +162,14 @@ function FilterStep({
       {/* Age Filter */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label
+            htmlFor="min-age-days"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          >
             Minimum Age (days)
           </label>
           <input
+            id="min-age-days"
             type="number"
             value={filters.min_age_days ?? ""}
             onChange={(e) =>
@@ -182,10 +186,14 @@ function FilterStep({
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+          <label
+            htmlFor="max-age-days"
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+          >
             Maximum Age (days)
           </label>
           <input
+            id="max-age-days"
             type="number"
             value={filters.max_age_days ?? ""}
             onChange={(e) =>

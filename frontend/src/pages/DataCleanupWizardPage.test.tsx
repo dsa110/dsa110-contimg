@@ -175,9 +175,7 @@ describe("DataCleanupWizardPage", () => {
       renderWithProviders(<DataCleanupWizardPage />);
       const user = userEvent.setup();
 
-      await user.click(
-        screen.getByRole("button", { name: /preview impact/i })
-      );
+      await user.click(screen.getByRole("button", { name: /preview impact/i }));
 
       await waitFor(() => {
         expect(screen.getByText(/analyzing/i)).toBeInTheDocument();
@@ -209,9 +207,7 @@ describe("DataCleanupWizardPage", () => {
       renderWithProviders(<DataCleanupWizardPage />);
       const user = userEvent.setup();
 
-      await user.click(
-        screen.getByRole("button", { name: /preview impact/i })
-      );
+      await user.click(screen.getByRole("button", { name: /preview impact/i }));
 
       await waitFor(() => {
         expect(screen.getByText(/150/)).toBeInTheDocument();
@@ -231,9 +227,7 @@ describe("DataCleanupWizardPage", () => {
       renderWithProviders(<DataCleanupWizardPage />);
       const user = userEvent.setup();
 
-      await user.click(
-        screen.getByRole("button", { name: /preview impact/i })
-      );
+      await user.click(screen.getByRole("button", { name: /preview impact/i }));
 
       await waitFor(() => {
         expect(screen.getByText(/error/i)).toBeInTheDocument();
@@ -265,9 +259,7 @@ describe("DataCleanupWizardPage", () => {
       const user = userEvent.setup();
 
       // Go to preview
-      await user.click(
-        screen.getByRole("button", { name: /preview impact/i })
-      );
+      await user.click(screen.getByRole("button", { name: /preview impact/i }));
 
       // Wait for dry-run results and find continue button
       await waitFor(() => {
@@ -306,9 +298,7 @@ describe("DataCleanupWizardPage", () => {
       const user = userEvent.setup();
 
       // Navigate to confirm step
-      await user.click(
-        screen.getByRole("button", { name: /preview impact/i })
-      );
+      await user.click(screen.getByRole("button", { name: /preview impact/i }));
 
       await waitFor(() => {
         expect(screen.getByText(/10/)).toBeInTheDocument();
@@ -378,9 +368,7 @@ describe("DataCleanupWizardPage", () => {
       const user = userEvent.setup();
 
       // Navigate through steps
-      await user.click(
-        screen.getByRole("button", { name: /preview impact/i })
-      );
+      await user.click(screen.getByRole("button", { name: /preview impact/i }));
 
       await waitFor(() => {
         expect(screen.getByText(/10/)).toBeInTheDocument();
@@ -417,9 +405,7 @@ describe("DataCleanupWizardPage", () => {
       const user = userEvent.setup();
 
       // Go to preview
-      await user.click(
-        screen.getByRole("button", { name: /preview impact/i })
-      );
+      await user.click(screen.getByRole("button", { name: /preview impact/i }));
 
       await waitFor(() => {
         expect(
@@ -486,8 +472,9 @@ describe("DataCleanupWizardPage", () => {
       renderWithProviders(<DataCleanupWizardPage />);
 
       expect(screen.getByText(/recent cleanups/i)).toBeInTheDocument();
-      expect(screen.getByText("job-1")).toBeInTheDocument();
-      expect(screen.getByText("job-2")).toBeInTheDocument();
+      // History shows action type (Archive/Delete) and status
+      expect(screen.getByText(/archive/i)).toBeInTheDocument();
+      expect(screen.getByText(/completed/i)).toBeInTheDocument();
     });
   });
 

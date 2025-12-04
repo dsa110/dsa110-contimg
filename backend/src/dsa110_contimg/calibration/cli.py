@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import logging
 import os
-from pathlib import Path
 from typing import List, Optional
 
 logger = logging.getLogger(__name__)
@@ -52,62 +51,64 @@ def run_calibrator(
         solve_delay,
     )
     from dsa110_contimg.calibration.model import populate_model_from_catalog
-    from dsa110_contimg.calibration.flagging import flag_autocorrelations
 
-    ms = str(ms_path)
+    ms_file = str(ms_path)
     caltables: List[str] = []
 
     if table_prefix is None:
-        # Use MS name + field as default prefix
-        ms_name = os.path.splitext(os.path.basename(ms))[0]
-        table_prefix = f"{os.path.dirname(ms)}/{ms_name}_{cal_field}"
+        ms_name = os.path.splitext(os.path.basename(ms_file))[0]
+        table_prefix = f"{os.path.dirname(ms_file)}/{ms_name}_{cal_field}"
 
-    logger.info(f"Starting calibration for {ms}, field={cal_field}, refant={refant}")
+    logger.info(
+        "Starting calibration for %s, field=%s, refant=%s",
+        ms_file, cal_field, refant
+    )
 
     # Step 0: Pre-calibration flagging (optional)
     if do_flagging:
         try:
+            from casatasks import flagdata
             logger.info("Flagging autocorrelations...")
-            flag_autocorrelations(ms)
-        except Exception as e:
-            logger.warning(f"Pre-calibration flagging failed (continuing): {e}")
+            flagdata(vis=ms_file, autocorr=True, flagbackup=False)
+        except Exception as err:
+            logger.warning("Pre-calibration flagging failed (continuing): %s", err)
 
     # Step 1: Set model visibilities
+    logger.info("Setting model visibilities for field %s...", cal_field)
     try:
-        logger.info(f"Setting model visibilities for field {cal_field}...")
         populate_model_from_catalog(
-            ms,
+            ms_file,
             field=cal_field,
             calibrator_name=calibrator_name,
         )
         logger.info("Model visibilities set successfully")
-    except Exception as e:
-        logger.error(f"Failed to set model visibilities: {e}")
-        raise RuntimeError(f"Model setup failed: {e}") from e
+    except Exception as err:
+        logger.error("Failed to set model visibilities: %s", err)
+        raise RuntimeError(f"Model setup failed: {err}") from err
 
     # Step 2: K (delay) calibration (optional, not typically used for DSA-110)
     ktable = None
     if do_k:
+        logger.info("Solving delay (K) calibration...")
         try:
-            logger.info("Solving delay (K) calibration...")
             ktables = solve_delay(
-                ms,
+                ms_file,
                 cal_field=cal_field,
                 refant=refant,
                 table_prefix=table_prefix,
             )
             if ktables:
-                ktable = ktables[0]  # Primary K table
+                ktable = ktables[0]
                 caltables.extend(ktables)
-                logger.info(f"K calibration complete: {ktable}")
-        except Exception as e:
-            logger.warning(f"K calibration failed (continuing without K): {e}")
+                logger.info("K calibration complete: %s", ktable)
+        except Exception as err:
+            logger.warning("K calibration failed (continuing without K): %s", err)
 
     # Step 3: Bandpass calibration
+    logger.info("Solving bandpass calibration...")
     try:
-        logger.info("Solving bandpass calibration...")
         bp_tables = solve_bandpass(
-            ms,
+            ms_file,
             cal_field=cal_field,
             refant=refant,
             ktable=ktable,
@@ -115,29 +116,30 @@ def run_calibrator(
             set_model=False,  # Model already set
         )
         caltables.extend(bp_tables)
-        logger.info(f"Bandpass calibration complete: {bp_tables}")
-    except Exception as e:
-        logger.error(f"Bandpass calibration failed: {e}")
-        raise RuntimeError(f"Bandpass solve failed: {e}") from e
+        logger.info("Bandpass calibration complete: %s", bp_tables)
+    except Exception as err:
+        logger.error("Bandpass calibration failed: %s", err)
+        raise RuntimeError(f"Bandpass solve failed: {err}") from err
 
     # Step 4: Time-dependent gains
+    logger.info("Solving time-dependent gains...")
     try:
-        logger.info("Solving time-dependent gains...")
         gaintables = solve_gains(
-            ms,
+            ms_file,
             cal_field=cal_field,
             refant=refant,
-            bp_table=bp_tables[0] if bp_tables else None,
-            k_table=ktable,
+            ktable=ktable,
+            bptables=bp_tables,
             table_prefix=table_prefix,
         )
         caltables.extend(gaintables)
-        logger.info(f"Gain calibration complete: {gaintables}")
-    except Exception as e:
-        logger.error(f"Gain calibration failed: {e}")
-        raise RuntimeError(f"Gain solve failed: {e}") from e
+        logger.info("Gain calibration complete: %s", gaintables)
+    except Exception as err:
+        logger.error("Gain calibration failed: %s", err)
+        raise RuntimeError(f"Gain solve failed: {err}") from err
 
     logger.info(
-        f"Calibration complete for {ms}: produced {len(caltables)} table(s)"
+        "Calibration complete for %s: produced %d table(s)",
+        ms_file, len(caltables)
     )
     return caltables
