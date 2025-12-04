@@ -345,7 +345,8 @@ class TestSyntheticDataGeneration:
             assert "Header" in f
             assert "Data" in f
             assert "visdata" in f["Data"]
-            assert f["Header"].attrs["Nants_data"] == 10
+            # Nants_data is a dataset (not attr) to match real DSA-110 files
+            assert f["Header/Nants_data"][()] == 10
 
     def test_create_subband_group(self, tmp_path: Path) -> None:
         """Test creating a complete subband group."""
