@@ -198,8 +198,13 @@ export function useUpdateSavedQuery() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<SaveQueryRequest> }) =>
-      updateSavedQuery(id, data),
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<SaveQueryRequest>;
+    }) => updateSavedQuery(id, data),
     onSuccess: (updatedQuery) => {
       // Update the specific query in cache
       queryClient.setQueryData(
@@ -370,7 +375,11 @@ export function getFilterSummary(filters: UrlFilterState): string {
 
   if (filters.ra !== undefined && filters.dec !== undefined) {
     const radius = filters.radius ?? 1;
-    parts.push(`Cone: (${filters.ra.toFixed(2)}°, ${filters.dec.toFixed(2)}°) r=${radius}°`);
+    parts.push(
+      `Cone: (${filters.ra.toFixed(2)}°, ${filters.dec.toFixed(
+        2
+      )}°) r=${radius}°`
+    );
   }
 
   if (filters.minFlux !== undefined || filters.maxFlux !== undefined) {
