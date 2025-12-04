@@ -168,6 +168,12 @@ To get started manually, follow these steps:
 - **coordinateFormatter**: Utility functions for formatting coordinates.
 - **relativeTime**: Converts timestamps to relative time strings.
 
+## Documentation
+
+- **[ARCHITECTURE.md](docs/ARCHITECTURE.md)** - Complete system architecture with diagrams
+- **[ABSURD Worker Heartbeat System](docs/ABSURD_WORKER_HEARTBEAT.md)** - Worker auto-registration and monitoring
+- **[Troubleshooting Guide](public/docs/troubleshooting.md)** - Common issues and solutions
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed setup instructions, code

@@ -69,6 +69,13 @@ from dsa110_contimg.execution.validate import (
     ValidationError,
     validate_execution_task,
 )
+from dsa110_contimg.execution.adapter import (
+    convert_group_unified,
+    convert_group_inprocess,
+    convert_group_subprocess,
+    create_task_from_group,
+    execute_conversion,
+)
 
 __all__ = [
     # Task and Result
@@ -93,4 +100,10 @@ __all__ = [
     # Validation
     "validate_execution_task",
     "ValidationResult",
+    # Adapter functions
+    "convert_group_unified",
+    "convert_group_inprocess",
+    "convert_group_subprocess",
+    "create_task_from_group",
+    "execute_conversion",
 ]

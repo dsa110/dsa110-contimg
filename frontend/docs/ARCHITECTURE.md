@@ -3,6 +3,10 @@
 > **Legend**: Solid lines = data flow | Dotted lines = external requests | Thick
 > lines = primary path
 
+> **Related Documentation:**
+>
+> - **[ABSURD Worker Heartbeat System](./ABSURD_WORKER_HEARTBEAT.md)** - Worker auto-registration and monitoring
+
 ---
 
 ## 1. Deployment Topology
