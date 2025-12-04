@@ -395,7 +395,7 @@ class TestInProcessExecutor:
         assert result.success is False
         assert result.error_code == ErrorCode.VALIDATION_ERROR
 
-    @patch("dsa110_contimg.execution.executor.convert_subband_groups_to_ms")
+    @patch("dsa110_contimg.conversion.hdf5_orchestrator.convert_subband_groups_to_ms")
     def test_successful_execution(
         self, mock_convert: MagicMock, tmp_path: Path
     ) -> None:
@@ -427,7 +427,7 @@ class TestInProcessExecutor:
         assert result.success is True
         assert result.execution_mode == "inprocess"
 
-    @patch("dsa110_contimg.execution.executor.convert_subband_groups_to_ms")
+    @patch("dsa110_contimg.conversion.hdf5_orchestrator.convert_subband_groups_to_ms")
     def test_all_groups_failed(self, mock_convert: MagicMock, tmp_path: Path) -> None:
         """Test when all groups fail to convert."""
         input_dir = tmp_path / "input"
@@ -457,7 +457,7 @@ class TestInProcessExecutor:
         assert result.success is False
         assert result.error_code == ErrorCode.CONVERSION_ERROR
 
-    @patch("dsa110_contimg.execution.executor.convert_subband_groups_to_ms")
+    @patch("dsa110_contimg.conversion.hdf5_orchestrator.convert_subband_groups_to_ms")
     def test_memory_error(self, mock_convert: MagicMock, tmp_path: Path) -> None:
         """Test handling of MemoryError."""
         input_dir = tmp_path / "input"
