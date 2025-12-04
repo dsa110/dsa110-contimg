@@ -575,6 +575,13 @@ export default function JupyterPage() {
   const statsQuery = useJupyterStats();
   const jupyterUrlQuery = useJupyterUrl();
 
+  // Check if Jupyter service is unavailable (all queries failed with 404)
+  const isJupyterUnavailable =
+    kernelsQuery.error &&
+    notebooksQuery.error &&
+    sessionsQuery.error &&
+    !kernelsQuery.isPending;
+
   // Mutations
   const startKernel = useStartKernel();
   const restartKernel = useRestartKernel();
@@ -613,6 +620,74 @@ export default function JupyterPage() {
     });
     setSelectedTemplate(null);
   };
+
+  // Show helpful message when Jupyter is not configured
+  if (isJupyterUnavailable) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-6">
+        <div className="max-w-3xl mx-auto">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 text-center">
+            <span className="text-6xl mb-4 block">🪐</span>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+              Jupyter Integration Not Available
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              The Jupyter service is not currently configured or running. To
+              enable Jupyter integration:
+            </p>
+
+            <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-6 text-left mb-6">
+              <h2 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">
+                Setup Instructions
+              </h2>
+              <ol className="space-y-3 text-sm text-gray-700 dark:text-gray-300">
+                <li className="flex gap-2">
+                  <span className="font-bold">1.</span>
+                  <span>Start a Jupyter server on the backend host:</span>
+                </li>
+                <li className="ml-6">
+                  <code className="bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded text-xs">
+                    jupyter lab --no-browser --port=8888
+                  </code>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-bold">2.</span>
+                  <span>
+                    Configure the backend to proxy Jupyter API requests
+                  </span>
+                </li>
+                <li className="flex gap-2">
+                  <span className="font-bold">3.</span>
+                  <span>Refresh this page to connect</span>
+                </li>
+              </ol>
+            </div>
+
+            <div className="flex justify-center gap-4">
+              <button
+                onClick={() => {
+                  kernelsQuery.refetch();
+                  notebooksQuery.refetch();
+                  sessionsQuery.refetch();
+                }}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Retry Connection
+              </button>
+              <a
+                href="http://localhost:8888"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600"
+              >
+                Open Jupyter Directly
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const tabs = [
     { id: "kernels", label: "Kernels", count: kernelsQuery.data?.length },

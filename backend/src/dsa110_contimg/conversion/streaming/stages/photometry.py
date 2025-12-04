@@ -2,7 +2,8 @@
 Photometry stage: Measure source fluxes in images.
 
 This stage performs forced photometry at known source positions
-using catalog cross-matching.
+using catalog cross-matching. The primary interface is
+execute(group: SubbandGroup, image_path: str).
 """
 
 from __future__ import annotations
@@ -13,20 +14,40 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
+from ..models import SubbandGroup
+
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class PhotometryResult:
     """Result of photometry operations."""
-    
+
     success: bool
-    image_path: str
+    group: Optional[SubbandGroup] = None
+    image_path: Optional[str] = None
     sources_measured: int = 0
     catalog_used: str = ""
     measurements: List[Dict[str, Any]] = field(default_factory=list)
     error_message: Optional[str] = None
     elapsed_seconds: float = 0.0
+
+    @property
+    def group_id(self) -> Optional[str]:
+        """Get group ID if available."""
+        return self.group.group_id if self.group else None
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "success": self.success,
+            "group_id": self.group_id,
+            "image_path": self.image_path,
+            "sources_measured": self.sources_measured,
+            "catalog_used": self.catalog_used,
+            "measurements": self.measurements,
+            "error_message": self.error_message,
+            "elapsed_seconds": self.elapsed_seconds,
+        }
 
 
 @dataclass
@@ -43,28 +64,31 @@ class PhotometryConfig:
 
 class PhotometryStage:
     """Stage for measuring source fluxes in images.
-    
+
     This stage:
     1. Queries the specified catalog for sources in the image FOV
     2. Performs forced photometry at each source position
     3. Records measurements for variability analysis
-    
+
+    The primary interface is execute(group, image_path) which takes
+    a SubbandGroup and the path to the image generated from it.
+
     Example:
         >>> config = PhotometryConfig(catalog="nvss")
         >>> stage = PhotometryStage(config)
-        >>> result = stage.execute("/data/images/2025-10-02T00:12:00-image.fits")
+        >>> result = stage.execute(group, "/data/images/2025-10-02T00:12:00-image.fits")
         >>> print(f"Measured {result.sources_measured} sources")
     """
 
     def __init__(self, config: PhotometryConfig) -> None:
         """Initialize the photometry stage.
-        
+
         Args:
             config: Photometry configuration
         """
         self.config = config
         self._worker_available = False
-        
+
         # Check if photometry worker is available
         try:
             from dsa110_contimg.photometry.worker import PhotometryBatchWorker
@@ -75,10 +99,10 @@ class PhotometryStage:
 
     def validate(self, image_path: str) -> Tuple[bool, Optional[str]]:
         """Validate prerequisites for photometry.
-        
+
         Args:
             image_path: Path to the image file
-            
+
         Returns:
             Tuple of (is_valid, error_message)
         """
@@ -92,30 +116,62 @@ class PhotometryStage:
 
     def execute(
         self,
+        group: SubbandGroup,
         image_path: str,
         ra_deg: Optional[float] = None,
         dec_deg: Optional[float] = None,
     ) -> PhotometryResult:
-        """Execute the photometry stage.
-        
+        """Execute photometry on an image from a SubbandGroup.
+
         Args:
+            group: SubbandGroup associated with the image
             image_path: Path to the image file
             ra_deg: Optional RA center for catalog query
             dec_deg: Optional Dec center for catalog query
-            
+
         Returns:
             PhotometryResult with measurements
         """
         t0 = time.perf_counter()
-        
+
         # Validate
         is_valid, error = self.validate(image_path)
         if not is_valid:
             return PhotometryResult(
                 success=False,
+                group=group,
                 image_path=image_path,
                 error_message=error,
             )
+
+        # Delegate to internal implementation
+        result = self._measure_sources(image_path, ra_deg, dec_deg, t0)
+
+        # Attach group to result
+        result.group = group
+
+        return result
+
+    def _measure_sources(
+        self,
+        image_path: str,
+        ra_deg: Optional[float] = None,
+        dec_deg: Optional[float] = None,
+        t0: Optional[float] = None,
+    ) -> PhotometryResult:
+        """Internal: Measure sources in an image.
+
+        Args:
+            image_path: Path to the image file
+            ra_deg: Optional RA center for catalog query
+            dec_deg: Optional Dec center for catalog query
+            t0: Optional start time for elapsed calculation
+
+        Returns:
+            PhotometryResult with measurements
+        """
+        if t0 is None:
+            t0 = time.perf_counter()
 
         try:
             from dsa110_contimg.photometry.worker import PhotometryBatchWorker
@@ -155,7 +211,7 @@ class PhotometryStage:
             )
 
         except Exception as e:
-            logger.error(f"Photometry failed for {image_path}: {e}", exc_info=True)
+            logger.error("Photometry failed for %s: %s", image_path, e, exc_info=True)
             return PhotometryResult(
                 success=False,
                 image_path=image_path,
@@ -167,10 +223,10 @@ class PhotometryStage:
         self, image_path: str
     ) -> Tuple[Optional[float], Optional[float]]:
         """Extract image center coordinates from FITS header.
-        
+
         Args:
             image_path: Path to FITS image
-            
+
         Returns:
             Tuple of (ra_deg, dec_deg) or (None, None)
         """
@@ -186,5 +242,5 @@ class PhotometryStage:
                 return float(ra), float(dec)
 
         except Exception as e:
-            logger.debug(f"Failed to get image center: {e}")
+            logger.debug("Failed to get image center: %s", e)
             return None, None

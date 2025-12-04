@@ -30,12 +30,14 @@ from dsa110_contimg.conversion.streaming.stages import (
     ImagingStage,
     MosaicStage,
     PhotometryStage,
+    SelfCalStage,
 )
 from dsa110_contimg.conversion.streaming.stages.calibration import CalibrationConfig
 from dsa110_contimg.conversion.streaming.stages.conversion import ConversionConfig
 from dsa110_contimg.conversion.streaming.stages.imaging import ImagingConfig
 from dsa110_contimg.conversion.streaming.stages.mosaic import MosaicConfig
 from dsa110_contimg.conversion.streaming.stages.photometry import PhotometryConfig
+from dsa110_contimg.conversion.streaming.stages.selfcal import SelfCalConfig
 from dsa110_contimg.conversion.streaming.exceptions import StreamingError
 
 if TYPE_CHECKING:
@@ -93,6 +95,7 @@ class WorkerConfig:
     
     # Feature flags
     enable_calibration_solving: bool = False
+    enable_selfcal: bool = False
     enable_group_imaging: bool = False
     enable_mosaic_creation: bool = False
     enable_photometry: bool = True
@@ -132,6 +135,7 @@ class WorkerConfig:
             poll_interval=getattr(args, "poll_interval", 5.0),
             worker_poll_interval=getattr(args, "worker_poll_interval", 5.0),
             enable_calibration_solving=getattr(args, "enable_calibration_solving", False),
+            enable_selfcal=getattr(args, "enable_selfcal", False),
             enable_group_imaging=getattr(args, "enable_group_imaging", False),
             enable_mosaic_creation=getattr(args, "enable_mosaic_creation", False),
             enable_photometry=getattr(args, "enable_photometry", True),
@@ -233,6 +237,18 @@ class StreamingWorker:
                 validity_hours=12.0,
             )
         )
+
+        # Self-calibration stage (optional)
+        if self.config.enable_selfcal:
+            self.selfcal_stage: Optional[SelfCalStage] = SelfCalStage(
+                SelfCalConfig(
+                    output_dir=self.config.output_dir / "selfcal",
+                    max_iterations=5,
+                    skip_for_calibrators=True,
+                )
+            )
+        else:
+            self.selfcal_stage = None
 
         # Imaging stage
         self.imaging_stage = ImagingStage(
@@ -396,11 +412,26 @@ class StreamingWorker:
             
             result.metrics["calibration_applied"] = cal_result.calibration_applied
             result.metrics["is_calibrator"] = conv_result.is_calibrator
-            
+
+            # === SELF-CALIBRATION STAGE (optional) ===
+            if self.selfcal_stage is not None and not conv_result.is_calibrator:
+                self._update_state(group.group_id, "SELFCAL")
+                try:
+                    selfcal_result = self.selfcal_stage.execute(group)
+                    if selfcal_result.success:
+                        result.metrics["selfcal_improvement"] = selfcal_result.improvement_factor
+                        result.metrics["selfcal_iterations"] = selfcal_result.iterations_completed
+                        self._update_state(group.group_id, "SELFCAL_COMPLETE")
+                    else:
+                        result.metrics["selfcal_skipped"] = selfcal_result.status
+                except Exception as exc:
+                    logger.warning("Self-cal failed for %s: %s", group.group_id, exc)
+                    result.metrics["selfcal_error"] = str(exc)
+
             # === IMAGING STAGE ===
             self._update_state(group.group_id, "IMAGING")
-            img_result = self.imaging_stage.execute(ms_path=ms_path)
-            
+            img_result = self.imaging_stage.execute(group)
+
             if not img_result.success:
                 result.error_message = img_result.error_message
                 result.stage = "imaging"
@@ -411,26 +442,28 @@ class StreamingWorker:
             else:
                 result.image_path = img_result.image_path
                 result.metrics["imaging_time"] = img_result.elapsed_seconds
+                if img_result.snr:
+                    result.metrics["imaging_snr"] = img_result.snr
                 self._update_state(group.group_id, "IMAGED")
-            
+
             # === PHOTOMETRY STAGE (optional) ===
-            if self.photometry_stage is not None and img_result.fits_path:
+            if self.photometry_stage is not None and img_result.success and img_result.fits_path:
                 try:
                     phot_result = self.photometry_stage.execute(
+                        group=group,
                         image_path=str(img_result.fits_path),
-                        dec_deg=dec_deg,
                     )
                     if phot_result.success:
                         result.metrics["photometry_sources"] = phot_result.sources_measured
                 except Exception as exc:
                     logger.warning("Photometry failed for %s: %s", group.group_id, exc)
-            
+
             # === MOSAIC STAGE (optional) ===
             if self.mosaic_stage is not None and dec_deg is not None:
                 try:
                     mosaic_result = self.mosaic_stage.check_and_trigger(
                         dec_deg=dec_deg,
-                        new_ms_path=ms_path,
+                        new_ms_path=str(ms_path),
                     )
                     if mosaic_result is not None and mosaic_result.success:
                         result.metrics["mosaic_triggered"] = True
