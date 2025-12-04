@@ -39,7 +39,7 @@ from dsa110_contimg.database import (  # noqa: E402
     register_set_from_prefix,
 )
 
-# Pipeline hardening imports for Issues #3, #4, #5, #6, #7, #8, #10, #13
+# Pipeline hardening imports for Issues #3, #4, #5, #6, #7, #8, #10, #11, #13
 try:
     from dsa110_contimg.pipeline.hardening import (
         CalibrationFence,
@@ -56,6 +56,7 @@ try:
         get_metrics_registry,
         preflag_rfi,
         record_conversion_time,
+        record_execution_metrics,  # Issue #11: Unified execution metrics
         record_imaging_time,
         record_queue_depth,
     )
@@ -73,6 +74,7 @@ except ImportError:  # pragma: no cover
     check_disk_space = None  # type: ignore
     get_metrics_registry = None  # type: ignore
     record_conversion_time = None  # type: ignore
+    record_execution_metrics = None  # type: ignore
     record_imaging_time = None  # type: ignore
     record_queue_depth = None  # type: ignore
     assess_calibration_quality = None  # type: ignore
