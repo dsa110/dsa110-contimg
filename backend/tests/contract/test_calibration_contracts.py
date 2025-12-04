@@ -190,11 +190,11 @@ class TestFlaggingOperations:
 class TestCalibrationDatabaseSchema:
     """Contract tests for calibration table database schema."""
 
-    def test_calibration_tables_schema(self, test_pipeline_db):
-        """Verify calibration_tables has all required columns."""
+    def test_caltables_schema(self, test_pipeline_db):
+        """Verify caltables has all required columns."""
         db = test_pipeline_db
         
-        cursor = db.conn.execute("PRAGMA table_info(calibration_tables)")
+        cursor = db.conn.execute("PRAGMA table_info(caltables)")
         columns = {row[1]: row[2] for row in cursor.fetchall()}
         
         # Required columns for calibration tables registry

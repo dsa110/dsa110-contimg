@@ -209,7 +209,7 @@ database file.
 The unified database contains tables previously spread across multiple files:
 
 - Ingest queue management and performance metrics (`ingest_queue`, `performance_metrics`)
-- Calibration table registry with validity windows (`calibration_tables`, `calibration_source_catalog`)
+- Calibration table registry with validity windows (`caltables`, `calibration_source_catalog`)
 - Product tracking: MS index, images, photometry (`ms_index`, `images`, `photometry_results`)
 - HDF5 file index for fast queries (`hdf5_file_index`)
 - Mosaic groups and planning (`mosaic_groups`, `mosaic_members`)

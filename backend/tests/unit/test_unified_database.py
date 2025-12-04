@@ -313,8 +313,7 @@ class TestUnifiedSchema:
             "ms_index",
             "images",
             "photometry",
-            "caltables",  # Canonical table name
-            "calibration_tables",  # Legacy table (kept for backward compat)
+            "caltables",
             "calibration_applied",
             "calibrator_catalog",
             "calibrator_transits",

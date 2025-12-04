@@ -2,7 +2,7 @@
 Unit tests for streaming converter hardening integration.
 
 Tests cover:
-- Issue #5: Calibration QA integration in _register_calibration_tables
+- Issue #5: Calibration QA integration in _register_caltables
 - Issue #8: RFI preflagging integration in worker loop
 - Graceful degradation when hardening module unavailable
 - Quality metrics propagation to database
@@ -54,14 +54,14 @@ class TestHardeningModuleAvailability:
         assert hasattr(sc, "find_backup_calibrators")
 
 
-class TestRegisterCalibrationTablesFunction:
-    """Tests for _register_calibration_tables function."""
+class TestRegisterCaltablesFunction:
+    """Tests for _register_caltables function."""
 
     def test_function_exists(self):
-        """Test that _register_calibration_tables is defined."""
+        """Test that _register_caltables is defined."""
         sc = get_streaming_converter()
-        assert hasattr(sc, "_register_calibration_tables")
-        assert callable(sc._register_calibration_tables)
+        assert hasattr(sc, "_register_caltables")
+        assert callable(sc._register_caltables)
 
     def test_function_handles_missing_args(self):
         """Test graceful handling of incomplete args."""
@@ -72,7 +72,7 @@ class TestRegisterCalibrationTablesFunction:
 
         # Should not crash, should log error
         with patch.object(sc, "register_set_from_prefix", side_effect=AttributeError):
-            sc._register_calibration_tables(args, "test_group", "/path/to/ms.ms", 60000.5, log)
+            sc._register_caltables(args, "test_group", "/path/to/ms.ms", 60000.5, log)
 
         # Should log warning about failure
         log.warning.assert_called()

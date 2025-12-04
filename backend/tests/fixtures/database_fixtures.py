@@ -165,7 +165,7 @@ class SampleJob:
 class SampleCalTable:
     """Sample calibration table record for testing.
     
-    Matches the 'calibration_tables' table schema in schema.sql.
+    Matches the 'caltables' table schema in schema.sql.
     """
 
     path: str  # TEXT PRIMARY KEY
