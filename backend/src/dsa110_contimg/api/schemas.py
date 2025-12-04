@@ -100,6 +100,8 @@ class ContributingImage(BaseModel):
     ms_path: Optional[str] = Field(None, description="Source MS path")
     qa_grade: Optional[Literal["good", "warn", "fail"]] = Field(None, description="QA grade")
     created_at: Optional[datetime] = Field(None, description="Image creation time")
+    flux_jy: Optional[float] = Field(None, description="Measured flux in Jansky")
+    flux_error_jy: Optional[float] = Field(None, description="Flux error in Jansky")
 
 
 class SourceDetailResponse(BaseModel):
