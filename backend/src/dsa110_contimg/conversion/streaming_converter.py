@@ -844,7 +844,13 @@ class QueueDB:
                 raise
 
     def group_files(self, group_id: str) -> List[str]:
-        """Get list of file paths for a group."""
+        """Get list of file paths for a group.
+
+        RACE CONDITION FIX (Issue #2 - Queue Path Staleness):
+        Validates that paths still exist and point to valid files.
+        On FUSE mounts, files can be moved/deleted after being queued,
+        making stored paths stale.
+        """
         normalized_group = self._normalize_group_id_datetime(group_id)
         with self._lock:
             rows = self._conn.execute(
@@ -852,6 +858,75 @@ class QueueDB:
                 (normalized_group,),
             ).fetchall()
             return [row[0] for row in rows]
+
+    def validate_group_files(self, group_id: str) -> Tuple[List[str], List[str]]:
+        """Validate that all files in a group still exist and are readable.
+
+        RACE CONDITION FIX (Issue #2 - Queue Path Staleness):
+        This method should be called before processing a group to ensure
+        all paths are still valid. On FUSE mounts, files can be moved or
+        deleted between queueing and processing.
+
+        Args:
+            group_id: The group identifier
+
+        Returns:
+            Tuple of (valid_paths, invalid_paths)
+        """
+        all_paths = self.group_files(group_id)
+        valid_paths = []
+        invalid_paths = []
+
+        for path in all_paths:
+            try:
+                p = Path(path)
+                # Check existence
+                if not p.exists():
+                    invalid_paths.append(path)
+                    continue
+                # Check readable
+                if not os.access(path, os.R_OK):
+                    invalid_paths.append(path)
+                    continue
+                # Check non-zero size
+                if p.stat().st_size == 0:
+                    invalid_paths.append(path)
+                    continue
+                valid_paths.append(path)
+            except OSError:
+                invalid_paths.append(path)
+
+        return valid_paths, invalid_paths
+
+    def remove_invalid_files(self, group_id: str, invalid_paths: List[str]) -> int:
+        """Remove invalid file paths from a group.
+
+        Args:
+            group_id: The group identifier
+            invalid_paths: List of paths to remove
+
+        Returns:
+            Number of paths removed
+        """
+        if not invalid_paths:
+            return 0
+
+        normalized_group = self._normalize_group_id_datetime(group_id)
+        removed = 0
+        with self._lock:
+            try:
+                self._conn.execute("BEGIN")
+                for path in invalid_paths:
+                    cursor = self._conn.execute(
+                        "DELETE FROM subband_files WHERE group_id = ? AND path = ?",
+                        (normalized_group, path),
+                    )
+                    removed += cursor.rowcount
+                self._conn.commit()
+            except sqlite3.Error:
+                self._conn.rollback()
+                raise
+        return removed
 
 
 # Import pointing tracker for Dec change detection
@@ -864,7 +939,18 @@ except ImportError:
 
 
 class _FSHandler(FileSystemEventHandler):
-    """Watchdog handler to record arriving subband files."""
+    """Watchdog handler to record arriving subband files.
+
+    RACE CONDITION FIX (Issue #1, #7):
+    Uses FUSE-aware locking to prevent race between watchdog validation
+    and worker thread file moves. Without this, on FUSE mounts:
+    1. Watchdog opens file with open_uvh5_mmap() for validation
+    2. Worker calls shutil.move() on same file
+    3. FUSE creates .fuse_hidden* file because original is still open
+
+    Solution: Acquire read lock before validation, which blocks if worker
+    has write lock (is moving/deleting the file).
+    """
 
     def __init__(self, queue: QueueDB, pointing_tracker: "PointingTracker | None" = None) -> None:
         self.queue = queue
@@ -877,6 +963,13 @@ class _FSHandler(FileSystemEventHandler):
             self._pointing_tracker = None
         self._last_checked_group: str | None = None  # Avoid checking every subband
 
+        # FUSE-aware lock manager for coordinating with worker thread
+        try:
+            from dsa110_contimg.utils.fuse_lock import get_fuse_lock_manager
+            self._lock_manager = get_fuse_lock_manager()
+        except ImportError:
+            self._lock_manager = None
+
     def _maybe_record(self, path: str) -> None:
         p = Path(path)
         info = parse_subband_info(p)
@@ -888,6 +981,14 @@ class _FSHandler(FileSystemEventHandler):
         # This ensures we follow "measure twice, cut once" - establish requirements upfront
         # before recording file in queue and attempting conversion.
         log = logging.getLogger("stream")
+
+        # RACE CONDITION FIX: Skip validation if file is part of active processing group
+        # This prevents watchdog from opening files that worker is about to move
+        if self._lock_manager is not None:
+            active_group = self._lock_manager.is_file_in_active_group(path)
+            if active_group is not None:
+                log.debug(f"Skipping validation for {path}: part of active group {active_group}")
+                return
 
         # Check file exists
         if not p.exists():
@@ -911,44 +1012,62 @@ class _FSHandler(FileSystemEventHandler):
             log.warning(f"Failed to check file size: {path}. Error: {e}")
             return
 
-        # Quick HDF5 structure check using memory-mapped I/O for speed
+        # RACE CONDITION FIX: Acquire read lock before HDF5 validation
+        # This coordinates with worker thread which holds write lock during moves
         try:
-            from dsa110_contimg.utils.hdf5_io import open_uvh5_mmap
+            if self._lock_manager is not None:
+                # Use short timeout - if file is being processed, skip validation
+                lock_context = self._lock_manager.read_lock(path, timeout=1.0)
+            else:
+                # Fallback: no locking (original behavior)
+                from contextlib import nullcontext
+                lock_context = nullcontext()
 
-            # OPTIMIZATION: Use memory-mapped I/O for fast validation
-            # This avoids chunk cache overhead for simple structure checks
-            with open_uvh5_mmap(path) as f:
-                # Verify file has required structure (Header or Data group)
-                if "Header" not in f and "Data" not in f:
-                    log.warning(f"File does not appear to be valid HDF5/UVH5: {path}")
+            with lock_context:
+                # Quick HDF5 structure check using memory-mapped I/O for speed
+                try:
+                    from dsa110_contimg.utils.hdf5_io import open_uvh5_mmap
+
+                    # OPTIMIZATION: Use memory-mapped I/O for fast validation
+                    # This avoids chunk cache overhead for simple structure checks
+                    with open_uvh5_mmap(path) as f:
+                        # Verify file has required structure (Header or Data group)
+                        if "Header" not in f and "Data" not in f:
+                            log.warning(f"File does not appear to be valid HDF5/UVH5: {path}")
+                            return
+                        # Quick sanity check on time_array
+                        if "Header/time_array" in f:
+                            if f["Header/time_array"].shape[0] == 0:
+                                log.warning(f"File has empty time_array: {path}")
+                                return
+                except Exception as e:
+                    log.warning(f"File is not readable HDF5: {path}. Error: {e}")
                     return
-                # Quick sanity check on time_array
-                if "Header/time_array" in f:
-                    if f["Header/time_array"].shape[0] == 0:
-                        log.warning(f"File has empty time_array: {path}")
-                        return
-        except Exception as e:
-            log.warning(f"File is not readable HDF5: {path}. Error: {e}")
-            return
 
-        # Check for pointing change (only once per group, on first subband)
-        # This triggers precomputation of calibrators and catalog strips
-        if self._pointing_tracker is not None and gid != self._last_checked_group:
-            self._last_checked_group = gid
-            try:
-                change = self._pointing_tracker.check_pointing_change(p)
-                if change:
-                    log.info(
-                        f"Pointing change detected: Dec={change.new_dec_deg:.2f}° "
-                        f"(from {path})"
-                    )
-                    if change.precomputed_calibrator:
-                        log.info(
-                            f"Precomputed calibrator: {change.precomputed_calibrator} "
-                            f"(transit at {change.calibrator_transit_utc})"
-                        )
-            except Exception as e:
-                log.debug(f"Pointing check failed: {e}")
+                # Check for pointing change (only once per group, on first subband)
+                # This triggers precomputation of calibrators and catalog strips
+                if self._pointing_tracker is not None and gid != self._last_checked_group:
+                    self._last_checked_group = gid
+                    try:
+                        change = self._pointing_tracker.check_pointing_change(p)
+                        if change:
+                            log.info(
+                                f"Pointing change detected: Dec={change.new_dec_deg:.2f}° "
+                                f"(from {path})"
+                            )
+                            if change.precomputed_calibrator:
+                                log.info(
+                                    f"Precomputed calibrator: {change.precomputed_calibrator} "
+                                    f"(transit at {change.calibrator_transit_utc})"
+                                )
+                    except Exception as e:
+                        log.debug(f"Pointing check failed: {e}")
+
+        except Exception as lock_err:
+            # If we can't acquire read lock (file being processed), skip validation
+            # The file will be picked up by next polling cycle if still valid
+            log.debug(f"Skipping validation for {path}: lock unavailable ({lock_err})")
+            return
 
         # File passed all checks, record in queue
         try:
