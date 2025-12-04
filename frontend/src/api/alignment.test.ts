@@ -1059,11 +1059,13 @@ describe.skipIf(!INTEGRATION_MODE)("Live API Integration Tests", () => {
         "timeline_start",
         "timeline_end",
         "current_time",
+        "current_mjd",
         "windows",
-        "total_windows",
       ],
       "ValidityTimeline"
     );
+    // Optional fields: total_windows (omitted when empty), message (status info)
+    expect(Array.isArray(data.windows)).toBe(true);
   });
 
   it("GET /api/v1/health/flux-monitoring matches FluxMonitoringSummary type", async () => {

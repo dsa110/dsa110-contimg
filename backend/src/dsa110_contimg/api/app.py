@@ -114,6 +114,7 @@ from .routes import (
     triggers_router,
     jupyter_router,
     vo_export_router,
+    pipeline_router,
 )
 from .rate_limit import limiter, rate_limit_exceeded_handler
 from .websocket import ws_router
@@ -298,6 +299,7 @@ def create_app() -> FastAPI:
         (triggers_router, "Triggers", True),
         (jupyter_router, "Jupyter", True),
         (vo_export_router, "VO Export", True),
+        (pipeline_router, "Pipeline Control", True),
     ]
     
     # Mosaic router is pre-prefixed with /api/mosaic, include directly

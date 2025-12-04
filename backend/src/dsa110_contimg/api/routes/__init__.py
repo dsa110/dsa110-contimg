@@ -30,6 +30,7 @@ from .backup import router as backup_router
 from .triggers import router as triggers_router
 from .jupyter import router as jupyter_router
 from .vo_export import router as vo_export_router
+from .pipeline import router as pipeline_router
 
 __all__ = [
     "auth_router",
@@ -58,4 +59,5 @@ __all__ = [
     "triggers_router",
     "jupyter_router",
     "vo_export_router",
+    "pipeline_router",
 ]

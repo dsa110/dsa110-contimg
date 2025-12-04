@@ -37,6 +37,7 @@ const JupyterPage = lazy(() => import("./pages/JupyterPage"));
 const QARatingsPage = lazy(() => import("./pages/QARatingsPage"));
 const CommentsPage = lazy(() => import("./pages/CommentsPage"));
 const SharedQueriesPage = lazy(() => import("./pages/SharedQueriesPage"));
+const PipelineControlPage = lazy(() => import("./pages/PipelineControlPage"));
 
 /**
  * Application router configuration.

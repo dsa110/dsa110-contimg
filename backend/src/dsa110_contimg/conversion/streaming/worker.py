@@ -25,6 +25,7 @@ from pathlib import Path
 from typing import Any, Callable, Dict, Optional, TYPE_CHECKING
 
 from dsa110_contimg.conversion.streaming.queue import SubbandQueue
+from dsa110_contimg.conversion.streaming.models import SubbandGroup, ProcessingState
 from dsa110_contimg.conversion.streaming.stages import (
     CalibrationStage,
     ConversionStage,
@@ -389,22 +390,17 @@ class StreamingWorker:
                 ms_path=ms_path,
                 is_calibrator=conv_result.is_calibrator,
                 mid_mjd=mid_mjd,
-                dec_deg=dec_deg,
             )
             
             if conv_result.is_calibrator and cal_result.success:
                 self._update_state(group_id, "CALIBRATED")
             
-            result.metrics["calibration_applied"] = cal_result.cal_applied
+            result.metrics["calibration_applied"] = cal_result.calibration_applied
             result.metrics["is_calibrator"] = conv_result.is_calibrator
             
             # === IMAGING STAGE ===
             self._update_state(group_id, "IMAGING")
-            img_result = self.imaging_stage.execute(
-                ms_path=ms_path,
-                group_id=group_id,
-                cal_applied=cal_result.cal_applied,
-            )
+            img_result = self.imaging_stage.execute(ms_path=ms_path)
             
             if not img_result.success:
                 result.error_message = img_result.error_message
@@ -420,11 +416,11 @@ class StreamingWorker:
             if self.photometry_stage is not None and img_result.fits_path:
                 try:
                     phot_result = self.photometry_stage.execute(
-                        image_path=Path(img_result.fits_path),
-                        group_id=group_id,
+                        image_path=str(img_result.fits_path),
+                        dec_deg=dec_deg,
                     )
                     if phot_result.success:
-                        result.metrics["photometry_sources"] = phot_result.source_count
+                        result.metrics["photometry_sources"] = phot_result.sources_measured
                 except Exception as e:
                     logger.warning(f"Photometry failed for {group_id}: {e}")
             
@@ -456,11 +452,132 @@ class StreamingWorker:
             result.elapsed_seconds = time.perf_counter() - t0
             return result
 
+    def process_subband_group(self, group: SubbandGroup) -> ProcessingResult:
+        """Process a SubbandGroup through all pipeline stages.
+        
+        This is the preferred method that accepts a SubbandGroup model,
+        providing better type safety and access to group metadata.
+        
+        Args:
+            group: SubbandGroup containing files and metadata
+            
+        Returns:
+            ProcessingResult with status and metrics
+        """
+        t0 = time.perf_counter()
+        result = ProcessingResult(group_id=group.group_id, success=False)
+        
+        try:
+            # Validate the group
+            if not group.files:
+                result.error_message = "No files in group"
+                return result
+            
+            # Log group status
+            logger.info(
+                f"Processing group {group.group_id}: "
+                f"{len(group.files)}/{group.expected_subbands} subbands, "
+                f"complete={group.is_complete}"
+            )
+            
+            # === CONVERSION STAGE (using SubbandGroup) ===
+            self._update_state(group.group_id, "CONVERTING")
+            conv_result = self.conversion_stage.execute_group(group)
+            
+            if not conv_result.success:
+                result.error_message = conv_result.error_message
+                result.stage = "conversion"
+                self._update_state(group.group_id, "FAILED")
+                return result
+            
+            ms_path = conv_result.ms_path
+            result.ms_path = ms_path
+            result.metrics["conversion_time"] = conv_result.elapsed_seconds
+            result.metrics["subbands_converted"] = len(group.files)
+            result.metrics["group_complete"] = group.is_complete
+            self._update_state(group.group_id, "CONVERTED")
+            
+            # Extract pointing info for later stages
+            dec_deg = conv_result.dec_deg
+            mid_mjd = conv_result.mid_mjd
+            
+            # === CALIBRATION STAGE (using SubbandGroup) ===
+            self._update_state(group.group_id, "CALIBRATING")
+            # Set ms_path on group for calibration stage
+            group.ms_path = Path(ms_path)
+            cal_result = self.calibration_stage.execute_group(
+                group=group,
+                mid_mjd=mid_mjd,
+            )
+            
+            if conv_result.is_calibrator and cal_result.success:
+                self._update_state(group.group_id, "CALIBRATED")
+            
+            result.metrics["calibration_applied"] = cal_result.calibration_applied
+            result.metrics["is_calibrator"] = conv_result.is_calibrator
+            
+            # === IMAGING STAGE ===
+            self._update_state(group.group_id, "IMAGING")
+            img_result = self.imaging_stage.execute(ms_path=ms_path)
+            
+            if not img_result.success:
+                result.error_message = img_result.error_message
+                result.stage = "imaging"
+                logger.error(
+                    f"Imaging failed for {group.group_id}: {img_result.error_message}"
+                )
+                # Continue - imaging failure is not fatal
+            else:
+                result.image_path = img_result.image_path
+                result.metrics["imaging_time"] = img_result.elapsed_seconds
+                self._update_state(group.group_id, "IMAGED")
+            
+            # === PHOTOMETRY STAGE (optional) ===
+            if self.photometry_stage is not None and img_result.fits_path:
+                try:
+                    phot_result = self.photometry_stage.execute(
+                        image_path=str(img_result.fits_path),
+                        dec_deg=dec_deg,
+                    )
+                    if phot_result.success:
+                        result.metrics["photometry_sources"] = phot_result.sources_measured
+                except Exception as exc:
+                    logger.warning("Photometry failed for %s: %s", group.group_id, exc)
+            
+            # === MOSAIC STAGE (optional) ===
+            if self.mosaic_stage is not None and dec_deg is not None:
+                try:
+                    mosaic_result = self.mosaic_stage.check_and_trigger(
+                        dec_deg=dec_deg,
+                        new_ms_path=ms_path,
+                    )
+                    if mosaic_result is not None and mosaic_result.success:
+                        result.metrics["mosaic_triggered"] = True
+                        result.metrics["mosaic_group_id"] = mosaic_result.group_id
+                except Exception as exc:
+                    logger.warning("Mosaic check failed for %s: %s", group.group_id, exc)
+            
+            # Success
+            self._update_state(group.group_id, "COMPLETED")
+            result.success = True
+            result.stage = "completed"
+            result.elapsed_seconds = time.perf_counter() - t0
+            
+            return result
+            
+        except Exception as exc:
+            logger.exception("Processing failed for %s", group.group_id)
+            self._update_state(group.group_id, "FAILED")
+            result.error_message = str(exc)
+            result.elapsed_seconds = time.perf_counter() - t0
+            return result
+
     def run(self) -> None:
         """Run the worker loop, processing pending groups.
         
         This method runs indefinitely, polling for new work and
         processing groups through the pipeline stages.
+        Uses SubbandGroup model for better type safety.
         """
         logger.info(
             f"Starting streaming worker "
@@ -480,10 +597,20 @@ class StreamingWorker:
                     time.sleep(self.config.worker_poll_interval)
                     continue
                 
-                logger.info(f"Processing group {group_id}")
+                # Get SubbandGroup model for better type safety
+                group = self.queue.get_group(group_id)
+                if group is None:
+                    logger.error(f"Could not retrieve group {group_id}")
+                    time.sleep(self.config.worker_poll_interval)
+                    continue
                 
-                # Process the group
-                result = self.process_group(group_id)
+                logger.info(
+                    f"Processing group {group_id} "
+                    f"({len(group.files)}/{group.expected_subbands} subbands)"
+                )
+                
+                # Process using SubbandGroup model
+                result = self.process_subband_group(group)
                 
                 # Update queue state
                 if result.success:

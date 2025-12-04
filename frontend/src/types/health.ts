@@ -105,8 +105,10 @@ export interface ValidityTimeline {
   current_mjd: number;
   /** Array of validity windows */
   windows: ValidityTimelineEntry[];
-  /** Total number of windows */
-  total_windows: number;
+  /** Total number of windows (may be omitted if windows array is empty) */
+  total_windows?: number;
+  /** Optional status message (e.g., when caltables not initialized) */
+  message?: string;
 }
 
 // =============================================================================
