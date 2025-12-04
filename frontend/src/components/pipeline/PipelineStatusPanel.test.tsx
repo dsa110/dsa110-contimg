@@ -35,11 +35,6 @@ function createWrapper() {
   };
 }
 
-/**
- * Sample pipeline status for testing.
- */
-const mockPipelineStatus: PipelineStatusResponse = createPipelineStatus();
-
 describe("PipelineStatusPanel", () => {
   afterEach(() => {
     vi.clearAllMocks();
@@ -49,9 +44,9 @@ describe("PipelineStatusPanel", () => {
     it("shows loading spinner while fetching", async () => {
       // Use a long delay to keep loading state visible
       server.use(
-        http.get("*/absurd/status", async () => {
+        http.get("*/absurd/health/detailed", async () => {
           await delay("infinite");
-          return HttpResponse.json(mockPipelineStatus);
+          return HttpResponse.json(createABSURDHealth());
         })
       );
 
@@ -64,12 +59,6 @@ describe("PipelineStatusPanel", () => {
 
   describe("successful data fetch", () => {
     it("renders all pipeline stages", async () => {
-      server.use(
-        http.get("*/absurd/status", () => {
-          return HttpResponse.json(mockPipelineStatus);
-        })
-      );
-
       render(<PipelineStatusPanel />, { wrapper: createWrapper() });
 
       await waitFor(() => {
@@ -87,31 +76,17 @@ describe("PipelineStatusPanel", () => {
       expect(screen.getByText("Files")).toBeInTheDocument();
     });
 
-    it("shows summary counts", async () => {
-      server.use(
-        http.get("*/absurd/status", () => {
-          return HttpResponse.json(mockPipelineStatus);
-        })
-      );
-
+    it("shows pending count from queue depth", async () => {
+      // Default health response has queue_depth: 6
       render(<PipelineStatusPanel />, { wrapper: createWrapper() });
 
       await waitFor(() => {
         expect(screen.getByText("6 pending")).toBeInTheDocument();
       });
-
-      expect(screen.getByText("4 running")).toBeInTheDocument();
-      expect(screen.getByText("62 completed")).toBeInTheDocument();
-      expect(screen.getByText("1 failed")).toBeInTheDocument();
     });
 
     it("shows worker count", async () => {
-      server.use(
-        http.get("*/absurd/status", () => {
-          return HttpResponse.json(mockPipelineStatus);
-        })
-      );
-
+      // Default workers response has total: 2
       render(<PipelineStatusPanel />, { wrapper: createWrapper() });
 
       await waitFor(() => {
@@ -119,10 +94,12 @@ describe("PipelineStatusPanel", () => {
       });
     });
 
-    it("shows healthy status when is_healthy is true", async () => {
+    it("shows healthy status when worker_pool_healthy is true", async () => {
       server.use(
-        http.get("*/absurd/status", () => {
-          return HttpResponse.json(createPipelineStatus({ is_healthy: true }));
+        http.get("*/absurd/health/detailed", () => {
+          return HttpResponse.json(
+            createABSURDHealth({ status: "healthy", worker_pool_healthy: true })
+          );
         })
       );
 
@@ -133,10 +110,15 @@ describe("PipelineStatusPanel", () => {
       });
     });
 
-    it("shows degraded status when is_healthy is false", async () => {
+    it("shows degraded status when worker_pool_healthy is false", async () => {
       server.use(
-        http.get("*/absurd/status", () => {
-          return HttpResponse.json(createPipelineStatus({ is_healthy: false }));
+        http.get("*/absurd/health/detailed", () => {
+          return HttpResponse.json(
+            createABSURDHealth({
+              status: "degraded",
+              worker_pool_healthy: false,
+            })
+          );
         })
       );
 
@@ -148,12 +130,6 @@ describe("PipelineStatusPanel", () => {
     });
 
     it("renders stage links to jobs list with filter", async () => {
-      server.use(
-        http.get("*/absurd/status", () => {
-          return HttpResponse.json(mockPipelineStatus);
-        })
-      );
-
       render(<PipelineStatusPanel />, { wrapper: createWrapper() });
 
       await waitFor(() => {
@@ -168,12 +144,6 @@ describe("PipelineStatusPanel", () => {
 
   describe("compact mode", () => {
     it("shows fewer stages in compact mode", async () => {
-      server.use(
-        http.get("*/absurd/status", () => {
-          return HttpResponse.json(mockPipelineStatus);
-        })
-      );
-
       render(<PipelineStatusPanel compact />, { wrapper: createWrapper() });
 
       await waitFor(() => {
@@ -196,34 +166,12 @@ describe("PipelineStatusPanel", () => {
   describe("error state", () => {
     it("shows error message when fetch fails", async () => {
       server.use(
-        http.get("*/absurd/status", () => {
-          return HttpResponse.error();
+        http.get("*/absurd/health/detailed", () => {
+          return new HttpResponse(null, { status: 503 });
         })
       );
 
-      // Create wrapper with retry disabled at query level
-      const queryClient = new QueryClient({
-        defaultOptions: {
-          queries: {
-            retry: false,
-            gcTime: 0,
-          },
-        },
-      });
-
-      queryClient.setQueryDefaults(["absurd", "status"], {
-        retry: false,
-      });
-
-      function ErrorWrapper({ children }: { children: React.ReactNode }) {
-        return (
-          <QueryClientProvider client={queryClient}>
-            <BrowserRouter>{children}</BrowserRouter>
-          </QueryClientProvider>
-        );
-      }
-
-      render(<PipelineStatusPanel />, { wrapper: ErrorWrapper });
+      render(<PipelineStatusPanel />, { wrapper: createWrapper() });
 
       await waitFor(() => {
         expect(
@@ -238,33 +186,12 @@ describe("PipelineStatusPanel", () => {
 
     it("shows retry button on error", async () => {
       server.use(
-        http.get("*/absurd/status", () => {
-          return HttpResponse.error();
+        http.get("*/absurd/health/detailed", () => {
+          return new HttpResponse(null, { status: 503 });
         })
       );
 
-      const queryClient = new QueryClient({
-        defaultOptions: {
-          queries: {
-            retry: false,
-            gcTime: 0,
-          },
-        },
-      });
-
-      queryClient.setQueryDefaults(["absurd", "status"], {
-        retry: false,
-      });
-
-      function ErrorWrapper({ children }: { children: React.ReactNode }) {
-        return (
-          <QueryClientProvider client={queryClient}>
-            <BrowserRouter>{children}</BrowserRouter>
-          </QueryClientProvider>
-        );
-      }
-
-      render(<PipelineStatusPanel />, { wrapper: ErrorWrapper });
+      render(<PipelineStatusPanel />, { wrapper: createWrapper() });
 
       await waitFor(() => {
         expect(
@@ -278,9 +205,15 @@ describe("PipelineStatusPanel", () => {
     it("calls refetch when refresh button is clicked", async () => {
       let callCount = 0;
       server.use(
-        http.get("*/absurd/status", () => {
+        http.get("*/absurd/health/detailed", () => {
           callCount++;
-          return HttpResponse.json(mockPipelineStatus);
+          return HttpResponse.json(createABSURDHealth());
+        }),
+        http.get("*/absurd/workers", () => {
+          return HttpResponse.json(createABSURDWorkers());
+        }),
+        http.get("*/absurd/queues/stats", () => {
+          return HttpResponse.json(createABSURDQueuesStats());
         })
       );
 
@@ -307,12 +240,6 @@ describe("PipelineStatusPanel", () => {
 
   describe("accessibility", () => {
     it("stage nodes have descriptive titles", async () => {
-      server.use(
-        http.get("*/absurd/status", () => {
-          return HttpResponse.json(mockPipelineStatus);
-        })
-      );
-
       render(<PipelineStatusPanel />, { wrapper: createWrapper() });
 
       await waitFor(() => {
