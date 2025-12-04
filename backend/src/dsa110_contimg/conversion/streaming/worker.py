@@ -4,16 +4,25 @@ Streaming worker: Orchestrate pipeline stages for data processing.
 This module provides the StreamingWorker class that polls for pending
 work from SubbandQueue and orchestrates processing through the pipeline
 stages (conversion, calibration, imaging, photometry, mosaic).
+
+Production Features:
+- Graceful shutdown handling (SIGINT, SIGTERM)
+- Retry logic with exponential backoff for transient failures
+- Health checks for liveness/readiness probes
+- Metrics collection for monitoring
+- Structured logging
 """
 
 from __future__ import annotations
 
 import argparse
 import logging
+import signal
+import threading
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional, TYPE_CHECKING
+from typing import Any, Callable, Dict, Optional, TYPE_CHECKING
 
 from dsa110_contimg.conversion.streaming.queue import SubbandQueue
 from dsa110_contimg.conversion.streaming.stages import (
@@ -28,6 +37,18 @@ from dsa110_contimg.conversion.streaming.stages.conversion import ConversionConf
 from dsa110_contimg.conversion.streaming.stages.imaging import ImagingConfig
 from dsa110_contimg.conversion.streaming.stages.mosaic import MosaicConfig
 from dsa110_contimg.conversion.streaming.stages.photometry import PhotometryConfig
+from dsa110_contimg.conversion.streaming.exceptions import (
+    ShutdownRequested,
+    StreamingError,
+)
+from dsa110_contimg.conversion.streaming.health import (
+    HealthCheck,
+    HealthStatus,
+    get_disk_free_gb,
+    get_health_checker,
+    get_metrics_collector,
+)
+from dsa110_contimg.conversion.streaming.retry import RetryConfig, retry_with_result
 
 if TYPE_CHECKING:
     from dsa110_contimg.pipeline.hardening import (
@@ -40,7 +61,33 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class WorkerConfig:
-    """Configuration for the streaming worker."""
+    """Configuration for the streaming worker.
+    
+    Attributes:
+        input_dir: Directory to watch for incoming HDF5 files
+        output_dir: Directory for output MS files and images
+        scratch_dir: Directory for temporary/scratch files
+        queue_db: Path to queue/products SQLite database
+        registry_db: Path to calibration registry database
+        expected_subbands: Number of subbands per observation (default: 16)
+        poll_interval: Seconds between directory polls (default: 5.0)
+        worker_poll_interval: Seconds between queue polls (default: 5.0)
+        enable_calibration_solving: Enable calibration solving (default: False)
+        enable_group_imaging: Enable group imaging (default: False)
+        enable_mosaic_creation: Enable mosaic creation (default: False)
+        enable_photometry: Enable photometry (default: True)
+        enable_auto_qa: Enable auto QA (default: False)
+        enable_auto_publish: Enable auto publish (default: False)
+        execution_mode: Execution mode (inprocess, subprocess, auto)
+        memory_limit_mb: Memory limit for conversion tasks (default: 16000)
+        omp_threads: OMP threads for conversion tasks (default: 4)
+        cal_fence_timeout: Calibration fence timeout (default: 60.0)
+        use_interpolated_cal: Use interpolated calibration (default: True)
+        disk_warning_gb: Disk warning threshold (default: 50.0)
+        disk_critical_gb: Disk critical threshold (default: 10.0)
+        max_retries: Maximum retry attempts for transient failures (default: 3)
+        graceful_shutdown_timeout: Seconds to wait for graceful shutdown (default: 30)
+    """
     
     # Directories
     input_dir: Path
