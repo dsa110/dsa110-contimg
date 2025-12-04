@@ -254,7 +254,9 @@ describe("JupyterPage", () => {
     it("renders Open JupyterLab button", () => {
       renderPage();
 
-      const openButtons = screen.getAllByRole("button", { name: /open jupyterlab/i });
+      const openButtons = screen.getAllByRole("button", {
+        name: /open jupyterlab/i,
+      });
       expect(openButtons.length).toBeGreaterThanOrEqual(1);
     });
 
@@ -578,7 +580,9 @@ describe("JupyterPage", () => {
       const user = userEvent.setup();
       renderPage();
 
-      await user.click(screen.getByRole("button", { name: /start kernel/i }));
+      // Get header "Start Kernel" button (first one)
+      const startButtons = screen.getAllByRole("button", { name: /start kernel/i });
+      await user.click(startButtons[0]);
 
       expect(screen.getByText("Start New Kernel")).toBeInTheDocument();
     });
@@ -587,7 +591,8 @@ describe("JupyterPage", () => {
       const user = userEvent.setup();
       renderPage();
 
-      await user.click(screen.getByRole("button", { name: /start kernel/i }));
+      const startButtons = screen.getAllByRole("button", { name: /start kernel/i });
+      await user.click(startButtons[0]);
 
       expect(screen.getByLabelText(/kernel type/i)).toBeInTheDocument();
     });
@@ -596,7 +601,8 @@ describe("JupyterPage", () => {
       const user = userEvent.setup();
       renderPage();
 
-      await user.click(screen.getByRole("button", { name: /start kernel/i }));
+      const startButtons = screen.getAllByRole("button", { name: /start kernel/i });
+      await user.click(startButtons[0]);
       await user.click(screen.getByRole("button", { name: /cancel/i }));
 
       await waitFor(() => {
@@ -614,8 +620,12 @@ describe("JupyterPage", () => {
 
       renderPage();
 
-      await user.click(screen.getByRole("button", { name: /start kernel/i }));
-      await user.click(screen.getByRole("button", { name: /^start kernel$/i }));
+      const startButtons = screen.getAllByRole("button", { name: /start kernel/i });
+      await user.click(startButtons[0]);
+      
+      // Submit button in modal has exact text "Start Kernel"
+      const submitButton = screen.getByRole("button", { name: /^start kernel$/i });
+      await user.click(submitButton);
 
       await waitFor(() => {
         expect(startMutateAsync).toHaveBeenCalledWith("python3");
