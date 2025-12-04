@@ -104,6 +104,9 @@ from .routes import (
     absurd_router,
     calibrator_imaging_router,
     health_router,
+    metrics_dashboard_router,
+    alert_policies_router,
+    retention_router,
     performance_router,
 )
 from .rate_limit import limiter, rate_limit_exceeded_handler
@@ -278,6 +281,9 @@ def create_app() -> FastAPI:
         (services_router, "Services", True),
         (imaging_router, "Interactive Imaging", True),
         (calibrator_imaging_router, "Calibrator Imaging", True),
+        (metrics_dashboard_router, "Metrics", True),
+        (alert_policies_router, "Alert Policies", True),
+        (retention_router, "Retention", True),
         (health_router, "Health Monitoring", False),
         (performance_router, "Performance Monitoring", True),
     ]

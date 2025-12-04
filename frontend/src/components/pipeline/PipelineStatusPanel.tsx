@@ -212,8 +212,10 @@ async function fetchPipelineStatus(): Promise<PipelineStatusResponse> {
         healthRes.worker_pool_healthy === true)) ||
     false;
 
-  // Worker count from workers endpoint (array) when available
-  const workerCount = Array.isArray(workersRes) ? workersRes.length : 0;
+  // Worker count from workers endpoint - response is {workers: [], total: N}
+  const workerCount =
+    workersRes?.total ??
+    (Array.isArray(workersRes?.workers) ? workersRes.workers.length : 0);
 
   // Queue stats may include total counts; we synthesize a simple total structure
   const total: StageStatusCounts = {

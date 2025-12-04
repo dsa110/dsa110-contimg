@@ -7,7 +7,8 @@ from __future__ import annotations
 from typing import Optional
 from urllib.parse import unquote
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi.responses import StreamingResponse
 
 from ..dependencies import get_async_source_service, get_async_image_repository
 from ..exceptions import RecordNotFoundError, ValidationError
@@ -172,3 +173,105 @@ async def get_source_qa(
         },
     }
 
+
+# =============================================================================
+# Source Export/Utility Endpoints
+# =============================================================================
+
+
+def _sources_to_csv(rows: list[dict]) -> str:
+    """Serialize source rows to CSV."""
+    import csv
+    import io
+    
+    buffer = io.StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow(["id", "name", "ra_deg", "dec_deg", "num_images", "latest_image_id"])
+    for row in rows:
+        writer.writerow([
+            row.get("id"),
+            row.get("name") or "",
+            row.get("ra_deg"),
+            row.get("dec_deg"),
+            row.get("num_images", 0),
+            row.get("latest_image_id") or "",
+        ])
+    buffer.seek(0)
+    return buffer.getvalue()
+
+
+@router.get("/{source_id}/contributing-images", response_model=list[ContributingImage])
+async def list_contributing_images(
+    source_id: str,
+    service: AsyncSourceService = Depends(get_async_source_service),
+):
+    """List contributing images for a source."""
+    source = await service.get_source(source_id)
+    if not source:
+        raise RecordNotFoundError("Source", source_id)
+    
+    images = []
+    if source.contributing_images:
+        images = [ContributingImage(**img) for img in source.contributing_images]
+    return images
+
+
+@router.get("/{source_id}/export")
+async def export_single_source(
+    source_id: str,
+    service: AsyncSourceService = Depends(get_async_source_service),
+):
+    """Export a single source as CSV."""
+    source = await service.get_source(source_id)
+    if not source:
+        raise RecordNotFoundError("Source", source_id)
+    
+    row = {
+        "id": source.id,
+        "name": source.name,
+        "ra_deg": source.ra_deg,
+        "dec_deg": source.dec_deg,
+        "num_images": len(source.contributing_images or []),
+        "latest_image_id": source.latest_image_id,
+    }
+    csv_data = _sources_to_csv([row])
+    return StreamingResponse(
+        iter([csv_data]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f'attachment; filename="source_{source_id}.csv"'},
+    )
+
+
+@router.get("/export")
+async def export_sources(
+    ids: str = Query(..., description="Comma-separated source IDs"),
+    service: AsyncSourceService = Depends(get_async_source_service),
+):
+    """Export multiple sources as CSV."""
+    source_ids = [unquote(part) for part in ids.split(",") if part]
+    if not source_ids:
+        raise HTTPException(status_code=400, detail="No source IDs provided")
+    
+    rows = []
+    for source_id in source_ids:
+        source = await service.get_source(source_id)
+        if not source:
+            continue
+        rows.append({
+            "id": source.id,
+            "name": source.name,
+            "ra_deg": source.ra_deg,
+            "dec_deg": source.dec_deg,
+            "num_images": len(source.contributing_images or []),
+            "latest_image_id": source.latest_image_id,
+        })
+    
+    if not rows:
+        raise RecordNotFoundError("Source", ids)
+    
+    csv_data = _sources_to_csv(rows)
+    return StreamingResponse(
+        iter([csv_data]),
+        media_type="text/csv",
+        headers={"Content-Disposition": 'attachment; filename="sources.csv"'},
+    )

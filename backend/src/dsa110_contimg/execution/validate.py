@@ -136,26 +136,46 @@ def validate_scratch_dir(scratch_dir: Optional[Path]) -> List[str]:
 
 
 def validate_time_range(
-    start_time: datetime, end_time: datetime
+    start_time: str | datetime, end_time: str | datetime
 ) -> List[str]:
     """Validate time range.
 
     Args:
-        start_time: Start of time range
-        end_time: End of time range
+        start_time: Start of time range (string or datetime)
+        end_time: End of time range (string or datetime)
 
     Returns:
         List of error messages (empty if valid)
     """
     errors = []
 
-    if start_time >= end_time:
+    # Convert strings to datetime if needed
+    if isinstance(start_time, str):
+        try:
+            start_dt = datetime.fromisoformat(start_time)
+        except ValueError as e:
+            errors.append(f"Invalid start_time format: {e}")
+            return errors
+    else:
+        start_dt = start_time
+
+    if isinstance(end_time, str):
+        try:
+            end_dt = datetime.fromisoformat(end_time)
+        except ValueError as e:
+            errors.append(f"Invalid end_time format: {e}")
+            return errors
+    else:
+        end_dt = end_time
+
+    if start_dt >= end_dt:
         errors.append(
             f"Start time ({start_time}) must be before end time ({end_time})"
         )
+        return errors
 
     # Check for suspiciously wide time ranges (more than 24 hours)
-    duration = (end_time - start_time).total_seconds()
+    duration = (end_dt - start_dt).total_seconds()
     if duration > 86400:  # 24 hours
         logger.warning(
             f"Time range spans {duration/3600:.1f} hours - this may process "
@@ -214,8 +234,8 @@ def validate_resource_limits(
 def validate_execution_task(
     input_dir: Path,
     output_dir: Path,
-    start_time: datetime,
-    end_time: datetime,
+    start_time: str | datetime,
+    end_time: str | datetime,
     writer: str = "auto",
     scratch_dir: Optional[Path] = None,
     memory_mb: Optional[int] = None,

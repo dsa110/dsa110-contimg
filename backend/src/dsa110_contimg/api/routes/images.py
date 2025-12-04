@@ -8,7 +8,7 @@ from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query, HTTPException
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, StreamingResponse
 from pydantic import BaseModel, Field
 
 from ..dependencies import get_async_image_service
@@ -946,6 +946,263 @@ async def delete_image(
 
 
 # =============================================================================
+# Quicklook/Export Endpoints
+# =============================================================================
+
+
+def _load_image_array(image_path):
+    """Load a FITS image as a 2D numpy array and return data plus header."""
+    from pathlib import Path
+    import numpy as np
+    from astropy.io import fits
+    
+    fits_path = Path(image_path)
+    if not fits_path.exists():
+        raise FileNotAccessibleError(image_path, "read")
+    
+    with fits.open(fits_path) as hdul:
+        data = None
+        header = None
+        for hdu in hdul:
+            if hdu.data is not None and len(hdu.data.shape) >= 2:
+                data = hdu.data
+                header = hdu.header
+                break
+    
+    if data is None:
+        raise HTTPException(status_code=422, detail="No image data found in FITS file")
+    
+    # Reduce extra dimensions (e.g., polarization/channel axes)
+    while len(data.shape) > 2:
+        data = data[0]
+    
+    return data, header
+
+
+def _prepare_display_array(data, scale: str = "linear"):
+    """Normalize image data to 0-1 and apply optional scaling."""
+    import numpy as np
+    
+    finite = data[np.isfinite(data)]
+    if finite.size == 0:
+        raise HTTPException(status_code=422, detail="Image contains no finite pixels")
+    
+    vmin, vmax = np.percentile(finite, [1, 99.5])
+    if vmax <= vmin:
+        vmax = vmin + 1e-6
+    
+    scaled = np.clip((data - vmin) / (vmax - vmin), 0, 1)
+    scale = (scale or "linear").lower()
+    
+    if scale == "log":
+        scaled = np.log1p(scaled * 1000) / np.log(1001)
+    elif scale == "sqrt":
+        scaled = np.sqrt(scaled)
+    elif scale in ("squared", "square"):
+        scaled = np.square(scaled)
+    elif scale == "asinh":
+        scaled = np.arcsinh(scaled) / np.arcsinh(1)
+    
+    return np.clip(scaled, 0, 1)
+
+
+def _render_image_bytes(data, colormap: str = "gray", scale: str = "linear", fmt: str = "png", quality: int | None = None):
+    """Render a numpy array to an image byte buffer."""
+    import io
+    from matplotlib import cm
+    from PIL import Image
+    
+    prepared = _prepare_display_array(data, scale)
+    cmap = cm.get_cmap(colormap or "gray")
+    rgba = cmap(prepared, bytes=True)
+    
+    img = Image.fromarray(rgba, mode="RGBA")
+    buf = io.BytesIO()
+    
+    save_kwargs = {"format": fmt.upper()}
+    if quality and fmt.lower() in {"jpg", "jpeg", "webp"}:
+        save_kwargs["quality"] = max(1, min(quality, 100))
+    
+    img.save(buf, **save_kwargs)
+    buf.seek(0)
+    return buf
+
+
+def _ensure_thumbnail(image_path, thumbnail_path, size: int = 256):
+    """Generate a thumbnail PNG if one does not already exist."""
+    from pathlib import Path
+    
+    thumb_path = Path(thumbnail_path)
+    if thumb_path.exists():
+        return thumb_path
+    
+    # Try CASA-based thumbnail generation first (best effort)
+    try:
+        from ..batch.thumbnails import generate_image_thumbnail
+        generated = generate_image_thumbnail(str(image_path), str(thumbnail_path), size=size)
+        if generated:
+            return Path(generated)
+    except Exception:
+        pass
+    
+    # Fallback: render quicklook from FITS data
+    data, _ = _load_image_array(image_path)
+    buf = _render_image_bytes(data, fmt="png")
+    
+    from PIL import Image
+    img = Image.open(buf)
+    img.thumbnail((size, size))
+    thumb_path.parent.mkdir(parents=True, exist_ok=True)
+    img.save(thumb_path, format="PNG")
+    return thumb_path
+
+
+@router.get("/{image_id}/thumbnail")
+async def get_image_thumbnail(
+    image_id: str,
+    size: int = Query(256, ge=32, le=2048, description="Max thumbnail dimension"),
+    service: AsyncImageService = Depends(get_async_image_service),
+):
+    """Return a PNG thumbnail for quick previews."""
+    from pathlib import Path
+    
+    image = await service.get_image(image_id)
+    if not image:
+        raise RecordNotFoundError("Image", image_id)
+    
+    fits_path = Path(image.path)
+    if not fits_path.exists():
+        raise FileNotAccessibleError(image.path, "read")
+    
+    thumb_path = fits_path.with_suffix(".thumb.png")
+    try:
+        generated = _ensure_thumbnail(fits_path, thumb_path, size=size)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to generate thumbnail: {e}")
+    
+    return FileResponse(
+        path=generated,
+        media_type="image/png",
+        filename=f"{fits_path.stem}.thumb.png",
+    )
+
+
+@router.get("/{image_id}/png")
+async def export_image_png(
+    image_id: str,
+    colormap: str = Query("gray", description="Matplotlib colormap name"),
+    scale: str = Query("linear", description="Intensity scale (linear, log, sqrt, asinh)"),
+    quality: int = Query(90, ge=1, le=100, description="Quality hint for lossy formats"),
+    service: AsyncImageService = Depends(get_async_image_service),
+):
+    """Render a FITS image to a PNG quicklook."""
+    from pathlib import Path
+    
+    image = await service.get_image(image_id)
+    if not image:
+        raise RecordNotFoundError("Image", image_id)
+    
+    fits_path = Path(image.path)
+    if not fits_path.exists():
+        raise FileNotAccessibleError(image.path, "read")
+    
+    try:
+        data, _ = _load_image_array(fits_path)
+        buf = _render_image_bytes(data, colormap=colormap, scale=scale, fmt="png", quality=quality)
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to render PNG: {e}")
+    
+    return StreamingResponse(
+        buf,
+        media_type="image/png",
+        headers={"Content-Disposition": f'inline; filename="{fits_path.stem}.png"'},
+    )
+
+
+@router.get("/{image_id}/cutout")
+async def get_image_cutout(
+    image_id: str,
+    ra: float = Query(..., description="Center RA in degrees"),
+    dec: float = Query(..., description="Center Dec in degrees"),
+    width: float = Query(60.0, description="Cutout width"),
+    height: float = Query(60.0, description="Cutout height"),
+    unit: str = Query("arcsec", description="Units for width/height (arcsec, arcmin, pixel)"),
+    format: str = Query("fits", description="Output format (fits, png, jpg, webp)"),
+    colormap: str = Query("gray", description="Colormap for image formats"),
+    scale: str = Query("linear", description="Intensity scale for image formats"),
+    quality: int = Query(90, ge=1, le=100, description="Quality for JPG/WEBP"),
+    service: AsyncImageService = Depends(get_async_image_service),
+):
+    """Extract a cutout around the requested sky position."""
+    from pathlib import Path
+    import tempfile
+    import astropy.units as u
+    from astropy.coordinates import SkyCoord
+    from astropy.nddata import Cutout2D
+    from astropy.wcs import WCS
+    from astropy.io import fits
+    
+    image = await service.get_image(image_id)
+    if not image:
+        raise RecordNotFoundError("Image", image_id)
+    
+    fits_path = Path(image.path)
+    if not fits_path.exists():
+        raise FileNotAccessibleError(image.path, "read")
+    
+    data, header = _load_image_array(fits_path)
+    wcs = WCS(header) if header is not None else None
+    if wcs is None or not wcs.has_celestial:
+        raise HTTPException(status_code=422, detail="Image does not contain WCS information for cutouts")
+    
+    center = SkyCoord(ra=ra * u.deg, dec=dec * u.deg, frame="icrs")
+    unit_lower = unit.lower()
+    if unit_lower == "pixel":
+        size = (int(height), int(width))
+    elif unit_lower in {"arcsec", "arcmin"}:
+        q_unit = u.arcsec if unit_lower == "arcsec" else u.arcmin
+        size = (height * q_unit, width * q_unit)
+    else:
+        raise HTTPException(status_code=400, detail="Invalid unit for cutout")
+    
+    try:
+        cutout = Cutout2D(data, position=center, size=size, wcs=wcs, mode="trim")
+    except Exception as e:
+        raise HTTPException(status_code=422, detail=f"Failed to create cutout: {e}")
+    
+    fmt = format.lower()
+    if fmt == "fits":
+        with tempfile.NamedTemporaryFile(suffix=".fits", delete=False) as tmp:
+            hdu = fits.PrimaryHDU(data=cutout.data, header=cutout.wcs.to_header())
+            hdu.writeto(tmp.name, overwrite=True)
+            return FileResponse(
+                path=tmp.name,
+                media_type="application/fits",
+                filename=f"{fits_path.stem}_cutout.fits",
+            )
+    
+    media_map = {
+        "png": "image/png",
+        "jpg": "image/jpeg",
+        "jpeg": "image/jpeg",
+        "webp": "image/webp",
+    }
+    if fmt not in media_map:
+        raise HTTPException(status_code=400, detail=f"Unsupported format: {format}")
+    
+    buf = _render_image_bytes(cutout.data, colormap=colormap, scale=scale, fmt=fmt, quality=quality)
+    return StreamingResponse(
+        buf,
+        media_type=media_map[fmt],
+        headers={"Content-Disposition": f'inline; filename="{fits_path.stem}_cutout.{fmt}"'},
+    )
+
+
+# =============================================================================
 # Bulk Download Endpoint
 # =============================================================================
 
@@ -954,6 +1211,80 @@ class BulkDownloadRequest(BaseModel):
     """Request for bulk download."""
     image_ids: list[str] = Field(..., description="List of image IDs to download")
     format: str = Field(default="zip", description="Archive format (zip, tar)")
+
+
+async def _build_bulk_archive(
+    image_ids: list[str],
+    archive_format: str,
+    service: AsyncImageService,
+):
+    """Create a ZIP/TAR archive for the requested images."""
+    from pathlib import Path
+    import tempfile
+    import zipfile
+    import tarfile
+    
+    valid_paths = []
+    for image_id in image_ids:
+        image = await service.get_image(image_id)
+        if image and image.path:
+            path = Path(image.path)
+            if path.exists():
+                valid_paths.append((image_id, path))
+    
+    if not valid_paths:
+        raise HTTPException(
+            status_code=404,
+            detail="No valid images found for download"
+        )
+    
+    try:
+        if archive_format == "tar":
+            with tempfile.NamedTemporaryFile(suffix=".tar.gz", delete=False) as tmp:
+                archive_path = tmp.name
+            
+            with tarfile.open(archive_path, "w:gz") as tar:
+                for _, path in valid_paths:
+                    tar.add(path, arcname=path.name)
+            
+            media_type = "application/gzip"
+            filename = "images.tar.gz"
+        else:
+            with tempfile.NamedTemporaryFile(suffix=".zip", delete=False) as tmp:
+                archive_path = tmp.name
+            
+            with zipfile.ZipFile(archive_path, "w", zipfile.ZIP_DEFLATED) as zf:
+                for _, path in valid_paths:
+                    zf.write(path, arcname=path.name)
+            
+            media_type = "application/zip"
+            filename = "images.zip"
+        
+        return FileResponse(
+            path=archive_path,
+            media_type=media_type,
+            filename=filename,
+            background=None,
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to create archive: {str(e)}"
+        )
+
+
+@router.get("/bulk-download")
+async def bulk_download_images_get(
+    ids: str = Query(..., description="Comma-separated image IDs"),
+    format: str = Query("zip", description="Archive format (zip, tar)"),
+    service: AsyncImageService = Depends(get_async_image_service),
+):
+    """Download multiple images via query parameters."""
+    image_ids = [part for part in ids.split(",") if part]
+    if not image_ids:
+        raise HTTPException(status_code=400, detail="No image IDs provided")
+    
+    return await _build_bulk_archive(image_ids, format, service)
 
 
 @router.post("/bulk-download")
@@ -969,64 +1300,7 @@ async def bulk_download_images(
     Raises:
         HTTPException: If no valid images found or archive creation fails
     """
-    from pathlib import Path
-    import tempfile
-    import zipfile
-    import tarfile
-    import os
-
-    # Collect valid image paths
-    valid_paths = []
-    for image_id in request.image_ids:
-        image = await service.get_image(image_id)
-        if image and image.path:
-            path = Path(image.path)
-            if path.exists():
-                valid_paths.append((image_id, path))
-
-    if not valid_paths:
-        raise HTTPException(
-            status_code=404,
-            detail="No valid images found for download"
-        )
-
-    # Create temporary archive
-    try:
-        if request.format == "tar":
-            # Create tar archive
-            with tempfile.NamedTemporaryFile(suffix=".tar.gz", delete=False) as tmp:
-                archive_path = tmp.name
-
-            with tarfile.open(archive_path, "w:gz") as tar:
-                for image_id, path in valid_paths:
-                    tar.add(path, arcname=path.name)
-
-            media_type = "application/gzip"
-            filename = "images.tar.gz"
-        else:
-            # Create zip archive
-            with tempfile.NamedTemporaryFile(suffix=".zip", delete=False) as tmp:
-                archive_path = tmp.name
-
-            with zipfile.ZipFile(archive_path, "w", zipfile.ZIP_DEFLATED) as zf:
-                for image_id, path in valid_paths:
-                    zf.write(path, arcname=path.name)
-
-            media_type = "application/zip"
-            filename = "images.zip"
-
-        return FileResponse(
-            path=archive_path,
-            media_type=media_type,
-            filename=filename,
-            background=None,  # Will be cleaned up by FileResponse
-        )
-
-    except Exception as e:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to create archive: {str(e)}"
-        )
+    return await _build_bulk_archive(request.image_ids, request.format, service)
 
 
 # =============================================================================

@@ -13,6 +13,7 @@ from .queue import router as queue_router
 from .qa import router as qa_router
 from .cal import router as cal_router
 from .logs import router as logs_router
+from .metrics_dashboard import router as metrics_dashboard_router
 from .stats import router as stats_router
 from .cache import router as cache_router
 from .services import router as services_router
@@ -20,6 +21,8 @@ from .imaging import router as imaging_router
 from .absurd import router as absurd_router
 from .calibrator_imaging import router as calibrator_imaging_router
 from .health import router as health_router
+from .alert_policies import router as alert_policies_router
+from .retention import router as retention_router
 from .performance import router as performance_router
 
 __all__ = [
@@ -32,6 +35,7 @@ __all__ = [
     "qa_router",
     "cal_router",
     "logs_router",
+    "metrics_dashboard_router",
     "stats_router",
     "cache_router",
     "services_router",
@@ -39,5 +43,7 @@ __all__ = [
     "absurd_router",
     "calibrator_imaging_router",
     "health_router",
+    "alert_policies_router",
+    "retention_router",
     "performance_router",
 ]
