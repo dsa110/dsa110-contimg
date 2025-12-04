@@ -45,13 +45,14 @@ def create_minimal_uvh5(
     subband_idx: int,
     nants: int = 10,
     ntimes: int = 5,
-    nfreqs: int = 64,
+    nfreqs: int = 48,  # Match DSA-110 (48 channels per subband)
+    npols: int = 2,    # Match DSA-110 (XX, YY)
 ) -> None:
     """Create a minimal synthetic UVH5 file for testing.
 
     This creates a simplified HDF5 file with the minimum structure
     needed to test the execution pipeline without requiring full
-    pyuvdata simulation.
+    pyuvdata simulation. The structure matches real DSA-110 files.
 
     Args:
         filepath: Output file path
@@ -60,20 +61,23 @@ def create_minimal_uvh5(
         nants: Number of antennas
         ntimes: Number of time integrations
         nfreqs: Number of frequency channels per subband
+        npols: Number of polarizations
     """
     # Calculate baseline count (upper triangle, no autocorr)
     nbls = nants * (nants - 1) // 2
     nblts = nbls * ntimes
-    npols = 4  # XX, XY, YX, YY
 
-    # Parse timestamp to get MJD
+    # Parse timestamp to get JD (pyuvdata uses JD, not MJD)
     dt = datetime.fromisoformat(timestamp)
-    mjd_start = (dt - datetime(1858, 11, 17)).total_seconds() / 86400.0
+    # JD for 2000-01-01T12:00:00 is 2451545.0
+    jd_2000 = 2451545.0
+    dt_2000 = datetime(2000, 1, 1, 12, 0, 0)
+    jd_start = jd_2000 + (dt - dt_2000).total_seconds() / 86400.0
 
-    # Create time array (MJD)
+    # Create time array (JD)
     dt_sec = 12.88  # Integration time in seconds
     time_array = np.repeat(
-        mjd_start + np.arange(ntimes) * dt_sec / 86400.0,
+        jd_start + np.arange(ntimes) * dt_sec / 86400.0,
         nbls,
     )
 
@@ -102,67 +106,89 @@ def create_minimal_uvh5(
 
     # Create UVW array (simplified - just random for testing)
     rng = np.random.default_rng(42 + subband_idx)
-    uvw_array = rng.uniform(-1000, 1000, size=(nblts, 3))
+    uvw_array = rng.uniform(-1000, 1000, size=(nblts, 3)).astype(np.float64)
 
-    # Write HDF5 file with UVH5 structure
+    # LST array (radians)
+    # Approximate LST from JD (simplified)
+    lst_array = ((time_array - 2451545.0) * 2 * np.pi * 1.00273790935) % (2 * np.pi)
+
+    # Write HDF5 file with UVH5 structure matching real DSA-110 files
     with h5py.File(filepath, "w") as f:
         # Header group
         header = f.create_group("Header")
-        header.attrs["latitude"] = 37.2339  # OVRO latitude
-        header.attrs["longitude"] = -118.2817  # OVRO longitude
-        header.attrs["altitude"] = 1222.0  # meters
-        header.attrs["telescope_name"] = "DSA-110"
-        header.attrs["instrument"] = "DSA-110"
-        header.attrs["object_name"] = "synthetic_test"
-        header.attrs["history"] = "Synthetic test data"
-        header.attrs["vis_units"] = "Jy"
 
-        # Dimensions
-        header.attrs["Nants_data"] = nants
-        header.attrs["Nants_telescope"] = nants
-        header.attrs["Nbls"] = nbls
-        header.attrs["Nblts"] = nblts
-        header.attrs["Nfreqs"] = nfreqs
-        header.attrs["Npols"] = npols
-        header.attrs["Nspws"] = 1
-        header.attrs["Ntimes"] = ntimes
+        # Scalar metadata as datasets (matching real files)
+        header.create_dataset("latitude", data=np.float64(37.2339))  # OVRO latitude
+        header.create_dataset("longitude", data=np.float64(-118.2817))  # OVRO longitude
+        header.create_dataset("altitude", data=np.float64(1222.0))  # meters
+        header.create_dataset("telescope_name", data=np.bytes_("DSA-110"))
+        header.create_dataset("instrument", data=np.bytes_("dsa"))
+        header.create_dataset("object_name", data=np.bytes_("zenith"))
+        header.create_dataset("history", data=np.bytes_("Synthetic test data"))
+
+        # Dimensions as scalar datasets
+        header.create_dataset("Nants_data", data=np.int64(nants))
+        header.create_dataset("Nants_telescope", data=np.int64(nants))
+        header.create_dataset("Nbls", data=np.int64(nbls))
+        header.create_dataset("Nblts", data=np.int64(nblts))
+        header.create_dataset("Nfreqs", data=np.int64(nfreqs))
+        header.create_dataset("Npols", data=np.int64(npols))
+        header.create_dataset("Nspws", data=np.int64(1))
+        header.create_dataset("Ntimes", data=np.int64(ntimes))
 
         # Antenna info
-        header.create_dataset("antenna_numbers", data=np.arange(nants))
+        header.create_dataset("antenna_numbers", data=np.arange(nants, dtype=np.int64))
         header.create_dataset(
             "antenna_names",
-            data=np.array([f"ANT{i:03d}" for i in range(nants)], dtype="S10"),
+            data=np.array([f"{i:03d}" for i in range(nants)], dtype="S4"),
         )
         header.create_dataset(
             "antenna_positions",
-            data=rng.uniform(-100, 100, size=(nants, 3)),
+            data=rng.uniform(-100, 100, size=(nants, 3)).astype(np.float64),
+        )
+        header.create_dataset(
+            "antenna_diameters",
+            data=np.full(nants, 4.65, dtype=np.float64),  # DSA-110 dish size
         )
 
         # Frequency info
-        header.create_dataset("freq_array", data=freq_array.reshape(1, -1))
-        header.create_dataset("channel_width", data=np.full(nfreqs, 125e6 / nfreqs))
-        header.create_dataset("spw_array", data=np.array([0]))
+        header.create_dataset("freq_array", data=freq_array.reshape(1, -1).astype(np.float64))
+        header.create_dataset("channel_width", data=np.float64(125e6 / nfreqs))
+        header.create_dataset("spw_array", data=np.array([0], dtype=np.int64))
 
-        # Polarization
-        header.create_dataset("polarization_array", data=np.array([-5, -6, -7, -8]))
+        # Polarization (-5=XX, -6=XY, -7=YX, -8=YY) - DSA-110 uses XX, YY
+        if npols == 2:
+            header.create_dataset("polarization_array", data=np.array([-5, -8], dtype=np.int64))
+        else:
+            header.create_dataset("polarization_array", data=np.array([-5, -6, -7, -8], dtype=np.int64))
 
-        # Phase center (ICRS)
-        header.attrs["phase_center_ra"] = 1.0  # radians
-        header.attrs["phase_center_dec"] = 0.5  # radians
-        header.attrs["phase_center_frame"] = "icrs"
-        header.attrs["phase_center_epoch"] = 2000.0
+        # Phase center info (matching real files)
+        header.create_dataset("phase_type", data=np.bytes_("drift"))
+        header.create_dataset("phase_center_app_dec", data=np.float64(0.65))  # ~37 deg
 
-        # Data group
+        # extra_keywords group for phase center (matching real structure)
+        extra = header.create_group("extra_keywords")
+        extra.create_dataset("phase_center_dec", data=np.float64(0.65))
+        extra.create_dataset("phase_center_epoch", data=np.bytes_("J2000"))
+        extra.create_dataset("ha_phase_center", data=np.float64(0.0))
+        extra.create_dataset("applied_delays_ns", data=np.bytes_("none"))
+        extra.create_dataset("fs_table", data=np.bytes_("none"))
+
+        # Time-varying arrays in Header (matching real files)
+        header.create_dataset("time_array", data=time_array.astype(np.float64))
+        header.create_dataset("uvw_array", data=uvw_array)
+        header.create_dataset("ant_1_array", data=ant1_array.astype(np.int64))
+        header.create_dataset("ant_2_array", data=ant2_array.astype(np.int64))
+        header.create_dataset(
+            "integration_time",
+            data=np.full(nblts, dt_sec, dtype=np.float64),
+        )
+
+        # Data group (only visdata, flags, nsamples)
         data_grp = f.create_group("Data")
         data_grp.create_dataset("visdata", data=data_array)
         data_grp.create_dataset("flags", data=flag_array)
         data_grp.create_dataset("nsamples", data=nsample_array)
-        data_grp.create_dataset("uvw_array", data=uvw_array)
-        data_grp.create_dataset("time_array", data=time_array)
-        data_grp.create_dataset("integration_time", data=np.full(nblts, dt_sec))
-        data_grp.create_dataset("ant_1_array", data=ant1_array)
-        data_grp.create_dataset("ant_2_array", data=ant2_array)
-        data_grp.create_dataset("lst_array", data=time_array * 2 * np.pi % (2 * np.pi))
 
 
 def create_subband_group(

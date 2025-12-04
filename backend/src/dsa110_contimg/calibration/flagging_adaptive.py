@@ -14,9 +14,9 @@ over-flagging good data.
 from __future__ import annotations
 
 import logging
+import subprocess
 import time
-from dataclasses import dataclass, field
-from pathlib import Path
+from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, TypedDict
 
 logger = logging.getLogger(__name__)
@@ -28,7 +28,6 @@ class CalibrationFailure(Exception):
     This exception is used to signal that the current flagging strategy
     is insufficient and a more aggressive approach should be tried.
     """
-    pass
 
 
 class AdaptiveFlaggingResult(TypedDict):
@@ -86,9 +85,37 @@ def _get_flag_fraction(ms_path: str) -> float:
             if flags.size == 0:
                 return 0.0
             return float(np.sum(flags) / flags.size)
-    except Exception as e:
-        logger.warning(f"Failed to get flag fraction: {e}")
+    except (OSError, RuntimeError, KeyError) as e:
+        logger.warning("Failed to get flag fraction: %s", e)
         return 0.0
+
+
+def _apply_gpu_flagging(
+    ms_path: str,
+    strategy: FlaggingStrategy,
+    datacolumn: str,
+) -> bool:
+    """Apply GPU-accelerated RFI flagging.
+    
+    Returns:
+        True if GPU flagging succeeded, False if fallback needed.
+    """
+    try:
+        from dsa110_contimg.rfi import gpu_rfi_detection, RFIDetectionConfig
+        
+        config = RFIDetectionConfig(
+            threshold=5.0 / strategy.threshold_scale,
+            apply_flags=True,
+        )
+        result = gpu_rfi_detection(ms_path, config=config)
+        
+        if result.success:
+            return True
+        logger.warning("GPU RFI detection failed: %s", result.error)
+        return False
+    except ImportError:
+        logger.warning("GPU RFI detection not available, using standard flagging")
+        return False
 
 
 def _apply_flagging_strategy(
@@ -108,7 +135,9 @@ def _apply_flagging_strategy(
     """
     from dsa110_contimg.calibration.flagging import flag_rfi, reset_flags, flag_zeros
     
-    logger.info(f"Applying flagging strategy: {strategy.name} (backend={strategy.backend})")
+    logger.info(
+        "Applying flagging strategy: %s (backend=%s)", strategy.name, strategy.backend
+    )
     
     # Reset flags before applying new strategy
     reset_flags(ms_path)
@@ -116,36 +145,13 @@ def _apply_flagging_strategy(
     
     initial_fraction = _get_flag_fraction(ms_path)
     
+    # Try GPU if requested, fall back to standard if it fails
+    gpu_succeeded = False
     if strategy.use_gpu:
-        # Use GPU-accelerated RFI detection
-        try:
-            from dsa110_contimg.rfi import gpu_rfi_detection, RFIDetectionConfig
-            
-            config = RFIDetectionConfig(
-                threshold=5.0 / strategy.threshold_scale,  # Lower = more aggressive
-                apply_flags=True,
-            )
-            result = gpu_rfi_detection(ms_path, config=config)
-            
-            if not result.success:
-                logger.warning(f"GPU RFI detection failed: {result.error}")
-                # Fall back to standard flagging
-                flag_rfi(
-                    ms_path,
-                    datacolumn=datacolumn,
-                    backend=strategy.backend,
-                    strategy=strategy.strategy_file,
-                )
-        except ImportError:
-            logger.warning("GPU RFI detection not available, using standard flagging")
-            flag_rfi(
-                ms_path,
-                datacolumn=datacolumn,
-                backend=strategy.backend,
-                strategy=strategy.strategy_file,
-            )
-    else:
-        # Standard flagging
+        gpu_succeeded = _apply_gpu_flagging(ms_path, strategy, datacolumn)
+    
+    # Use standard flagging if GPU not requested or failed
+    if not strategy.use_gpu or not gpu_succeeded:
         flag_rfi(
             ms_path,
             datacolumn=datacolumn,
@@ -155,7 +161,8 @@ def _apply_flagging_strategy(
     
     final_fraction = _get_flag_fraction(ms_path)
     logger.info(
-        f"Strategy '{strategy.name}': flagged fraction {initial_fraction:.2%} -> {final_fraction:.2%}"
+        "Strategy '%s': flagged fraction %.2f%% -> %.2f%%",
+        strategy.name, initial_fraction * 100, final_fraction * 100
     )
     
     return final_fraction
@@ -228,7 +235,10 @@ def flag_rfi_adaptive(
     final_flagged_fraction = 0.0
     
     for attempt, strategy in enumerate(strategy_chain, 1):
-        logger.info(f"Adaptive flagging attempt {attempt}/{len(strategy_chain)}: {strategy.name}")
+        logger.info(
+            "Adaptive flagging attempt %d/%d: %s",
+            attempt, len(strategy_chain), strategy.name
+        )
         
         try:
             # Apply flagging strategy
@@ -237,11 +247,11 @@ def flag_rfi_adaptive(
             )
             
             # Attempt calibration
-            logger.info(f"Testing calibration after {strategy.name} flagging...")
+            logger.info("Testing calibration after %s flagging...", strategy.name)
             calibrate_fn(ms_path, refant, **calibrate_kwargs)
             
             # Calibration succeeded!
-            logger.info(f"Calibration succeeded with strategy: {strategy.name}")
+            logger.info("Calibration succeeded with strategy: %s", strategy.name)
             return AdaptiveFlaggingResult(
                 success=True,
                 strategy=strategy.name,
@@ -254,18 +264,18 @@ def flag_rfi_adaptive(
         except CalibrationFailure as e:
             last_error = str(e)
             logger.warning(
-                f"Calibration failed with strategy '{strategy.name}': {e}"
+                "Calibration failed with strategy '%s': %s", strategy.name, e
             )
             if attempt < len(strategy_chain):
                 logger.info("Trying more aggressive flagging strategy...")
             continue
             
-        except Exception as e:
+        except (OSError, RuntimeError, ValueError) as e:
             # Unexpected error - log but continue trying
             last_error = str(e)
             logger.error(
-                f"Unexpected error during adaptive flagging attempt {attempt}: {e}",
-                exc_info=True
+                "Unexpected error during adaptive flagging attempt %d: %s",
+                attempt, e, exc_info=True
             )
             if attempt < len(strategy_chain):
                 logger.info("Trying next flagging strategy...")
@@ -273,8 +283,8 @@ def flag_rfi_adaptive(
     
     # All strategies exhausted
     logger.error(
-        f"Adaptive flagging failed: all {len(strategy_chain)} strategies exhausted. "
-        f"Last error: {last_error}"
+        "Adaptive flagging failed: all %d strategies exhausted. Last error: %s",
+        len(strategy_chain), last_error
     )
     
     return AdaptiveFlaggingResult(
@@ -313,7 +323,7 @@ def flag_rfi_with_gpu_fallback(
     """
     from dsa110_contimg.calibration.flagging import flag_rfi
     
-    result = {
+    result: Dict[str, Any] = {
         "method": "unknown",
         "success": False,
         "flagged_fraction": 0.0,
@@ -322,39 +332,12 @@ def flag_rfi_with_gpu_fallback(
     
     # Try GPU first if preferred
     if prefer_gpu:
-        try:
-            from dsa110_contimg.rfi import gpu_rfi_detection, RFIDetectionConfig, CUPY_AVAILABLE
-            
-            if CUPY_AVAILABLE:
-                logger.info("Attempting GPU-accelerated RFI flagging...")
-                config = RFIDetectionConfig(
-                    threshold=threshold,
-                    apply_flags=True,
-                )
-                gpu_result = gpu_rfi_detection(ms_path, config=config)
-                
-                if gpu_result.success:
-                    result["method"] = "gpu"
-                    result["success"] = True
-                    result["flagged_fraction"] = gpu_result.flag_percent / 100.0
-                    result["processing_time_s"] = gpu_result.processing_time_s
-                    logger.info(
-                        f"GPU RFI flagging complete: {gpu_result.flag_percent:.2f}% flagged "
-                        f"in {gpu_result.processing_time_s:.2f}s"
-                    )
-                    return result
-                else:
-                    logger.warning(f"GPU RFI flagging failed: {gpu_result.error}")
-            else:
-                logger.debug("CuPy not available, skipping GPU RFI detection")
-                
-        except ImportError:
-            logger.debug("GPU RFI module not available")
-        except Exception as e:
-            logger.warning(f"GPU RFI flagging failed: {e}")
+        gpu_result = _try_gpu_flagging(ms_path, threshold, result)
+        if gpu_result is not None:
+            return gpu_result
     
     # Fall back to standard flagging
-    logger.info(f"Using standard RFI flagging (backend={backend})")
+    logger.info("Using standard RFI flagging (backend=%s)", backend)
     try:
         initial_fraction = _get_flag_fraction(ms_path)
         flag_rfi(ms_path, backend=backend, strategy=strategy)
@@ -365,8 +348,55 @@ def flag_rfi_with_gpu_fallback(
         result["flagged_fraction"] = final_fraction
         result["rfi_flagged"] = final_fraction - initial_fraction
         
-    except Exception as e:
+    except (OSError, RuntimeError, subprocess.CalledProcessError) as e:
         result["error"] = str(e)
-        logger.error(f"Standard RFI flagging failed: {e}")
+        logger.error("Standard RFI flagging failed: %s", e)
     
     return result
+
+
+def _try_gpu_flagging(
+    ms_path: str,
+    threshold: float,
+    result: Dict[str, Any],
+) -> Optional[Dict[str, Any]]:
+    """Try GPU-accelerated flagging.
+    
+    Returns:
+        Updated result dict if GPU succeeded, None if fallback needed.
+    """
+    try:
+        from dsa110_contimg.rfi import gpu_rfi_detection, RFIDetectionConfig
+        from dsa110_contimg.rfi.gpu_detection import CUPY_AVAILABLE
+        
+        if not CUPY_AVAILABLE:
+            logger.debug("CuPy not available, skipping GPU RFI detection")
+            return None
+        
+        logger.info("Attempting GPU-accelerated RFI flagging...")
+        config = RFIDetectionConfig(
+            threshold=threshold,
+            apply_flags=True,
+        )
+        gpu_result = gpu_rfi_detection(ms_path, config=config)
+        
+        if gpu_result.success:
+            result["method"] = "gpu"
+            result["success"] = True
+            result["flagged_fraction"] = gpu_result.flag_percent / 100.0
+            result["processing_time_s"] = gpu_result.processing_time_s
+            logger.info(
+                "GPU RFI flagging complete: %.2f%% flagged in %.2fs",
+                gpu_result.flag_percent, gpu_result.processing_time_s
+            )
+            return result
+        
+        logger.warning("GPU RFI flagging failed: %s", gpu_result.error)
+        return None
+        
+    except ImportError:
+        logger.debug("GPU RFI module not available")
+        return None
+    except (OSError, RuntimeError) as e:
+        logger.warning("GPU RFI flagging failed: %s", e)
+        return None
