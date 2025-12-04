@@ -21,7 +21,7 @@ groups:
           component: storage
         annotations:
           summary: "Storage synchronization below threshold"
-          description: "HDF5 storage sync is at {{ $value | printf \"%.1f\" }}%, below 95% threshold. Files may not be indexed."
+          description: 'HDF5 storage sync is at {{ $value | printf "%.1f" }}%, below 95% threshold. Files may not be indexed.'
           runbook_url: "https://dsa110-contimg.readthedocs.io/troubleshooting/storage-sync"
 
       # Alert when storage sync is critically low
@@ -34,7 +34,7 @@ groups:
           component: storage
         annotations:
           summary: "Storage synchronization critically low"
-          description: "HDF5 storage sync is at {{ $value | printf \"%.1f\" }}%, significantly below threshold. Immediate investigation required."
+          description: 'HDF5 storage sync is at {{ $value | printf "%.1f" }}%, significantly below threshold. Immediate investigation required.'
           runbook_url: "https://dsa110-contimg.readthedocs.io/troubleshooting/storage-sync"
 
       # Alert when many orphaned files detected
@@ -89,7 +89,7 @@ groups:
           summary: "RAGFlow container is down"
           description: "The RAGFlow documentation search container is not running."
 
-      # Elasticsearch container issues  
+      # Elasticsearch container issues
       - alert: ElasticsearchContainerDown
         expr: contimg_docker_container_status{container="ragflow-elasticsearch01-1"} == 0
         for: 5m
@@ -113,4 +113,79 @@ groups:
           component: monitoring
         annotations:
           summary: "Metrics collection is slow"
-          description: "Metrics collection is taking {{ $value | printf \"%.1f\" }}s, which may indicate system performance issues."
+          description: 'Metrics collection is taking {{ $value | printf "%.1f" }}s, which may indicate system performance issues.'
+
+  - name: contimg_pipeline
+    rules:
+      # Stale calibration - no valid calibration in 24+ hours
+      - alert: StaleCalibration
+        expr: time() - contimg_calibration_last_valid_timestamp > 86400
+        for: 30m
+        labels:
+          severity: critical
+          service: contimg
+          component: calibration
+        annotations:
+          summary: "No valid calibration in 24+ hours"
+          description: "The calibration registry has not had a valid calibration update in over 24 hours. Imaging quality may be degraded."
+          runbook_url: "https://dsa110-contimg.readthedocs.io/troubleshooting/stale-calibration"
+
+      # Queue depth too high
+      - alert: ConversionQueueBacklog
+        expr: contimg_ingest_queue_pending_count > 100
+        for: 15m
+        labels:
+          severity: warning
+          service: contimg
+          component: conversion
+        annotations:
+          summary: "Conversion queue backlog exceeds 100 pending"
+          description: "There are {{ $value }} observation groups pending conversion. Processing may be falling behind data arrival rate."
+
+      # High failure rate
+      - alert: PipelineFailureRate
+        expr: rate(contimg_pipeline_failures_total[1h]) / rate(contimg_pipeline_runs_total[1h]) > 0.1
+        for: 10m
+        labels:
+          severity: critical
+          service: contimg
+          component: pipeline
+        annotations:
+          summary: "Pipeline failure rate exceeds 10%"
+          description: "More than 10% of pipeline runs in the last hour have failed. Immediate investigation required."
+
+      # Disk space critical
+      - alert: DiskSpaceCritical
+        expr: node_filesystem_avail_bytes{mountpoint=~"/data|/stage"} / node_filesystem_size_bytes{mountpoint=~"/data|/stage"} < 0.15
+        for: 5m
+        labels:
+          severity: critical
+          service: contimg
+          component: storage
+        annotations:
+          summary: "Disk space critically low on {{ $labels.mountpoint }}"
+          description: "Disk space on {{ $labels.mountpoint }} is below 15% available. Pipeline may fail due to lack of space."
+
+      # API response time degraded
+      - alert: APIResponseTimeSlow
+        expr: histogram_quantile(0.95, rate(contimg_api_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: contimg
+          component: api
+        annotations:
+          summary: "API p95 response time exceeds 2 seconds"
+          description: 'The 95th percentile API response time is {{ $value | printf "%.1f" }}s. Users may experience slow dashboard loading.'
+
+      # Processing stuck
+      - alert: ProcessingStuck
+        expr: contimg_ingest_queue_in_progress_count > 0 and changes(contimg_ingest_queue_completed_count[30m]) == 0
+        for: 30m
+        labels:
+          severity: warning
+          service: contimg
+          component: conversion
+        annotations:
+          summary: "Processing appears stuck"
+          description: "Jobs are in progress but no completions in 30 minutes. A job may be hung."

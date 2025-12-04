@@ -144,6 +144,9 @@ class ConversionStage:
         """
         t0 = time.perf_counter()
         
+        # Store file_paths for fallback to use
+        self._current_file_paths = file_paths
+        
         # Use group timestamp for start/end if not provided
         if start_time is None:
             start_time = group_id.replace("T", " ")
