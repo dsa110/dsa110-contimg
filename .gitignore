@@ -279,6 +279,9 @@ internal/
 *storybook.log
 storybook-static
 
-
-#Ignore vscode AI rules
+# Ignore vscode AI rules
 .github/instructions/codacy.instructions.md
+
+# Lock files
+*.lock
+**/*.lock

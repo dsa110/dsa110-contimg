@@ -108,9 +108,11 @@ class TestExecutionTask:
 
         args = task.to_cli_args()
 
+        # The old CLI only accepts positional args
         assert str(input_dir.resolve()) in args
         assert str(output_dir.resolve()) in args
-        assert "--scratch-dir" in args
+        assert "2025-06-01T12:00:00" in args
+        assert "2025-06-01T13:00:00" in args
 
     def test_validation(self, tmp_path: Path) -> None:
         """Test task validation."""
@@ -525,11 +527,13 @@ class TestSubprocessExecutor:
         executor = SubprocessExecutor()
         cmd = executor._build_command(task)
 
-        assert "groups" in cmd
+        # CLI uses 'batch' subcommand (not 'groups' which was old naming)
+        assert "batch" in cmd
         assert str(input_dir.resolve()) in cmd
         assert str(output_dir.resolve()) in cmd
-        assert "--writer" in cmd
-        assert "parallel-subband" in cmd
+        # Old CLI doesn't support --writer flag
+        assert "2025-06-01T12:00:00" in cmd
+        assert "2025-06-01T13:00:00" in cmd
 
     def test_build_environment(self, tmp_path: Path) -> None:
         """Test environment building."""

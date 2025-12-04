@@ -183,26 +183,17 @@ class ExecutionTask:
         """Convert task to CLI arguments for subprocess execution.
 
         Returns:
-            List of command-line arguments
+            List of command-line arguments for the batch CLI.
+            Note: The old CLI only accepts positional args (input_dir, output_dir, start_time, end_time).
+            Other options (writer, scratch-dir, etc.) are not supported by the deprecated CLI.
         """
+        # The deprecated conversion.cli batch command only accepts these 4 positional args
         args = [
             str(self.input_dir.resolve()),
             str(self.output_dir.resolve()),
             self.start_time,
             self.end_time,
-            "--writer", self.writer,
-            "--scratch-dir", str(self.scratch_dir.resolve()),
-            "--max-workers", str(self.resource_limits.max_workers),
         ]
-
-        if self.stage_to_tmpfs:
-            args.extend(["--stage-to-tmpfs", "--tmpfs-path", str(self.tmpfs_path)])
-
-        if not self.rename_calibrator_fields:
-            args.append("--no-rename-calibrator-fields")
-
-        if not self.use_interpolated_cal:
-            args.append("--no-interpolated-cal")
 
         return args
 

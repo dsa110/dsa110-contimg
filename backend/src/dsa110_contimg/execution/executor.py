@@ -370,11 +370,12 @@ class SubprocessExecutor(Executor):
         """
         cli_args = task.to_cli_args()
         # Prepend Python executable and module
+        # Use 'batch' subcommand (the current CLI structure)
         return [
             self.python_executable,
             "-m",
             "dsa110_contimg.conversion.cli",
-            "groups",
+            "batch",
         ] + cli_args
 
     def _build_environment(self, task: ExecutionTask) -> Dict[str, str]:
