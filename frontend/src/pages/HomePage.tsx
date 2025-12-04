@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { SkyCoverageMapSimple, type Pointing } from "../components/skymap";
+import { SkyCoverageMapVAST, type Pointing } from "../components/skymap";
 import { ServiceStatusPanel } from "../components/stats";
 import { PipelineStatusPanel, usePipelineStatus } from "../components/pipeline";
 import { useImages, useJobs, useSources } from "../hooks/useQueries";
@@ -204,14 +204,7 @@ const HomePage: React.FC = () => {
         </div>
         {pointings.length > 0 ? (
           <div className="card-body p-0">
-            <SkyCoverageMapSimple
-              pointings={pointings}
-              height={400}
-              showGalacticPlane
-              showEcliptic={false}
-              showRadioBackground
-              colorScheme="status"
-            />
+            <SkyCoverageMapVAST pointings={pointings} height={450} />
           </div>
         ) : (
           <p
