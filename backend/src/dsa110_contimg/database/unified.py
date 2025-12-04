@@ -673,6 +673,7 @@ def photometry_insert(
     ra_deg: float,
     dec_deg: float,
     flux_jy: float,
+    validate_image: bool = True,
     **kwargs
 ) -> int:
     """
@@ -680,17 +681,34 @@ def photometry_insert(
     
     Args:
         conn: Database connection
-        image_path: Path to source image
+        image_path: Path to source image (must exist in images table if validate_image=True)
         source_id: Source identifier
         ra_deg: Right ascension in degrees
         dec_deg: Declination in degrees
         flux_jy: Flux in Jansky
+        validate_image: If True, verify image_path exists in images table (default: True)
         **kwargs: Additional fields (flux_err_jy, peak_flux_jy, rms_jy, etc.)
         
     Returns:
         Photometry record ID
+        
+    Raises:
+        ValueError: If validate_image=True and image_path not found in images table
     """
     import time
+    
+    # Validate image exists in images table for proper foreign key relationship
+    if validate_image:
+        cursor = conn.execute(
+            "SELECT id FROM images WHERE path = ?",
+            (image_path,)
+        )
+        if cursor.fetchone() is None:
+            raise ValueError(
+                f"Image path '{image_path}' not found in images table. "
+                "Register the image first with register_image() or set validate_image=False."
+            )
+    
     kwargs.setdefault("measured_at", time.time())
     
     columns = ["image_path", "source_id", "ra_deg", "dec_deg", "flux_jy"] + list(kwargs.keys())

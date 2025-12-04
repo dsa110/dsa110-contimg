@@ -116,7 +116,13 @@ def synthetic_uvh5_files(contract_test_dir: Path) -> Generator[List[Path], None,
     """
     # Restore CWD to a valid directory - numba (used by pyuvdata) calls
     # os.path.relpath() which fails if CWD was changed to CASA log dir
-    saved_cwd = os.getcwd()
+    # or if the CWD was deleted. Use _ORIGINAL_CWD which is captured at import.
+    try:
+        saved_cwd = os.getcwd()
+    except (FileNotFoundError, OSError):
+        # CWD was deleted (e.g., temp CASA log dir cleaned up)
+        saved_cwd = None
+    
     try:
         if os.path.isdir(_ORIGINAL_CWD):
             os.chdir(_ORIGINAL_CWD)
