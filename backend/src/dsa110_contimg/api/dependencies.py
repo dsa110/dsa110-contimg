@@ -7,7 +7,10 @@ into route handlers using FastAPI's Depends() system.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import os
+import sqlite3
+from pathlib import Path
+from typing import TYPE_CHECKING, Generator
 
 from fastapi import Depends
 
@@ -114,3 +117,26 @@ def get_stats_service(
 def get_qa_service() -> QAService:
     """Get QA service instance."""
     return QAService()
+
+
+# Pipeline SQLite database dependency
+
+PIPELINE_DB_PATH = Path(
+    os.environ.get("PIPELINE_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3")
+)
+
+
+def get_pipeline_db() -> Generator[sqlite3.Connection, None, None]:
+    """
+    Get a connection to the pipeline SQLite database.
+    
+    Yields:
+        sqlite3.Connection with row_factory set
+    """
+    conn = sqlite3.connect(str(PIPELINE_DB_PATH), timeout=30.0)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA journal_mode=WAL")
+    try:
+        yield conn
+    finally:
+        conn.close()

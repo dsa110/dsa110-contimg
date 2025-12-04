@@ -108,6 +108,11 @@ from .routes import (
     alert_policies_router,
     retention_router,
     performance_router,
+    saved_queries_router,
+    backup_router,
+    triggers_router,
+    jupyter_router,
+    vo_export_router,
 )
 from .rate_limit import limiter, rate_limit_exceeded_handler
 from .websocket import ws_router
@@ -286,6 +291,11 @@ def create_app() -> FastAPI:
         (retention_router, "Retention", True),
         (health_router, "Health Monitoring", False),
         (performance_router, "Performance Monitoring", True),
+        (saved_queries_router, "Saved Queries", True),
+        (backup_router, "Backup", True),
+        (triggers_router, "Triggers", True),
+        (jupyter_router, "Jupyter", True),
+        (vo_export_router, "VO Export", True),
     ]
     
     # Mosaic router is pre-prefixed with /api/mosaic, include directly

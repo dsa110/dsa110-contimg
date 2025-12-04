@@ -126,26 +126,30 @@ def test_calibration_stage_validation(db_path: Path, group_id: str) -> bool:
     # Check for calibration tables in registry
     conn = sqlite3.connect(db_path)
     try:
+        # Check calibration_tables (actual table name)
         cursor = conn.execute("""
-            SELECT COUNT(*) FROM caltables WHERE state = 'valid'
+            SELECT COUNT(*) FROM calibration_tables
         """)
         count = cursor.fetchone()[0]
-        logger.info(f"  Found {count} valid calibration tables in registry")
+        logger.info(f"  Found {count} calibration tables in registry")
         
         if count == 0:
-            logger.warning("  No valid calibration tables - calibration stage would skip")
-            return True  # Not a failure, just a warning
+            logger.warning("  No calibration tables - calibration stage would need to solve")
+        else:
+            # Check recent calibrations
+            cursor = conn.execute("""
+                SELECT path, created_at, table_type, status
+                FROM calibration_tables 
+                ORDER BY created_at DESC 
+                LIMIT 3
+            """)
+            for row in cursor.fetchall():
+                logger.info(f"    Cal: {Path(row[0]).name} ({row[2]}) status={row[3]}")
         
-        # Check nearest calibration
-        cursor = conn.execute("""
-            SELECT source_name, obs_time, cal_type 
-            FROM caltables 
-            WHERE state = 'valid' 
-            ORDER BY obs_time DESC 
-            LIMIT 3
-        """)
-        for row in cursor.fetchall():
-            logger.info(f"    Cal: {row[0]} @ {row[1]} ({row[2]})")
+        # Check calibrator catalog
+        cursor = conn.execute("SELECT COUNT(*) FROM calibrator_catalog")
+        cat_count = cursor.fetchone()[0]
+        logger.info(f"  Calibrator catalog entries: {cat_count}")
         
     finally:
         conn.close()
@@ -202,15 +206,19 @@ def test_health_infrastructure() -> bool:
             message=f"{pct_free:.1f}% free",
         )
     
-    checker.register("disk", disk_check)
-    results = checker.check_all()
+    checker.register_check("disk", disk_check)
+    agg = checker.run_all()
     
-    for name, check in results.items():
+    for name, check in agg.checks.items():
         logger.info(f"  {name}: {check.status.value} - {check.message}")
     
-    # Test metrics
+    logger.info(f"  Overall status: {agg.overall_status.value}")
+    
+    # Test metrics dataclass
     metrics = PipelineMetrics()
-    logger.info(f"  Metrics initialized: uptime={metrics.uptime_seconds:.1f}s")
+    metrics.groups_processed = 5
+    metrics.queue_pending = 100
+    logger.info(f"  Metrics: processed={metrics.groups_processed}, pending={metrics.queue_pending}")
     
     logger.info("  ✓ Health infrastructure OK")
     return True
@@ -220,18 +228,20 @@ def test_retry_infrastructure() -> bool:
     """Test retry infrastructure."""
     logger.info("Testing retry infrastructure...")
     
-    from dsa110_contimg.conversion.streaming.retry import RetryConfig, with_retry
+    from dsa110_contimg.conversion.streaming.retry import RetryConfig, retry
+    from dsa110_contimg.conversion.streaming.exceptions import StreamingError
     
-    config = RetryConfig(max_attempts=3, base_delay=0.1)
+    config = RetryConfig(max_attempts=3, initial_delay_s=0.01)
     
     call_count = 0
     
-    @with_retry(config)
+    @retry(config)
     def flaky_function():
         nonlocal call_count
         call_count += 1
         if call_count < 2:
-            raise ValueError("Simulated failure")
+            # Must mark as retryable=True for retry to work
+            raise StreamingError("Simulated failure", retryable=True)
         return "success"
     
     result = flaky_function()
