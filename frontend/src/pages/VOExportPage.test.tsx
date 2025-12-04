@@ -542,7 +542,10 @@ describe("VOExportPage", () => {
       const decInputs = screen.getAllByLabelText(/^dec \(deg\)/i);
       await user.type(raInputs[0], "180.0");
       await user.type(decInputs[0], "-30.0");
-      await user.click(screen.getByRole("button", { name: /^search$/i }));
+
+      // Find the search button in the cone search panel (has emoji + Search text)
+      const searchButtons = screen.getAllByRole("button", { name: /search/i });
+      await user.click(searchButtons[0]);
 
       await waitFor(() => {
         expect(mutateAsync).toHaveBeenCalled();
