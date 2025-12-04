@@ -11,6 +11,7 @@ The ABSURD (Asynchronous Backend Service Using Redis Durably) task queue include
 ABSURD workers maintain two independent heartbeat systems:
 
 1. **Database Heartbeat** (existing)
+
    - Purpose: Track task execution progress
    - Destination: PostgreSQL database
    - Timing: Only sent while actively processing tasks
@@ -85,10 +86,10 @@ async def _api_heartbeat_loop(self):
     """Send continuous heartbeats to API monitor."""
     if not self.config.api_base_url:
         return  # API heartbeats disabled
-    
+
     session = aiohttp.ClientSession()
     token = self._create_jwt_token()
-    
+
     while True:
         try:
             await session.post(
@@ -98,7 +99,7 @@ async def _api_heartbeat_loop(self):
             )
         except Exception as e:
             logger.warning(f"API heartbeat failed: {e}")
-        
+
         await asyncio.sleep(self.config.api_heartbeat_interval_sec)
 ```
 
@@ -129,18 +130,21 @@ Tokens are refreshed every 50 minutes to prevent expiration.
 Registers or updates worker in the API monitor's in-memory registry.
 
 **Request:**
+
 ```json
 {
-  "state": "active"  // or "idle", "stopped"
+  "state": "active" // or "idle", "stopped"
 }
 ```
 
 **Headers:**
+
 ```
 Authorization: Bearer <jwt_token>
 ```
 
 **Response:**
+
 ```json
 {
   "status": "ok"
@@ -154,6 +158,7 @@ Authorization: Bearer <jwt_token>
 Returns all registered workers and counts.
 
 **Response:**
+
 ```json
 {
   "workers": [
@@ -180,14 +185,16 @@ The `PipelineStatusPanel` component displays worker status:
 // frontend/src/components/pipeline/PipelineStatusPanel.tsx
 const { data: workersRes } = useQuery({
   queryKey: ["absurd-workers"],
-  queryFn: () => client.get("/absurd/workers").then(r => r.data)
+  queryFn: () => client.get("/absurd/workers").then((r) => r.data),
 });
 
-const workerCount = workersRes?.total ?? 
+const workerCount =
+  workersRes?.total ??
   (Array.isArray(workersRes?.workers) ? workersRes.workers.length : 0);
 ```
 
 **Display:**
+
 - Status: "Healthy" (when workers > 0) or "No Workers" (when workers = 0)
 - Worker Count: Total number of registered workers
 - Color: Green for healthy, red for no workers
@@ -275,6 +282,7 @@ Dec 03 10:30:10 lxd110h17 python[12345]: INFO: Sent API heartbeat
 **Symptom**: Frontend shows "No Workers" even when workers are running.
 
 **Check:**
+
 1. Verify `ABSURD_API_BASE_URL` is set in `backend/.env`
 2. Check worker logs for heartbeat errors:
    ```bash
@@ -286,6 +294,7 @@ Dec 03 10:30:10 lxd110h17 python[12345]: INFO: Sent API heartbeat
    ```
 
 **Common causes:**
+
 - `ABSURD_API_BASE_URL` not set (heartbeats disabled)
 - API not running or wrong port
 - Authentication failures (missing `DSA110_JWT_SECRET`)
@@ -296,6 +305,7 @@ Dec 03 10:30:10 lxd110h17 python[12345]: INFO: Sent API heartbeat
 **Symptom**: Worker logs show "401 Unauthorized" on heartbeat.
 
 **Fix:**
+
 1. Ensure `DSA110_JWT_SECRET` is set in `.env`
 2. For development, disable auth:
    ```bash
@@ -312,6 +322,7 @@ Dec 03 10:30:10 lxd110h17 python[12345]: INFO: Sent API heartbeat
 **Symptom**: Worker logs show connection errors on heartbeat.
 
 **Check:**
+
 1. API is running:
    ```bash
    curl http://localhost:8000/api/v1/health
@@ -350,10 +361,10 @@ async def test_api_heartbeat_loop():
         api_heartbeat_interval_sec=5.0
     )
     worker = AbsurdWorker(config)
-    
+
     # Should send heartbeats every 5 seconds
     await asyncio.sleep(12)  # Allow 2 heartbeats
-    
+
     # Verify API received heartbeats
     response = await client.get("/absurd/workers")
     assert response.json()["total"] == 1
@@ -373,7 +384,9 @@ console.log("Active Workers:", data.active);
 
 // Verify frontend displays correctly
 await page.goto("http://localhost:3000");
-const workerCount = await page.locator('[data-testid="worker-count"]').textContent();
+const workerCount = await page
+  .locator('[data-testid="worker-count"]')
+  .textContent();
 console.log("Frontend Worker Count:", workerCount);
 ```
 
@@ -384,10 +397,10 @@ console.log("Frontend Worker Count:", workerCount);
 Default interval: **10 seconds**
 
 **Tradeoffs:**
+
 - **Shorter interval** (5s):
   - Pros: Faster detection of worker failures
   - Cons: More network traffic, more API load
-  
 - **Longer interval** (30s):
   - Pros: Lower overhead
   - Cons: Slower failure detection
@@ -397,11 +410,13 @@ Default interval: **10 seconds**
 ### Scaling Considerations
 
 **Impact per worker:**
+
 - Network: ~200 bytes per heartbeat (every 10s = 20 bytes/sec)
 - API: Single POST request (minimal CPU)
 - Memory: ~1KB per worker in registry
 
 **Example scaling:**
+
 - 10 workers: 200 bytes/sec network, 10KB memory
 - 100 workers: 2KB/sec network, 100KB memory
 - 1000 workers: 20KB/sec network, 1MB memory
@@ -447,4 +462,3 @@ Default interval: **10 seconds**
 ---
 
 **Summary**: The ABSURD worker API heartbeat system provides continuous, automatic worker registration for real-time monitoring. Workers independently maintain their presence in the API monitor, enabling accurate health dashboards and operational visibility.
-
