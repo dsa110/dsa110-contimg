@@ -7,7 +7,7 @@ All domains are consolidated into a single database with logical table groups:
 - Products domain: MS registry (ms_index), images, photometry, transients
 - Calibration domain: Calibration table registry (caltables)
 - HDF5 domain: HDF5 file index (hdf5_file_index)
-- Queue domain: Streaming queue management (ingest_queue, performance_metrics)
+- Queue domain: Streaming queue management (processing_queue, performance_metrics)
 - Data registry domain: Data staging and publishing (data_registry)
 
 Historical note: These domains were previously in separate .sqlite3 files
@@ -491,7 +491,7 @@ class PointingHistory(HDF5Base):
 
 
 # =============================================================================
-# Ingest Queue Domain Models (ingest_queue, performance_metrics tables)
+# Ingest Queue Domain Models (processing_queue, performance_metrics tables)
 # =============================================================================
 
 class PointingHistoryIngest(IngestBase):
@@ -509,11 +509,8 @@ class PointingHistoryIngest(IngestBase):
     )
 
 
-# Future: Add IngestQueue table when streaming converter is refactored
-# class IngestQueue(IngestBase):
-#     """Streaming ingest queue entries."""
-#     __tablename__ = "ingest_queue"
-#     ...
+# Note: processing_queue table is managed by dsa110_contimg.conversion.streaming.SubbandQueue
+# which uses direct SQL for performance. See streaming/queue.py for schema.
 
 
 # =============================================================================

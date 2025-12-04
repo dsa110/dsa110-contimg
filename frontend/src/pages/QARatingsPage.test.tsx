@@ -322,16 +322,22 @@ describe("QARatingsPage", () => {
       render(<QARatingsPage />, { wrapper: createWrapper() });
       await userEvent.click(screen.getByText(/My Ratings/));
 
-      expect(screen.getByText(/overall/)).toBeInTheDocument();
-      expect(screen.getByText(/calibration/)).toBeInTheDocument();
+      // Categories appear in rating cards
+      const overallMatches = screen.getAllByText(/overall/);
+      expect(overallMatches.length).toBeGreaterThanOrEqual(1);
+      const calibrationMatches = screen.getAllByText(/calibration/);
+      expect(calibrationMatches.length).toBeGreaterThanOrEqual(1);
     });
 
     it("displays quality flags on ratings", async () => {
       render(<QARatingsPage />, { wrapper: createWrapper() });
       await userEvent.click(screen.getByText(/My Ratings/));
 
-      expect(screen.getByText("Good")).toBeInTheDocument();
-      expect(screen.getByText("Uncertain")).toBeInTheDocument();
+      // Flags appear both in distribution and in rating cards
+      const goodMatches = screen.getAllByText("Good");
+      expect(goodMatches.length).toBeGreaterThanOrEqual(1);
+      const uncertainMatches = screen.getAllByText("Uncertain");
+      expect(uncertainMatches.length).toBeGreaterThanOrEqual(1);
     });
 
     it("shows loading state for user ratings", async () => {
@@ -394,7 +400,9 @@ describe("QARatingsPage", () => {
 
     it("displays images rated count", () => {
       render(<QARatingsPage />, { wrapper: createWrapper() });
-      expect(screen.getByText("800")).toBeInTheDocument();
+      // 800 appears both for images rated and good count in distribution
+      const eightHundredMatches = screen.getAllByText("800");
+      expect(eightHundredMatches.length).toBeGreaterThanOrEqual(1);
       expect(screen.getByText("Images Rated")).toBeInTheDocument();
     });
 
@@ -447,10 +455,13 @@ describe("QARatingsPage", () => {
 
     it("displays quality flag counts in distribution", () => {
       render(<QARatingsPage />, { wrapper: createWrapper() });
-      // These are in the distribution panel
-      expect(screen.getByText("800")).toBeInTheDocument(); // good
+      // 800 appears for both images rated and good count - use getAllByText
+      const eightHundredMatches = screen.getAllByText("800");
+      expect(eightHundredMatches.length).toBeGreaterThanOrEqual(1);
       expect(screen.getByText("250")).toBeInTheDocument(); // uncertain
-      expect(screen.getByText("100")).toBeInTheDocument(); // bad (and needs_review)
+      // 100 appears twice (bad and needs_review)
+      const hundredMatches = screen.getAllByText("100");
+      expect(hundredMatches.length).toBeGreaterThanOrEqual(2);
     });
   });
 
@@ -664,16 +675,30 @@ describe("QARatingsPage", () => {
       render(<QARatingsPage />, { wrapper: createWrapper() });
       await userEvent.click(screen.getByText(/My Ratings/));
 
-      const goodBadge = screen.getByText("Good");
-      expect(goodBadge).toHaveClass("text-green-600");
+      // Good appears in both distribution and rating cards
+      const goodBadges = screen.getAllByText("Good");
+      // At least one should have green text
+      const hasGreenBadge = goodBadges.some(
+        (badge) =>
+          badge.classList.contains("text-green-600") ||
+          badge.className.includes("text-green-600")
+      );
+      expect(hasGreenBadge).toBe(true);
     });
 
     it("renders Uncertain badge with correct color", async () => {
       render(<QARatingsPage />, { wrapper: createWrapper() });
       await userEvent.click(screen.getByText(/My Ratings/));
 
-      const uncertainBadge = screen.getByText("Uncertain");
-      expect(uncertainBadge).toHaveClass("text-yellow-600");
+      // Uncertain appears in both distribution and rating cards
+      const uncertainBadges = screen.getAllByText("Uncertain");
+      // At least one should have yellow text
+      const hasYellowBadge = uncertainBadges.some(
+        (badge) =>
+          badge.classList.contains("text-yellow-600") ||
+          badge.className.includes("text-yellow-600")
+      );
+      expect(hasYellowBadge).toBe(true);
     });
   });
 

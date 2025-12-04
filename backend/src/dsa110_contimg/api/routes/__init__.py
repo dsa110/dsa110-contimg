@@ -24,6 +24,9 @@ from .health import router as health_router
 from .alert_policies import router as alert_policies_router
 from .retention import router as retention_router
 from .performance import router as performance_router
+from .saved_queries import router as saved_queries_router
+from .backup import router as backup_router
+from .triggers import router as triggers_router
 
 __all__ = [
     "auth_router",
@@ -46,4 +49,7 @@ __all__ = [
     "alert_policies_router",
     "retention_router",
     "performance_router",
+    "saved_queries_router",
+    "backup_router",
+    "triggers_router",
 ]

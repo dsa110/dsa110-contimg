@@ -6,11 +6,16 @@ DSA-110 continuum imaging. It watches for incoming HDF5 subband files,
 groups them by observation time, and processes complete groups through
 conversion, calibration, imaging, and mosaic stages.
 
+Database:
+    Uses the `processing_queue` table (defined in database/schema.sql).
+    The queue is SQLite-backed with WAL mode for concurrent access.
+
 Architecture:
     - queue.py: SubbandQueue - SQLite-backed queue for tracking subband arrivals
     - watcher.py: StreamingWatcher - Watchdog-based filesystem monitoring
     - stages/: Pipeline stages for each processing step
     - worker.py: StreamingWorker - Orchestrates stages for queued groups
+    - cli.py: Command-line interface (entry point: dsa110-stream)
 
 Usage:
     from dsa110_contimg.conversion.streaming import (
@@ -19,7 +24,7 @@ Usage:
         StreamingWorker,
     )
     
-    # Create queue
+    # Create queue (uses existing processing_queue table)
     queue = SubbandQueue(db_path, expected_subbands=16)
     
     # Start watcher
@@ -30,8 +35,9 @@ Usage:
     worker = StreamingWorker(queue, output_dir)
     worker.run()
 
-The module maintains backwards compatibility with the original streaming_converter.py
-interface through re-exports.
+Note:
+    This module replaces the monolithic streaming_converter.py.
+    The old module remains for backwards compatibility during transition.
 """
 
 from __future__ import annotations

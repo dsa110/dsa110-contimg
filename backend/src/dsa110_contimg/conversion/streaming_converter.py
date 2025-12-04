@@ -2,11 +2,25 @@
 """
 Streaming converter service for DSA-110 UVH5 subband groups.
 
+DEPRECATED: This monolithic module is being replaced by the modular
+dsa110_contimg.conversion.streaming package. New development should use:
+
+    from dsa110_contimg.conversion.streaming import (
+        SubbandQueue,      # Queue management
+        StreamingWatcher,  # File watching  
+        StreamingWorker,   # Pipeline orchestration
+    )
+
+This file remains for backwards compatibility during transition.
+
+---
+
 This daemon watches an ingest directory for new *_sb??.hdf5 files, queues
 complete 16-subband groups, and invokes the existing batch converter on each
 group using a scratch directory for staging.
 
-The queue is persisted in SQLite so the service can resume after restarts.
+The queue is persisted in SQLite (processing_queue table) so the service 
+can resume after restarts.
 """
 
 # CRITICAL: Configure h5py cache defaults BEFORE any imports that use h5py/pyuvdata
@@ -313,7 +327,7 @@ class QueueDB:
         with self._lock, self._conn:
             self._conn.execute(
                 """
-                CREATE TABLE IF NOT EXISTS ingest_queue (
+                CREATE TABLE IF NOT EXISTS processing_queue (
                     group_id TEXT PRIMARY KEY,
                     state TEXT NOT NULL,
                     received_at REAL NOT NULL,
@@ -367,30 +381,30 @@ class QueueDB:
             try:
                 columns = {
                     row["name"]
-                    for row in self._conn.execute("PRAGMA table_info(ingest_queue)").fetchall()
+                    for row in self._conn.execute("PRAGMA table_info(processing_queue)").fetchall()
                 }
             except sqlite3.DatabaseError as exc:  # pragma: no cover - defensive path
-                logging.error("Failed to inspect ingest_queue schema: %s", exc)
+                logging.error("Failed to inspect processing_queue schema: %s", exc)
                 return
 
             if "checkpoint_path" not in columns:
-                self._conn.execute("ALTER TABLE ingest_queue ADD COLUMN checkpoint_path TEXT")
+                self._conn.execute("ALTER TABLE processing_queue ADD COLUMN checkpoint_path TEXT")
             if "processing_stage" not in columns:
                 self._conn.execute(
-                    "ALTER TABLE ingest_queue ADD COLUMN "
+                    "ALTER TABLE processing_queue ADD COLUMN "
                     "processing_stage TEXT DEFAULT 'collecting'"
                 )
                 self._conn.execute(
-                    "UPDATE ingest_queue SET processing_stage = 'collecting' "
+                    "UPDATE processing_queue SET processing_stage = 'collecting' "
                     "WHERE processing_stage IS NULL"
                 )
             if "chunk_minutes" not in columns:
-                self._conn.execute("ALTER TABLE ingest_queue ADD COLUMN chunk_minutes REAL")
+                self._conn.execute("ALTER TABLE processing_queue ADD COLUMN chunk_minutes REAL")
             if "expected_subbands" not in columns:
-                self._conn.execute("ALTER TABLE ingest_queue ADD COLUMN expected_subbands INTEGER")
+                self._conn.execute("ALTER TABLE processing_queue ADD COLUMN expected_subbands INTEGER")
                 try:
                     self._conn.execute(
-                        "UPDATE ingest_queue SET expected_subbands = ? "
+                        "UPDATE processing_queue SET expected_subbands = ? "
                         "WHERE expected_subbands IS NULL",
                         (self.expected_subbands,),
                     )
@@ -416,7 +430,7 @@ class QueueDB:
     def _normalize_existing_groups(self) -> None:
         with self._lock, self._conn:
             try:
-                rows = self._conn.execute("SELECT group_id FROM ingest_queue").fetchall()
+                rows = self._conn.execute("SELECT group_id FROM processing_queue").fetchall()
             except sqlite3.DatabaseError:
                 return
             for r in rows:
@@ -425,7 +439,7 @@ class QueueDB:
                 if norm != gid:
                     try:
                         self._conn.execute(
-                            "UPDATE ingest_queue SET group_id = ? WHERE group_id = ?",
+                            "UPDATE processing_queue SET group_id = ? WHERE group_id = ?",
                             (norm, gid),
                         )
                         self._conn.execute(
@@ -443,7 +457,7 @@ class QueueDB:
             try:
                 columns = {
                     row["name"]
-                    for row in self._conn.execute("PRAGMA table_info(ingest_queue)").fetchall()
+                    for row in self._conn.execute("PRAGMA table_info(processing_queue)").fetchall()
                 }
             except sqlite3.DatabaseError:
                 columns = set()
@@ -451,15 +465,15 @@ class QueueDB:
             altered = False
             if "has_calibrator" not in columns:
                 self._conn.execute(
-                    "ALTER TABLE ingest_queue ADD COLUMN has_calibrator INTEGER DEFAULT NULL"
+                    "ALTER TABLE processing_queue ADD COLUMN has_calibrator INTEGER DEFAULT NULL"
                 )
                 altered = True
             if "calibrators" not in columns:
-                self._conn.execute("ALTER TABLE ingest_queue ADD COLUMN calibrators TEXT")
+                self._conn.execute("ALTER TABLE processing_queue ADD COLUMN calibrators TEXT")
                 altered = True
 
             if altered:
-                logging.info("Updated ingest_queue schema with new metadata columns.")
+                logging.info("Updated processing_queue schema with new metadata columns.")
 
         with self._lock, self._conn:
             try:
@@ -500,8 +514,8 @@ class QueueDB:
                 rows = self._conn.execute(
                     """
                     SELECT group_id,
-                           (SELECT COUNT(*) FROM subband_files WHERE subband_files.group_id = ingest_queue.group_id) as subband_count
-                    FROM ingest_queue
+                           (SELECT COUNT(*) FROM subband_files WHERE subband_files.group_id = processing_queue.group_id) as subband_count
+                    FROM processing_queue
                     WHERE state IN ('collecting', 'pending')
                     ORDER BY group_id
                     """
@@ -568,7 +582,7 @@ class QueueDB:
                         )
                         # Delete the now-empty source group
                         self._conn.execute(
-                            "DELETE FROM ingest_queue WHERE group_id = ?",
+                            "DELETE FROM processing_queue WHERE group_id = ?",
                             (src_gid,),
                         )
                         merged_count += 1
@@ -603,7 +617,7 @@ class QueueDB:
         try:
             rows = self._conn.execute(
                 """
-                SELECT group_id FROM ingest_queue
+                SELECT group_id FROM processing_queue
                 WHERE state IN ('collecting', 'pending')
                 ORDER BY received_at DESC
                 LIMIT 100
@@ -667,7 +681,7 @@ class QueueDB:
                 self._conn.execute("BEGIN")
                 self._conn.execute(
                     """
-                    INSERT OR IGNORE INTO ingest_queue (group_id, state, received_at, last_update, chunk_minutes, expected_subbands)
+                    INSERT OR IGNORE INTO processing_queue (group_id, state, received_at, last_update, chunk_minutes, expected_subbands)
                     VALUES (?, 'collecting', ?, ?, ?, ?)
                     """,
                     (
@@ -690,7 +704,7 @@ class QueueDB:
                 )
                 self._conn.execute(
                     """
-                    UPDATE ingest_queue
+                    UPDATE processing_queue
                        SET last_update = ?
                      WHERE group_id = ?
                     """,
@@ -703,7 +717,7 @@ class QueueDB:
                 if count >= self.expected_subbands:
                     self._conn.execute(
                         """
-                        UPDATE ingest_queue
+                        UPDATE processing_queue
                            SET state = CASE WHEN state = 'completed' THEN state ELSE 'pending' END,
                                last_update = ?
                          WHERE group_id = ?
@@ -757,7 +771,7 @@ class QueueDB:
                 self._conn.execute("BEGIN")
                 row = self._conn.execute(
                     """
-                    SELECT group_id FROM ingest_queue
+                    SELECT group_id FROM processing_queue
                      WHERE state = 'pending'
                      ORDER BY group_id ASC
                      LIMIT 1
@@ -770,7 +784,7 @@ class QueueDB:
                 now = time.time()
                 self._conn.execute(
                     """
-                    UPDATE ingest_queue
+                    UPDATE processing_queue
                        SET state = 'in_progress',
                            last_update = ?
                      WHERE group_id = ?
@@ -796,7 +810,7 @@ class QueueDB:
                 if error is not None:
                     self._conn.execute(
                         """
-                        UPDATE ingest_queue
+                        UPDATE processing_queue
                            SET state = ?, last_update = ?, error = ?
                          WHERE group_id = ?
                         """,
@@ -805,7 +819,7 @@ class QueueDB:
                 else:
                     self._conn.execute(
                         """
-                        UPDATE ingest_queue
+                        UPDATE processing_queue
                            SET state = ?, last_update = ?
                          WHERE group_id = ?
                         """,
@@ -2300,16 +2314,16 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                         exc_info=True,
                     )
 
-            # Update ingest_queue with calibrator status
+            # Update processing_queue with calibrator status
             try:
                 conn_queue = queue.conn
                 conn_queue.execute(
-                    "UPDATE ingest_queue SET has_calibrator = ? WHERE group_id = ?",
+                    "UPDATE processing_queue SET has_calibrator = ? WHERE group_id = ?",
                     (1 if is_calibrator else 0, gid),
                 )
                 conn_queue.commit()
             except Exception as e:
-                log.debug("Failed to update has_calibrator in ingest_queue: %s", e)
+                log.debug("Failed to update has_calibrator in processing_queue: %s", e)
 
             # Apply calibration from registry if available, then image (development tier)
             try:
@@ -2963,7 +2977,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             try:
                 with qdb._lock:
                     cur = qdb._conn.execute(
-                        "SELECT state, COUNT(*) FROM ingest_queue GROUP BY state"
+                        "SELECT state, COUNT(*) FROM processing_queue GROUP BY state"
                     ).fetchall()
                 stats = {r[0]: r[1] for r in cur}
                 log.info("Queue stats: %s", stats)

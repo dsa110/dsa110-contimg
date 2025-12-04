@@ -97,6 +97,9 @@ export const ROUTES = {
   /** QA Ratings dashboard */
   RATINGS: "/ratings",
 
+  /** Comments dashboard */
+  COMMENTS: "/comments",
+
   /** Calibrator Imaging Test */
   CALIBRATOR_IMAGING: "/calibrator-imaging",
 } as const;

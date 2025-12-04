@@ -34,6 +34,7 @@ const PipelineTriggersPage = lazy(() => import("./pages/PipelineTriggersPage"));
 const VOExportPage = lazy(() => import("./pages/VOExportPage"));
 const JupyterPage = lazy(() => import("./pages/JupyterPage"));
 const QARatingsPage = lazy(() => import("./pages/QARatingsPage"));
+const CommentsPage = lazy(() => import("./pages/CommentsPage"));
 
 /**
  * Application router configuration.
@@ -291,6 +292,16 @@ export const router = createBrowserRouter(
             <Suspense fallback={<PageSkeleton variant="list" />}>
               <ProtectedRoute requiredRoles={["viewer", "operator", "admin"]}>
                 <QARatingsPage />
+              </ProtectedRoute>
+            </Suspense>
+          ),
+        },
+        {
+          path: "comments",
+          element: (
+            <Suspense fallback={<PageSkeleton variant="list" />}>
+              <ProtectedRoute requiredRoles={["viewer", "operator", "admin"]}>
+                <CommentsPage />
               </ProtectedRoute>
             </Suspense>
           ),

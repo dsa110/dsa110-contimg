@@ -1193,7 +1193,7 @@ async def _recover_stuck_groups(config: PipelineConfig, max_stale_hours: float) 
         # Find stuck in_progress groups
         cursor = conn.execute(
             """
-            SELECT group_id FROM ingest_queue
+            SELECT group_id FROM processing_queue
             WHERE state = 'in_progress' AND last_update < ?
             """,
             (cutoff_time,),
@@ -1204,7 +1204,7 @@ async def _recover_stuck_groups(config: PipelineConfig, max_stale_hours: float) 
         for group_id in stuck_groups:
             conn.execute(
                 """
-                UPDATE ingest_queue
+                UPDATE processing_queue
                 SET state = 'pending', 
                     last_update = ?,
                     error = 'Recovered by housekeeping (was stuck)'
