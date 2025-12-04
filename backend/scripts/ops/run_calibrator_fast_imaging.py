@@ -72,6 +72,11 @@ DSA110_LOCATION = EarthLocation(
 TRANSIT_WINDOW_START = "12:30:00"
 TRANSIT_WINDOW_END = "13:10:00"
 
+# Pointing validation tolerance (degrees)
+# DSA-110 primary beam FWHM ~ 2.7° at 1.4 GHz (4.65m dishes)
+# Use HWHM (~1.35°) to ensure source is within 50% power point
+POINTING_TOLERANCE_DEG = 1.35
+
 # Default paths (can be overridden by environment or config)
 DEFAULT_DB_PATH = Path("/data/dsa110-contimg/state/db/pipeline.sqlite3")
 DEFAULT_INPUT_DIR = Path("/data/incoming")
@@ -90,6 +95,8 @@ class TransitObservation:
     altitude_deg: float
     azimuth_deg: float
     file_paths: List[str]
+    pointing_dec_deg: Optional[float] = None  # Actual telescope pointing Dec
+    pointing_validated: bool = False  # Whether pointing was checked against calibrator
 
     @property
     def is_complete(self) -> bool:
@@ -99,6 +106,64 @@ class TransitObservation:
     def is_near_meridian(self) -> bool:
         """Check if calibrator was near meridian (az ~ 0 or 360 for northern sources)."""
         return self.azimuth_deg < 30 or self.azimuth_deg > 330
+
+
+def get_pointing_from_hdf5(hdf5_path: str) -> Optional[float]:
+    """
+    Extract the pointing declination from an HDF5 file.
+    
+    Returns:
+        Declination in degrees, or None if not found.
+    """
+    import h5py
+    import numpy as np
+    
+    try:
+        with h5py.File(hdf5_path, 'r') as h:
+            # Try the standard location for phase center dec
+            if 'Header/extra_keywords/phase_center_dec' in h:
+                dec_rad = h['Header/extra_keywords/phase_center_dec'][()]
+                return float(np.degrees(dec_rad))
+            # Fallback to other possible locations
+            if 'Header/phase_center_app_dec' in h:
+                dec_rad = h['Header/phase_center_app_dec'][()]
+                return float(np.degrees(dec_rad))
+    except Exception as e:
+        logger.debug(f"Could not read pointing from {hdf5_path}: {e}")
+    return None
+
+
+def validate_pointing_matches_calibrator(
+    file_paths: List[str],
+    calibrator_dec_deg: float = CALIBRATOR_DEC_DEG,
+    tolerance_deg: float = POINTING_TOLERANCE_DEG,
+) -> tuple[bool, Optional[float]]:
+    """
+    Validate that an observation's pointing matches the expected calibrator.
+    
+    Args:
+        file_paths: List of HDF5 file paths for this observation
+        calibrator_dec_deg: Expected calibrator declination
+        tolerance_deg: Maximum allowed deviation in degrees
+        
+    Returns:
+        Tuple of (is_valid, actual_dec_deg)
+    """
+    # Check pointing from the first available file
+    for path in file_paths[:3]:  # Check up to 3 files for robustness
+        pointing_dec = get_pointing_from_hdf5(path)
+        if pointing_dec is not None:
+            offset = abs(pointing_dec - calibrator_dec_deg)
+            is_valid = offset <= tolerance_deg
+            if not is_valid:
+                logger.warning(
+                    f"Pointing mismatch: Dec={pointing_dec:.2f}° vs expected "
+                    f"{calibrator_dec_deg:.2f}° (offset={offset:.2f}°, tolerance={tolerance_deg}°)"
+                )
+            return is_valid, pointing_dec
+    
+    logger.warning(f"Could not extract pointing from any of {len(file_paths)} files")
+    return False, None
 
 
 # =============================================================================
@@ -304,12 +369,26 @@ def find_transit_observations(
                 continue
         
         # Add the best observation for this day (ONE per day)
+        # BUT FIRST validate that pointing actually matches the calibrator!
         if best_for_day is not None:
-            results.append(best_for_day)
-            logger.debug(
-                f"Selected peak transit for {obs_date}: {best_for_day.group_id} "
-                f"(alt={best_for_day.altitude_deg:.1f}°)"
+            is_valid, actual_dec = validate_pointing_matches_calibrator(
+                best_for_day.file_paths
             )
+            best_for_day.pointing_dec_deg = actual_dec
+            best_for_day.pointing_validated = is_valid
+            
+            if is_valid:
+                results.append(best_for_day)
+                logger.debug(
+                    f"Selected peak transit for {obs_date}: {best_for_day.group_id} "
+                    f"(alt={best_for_day.altitude_deg:.1f}°, dec={actual_dec:.2f}°)"
+                )
+            else:
+                dec_str = f"{actual_dec:.2f}" if actual_dec is not None else "unknown"
+                logger.info(
+                    f"Skipping {obs_date} {best_for_day.group_id}: pointing Dec={dec_str}° "
+                    f"does not match {CALIBRATOR_NAME} (expected ~{CALIBRATOR_DEC_DEG:.2f}°)"
+                )
         
         # Stop if we have enough results
         if len(results) >= num_transits:
@@ -583,8 +662,9 @@ def main():
 
     logger.info(f"Found {len(observations)} transit observations:")
     for i, obs in enumerate(observations, 1):
+        dec_str = f"{obs.pointing_dec_deg:.2f}" if obs.pointing_dec_deg is not None else "?"
         logger.info(
-            f"  {i}. {obs.timestamp_iso} | alt={obs.altitude_deg:.1f}° | "
+            f"  {i}. {obs.timestamp_iso} | dec={dec_str}° | "
             f"files={obs.file_count} | complete={obs.is_complete}"
         )
 

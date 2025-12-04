@@ -79,6 +79,9 @@ export const ROUTES = {
     QA_MS: (path: string) => `/qa/ms/${encodeURIComponent(path)}` as const,
   },
 
+  /** Data cleanup wizard */
+  CLEANUP: "/cleanup",
+
   /** Calibrator Imaging Test */
   CALIBRATOR_IMAGING: "/calibrator-imaging",
 } as const;

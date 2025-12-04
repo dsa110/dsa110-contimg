@@ -26,6 +26,9 @@ const RetentionPoliciesPage = lazy(
 );
 const LogsPage = lazy(() => import("./pages/LogsPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
+const DataCleanupWizardPage = lazy(
+  () => import("./pages/DataCleanupWizardPage")
+);
 
 /**
  * Application router configuration.
@@ -223,6 +226,16 @@ export const router = createBrowserRouter(
             <Suspense fallback={<PageSkeleton variant="list" />}>
               <ProtectedRoute requiredRoles={["operator", "admin"]}>
                 <RetentionPoliciesPage />
+              </ProtectedRoute>
+            </Suspense>
+          ),
+        },
+        {
+          path: "cleanup",
+          element: (
+            <Suspense fallback={<PageSkeleton variant="list" />}>
+              <ProtectedRoute requiredRoles={["operator", "admin"]}>
+                <DataCleanupWizardPage />
               </ProtectedRoute>
             </Suspense>
           ),
