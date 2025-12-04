@@ -2926,14 +2926,17 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     phot_worker = None
     if getattr(args, "enable_photometry", False):
-        products_db_path = _get_pipeline_db_path()
-        phot_worker = PhotometryBatchWorker(
-            products_db_path=products_db_path,
-            poll_interval=float(args.worker_poll_interval),
-            max_workers=getattr(args, "max_workers", None),
-        )
-        phot_worker.start()
-        log.info("Photometry batch worker started")
+        if not HAVE_PHOTOMETRY or PhotometryBatchWorker is None:
+            log.warning("Photometry requested but module not available, skipping")
+        else:
+            products_db_path = _get_pipeline_db_path()
+            phot_worker = PhotometryBatchWorker(
+                products_db_path=products_db_path,
+                poll_interval=float(args.worker_poll_interval),
+                max_workers=getattr(args, "max_workers", None),
+            )
+            phot_worker.start()
+            log.info("Photometry batch worker started")
 
     qdb = QueueDB(
         Path(args.queue_db),
