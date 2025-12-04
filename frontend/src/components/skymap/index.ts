@@ -7,6 +7,9 @@ export type {
 } from "./SkyCoverageMap";
 export { SURVEY_FOOTPRINTS } from "./SkyCoverageMap";
 
+export { default as SkyCoverageMapSimple } from "./SkyCoverageMapSimple";
+export type { SkyCoverageMapSimpleProps } from "./SkyCoverageMapSimple";
+
 export { CelestialMap } from "./CelestialMap";
 export type {
   CelestialMapProps,
