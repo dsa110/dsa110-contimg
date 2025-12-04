@@ -163,7 +163,7 @@ export function useBackups(options?: {
       if (options?.limit) params.append("limit", options.limit.toString());
 
       const response = await apiClient.get<{ backups: Backup[] }>(
-        `/api/v1/backups?${params}`
+        `/v1/backups?${params}`
       );
       return response.data.backups;
     },
@@ -178,7 +178,7 @@ export function useBackup(id: string) {
   return useQuery({
     queryKey: backupKeys.detail(id),
     queryFn: async () => {
-      const response = await apiClient.get<Backup>(`/api/v1/backups/${id}`);
+      const response = await apiClient.get<Backup>(`/v1/backups/${id}`);
       return response.data;
     },
     enabled: !!id,
@@ -193,7 +193,7 @@ export function useCreateBackup() {
 
   return useMutation({
     mutationFn: async (request: CreateBackupRequest) => {
-      const response = await apiClient.post<Backup>("/api/v1/backups", request);
+      const response = await apiClient.post<Backup>("/v1/backups", request);
       return response.data;
     },
     onSuccess: () => {
@@ -210,7 +210,7 @@ export function useDeleteBackup() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      await apiClient.delete(`/api/v1/backups/${id}`);
+      await apiClient.delete(`/v1/backups/${id}`);
       return id;
     },
     onSuccess: () => {
@@ -227,7 +227,7 @@ export function useValidateBackup(id: string) {
     queryKey: backupKeys.validation(id),
     queryFn: async () => {
       const response = await apiClient.post<BackupValidation>(
-        `/api/v1/backups/${id}/validate`
+        `/v1/backups/${id}/validate`
       );
       return response.data;
     },
@@ -242,7 +242,7 @@ export function useRestorePreview() {
   return useMutation({
     mutationFn: async (request: RestoreRequest) => {
       const response = await apiClient.post<RestorePreview>(
-        `/api/v1/backups/${request.backup_id}/restore/preview`,
+        `/v1/backups/${request.backup_id}/restore/preview`,
         { ...request, dry_run: true }
       );
       return response.data;
@@ -259,7 +259,7 @@ export function useRestore() {
   return useMutation({
     mutationFn: async (request: RestoreRequest) => {
       const response = await apiClient.post<RestoreJob>(
-        `/api/v1/backups/${request.backup_id}/restore`,
+        `/v1/backups/${request.backup_id}/restore`,
         request
       );
       return response.data;
@@ -278,7 +278,7 @@ export function useRestoreHistory(limit = 10) {
     queryKey: [...backupKeys.restores(), { limit }],
     queryFn: async () => {
       const response = await apiClient.get<{ restores: RestoreJob[] }>(
-        `/api/v1/restores?limit=${limit}`
+        `/v1/restores?limit=${limit}`
       );
       return response.data.restores;
     },
@@ -294,7 +294,7 @@ export function useRestoreJob(id: string) {
     queryKey: backupKeys.restore(id),
     queryFn: async () => {
       const response = await apiClient.get<RestoreJob>(
-        `/api/v1/restores/${id}`
+        `/v1/restores/${id}`
       );
       return response.data;
     },

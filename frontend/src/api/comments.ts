@@ -107,17 +107,17 @@ export const commentKeys = {
 async function getComments(
   params: CommentSearchParams = {}
 ): Promise<Comment[]> {
-  const response = await apiClient.get("/api/comments", { params });
+  const response = await apiClient.get("/v1/comments", { params });
   return response.data;
 }
 
 async function getComment(id: string): Promise<Comment> {
-  const response = await apiClient.get(`/api/comments/${id}`);
+  const response = await apiClient.get(`/v1/comments/${id}`);
   return response.data;
 }
 
 async function getCommentThread(commentId: string): Promise<CommentThread> {
-  const response = await apiClient.get(`/api/comments/${commentId}/thread`);
+  const response = await apiClient.get(`/v1/comments/${commentId}/thread`);
   return response.data;
 }
 
@@ -126,13 +126,13 @@ async function getCommentsForTarget(
   targetId: string
 ): Promise<Comment[]> {
   const response = await apiClient.get(
-    `/api/${targetType}s/${targetId}/comments`
+    `/v1/${targetType}s/${targetId}/comments`
   );
   return response.data;
 }
 
 async function createComment(data: CreateCommentRequest): Promise<Comment> {
-  const response = await apiClient.post("/api/comments", data);
+  const response = await apiClient.post("/v1/comments", data);
   return response.data;
 }
 
@@ -140,41 +140,41 @@ async function updateComment(
   id: string,
   data: UpdateCommentRequest
 ): Promise<Comment> {
-  const response = await apiClient.patch(`/api/comments/${id}`, data);
+  const response = await apiClient.patch(`/v1/comments/${id}`, data);
   return response.data;
 }
 
 async function deleteComment(id: string): Promise<void> {
-  await apiClient.delete(`/api/comments/${id}`);
+  await apiClient.delete(`/v1/comments/${id}`);
 }
 
 async function pinComment(id: string): Promise<Comment> {
-  const response = await apiClient.post(`/api/comments/${id}/pin`);
+  const response = await apiClient.post(`/v1/comments/${id}/pin`);
   return response.data;
 }
 
 async function unpinComment(id: string): Promise<Comment> {
-  const response = await apiClient.post(`/api/comments/${id}/unpin`);
+  const response = await apiClient.post(`/v1/comments/${id}/unpin`);
   return response.data;
 }
 
 async function resolveComment(id: string): Promise<Comment> {
-  const response = await apiClient.post(`/api/comments/${id}/resolve`);
+  const response = await apiClient.post(`/v1/comments/${id}/resolve`);
   return response.data;
 }
 
 async function unresolveComment(id: string): Promise<Comment> {
-  const response = await apiClient.post(`/api/comments/${id}/unresolve`);
+  const response = await apiClient.post(`/v1/comments/${id}/unresolve`);
   return response.data;
 }
 
 async function getCommentStats(): Promise<CommentStats> {
-  const response = await apiClient.get("/api/comments/stats");
+  const response = await apiClient.get("/v1/comments/stats");
   return response.data;
 }
 
 async function getMentionableUsers(): Promise<MentionedUser[]> {
-  const response = await apiClient.get("/api/comments/users");
+  const response = await apiClient.get("/v1/comments/users");
   return response.data;
 }
 

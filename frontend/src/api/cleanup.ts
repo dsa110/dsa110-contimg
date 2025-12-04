@@ -89,7 +89,7 @@ export interface CleanupJob {
   audit_note: string;
 }
 
-// API base URL
+// API base URL - uses fetch directly so needs full path
 const API_BASE = "/api/v1/cleanup";
 
 /**

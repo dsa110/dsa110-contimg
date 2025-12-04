@@ -111,7 +111,7 @@ export function useRatings(targetType: RatingTarget, targetId: string) {
     queryKey: ratingKeys.list(targetType, targetId),
     queryFn: async (): Promise<Rating[]> => {
       const response = await apiClient.get(
-        `/ratings/${targetType}/${targetId}`
+        `/v1/ratings/${targetType}/${targetId}`
       );
       return response.data;
     },
@@ -129,7 +129,7 @@ export function useRatingSummary(
     queryKey: [...ratingKeys.summary(targetType, targetId), category],
     queryFn: async (): Promise<RatingSummary> => {
       const response = await apiClient.get(
-        `/ratings/${targetType}/${targetId}/summary`,
+        `/v1/ratings/${targetType}/${targetId}/summary`,
         { params: { category } }
       );
       return response.data;
@@ -147,7 +147,7 @@ export function useTargetRatingSummary(
     queryKey: ratingKeys.targetSummary(targetType, targetId),
     queryFn: async (): Promise<TargetRatingSummary> => {
       const response = await apiClient.get(
-        `/ratings/${targetType}/${targetId}/complete-summary`
+        `/v1/ratings/${targetType}/${targetId}/complete-summary`
       );
       return response.data;
     },
@@ -161,7 +161,7 @@ export function useSubmitRating() {
 
   return useMutation({
     mutationFn: async (submission: RatingSubmission): Promise<Rating> => {
-      const response = await apiClient.post("/ratings", submission);
+      const response = await apiClient.post("/v1/ratings", submission);
       return response.data;
     },
     onSuccess: (_data, variables) => {
@@ -194,7 +194,7 @@ export function useUpdateRating() {
       ratingId,
       ...update
     }: Partial<RatingSubmission> & { ratingId: string }): Promise<Rating> => {
-      const response = await apiClient.patch(`/ratings/${ratingId}`, update);
+      const response = await apiClient.patch(`/v1/ratings/${ratingId}`, update);
       return response.data;
     },
     onSuccess: (data) => {
@@ -226,7 +226,7 @@ export function useDeleteRating() {
       targetType: RatingTarget;
       targetId: string;
     }): Promise<void> => {
-      await apiClient.delete(`/ratings/${ratingId}`);
+      await apiClient.delete(`/v1/ratings/${ratingId}`);
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({
@@ -251,7 +251,7 @@ export function useRatingStats() {
   return useQuery({
     queryKey: ratingKeys.stats(),
     queryFn: async (): Promise<RatingStats> => {
-      const response = await apiClient.get("/ratings/stats");
+      const response = await apiClient.get("/v1/ratings/stats");
       return response.data;
     },
     refetchInterval: 60000,
@@ -263,7 +263,7 @@ export function useRatingQueue(priority?: QueueItem["priority"]) {
   return useQuery({
     queryKey: [...ratingKeys.queue(), priority],
     queryFn: async (): Promise<QueueItem[]> => {
-      const response = await apiClient.get("/ratings/queue", {
+      const response = await apiClient.get("/v1/ratings/queue", {
         params: priority ? { priority } : {},
       });
       return response.data;
@@ -276,7 +276,7 @@ export function useUserRatings(userId?: string) {
   return useQuery({
     queryKey: ratingKeys.userRatings(userId),
     queryFn: async (): Promise<Rating[]> => {
-      const url = userId ? `/ratings/user/${userId}` : "/ratings/user/me";
+      const url = userId ? `/v1/ratings/user/${userId}` : "/v1/ratings/user/me";
       const response = await apiClient.get(url);
       return response.data;
     },
@@ -291,7 +291,7 @@ export function useAddToQueue() {
     mutationFn: async (
       item: Omit<QueueItem, "created_at">
     ): Promise<QueueItem> => {
-      const response = await apiClient.post("/ratings/queue", item);
+      const response = await apiClient.post("/v1/ratings/queue", item);
       return response.data;
     },
     onSuccess: () => {
@@ -312,7 +312,7 @@ export function useRemoveFromQueue() {
       targetType: RatingTarget;
       targetId: string;
     }): Promise<void> => {
-      await apiClient.delete(`/ratings/queue/${targetType}/${targetId}`);
+      await apiClient.delete(`/v1/ratings/queue/${targetType}/${targetId}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ratingKeys.queue() });

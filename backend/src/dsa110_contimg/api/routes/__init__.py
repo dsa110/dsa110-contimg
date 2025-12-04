@@ -25,12 +25,14 @@ from .health import router as health_router
 from .alert_policies import router as alert_policies_router
 from .retention import router as retention_router
 from .performance import router as performance_router
-from .saved_queries import router as saved_queries_router
+from .saved_queries import router as queries_router
 from .backup import router as backup_router
 from .triggers import router as triggers_router
 from .jupyter import router as jupyter_router
 from .vo_export import router as vo_export_router
 from .pipeline import router as pipeline_router
+from .ratings import router as ratings_router
+from .comments import router as comments_router
 
 __all__ = [
     "auth_router",
@@ -54,10 +56,12 @@ __all__ = [
     "alert_policies_router",
     "retention_router",
     "performance_router",
-    "saved_queries_router",
+    "queries_router",
     "backup_router",
     "triggers_router",
     "jupyter_router",
     "vo_export_router",
     "pipeline_router",
+    "ratings_router",
+    "comments_router",
 ]

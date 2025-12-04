@@ -220,7 +220,7 @@ export function useExportPreview() {
   return useMutation({
     mutationFn: async (filter: ExportFilter) => {
       const response = await apiClient.post<ExportPreview>(
-        "/api/v1/vo/exports/preview",
+        "/v1/vo/exports/preview",
         filter
       );
       return response.data;
@@ -237,7 +237,7 @@ export function useCreateExport() {
   return useMutation({
     mutationFn: async (request: CreateExportRequest) => {
       const response = await apiClient.post<ExportJob>(
-        "/api/v1/vo/exports",
+        "/v1/vo/exports",
         request
       );
       return response.data;
@@ -256,7 +256,7 @@ export function useDeleteExport() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      await apiClient.delete(`/api/v1/vo/exports/${id}`);
+      await apiClient.delete(`/v1/vo/exports/${id}`);
       return id;
     },
     onSuccess: () => {
@@ -277,7 +277,7 @@ export function useConeSearch() {
       limit?: number;
     }) => {
       const response = await apiClient.post<ConeSearchResult>(
-        "/api/v1/vo/cone-search",
+        "/v1/vo/cone-search",
         params
       );
       return response.data;
@@ -291,7 +291,7 @@ export function useConeSearch() {
 export function useTAPQuery() {
   return useMutation({
     mutationFn: async (query: string) => {
-      const response = await apiClient.post<TAPResult>("/api/v1/vo/tap/query", {
+      const response = await apiClient.post<TAPResult>("/v1/vo/tap/query", {
         query,
       });
       return response.data;
@@ -307,7 +307,7 @@ export function useTAPQueryStatus(queryId: string) {
     queryKey: [...voExportKeys.all, "tap", queryId],
     queryFn: async () => {
       const response = await apiClient.get<TAPResult>(
-        `/api/v1/vo/tap/query/${queryId}`
+        `/v1/vo/tap/query/${queryId}`
       );
       return response.data;
     },
