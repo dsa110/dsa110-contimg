@@ -218,7 +218,7 @@ async def execute_calibration_solve(params: Dict[str, Any]) -> Dict[str, Any]:
     Returns:
         Result dict with:
             - status: "success" or "error"
-            - outputs: Dict with calibration_tables (K, BP, G, etc.)
+            - outputs: Dict with `caltables` (K, BP, G, etc.)
             - message: Status message
             - errors: Error list (if failed)
 

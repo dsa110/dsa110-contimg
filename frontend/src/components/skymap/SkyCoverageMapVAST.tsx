@@ -323,6 +323,37 @@ const SkyCoverageMapVAST: React.FC<SkyCoverageMapVASTProps> = ({
         .attr("stroke-opacity", 0.8);
     });
 
+    // FIRST survey - render as polygon regions (not full Dec bands)
+    FIRST_REGIONS.forEach((region) => {
+      // Convert RA from 0-360 to -180 to 180 for projection
+      const projectedPolygon = region.polygon.map(([ra, dec]): [number, number] => {
+        let projRa = ra;
+        if (projRa > 180) projRa -= 360;
+        return [projRa, dec];
+      });
+
+      const geoPolygon: GeoJSON.Feature<GeoJSON.Polygon> = {
+        type: "Feature",
+        properties: { name: region.name },
+        geometry: {
+          type: "Polygon",
+          coordinates: [projectedPolygon],
+        },
+      };
+
+      surveysGroup
+        .append("path")
+        .datum(geoPolygon)
+        .attr("d", path)
+        .attr("clip-path", `url(#${clipId})`)
+        .attr("fill", FIRST_COLOR)
+        .attr("fill-opacity", FIRST_FILL_OPACITY)
+        .attr("stroke", FIRST_COLOR)
+        .attr("stroke-width", 1.5)
+        .attr("stroke-dasharray", "6,3")
+        .attr("stroke-opacity", 0.8);
+    });
+
     // DSA-110 pointings
     const pointingsGroup = svg.append("g").attr("class", "pointings");
 
