@@ -398,10 +398,14 @@ function LaunchNotebookModal({
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label 
+                htmlFor="notebook-name-input"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
                 Notebook Name
               </label>
               <input
+                id="notebook-name-input"
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
@@ -412,7 +416,10 @@ function LaunchNotebookModal({
 
             {template.parameters.map((param) => (
               <div key={param.name}>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                <label 
+                  htmlFor={`param-${param.name}`}
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+                >
                   {param.name}
                   {param.required && <span className="text-red-500">*</span>}
                 </label>
@@ -420,6 +427,7 @@ function LaunchNotebookModal({
                   {param.description}
                 </p>
                 <input
+                  id={`param-${param.name}`}
                   type={param.type === "number" ? "number" : "text"}
                   value={params[param.name] || ""}
                   onChange={(e) =>
@@ -507,7 +515,7 @@ function StartKernelModal({
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label 
+              <label
                 htmlFor="kernel-type-select"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
