@@ -6,8 +6,14 @@ Validates schemas and HTTP contracts.
 """
 
 import json
+import os
 import pytest
 from typing import Dict, Any
+
+# Ensure test environment
+os.environ.setdefault("DSA110_TEST_MODE", "1")
+os.environ.setdefault("DSA110_AUTH_DISABLED", "true")
+os.environ.setdefault("DSA110_ALLOWED_IPS", "127.0.0.1,::1,testclient")
 
 
 # ============================================================================
@@ -19,10 +25,11 @@ from typing import Dict, Any
 def api_client():
     """Create a FastAPI TestClient for API testing."""
     from fastapi.testclient import TestClient
-    from dsa110_contimg.api.app import app
+    from dsa110_contimg.api.app import create_app
 
-    client = TestClient(app)
-    yield client
+    app = create_app()
+    with TestClient(app) as client:
+        yield client
 
 
 @pytest.fixture
@@ -114,8 +121,9 @@ class TestSavedQueriesContracts:
         create_resp = api_client.post("/api/v1/saved-queries", json=sample_query)
         query_id = create_resp.json()["id"]
 
-        # Update
-        update_data = {"name": "Updated Name"}
+        # Update - full payload required
+        update_data = sample_query.copy()
+        update_data["name"] = "Updated Name"
         response = api_client.put(
             f"/api/v1/saved-queries/{query_id}", json=update_data
         )
@@ -141,16 +149,16 @@ class TestSavedQueriesContracts:
         create_resp = api_client.post("/api/v1/saved-queries", json=sample_query)
         original_id = create_resp.json()["id"]
 
-        # Fork it
-        fork_data = {"name": "Forked Query"}
+        # Fork it (name is optional - server generates default)
         response = api_client.post(
-            f"/api/v1/saved-queries/{original_id}/fork", json=fork_data
+            f"/api/v1/saved-queries/{original_id}/fork", json={}
         )
         assert response.status_code == 201
 
         forked = response.json()
         assert forked["id"] != original_id
-        assert forked["name"] == "Forked Query"
+        # Server adds " (copy)" suffix by default
+        assert "(copy)" in forked["name"]
 
         # Cleanup
         api_client.delete(f"/api/v1/saved-queries/{original_id}")

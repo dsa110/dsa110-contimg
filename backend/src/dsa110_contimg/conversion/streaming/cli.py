@@ -8,9 +8,12 @@ allowing it to be run directly without a systemd service wrapper.
 from __future__ import annotations
 
 import argparse
+import http.server
+import json
 import logging
 import os
 import signal
+import socketserver
 import sys
 import threading
 from pathlib import Path
@@ -19,8 +22,135 @@ from typing import List, Optional
 from dsa110_contimg.conversion.streaming.queue import SubbandQueue
 from dsa110_contimg.conversion.streaming.watcher import StreamingWatcher
 from dsa110_contimg.conversion.streaming.worker import StreamingWorker, WorkerConfig
+from dsa110_contimg.conversion.streaming.health import (
+    get_health_checker,
+    get_metrics_collector,
+    get_disk_free_gb,
+    HealthCheck,
+    HealthStatus,
+    PipelineMetrics,
+)
 
 logger = logging.getLogger(__name__)
+
+# Global reference for health endpoint to access pipeline state
+_pipeline_ref: Optional["StreamingPipeline"] = None
+
+
+class HealthHandler(http.server.BaseHTTPRequestHandler):
+    """HTTP request handler for health and metrics endpoints."""
+    
+    def log_message(self, format: str, *args: object) -> None:
+        """Suppress default HTTP logging."""
+        pass
+
+    def do_GET(self) -> None:
+        """Handle GET requests for health/metrics."""
+        if self.path == "/health":
+            self._handle_health()
+        elif self.path == "/metrics":
+            self._handle_metrics()
+        elif self.path == "/ready":
+            self._handle_ready()
+        else:
+            self.send_response(404)
+            self.end_headers()
+            self.wfile.write(b"Not Found")
+    
+    def _handle_health(self) -> None:
+        """Return health check JSON."""
+        global _pipeline_ref
+        
+        status = {"status": "healthy", "checks": {}}
+        http_code = 200
+        
+        if _pipeline_ref is not None:
+            queue = _pipeline_ref._queue
+            if queue is not None:
+                try:
+                    counts = queue.count_by_state()
+                    status["checks"]["queue"] = {
+                        "status": "healthy",
+                        "collecting": counts.get("collecting", 0),
+                        "in_progress": counts.get("in_progress", 0),
+                        "completed": counts.get("completed", 0),
+                        "failed": counts.get("failed", 0),
+                    }
+                except Exception as e:
+                    status["checks"]["queue"] = {"status": "unhealthy", "error": str(e)}
+                    status["status"] = "unhealthy"
+                    http_code = 503
+            
+            # Check disk space
+            try:
+                output_free_gb = get_disk_free_gb(Path(_pipeline_ref.args.output_dir))
+                disk_status = "healthy" if output_free_gb > 10.0 else "degraded"
+                if output_free_gb < 5.0:
+                    disk_status = "unhealthy"
+                    status["status"] = "unhealthy"
+                    http_code = 503
+                status["checks"]["disk"] = {
+                    "status": disk_status,
+                    "output_free_gb": round(output_free_gb, 2),
+                }
+            except Exception as e:
+                status["checks"]["disk"] = {"status": "unhealthy", "error": str(e)}
+        
+        self.send_response(http_code)
+        self.send_header("Content-Type", "application/json")
+        self.end_headers()
+        self.wfile.write(json.dumps(status, indent=2).encode())
+    
+    def _handle_metrics(self) -> None:
+        """Return Prometheus-format metrics."""
+        global _pipeline_ref
+        
+        lines = []
+        
+        if _pipeline_ref is not None:
+            queue = _pipeline_ref._queue
+            if queue is not None:
+                try:
+                    counts = queue.count_by_state()
+                    lines.extend([
+                        "# HELP dsa110_streaming_queue Queue state counts",
+                        "# TYPE dsa110_streaming_queue gauge",
+                        f'dsa110_streaming_queue{{state="collecting"}} {counts.get("collecting", 0)}',
+                        f'dsa110_streaming_queue{{state="in_progress"}} {counts.get("in_progress", 0)}',
+                        f'dsa110_streaming_queue{{state="completed"}} {counts.get("completed", 0)}',
+                        f'dsa110_streaming_queue{{state="failed"}} {counts.get("failed", 0)}',
+                    ])
+                except Exception:
+                    pass
+            
+            # Disk space
+            try:
+                output_free = get_disk_free_gb(Path(_pipeline_ref.args.output_dir))
+                lines.extend([
+                    "# HELP dsa110_streaming_disk_free_gb Disk free space in GB",
+                    "# TYPE dsa110_streaming_disk_free_gb gauge",
+                    f'dsa110_streaming_disk_free_gb{{path="output"}} {output_free:.2f}',
+                ])
+            except Exception:
+                pass
+        
+        self.send_response(200)
+        self.send_header("Content-Type", "text/plain; charset=utf-8")
+        self.end_headers()
+        self.wfile.write("\n".join(lines).encode())
+    
+    def _handle_ready(self) -> None:
+        """Return readiness probe result."""
+        global _pipeline_ref
+        
+        if _pipeline_ref is not None and _pipeline_ref._queue is not None:
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write(b"ready")
+        else:
+            self.send_response(503)
+            self.end_headers()
+            self.wfile.write(b"not ready")
 
 
 def setup_logging(level: str = "INFO") -> None:
@@ -250,6 +380,12 @@ def build_parser() -> argparse.ArgumentParser:
         default=60.0,
         help="Seconds between monitoring reports",
     )
+    p.add_argument(
+        "--health-port",
+        type=int,
+        default=9100,
+        help="Port for health/metrics HTTP endpoint (default: 9100)",
+    )
     
     return p
 
@@ -325,6 +461,8 @@ class StreamingPipeline:
         self._worker: Optional[StreamingWorker] = None
         self._watcher_thread: Optional[threading.Thread] = None
         self._polling_thread: Optional[threading.Thread] = None
+        self._health_server: Optional[socketserver.TCPServer] = None
+        self._health_thread: Optional[threading.Thread] = None
 
     def _setup_signal_handlers(self) -> None:
         """Setup signal handlers for graceful shutdown."""
@@ -334,6 +472,24 @@ class StreamingPipeline:
         
         signal.signal(signal.SIGINT, handler)
         signal.signal(signal.SIGTERM, handler)
+
+    def _start_health_server(self) -> None:
+        """Start the HTTP health/metrics server."""
+        port = self.args.health_port
+        
+        class ReuseAddrServer(socketserver.TCPServer):
+            allow_reuse_address = True
+        
+        try:
+            self._health_server = ReuseAddrServer(("", port), HealthHandler)
+            self._health_thread = threading.Thread(
+                target=self._health_server.serve_forever,
+                daemon=True,
+            )
+            self._health_thread.start()
+            logger.info(f"Health endpoint listening on port {port}")
+        except OSError as e:
+            logger.warning(f"Failed to start health server on port {port}: {e}")
 
     def _start_watcher(self) -> None:
         """Start the filesystem watcher."""
@@ -388,12 +544,20 @@ class StreamingPipeline:
         """
         self._setup_signal_handlers()
 
+        # Set global reference for health endpoint
+        global _pipeline_ref
+        _pipeline_ref = self
+
         # Initialize queue
         self._queue = SubbandQueue(
             db_path=Path(self.args.queue_db),
             expected_subbands=self.args.expected_subbands,
             chunk_duration_minutes=self.args.chunk_duration,
         )
+
+        # Start health endpoint if monitoring enabled
+        if self.args.monitoring:
+            self._start_health_server()
 
         # Start filesystem watching
         self._start_watcher()
@@ -442,6 +606,9 @@ class StreamingPipeline:
         """Gracefully shutdown the pipeline."""
         logger.info("Shutting down streaming pipeline...")
         self._shutdown_event.set()
+        
+        if self._health_server is not None:
+            self._health_server.shutdown()
         
         if self._watcher is not None:
             self._watcher.stop()

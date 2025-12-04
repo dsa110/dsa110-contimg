@@ -133,7 +133,11 @@ def get_pipeline_db() -> Generator[sqlite3.Connection, None, None]:
     Yields:
         sqlite3.Connection with row_factory set
     """
-    conn = sqlite3.connect(str(PIPELINE_DB_PATH), timeout=30.0)
+    conn = sqlite3.connect(
+        str(PIPELINE_DB_PATH),
+        timeout=30.0,
+        check_same_thread=False,  # Allow async context
+    )
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     try:

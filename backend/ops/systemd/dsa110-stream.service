@@ -1,0 +1,54 @@
+[Unit]
+Description=DSA-110 Streaming Data Pipeline
+Documentation=file:///data/dsa110-contimg/backend/src/dsa110_contimg/conversion/streaming/README.md
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/data/dsa110-contimg/backend
+
+# Environment configuration
+EnvironmentFile=-/data/dsa110-contimg/backend/.env
+Environment=PYTHONUNBUFFERED=1
+Environment=CASA_LOGDIR=/data/dsa110-contimg/state/logs/casa
+
+# Conda environment activation and streaming pipeline execution
+ExecStart=/bin/bash -c 'source /opt/miniforge/etc/profile.d/conda.sh && conda activate casa6 && exec dsa110-stream \
+    --input-dir /data/incoming \
+    --output-dir /data/ms \
+    --queue-db /data/dsa110-contimg/state/db/pipeline.sqlite3 \
+    --scratch-dir /stage \
+    --log-level INFO \
+    --enable-calibration-solving \
+    --enable-photometry \
+    --monitoring'
+
+# Graceful shutdown - allow time for current processing to complete
+ExecStop=/bin/kill -SIGTERM $MAINPID
+TimeoutStopSec=120
+
+# Restart policy - restart on failure but with backoff
+Restart=on-failure
+RestartSec=30
+StartLimitIntervalSec=600
+StartLimitBurst=5
+
+# Logging
+StandardOutput=append:/data/dsa110-contimg/state/logs/streaming-pipeline.log
+StandardError=append:/data/dsa110-contimg/state/logs/streaming-pipeline.log
+
+# Resource limits - conversion is I/O heavy but not GPU
+# Lower memory than GPU worker since this is mainly I/O
+LimitNOFILE=65536
+MemoryHigh=8G
+MemoryMax=12G
+CPUQuota=200%
+
+# OOM handling - prefer killing over system processes but below GPU worker
+OOMScoreAdjust=400
+
+[Install]
+WantedBy=multi-user.target

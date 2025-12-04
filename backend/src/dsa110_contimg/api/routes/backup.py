@@ -24,7 +24,7 @@ from ..dependencies import get_pipeline_db
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/backup", tags=["backup"])
+router = APIRouter(prefix="/backups", tags=["backup"])
 
 # Configuration
 BACKUP_DIR = Path(os.getenv("BACKUP_DIR", "/stage/backups"))
