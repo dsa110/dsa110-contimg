@@ -138,6 +138,61 @@ To get started manually, follow these steps:
    npm run test:e2e    # Playwright E2E tests
    ```
 
+## API Connection Methods
+
+1. Environment Variable (Recommended for Development)
+
+```bash
+cd frontend
+VITE_API_URL=http://localhost:8010 npm run dev
+```
+
+2. Persistent Override
+
+```bash
+# frontend/.env.local
+VITE_API_URL=http://localhost:8010
+```
+
+3. Vite Proxy Configuration
+
+```bash
+// frontend/vite.config.ts
+server: {
+  proxy: {
+    '/api': {
+      target: 'http://localhost:8010',
+      changeOrigin: true
+    }
+  }
+}
+```
+
+---
+
+### **Communication Flow**
+```
+┌─────────────────┐         HTTP/JSON          ┌──────────────────┐
+│  React Frontend │ ←────────────────────────→ │  FastAPI Backend │
+│  (Vite/Node.js) │    GET /api/status         │   (Uvicorn)      │
+│  Port 3000/3210 │    GET /api/ese/candidates │   Port 8000/8010 │
+└─────────────────┘    POST /api/reprocess     └──────────────────┘
+         │                                              │
+         │                                              │
+         └─────── Browser (user) ───────────────────────┘
+                                                        │
+                                                        ▼
+                                            ┌───────────────────────┐
+                                            │  SQLite Database      │
+                                            │  pipeline.sqlite3     │
+                                            │  - ingest_queue       │
+                                            │  - calibration_tables │
+                                            │  - ms_index           │
+                                            │  - images             │
+                                            │  - photometry_results │
+                                            └───────────────────────┘
+```
+
 ## Components
 
 ### Provenance Components

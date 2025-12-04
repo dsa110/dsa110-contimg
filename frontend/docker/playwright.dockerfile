@@ -5,20 +5,15 @@ FROM mcr.microsoft.com/playwright:v1.49.0-noble
 
 WORKDIR /app
 
-# Copy package files
+# Copy package files and vendor dependencies first
 COPY package*.json ./
+COPY vendor/ ./vendor/
 
 # Install dependencies
 RUN npm ci
 
-# Copy test files and config
-COPY playwright.config.ts ./
-COPY e2e/ ./e2e/
-COPY src/ ./src/
-COPY tsconfig.json ./
-COPY tsconfig.test.json ./
-COPY vite.config.ts ./
-COPY index.html ./
+# Copy ALL source files for frontend dev server
+COPY . .
 
 # Set environment
 ENV CI=true
