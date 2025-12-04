@@ -30,17 +30,21 @@ import {
 
 function StatusBadge({ status }: { status: string }) {
   const colors: Record<string, string> = {
-    pending: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
+    pending:
+      "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300",
     running: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
-    completed: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+    completed:
+      "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
     failed: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300",
-    queued: "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
+    queued:
+      "bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300",
   };
 
   return (
     <span
       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-        colors[status] || "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+        colors[status] ||
+        "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
       }`}
     >
       {status}
@@ -275,7 +279,7 @@ function IndividualStagesSection() {
   const [selectedStage, setSelectedStage] = useState<string>("");
   const [msPath, setMsPath] = useState("");
   const [applyOnly, setApplyOnly] = useState(true);
-  
+
   // Imaging options
   const [imsize, setImsize] = useState(5040);
   const [cell, setCell] = useState("2.5arcsec");
@@ -307,8 +311,10 @@ function IndividualStagesSection() {
     }
   };
 
-  const isPending = calibrateMS.isPending || imageMS.isPending || runStage.isPending;
-  const isSuccess = calibrateMS.isSuccess || imageMS.isSuccess || runStage.isSuccess;
+  const isPending =
+    calibrateMS.isPending || imageMS.isPending || runStage.isPending;
+  const isSuccess =
+    calibrateMS.isSuccess || imageMS.isSuccess || runStage.isSuccess;
   const error = calibrateMS.error || imageMS.error || runStage.error;
 
   if (isLoading) {
@@ -353,7 +359,14 @@ function IndividualStagesSection() {
             <option value="calibration">Calibration</option>
             <option value="imaging">Imaging</option>
             {stagesData?.stages
-              .filter((s) => !["calibration-apply", "calibration-solve", "imaging"].includes(s.name))
+              .filter(
+                (s) =>
+                  ![
+                    "calibration-apply",
+                    "calibration-solve",
+                    "imaging",
+                  ].includes(s.name)
+              )
               .map((stage) => (
                 <option key={stage.name} value={stage.name}>
                   {stage.name} - {stage.description}
@@ -503,7 +516,8 @@ function RegisteredPipelinesSection() {
     >
       {pipelines.length === 0 ? (
         <p className="text-gray-500 dark:text-gray-400 italic">
-          No pipelines registered. Import the mosaic module to register nightly_mosaic and on_demand_mosaic.
+          No pipelines registered. Import the mosaic module to register
+          nightly_mosaic and on_demand_mosaic.
         </p>
       ) : (
         <div className="space-y-3">
@@ -537,7 +551,9 @@ function RegisteredPipelinesSection() {
                 disabled={runningPipeline === pipeline.name}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shrink-0"
               >
-                {runningPipeline === pipeline.name && <LoadingSpinner size="sm" />}
+                {runningPipeline === pipeline.name && (
+                  <LoadingSpinner size="sm" />
+                )}
                 Run Now
               </button>
             </div>
@@ -638,7 +654,8 @@ function ExecutionHistorySection() {
                     </span>
                     {exec.jobs.some((j) => j.status === "failed") && (
                       <span className="ml-2 text-red-600 dark:text-red-400">
-                        ({exec.jobs.filter((j) => j.status === "failed").length} failed)
+                        ({exec.jobs.filter((j) => j.status === "failed").length}{" "}
+                        failed)
                       </span>
                     )}
                   </td>

@@ -141,7 +141,9 @@ async function runPipeline(
   });
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.detail || `Failed to run pipeline: ${response.statusText}`);
+    throw new Error(
+      error.detail || `Failed to run pipeline: ${response.statusText}`
+    );
   }
   return response.json();
 }
@@ -157,14 +159,14 @@ async function runFullPipeline(
   });
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.detail || `Failed to run full pipeline: ${response.statusText}`);
+    throw new Error(
+      error.detail || `Failed to run full pipeline: ${response.statusText}`
+    );
   }
   return response.json();
 }
 
-async function runStage(
-  request: StageTaskRequest
-): Promise<StageTaskResponse> {
+async function runStage(request: StageTaskRequest): Promise<StageTaskResponse> {
   const response = await fetch(`${API_BASE}/pipeline/stage`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -173,7 +175,9 @@ async function runStage(
   });
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.detail || `Failed to run stage: ${response.statusText}`);
+    throw new Error(
+      error.detail || `Failed to run stage: ${response.statusText}`
+    );
   }
   return response.json();
 }
@@ -192,7 +196,9 @@ async function calibrateMS(
   });
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(error.detail || `Failed to calibrate: ${response.statusText}`);
+    throw new Error(
+      error.detail || `Failed to calibrate: ${response.statusText}`
+    );
   }
   return response.json();
 }
@@ -246,9 +252,12 @@ async function fetchExecutions(
 }
 
 async function fetchExecution(executionId: string): Promise<ExecutionStatus> {
-  const response = await fetch(`${API_BASE}/pipeline/executions/${executionId}`, {
-    credentials: "include",
-  });
+  const response = await fetch(
+    `${API_BASE}/pipeline/executions/${executionId}`,
+    {
+      credentials: "include",
+    }
+  );
   if (!response.ok) {
     throw new Error(`Failed to fetch execution: ${response.statusText}`);
   }

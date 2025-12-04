@@ -17,15 +17,13 @@ from __future__ import annotations
 
 import argparse
 import logging
-import signal
-import threading
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Dict, Optional, TYPE_CHECKING
+from typing import Any, Dict, Optional, TYPE_CHECKING
 
 from dsa110_contimg.conversion.streaming.queue import SubbandQueue
-from dsa110_contimg.conversion.streaming.models import SubbandGroup, ProcessingState
+from dsa110_contimg.conversion.streaming.models import SubbandGroup
 from dsa110_contimg.conversion.streaming.stages import (
     CalibrationStage,
     ConversionStage,
@@ -38,18 +36,7 @@ from dsa110_contimg.conversion.streaming.stages.conversion import ConversionConf
 from dsa110_contimg.conversion.streaming.stages.imaging import ImagingConfig
 from dsa110_contimg.conversion.streaming.stages.mosaic import MosaicConfig
 from dsa110_contimg.conversion.streaming.stages.photometry import PhotometryConfig
-from dsa110_contimg.conversion.streaming.exceptions import (
-    ShutdownRequested,
-    StreamingError,
-)
-from dsa110_contimg.conversion.streaming.health import (
-    HealthCheck,
-    HealthStatus,
-    get_disk_free_gb,
-    get_health_checker,
-    get_metrics_collector,
-)
-from dsa110_contimg.conversion.streaming.retry import RetryConfig, retry_with_result
+from dsa110_contimg.conversion.streaming.exceptions import StreamingError
 
 if TYPE_CHECKING:
     from dsa110_contimg.pipeline.hardening import (
@@ -346,113 +333,7 @@ class StreamingWorker:
         
         return True
 
-    def process_group(self, group_id: str) -> ProcessingResult:
-        """Process a single group through all pipeline stages.
-        
-        Args:
-            group_id: Group identifier (timestamp-based)
-            
-        Returns:
-            ProcessingResult with status and metrics
-        """
-        t0 = time.perf_counter()
-        result = ProcessingResult(group_id=group_id, success=False)
-        
-        try:
-            # Get files for this group
-            files = self.queue.get_group_files(group_id)
-            if not files:
-                result.error_message = "No files found for group"
-                return result
-            
-            # === CONVERSION STAGE ===
-            self._update_state(group_id, "CONVERTING")
-            conv_result = self.conversion_stage.execute(group_id, files)
-            
-            if not conv_result.success:
-                result.error_message = conv_result.error_message
-                result.stage = "conversion"
-                self._update_state(group_id, "FAILED")
-                return result
-            
-            ms_path = conv_result.ms_path
-            result.ms_path = ms_path
-            result.metrics["conversion_time"] = conv_result.elapsed_seconds
-            self._update_state(group_id, "CONVERTED")
-            
-            # Extract pointing info for later stages
-            dec_deg = conv_result.dec_deg
-            mid_mjd = conv_result.mid_mjd
-            
-            # === CALIBRATION STAGE ===
-            self._update_state(group_id, "CALIBRATING")
-            cal_result = self.calibration_stage.execute(
-                ms_path=ms_path,
-                is_calibrator=conv_result.is_calibrator,
-                mid_mjd=mid_mjd,
-            )
-            
-            if conv_result.is_calibrator and cal_result.success:
-                self._update_state(group_id, "CALIBRATED")
-            
-            result.metrics["calibration_applied"] = cal_result.calibration_applied
-            result.metrics["is_calibrator"] = conv_result.is_calibrator
-            
-            # === IMAGING STAGE ===
-            self._update_state(group_id, "IMAGING")
-            img_result = self.imaging_stage.execute(ms_path=ms_path)
-            
-            if not img_result.success:
-                result.error_message = img_result.error_message
-                result.stage = "imaging"
-                logger.error(f"Imaging failed for {group_id}: {img_result.error_message}")
-                # Continue - imaging failure is not fatal
-            else:
-                result.image_path = img_result.image_path
-                result.metrics["imaging_time"] = img_result.elapsed_seconds
-                self._update_state(group_id, "IMAGED")
-            
-            # === PHOTOMETRY STAGE (optional) ===
-            if self.photometry_stage is not None and img_result.fits_path:
-                try:
-                    phot_result = self.photometry_stage.execute(
-                        image_path=str(img_result.fits_path),
-                        dec_deg=dec_deg,
-                    )
-                    if phot_result.success:
-                        result.metrics["photometry_sources"] = phot_result.sources_measured
-                except Exception as e:
-                    logger.warning(f"Photometry failed for {group_id}: {e}")
-            
-            # === MOSAIC STAGE (optional) ===
-            if self.mosaic_stage is not None and dec_deg is not None:
-                try:
-                    mosaic_result = self.mosaic_stage.check_and_trigger(
-                        dec_deg=dec_deg,
-                        new_ms_path=ms_path,
-                    )
-                    if mosaic_result is not None and mosaic_result.success:
-                        result.metrics["mosaic_triggered"] = True
-                        result.metrics["mosaic_group_id"] = mosaic_result.group_id
-                except Exception as e:
-                    logger.warning(f"Mosaic check failed for {group_id}: {e}")
-            
-            # Success
-            self._update_state(group_id, "COMPLETED")
-            result.success = True
-            result.stage = "completed"
-            result.elapsed_seconds = time.perf_counter() - t0
-            
-            return result
-            
-        except Exception as e:
-            logger.exception(f"Processing failed for {group_id}")
-            self._update_state(group_id, "FAILED")
-            result.error_message = str(e)
-            result.elapsed_seconds = time.perf_counter() - t0
-            return result
-
-    def process_subband_group(self, group: SubbandGroup) -> ProcessingResult:
+    def process(self, group: SubbandGroup) -> ProcessingResult:
         """Process a SubbandGroup through all pipeline stages.
         
         This is the preferred method that accepts a SubbandGroup model,
@@ -610,7 +491,7 @@ class StreamingWorker:
                 )
                 
                 # Process using SubbandGroup model
-                result = self.process_subband_group(group)
+                result = self.process(group)
                 
                 # Update queue state
                 if result.success:
@@ -620,7 +501,7 @@ class StreamingWorker:
                         metrics=result.metrics,
                     )
                     logger.info(
-                        f"Completed {group_id} in {result.elapsed_seconds:.2f}s"
+                        "Completed %s in %.2fs", group_id, result.elapsed_seconds
                     )
                 else:
                     self.queue.update_state(
@@ -629,27 +510,27 @@ class StreamingWorker:
                         error=result.error_message,
                     )
                     logger.error(
-                        f"Failed {group_id} at stage {result.stage}: "
-                        f"{result.error_message}"
+                        "Failed %s at stage %s: %s",
+                        group_id, result.stage, result.error_message
                     )
                     
             except KeyboardInterrupt:
                 logger.info("Worker interrupted by user")
                 break
-            except Exception as e:
-                logger.exception(f"Worker loop error: {e}")
+            except Exception as exc:
+                logger.exception("Worker loop error: %s", exc)
                 time.sleep(2.0)
 
-    def run_once(self, group_id: str) -> ProcessingResult:
+    def run_once(self, group: SubbandGroup) -> ProcessingResult:
         """Process a single group (for testing or manual invocation).
         
         Args:
-            group_id: Group identifier to process
+            group: SubbandGroup to process
             
         Returns:
             ProcessingResult with status
         """
-        return self.process_group(group_id)
+        return self.process(group)
 
 
 def create_worker(args: argparse.Namespace, queue: SubbandQueue) -> StreamingWorker:
