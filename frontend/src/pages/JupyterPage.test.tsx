@@ -795,9 +795,11 @@ describe("JupyterPage", () => {
 
       renderPage();
 
-      await user.click(
-        screen.getByRole("button", { name: /open jupyterlab/i })
-      );
+      // Get first "Open JupyterLab" button (header button)
+      const openButtons = screen.getAllByRole("button", {
+        name: /open jupyterlab/i,
+      });
+      await user.click(openButtons[0]);
 
       expect(windowOpenSpy).toHaveBeenCalledWith(
         "http://localhost:8888",
@@ -816,10 +818,10 @@ describe("JupyterPage", () => {
 
       renderPage();
 
-      const openButton = screen.getByRole("button", {
+      const openButtons = screen.getAllByRole("button", {
         name: /open jupyterlab/i,
       });
-      expect(openButton).toBeDisabled();
+      expect(openButtons[0]).toBeDisabled();
     });
   });
 });
