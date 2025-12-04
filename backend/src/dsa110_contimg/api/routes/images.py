@@ -45,6 +45,8 @@ async def list_images(
             qa_grade=img.qa_grade,
             created_at=datetime.fromtimestamp(img.created_at) if img.created_at else None,
             run_id=img.run_id,
+            pointing_ra_deg=img.center_ra_deg,
+            pointing_dec_deg=img.center_dec_deg,
         )
         for img in images
     ]
