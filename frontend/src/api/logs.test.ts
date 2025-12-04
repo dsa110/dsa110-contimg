@@ -2,12 +2,19 @@
  * @vitest-environment jsdom
  */
 
+import React from "react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { renderHook, act, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import type { LogEntry, LogSearchResponse } from "@/types/logs";
-import { buildLogQueryParams, fetchLogs, useLogs, useLogTail, logKeys } from "./logs";
+import {
+  buildLogQueryParams,
+  fetchLogs,
+  useLogs,
+  useLogTail,
+  logKeys,
+} from "./logs";
 
 vi.mock("./client", () => ({
   default: {
@@ -30,9 +37,13 @@ function createWrapper() {
       },
     },
   });
-  return ({ children }: { children: ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-  );
+  return function TestWrapper({ children }: { children: ReactNode }) {
+    return React.createElement(
+      QueryClientProvider,
+      { client: queryClient },
+      children
+    );
+  };
 }
 
 describe("logs API helpers", () => {
@@ -120,7 +131,10 @@ describe("logs API helpers", () => {
       .mockResolvedValueOnce({ data: secondBatch });
 
     const { result, unmount } = renderHook(() =>
-      useLogTail({ labels: { service: "api" } }, { pollInterval: 10, batchSize: 1 })
+      useLogTail(
+        { labels: { service: "api" } },
+        { pollInterval: 10, batchSize: 1 }
+      )
     );
 
     // First poll
@@ -154,19 +168,34 @@ describe("logs API helpers", () => {
     const batches: LogSearchResponse[] = [
       {
         entries: [
-          { timestamp: "2024-01-01T00:00:00Z", level: "info", message: "first", cursor: "c1" },
+          {
+            timestamp: "2024-01-01T00:00:00Z",
+            level: "info",
+            message: "first",
+            cursor: "c1",
+          },
         ],
         next_cursor: "c1",
       },
       {
         entries: [
-          { timestamp: "2024-01-01T00:00:05Z", level: "info", message: "second", cursor: "c2" },
+          {
+            timestamp: "2024-01-01T00:00:05Z",
+            level: "info",
+            message: "second",
+            cursor: "c2",
+          },
         ],
         next_cursor: "c2",
       },
       {
         entries: [
-          { timestamp: "2024-01-01T00:00:10Z", level: "error", message: "third", cursor: "c3" },
+          {
+            timestamp: "2024-01-01T00:00:10Z",
+            level: "error",
+            message: "third",
+            cursor: "c3",
+          },
         ],
         next_cursor: "c3",
       },
@@ -178,7 +207,10 @@ describe("logs API helpers", () => {
       .mockResolvedValueOnce({ data: batches[2] });
 
     const { result, unmount } = renderHook(() =>
-      useLogTail({ labels: { service: "api" } }, { pollInterval: 10, batchSize: 1, bufferLimit: 2 })
+      useLogTail(
+        { labels: { service: "api" } },
+        { pollInterval: 10, batchSize: 1, bufferLimit: 2 }
+      )
     );
 
     // first poll
@@ -194,14 +226,19 @@ describe("logs API helpers", () => {
       await vi.advanceTimersByTimeAsync(10);
     });
 
-    expect(result.current.buffer.map((e) => e.message)).toEqual(["second", "third"]);
+    expect(result.current.buffer.map((e) => e.message)).toEqual([
+      "second",
+      "third",
+    ]);
     unmount();
   });
 
   it("captures tail errors and invokes onError", async () => {
     const tailError = new Error("tail failed");
     mockedClient.get.mockRejectedValueOnce(tailError);
-    mockedClient.get.mockResolvedValueOnce({ data: { entries: [], next_cursor: null } });
+    mockedClient.get.mockResolvedValueOnce({
+      data: { entries: [], next_cursor: null },
+    });
     const onError = vi.fn();
 
     const { result, unmount } = renderHook(() =>
@@ -226,19 +263,25 @@ describe("logs API helpers", () => {
 
 describe("useLogs pagination hook", () => {
   beforeEach(() => {
-    vi.useFakeTimers();
+    // Note: using real timers here since React Query's waitFor needs them
     mockedClient.get.mockReset();
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
   });
 
   it("fetches initial page and provides hasNextPage when cursor present", async () => {
     const firstPage: LogSearchResponse = {
       entries: [
-        { timestamp: "2024-01-01T00:00:00Z", level: "info", message: "page1", cursor: "c1" },
-        { timestamp: "2024-01-01T00:00:01Z", level: "debug", message: "page1-2", cursor: "c2" },
+        {
+          timestamp: "2024-01-01T00:00:00Z",
+          level: "info",
+          message: "page1",
+          cursor: "c1",
+        },
+        {
+          timestamp: "2024-01-01T00:00:01Z",
+          level: "debug",
+          message: "page1-2",
+          cursor: "c2",
+        },
       ],
       next_cursor: "c2",
       prev_cursor: null,
@@ -265,7 +308,12 @@ describe("useLogs pagination hook", () => {
   it("fetches next page when fetchNextPage called", async () => {
     const firstPage: LogSearchResponse = {
       entries: [
-        { timestamp: "2024-01-01T00:00:00Z", level: "info", message: "page1", cursor: "c1" },
+        {
+          timestamp: "2024-01-01T00:00:00Z",
+          level: "info",
+          message: "page1",
+          cursor: "c1",
+        },
       ],
       next_cursor: "c1",
       prev_cursor: null,
@@ -273,7 +321,12 @@ describe("useLogs pagination hook", () => {
     };
     const secondPage: LogSearchResponse = {
       entries: [
-        { timestamp: "2024-01-01T00:00:05Z", level: "error", message: "page2", cursor: "c2" },
+        {
+          timestamp: "2024-01-01T00:00:05Z",
+          level: "error",
+          message: "page2",
+          cursor: "c2",
+        },
       ],
       next_cursor: null,
       prev_cursor: "c1",
@@ -284,10 +337,9 @@ describe("useLogs pagination hook", () => {
       .mockResolvedValueOnce({ data: firstPage })
       .mockResolvedValueOnce({ data: secondPage });
 
-    const { result } = renderHook(
-      () => useLogs({}, { pageSize: 1 }),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useLogs({}, { pageSize: 1 }), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data?.pages).toHaveLength(1);
@@ -304,7 +356,12 @@ describe("useLogs pagination hook", () => {
   it("returns hasNextPage false when no next_cursor", async () => {
     const onlyPage: LogSearchResponse = {
       entries: [
-        { timestamp: "2024-01-01T00:00:00Z", level: "info", message: "only", cursor: "c1" },
+        {
+          timestamp: "2024-01-01T00:00:00Z",
+          level: "info",
+          message: "only",
+          cursor: "c1",
+        },
       ],
       next_cursor: null,
       prev_cursor: null,
@@ -313,20 +370,18 @@ describe("useLogs pagination hook", () => {
 
     mockedClient.get.mockResolvedValueOnce({ data: onlyPage });
 
-    const { result } = renderHook(
-      () => useLogs({ q: "only" }),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useLogs({ q: "only" }), {
+      wrapper: createWrapper(),
+    });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.hasNextPage).toBe(false);
   });
 
   it("respects enabled option", async () => {
-    const { result } = renderHook(
-      () => useLogs({}, { enabled: false }),
-      { wrapper: createWrapper() }
-    );
+    const { result } = renderHook(() => useLogs({}, { enabled: false }), {
+      wrapper: createWrapper(),
+    });
 
     // Should not have called API
     expect(mockedClient.get).not.toHaveBeenCalled();
@@ -358,7 +413,12 @@ describe("useLogTail reconnection behavior", () => {
     const errorResponse = new Error("network timeout");
     const successResponse: LogSearchResponse = {
       entries: [
-        { timestamp: "2024-01-01T00:00:10Z", level: "info", message: "recovered", cursor: "c1" },
+        {
+          timestamp: "2024-01-01T00:00:10Z",
+          level: "info",
+          message: "recovered",
+          cursor: "c1",
+        },
       ],
       next_cursor: "c1",
     };
@@ -399,11 +459,25 @@ describe("useLogTail reconnection behavior", () => {
 
   it("resets cursor and buffer when params change", async () => {
     const batch1: LogSearchResponse = {
-      entries: [{ timestamp: "2024-01-01T00:00:00Z", level: "info", message: "svc-a", cursor: "c1" }],
+      entries: [
+        {
+          timestamp: "2024-01-01T00:00:00Z",
+          level: "info",
+          message: "svc-a",
+          cursor: "c1",
+        },
+      ],
       next_cursor: "c1",
     };
     const batch2: LogSearchResponse = {
-      entries: [{ timestamp: "2024-01-01T00:00:05Z", level: "error", message: "svc-b", cursor: "c2" }],
+      entries: [
+        {
+          timestamp: "2024-01-01T00:00:05Z",
+          level: "error",
+          message: "svc-b",
+          cursor: "c2",
+        },
+      ],
       next_cursor: "c2",
     };
 
@@ -433,14 +507,21 @@ describe("useLogTail reconnection behavior", () => {
     });
 
     // Buffer should have been reset and now contain svc-b entry
-    expect(result.current.buffer.map(e => e.message)).not.toContain("svc-a");
+    expect(result.current.buffer.map((e) => e.message)).not.toContain("svc-a");
 
     unmount();
   });
 
   it("stops polling when disabled", async () => {
     const response: LogSearchResponse = {
-      entries: [{ timestamp: "2024-01-01T00:00:00Z", level: "info", message: "test", cursor: "c1" }],
+      entries: [
+        {
+          timestamp: "2024-01-01T00:00:00Z",
+          level: "info",
+          message: "test",
+          cursor: "c1",
+        },
+      ],
       next_cursor: "c1",
     };
     mockedClient.get.mockResolvedValue({ data: response });
@@ -471,12 +552,21 @@ describe("useLogTail reconnection behavior", () => {
 
   it("reset() clears buffer and cursor", async () => {
     const response: LogSearchResponse = {
-      entries: [{ timestamp: "2024-01-01T00:00:00Z", level: "info", message: "test", cursor: "c1" }],
+      entries: [
+        {
+          timestamp: "2024-01-01T00:00:00Z",
+          level: "info",
+          message: "test",
+          cursor: "c1",
+        },
+      ],
       next_cursor: "c1",
     };
     mockedClient.get.mockResolvedValue({ data: response });
 
-    const { result, unmount } = renderHook(() => useLogTail({}, { pollInterval: 10 }));
+    const { result, unmount } = renderHook(() =>
+      useLogTail({}, { pollInterval: 10 })
+    );
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(0);
@@ -534,7 +624,12 @@ describe("buildLogQueryParams edge cases", () => {
   it("handles array labels with mixed values", () => {
     const params = buildLogQueryParams({
       labels: {
-        tags: ["a", null as unknown as string, "b", undefined as unknown as string],
+        tags: [
+          "a",
+          null as unknown as string,
+          "b",
+          undefined as unknown as string,
+        ],
       },
     });
     expect(params["labels.tags"]).toBe("a,b");
