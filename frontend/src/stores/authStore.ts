@@ -33,6 +33,8 @@ interface AuthActions {
   isTokenExpired: () => boolean;
   /** Fetch current user from API */
   fetchCurrentUser: () => Promise<void>;
+  /** Check if backend auth is disabled and auto-authenticate */
+  checkAuthStatus: () => Promise<void>;
 }
 
 type AuthStore = AuthState & AuthActions;
@@ -189,6 +191,44 @@ async function apiGetCurrentUser(accessToken: string): Promise<User> {
 }
 
 /**
+ * Response from /auth/status endpoint
+ */
+interface AuthStatusResponse {
+  auth_enabled: boolean;
+  auth_required: boolean;
+}
+
+/**
+ * Check if backend auth is disabled
+ */
+async function apiCheckAuthStatus(): Promise<AuthStatusResponse> {
+  const response = await apiClient.get<AuthStatusResponse>(
+    `${AUTH_API_BASE}/status`
+  );
+  return response.data;
+}
+
+/**
+ * Mock user for when auth is disabled
+ */
+const DEV_BYPASS_USER: User = {
+  id: "dev-user",
+  username: "developer",
+  email: "dev@dsa110.caltech.edu",
+  role: "admin",
+  fullName: "Development User (Auth Disabled)",
+};
+
+/**
+ * Mock tokens for when auth is disabled
+ */
+const DEV_BYPASS_TOKENS: AuthTokens = {
+  accessToken: "dev-token",
+  tokenType: "Bearer",
+  expiresIn: 86400 * 365, // 1 year
+};
+
+/**
  * Authentication store using Zustand with persistence
  */
 export const useAuthStore = create<AuthStore>()(
@@ -311,6 +351,38 @@ export const useAuthStore = create<AuthStore>()(
         }
         // Add 30 second buffer for clock skew
         return Date.now() >= payload.exp * 1000 - 30000;
+      },
+
+      checkAuthStatus: async () => {
+        console.log("[AUTH_STORE] checkAuthStatus() called");
+        set({ isLoading: true });
+        try {
+          const status = await apiCheckAuthStatus();
+          console.log("[AUTH_STORE] Auth status:", status);
+
+          if (!status.auth_required) {
+            // Auth is disabled - auto-authenticate with dev user
+            console.log(
+              "[AUTH_STORE] Auth disabled - auto-authenticating as dev user"
+            );
+            set({
+              user: DEV_BYPASS_USER,
+              tokens: DEV_BYPASS_TOKENS,
+              isAuthenticated: true,
+              isLoading: false,
+              error: null,
+            });
+          } else {
+            // Auth is enabled - just finish loading
+            set({ isLoading: false });
+          }
+        } catch (error) {
+          console.warn(
+            "[AUTH_STORE] Failed to check auth status, assuming auth enabled:",
+            error
+          );
+          set({ isLoading: false });
+        }
       },
     }),
     {
