@@ -83,7 +83,7 @@ if __name__ == "__main__":
         deconvolver="multiscale",  # **KEY: Multi-scale clean**
         # Quality control
         min_initial_snr=10.0,
-        # Model seeding (disabled - too slow)
+        # Model seeding (disabled for speed, but works now - Docker hang fixed)
         use_nvss_seeding=False,
         # Calibrator model for seeding
         calib_ra_deg=cal_ra_deg,
