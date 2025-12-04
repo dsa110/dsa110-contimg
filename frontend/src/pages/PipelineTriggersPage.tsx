@@ -101,7 +101,8 @@ function TriggerCard({
         <div className="mt-3 text-sm">
           <span className="text-gray-500 dark:text-gray-400">Conditions: </span>
           <span className="text-gray-700 dark:text-gray-300">
-            {trigger.conditions.length} rule{trigger.conditions.length > 1 ? "s" : ""}
+            {trigger.conditions.length} rule
+            {trigger.conditions.length > 1 ? "s" : ""}
           </span>
         </div>
       )}
@@ -135,8 +136,8 @@ function TriggerCard({
               successRate >= 80
                 ? "text-green-600"
                 : successRate >= 50
-                  ? "text-yellow-600"
-                  : "text-red-600"
+                ? "text-yellow-600"
+                : "text-red-600"
             }`}
           >
             {successRate}%
@@ -603,9 +604,15 @@ function ExecutionHistoryPanel() {
 export function PipelineTriggersPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [eventFilter, setEventFilter] = useState<TriggerEvent | "all">("all");
-  const [statusFilter, setStatusFilter] = useState<"all" | "enabled" | "disabled">("all");
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "enabled" | "disabled"
+  >("all");
 
-  const { data: triggers, isLoading, error } = useTriggers({
+  const {
+    data: triggers,
+    isLoading,
+    error,
+  } = useTriggers({
     event: eventFilter === "all" ? undefined : eventFilter,
     status: statusFilter === "all" ? undefined : statusFilter,
   });
@@ -712,8 +719,8 @@ export function PipelineTriggersPage() {
                   stats.avgSuccessRate >= 80
                     ? "text-green-600"
                     : stats.avgSuccessRate >= 50
-                      ? "text-yellow-600"
-                      : "text-red-600"
+                    ? "text-yellow-600"
+                    : "text-red-600"
                 }`}
               >
                 {stats.avgSuccessRate}%
@@ -747,7 +754,9 @@ export function PipelineTriggersPage() {
               <select
                 value={statusFilter}
                 onChange={(e) =>
-                  setStatusFilter(e.target.value as "all" | "enabled" | "disabled")
+                  setStatusFilter(
+                    e.target.value as "all" | "enabled" | "disabled"
+                  )
                 }
                 className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
                 aria-label="Filter by status"
