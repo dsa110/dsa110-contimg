@@ -156,6 +156,8 @@ class ImageListResponse(BaseModel):
     qa_grade: Optional[Literal["good", "warn", "fail"]] = Field(None, description="QA assessment grade")
     created_at: Optional[datetime] = Field(None, description="Image creation timestamp")
     run_id: Optional[str] = Field(None, description="Pipeline run/job ID")
+    pointing_ra_deg: Optional[float] = Field(None, description="Pointing RA in degrees")
+    pointing_dec_deg: Optional[float] = Field(None, description="Pointing Dec in degrees")
 
 
 class SourceListResponse(BaseModel):

@@ -357,6 +357,10 @@ export const CAL_ENDPOINTS = {
 export const LOGS_ENDPOINTS = {
   /** Get logs for a run */
   get: (runId: string) => `/v1/logs/${runId}`,
+  /** Query logs with filters */
+  search: "/v1/logs/search",
+  /** Live tail endpoint */
+  tail: "/v1/logs/tail",
 } as const;
 
 // =============================================================================

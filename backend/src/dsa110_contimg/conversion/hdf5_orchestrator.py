@@ -356,8 +356,13 @@ def _load_single_subband(subband_file: str, group_id: str) -> pyuvdata.UVData:
             _ = meta.time_array  # Quick validation
 
         # Read full data with explicit file_type (pyuvdata doesn't auto-detect .hdf5)
+        # run_check=False: Skip dtype validation (DSA-110 files use float32 for uvw_array)
         subband_data = pyuvdata.UVData()
-        subband_data.read(subband_file, file_type="uvh5", strict_uvw_antpos_check=False)
+        subband_data.read(
+            subband_file, file_type="uvh5",
+            strict_uvw_antpos_check=False,
+            run_check=False,
+        )
         return subband_data
 
     except FileNotFoundError as e:

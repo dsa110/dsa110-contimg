@@ -95,3 +95,13 @@ export type {
   ResourceMetricsDetailed,
   MetricsDashboard,
 } from "./prometheus";
+
+// Log aggregation types
+export type {
+  LogEntry,
+  LogLevel,
+  LogQueryParams,
+  LogQueryRequest,
+  LogSearchResponse,
+  LogTimeRange,
+} from "./logs";
