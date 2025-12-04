@@ -1990,6 +1990,23 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                         metrics.files_processed,
                     )
 
+                    # Issue #11: Record execution metrics to hardening registry
+                    if HAVE_HARDENING and record_execution_metrics is not None:
+                        try:
+                            record_execution_metrics(
+                                group_id=gid,
+                                execution_mode=execution_result.execution_mode or "unknown",
+                                seconds=metrics.total_time_s,
+                                memory_mb=metrics.memory_peak_mb,
+                                success=execution_result.success,
+                                error_code=(
+                                    execution_result.error_code.name
+                                    if execution_result.error_code else None
+                                ),
+                            )
+                        except Exception:
+                            log.debug("record_execution_metrics failed (non-fatal)")
+
                 if ret != 0 and execution_result is not None:
                     # Error handling is done by the executor
                     error_msg = execution_result.error_message or f"exit code {ret}"
