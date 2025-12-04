@@ -17,14 +17,14 @@ This runbook provides procedures for operating and troubleshooting the DSA-110 c
 
 ### Key Paths
 
-| Path | Description |
-|------|-------------|
-| `/data/dsa110-contimg/` | Source code and state |
-| `/data/dsa110-contimg/state/db/pipeline.sqlite3` | Main pipeline database |
-| `/data/dsa110-contimg/state/logs/` | Application logs |
-| `/stage/dsa110-contimg/ms/` | Output Measurement Sets |
-| `/stage/backups/` | Backup storage |
-| `/data/incoming/` | Raw HDF5 files from correlator |
+| Path                                             | Description                    |
+| ------------------------------------------------ | ------------------------------ |
+| `/data/dsa110-contimg/`                          | Source code and state          |
+| `/data/dsa110-contimg/state/db/pipeline.sqlite3` | Main pipeline database         |
+| `/data/dsa110-contimg/state/logs/`               | Application logs               |
+| `/stage/dsa110-contimg/ms/`                      | Output Measurement Sets        |
+| `/stage/backups/`                                | Backup storage                 |
+| `/data/incoming/`                                | Raw HDF5 files from correlator |
 
 ### Service Commands
 
@@ -76,6 +76,7 @@ sudo systemctl stop contimg-api
 Configuration via environment file: `/data/dsa110-contimg/ops/env/production.env`
 
 Key variables:
+
 - `PIPELINE_DB` - Database path
 - `DSA110_AUTH_DISABLED` - Set `false` in production
 - `LOG_LEVEL` - DEBUG, INFO, WARNING, ERROR
@@ -90,18 +91,22 @@ Key variables:
 **Meaning:** No valid calibration in 24+ hours
 
 **Steps:**
+
 1. Check calibration table registry:
+
    ```bash
    sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
      "SELECT * FROM calibration_tables ORDER BY created_at DESC LIMIT 5;"
    ```
 
 2. Verify calibrator transits occurred:
+
    ```bash
    python -m dsa110_contimg.calibration.cli status
    ```
 
 3. Check for failed calibration jobs:
+
    ```bash
    sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
      "SELECT * FROM ingest_queue WHERE state='failed' AND processing_stage='calibration';"
@@ -118,19 +123,23 @@ Key variables:
 **Meaning:** Queue depth > 100 pending observations
 
 **Steps:**
+
 1. Check current queue status:
+
    ```bash
    sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
      "SELECT state, COUNT(*) FROM ingest_queue GROUP BY state;"
    ```
 
 2. Check streaming service health:
+
    ```bash
    sudo systemctl status contimg-stream
    journalctl -u contimg-stream --since "1 hour ago" | grep -i error
    ```
 
 3. Check disk space:
+
    ```bash
    df -h /data /stage /scratch
    ```
@@ -138,7 +147,7 @@ Key variables:
 4. If stuck jobs exist, reset them:
    ```bash
    sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
-     "UPDATE ingest_queue SET state='pending', retry_count=0 
+     "UPDATE ingest_queue SET state='pending', retry_count=0
       WHERE state='in_progress' AND updated_at < datetime('now', '-1 hour');"
    ```
 
@@ -148,20 +157,24 @@ Key variables:
 **Meaning:** >10% of pipeline runs failing
 
 **Steps:**
+
 1. Identify failing jobs:
+
    ```bash
    sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
-     "SELECT group_id, error_message, failed_at 
-      FROM ingest_queue WHERE state='failed' 
+     "SELECT group_id, error_message, failed_at
+      FROM ingest_queue WHERE state='failed'
       ORDER BY failed_at DESC LIMIT 10;"
    ```
 
 2. Check for common patterns:
+
    - Missing subbands (incomplete observation)
    - I/O errors (disk full or NFS issues)
    - Memory errors (OOM)
 
 3. Review streaming service logs:
+
    ```bash
    journalctl -u contimg-stream --since "1 hour ago" | grep -E "ERROR|CRITICAL"
    ```
@@ -178,18 +191,22 @@ Key variables:
 **Meaning:** Disk <15% free on /data or /stage
 
 **Steps:**
+
 1. Identify space usage:
+
    ```bash
    du -sh /data/incoming/* | sort -rh | head -10
    du -sh /stage/dsa110-contimg/* | sort -rh | head -10
    ```
 
 2. Clean up old MS files (>30 days):
+
    ```bash
    find /stage/dsa110-contimg/ms -name "*.ms" -mtime +30 -exec rm -rf {} \;
    ```
 
 3. Archive or delete old HDF5 files:
+
    ```bash
    # List files older than 7 days
    find /data/incoming -name "*.hdf5" -mtime +7 | wc -l
@@ -206,19 +223,23 @@ Key variables:
 **Meaning:** Jobs in-progress with no completions for 30 min
 
 **Steps:**
+
 1. Find stuck jobs:
+
    ```bash
    sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
-     "SELECT group_id, processing_stage, started_at 
+     "SELECT group_id, processing_stage, started_at
       FROM ingest_queue WHERE state='in_progress';"
    ```
 
 2. Check if conversion process is running:
+
    ```bash
    ps aux | grep -E "dsa110_contimg|casapy"
    ```
 
 3. Check for zombie processes:
+
    ```bash
    ps aux | awk '$8=="Z" {print}'
    ```
@@ -227,7 +248,7 @@ Key variables:
    ```bash
    # Reset specific job
    sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
-     "UPDATE ingest_queue SET state='pending', retry_count=retry_count+1 
+     "UPDATE ingest_queue SET state='pending', retry_count=retry_count+1
       WHERE group_id='<GROUP_ID>';"
    ```
 
@@ -238,10 +259,12 @@ Key variables:
 ### Automated Backups
 
 Backups are scheduled via cron:
+
 - **Hourly:** Database snapshots to `/stage/backups/hourly/`
 - **Daily:** Calibration tables to `/stage/backups/daily/`
 
 Verify cron is running:
+
 ```bash
 crontab -l | grep backup-cron
 ```
@@ -291,16 +314,19 @@ tar -xzf /stage/backups/daily/caltables_YYYYMMDD_030000.tar.gz \
 ### Issue: API returns 500 errors
 
 **Diagnosis:**
+
 ```bash
 journalctl -u contimg-api --since "10 min ago" | grep -i error
 ```
 
 **Common causes:**
+
 1. Database locked - check for long-running queries
 2. Memory exhaustion
 3. Missing dependencies
 
 **Fix:**
+
 ```bash
 sudo systemctl restart contimg-api
 ```
@@ -308,6 +334,7 @@ sudo systemctl restart contimg-api
 ### Issue: MS files not appearing
 
 **Diagnosis:**
+
 ```bash
 # Check queue status
 sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
@@ -315,11 +342,12 @@ sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
 
 # Check for recent completions
 sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
-  "SELECT group_id, completed_at FROM ingest_queue 
+  "SELECT group_id, completed_at FROM ingest_queue
    WHERE state='completed' ORDER BY completed_at DESC LIMIT 5;"
 ```
 
 **Common causes:**
+
 1. Incomplete subband groups (need all 16 subbands)
 2. Streaming service not running
 3. Output directory permissions
@@ -327,6 +355,7 @@ sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
 ### Issue: Slow dashboard loading
 
 **Diagnosis:**
+
 ```bash
 # Check API response times
 curl -w "@/dev/stdin" -s http://localhost:8000/api/v1/images?limit=10 <<< \
@@ -337,6 +366,7 @@ du -h /data/dsa110-contimg/state/db/pipeline.sqlite3
 ```
 
 **Fix options:**
+
 1. Run VACUUM on database:
    ```bash
    sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 "VACUUM;"
@@ -365,12 +395,12 @@ du -h /data/dsa110-contimg/state/db/pipeline.sqlite3
 
 ### Monitoring URLs
 
-| Service | URL |
-|---------|-----|
-| API Health | http://localhost:8000/health |
-| Metrics | http://localhost:8000/metrics |
-| Prometheus | http://localhost:9090 |
-| Grafana | http://localhost:3000 |
+| Service    | URL                           |
+| ---------- | ----------------------------- |
+| API Health | http://localhost:8000/health  |
+| Metrics    | http://localhost:8000/metrics |
+| Prometheus | http://localhost:9090         |
+| Grafana    | http://localhost:3000         |
 
 ---
 
@@ -427,5 +457,6 @@ sudo systemctl start contimg-api contimg-stream
 ## Contact
 
 For issues not covered in this runbook:
+
 - Slack: `#dsa110-pipeline`
 - Email: pipeline-ops@ovro.caltech.edu

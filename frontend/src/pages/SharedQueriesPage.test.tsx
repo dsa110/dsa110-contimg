@@ -320,13 +320,15 @@ describe("SharedQueriesPage", () => {
     it("renders target type badges", () => {
       render(<SharedQueriesPage />, { wrapper: createWrapper() });
 
-      // Target types appear in cards - use getAllByText for possible duplicates (also in dropdown)
+      // Target types appear in both cards and dropdown - use getAllByText
       const sourcesBadges = screen.getAllByText("Sources");
       expect(sourcesBadges.length).toBeGreaterThan(0);
       // "Images" appears in both badge and target type dropdown option
       const imagesBadges = screen.getAllByText("Images");
       expect(imagesBadges.length).toBeGreaterThan(0);
-      expect(screen.getByText("Jobs")).toBeInTheDocument();
+      // "Jobs" also appears in both badge and dropdown
+      const jobsBadges = screen.getAllByText("Jobs");
+      expect(jobsBadges.length).toBeGreaterThan(0);
     });
 
     it("renders query tags", () => {
@@ -453,18 +455,13 @@ describe("SharedQueriesPage", () => {
     it("calls favorite mutation when clicking Favorite button", () => {
       render(<SharedQueriesPage />, { wrapper: createWrapper() });
 
-      // Find favorite buttons (the non-favorited ones have ☆)
+      // Find all favorite buttons (queries q2 and q3 are not favorited)
       const favoriteButtons = screen.getAllByRole("button", {
-        name: /favorite/i,
+        name: /☆ favorite/i,
       });
-      // Find one that's not "Unfavorite"
-      const favButton = favoriteButtons.find(
-        (btn) => !btn.textContent?.includes("Unfavorite")
-      );
-      if (favButton) {
-        fireEvent.click(favButton);
-        expect(mockFavoriteMutation.mutate).toHaveBeenCalled();
-      }
+      expect(favoriteButtons.length).toBeGreaterThan(0);
+      fireEvent.click(favoriteButtons[0]);
+      expect(mockFavoriteMutation.mutate).toHaveBeenCalled();
     });
 
     it("calls unfavorite mutation when clicking Unfavorite button", () => {
@@ -660,7 +657,8 @@ describe("SharedQueriesPage", () => {
 
       expect(screen.getByLabelText(/^name$/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/description/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/target type/i)).toBeInTheDocument();
+      // Use exact match for "Target Type" to avoid matching "Filter by target type"
+      expect(screen.getByLabelText(/^target type$/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/visibility/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/^query$/i)).toBeInTheDocument();
       expect(screen.getByLabelText(/tags/i)).toBeInTheDocument();

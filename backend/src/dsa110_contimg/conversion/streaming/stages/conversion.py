@@ -52,13 +52,13 @@ class ConversionConfig:
 
 class ConversionStage:
     """Stage for converting HDF5 subband groups to Measurement Sets.
-    
+
     This stage:
     1. Validates all subband files exist and are readable
     2. Invokes the HDF5 orchestrator to combine subbands
     3. Writes output MS to organized directory structure
     4. Records metrics for monitoring
-    
+
     Example:
         >>> config = ConversionConfig(
         ...     input_dir=Path("/data/incoming"),
@@ -73,7 +73,7 @@ class ConversionStage:
         >>> if result.success:
         ...     print(f"Created MS: {result.ms_path}")
     """
-    
+
     # Regex to extract timestamp from filename: 2025-10-02T00:05:18_sb00.hdf5
     _TIMESTAMP_PATTERN = __import__("re").compile(
         r"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})_sb\d{2}\.hdf5$"
@@ -81,74 +81,74 @@ class ConversionStage:
 
     def __init__(self, config: ConversionConfig) -> None:
         """Initialize the conversion stage.
-        
+
         Args:
             config: Conversion configuration
         """
         self.config = config
         self._execution_module_available = False
-        
+
         # Check if execution module is available
         try:
             from dsa110_contimg.execution import ExecutionMode
             self._execution_module_available = True
         except ImportError:
             logger.debug("Execution module not available, using fallback")
-    
+
     def _derive_time_window(
         self, group_id: str, file_paths: List[str]
     ) -> Tuple[str, str]:
         """Derive start/end time window from file paths.
-        
+
         Subbands arrive at slightly different times, so we extract the
         actual timestamp range from file names.
-        
+
         Args:
             group_id: Group identifier (used as fallback)
             file_paths: List of subband file paths
-            
+
         Returns:
             Tuple of (start_time, end_time) in ISO format with T separator
         """
         timestamps = []
-        
+
         for fp in file_paths:
             basename = os.path.basename(fp)
             match = self._TIMESTAMP_PATTERN.search(basename)
             if match:
                 timestamps.append(match.group(1))
-        
+
         if not timestamps:
             # Fallback to group_id
             logger.debug(f"No timestamps extracted from files, using group_id: {group_id}")
             return group_id, group_id
-        
+
         # Sort timestamps and return min/max
         timestamps.sort()
         start_time = timestamps[0]
         end_time = timestamps[-1]
-        
+
         logger.debug(
             f"Derived time window from {len(timestamps)} files: {start_time} to {end_time}"
         )
-        
+
         return start_time, end_time
 
     def validate(
         self, group_id: str, file_paths: List[str]
     ) -> Tuple[bool, Optional[str]]:
         """Validate prerequisites for conversion.
-        
+
         Args:
             group_id: Group identifier
             file_paths: List of subband file paths
-            
+
         Returns:
             Tuple of (is_valid, error_message)
         """
         if not file_paths:
             return False, "No subband files provided"
-            
+
         if len(file_paths) < self.config.expected_subbands:
             return False, (
                 f"Incomplete group: {len(file_paths)}/{self.config.expected_subbands} subbands"
@@ -176,21 +176,21 @@ class ConversionStage:
         end_time: Optional[str] = None,
     ) -> ConversionResult:
         """Execute the conversion stage.
-        
+
         Args:
             group_id: Group identifier (timestamp-based)
             file_paths: List of subband file paths
             start_time: Optional start time override
             end_time: Optional end time override
-            
+
         Returns:
             ConversionResult with status and output paths
         """
         t0 = time.perf_counter()
-        
+
         # Store file_paths for fallback to use
         self._current_file_paths = file_paths
-        
+
         # Derive time window from file paths for accurate grouping
         # Subbands arrive at slightly different times, so we need a window
         if start_time is None or end_time is None:
@@ -218,12 +218,12 @@ class ConversionStage:
         self, group_id: str, start_time: str, end_time: str
     ) -> ConversionResult:
         """Execute using the execution module for isolation.
-        
+
         Args:
             group_id: Group identifier
             start_time: Start time string
             end_time: End time string
-            
+
         Returns:
             ConversionResult
         """
@@ -256,7 +256,7 @@ class ConversionStage:
                 # Derive MS path from group_id
                 base = group_id.replace(":", "-")
                 ms_path = str(self.config.output_dir / f"{base}.ms")
-                
+
                 return ConversionResult(
                     success=True,
                     ms_path=ms_path,
@@ -283,12 +283,12 @@ class ConversionStage:
         self, group_id: str, start_time: str, end_time: str
     ) -> ConversionResult:
         """Execute using direct orchestrator call (fallback).
-        
+
         Args:
             group_id: Group identifier
             start_time: Start time string
             end_time: End time string
-            
+
         Returns:
             ConversionResult
         """
@@ -324,7 +324,7 @@ class ConversionStage:
                 # The converted list contains group_ids, we need to derive MS path
                 converted_group = results["converted"][0]
                 ms_path = str(self.config.output_dir / f"{converted_group}.ms")
-                
+
                 return ConversionResult(
                     success=True,
                     ms_path=ms_path,
