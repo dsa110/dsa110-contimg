@@ -45,6 +45,17 @@ from dsa110_contimg.calibration.flagging_adaptive import (
     AdaptiveFlaggingResult,
 )
 
+# Self-calibration
+from dsa110_contimg.calibration.selfcal import (
+    SelfCalMode,
+    SelfCalStatus,
+    SelfCalConfig,
+    SelfCalIterationResult,
+    SelfCalResult,
+    selfcal_iteration,
+    selfcal_ms,
+)
+
 __all__ = [
     # Transit utilities
     "next_transit_time",
@@ -79,4 +90,12 @@ __all__ = [
     "flag_rfi_with_gpu_fallback",
     "FlaggingStrategy",
     "AdaptiveFlaggingResult",
+    # Self-calibration
+    "SelfCalMode",
+    "SelfCalStatus",
+    "SelfCalConfig",
+    "SelfCalIterationResult",
+    "SelfCalResult",
+    "selfcal_iteration",
+    "selfcal_ms",
 ]

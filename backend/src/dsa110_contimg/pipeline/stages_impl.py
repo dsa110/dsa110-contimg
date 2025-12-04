@@ -1788,6 +1788,206 @@ class CalibrationStage(PipelineStage):
         return "calibration"
 
 
+class SelfCalibrationStage(PipelineStage):
+    """Self-calibration stage: Iteratively refine calibration using image model.
+
+    Self-calibration improves dynamic range by using the current best image
+    as a model for the next round of calibration. This stage runs after initial
+    calibration and before final imaging.
+
+    The workflow is:
+    1. Create initial image from calibrated data
+    2. Predict model visibilities to MODEL_DATA
+    3. Solve gaincal (phase-only, then amplitude+phase)
+    4. Apply new calibration
+    5. Re-image with improved calibration
+    6. Repeat until convergence or max iterations
+
+    Example:
+        >>> config = PipelineConfig(paths=PathsConfig(...))
+        >>> stage = SelfCalibrationStage(config)
+        >>> context = PipelineContext(
+        ...     config=config,
+        ...     outputs={"ms_path": "/data/calibrated.ms"}
+        ... )
+        >>> is_valid, error = stage.validate(context)
+        >>> if is_valid:
+        ...     result_context = stage.execute(context)
+        ...     # Self-calibrated MS ready for final imaging
+        ...     selfcal_tables = result_context.outputs.get("selfcal_tables")
+
+    Inputs:
+        - `ms_path` (str): Path to calibrated Measurement Set
+
+    Outputs:
+        - `ms_path` (str): Path to self-calibrated Measurement Set
+        - `selfcal_tables` (list): List of self-calibration tables applied
+        - `selfcal_snr_improvement` (float): SNR improvement factor
+    """
+
+    def __init__(self, config: PipelineConfig):
+        """Initialize self-calibration stage.
+
+        Args:
+            config: Pipeline configuration
+        """
+        self.config = config
+
+    def validate(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
+        """Validate prerequisites for self-calibration."""
+        if "ms_path" not in context.outputs:
+            return False, "ms_path required in context.outputs"
+
+        ms_path = context.outputs["ms_path"]
+        if not Path(ms_path).exists():
+            return False, f"MS file not found: {ms_path}"
+
+        # Check CORRECTED_DATA exists (calibration must have been applied)
+        try:
+            import casacore.tables as casatables
+
+            with casatables.table(ms_path, readonly=True) as tb:
+                if "CORRECTED_DATA" not in tb.colnames():
+                    return False, "CORRECTED_DATA not found - calibration required first"
+        except Exception as e:
+            return False, f"Cannot validate MS: {e}"
+
+        return True, None
+
+    @tracked_stage_execute(
+        enable_state_machine=True,
+        enable_retry=True,
+        enable_metrics=True,
+        max_retries=1,  # Self-cal is expensive, limit retries
+        base_delay=30.0,
+        alert_on_failure=True,
+    )
+    @require_casa6_python
+    @progress_monitor(operation_name="Self-Calibration", warn_threshold=3600.0)  # 1 hour warning
+    def execute(self, context: PipelineContext) -> PipelineContext:
+        """Execute self-calibration stage.
+
+        Runs iterative self-calibration to improve dynamic range.
+        """
+        import time
+
+        start_time_sec = time.time()
+        log_progress("Starting self-calibration stage...")
+
+        from dsa110_contimg.calibration.selfcal import (
+            SelfCalConfig,
+            selfcal_ms,
+        )
+
+        ms_path = context.outputs["ms_path"]
+        logger.info(f"Self-calibration stage: {ms_path}")
+
+        # Get self-cal parameters from context or use defaults
+        params = context.inputs.get("selfcal_params", {})
+
+        # Check if self-cal is enabled
+        if not params.get("enabled", True):
+            logger.info("Self-calibration disabled, skipping")
+            return context.with_output("selfcal_skipped", True)
+
+        # Build configuration from params
+        selfcal_config = SelfCalConfig(
+            max_iterations=params.get("max_iterations", 5),
+            min_snr_improvement=params.get("min_snr_improvement", 1.05),
+            stop_on_divergence=params.get("stop_on_divergence", True),
+            phase_solints=params.get("phase_solints", ["60s", "30s", "inf"]),
+            phase_minsnr=params.get("phase_minsnr", 3.0),
+            do_amplitude=params.get("do_amplitude", True),
+            amp_solint=params.get("amp_solint", "inf"),
+            amp_minsnr=params.get("amp_minsnr", 5.0),
+            imsize=params.get("imsize", context.config.imaging.imsize if hasattr(context.config, 'imaging') else 1024),
+            niter=params.get("niter", 10000),
+            threshold=params.get("threshold", "0.1mJy"),
+            robust=params.get("robust", 0.0),
+            backend=params.get("backend", "wsclean"),
+            min_initial_snr=params.get("min_initial_snr", 5.0),
+            max_flagged_fraction=params.get("max_flagged_fraction", 0.5),
+            refant=params.get("refant"),
+            field=params.get("field", "0"),
+        )
+
+        # Output directory for self-cal products
+        output_dir = Path(context.config.paths.output_dir) / "selfcal" / Path(ms_path).stem
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        # Get initial calibration tables if available
+        initial_tables = context.outputs.get("calibration_tables", [])
+        if isinstance(initial_tables, dict):
+            initial_tables = list(initial_tables.values())
+
+        # Run self-calibration
+        success, summary = selfcal_ms(
+            ms_path=ms_path,
+            output_dir=str(output_dir),
+            config=selfcal_config,
+            initial_caltables=initial_tables if initial_tables else None,
+        )
+
+        # Store results
+        context = context.with_output("selfcal_summary", summary)
+        context = context.with_output("selfcal_success", success)
+
+        if success:
+            context = context.with_output("selfcal_tables", summary.get("final_gaintables", []))
+            context = context.with_output("selfcal_snr_improvement", summary.get("improvement_factor", 1.0))
+            context = context.with_output("selfcal_final_image", summary.get("final_image"))
+
+            logger.info(
+                f"Self-calibration successful: {summary.get('improvement_factor', 1.0):.2f}x "
+                f"improvement in {summary.get('iterations_completed', 0)} iterations"
+            )
+        else:
+            logger.warning(f"Self-calibration did not improve data: {summary.get('message', '')}")
+            # Still continue - self-cal failure is not fatal
+
+        # Update MS index if available
+        if context.state_repository:
+            try:
+                context.state_repository.upsert_ms_index(
+                    ms_path,
+                    {
+                        "selfcal_applied": success,
+                        "selfcal_improvement": summary.get("improvement_factor", 1.0),
+                        "stage": "selfcal",
+                    },
+                )
+            except Exception as e:
+                logger.warning(f"Failed to update MS index: {e}")
+
+        log_progress(
+            f"Completed self-calibration stage. Success={success}, "
+            f"Improvement={summary.get('improvement_factor', 1.0):.2f}x",
+            start_time_sec,
+        )
+
+        return context
+
+    def validate_outputs(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
+        """Validate self-calibration outputs."""
+        # Self-cal is optional - success is not required
+        if "selfcal_skipped" in context.outputs:
+            return True, None
+
+        if "selfcal_summary" not in context.outputs:
+            return False, "selfcal_summary not found in outputs"
+
+        return True, None
+
+    def cleanup(self, context: PipelineContext) -> None:
+        """Cleanup partial self-cal products on failure."""
+        # Could clean up partial iteration products here
+        pass
+
+    def get_name(self) -> str:
+        """Get stage name."""
+        return "selfcal"
+
+
 class ImagingStage(PipelineStage):
     """Imaging stage: Create images from calibrated MS.
 

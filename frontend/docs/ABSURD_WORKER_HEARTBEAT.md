@@ -44,6 +44,8 @@ class AbsurdMonitor:
 
 Configure worker API heartbeats in `backend/.env`:
 
+#### Development Configuration
+
 ```bash
 # Required: API base URL for heartbeat endpoint
 ABSURD_API_BASE_URL=http://localhost:8000
@@ -58,6 +60,42 @@ DSA110_JWT_SECRET=your-secret-key-here
 DSA110_AUTH_DISABLED=true
 DSA110_ENV=development
 ```
+
+#### Production Configuration
+
+```bash
+# Environment identifier (CRITICAL: affects auth enforcement)
+DSA110_ENV=production
+
+# Authentication MUST be enabled in production
+DSA110_AUTH_DISABLED=false
+
+# JWT Secret - MUST be unique per deployment (64-char hex recommended)
+# Generate with: python3 -c "import secrets; print(secrets.token_hex(32))"
+DSA110_JWT_SECRET=<your-secure-64-char-hex-secret>
+
+# API base URL - use resolvable hostname (not localhost) for distributed workers
+ABSURD_API_BASE_URL=http://<hostname>:8000
+
+# Heartbeat interval (default: 10.0 seconds)
+ABSURD_API_HEARTBEAT_INTERVAL=10.0
+```
+
+**Production Checklist:**
+
+| Setting                | Development      | Production            |
+| ---------------------- | ---------------- | --------------------- |
+| `DSA110_ENV`           | `development`    | `production`          |
+| `DSA110_AUTH_DISABLED` | `true`           | `false`               |
+| `DSA110_JWT_SECRET`    | any value        | **unique secure key** |
+| `ABSURD_API_BASE_URL`  | `localhost:8000` | `<hostname>:8000`     |
+
+**Security Notes:**
+
+- Never commit `DSA110_JWT_SECRET` to version control
+- Use `python3 -c "import secrets; print(secrets.token_hex(32))"` to generate secrets
+- Workers and API must share the same `DSA110_JWT_SECRET`
+- Backup `.env.production` template exists at `backend/.env.production`
 
 ### Worker Configuration
 
@@ -285,10 +323,13 @@ Dec 03 10:30:10 lxd110h17 python[12345]: INFO: Sent API heartbeat
 
 1. Verify `ABSURD_API_BASE_URL` is set in `backend/.env`
 2. Check worker logs for heartbeat errors:
+
    ```bash
    sudo journalctl -u dsa110-absurd-worker@1 | grep -i "heartbeat\|error"
    ```
+
 3. Test API endpoint directly:
+
    ```bash
    curl http://localhost:8000/absurd/workers
    ```
@@ -308,11 +349,14 @@ Dec 03 10:30:10 lxd110h17 python[12345]: INFO: Sent API heartbeat
 
 1. Ensure `DSA110_JWT_SECRET` is set in `.env`
 2. For development, disable auth:
+
    ```bash
    DSA110_AUTH_DISABLED=true
    DSA110_ENV=development
    ```
+
 3. Restart workers after `.env` changes:
+
    ```bash
    sudo systemctl restart dsa110-absurd-worker@*
    ```
@@ -324,11 +368,14 @@ Dec 03 10:30:10 lxd110h17 python[12345]: INFO: Sent API heartbeat
 **Check:**
 
 1. API is running:
+
    ```bash
    curl http://localhost:8000/api/v1/health
    ```
+
 2. Port 8000 is accessible from worker process
 3. Correct base URL (no trailing slash):
+
    ```bash
    ABSURD_API_BASE_URL=http://localhost:8000  # Correct
    ABSURD_API_BASE_URL=http://localhost:8000/ # Wrong
@@ -341,11 +388,49 @@ Dec 03 10:30:10 lxd110h17 python[12345]: INFO: Sent API heartbeat
 **Resolution**: Workers will re-register automatically within 10 seconds (default heartbeat interval). If workers don't reappear:
 
 1. Verify workers are still running:
+
    ```bash
    sudo systemctl status dsa110-absurd-worker@*
    ```
+
 2. Check worker logs for heartbeat activity
 3. Restart workers if needed
+
+### Production Deployment Issues
+
+**Symptom**: Heartbeats work in development but fail after switching to production.
+
+**Cause**: When `DSA110_ENV=production`, authentication is enforced regardless of `DSA110_AUTH_DISABLED`.
+
+**Fix:**
+
+1. Ensure workers and API share the **same** `DSA110_JWT_SECRET`:
+
+   ```bash
+   # Both API and workers must have identical values
+   grep DSA110_JWT_SECRET /data/dsa110-contimg/backend/.env
+   ```
+
+2. Restart **both** API and workers after changing the secret:
+
+   ```bash
+   # Kill and restart API
+   pkill -f "uvicorn.*8000"
+   cd /data/dsa110-contimg/backend
+   set -a && source .env && set +a
+   export PYTHONPATH=/data/dsa110-contimg/backend/src
+   nohup python -m uvicorn dsa110_contimg.api.app:app --host 0.0.0.0 --port 8000 &
+
+   # Restart workers
+   sudo systemctl restart dsa110-absurd-worker@*
+   ```
+
+3. Verify heartbeats succeed:
+
+   ```bash
+   # Check API logs for 200 OK responses
+   tail -f /tmp/api.log | grep heartbeat
+   ```
 
 ## Testing
 
