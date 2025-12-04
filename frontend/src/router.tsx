@@ -30,6 +30,7 @@ const DataCleanupWizardPage = lazy(
   () => import("./pages/DataCleanupWizardPage")
 );
 const BackupRestorePage = lazy(() => import("./pages/BackupRestorePage"));
+const PipelineTriggersPage = lazy(() => import("./pages/PipelineTriggersPage"));
 
 /**
  * Application router configuration.
@@ -247,6 +248,16 @@ export const router = createBrowserRouter(
             <Suspense fallback={<PageSkeleton variant="list" />}>
               <ProtectedRoute requiredRoles={["operator", "admin"]}>
                 <BackupRestorePage />
+              </ProtectedRoute>
+            </Suspense>
+          ),
+        },
+        {
+          path: "triggers",
+          element: (
+            <Suspense fallback={<PageSkeleton variant="list" />}>
+              <ProtectedRoute requiredRoles={["operator", "admin"]}>
+                <PipelineTriggersPage />
               </ProtectedRoute>
             </Suspense>
           ),

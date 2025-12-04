@@ -85,6 +85,9 @@ export const ROUTES = {
   /** Backup and restore dashboard */
   BACKUPS: "/backups",
 
+  /** Pipeline triggers */
+  TRIGGERS: "/triggers",
+
   /** Calibrator Imaging Test */
   CALIBRATOR_IMAGING: "/calibrator-imaging",
 } as const;
