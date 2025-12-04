@@ -23,7 +23,7 @@ TODO: Outstanding Feature Work
     - [x] Implement LogViewer with virtualized list, syntax highlighting, and sticky filters; add saved searches dropdown.
     - [x] Add live tail mode with backpressure (batch append) and auto-scroll toggle.
     - [x] Wire entry points from Jobs/Health pages with pre-populated filters.
-    - [ ] Tests: hook pagination, tail reconnect, component filter interactions.
+    - [x] Tests: hook pagination, tail reconnect, component filter interactions.
 
 - Resource utilization (CPU/memory/disk)
   - Consume Prometheus (or similar) metrics for core services; predefine queries for 1h/6h/24h windows with downsampling.
