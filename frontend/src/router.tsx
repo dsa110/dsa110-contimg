@@ -19,6 +19,7 @@ const InteractiveImagingPage = lazy(
 const CalibratorImagingPage = lazy(
   () => import("./pages/CalibratorImagingPage")
 );
+const ConversionPage = lazy(() => import("./pages/ConversionPage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
 const WorkflowsPage = lazy(() => import("./pages/WorkflowsPage"));
 const RetentionPoliciesPage = lazy(
@@ -148,6 +149,19 @@ export const router = createBrowserRouter(
                 requiredRoles={["operator", "admin"]}
               >
                 <CalibratorImagingPage />
+              </ProtectedRoute>
+            </Suspense>
+          ),
+        },
+        {
+          path: "conversion",
+          element: (
+            <Suspense fallback={<PageSkeleton variant="list" />}>
+              <ProtectedRoute
+                permission="CREATE_JOB"
+                requiredRoles={["operator", "admin"]}
+              >
+                <ConversionPage />
               </ProtectedRoute>
             </Suspense>
           ),

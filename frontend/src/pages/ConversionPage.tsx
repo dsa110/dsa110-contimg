@@ -141,8 +141,18 @@ function StatsSection() {
         value={stats.total_pending}
         variant={stats.total_pending > 10 ? "warning" : "default"}
         icon={
-          <svg className="w-4 h-4 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="w-4 h-4 text-yellow-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         }
       />
@@ -151,8 +161,18 @@ function StatsSection() {
         value={stats.total_converting}
         variant={stats.total_converting > 0 ? "info" : "default"}
         icon={
-          <svg className="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          <svg
+            className="w-4 h-4 text-blue-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            />
           </svg>
         }
       />
@@ -161,8 +181,18 @@ function StatsSection() {
         value={stats.total_converted_today}
         variant="success"
         icon={
-          <svg className="w-4 h-4 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="w-4 h-4 text-green-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         }
       />
@@ -171,8 +201,18 @@ function StatsSection() {
         value={stats.total_failed_today}
         variant={stats.total_failed_today > 0 ? "error" : "default"}
         icon={
-          <svg className="w-4 h-4 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="w-4 h-4 text-red-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
         }
       />
@@ -272,7 +312,9 @@ function GroupRow({
  */
 function PendingGroupsSection() {
   const [selectedGroups, setSelectedGroups] = useState<Set<string>>(new Set());
-  const [convertingGroups, setConvertingGroups] = useState<Set<string>>(new Set());
+  const [convertingGroups, setConvertingGroups] = useState<Set<string>>(
+    new Set()
+  );
   const [showCompleteOnly, setShowCompleteOnly] = useState(false);
   const [sinceHours, setSinceHours] = useState(168); // 7 days
 
@@ -288,7 +330,8 @@ function PendingGroupsSection() {
 
   const groups = pendingData?.groups ?? [];
   const convertableGroups = useMemo(
-    () => groups.filter((g) => g.state === "pending" || g.state === "collecting"),
+    () =>
+      groups.filter((g) => g.state === "pending" || g.state === "collecting"),
     [groups]
   );
 
@@ -368,7 +411,8 @@ function PendingGroupsSection() {
           <h2 className="text-lg font-semibold">
             Pending HDF5 Groups
             <span className="ml-2 text-sm font-normal text-gray-500">
-              ({pendingData?.total ?? 0} total, {pendingData?.complete_count ?? 0} complete)
+              ({pendingData?.total ?? 0} total,{" "}
+              {pendingData?.complete_count ?? 0} complete)
             </span>
           </h2>
           {selectedGroups.size > 0 && (
@@ -422,8 +466,18 @@ function PendingGroupsSection() {
             className="p-1.5 text-gray-500 hover:text-gray-700 rounded hover:bg-gray-100"
             title="Refresh"
           >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+              />
             </svg>
           </button>
         </div>
@@ -519,8 +573,18 @@ function ActiveConversionsSection() {
   return (
     <div className="bg-white rounded-lg shadow p-4 mb-6">
       <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-        <svg className="w-5 h-5 text-purple-500 animate-spin" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        <svg
+          className="w-5 h-5 text-purple-500 animate-spin"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+          />
         </svg>
         Active Conversions
         <span className="text-sm font-normal text-gray-500">
@@ -528,7 +592,8 @@ function ActiveConversionsSection() {
         </span>
       </h2>
       <p className="text-sm text-gray-600">
-        Conversion jobs are running in the background. Refresh the pending groups list to see updated statuses.
+        Conversion jobs are running in the background. Refresh the pending
+        groups list to see updated statuses.
       </p>
     </div>
   );
@@ -570,13 +635,15 @@ const ConversionPage: React.FC = () => {
             • <strong>Pending:</strong> HDF5 files are waiting to be converted
           </li>
           <li>
-            • <strong>Complete groups</strong> (16/16 subbands) are ready for immediate conversion
+            • <strong>Complete groups</strong> (16/16 subbands) are ready for
+            immediate conversion
           </li>
           <li>
             • <strong>Partial groups</strong> may still be receiving data
           </li>
           <li>
-            • Click <strong>Convert</strong> to start a conversion job, or select multiple and use <strong>Convert Selected</strong>
+            • Click <strong>Convert</strong> to start a conversion job, or
+            select multiple and use <strong>Convert Selected</strong>
           </li>
           <li>
             • Converted MS files appear in the{" "}
@@ -584,7 +651,10 @@ const ConversionPage: React.FC = () => {
               Jobs
             </Link>{" "}
             list and can be used for{" "}
-            <Link to="/calibrator-imaging" className="underline hover:text-blue-800">
+            <Link
+              to="/calibrator-imaging"
+              className="underline hover:text-blue-800"
+            >
               Imaging
             </Link>
           </li>
