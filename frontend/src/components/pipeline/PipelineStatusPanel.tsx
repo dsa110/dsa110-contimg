@@ -153,13 +153,27 @@ const EMPTY_COUNTS: StageStatusCounts = {
 // =============================================================================
 
 /**
+ * Get access token from localStorage (matches apiClient's approach).
+ */
+function getAccessToken(): string | null {
+  try {
+    const stored = localStorage.getItem("dsa110-auth");
+    if (!stored) return null;
+    const parsed = JSON.parse(stored);
+    return parsed?.state?.tokens?.accessToken ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Fetch pipeline status from ABSURD endpoint.
  */
 async function fetchPipelineStatus(): Promise<PipelineStatusResponse> {
   // The backend exposes ABSURD management endpoints at
   // `/absurd/*` (not under `/api/v1`). The frontend's apiClient
-  // has a default baseURL of `/api`, so use the browser `fetch`
-  // API to call the ABSURD endpoints through the dev proxy.
+  // has a default baseURL of `/api`, so we use browser `fetch`
+  // with the Authorization header to call ABSURD endpoints.
 
   // We'll query the detailed health and workers endpoints and
   // synthesize a PipelineStatusResponse. Per-stage task counts
@@ -167,18 +181,26 @@ async function fetchPipelineStatus(): Promise<PipelineStatusResponse> {
   // case we fall back to empty counts so the UI still renders.
   const now = new Date().toISOString();
 
+  // Get auth token for the requests
+  const token = getAccessToken();
+  const headers: HeadersInit = token
+    ? { Authorization: `Bearer ${token}` }
+    : {};
+
+  // Helper to fetch with auth
+  const fetchWithAuth = (url: string) =>
+    fetch(url, { credentials: "same-origin", headers });
+
   // Call endpoints concurrently
   const [healthRes, workersRes, queuesStatsRes] = await Promise.all([
-    fetch("/absurd/health/detailed", { credentials: "same-origin" }).then(
-      (r) => {
-        if (!r.ok) throw new Error("ABSURD health not available");
-        return r.json();
-      }
-    ),
-    fetch("/absurd/workers", { credentials: "same-origin" })
+    fetchWithAuth("/absurd/health/detailed").then((r) => {
+      if (!r.ok) throw new Error("ABSURD health not available");
+      return r.json();
+    }),
+    fetchWithAuth("/absurd/workers")
       .then((r) => (r.ok ? r.json() : []))
       .catch(() => []),
-    fetch("/absurd/queues/stats", { credentials: "same-origin" })
+    fetchWithAuth("/absurd/queues/stats")
       .then((r) => (r.ok ? r.json() : null))
       .catch(() => null),
   ]);
