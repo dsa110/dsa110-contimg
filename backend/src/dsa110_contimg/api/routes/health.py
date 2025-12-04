@@ -804,6 +804,85 @@ async def get_monitoring_alerts(
     }
 
 
+@router.post("/alerts/{alert_id}/acknowledge")
+async def acknowledge_alert(
+    alert_id: int,
+    acknowledged_by: Optional[str] = Query(None, description="Username acknowledging the alert"),
+) -> Dict[str, Any]:
+    """
+    Acknowledge a monitoring alert.
+
+    Marks the alert as acknowledged with a timestamp and optional username.
+    Acknowledged alerts are typically hidden from active alert views.
+
+    Args:
+        alert_id: ID of the alert to acknowledge
+        acknowledged_by: Optional username of the person acknowledging
+    """
+    import sqlite3
+    from pathlib import Path
+
+    products_path = Path(
+        os.environ.get("PIPELINE_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3")
+    )
+
+    if not products_path.exists():
+        return {"success": False, "error": "Pipeline database not found"}
+
+    conn = sqlite3.connect(str(products_path), timeout=10.0)
+    conn.row_factory = sqlite3.Row
+
+    # Check if table exists
+    table_exists = conn.execute(
+        """
+        SELECT name FROM sqlite_master
+        WHERE type='table' AND name='flux_monitoring_alerts'
+        """
+    ).fetchone()
+
+    if not table_exists:
+        conn.close()
+        return {"success": False, "error": "Alerts table not initialized"}
+
+    # Check if alert exists
+    alert = conn.execute(
+        "SELECT id, acknowledged_at FROM flux_monitoring_alerts WHERE id = ?",
+        (alert_id,),
+    ).fetchone()
+
+    if not alert:
+        conn.close()
+        return {"success": False, "error": f"Alert {alert_id} not found"}
+
+    if alert["acknowledged_at"] is not None:
+        conn.close()
+        return {
+            "success": False,
+            "error": f"Alert {alert_id} is already acknowledged",
+            "acknowledged_at": alert["acknowledged_at"],
+        }
+
+    # Update the alert
+    acknowledged_at = datetime.utcnow().isoformat() + "Z"
+    conn.execute(
+        """
+        UPDATE flux_monitoring_alerts
+        SET acknowledged_at = ?, acknowledged_by = ?
+        WHERE id = ?
+        """,
+        (acknowledged_at, acknowledged_by, alert_id),
+    )
+    conn.commit()
+    conn.close()
+
+    return {
+        "success": True,
+        "alert_id": alert_id,
+        "acknowledged_at": acknowledged_at,
+        "acknowledged_by": acknowledged_by,
+    }
+
+
 @router.post("/flux-monitoring/check")
 async def trigger_flux_monitoring_check(
     calibrator: Optional[str] = Query(None, description="Specific calibrator to check"),

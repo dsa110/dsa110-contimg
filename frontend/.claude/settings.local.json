@@ -4,7 +4,8 @@
       "Bash(done)",
       "Bash(paste:*)",
       "Bash(ls:*)",
-      "Bash(xargs ls:*)"
+      "Bash(xargs ls:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []
