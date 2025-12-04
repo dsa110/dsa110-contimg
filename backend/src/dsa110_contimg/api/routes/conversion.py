@@ -383,14 +383,11 @@ async def get_group_status(group_id: str):
             SELECT
                 group_id,
                 state,
-                ms_path,
-                error_message,
-                created_at as started_at,
-                updated_at as completed_at
+                error,
+                received_at,
+                last_update
             FROM processing_queue
             WHERE group_id = ?
-            ORDER BY updated_at DESC
-            LIMIT 1
             """,
             (group_id,),
         )
@@ -400,13 +397,17 @@ async def get_group_status(group_id: str):
         if not row:
             raise HTTPException(status_code=404, detail=f"Group not found: {group_id}")
 
+        # Convert timestamps
+        started_at = datetime.fromtimestamp(row["received_at"]).isoformat() if row["received_at"] else None
+        completed_at = datetime.fromtimestamp(row["last_update"]).isoformat() if row["last_update"] else None
+
         return ConversionStatus(
             group_id=row["group_id"],
             status=row["state"],
-            ms_path=row["ms_path"],
-            error_message=row["error_message"],
-            started_at=row["started_at"],
-            completed_at=row["completed_at"],
+            ms_path=None,  # MS path not stored in processing_queue
+            error_message=row["error"],
+            started_at=started_at,
+            completed_at=completed_at,
         )
 
     except sqlite3.Error as e:
