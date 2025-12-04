@@ -23,6 +23,8 @@ class AbsurdConfig:
         max_retries: Maximum number of task retry attempts
         dead_letter_enabled: Whether to route exhausted tasks to a DLQ
         dead_letter_queue_name: Queue name used for dead letter tasks
+        api_base_url: API base URL for worker heartbeats (e.g., http://localhost:8000/api/v1)
+        api_heartbeat_interval_sec: How often workers send API heartbeats (seconds)
     """
 
     enabled: bool = False
@@ -34,6 +36,8 @@ class AbsurdConfig:
     max_retries: int = 3
     dead_letter_enabled: bool = True
     dead_letter_queue_name: str = "dsa110-pipeline-dlq"
+    api_base_url: str = ""  # Empty means no API heartbeats
+    api_heartbeat_interval_sec: float = 10.0
 
     @classmethod
     def from_env(cls) -> "AbsurdConfig":
@@ -49,6 +53,8 @@ class AbsurdConfig:
             ABSURD_MAX_RETRIES: Maximum retry attempts (default: 3)
             ABSURD_DLQ_ENABLED: Enable dead letter routing (default: true)
             ABSURD_DLQ_QUEUE_NAME: Dead letter queue name (default: <queue_name>-dlq)
+            ABSURD_API_BASE_URL: API base URL for worker heartbeats
+            ABSURD_API_HEARTBEAT_INTERVAL: API heartbeat interval (default: 10.0)
 
         Returns:
             AbsurdConfig instance with values from environment
@@ -68,6 +74,8 @@ class AbsurdConfig:
             dead_letter_enabled=os.getenv("ABSURD_DLQ_ENABLED", "true").lower()
             in ("true", "1", "yes"),
             dead_letter_queue_name=os.getenv("ABSURD_DLQ_QUEUE_NAME", f"{queue_name}-dlq"),
+            api_base_url=os.getenv("ABSURD_API_BASE_URL", ""),
+            api_heartbeat_interval_sec=float(os.getenv("ABSURD_API_HEARTBEAT_INTERVAL", "10.0")),
         )
 
     def validate(self) -> None:
@@ -95,3 +103,8 @@ class AbsurdConfig:
 
         if self.dead_letter_enabled and not self.dead_letter_queue_name:
             raise ValueError("dead_letter_queue_name must be set when DLQ is enabled")
+
+        if self.api_heartbeat_interval_sec <= 0:
+            raise ValueError(
+                f"api_heartbeat_interval_sec must be > 0, got {self.api_heartbeat_interval_sec}"
+            )
