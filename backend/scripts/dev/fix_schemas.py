@@ -114,7 +114,7 @@ EXPECTED_SCHEMAS: Dict[str, Dict[str, List[Tuple[str, str]]]] = {
         ],
     },
     "ingest": {
-        "ingest_queue": [
+        "processing_queue": [
             ("group_id", "TEXT PRIMARY KEY"),
             ("state", "TEXT"),
             ("received_at", "REAL"),

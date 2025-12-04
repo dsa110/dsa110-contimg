@@ -204,11 +204,11 @@ database file.
 
 | Database                    | Purpose                                                                                           |
 | --------------------------- | ------------------------------------------------------------------------------------------------- |
-| `state/db/pipeline.sqlite3` | All pipeline state: ingest queue, calibration registry, products, HDF5 index, photometry, mosaics |
+| `state/db/pipeline.sqlite3` | All pipeline state: processing queue, calibration registry, products, HDF5 index, photometry, mosaics |
 
 The unified database contains tables previously spread across multiple files:
 
-- Ingest queue management and performance metrics (`ingest_queue`, `performance_metrics`)
+- Processing queue management and performance metrics (`processing_queue`, `performance_metrics`)
 - Calibration table registry with validity windows (`caltables`, `calibration_source_catalog`)
 - Product tracking: MS index, images, photometry (`ms_index`, `images`, `photometry_results`)
 - HDF5 file index for fast queries (`hdf5_file_index`)
@@ -224,7 +224,7 @@ The unified database contains tables previously spread across multiple files:
 - ~~`state/cal_registry.sqlite3`~~ (merged into `pipeline.sqlite3`)
 - ~~`state/products.sqlite3`~~ (merged into `pipeline.sqlite3`)
 - ~~`state/hdf5.sqlite3`~~ (merged into `pipeline.sqlite3`)
-- ~~`state/streaming_queue.sqlite3`~~ (replaced by `ingest_queue` table)
+- ~~`state/streaming_queue.sqlite3`~~ (replaced by `processing_queue` table)
 - ~~`state/products.db`, `state/queue.db`, `state/pipeline_queue.db`~~ (old
   schema, removed)
 
