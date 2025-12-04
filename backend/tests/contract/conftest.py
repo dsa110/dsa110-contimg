@@ -21,6 +21,11 @@ import numpy as np
 import pytest
 from astropy.time import Time
 
+# Store original CWD before any CASA-related CWD changes
+# The root conftest.py changes CWD for CASA logging, but numba/pyuvdata
+# need to be able to resolve relative paths from a valid directory
+_ORIGINAL_CWD = os.environ.get("PWD", "/data/dsa110-contimg/backend")
+
 
 def _generate_uvh5_subbands(
     config,
@@ -109,39 +114,55 @@ def synthetic_uvh5_files(contract_test_dir: Path) -> Generator[List[Path], None,
     Yields:
         List of 16 Path objects to UVH5 files
     """
-    from dsa110_contimg.simulation.make_synthetic_uvh5 import (
-        load_reference_layout,
-        load_telescope_config,
-        CONFIG_DIR,
-    )
+    # Restore CWD to a valid directory - numba (used by pyuvdata) calls
+    # os.path.relpath() which fails if CWD was changed to CASA log dir
+    saved_cwd = os.getcwd()
+    try:
+        if os.path.isdir(_ORIGINAL_CWD):
+            os.chdir(_ORIGINAL_CWD)
+    except (OSError, PermissionError):
+        pass
     
-    output_dir = contract_test_dir / "uvh5"
-    output_dir.mkdir(exist_ok=True)
-    
-    # Load telescope configuration
-    config_path = CONFIG_DIR / "dsa110_measured_parameters.yaml"
-    layout_path = CONFIG_DIR / "reference_layout.json"
-    
-    if not config_path.exists():
-        pytest.skip("Simulation config not found - install simulation module")
-    
-    layout_meta = load_reference_layout(layout_path)
-    config = load_telescope_config(config_path, layout_meta, freq_order="desc")
-    
-    # Contract tests use minimal parameters for speed
-    # Full integration tests can use larger arrays
-    config.total_duration_sec = config.integration_time_sec  # Single time sample
-    config.num_subbands = 16
-    
-    files = _generate_uvh5_subbands(
-        config,
-        output_dir,
-        num_subbands=16,
-        duration_sec=config.total_duration_sec,
-        nants=8,  # Minimal antenna count for fast tests (28 baselines)
-    )
-    
-    yield files
+    try:
+        from dsa110_contimg.simulation.make_synthetic_uvh5 import (
+            load_reference_layout,
+            load_telescope_config,
+            CONFIG_DIR,
+        )
+        
+        output_dir = contract_test_dir / "uvh5"
+        output_dir.mkdir(exist_ok=True)
+        
+        # Load telescope configuration
+        config_path = CONFIG_DIR / "dsa110_measured_parameters.yaml"
+        layout_path = CONFIG_DIR / "reference_layout.json"
+        
+        if not config_path.exists():
+            pytest.skip("Simulation config not found - install simulation module")
+        
+        layout_meta = load_reference_layout(layout_path)
+        config = load_telescope_config(config_path, layout_meta, freq_order="desc")
+        
+        # Contract tests use minimal parameters for speed
+        # Full integration tests can use larger arrays
+        config.total_duration_sec = config.integration_time_sec  # Single time sample
+        config.num_subbands = 16
+        
+        files = _generate_uvh5_subbands(
+            config,
+            output_dir,
+            num_subbands=16,
+            duration_sec=config.total_duration_sec,
+            nants=8,  # Minimal antenna count for fast tests (28 baselines)
+        )
+        
+        yield files
+    finally:
+        # Restore CWD for CASA logging
+        try:
+            os.chdir(saved_cwd)
+        except (OSError, PermissionError):
+            pass
 
 
 @pytest.fixture(scope="function")
