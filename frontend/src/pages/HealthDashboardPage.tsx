@@ -11,6 +11,7 @@
  */
 
 import React from "react";
+import { Link } from "react-router-dom";
 import { useSystemHealth, useAlerts } from "../api/health";
 import type { ServiceStatusType } from "../types/health";
 import {
@@ -22,6 +23,7 @@ import {
 import { StorageMonitoringPanel } from "../components/storage";
 import { MetricsDashboardPanel } from "../components/metrics";
 import { useMetricsDashboard } from "../api/metrics";
+import { ROUTES } from "../constants/routes";
 
 // Map various status types to display status
 function normalizeStatus(
@@ -75,6 +77,15 @@ function ServiceStatus({
           {new Date(lastCheck).toLocaleTimeString()}
         </span>
       )}
+      <Link
+        to={{
+          pathname: ROUTES.LOGS.LIST,
+          search: new URLSearchParams({ service: name }).toString(),
+        }}
+        className="text-xs text-blue-600 hover:underline"
+      >
+        View logs
+      </Link>
     </div>
   );
 }
