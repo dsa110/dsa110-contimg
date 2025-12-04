@@ -32,16 +32,14 @@ from __future__ import annotations
 import json
 import logging
 import os
-import shutil
 import sqlite3
 import threading
 import time
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
 from enum import Enum, auto
 from pathlib import Path
-from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple, TypeVar
+from typing import Any, Callable, Dict, Iterator, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
@@ -56,7 +54,7 @@ __all__ = [
     # Issue #2: Calibration interpolation between sets
     "InterpolatedCalibration",
     "get_interpolated_calibration",
-    # Issue #3: Calibrator redundancy  
+    # Issue #3: Calibrator redundancy
     "CalibratorCandidate",
     "find_backup_calibrators",
     # Issue #4: Race condition fix
@@ -108,7 +106,7 @@ DEFAULT_CAL_VALIDITY_DAYS = DEFAULT_CAL_VALIDITY_HOURS / 24.0
 @dataclass
 class CalibrationSelection:
     """Result of calibration selection with quality metadata."""
-    
+
     set_name: str
     paths: List[str]
     mid_mjd: float
@@ -128,34 +126,34 @@ def get_active_applylist_bidirectional(
 ) -> CalibrationSelection:
     """
     Return calibration tables with bidirectional validity windows.
-    
+
     This fixes Issue #1: Forward-only validity windows that leave pre-calibrator
     observations without valid calibration.
-    
+
     Strategy:
     1. First try exact match (target within validity window)
     2. If no exact match and prefer_nearest=True, find nearest calibration
        (before or after) within validity_hours
     3. Return selection with quality metadata
-    
+
     Args:
         db_path: Path to calibration registry database
         target_mjd: Target observation MJD
         set_name: Optional specific set name
         validity_hours: Maximum time offset for calibration validity (default: 12h)
         prefer_nearest: If True, find nearest even outside strict window
-        
+
     Returns:
         CalibrationSelection with paths and metadata
-        
+
     Raises:
         ValueError: If no suitable calibration found
     """
     from dsa110_contimg.database.unified import ensure_db
-    
+
     conn = ensure_db(db_path)
     validity_days = validity_hours / 24.0
-    
+
     if set_name:
         # Direct set lookup
         rows = conn.execute(
@@ -167,7 +165,7 @@ def get_active_applylist_bidirectional(
             """,
             (set_name,),
         ).fetchall()
-        
+
         if rows:
             # Calculate time offset from set's validity window
             mid_mjds = [
@@ -176,7 +174,7 @@ def get_active_applylist_bidirectional(
             ]
             avg_mid = sum(mid_mjds) / len(mid_mjds) if mid_mjds else target_mjd
             offset_hours = abs(target_mjd - avg_mid) * 24.0
-            
+
             return CalibrationSelection(
                 set_name=set_name,
                 paths=[r[0] for r in rows],
@@ -186,14 +184,14 @@ def get_active_applylist_bidirectional(
                 quality_score=_calculate_quality_score(rows, offset_hours),
             )
         raise ValueError(f"No active calibration tables for set '{set_name}'")
-    
+
     # BIDIRECTIONAL SEARCH: Look for calibrations ±validity_hours from target
     # This is the key fix for Issue #1
-    
+
     # 1. Try exact match (target within validity window)
     exact_sets = conn.execute(
         """
-        SELECT DISTINCT set_name, 
+        SELECT DISTINCT set_name,
                (valid_start_mjd + valid_end_mjd) / 2.0 AS mid_mjd,
                MAX(created_at) AS newest
         FROM caltables
@@ -205,12 +203,12 @@ def get_active_applylist_bidirectional(
         """,
         (target_mjd, target_mjd),
     ).fetchall()
-    
+
     if exact_sets:
         chosen_set = exact_sets[0][0]
         mid_mjd = exact_sets[0][1] or target_mjd
         offset_hours = abs(target_mjd - mid_mjd) * 24.0
-        
+
         paths = _get_set_paths(conn, chosen_set)
         return CalibrationSelection(
             set_name=chosen_set,
@@ -220,13 +218,13 @@ def get_active_applylist_bidirectional(
             time_offset_hours=offset_hours,
             quality_score=1.0 - (offset_hours / (validity_hours * 2)),
         )
-    
+
     # 2. BIDIRECTIONAL: Find nearest calibration (before OR after)
     if prefer_nearest:
         # Search window: target ± validity_hours
         search_min = target_mjd - validity_days
         search_max = target_mjd + validity_days
-        
+
         # Find all sets with validity windows overlapping search range
         nearby_sets = conn.execute(
             """
@@ -250,27 +248,27 @@ def get_active_applylist_bidirectional(
             """,
             (target_mjd, search_max, search_min, search_min, search_max),
         ).fetchall()
-        
+
         if nearby_sets:
             chosen_set = nearby_sets[0][0]
             mid_mjd = nearby_sets[0][1]
             offset_hours = nearby_sets[0][2] * 24.0
-            
+
             # Determine selection method
             if mid_mjd < target_mjd:
                 method = 'nearest_before'
             else:
                 method = 'nearest_after'
-            
+
             paths = _get_set_paths(conn, chosen_set)
-            
+
             warnings = []
             if offset_hours > validity_hours / 2:
                 warnings.append(
                     f"Calibration is {offset_hours:.1f}h from target "
                     f"(recommended max: {validity_hours / 2:.1f}h)"
                 )
-            
+
             return CalibrationSelection(
                 set_name=chosen_set,
                 paths=paths,
@@ -280,7 +278,7 @@ def get_active_applylist_bidirectional(
                 quality_score=max(0.0, 1.0 - (offset_hours / validity_hours)),
                 warnings=warnings,
             )
-    
+
     raise ValueError(
         f"No calibration found within ±{validity_hours:.1f}h of MJD {target_mjd:.6f}"
     )
@@ -293,50 +291,50 @@ def get_active_applylist_bidirectional(
 @dataclass
 class InterpolatedCalibration:
     """Result of interpolated calibration selection.
-    
+
     When a target observation falls between two calibration observations,
     this provides both sets with appropriate temporal weights for combination.
-    
+
     The weight_before value indicates how much weight to give the "before"
     calibration set (weight_after = 1.0 - weight_before). A weight of 0.5
     means the target is equidistant from both calibrations.
     """
-    
+
     # Before calibration (earlier in time)
     set_before: Optional[str]
     paths_before: List[str]
     mid_mjd_before: Optional[float]
-    
-    # After calibration (later in time)  
+
+    # After calibration (later in time)
     set_after: Optional[str]
     paths_after: List[str]
     mid_mjd_after: Optional[float]
-    
+
     # Interpolation weight for "before" set (0.0-1.0)
     # weight_after = 1.0 - weight_before
     weight_before: float
-    
+
     # Metadata
     target_mjd: float
     selection_method: str  # 'single', 'interpolated', 'extrapolated'
     hours_from_before: Optional[float] = None
     hours_from_after: Optional[float] = None
     warnings: List[str] = field(default_factory=list)
-    
+
     @property
     def weight_after(self) -> float:
         """Weight for the 'after' calibration set."""
         return 1.0 - self.weight_before
-    
+
     @property
     def is_interpolated(self) -> bool:
         """True if this is a true interpolation (both before and after sets)."""
         return self.set_before is not None and self.set_after is not None
-    
+
     @property
     def effective_paths(self) -> List[str]:
         """Return the paths to use for application.
-        
+
         If interpolation is available, returns paths_before (the primary).
         The caller should handle weight-based combination separately.
         For single-set selection, returns the available paths.
@@ -355,40 +353,40 @@ def get_interpolated_calibration(
 ) -> InterpolatedCalibration:
     """
     Find calibration sets for interpolation across calibrator observations.
-    
+
     This fixes Issue #2: The pipeline only interpolates within a single
     calibration table's time axis, not between different calibration
     observations (e.g., yesterday's 3pm calibrator and today's 3pm calibrator).
-    
+
     Strategy:
     1. Find the nearest calibration set BEFORE target_mjd
     2. Find the nearest calibration set AFTER target_mjd
     3. Calculate interpolation weights based on temporal distance
     4. Return both sets with weights for the caller to combine
-    
+
     If only one set is found (extrapolation case), returns that set
     with weight=1.0.
-    
+
     Args:
         db_path: Path to calibration registry database
         target_mjd: Target observation MJD
         validity_hours: Maximum time offset for calibration validity
         min_interpolation_gap_hours: Minimum gap between sets to use interpolation
             (if sets are very close, just use the nearest one)
-        
+
     Returns:
         InterpolatedCalibration with both sets and weights
-        
+
     Raises:
         ValueError: If no suitable calibration found within validity window
     """
     from dsa110_contimg.database.unified import ensure_db
-    
+
     conn = ensure_db(db_path)
     validity_days = validity_hours / 24.0
     search_min = target_mjd - validity_days
     search_max = target_mjd + validity_days
-    
+
     # Find calibration set BEFORE target
     before_rows = conn.execute(
         """
@@ -406,7 +404,7 @@ def get_interpolated_calibration(
         """,
         (target_mjd, search_min),
     ).fetchall()
-    
+
     # Find calibration set AFTER target
     after_rows = conn.execute(
         """
@@ -424,41 +422,41 @@ def get_interpolated_calibration(
         """,
         (target_mjd, search_max),
     ).fetchall()
-    
+
     set_before: Optional[str] = None
     mid_mjd_before: Optional[float] = None
     paths_before: List[str] = []
-    
+
     set_after: Optional[str] = None
     mid_mjd_after: Optional[float] = None
     paths_after: List[str] = []
-    
+
     if before_rows:
         set_before = before_rows[0][0]
         mid_mjd_before = before_rows[0][1]
         paths_before = _get_set_paths(conn, set_before)
-    
+
     if after_rows:
         set_after = after_rows[0][0]
         mid_mjd_after = after_rows[0][1]
         paths_after = _get_set_paths(conn, set_after)
-    
+
     # Calculate time offsets
     hours_from_before: Optional[float] = None
     hours_from_after: Optional[float] = None
-    
+
     if mid_mjd_before is not None:
         hours_from_before = (target_mjd - mid_mjd_before) * 24.0
     if mid_mjd_after is not None:
         hours_from_after = (mid_mjd_after - target_mjd) * 24.0
-    
+
     # Determine selection method and calculate weights
     warnings: List[str] = []
-    
+
     if set_before and set_after:
         # Both found - calculate interpolation weights
         total_gap_hours = (mid_mjd_after - mid_mjd_before) * 24.0  # type: ignore
-        
+
         if total_gap_hours < min_interpolation_gap_hours:
             # Gap too small - just use nearest
             if hours_from_before <= hours_from_after:  # type: ignore
@@ -474,14 +472,14 @@ def get_interpolated_calibration(
             # If target is at mid_mjd_after, weight_before=0.0
             weight_before = hours_from_after / total_gap_hours  # type: ignore
             selection_method = 'interpolated'
-            
+
             # Warn if gap is large
             if total_gap_hours > 24.0:
                 warnings.append(
                     f"Large gap between calibrations: {total_gap_hours:.1f}h. "
                     f"Interpolation quality may be degraded."
                 )
-    
+
     elif set_before:
         # Only before found - extrapolation forward
         weight_before = 1.0
@@ -491,7 +489,7 @@ def get_interpolated_calibration(
                 f"Extrapolating {hours_from_before:.1f}h forward from calibration. "
                 f"Consider observing a calibrator."
             )
-    
+
     elif set_after:
         # Only after found - extrapolation backward
         weight_before = 0.0
@@ -501,13 +499,13 @@ def get_interpolated_calibration(
                 f"Extrapolating {hours_from_after:.1f}h backward from calibration. "
                 f"Consider observing a calibrator."
             )
-    
+
     else:
         # No calibration found
         raise ValueError(
             f"No calibration found within ±{validity_hours:.1f}h of MJD {target_mjd:.6f}"
         )
-    
+
     return InterpolatedCalibration(
         set_before=set_before,
         paths_before=paths_before,
@@ -536,7 +534,7 @@ def _get_set_paths(conn: sqlite3.Connection, set_name: str) -> List[str]:
 def _calculate_quality_score(rows: List[tuple], offset_hours: float) -> float:
     """Calculate combined quality score from table metrics and time offset."""
     base_score = 1.0 - min(offset_hours / 24.0, 0.5)
-    
+
     # Add quality metrics if available
     quality_scores = []
     for row in rows:
@@ -554,11 +552,11 @@ def _calculate_quality_score(rows: List[tuple], offset_hours: float) -> float:
                     quality_scores.append(flag_score)
             except (json.JSONDecodeError, TypeError):
                 pass
-    
+
     if quality_scores:
         avg_quality = sum(quality_scores) / len(quality_scores)
         return (base_score + avg_quality) / 2.0
-    
+
     return base_score
 
 
@@ -569,23 +567,23 @@ def _calculate_quality_score(rows: List[tuple], offset_hours: float) -> float:
 class CalibrationFence:
     """
     Coordination mechanism to prevent race conditions in calibration application.
-    
+
     This fixes Issue #4: Target observations processed before new calibration
     is registered (40s window).
-    
+
     Strategy:
     1. Before processing a target, check if a calibrator is being processed
     2. If so, wait for calibration to complete (with timeout)
     3. Use database-backed locking for multi-process coordination
     """
-    
+
     FENCE_TIMEOUT_SECONDS = 120  # Max wait for calibration to complete
     POLL_INTERVAL_SECONDS = 2
-    
+
     def __init__(self, db_path: Path):
         self.db_path = Path(db_path)
         self._ensure_fence_table()
-    
+
     def _ensure_fence_table(self) -> None:
         """Create fence table if needed."""
         conn = sqlite3.connect(str(self.db_path), timeout=30.0)
@@ -604,17 +602,17 @@ class CalibrationFence:
         )
         conn.commit()
         conn.close()
-    
+
     @contextmanager
     def calibrator_lock(self, calibrator_ms: str) -> Iterator[None]:
         """
         Context manager for calibrator processing.
-        
+
         Signals to other workers that calibration is in progress.
         """
         conn = sqlite3.connect(str(self.db_path), timeout=30.0)
         fence_id = None
-        
+
         try:
             cursor = conn.execute(
                 """
@@ -625,25 +623,25 @@ class CalibrationFence:
             )
             fence_id = cursor.lastrowid
             conn.commit()
-            
+
             yield
-            
+
             # Mark completed
             conn.execute(
                 """
-                UPDATE calibration_fence 
+                UPDATE calibration_fence
                 SET status = 'completed', completed_at = ?
                 WHERE id = ?
                 """,
                 (time.time(), fence_id),
             )
             conn.commit()
-            
+
         except Exception:
             if fence_id:
                 conn.execute(
                     """
-                    UPDATE calibration_fence 
+                    UPDATE calibration_fence
                     SET status = 'failed', completed_at = ?
                     WHERE id = ?
                     """,
@@ -653,7 +651,7 @@ class CalibrationFence:
             raise
         finally:
             conn.close()
-    
+
     def wait_for_pending_calibrations(
         self,
         max_age_seconds: float = 300,
@@ -661,11 +659,11 @@ class CalibrationFence:
     ) -> bool:
         """
         Wait for any in-progress calibrations to complete.
-        
+
         Args:
             max_age_seconds: Only consider calibrations started within this window
             timeout_seconds: Maximum time to wait (default: FENCE_TIMEOUT_SECONDS)
-            
+
         Returns:
             True if no pending calibrations or all completed
             False if timeout reached
@@ -673,7 +671,7 @@ class CalibrationFence:
         timeout = timeout_seconds or self.FENCE_TIMEOUT_SECONDS
         deadline = time.time() + timeout
         cutoff = time.time() - max_age_seconds
-        
+
         while time.time() < deadline:
             conn = sqlite3.connect(str(self.db_path), timeout=30.0)
             row = conn.execute(
@@ -684,15 +682,15 @@ class CalibrationFence:
                 (cutoff,),
             ).fetchone()
             conn.close()
-            
+
             if row[0] == 0:
                 return True
-            
+
             logger.debug(
                 f"Waiting for {row[0]} in-progress calibration(s)..."
             )
             time.sleep(self.POLL_INTERVAL_SECONDS)
-        
+
         logger.warning(
             f"Timeout waiting for calibrations after {timeout}s"
         )
@@ -706,7 +704,7 @@ class CalibrationFence:
 @dataclass
 class CalibrationQAResult:
     """Result of calibration quality assessment."""
-    
+
     passed: bool
     snr_mean: Optional[float] = None
     snr_min: Optional[float] = None
@@ -736,9 +734,9 @@ def assess_calibration_quality(
 ) -> CalibrationQAResult:
     """
     Assess quality of a calibration table.
-    
+
     This fixes Issue #5: No automated QA before registration.
-    
+
     Args:
         caltable_path: Path to calibration table
         snr_min: Minimum acceptable mean SNR
@@ -746,35 +744,35 @@ def assess_calibration_quality(
         flagged_max: Maximum acceptable flagged fraction
         flagged_warn: Flagged fraction threshold for warnings
         min_antennas: Minimum number of antennas
-        
+
     Returns:
         CalibrationQAResult with pass/fail status and metrics
     """
     import casacore.tables as casatables
     import numpy as np
-    
+
     result = CalibrationQAResult(passed=True)
     issues = []
     warnings = []
-    
+
     try:
         with casatables.table(caltable_path, readonly=True) as tb:
             n_rows = tb.nrows()
             result.n_solutions = n_rows
-            
+
             if n_rows == 0:
                 result.passed = False
                 issues.append("Calibration table has zero solutions")
                 result.issues = issues
                 return result
-            
+
             # Check flagged fraction
             if "FLAG" in tb.colnames():
                 flags = tb.getcol("FLAG")
                 flagged = np.sum(flags)
                 total = flags.size
                 result.flagged_fraction = flagged / total if total > 0 else 0.0
-                
+
                 if result.flagged_fraction > flagged_max:
                     result.passed = False
                     issues.append(
@@ -785,16 +783,16 @@ def assess_calibration_quality(
                     warnings.append(
                         f"High flagged fraction: {result.flagged_fraction:.1%}"
                     )
-            
+
             # Check SNR
             if "SNR" in tb.colnames():
                 snr = tb.getcol("SNR").flatten()
                 snr_valid = snr[~np.isnan(snr)]
-                
+
                 if len(snr_valid) > 0:
                     result.snr_mean = float(np.mean(snr_valid))
                     result.snr_min = float(np.min(snr_valid))
-                    
+
                     if result.snr_mean < snr_min:
                         result.passed = False
                         issues.append(
@@ -805,37 +803,37 @@ def assess_calibration_quality(
                         warnings.append(
                             f"Low mean SNR: {result.snr_mean:.1f}"
                         )
-            
+
             # Check antenna count
             if "ANTENNA1" in tb.colnames():
                 ant1 = tb.getcol("ANTENNA1")
                 result.n_antennas = len(np.unique(ant1))
-                
+
                 if result.n_antennas < min_antennas:
                     result.passed = False
                     issues.append(
                         f"Too few antennas: {result.n_antennas} "
                         f"(min: {min_antennas})"
                     )
-    
+
     except Exception as e:
         result.passed = False
         issues.append(f"Failed to read calibration table: {e}")
-    
+
     result.issues = issues
     result.warnings = warnings
-    
+
     return result
 
 
 def get_calibration_quality_metrics(caltable_path: str) -> Dict[str, Any]:
     """
     Extract quality metrics from calibration table for database storage.
-    
+
     Returns JSON-serializable dict for quality_metrics column.
     """
     result = assess_calibration_quality(caltable_path)
-    
+
     metrics = {
         "qa_passed": result.passed,
         "snr_mean": result.snr_mean,
@@ -845,12 +843,12 @@ def get_calibration_quality_metrics(caltable_path: str) -> Dict[str, Any]:
         "n_solutions": result.n_solutions,
         "assessed_at": time.time(),
     }
-    
+
     if result.issues:
         metrics["issues"] = result.issues
     if result.warnings:
         metrics["warnings"] = result.warnings
-    
+
     return metrics
 
 
@@ -860,7 +858,7 @@ def get_calibration_quality_metrics(caltable_path: str) -> Dict[str, Any]:
 
 class ProcessingState(Enum):
     """Processing pipeline states with allowed transitions."""
-    
+
     RECEIVED = auto()      # Files received, not yet processed
     CONVERTING = auto()    # UVH5 -> MS conversion in progress
     CONVERTED = auto()     # Conversion complete, ready for calibration
@@ -891,7 +889,7 @@ VALID_TRANSITIONS = {
 @dataclass
 class StateTransition:
     """Record of a state transition."""
-    
+
     group_id: str
     from_state: ProcessingState
     to_state: ProcessingState
@@ -904,22 +902,22 @@ class StateTransition:
 class ProcessingStateMachine:
     """
     State machine for pipeline processing with atomic transitions.
-    
+
     This fixes Issue #7: No transactional safety in multi-step processing.
-    
+
     Features:
     - Atomic state transitions with database locking
     - Checkpoint data for recovery
     - Automatic retry tracking
     - Dead letter queue for failed items
     """
-    
+
     MAX_RETRIES = 3
-    
+
     def __init__(self, db_path: Path):
         self.db_path = Path(db_path)
         self._ensure_tables()
-    
+
     def _ensure_tables(self) -> None:
         """Create state machine tables."""
         conn = sqlite3.connect(str(self.db_path), timeout=30.0)
@@ -933,7 +931,7 @@ class ProcessingStateMachine:
                 created_at REAL NOT NULL,
                 updated_at REAL NOT NULL
             );
-            
+
             CREATE TABLE IF NOT EXISTS state_transitions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 group_id TEXT NOT NULL,
@@ -944,16 +942,16 @@ class ProcessingStateMachine:
                 error_message TEXT,
                 FOREIGN KEY (group_id) REFERENCES processing_state(group_id)
             );
-            
-            CREATE INDEX IF NOT EXISTS idx_state_current 
+
+            CREATE INDEX IF NOT EXISTS idx_state_current
             ON processing_state(current_state);
-            
-            CREATE INDEX IF NOT EXISTS idx_transitions_group 
+
+            CREATE INDEX IF NOT EXISTS idx_transitions_group
             ON state_transitions(group_id, timestamp);
         """)
         conn.commit()
         conn.close()
-    
+
     def get_state(self, group_id: str) -> Optional[ProcessingState]:
         """Get current state for a group."""
         conn = sqlite3.connect(str(self.db_path), timeout=30.0)
@@ -962,18 +960,18 @@ class ProcessingStateMachine:
             (group_id,),
         ).fetchone()
         conn.close()
-        
+
         if row:
             return ProcessingState[row[0]]
         return None
-    
+
     def initialize(self, group_id: str) -> None:
         """Initialize a new processing group."""
         conn = sqlite3.connect(str(self.db_path), timeout=30.0)
         now = time.time()
         conn.execute(
             """
-            INSERT OR IGNORE INTO processing_state 
+            INSERT OR IGNORE INTO processing_state
             (group_id, current_state, created_at, updated_at)
             VALUES (?, ?, ?, ?)
             """,
@@ -981,7 +979,7 @@ class ProcessingStateMachine:
         )
         conn.commit()
         conn.close()
-    
+
     @contextmanager
     def transition(
         self,
@@ -991,7 +989,7 @@ class ProcessingStateMachine:
     ) -> Iterator[None]:
         """
         Atomic state transition with automatic rollback on failure.
-        
+
         Usage:
             with state_machine.transition(group_id, ProcessingState.CONVERTING):
                 # Do conversion work
@@ -999,62 +997,62 @@ class ProcessingStateMachine:
             # State is now CONVERTING (or rolled back on exception)
         """
         conn = sqlite3.connect(str(self.db_path), timeout=30.0)
-        
+
         # Get current state with lock
         conn.execute("BEGIN EXCLUSIVE")
-        
+
         row = conn.execute(
             "SELECT current_state, retry_count FROM processing_state WHERE group_id = ?",
             (group_id,),
         ).fetchone()
-        
+
         if not row:
             conn.rollback()
             raise ValueError(f"Group {group_id} not initialized")
-        
+
         from_state = ProcessingState[row[0]]
         retry_count = row[1]
-        
+
         # Validate transition
         if to_state not in VALID_TRANSITIONS.get(from_state, set()):
             conn.rollback()
             raise ValueError(
                 f"Invalid transition: {from_state.name} -> {to_state.name}"
             )
-        
+
         now = time.time()
         checkpoint_json = json.dumps(checkpoint_data) if checkpoint_data else None
-        
+
         try:
             # Update state
             conn.execute(
                 """
-                UPDATE processing_state 
+                UPDATE processing_state
                 SET current_state = ?, updated_at = ?, checkpoint_json = ?
                 WHERE group_id = ?
                 """,
                 (to_state.name, now, checkpoint_json, group_id),
             )
-            
+
             # Log transition (in progress)
             conn.execute(
                 """
-                INSERT INTO state_transitions 
+                INSERT INTO state_transitions
                 (group_id, from_state, to_state, timestamp, success)
                 VALUES (?, ?, ?, ?, 0)
                 """,
                 (group_id, from_state.name, to_state.name, now),
             )
-            
+
             conn.commit()
-            
+
             yield  # Execute the actual work
-            
+
             # Mark transition successful
             conn2 = sqlite3.connect(str(self.db_path), timeout=30.0)
             conn2.execute(
                 """
-                UPDATE state_transitions 
+                UPDATE state_transitions
                 SET success = 1
                 WHERE group_id = ? AND to_state = ? AND timestamp = ?
                 """,
@@ -1062,18 +1060,18 @@ class ProcessingStateMachine:
             )
             conn2.commit()
             conn2.close()
-            
+
         except Exception as e:
             # Rollback to previous state
             conn2 = sqlite3.connect(str(self.db_path), timeout=30.0)
             new_retry = retry_count + 1
-            
+
             if new_retry >= self.MAX_RETRIES:
                 # Move to dead letter
                 conn2.execute(
                     """
-                    UPDATE processing_state 
-                    SET current_state = ?, last_error = ?, 
+                    UPDATE processing_state
+                    SET current_state = ?, last_error = ?,
                         retry_count = ?, updated_at = ?
                     WHERE group_id = ?
                     """,
@@ -1086,30 +1084,30 @@ class ProcessingStateMachine:
                 # Stay in FAILED state for retry
                 conn2.execute(
                     """
-                    UPDATE processing_state 
-                    SET current_state = ?, last_error = ?, 
+                    UPDATE processing_state
+                    SET current_state = ?, last_error = ?,
                         retry_count = ?, updated_at = ?
                     WHERE group_id = ?
                     """,
                     (ProcessingState.FAILED.name, str(e), new_retry, time.time(), group_id),
                 )
-            
+
             # Log failed transition
             conn2.execute(
                 """
-                UPDATE state_transitions 
+                UPDATE state_transitions
                 SET success = 0, error_message = ?
                 WHERE group_id = ? AND to_state = ? AND timestamp = ?
                 """,
                 (str(e), group_id, to_state.name, now),
             )
-            
+
             conn2.commit()
             conn2.close()
             raise
         finally:
             conn.close()
-    
+
     def get_retryable(self) -> List[Tuple[str, int]]:
         """Get groups that can be retried."""
         conn = sqlite3.connect(str(self.db_path), timeout=30.0)
@@ -1123,13 +1121,13 @@ class ProcessingStateMachine:
         ).fetchall()
         conn.close()
         return [(r[0], r[1]) for r in rows]
-    
+
     def reset_for_retry(self, group_id: str, to_state: ProcessingState) -> None:
         """Reset a failed group for retry from a specific state."""
         conn = sqlite3.connect(str(self.db_path), timeout=30.0)
         conn.execute(
             """
-            UPDATE processing_state 
+            UPDATE processing_state
             SET current_state = ?, updated_at = ?
             WHERE group_id = ? AND current_state = ?
             """,
@@ -1148,19 +1146,19 @@ def ProcessingTransaction(
 ) -> Iterator[Dict[str, Any]]:
     """
     Simple transactional wrapper for processing operations.
-    
+
     This is a lighter-weight alternative to ProcessingStateMachine for
     single operations that need transactional safety.
-    
+
     Args:
         db_path: Path to SQLite database for tracking
         group_id: Group identifier being processed
         operation: Description of the operation (e.g., "conversion", "imaging")
         cleanup_callback: Optional function to call on failure for cleanup
-        
+
     Yields:
         Dict for storing operation metadata
-        
+
     Usage:
         with ProcessingTransaction(db, "group_123", "conversion") as ctx:
             ctx['ms_path'] = convert_data(...)
@@ -1170,12 +1168,12 @@ def ProcessingTransaction(
     now = time.time()
     transaction_id = None
     context: Dict[str, Any] = {'started_at': now, 'operation': operation}
-    
+
     try:
         # Record transaction start
         cursor = conn.execute(
             """
-            INSERT INTO operation_metrics 
+            INSERT INTO operation_metrics
             (group_id, operation, started_at, status)
             VALUES (?, ?, ?, 'in_progress')
             """,
@@ -1183,14 +1181,14 @@ def ProcessingTransaction(
         )
         transaction_id = cursor.lastrowid
         conn.commit()
-        
+
         yield context
-        
+
         # Record success
         conn.execute(
             """
-            UPDATE operation_metrics 
-            SET status = 'completed', completed_at = ?, 
+            UPDATE operation_metrics
+            SET status = 'completed', completed_at = ?,
                 duration_s = ?, metadata_json = ?
             WHERE id = ?
             """,
@@ -1202,21 +1200,21 @@ def ProcessingTransaction(
             ),
         )
         conn.commit()
-        
+
     except Exception as e:
         # Record failure
         if transaction_id:
             conn.execute(
                 """
-                UPDATE operation_metrics 
-                SET status = 'failed', completed_at = ?, 
+                UPDATE operation_metrics
+                SET status = 'failed', completed_at = ?,
                     duration_s = ?, error = ?
                 WHERE id = ?
                 """,
                 (time.time(), time.time() - now, str(e), transaction_id),
             )
             conn.commit()
-        
+
         # Call cleanup callback if provided
         if cleanup_callback:
             try:
@@ -1225,7 +1223,7 @@ def ProcessingTransaction(
                 logger.warning(
                     f"Cleanup callback failed for {group_id}: {cleanup_error}"
                 )
-        
+
         raise
     finally:
         conn.close()
@@ -1238,7 +1236,7 @@ def ProcessingTransaction(
 @dataclass
 class DiskQuota:
     """Disk quota configuration."""
-    
+
     path: Path
     warning_threshold_gb: float = 100.0  # Warn when free space below this
     critical_threshold_gb: float = 20.0  # Stop processing when below this
@@ -1248,7 +1246,7 @@ class DiskQuota:
 @dataclass
 class DiskStatus:
     """Current disk status."""
-    
+
     path: Path
     total_gb: float
     used_gb: float
@@ -1260,23 +1258,23 @@ class DiskStatus:
 def check_disk_space(path: Path, quota: Optional[DiskQuota] = None) -> DiskStatus:
     """
     Check disk space for a path.
-    
+
     This fixes Issue #10: No disk space monitoring.
     """
     stat = os.statvfs(path)
-    
+
     total_gb = (stat.f_blocks * stat.f_frsize) / (1024**3)
     free_gb = (stat.f_bavail * stat.f_frsize) / (1024**3)
     used_gb = total_gb - free_gb
     usage_percent = (used_gb / total_gb) * 100 if total_gb > 0 else 0
-    
+
     status = 'ok'
     if quota:
         if free_gb < quota.critical_threshold_gb:
             status = 'critical'
         elif free_gb < quota.warning_threshold_gb:
             status = 'warning'
-    
+
     return DiskStatus(
         path=path,
         total_gb=total_gb,
@@ -1291,7 +1289,7 @@ class DiskSpaceMonitor:
     """
     Monitor disk space and trigger cleanup when needed.
     """
-    
+
     def __init__(
         self,
         quotas: List[DiskQuota],
@@ -1305,7 +1303,7 @@ class DiskSpaceMonitor:
         self.quotas = {q.path: q for q in quotas}
         self.cleanup_callback = cleanup_callback
         self._lock = threading.Lock()
-    
+
     def check_all(self) -> Dict[Path, DiskStatus]:
         """Check all monitored paths."""
         results = {}
@@ -1315,7 +1313,7 @@ class DiskSpaceMonitor:
             except OSError as e:
                 logger.error(f"Failed to check disk space for {path}: {e}")
         return results
-    
+
     def is_safe_to_process(self) -> bool:
         """Check if all disks have sufficient space."""
         for path, quota in self.quotas.items():
@@ -1331,17 +1329,17 @@ class DiskSpaceMonitor:
             except OSError:
                 continue
         return True
-    
+
     def trigger_cleanup_if_needed(self) -> Dict[Path, int]:
         """
         Trigger cleanup on paths below warning threshold.
-        
+
         Returns:
             Dict mapping paths to bytes freed
         """
         if not self.cleanup_callback:
             return {}
-        
+
         freed = {}
         with self._lock:
             for path, quota in self.quotas.items():
@@ -1357,14 +1355,14 @@ class DiskSpaceMonitor:
                             )
                 except Exception as e:
                     logger.error(f"Cleanup failed for {path}: {e}")
-        
+
         return freed
 
 
 def default_cleanup_callback(path: Path, target_gb: float) -> int:
     """
     Default cleanup: remove oldest processed MS files.
-    
+
     This is a conservative cleanup that only removes files
     that have been successfully imaged.
     """
@@ -1390,21 +1388,21 @@ def check_calibration_overlap(
 ) -> List[Dict[str, Any]]:
     """
     Check for overlapping calibration sets before registration.
-    
+
     This fixes Issue #6: Weak overlapping calibration handling.
-    
+
     Returns list of conflicting sets with metadata.
     """
     from dsa110_contimg.database.unified import ensure_db
-    
+
     conn = ensure_db(db_path)
-    
+
     # Find overlapping sets
     if valid_end_mjd is None:
         # Open-ended: conflicts with anything after start
         overlaps = conn.execute(
             """
-            SELECT DISTINCT set_name, cal_field, refant, 
+            SELECT DISTINCT set_name, cal_field, refant,
                    MIN(valid_start_mjd) as set_start,
                    MAX(valid_end_mjd) as set_end
             FROM caltables
@@ -1433,7 +1431,7 @@ def check_calibration_overlap(
             """,
             (new_set_name, valid_end_mjd, valid_start_mjd, valid_start_mjd, valid_end_mjd),
         ).fetchall()
-    
+
     conflicts = []
     for row in overlaps:
         conflict = {
@@ -1444,7 +1442,7 @@ def check_calibration_overlap(
             "valid_end_mjd": row[4],
             "issues": [],
         }
-        
+
         # Check for incompatibilities
         if refant and row[2] and refant != row[2]:
             conflict["issues"].append(
@@ -1454,9 +1452,9 @@ def check_calibration_overlap(
             conflict["issues"].append(
                 f"Different calibrator field: {cal_field} vs {row[1]}"
             )
-        
+
         conflicts.append(conflict)
-    
+
     return conflicts
 
 
@@ -1470,7 +1468,7 @@ def resolve_calibration_overlap(
 ) -> None:
     """
     Resolve overlapping calibrations.
-    
+
     Strategies:
     - trim: Adjust validity windows of existing sets to not overlap
     - retire: Retire overlapping sets entirely
@@ -1479,21 +1477,21 @@ def resolve_calibration_overlap(
     conflicts = check_calibration_overlap(
         db_path, new_set_name, valid_start_mjd, valid_end_mjd
     )
-    
+
     if not conflicts:
         return
-    
+
     from dsa110_contimg.database.unified import ensure_db, retire_caltable_set
-    
+
     if strategy == "error":
         conflict_names = [c["set_name"] for c in conflicts]
         raise ValueError(
             f"Calibration overlap detected with sets: {conflict_names}. "
             f"Use strategy='trim' or 'retire' to resolve."
         )
-    
+
     conn = ensure_db(db_path)
-    
+
     for conflict in conflicts:
         if strategy == "retire":
             retire_caltable_set(
@@ -1502,14 +1500,14 @@ def resolve_calibration_overlap(
                 reason=f"Superseded by {new_set_name}",
             )
             logger.info(f"Retired overlapping set: {conflict['set_name']}")
-        
+
         elif strategy == "trim":
             # Trim existing set's validity to end before new set starts
             conn.execute(
                 """
-                UPDATE caltables 
+                UPDATE caltables
                 SET valid_end_mjd = ?
-                WHERE set_name = ? 
+                WHERE set_name = ?
                   AND status = 'active'
                   AND (valid_end_mjd IS NULL OR valid_end_mjd > ?)
                 """,
@@ -1528,7 +1526,7 @@ def resolve_calibration_overlap(
 @dataclass
 class RFIStats:
     """RFI flagging statistics."""
-    
+
     original_flagged_fraction: float
     new_flagged_fraction: float
     rfi_detected_fraction: float
@@ -1545,27 +1543,27 @@ def preflag_rfi(
 ) -> RFIStats:
     """
     Pre-flag RFI before calibration.
-    
+
     This fixes Issue #8: Inadequate RFI mitigation.
-    
+
     Args:
         ms_path: Path to Measurement Set
         strategy: Flagging strategy ('tfcrop', 'rflag', 'manual')
         aggressive: If True, use more aggressive thresholds
-        
+
     Returns:
         RFIStats with flagging results
     """
     import casacore.tables as casatables
     import numpy as np
-    
+
     start_time = time.time()
-    
+
     # Get initial flag state
     with casatables.table(ms_path, readonly=True) as tb:
         flags = tb.getcol("FLAG")
         original_flagged = np.sum(flags) / flags.size
-    
+
     # Import flagdata with CASA log environment protection
     try:
         from dsa110_contimg.utils.tempdirs import casa_log_environment
@@ -1573,7 +1571,7 @@ def preflag_rfi(
             from casatasks import flagdata
     except ImportError:
         from casatasks import flagdata
-    
+
     def _call_flagdata(**kwargs):
         """Call flagdata with CASA log environment protection."""
         try:
@@ -1582,7 +1580,7 @@ def preflag_rfi(
                 return flagdata(**kwargs)
         except ImportError:
             return flagdata(**kwargs)
-    
+
     # Apply flagging based on strategy
     if strategy == "tfcrop":
         # Time-frequency crop: good for broadband RFI
@@ -1595,7 +1593,7 @@ def preflag_rfi(
             freqcutoff=threshold,
             action="apply",
         )
-    
+
     elif strategy == "rflag":
         # R-flag: statistical outlier detection
         threshold = 4.0 if aggressive else 5.0
@@ -1607,14 +1605,14 @@ def preflag_rfi(
             freqdevscale=threshold,
             action="apply",
         )
-    
+
     # Get final flag state
     with casatables.table(ms_path, readonly=True) as tb:
         flags = tb.getcol("FLAG")
         new_flagged = np.sum(flags) / flags.size
-    
+
     rfi_fraction = new_flagged - original_flagged
-    
+
     return RFIStats(
         original_flagged_fraction=original_flagged,
         new_flagged_fraction=new_flagged,
@@ -1632,22 +1630,22 @@ def preflag_rfi(
 class MetricsRegistry:
     """
     Central registry for pipeline metrics.
-    
+
     This fixes Issue #13: Inadequate observability.
-    
+
     Provides:
     - Counter/gauge/histogram tracking
     - Prometheus-compatible export
     - Alert threshold checking
     """
-    
+
     def __init__(self):
         self._counters: Dict[str, float] = {}
         self._gauges: Dict[str, float] = {}
         self._histograms: Dict[str, List[float]] = {}
         self._labels: Dict[str, Dict[str, str]] = {}
         self._lock = threading.Lock()
-    
+
     def inc_counter(self, name: str, value: float = 1.0, labels: Optional[Dict[str, str]] = None) -> None:
         """Increment a counter."""
         key = self._make_key(name, labels)
@@ -1655,7 +1653,7 @@ class MetricsRegistry:
             self._counters[key] = self._counters.get(key, 0.0) + value
             if labels:
                 self._labels[key] = labels
-    
+
     def set_gauge(self, name: str, value: float, labels: Optional[Dict[str, str]] = None) -> None:
         """Set a gauge value."""
         key = self._make_key(name, labels)
@@ -1663,7 +1661,7 @@ class MetricsRegistry:
             self._gauges[key] = value
             if labels:
                 self._labels[key] = labels
-    
+
     def observe_histogram(self, name: str, value: float, labels: Optional[Dict[str, str]] = None) -> None:
         """Record a histogram observation."""
         key = self._make_key(name, labels)
@@ -1673,14 +1671,14 @@ class MetricsRegistry:
             self._histograms[key].append(value)
             if labels:
                 self._labels[key] = labels
-    
+
     def _make_key(self, name: str, labels: Optional[Dict[str, str]]) -> str:
         """Create unique key from name and labels."""
         if not labels:
             return name
         label_str = ",".join(f"{k}={v}" for k, v in sorted(labels.items()))
         return f"{name}{{{label_str}}}"
-    
+
     def get_all_metrics(self) -> Dict[str, Any]:
         """Get all metrics as dict."""
         with self._lock:
@@ -1689,27 +1687,27 @@ class MetricsRegistry:
                 "gauges": dict(self._gauges),
                 "histograms": {k: {"values": v, "count": len(v)} for k, v in self._histograms.items()},
             }
-    
+
     def export_prometheus(self) -> str:
         """Export metrics in Prometheus format."""
         lines = []
-        
+
         with self._lock:
             for key, value in self._counters.items():
                 lines.append(f"# TYPE {key.split('{')[0]} counter")
                 lines.append(f"{key} {value}")
-            
+
             for key, value in self._gauges.items():
                 lines.append(f"# TYPE {key.split('{')[0]} gauge")
                 lines.append(f"{key} {value}")
-            
+
             for key, values in self._histograms.items():
                 base_name = key.split('{')[0]
                 lines.append(f"# TYPE {base_name} histogram")
                 lines.append(f"{key}_count {len(values)}")
                 if values:
                     lines.append(f"{key}_sum {sum(values)}")
-        
+
         return "\n".join(lines) + "\n"
 
 
@@ -1760,7 +1758,7 @@ def record_queue_depth(state: str, count: int) -> None:
 @dataclass
 class CalibratorCandidate:
     """A potential calibrator with quality metrics."""
-    
+
     name: str
     ra_deg: float
     dec_deg: float
@@ -1780,19 +1778,19 @@ def find_backup_calibrators(
 ) -> List[CalibratorCandidate]:
     """
     Find backup calibrators for redundancy.
-    
+
     This fixes Issue #3: Single calibrator strategy is fragile.
-    
+
     Returns ranked list of calibrator candidates near the target declination.
     """
     from dsa110_contimg.database.unified import ensure_db
-    
+
     conn = ensure_db(db_path)
-    
+
     # Query calibrators within beam range
     # DSA-110 primary beam FWHM is ~2.5° at 1.4 GHz
     dec_tolerance = 2.5
-    
+
     rows = conn.execute(
         """
         SELECT name, ra_deg, dec_deg, flux_jy
@@ -1805,37 +1803,36 @@ def find_backup_calibrators(
         """,
         (dec_deg - dec_tolerance, dec_deg + dec_tolerance, min_flux_jy, max_candidates * 2),
     ).fetchall()
-    
+
     if not rows:
         return []
-    
+
     candidates = []
     for row in rows:
         name, ra, dec, flux = row
-        
+
         # Calculate transit time
         # Simplified: transit occurs when RA matches LST
-        from dsa110_contimg.utils.constants import DSA110_LOCATION
         from astropy.time import Time
-        from astropy.coordinates import SkyCoord
-        import astropy.units as u
-        
+
+        from dsa110_contimg.utils.constants import DSA110_LOCATION
+
         # Find next transit after target_mjd
         t = Time(target_mjd, format='mjd')
         lst = t.sidereal_time('apparent', DSA110_LOCATION).deg
-        
+
         # Hours until RA transits
         ra_diff = (ra - lst) % 360
         hours_to_transit = ra_diff / 15.0  # 15 deg/hour
         transit_mjd = target_mjd + hours_to_transit / 24.0
-        
+
         # Estimate beam response based on dec offset
         dec_offset = abs(dec - dec_deg)
         beam_response = max(0, 1.0 - (dec_offset / dec_tolerance) ** 2)
-        
+
         # Quality score: prefer bright, well-centered calibrators
         quality = (flux / 10.0) * beam_response
-        
+
         candidates.append(CalibratorCandidate(
             name=name,
             ra_deg=ra,
@@ -1845,10 +1842,10 @@ def find_backup_calibrators(
             beam_response=beam_response,
             quality_score=quality,
         ))
-    
+
     # Sort by quality score
     candidates.sort(key=lambda c: c.quality_score, reverse=True)
-    
+
     return candidates[:max_candidates]
 
 
@@ -1859,7 +1856,7 @@ def find_backup_calibrators(
 @dataclass
 class MosaicGroup:
     """A group of observations suitable for mosaicing."""
-    
+
     group_id: str
     ms_paths: List[str]
     center_ra_deg: float
@@ -1879,33 +1876,33 @@ def find_mosaic_groups(
 ) -> List[MosaicGroup]:
     """
     Find groups of observations suitable for mosaicing.
-    
+
     This fixes Issue #15: Mosaic trigger logic fragility.
-    
+
     Improvements over original:
     - Groups by declination (not just time)
     - Handles observation gaps gracefully
     - Configurable thresholds
     """
     from dsa110_contimg.database.unified import Database
-    
+
     db = Database(db_path)
-    
+
     # Get all imaged MS files with coordinates
     rows = db.query(
         """
         SELECT path, mid_mjd, dec_deg, ra_deg
         FROM ms_index
-        WHERE stage = 'imaged' 
+        WHERE stage = 'imaged'
           AND dec_deg IS NOT NULL
           AND mid_mjd IS NOT NULL
         ORDER BY dec_deg, mid_mjd
         """
     )
-    
+
     if not rows:
         return []
-    
+
     # Group by declination band
     dec_bands: Dict[float, List[Dict]] = {}
     for row in rows:
@@ -1914,23 +1911,23 @@ def find_mosaic_groups(
         if band_center not in dec_bands:
             dec_bands[band_center] = []
         dec_bands[band_center].append(row)
-    
+
     # Within each dec band, group by time
     groups = []
     time_window_days = time_window_hours / 24.0
-    
+
     for dec_center, observations in dec_bands.items():
         # Sort by time
         observations.sort(key=lambda x: x['mid_mjd'])
-        
+
         current_group: List[Dict] = []
-        
+
         for obs in observations:
             if not current_group:
                 current_group.append(obs)
             else:
                 time_gap = obs['mid_mjd'] - current_group[-1]['mid_mjd']
-                
+
                 if time_gap <= time_window_days and len(current_group) < max_observations:
                     current_group.append(obs)
                 else:
@@ -1938,11 +1935,11 @@ def find_mosaic_groups(
                     if len(current_group) >= min_observations:
                         groups.append(_make_mosaic_group(current_group, dec_center))
                     current_group = [obs]
-        
+
         # Don't forget the last group
         if len(current_group) >= min_observations:
             groups.append(_make_mosaic_group(current_group, dec_center))
-    
+
     return groups
 
 
@@ -1952,10 +1949,10 @@ def _make_mosaic_group(observations: List[Dict], dec_center: float) -> MosaicGro
     ras = [o['ra_deg'] for o in observations]
     decs = [o['dec_deg'] for o in observations]
     mjds = [o['mid_mjd'] for o in observations]
-    
+
     # Estimate integration time (5 minutes per observation)
     integration_s = len(observations) * 309.0
-    
+
     return MosaicGroup(
         group_id=f"mosaic_{mjds[0]:.3f}_{dec_center:+.1f}",
         ms_paths=ms_paths,

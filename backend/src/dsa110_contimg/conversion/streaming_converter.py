@@ -2089,7 +2089,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                 # single-set selection via get_active_applylist
                 cal_applied = 0
                 use_interpolation = getattr(args, 'use_interpolated_cal', True)
-                
+
                 if use_interpolation and mid_mjd is not None:
                     try:
                         # Issue #2: Get interpolated calibration between sets
@@ -2099,13 +2099,13 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                         from dsa110_contimg.calibration.applycal import (
                             apply_interpolated_calibration,
                         )
-                        
+
                         interp_cal = get_interpolated_calibration(
                             Path(args.registry_db),
                             float(mid_mjd),
                             validity_hours=12.0,
                         )
-                        
+
                         if interp_cal.is_interpolated:
                             # True interpolation between two calibration sets
                             log.info(
@@ -2117,7 +2117,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                             )
                             for warn in interp_cal.warnings:
                                 log.warning("Calibration interpolation: %s", warn)
-                            
+
                             apply_interpolated_calibration(
                                 ms_path,
                                 field="",
@@ -2151,7 +2151,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                             "Falling back to single-set selection.",
                             e,
                         )
-                
+
                 # Fallback: standard single-set selection (Issue #1)
                 if not cal_applied:
                     applylist = []
