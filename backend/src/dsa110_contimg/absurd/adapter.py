@@ -118,13 +118,34 @@ async def execute_pipeline_task(task_name: str, params: Dict[str, Any]) -> Dict[
         return await execute_pipeline_job(params)
     elif task_name == "pipeline-run":
         return await execute_pipeline_run(params)
+    # Maintenance tasks (consolidated from cron/systemd)
+    elif task_name == "backup-database":
+        from dsa110_contimg.absurd.maintenance import execute_backup_database
+        return await execute_backup_database(params)
+    elif task_name == "backup-caltables":
+        from dsa110_contimg.absurd.maintenance import execute_backup_caltables
+        return await execute_backup_caltables(params)
+    elif task_name == "storage-reconciliation":
+        from dsa110_contimg.absurd.maintenance import execute_storage_reconciliation
+        return await execute_storage_reconciliation(params)
+    elif task_name == "health-check":
+        from dsa110_contimg.absurd.maintenance import execute_health_check
+        return await execute_health_check(params)
+    elif task_name == "session-cleanup":
+        from dsa110_contimg.absurd.maintenance import execute_session_cleanup
+        return await execute_session_cleanup(params)
+    elif task_name == "data-retention-cleanup":
+        from dsa110_contimg.absurd.maintenance import execute_data_retention_cleanup
+        return await execute_data_retention_cleanup(params)
     else:
         raise ValueError(
             f"Unknown task name: '{task_name}'. Supported tasks: "
             f"convert-uvh5-to-ms, calibration-solve, calibration-apply, "
             f"imaging, validation, crossmatch, photometry, catalog-setup, "
             f"organize-files, housekeeping, create-mosaic, mosaic-pipeline, "
-            f"mosaic-nightly, pipeline-job, pipeline-run"
+            f"mosaic-nightly, pipeline-job, pipeline-run, "
+            f"backup-database, backup-caltables, storage-reconciliation, "
+            f"health-check, session-cleanup, data-retention-cleanup"
         )
 
 

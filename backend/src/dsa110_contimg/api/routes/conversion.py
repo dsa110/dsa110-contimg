@@ -122,18 +122,19 @@ class ConversionStatsResponse(BaseModel):
 def _get_processing_queue_db() -> str:
     """Get path to the processing queue database."""
     from dsa110_contimg.config import settings
-    return str(settings.database.pipeline_db)
+    return str(settings.database.unified_db)
 
 
 def _get_hdf5_index_db() -> str:
     """Get path to the HDF5 file index database."""
-    # Default location in /data/incoming
-    default_path = "/data/incoming/hdf5_file_index.sqlite3"
+    from dsa110_contimg.config import settings
+    # Default location in input_dir
+    default_path = os.path.join(str(settings.paths.input_dir), "hdf5_file_index.sqlite3")
     if os.path.exists(default_path):
         return default_path
-    # Fallback to settings
-    from dsa110_contimg.config import settings
-    return getattr(settings.paths, "hdf5_index_db", default_path)
+    # Fallback to /data/incoming
+    fallback = "/data/incoming/hdf5_file_index.sqlite3"
+    return fallback if os.path.exists(fallback) else default_path
 
 
 # =============================================================================

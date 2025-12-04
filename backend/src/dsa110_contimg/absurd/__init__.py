@@ -57,6 +57,12 @@ from .scheduling import (
 )
 from .worker import AbsurdWorker, set_websocket_manager
 
+# Maintenance tasks (consolidated from cron/systemd timers)
+from .maintenance import (
+    DEFAULT_SCHEDULES,
+    setup_default_schedules,
+)
+
 __all__ = [
     # Core client and worker
     "AbsurdClient",
@@ -78,6 +84,9 @@ __all__ = [
     # Pipeline framework integration
     "execute_pipeline_job",
     "execute_pipeline_run",
+    # Maintenance tasks (consolidated from cron/systemd)
+    "setup_default_schedules",
+    "DEFAULT_SCHEDULES",
     # Scheduling
     "TaskScheduler",
     "ScheduledTask",

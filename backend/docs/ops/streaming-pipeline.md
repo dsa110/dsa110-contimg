@@ -183,3 +183,47 @@ Both use the same `processing_queue` table, so data is shared.
 - [Streaming Module README](../src/dsa110_contimg/conversion/streaming/README.md)
 - [Database Schema](../src/dsa110_contimg/database/schema.sql)
 - [Main README](../README.md)
+
+## Dashboard / API Integration
+
+The streaming pipeline integrates with the dashboard API, allowing on-demand
+conversion alongside calibration, imaging, mosaicking, and photometry.
+
+### API Endpoints
+
+| Endpoint                         | Method | Description                      |
+| -------------------------------- | ------ | -------------------------------- |
+| `/api/v1/conversion/pending`     | GET    | List pending subband groups      |
+| `/api/v1/conversion/stats`       | GET    | Get conversion statistics        |
+| `/api/v1/conversion/convert`     | POST   | Trigger conversion (auth needed) |
+| `/api/v1/conversion/status/{id}` | GET    | Get group conversion status      |
+| `/api/v1/conversion/hdf5-index`  | GET    | Query raw HDF5 file index        |
+
+### Example: Trigger Conversion from Dashboard
+
+```bash
+# List pending complete groups
+curl http://localhost:8000/api/v1/conversion/pending?complete_only=true
+
+# Trigger conversion for specific groups
+curl -X POST http://localhost:8000/api/v1/conversion/convert \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"group_ids": ["2025-10-02T00:05:18", "2025-10-02T00:10:22"]}'
+
+# Check conversion status
+curl http://localhost:8000/api/v1/conversion/status/2025-10-02T00:05:18
+```
+
+### Integration with Other Pipeline Stages
+
+The dashboard provides a unified interface for the full pipeline:
+
+1. **Conversion** (`/api/v1/conversion/*`) - HDF5 → MS
+2. **Calibration** (`/api/v1/cal/*`) - Apply calibration tables
+3. **Imaging** (`/api/v1/imaging/*`) - Create FITS images
+4. **Mosaics** (`/api/mosaic/*`) - Combine images
+5. **Photometry** (`/api/v1/sources/*`) - Measure sources
+6. **Light Curves** - Track source variability over time
+
+All stages can be triggered on-demand from the web dashboard or via API calls.

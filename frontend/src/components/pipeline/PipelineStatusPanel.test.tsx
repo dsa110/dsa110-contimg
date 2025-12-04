@@ -27,6 +27,7 @@ function createWrapper() {
       queries: {
         retry: false,
         gcTime: 0,
+        staleTime: 0,
       },
     },
   });
