@@ -147,11 +147,10 @@ class ConversionStage:
         # Store file_paths for fallback to use
         self._current_file_paths = file_paths
         
-        # Use group timestamp for start/end if not provided
-        if start_time is None:
-            start_time = group_id.replace("T", " ")
-        if end_time is None:
-            end_time = start_time
+        # Derive time window from file paths for accurate grouping
+        # Subbands arrive at slightly different times, so we need a window
+        if start_time is None or end_time is None:
+            start_time, end_time = self._derive_time_window(group_id, file_paths)
 
         # Validate inputs
         is_valid, error = self.validate(group_id, file_paths)
