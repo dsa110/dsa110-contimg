@@ -54,6 +54,9 @@ from .stages import (
     MosaicStage,
 )
 
+# CLI module
+from .cli import main as run_streaming_pipeline, StreamingPipeline
+
 __all__ = [
     # Core components
     "SubbandQueue",
@@ -65,4 +68,7 @@ __all__ = [
     "ImagingStage",
     "PhotometryStage",
     "MosaicStage",
+    # CLI
+    "run_streaming_pipeline",
+    "StreamingPipeline",
 ]

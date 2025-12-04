@@ -43,6 +43,7 @@ dev = [
 
 [project.scripts]
 dsa110-cli = "dsa110_contimg.execution.cli:main"
+dsa110-stream = "dsa110_contimg.conversion.streaming.launcher:main"
 # Note: conversion.cli is deprecated, use execution.cli instead
 
 [tool.setuptools.packages.find]
