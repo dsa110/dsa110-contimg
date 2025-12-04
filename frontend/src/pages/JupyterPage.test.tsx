@@ -2,11 +2,12 @@
  * Tests for JupyterPage
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { BrowserRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import JupyterPage from "./JupyterPage";
-import { renderWithProviders } from "../testing/test-utils";
 
 // Mock the jupyter API hooks
 const mockUseKernels = vi.fn();
@@ -142,7 +143,19 @@ const mockStats = {
 };
 
 function renderPage() {
-  return renderWithProviders(<JupyterPage />);
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+    },
+  });
+
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <JupyterPage />
+      </BrowserRouter>
+    </QueryClientProvider>
+  );
 }
 
 describe("JupyterPage", () => {

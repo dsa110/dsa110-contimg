@@ -37,7 +37,7 @@ class CalibrationResult:
 @dataclass
 class CalibrationConfig:
     """Configuration for the calibration stage."""
-    
+
     registry_db: Path
     enable_solving: bool = True
     enable_applying: bool = True
@@ -45,6 +45,14 @@ class CalibrationConfig:
     validity_hours: float = 12.0
     use_interpolation: bool = True
     fence_timeout_seconds: float = 60.0
+    # Alias for backwards compatibility
+    fence_timeout: float = 60.0  # Deprecated, use fence_timeout_seconds
+
+    def __post_init__(self) -> None:
+        """Handle deprecated field aliases."""
+        # Use fence_timeout if fence_timeout_seconds is default
+        if self.fence_timeout_seconds == 60.0 and self.fence_timeout != 60.0:
+            self.fence_timeout_seconds = self.fence_timeout
 
 
 class CalibrationStage:
