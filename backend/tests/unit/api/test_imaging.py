@@ -421,6 +421,7 @@ class TestImagingAPIEndpoints:
         env_patches = {
             "DSA110_AUTH_DISABLED": "true",
             "DSA110_ENV": "testing",
+            "DSA110_ALLOWED_IPS": "127.0.0.1,::1,testclient",
         }
         with patch.dict(os.environ, env_patches):
             app = create_app()

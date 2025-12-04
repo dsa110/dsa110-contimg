@@ -82,15 +82,27 @@ class TestMsRasterEndpoint:
         )
         assert response.status_code == 422
 
-    def test_raster_returns_404_for_missing_ms(self, client: TestClient):
-        """Verify 404 for non-existent MS."""
+    def test_raster_returns_404_for_missing_ms(self, client: TestClient, tmp_path):
+        """Verify 404 for non-existent MS in allowed directory."""
+        # Use a path within tmp (allowed) that doesn't exist
+        nonexistent_path = tmp_path / "nonexistent.ms"
         response = client.get(
-            "/api/v1/ms/%2Fnonexistent%2Fpath.ms/raster",
+            f"/api/v1/ms/{str(nonexistent_path)}/raster",
             params={"xaxis": "time", "yaxis": "amp"},
         )
 
         assert response.status_code == 404
         assert "not found" in response.json()["detail"].lower()
+
+    def test_raster_returns_400_for_path_outside_allowed(self, client: TestClient):
+        """Verify 400 for MS path outside allowed directories."""
+        response = client.get(
+            "/api/v1/ms/%2Fnonexistent%2Fpath.ms/raster",
+            params={"xaxis": "time", "yaxis": "amp"},
+        )
+
+        assert response.status_code == 400
+        assert "outside allowed" in response.json()["detail"].lower()
 
     def test_raster_handles_generation_error(self, client: TestClient, tmp_path):
         """Verify 500 error when plot generation fails."""
@@ -354,14 +366,21 @@ class TestGetAntennaInfo:
 def client():
     """Create test client for API with auth disabled."""
     import os
+    from pathlib import Path
     from unittest.mock import patch
     from dsa110_contimg.api.app import create_app
 
     env_patches = {
         "DSA110_AUTH_DISABLED": "true",
         "DSA110_ENV": "testing",
+        "DSA110_ALLOWED_IPS": "127.0.0.1,::1,testclient",
+        "DSA110_ALLOWED_MS_ROOTS": "/tmp,/data/dsa110-contimg,/stage/dsa110-contimg",
     }
     with patch.dict(os.environ, env_patches):
+        # Reset the cached MS_ALLOWED_ROOTS to pick up new env var
+        from dsa110_contimg.api.services.async_services import AsyncMSService
+        AsyncMSService.MS_ALLOWED_ROOTS = [Path("/tmp"), Path("/data/dsa110-contimg"), Path("/stage/dsa110-contimg")]
+        
         app = create_app()
         with TestClient(app) as test_client:
             yield test_client
