@@ -326,11 +326,13 @@ const SkyCoverageMapVAST: React.FC<SkyCoverageMapVASTProps> = ({
     // FIRST survey - render as polygon regions (not full Dec bands)
     FIRST_REGIONS.forEach((region) => {
       // Convert RA from 0-360 to -180 to 180 for projection
-      const projectedPolygon = region.polygon.map(([ra, dec]): [number, number] => {
-        let projRa = ra;
-        if (projRa > 180) projRa -= 360;
-        return [projRa, dec];
-      });
+      const projectedPolygon = region.polygon.map(
+        ([ra, dec]): [number, number] => {
+          let projRa = ra;
+          if (projRa > 180) projRa -= 360;
+          return [projRa, dec];
+        }
+      );
 
       const geoPolygon: GeoJSON.Feature<GeoJSON.Polygon> = {
         type: "Feature",
@@ -475,6 +477,27 @@ const SkyCoverageMapVAST: React.FC<SkyCoverageMapVASTProps> = ({
 
       xOffset += 70;
     });
+
+    // FIRST survey legend item (separate since it's polygon-based)
+    legend
+      .append("rect")
+      .attr("x", xOffset)
+      .attr("y", legendHeight / 2 - 5)
+      .attr("width", 16)
+      .attr("height", 10)
+      .attr("fill", FIRST_COLOR)
+      .attr("fill-opacity", FIRST_FILL_OPACITY + 0.1)
+      .attr("stroke", FIRST_COLOR)
+      .attr("stroke-width", 1.5)
+      .attr("stroke-dasharray", "3,2");
+
+    legend
+      .append("text")
+      .attr("x", xOffset + 22)
+      .attr("y", legendHeight / 2 + 4)
+      .attr("fill", "#333")
+      .attr("font-size", 11)
+      .text("FIRST");
   }, [
     pointings,
     width,
