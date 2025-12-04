@@ -12,20 +12,23 @@ from __future__ import annotations
 import json
 import logging
 import os
-import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import traceback
 from abc import ABC, abstractmethod
-from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
-from dsa110_contimg.execution.errors import ExecutionErrorCode, map_exception_to_code
+from dsa110_contimg.execution.errors import ErrorCode, map_exception_to_error_code
 from dsa110_contimg.execution.resources import ResourceManager, resource_limits
-from dsa110_contimg.execution.task import ExecutionResult, ExecutionTask
-from dsa110_contimg.execution.validate import validate_execution_task
+from dsa110_contimg.execution.task import (
+    ExecutionMetrics,
+    ExecutionResult,
+    ExecutionTask,
+    ResourceLimits,
+)
 
 logger = logging.getLogger(__name__)
 
