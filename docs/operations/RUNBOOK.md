@@ -300,7 +300,7 @@ curl -X POST http://localhost:8000/absurd/tasks \
   -d '{"queue_name": "maintenance", "task_name": "backup-database", "params": {"inputs": {"backup_type": "hourly"}}}'
 
 # Legacy script (for emergencies when API is down)
-/data/dsa110-contimg/scripts/backup-cron.sh hourly
+/data/dsa110-contimg/scripts/.deprecated/backup-cron.sh hourly
 ```
 
 ### Database Restore
