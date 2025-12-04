@@ -286,6 +286,16 @@ export const router = createBrowserRouter(
           ),
         },
         {
+          path: "ratings",
+          element: (
+            <Suspense fallback={<PageSkeleton variant="list" />}>
+              <ProtectedRoute requiredRoles={["viewer", "operator", "admin"]}>
+                <QARatingsPage />
+              </ProtectedRoute>
+            </Suspense>
+          ),
+        },
+        {
           path: "*",
           element: (
             <Suspense fallback={<div className="p-6">Loading...</div>}>
