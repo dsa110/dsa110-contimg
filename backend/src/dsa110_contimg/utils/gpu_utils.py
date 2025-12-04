@@ -363,8 +363,10 @@ def build_docker_command(
             cmd.extend(["-v", f"{host_path}:{container_path}"])
     else:
         # Default volume mounts for DSA-110 pipeline
+        # NOTE: /data is intentionally NOT mounted because it's on NTFS via FUSE,
+        # which causes Docker container hangs on kernel 4.15 during cleanup.
+        # MS files should be on /stage, outputs on /stage or /scratch.
         cmd.extend(["-v", "/scratch:/scratch"])
-        cmd.extend(["-v", "/data:/data"])
         cmd.extend(["-v", "/stage:/stage"])
         cmd.extend(["-v", "/dev/shm:/dev/shm"])
     

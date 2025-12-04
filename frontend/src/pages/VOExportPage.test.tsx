@@ -488,7 +488,10 @@ describe("VOExportPage", () => {
       renderPage();
 
       await user.click(screen.getByRole("button", { name: /new export/i }));
-      await user.click(screen.getByRole("button", { name: /cancel/i }));
+
+      // Find cancel button in modal
+      const cancelButtons = screen.getAllByRole("button", { name: /cancel/i });
+      await user.click(cancelButtons[cancelButtons.length - 1]);
 
       await waitFor(() => {
         expect(

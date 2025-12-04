@@ -33,10 +33,23 @@ python scripts/health_check.py --component services
 |              |                                               |
 | ------------ | --------------------------------------------- |
 | **Severity** | HIGH                                          |
-| **Status**   | 🔴 Open (Workaround Available)                |
+| **Status**   | 🟢 Fixed                                      |
 | **Affects**  | NVSS seeding, Docker-based WSClean `-predict` |
 
-**Symptoms:**
+**Root Cause:**
+
+The `/data` filesystem is NTFS mounted via FUSE (`ntfs-3g`). When Docker mounts
+NTFS-FUSE volumes on kernel 4.15 with the overlay2 storage driver, container
+cleanup (`--rm`) hangs waiting for FUSE to release file handles. This is a known
+kernel bug fixed in later kernels, but Ubuntu 18.04 is stuck on 4.15.
+
+**Fix Applied:**
+
+Removed `/data:/data` from default Docker volume mounts in `gpu_utils.py`.
+WSClean only needs `/stage` (for MS files and images) and `/scratch` (temp files),
+both of which are on ext4.
+
+**Symptoms (historical):**
 
 ```text
 Writing changed model back to /data_ms/2025-10-19T14:31:45.ms:
@@ -45,17 +58,11 @@ Cleaning up temporary files...
 [HANGS INDEFINITELY - timeouts don't trigger]
 ```
 
-**Workaround:**
+**If You Still Experience Hangs:**
 
-```python
-# Disable NVSS seeding
-config = SelfCalConfig(
-    use_nvss_seeding=False,  # DISABLE to avoid Docker hang
-    calib_ra_deg=129.278,
-    calib_dec_deg=55.381,
-    calib_flux_jy=0.050,
-)
-```
+1. Ensure MS files are on `/stage`, not `/data`
+2. Ensure output images go to `/stage` or `/scratch`
+3. If you must access `/data` from Docker, mount it explicitly and accept the risk
 
 ---
 
