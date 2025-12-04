@@ -10,12 +10,10 @@ from __future__ import annotations
 
 import argparse
 import logging
-import os
-import sqlite3
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import Optional, TYPE_CHECKING
 
 from dsa110_contimg.conversion.streaming.queue import SubbandQueue
 from dsa110_contimg.conversion.streaming.stages import (

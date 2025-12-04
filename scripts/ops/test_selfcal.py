@@ -85,8 +85,8 @@ def main():
         uvrange="",
         spw="",
         field="0",  # Only process main calibrator field (24x faster than all fields)
-        # Model seeding
-        use_nvss_seeding=False,  # Disable to debug hang
+        # Model seeding (Docker hang fixed - NVSS seeding works now)
+        use_nvss_seeding=False,  # Disabled for this test, but works if enabled
         nvss_min_mjy=10.0,
         calib_ra_deg=CALIB_RA_DEG,
         calib_dec_deg=CALIB_DEC_DEG,
