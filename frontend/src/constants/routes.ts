@@ -88,6 +88,9 @@ export const ROUTES = {
   /** Pipeline triggers */
   TRIGGERS: "/triggers",
 
+  /** VO Export */
+  VO_EXPORT: "/vo-export",
+
   /** Calibrator Imaging Test */
   CALIBRATOR_IMAGING: "/calibrator-imaging",
 } as const;

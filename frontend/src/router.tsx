@@ -31,6 +31,7 @@ const DataCleanupWizardPage = lazy(
 );
 const BackupRestorePage = lazy(() => import("./pages/BackupRestorePage"));
 const PipelineTriggersPage = lazy(() => import("./pages/PipelineTriggersPage"));
+const VOExportPage = lazy(() => import("./pages/VOExportPage"));
 
 /**
  * Application router configuration.
@@ -258,6 +259,16 @@ export const router = createBrowserRouter(
             <Suspense fallback={<PageSkeleton variant="list" />}>
               <ProtectedRoute requiredRoles={["operator", "admin"]}>
                 <PipelineTriggersPage />
+              </ProtectedRoute>
+            </Suspense>
+          ),
+        },
+        {
+          path: "vo-export",
+          element: (
+            <Suspense fallback={<PageSkeleton variant="list" />}>
+              <ProtectedRoute requiredRoles={["viewer", "operator", "admin"]}>
+                <VOExportPage />
               </ProtectedRoute>
             </Suspense>
           ),

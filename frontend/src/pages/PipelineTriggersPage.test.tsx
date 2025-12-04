@@ -310,8 +310,13 @@ describe("PipelineTriggersPage", () => {
     it("renders list of triggers", () => {
       renderPage();
 
-      expect(screen.getByText("Auto Process MS")).toBeInTheDocument();
-      expect(screen.getByText("Daily Cleanup")).toBeInTheDocument();
+      // Trigger names may appear in multiple places (list + recent executions)
+      expect(
+        screen.getAllByText("Auto Process MS").length
+      ).toBeGreaterThanOrEqual(1);
+      expect(
+        screen.getAllByText("Daily Cleanup").length
+      ).toBeGreaterThanOrEqual(1);
       expect(screen.getByText("Manual Pipeline")).toBeInTheDocument();
     });
 
@@ -347,9 +352,12 @@ describe("PipelineTriggersPage", () => {
     it("shows execution statistics", () => {
       renderPage();
 
-      // Check for execution count
-      expect(screen.getByText("150")).toBeInTheDocument();
-      expect(screen.getByText("Executions")).toBeInTheDocument();
+      // Check for execution count - may appear multiple times
+      expect(screen.getAllByText("150").length).toBeGreaterThanOrEqual(1);
+      // "Executions" label appears multiple places (card + sidebar)
+      expect(screen.getAllByText(/Executions/).length).toBeGreaterThanOrEqual(
+        1
+      );
     });
 
     it("shows success rate", () => {
