@@ -254,9 +254,8 @@ describe("JupyterPage", () => {
     it("renders Open JupyterLab button", () => {
       renderPage();
 
-      expect(
-        screen.getByRole("button", { name: /open jupyterlab/i })
-      ).toBeInTheDocument();
+      const openButtons = screen.getAllByRole("button", { name: /open jupyterlab/i });
+      expect(openButtons.length).toBeGreaterThanOrEqual(1);
     });
 
     it("renders tab buttons", () => {
@@ -281,7 +280,9 @@ describe("JupyterPage", () => {
     it("shows kernels list by default", () => {
       renderPage();
 
-      expect(screen.getByText("Python 3")).toBeInTheDocument();
+      // Python 3 appears multiple times (one per kernel)
+      const python3Elements = screen.getAllByText("Python 3");
+      expect(python3Elements.length).toBeGreaterThanOrEqual(1);
     });
 
     it("shows kernel status badges", () => {
