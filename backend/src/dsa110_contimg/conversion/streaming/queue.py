@@ -132,7 +132,7 @@ class SubbandQueue:
         with self._lock, self._conn:
             self._conn.execute(
                 """
-                CREATE TABLE IF NOT EXISTS ingest_queue (
+                CREATE TABLE IF NOT EXISTS processing_queue (
                     group_id TEXT PRIMARY KEY,
                     state TEXT NOT NULL,
                     received_at REAL NOT NULL,
@@ -140,10 +140,26 @@ class SubbandQueue:
                     expected_subbands INTEGER,
                     retry_count INTEGER NOT NULL DEFAULT 0,
                     error TEXT,
+                    error_message TEXT,
                     checkpoint_path TEXT,
                     processing_stage TEXT DEFAULT 'collecting',
-                    chunk_minutes REAL
+                    chunk_minutes REAL,
+                    has_calibrator INTEGER DEFAULT NULL,
+                    calibrators TEXT
                 )
+                """
+            )
+            # Add indexes for performance (matches existing production schema)
+            self._conn.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_queue_state 
+                ON processing_queue(state)
+                """
+            )
+            self._conn.execute(
+                """
+                CREATE INDEX IF NOT EXISTS idx_queue_received 
+                ON processing_queue(received_at)
                 """
             )
             self._conn.execute(
@@ -152,7 +168,8 @@ class SubbandQueue:
                     group_id TEXT NOT NULL,
                     subband_idx INTEGER NOT NULL,
                     path TEXT NOT NULL,
-                    PRIMARY KEY (group_id, subband_idx)
+                    PRIMARY KEY (group_id, subband_idx),
+                    FOREIGN KEY (group_id) REFERENCES processing_queue(group_id)
                 )
                 """
             )
@@ -184,28 +201,30 @@ class SubbandQueue:
             try:
                 columns = {
                     row["name"]
-                    for row in self._conn.execute("PRAGMA table_info(ingest_queue)").fetchall()
+                    for row in self._conn.execute("PRAGMA table_info(processing_queue)").fetchall()
                 }
             except sqlite3.DatabaseError:
                 return
 
             if "checkpoint_path" not in columns:
-                self._conn.execute("ALTER TABLE ingest_queue ADD COLUMN checkpoint_path TEXT")
+                self._conn.execute("ALTER TABLE processing_queue ADD COLUMN checkpoint_path TEXT")
             if "processing_stage" not in columns:
                 self._conn.execute(
-                    "ALTER TABLE ingest_queue ADD COLUMN "
+                    "ALTER TABLE processing_queue ADD COLUMN "
                     "processing_stage TEXT DEFAULT 'collecting'"
                 )
             if "chunk_minutes" not in columns:
-                self._conn.execute("ALTER TABLE ingest_queue ADD COLUMN chunk_minutes REAL")
+                self._conn.execute("ALTER TABLE processing_queue ADD COLUMN chunk_minutes REAL")
             if "expected_subbands" not in columns:
-                self._conn.execute("ALTER TABLE ingest_queue ADD COLUMN expected_subbands INTEGER")
+                self._conn.execute("ALTER TABLE processing_queue ADD COLUMN expected_subbands INTEGER")
             if "has_calibrator" not in columns:
                 self._conn.execute(
-                    "ALTER TABLE ingest_queue ADD COLUMN has_calibrator INTEGER DEFAULT NULL"
+                    "ALTER TABLE processing_queue ADD COLUMN has_calibrator INTEGER DEFAULT NULL"
                 )
             if "calibrators" not in columns:
-                self._conn.execute("ALTER TABLE ingest_queue ADD COLUMN calibrators TEXT")
+                self._conn.execute("ALTER TABLE processing_queue ADD COLUMN calibrators TEXT")
+            if "error_message" not in columns:
+                self._conn.execute("ALTER TABLE processing_queue ADD COLUMN error_message TEXT")
 
         # Migrate performance_metrics table
         with self._lock, self._conn:
@@ -244,7 +263,7 @@ class SubbandQueue:
         """Normalize all existing group_ids in the database."""
         with self._lock, self._conn:
             try:
-                rows = self._conn.execute("SELECT group_id FROM ingest_queue").fetchall()
+                rows = self._conn.execute("SELECT group_id FROM processing_queue").fetchall()
             except sqlite3.DatabaseError:
                 return
                 
@@ -253,7 +272,7 @@ class SubbandQueue:
                 norm = self._normalize_group_id(gid)
                 if norm != gid:
                     try:
-                        for table in ["ingest_queue", "subband_files", "performance_metrics"]:
+                        for table in ["processing_queue", "subband_files", "performance_metrics"]:
                             self._conn.execute(
                                 f"UPDATE {table} SET group_id = ? WHERE group_id = ?",
                                 (norm, gid),
@@ -269,8 +288,8 @@ class SubbandQueue:
                     """
                     SELECT group_id,
                            (SELECT COUNT(*) FROM subband_files 
-                            WHERE subband_files.group_id = ingest_queue.group_id) as subband_count
-                    FROM ingest_queue
+                            WHERE subband_files.group_id = processing_queue.group_id) as subband_count
+                    FROM processing_queue
                     WHERE state IN ('collecting', 'pending')
                     ORDER BY group_id
                     """
@@ -330,7 +349,7 @@ class SubbandQueue:
                             (target_gid, src_gid),
                         )
                         self._conn.execute(
-                            "DELETE FROM ingest_queue WHERE group_id = ?",
+                            "DELETE FROM processing_queue WHERE group_id = ?",
                             (src_gid,),
                         )
                         logger.info(f"Consolidated fragmented group {src_gid} into {target_gid}")
@@ -347,7 +366,7 @@ class SubbandQueue:
         try:
             rows = self._conn.execute(
                 """
-                SELECT group_id FROM ingest_queue
+                SELECT group_id FROM processing_queue
                 WHERE state IN ('collecting', 'pending')
                 ORDER BY received_at DESC
                 LIMIT 100
@@ -409,7 +428,7 @@ class SubbandQueue:
                 self._conn.execute("BEGIN")
                 self._conn.execute(
                     """
-                    INSERT OR IGNORE INTO ingest_queue 
+                    INSERT OR IGNORE INTO processing_queue 
                     (group_id, state, received_at, last_update, chunk_minutes, expected_subbands)
                     VALUES (?, 'collecting', ?, ?, ?, ?)
                     """,
@@ -424,7 +443,7 @@ class SubbandQueue:
                     (target_group, subband_idx, str(file_path)),
                 )
                 self._conn.execute(
-                    "UPDATE ingest_queue SET last_update = ? WHERE group_id = ?",
+                    "UPDATE processing_queue SET last_update = ? WHERE group_id = ?",
                     (now, target_group),
                 )
                 
@@ -436,7 +455,7 @@ class SubbandQueue:
                 if count >= self.expected_subbands:
                     self._conn.execute(
                         """
-                        UPDATE ingest_queue
+                        UPDATE processing_queue
                         SET state = CASE WHEN state = 'completed' THEN state ELSE 'pending' END,
                             last_update = ?
                         WHERE group_id = ?
@@ -486,7 +505,7 @@ class SubbandQueue:
                 self._conn.execute("BEGIN")
                 row = self._conn.execute(
                     """
-                    SELECT group_id FROM ingest_queue
+                    SELECT group_id FROM processing_queue
                     WHERE state = 'pending'
                     ORDER BY group_id ASC
                     LIMIT 1
@@ -501,7 +520,7 @@ class SubbandQueue:
                 now = time.time()
                 self._conn.execute(
                     """
-                    UPDATE ingest_queue
+                    UPDATE processing_queue
                     SET state = 'in_progress', last_update = ?
                     WHERE group_id = ?
                     """,
@@ -532,7 +551,7 @@ class SubbandQueue:
                 if error is not None:
                     self._conn.execute(
                         """
-                        UPDATE ingest_queue
+                        UPDATE processing_queue
                         SET state = ?, last_update = ?, error = ?
                         WHERE group_id = ?
                         """,
@@ -541,7 +560,7 @@ class SubbandQueue:
                 else:
                     self._conn.execute(
                         """
-                        UPDATE ingest_queue
+                        UPDATE processing_queue
                         SET state = ?, last_update = ?
                         WHERE group_id = ?
                         """,
@@ -686,7 +705,7 @@ class SubbandQueue:
         """
         with self._lock:
             rows = self._conn.execute(
-                "SELECT state, COUNT(*) as cnt FROM ingest_queue GROUP BY state"
+                "SELECT state, COUNT(*) as cnt FROM processing_queue GROUP BY state"
             ).fetchall()
             return {row["state"]: row["cnt"] for row in rows}
 
@@ -702,7 +721,7 @@ class SubbandQueue:
         normalized_group = self._normalize_group_id(group_id)
         with self._lock:
             row = self._conn.execute(
-                "SELECT * FROM ingest_queue WHERE group_id = ?",
+                "SELECT * FROM processing_queue WHERE group_id = ?",
                 (normalized_group,),
             ).fetchone()
             if row is None:

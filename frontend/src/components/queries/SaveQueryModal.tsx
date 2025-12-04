@@ -14,7 +14,6 @@ import {
   type QueryVisibility,
   type QueryContext,
   getFilterSummary,
-  getVisibilityIcon,
 } from "../../api/savedQueries";
 
 export interface SaveQueryModalProps {
@@ -32,10 +31,26 @@ export interface SaveQueryModalProps {
   onSuccess?: (query: SavedQuery) => void;
 }
 
-const VISIBILITY_OPTIONS: { value: QueryVisibility; label: string; desc: string }[] = [
-  { value: "private", label: "🔒 Private", desc: "Only you can see this query" },
-  { value: "shared", label: "👥 Shared", desc: "Team members can see and use this query" },
-  { value: "global", label: "🌐 Public", desc: "Anyone can see and use this query" },
+const VISIBILITY_OPTIONS: {
+  value: QueryVisibility;
+  label: string;
+  desc: string;
+}[] = [
+  {
+    value: "private",
+    label: "🔒 Private",
+    desc: "Only you can see this query",
+  },
+  {
+    value: "shared",
+    label: "👥 Shared",
+    desc: "Team members can see and use this query",
+  },
+  {
+    value: "global",
+    label: "🌐 Public",
+    desc: "Anyone can see and use this query",
+  },
 ];
 
 export function SaveQueryModal({
@@ -138,8 +153,18 @@ export function SaveQueryModal({
               className="text-gray-400 hover:text-gray-500 dark:hover:text-gray-300"
               aria-label="Close"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
               </svg>
             </button>
           </div>
@@ -152,7 +177,9 @@ export function SaveQueryModal({
                 Filters to Save
               </div>
               <div className="text-sm text-gray-700 dark:text-gray-300">
-                {hasFilters ? filterSummary : (
+                {hasFilters ? (
+                  filterSummary
+                ) : (
                   <span className="text-amber-600 dark:text-amber-400">
                     ⚠️ No filters active - save anyway?
                   </span>
@@ -227,7 +254,9 @@ export function SaveQueryModal({
                       name="visibility"
                       value={opt.value}
                       checked={visibility === opt.value}
-                      onChange={(e) => setVisibility(e.target.value as QueryVisibility)}
+                      onChange={(e) =>
+                        setVisibility(e.target.value as QueryVisibility)
+                      }
                       className="sr-only"
                       disabled={isPending}
                     />
@@ -240,8 +269,16 @@ export function SaveQueryModal({
                       </div>
                     </div>
                     {visibility === opt.value && (
-                      <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                      <svg
+                        className="w-5 h-5 text-blue-500"
+                        fill="currentColor"
+                        viewBox="0 0 20 20"
+                      >
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                          clipRule="evenodd"
+                        />
                       </svg>
                     )}
                   </label>
@@ -252,7 +289,9 @@ export function SaveQueryModal({
             {/* Error */}
             {error && (
               <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-3">
-                <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+                <p className="text-sm text-red-700 dark:text-red-300">
+                  {error}
+                </p>
               </div>
             )}
 
@@ -279,16 +318,41 @@ export function SaveQueryModal({
               >
                 {isPending ? (
                   <>
-                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    <svg
+                      className="w-4 h-4 animate-spin"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      />
                     </svg>
                     Saving...
                   </>
                 ) : (
                   <>
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+                      />
                     </svg>
                     {isEditing ? "Update Query" : "Save Query"}
                   </>
