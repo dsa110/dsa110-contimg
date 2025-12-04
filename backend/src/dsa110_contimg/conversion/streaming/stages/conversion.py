@@ -12,7 +12,10 @@ import os
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, Union
+
+if TYPE_CHECKING:
+    from ..models import SubbandGroup
 
 logger = logging.getLogger(__name__)
 
@@ -167,6 +170,111 @@ class ConversionStage:
                 return False, f"Cannot create output directory: {e}"
 
         return True, None
+
+    def validate_group(self, group: "SubbandGroup") -> Tuple[bool, Optional[str]]:
+        """Validate a SubbandGroup for conversion.
+        
+        Args:
+            group: SubbandGroup to validate
+            
+        Returns:
+            Tuple of (is_valid, error_message)
+        """
+        # Use the group's own validation
+        valid_files, invalid_files = group.validate_files()
+        
+        if invalid_files:
+            return False, f"Invalid/missing files: {invalid_files[:3]}{'...' if len(invalid_files) > 3 else ''}"
+        
+        if len(valid_files) < group.expected_subbands:
+            return False, (
+                f"Incomplete group: {len(valid_files)}/{group.expected_subbands} subbands"
+            )
+        
+        # Check output directory
+        if not self.config.output_dir.exists():
+            try:
+                self.config.output_dir.mkdir(parents=True, exist_ok=True)
+            except OSError as e:
+                return False, f"Cannot create output directory: {e}"
+        
+        return True, None
+
+    def execute_group(self, group: "SubbandGroup") -> "ConversionResult":
+        """Execute conversion for a SubbandGroup.
+        
+        This is the preferred method - accepts a SubbandGroup and returns
+        an updated ConversionResult with the group attached.
+        
+        Args:
+            group: SubbandGroup to convert
+            
+        Returns:
+            ConversionResult with success status, MS path, and updated group
+        """
+        from ..models import ConversionResult as ModelResult, ConversionMetrics, ProcessingState, ProcessingStage
+        
+        t0 = time.perf_counter()
+        
+        # Update group state
+        group.state = ProcessingState.CONVERTING
+        group.stage = ProcessingStage.VALIDATING
+        
+        # Validate
+        is_valid, error = self.validate_group(group)
+        if not is_valid:
+            group.set_error("validation_failed", error)
+            return ModelResult(
+                success=False,
+                group=group,
+                error_message=error,
+            )
+        
+        # Get file paths
+        file_paths = group.file_paths_str
+        
+        # Derive time window
+        start_time, end_time = self._derive_time_window(group.group_id, file_paths)
+        
+        # Store for fallback
+        self._current_file_paths = file_paths
+        
+        # Execute conversion
+        group.stage = ProcessingStage.LOADING
+        if self._execution_module_available and self.config.execution_mode != "inprocess":
+            legacy_result = self._execute_with_module(group.group_id, start_time, end_time)
+        else:
+            legacy_result = self._execute_fallback(group.group_id, start_time, end_time)
+        
+        elapsed = time.perf_counter() - t0
+        
+        # Convert legacy result to new model
+        if legacy_result.success:
+            group.set_completed(Path(legacy_result.ms_path))
+            group.metrics = legacy_result.metrics
+            
+            return ModelResult(
+                success=True,
+                group=group,
+                ms_path=Path(legacy_result.ms_path),
+                elapsed_seconds=elapsed,
+                metrics=ConversionMetrics(
+                    total_time_s=elapsed,
+                    writer_type=legacy_result.writer_type,
+                ),
+                ra_deg=legacy_result.ra_deg,
+                dec_deg=legacy_result.dec_deg,
+                mid_mjd=legacy_result.mid_mjd,
+                is_calibrator=legacy_result.is_calibrator,
+            )
+        else:
+            group.set_error("conversion_failed", legacy_result.error_message)
+            return ModelResult(
+                success=False,
+                group=group,
+                elapsed_seconds=elapsed,
+                error_message=legacy_result.error_message,
+            )
 
     def execute(
         self,

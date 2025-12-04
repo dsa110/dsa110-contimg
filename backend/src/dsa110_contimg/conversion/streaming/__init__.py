@@ -42,6 +42,15 @@ Note:
 
 from __future__ import annotations
 
+# Re-export models
+from .models import (
+    SubbandGroup,
+    ProcessingState,
+    ProcessingStage,
+    ConversionMetrics,
+    ConversionResult,
+)
+
 # Re-export from queue module
 from .queue import SubbandQueue
 
@@ -64,6 +73,12 @@ from .stages import (
 from .cli import main as run_streaming_pipeline, StreamingPipeline
 
 __all__ = [
+    # Data models
+    "SubbandGroup",
+    "ProcessingState",
+    "ProcessingStage",
+    "ConversionMetrics",
+    "ConversionResult",
     # Core components
     "SubbandQueue",
     "StreamingWatcher", 

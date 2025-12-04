@@ -22,7 +22,10 @@ import time
 from contextlib import contextmanager
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
+
+if TYPE_CHECKING:
+    from .models import SubbandGroup
 
 logger = logging.getLogger(__name__)
 
@@ -727,6 +730,154 @@ class SubbandQueue:
             if row is None:
                 return None
             return dict(row)
+
+    def get_group(self, group_id: str) -> Optional["SubbandGroup"]:
+        """Get a SubbandGroup object for a group.
+        
+        This is the preferred method - returns a fully populated SubbandGroup
+        with all metadata and file paths.
+        
+        Args:
+            group_id: Group identifier
+            
+        Returns:
+            SubbandGroup object, or None if not found
+        """
+        from .models import SubbandGroup, ProcessingState
+        
+        normalized_group = self._normalize_group_id(group_id)
+        with self._lock:
+            row = self._conn.execute(
+                "SELECT * FROM processing_queue WHERE group_id = ?",
+                (normalized_group,),
+            ).fetchone()
+            if row is None:
+                return None
+            
+            # Get file paths
+            file_rows = self._conn.execute(
+                "SELECT path FROM subband_files WHERE group_id = ? ORDER BY subband_idx",
+                (normalized_group,),
+            ).fetchall()
+            files = [Path(r[0]) for r in file_rows]
+            
+            # Parse timestamps
+            received_at = None
+            if row["received_at"]:
+                received_at = datetime.fromtimestamp(row["received_at"])
+            last_update = None
+            if row["last_update"]:
+                last_update = datetime.fromtimestamp(row["last_update"])
+            
+            # Parse calibrators
+            calibrators = None
+            if row["calibrators"]:
+                calibrators = [c.strip() for c in row["calibrators"].split(",")]
+            
+            return SubbandGroup(
+                group_id=row["group_id"],
+                files=files,
+                expected_subbands=row["expected_subbands"] or self.expected_subbands,
+                state=ProcessingState.from_string(row["state"]),
+                received_at=received_at,
+                last_update=last_update,
+                chunk_minutes=row["chunk_minutes"] or self.chunk_duration_minutes,
+                has_calibrator=bool(row["has_calibrator"]) if row["has_calibrator"] is not None else None,
+                calibrators=calibrators,
+                error=row["error"],
+                error_message=row["error_message"],
+                retry_count=row["retry_count"] or 0,
+                checkpoint_path=Path(row["checkpoint_path"]) if row["checkpoint_path"] else None,
+            )
+
+    def get_pending_groups(self, limit: int = 100) -> List["SubbandGroup"]:
+        """Get all pending groups as SubbandGroup objects.
+        
+        Args:
+            limit: Maximum number of groups to return
+            
+        Returns:
+            List of SubbandGroup objects in pending state
+        """
+        from .models import SubbandGroup, ProcessingState
+        
+        groups = []
+        with self._lock:
+            rows = self._conn.execute(
+                """
+                SELECT group_id FROM processing_queue
+                WHERE state = 'pending'
+                ORDER BY received_at ASC
+                LIMIT ?
+                """,
+                (limit,),
+            ).fetchall()
+        
+        # Build SubbandGroup objects outside the lock
+        for row in rows:
+            group = self.get_group(row["group_id"])
+            if group:
+                groups.append(group)
+        
+        return groups
+
+    def acquire_next_group(self) -> Optional["SubbandGroup"]:
+        """Acquire the next pending group atomically as a SubbandGroup.
+        
+        This combines acquire_next_pending() with get_group() for convenience.
+        
+        Returns:
+            SubbandGroup object, or None if no pending groups
+        """
+        group_id = self.acquire_next_pending()
+        if group_id is None:
+            return None
+        return self.get_group(group_id)
+
+    def update_group(self, group: "SubbandGroup") -> None:
+        """Update a group's state from a SubbandGroup object.
+        
+        This syncs the SubbandGroup state back to the database.
+        
+        Args:
+            group: SubbandGroup object with updated state
+        """
+        normalized_group = self._normalize_group_id(group.group_id)
+        now = time.time()
+        
+        # Serialize calibrators
+        calibrators_str = None
+        if group.calibrators:
+            calibrators_str = ", ".join(group.calibrators)
+        
+        with self._lock:
+            try:
+                self._conn.execute("BEGIN")
+                self._conn.execute(
+                    """
+                    UPDATE processing_queue
+                    SET state = ?, last_update = ?, error = ?, error_message = ?,
+                        has_calibrator = ?, calibrators = ?, processing_stage = ?,
+                        checkpoint_path = ?, retry_count = ?
+                    WHERE group_id = ?
+                    """,
+                    (
+                        group.state.value,
+                        now,
+                        group.error,
+                        group.error_message,
+                        1 if group.has_calibrator else (0 if group.has_calibrator is False else None),
+                        calibrators_str,
+                        group.stage.value if hasattr(group, 'stage') else None,
+                        str(group.checkpoint_path) if group.checkpoint_path else None,
+                        group.retry_count,
+                        normalized_group,
+                    ),
+                )
+                self._conn.commit()
+            except sqlite3.Error:
+                self._conn.rollback()
+                raise
 
 
 # Backwards compatibility alias
