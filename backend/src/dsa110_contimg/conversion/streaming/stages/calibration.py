@@ -15,7 +15,10 @@ import sqlite3
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..models import SubbandGroup, ConversionResult
 
 logger = logging.getLogger(__name__)
 
@@ -347,4 +350,48 @@ class CalibrationStage:
                 logger.warning(f"Calibration not applied: {error}")
 
         result.elapsed_seconds = time.perf_counter() - t0
+        return result
+
+    def execute_group(
+        self,
+        group: "SubbandGroup",
+        mid_mjd: Optional[float] = None,
+    ) -> CalibrationResult:
+        """Execute calibration for a converted SubbandGroup.
+        
+        This is a convenience method for the pipeline - takes a SubbandGroup
+        that has already been converted (has ms_path set).
+        
+        Args:
+            group: SubbandGroup with ms_path set from conversion
+            mid_mjd: Mid-point MJD (optional, derived from group if not provided)
+            
+        Returns:
+            CalibrationResult with status and details
+        """
+        from ..models import ProcessingStage
+        
+        if not group.ms_path:
+            return CalibrationResult(
+                success=False,
+                ms_path="",
+                error_message="Group has no MS path - run conversion first",
+            )
+        
+        # Update group stage
+        group.stage = ProcessingStage.CALIBRATING
+        
+        # Use group's calibrator info if available
+        is_calibrator = group.has_calibrator
+        
+        result = self.execute(
+            ms_path=str(group.ms_path),
+            mid_mjd=mid_mjd,
+            is_calibrator=is_calibrator,
+        )
+        
+        # Update group with calibrator info if we detected it
+        if is_calibrator is None and result.is_calibrator:
+            group.has_calibrator = True
+        
         return result
