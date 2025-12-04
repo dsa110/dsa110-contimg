@@ -307,7 +307,13 @@ def _convert_single_group(
     try:
         writer_type = settings.conversion.writer_type
         writer_cls = get_writer(writer_type)
-        writer_instance = writer_cls(uvdata, output_path)
+        # Pass file_list for DirectSubbandWriter, scratch_dir for temp files
+        writer_kwargs = {
+            "file_list": group,
+            "scratch_dir": None,  # Use default temp dir
+            "max_workers": settings.conversion.io_max_workers,
+        }
+        writer_instance = writer_cls(uvdata, output_path, **writer_kwargs)
         actual_writer = writer_instance.write()
 
         logger.info(
@@ -349,9 +355,9 @@ def _load_single_subband(subband_file: str, group_id: str) -> pyuvdata.UVData:
         with FastMeta(subband_file) as meta:
             _ = meta.time_array  # Quick validation
 
-        # Read full data
+        # Read full data with explicit file_type (pyuvdata doesn't auto-detect .hdf5)
         subband_data = pyuvdata.UVData()
-        subband_data.read(subband_file, strict_uvw_antpos_check=False)
+        subband_data.read(subband_file, file_type="uvh5", strict_uvw_antpos_check=False)
         return subband_data
 
     except FileNotFoundError as e:

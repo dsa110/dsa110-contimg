@@ -104,9 +104,14 @@ def create_minimal_uvh5(
     flag_array = np.zeros((nblts, 1, nfreqs, npols), dtype=bool)
     nsample_array = np.ones((nblts, 1, nfreqs, npols), dtype=np.float32)
 
-    # Create UVW array (simplified - just random for testing)
-    rng = np.random.default_rng(42 + subband_idx)
-    uvw_array = rng.uniform(-1000, 1000, size=(nblts, 3)).astype(np.float64)
+    # Create UVW array - MUST be consistent across subbands for pyuvdata combine
+    # UVW depends on time and baseline, NOT subband, so use fixed seed
+    rng_uvw = np.random.default_rng(42)  # Same seed for all subbands
+    uvw_array = rng_uvw.uniform(-1000, 1000, size=(nblts, 3)).astype(np.float64)
+
+    # Antenna positions also need to be consistent
+    rng_ant = np.random.default_rng(123)  # Fixed seed for antenna positions
+    antenna_positions = rng_ant.uniform(-100, 100, size=(nants, 3)).astype(np.float64)
 
     # LST array (radians)
     # Approximate LST from JD (simplified)
@@ -136,7 +141,7 @@ def create_minimal_uvh5(
         header.create_dataset("Nspws", data=np.int64(1))
         header.create_dataset("Ntimes", data=np.int64(ntimes))
 
-        # Antenna info
+        # Antenna info - must be consistent across subbands
         header.create_dataset("antenna_numbers", data=np.arange(nants, dtype=np.int64))
         header.create_dataset(
             "antenna_names",
@@ -144,7 +149,7 @@ def create_minimal_uvh5(
         )
         header.create_dataset(
             "antenna_positions",
-            data=rng.uniform(-100, 100, size=(nants, 3)).astype(np.float64),
+            data=antenna_positions,  # Use pre-computed consistent positions
         )
         header.create_dataset(
             "antenna_diameters",
