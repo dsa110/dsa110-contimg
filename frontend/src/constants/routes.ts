@@ -108,6 +108,9 @@ export const ROUTES = {
 
   /** HDF5 to MS Conversion */
   CONVERSION: "/conversion",
+
+  /** Pipeline Control */
+  PIPELINE: "/pipeline",
 } as const;
 
 /**
@@ -122,9 +125,7 @@ export const NAV_ITEMS = [
   { path: ROUTES.JOBS.LIST, label: "Jobs" },
   { path: ROUTES.LOGS.LIST, label: "Logs" },
   { path: ROUTES.WORKFLOWS.LIST, label: "Workflows" },
-  { path: ROUTES.JUPYTER, label: "Jupyter" },
-  { path: ROUTES.RETENTION, label: "Retention" },
-  { path: ROUTES.CALIBRATOR_IMAGING, label: "Cal Test" },
+  { path: ROUTES.PIPELINE, label: "Pipeline" },
   { path: ROUTES.CONVERSION, label: "Conversion" },
 ] as const;
 
