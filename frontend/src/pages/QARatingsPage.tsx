@@ -162,7 +162,9 @@ function QueueItemCard({ item, onRate, onRemove }: QueueItemCardProps) {
           </div>
         </div>
         <span
-          className={`px-2 py-1 text-xs font-medium rounded-full capitalize ${priorityColors[item.priority]}`}
+          className={`px-2 py-1 text-xs font-medium rounded-full capitalize ${
+            priorityColors[item.priority]
+          }`}
         >
           {item.priority}
         </span>
@@ -667,7 +669,7 @@ export default function QARatingsPage() {
                   {(
                     Object.entries(statsQuery.data.flag_distribution) as [
                       QualityFlag,
-                      number,
+                      number
                     ][]
                   ).map(([flag, count]) => (
                     <div
