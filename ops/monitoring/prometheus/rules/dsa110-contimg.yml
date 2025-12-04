@@ -1,0 +1,220 @@
+# DSA-110 Contimg Pipeline Alert Rules
+# Deploy to: /etc/prometheus/rules/dsa110-contimg.yml
+# Reload: curl -X POST http://localhost:9090/-/reload
+
+groups:
+  - name: dsa110-contimg-critical
+    rules:
+      # =======================================================================
+      # Tier 1: Data Loss Risk
+      # =======================================================================
+
+      - alert: StaleCalibration
+        expr: time() - dsa110_calibration_last_valid_timestamp > 86400
+        for: 30m
+        labels:
+          severity: critical
+          team: pipeline
+        annotations:
+          summary: "No valid calibration in 24+ hours"
+          description: "The last valid calibration was {{ $value | humanizeDuration }} ago. Science data may be processing without fresh calibration."
+          runbook: "https://docs.dsa110.org/runbooks/stale-calibration"
+
+      - alert: CalibrationQualityLow
+        expr: dsa110_calibration_snr < 10
+        for: 10m
+        labels:
+          severity: warning
+          team: pipeline
+        annotations:
+          summary: "Calibration SNR below threshold"
+          description: "Calibration SNR is {{ $value }}, below minimum threshold of 10."
+
+      - alert: ConversionQueueBacklog
+        expr: dsa110_ingest_queue_pending > 100
+        for: 15m
+        labels:
+          severity: critical
+          team: pipeline
+        annotations:
+          summary: "Conversion queue backlog critical"
+          description: "{{ $value }} groups pending in ingest queue. Processing may be stalled."
+          runbook: "https://docs.dsa110.org/runbooks/queue-backlog"
+
+      - alert: ProcessingStuck
+        expr: dsa110_processing_in_progress_duration_seconds > 3600
+        for: 5m
+        labels:
+          severity: critical
+          team: pipeline
+        annotations:
+          summary: "Processing job stuck"
+          description: "Job {{ $labels.group_id }} has been in {{ $labels.state }} state for {{ $value | humanizeDuration }}."
+
+      # =======================================================================
+      # Tier 2: Data Quality Risk
+      # =======================================================================
+
+      - alert: HighFailureRate
+        expr: |
+          (
+            rate(dsa110_job_failures_total[1h]) 
+            / rate(dsa110_job_total[1h])
+          ) > 0.1
+        for: 15m
+        labels:
+          severity: warning
+          team: pipeline
+        annotations:
+          summary: "Job failure rate above 10%"
+          description: "{{ $value | humanizePercentage }} of jobs failing in the last hour."
+
+      - alert: ImagingNoiseHigh
+        expr: dsa110_image_noise_jy > 0.001
+        for: 5m
+        labels:
+          severity: warning
+          team: pipeline
+        annotations:
+          summary: "Image noise above threshold"
+          description: "Image {{ $labels.image_id }} has noise {{ $value }} Jy, above 1 mJy threshold."
+
+      - alert: FlaggedFractionHigh
+        expr: dsa110_ms_flagged_fraction > 0.3
+        for: 10m
+        labels:
+          severity: warning
+          team: pipeline
+        annotations:
+          summary: "High data flagging rate"
+          description: "MS {{ $labels.ms_path }} has {{ $value | humanizePercentage }} data flagged."
+
+      # =======================================================================
+      # Tier 3: Operational Risk
+      # =======================================================================
+
+      - alert: DiskSpaceCritical
+        expr: |
+          (
+            node_filesystem_avail_bytes{mountpoint="/stage"} 
+            / node_filesystem_size_bytes{mountpoint="/stage"}
+          ) < 0.15
+        for: 10m
+        labels:
+          severity: critical
+          team: ops
+        annotations:
+          summary: "Disk space critically low on /stage"
+          description: "Only {{ $value | humanizePercentage }} free on /stage. Pipeline may fail."
+          runbook: "https://docs.dsa110.org/runbooks/disk-space"
+
+      - alert: DiskSpaceWarning
+        expr: |
+          (
+            node_filesystem_avail_bytes{mountpoint="/stage"} 
+            / node_filesystem_size_bytes{mountpoint="/stage"}
+          ) < 0.25
+        for: 30m
+        labels:
+          severity: warning
+          team: ops
+        annotations:
+          summary: "Disk space low on /stage"
+          description: "{{ $value | humanizePercentage }} free on /stage."
+
+      - alert: APIResponseSlow
+        expr: histogram_quantile(0.95, rate(dsa110_api_request_duration_seconds_bucket[5m])) > 2
+        for: 10m
+        labels:
+          severity: warning
+          team: pipeline
+        annotations:
+          summary: "API response time slow"
+          description: "95th percentile API response time is {{ $value }}s."
+
+      - alert: StreamingConverterDown
+        expr: up{job="dsa110-streaming-converter"} == 0
+        for: 5m
+        labels:
+          severity: critical
+          team: pipeline
+        annotations:
+          summary: "Streaming converter is down"
+          description: "The streaming converter service is not responding."
+          runbook: "https://docs.dsa110.org/runbooks/streaming-converter"
+
+      - alert: BackupStale
+        expr: time() - dsa110_backup_last_success_timestamp > 86400
+        for: 1h
+        labels:
+          severity: warning
+          team: ops
+        annotations:
+          summary: "No successful backup in 24+ hours"
+          description: "Last successful backup was {{ $value | humanizeDuration }} ago."
+
+      # =======================================================================
+      # Tier 4: Performance
+      # =======================================================================
+
+      - alert: ConversionSlowdown
+        expr: |
+          avg(rate(dsa110_conversion_duration_seconds_sum[1h]) 
+              / rate(dsa110_conversion_duration_seconds_count[1h])) > 300
+        for: 30m
+        labels:
+          severity: warning
+          team: pipeline
+        annotations:
+          summary: "Conversion taking longer than expected"
+          description: "Average conversion time is {{ $value }}s, expected <300s."
+
+      - alert: ImagingSlowdown
+        expr: |
+          avg(rate(dsa110_imaging_duration_seconds_sum[1h]) 
+              / rate(dsa110_imaging_duration_seconds_count[1h])) > 600
+        for: 30m
+        labels:
+          severity: warning
+          team: pipeline
+        annotations:
+          summary: "Imaging taking longer than expected"
+          description: "Average imaging time is {{ $value }}s, expected <600s."
+
+      - alert: MemoryPressure
+        expr: |
+          (
+            node_memory_MemAvailable_bytes 
+            / node_memory_MemTotal_bytes
+          ) < 0.1
+        for: 10m
+        labels:
+          severity: warning
+          team: ops
+        annotations:
+          summary: "Low available memory"
+          description: "Only {{ $value | humanizePercentage }} memory available."
+
+  # ===========================================================================
+  # Recording Rules (pre-computed metrics)
+  # ===========================================================================
+  - name: dsa110-contimg-recording
+    rules:
+      - record: dsa110:queue_depth_avg_5m
+        expr: avg_over_time(dsa110_ingest_queue_pending[5m])
+
+      - record: dsa110:conversion_rate_per_hour
+        expr: rate(dsa110_conversion_total[1h]) * 3600
+
+      - record: dsa110:failure_rate_1h
+        expr: |
+          rate(dsa110_job_failures_total[1h]) 
+          / rate(dsa110_job_total[1h])
+
+      - record: dsa110:disk_stage_free_pct
+        expr: |
+          node_filesystem_avail_bytes{mountpoint="/stage"} 
+          / node_filesystem_size_bytes{mountpoint="/stage"}
+
+      - record: dsa110:calibration_age_hours
+        expr: (time() - dsa110_calibration_last_valid_timestamp) / 3600

@@ -100,6 +100,9 @@ export const ROUTES = {
   /** Comments dashboard */
   COMMENTS: "/comments",
 
+  /** Shared Queries */
+  QUERIES: "/queries",
+
   /** Calibrator Imaging Test */
   CALIBRATOR_IMAGING: "/calibrator-imaging",
 } as const;

@@ -202,8 +202,8 @@ database file.
 
 **Unified Database:**
 
-| Database                    | Purpose                                                                                           |
-| --------------------------- | ------------------------------------------------------------------------------------------------- |
+| Database                    | Purpose                                                                                               |
+| --------------------------- | ----------------------------------------------------------------------------------------------------- |
 | `state/db/pipeline.sqlite3` | All pipeline state: processing queue, calibration registry, products, HDF5 index, photometry, mosaics |
 
 The unified database contains tables previously spread across multiple files:

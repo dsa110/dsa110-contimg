@@ -99,10 +99,14 @@ result = stage.execute(
 
 SQLite-backed queue that:
 
+- Uses the `processing_queue` table (defined in `database/schema.sql`)
 - Tracks incoming subband files
 - Groups files by observation time (5-minute chunks)
 - Manages processing state (pending → processing → completed/failed)
 - Handles concurrent access with WAL mode and atomic transactions
+
+> **Note:** The `processing_queue` table is shared with the legacy
+> `streaming_converter.py`. Both use the same schema for compatibility.
 
 ### StreamingWatcher
 

@@ -35,6 +35,7 @@ const VOExportPage = lazy(() => import("./pages/VOExportPage"));
 const JupyterPage = lazy(() => import("./pages/JupyterPage"));
 const QARatingsPage = lazy(() => import("./pages/QARatingsPage"));
 const CommentsPage = lazy(() => import("./pages/CommentsPage"));
+const SharedQueriesPage = lazy(() => import("./pages/SharedQueriesPage"));
 
 /**
  * Application router configuration.
@@ -302,6 +303,16 @@ export const router = createBrowserRouter(
             <Suspense fallback={<PageSkeleton variant="list" />}>
               <ProtectedRoute requiredRoles={["viewer", "operator", "admin"]}>
                 <CommentsPage />
+              </ProtectedRoute>
+            </Suspense>
+          ),
+        },
+        {
+          path: "queries",
+          element: (
+            <Suspense fallback={<PageSkeleton variant="list" />}>
+              <ProtectedRoute requiredRoles={["viewer", "operator", "admin"]}>
+                <SharedQueriesPage />
               </ProtectedRoute>
             </Suspense>
           ),

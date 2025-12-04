@@ -27,6 +27,8 @@ from .performance import router as performance_router
 from .saved_queries import router as saved_queries_router
 from .backup import router as backup_router
 from .triggers import router as triggers_router
+from .jupyter import router as jupyter_router
+from .vo_export import router as vo_export_router
 
 __all__ = [
     "auth_router",
@@ -52,4 +54,6 @@ __all__ = [
     "saved_queries_router",
     "backup_router",
     "triggers_router",
+    "jupyter_router",
+    "vo_export_router",
 ]
