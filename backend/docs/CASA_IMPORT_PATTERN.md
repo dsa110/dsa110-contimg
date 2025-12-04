@@ -107,7 +107,7 @@ from casatasks import tclean
 
 All CASA log files should be written to:
 
-```
+```text
 /data/dsa110-contimg/state/logs/casa/
 ```
 
@@ -128,6 +128,79 @@ found = cleanup_stray_casa_logs(delete=False)  # Set delete=True to remove inste
 print(f'Found and moved {len(found)} stray log files')
 "
 ```
+
+## Troubleshooting: `.fuse_hidden*` Files
+
+### Symptom
+
+You see files like `.fuse_hidden00027adf00000101` appearing in `/data/dsa110-contimg/backend/`.
+
+### Cause
+
+These are **CASA log files** that have been deleted but are still held open by a running process. The `/data` directory is mounted as a FUSE filesystem (`fuseblk` - typically NTFS or exFAT). When a file is deleted on a FUSE filesystem while still open, it gets renamed to `.fuse_hidden*` instead of being immediately removed.
+
+### Diagnosis
+
+```bash
+# Check filesystem type
+mount | grep /data
+# Output: /dev/sda1 on /data type fuseblk (...)
+
+# Find which process has the file open
+lsof +D /data/dsa110-contimg/backend/ 2>/dev/null | grep fuse_hidden
+
+# Example output:
+# python  17264 ubuntu  3w  REG  8,1  281  53049  /data/.../backend/.fuse_hidden00027adf00000101
+
+# Check what the process is doing
+ps aux | grep 17264
+cat /proc/17264/cmdline | tr '\0' ' '
+```
+
+### Root Cause (Historical)
+
+Prior to December 2024, `runtime_safeguards.py` called `check_casa6_python()` at **module import time**, which triggered `casatools` import and caused CASA to write log files to the current working directory.
+
+The fix was:
+
+1. **`casa_init.py`**: Added `_setup_casa_log_directory_early()` that runs at the top of the module, changing CWD to the logs directory _before_ any CASA imports can happen.
+
+2. **`runtime_safeguards.py`**: Removed the module-level `check_casa6_python()` call. The check is now performed lazily only when `@require_casa6_python` decorated functions are called.
+
+### Solution
+
+1. **Restart the offending process** - The `.fuse_hidden*` file will disappear once the process releases the file handle:
+
+   ```bash
+   # If it's the ABSURD worker
+   sudo systemctl restart absurd-worker
+   ```
+
+2. **Verify the fix is working** - After restarting, no new `.fuse_hidden*` or `casa-*.log` files should appear in the backend directory:
+
+   ```bash
+   # Watch for new files
+   inotifywait -m -e create /data/dsa110-contimg/backend/
+
+   # Or check after some time
+   ls -la /data/dsa110-contimg/backend/.fuse_hidden* /data/dsa110-contimg/backend/casa-*.log 2>/dev/null
+   ```
+
+3. **Clean up old files** - Once processes are restarted:
+
+   ```bash
+   rm -f /data/dsa110-contimg/backend/.fuse_hidden*
+   ```
+
+### Prevention
+
+The current codebase prevents this issue by:
+
+1. **Early log directory setup**: `casa_init.py` changes CWD to the logs directory at module import time, before any CASA imports.
+
+2. **Lazy CASA checks**: The `@require_casa6_python` decorator only imports CASA when decorated functions are actually called.
+
+3. **Protected imports**: All CASA task imports use `casa_log_environment()` context manager.
 
 ## Adding New CASA Task Usage
 

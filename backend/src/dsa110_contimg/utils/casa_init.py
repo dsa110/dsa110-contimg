@@ -44,26 +44,26 @@ warnings.filterwarnings(
 
 def _setup_casa_log_directory_early() -> Path:
     """Set up CASA log file directory BEFORE any CASA imports.
-    
+
     CASA writes log files (casa-YYYYMMDD-HHMMSS.log) to the current working
     directory when any CASA module is first imported. This function changes
     CWD to the dedicated logs directory so any log files end up there.
-    
+
     This is an internal function called at module import time.
     """
     # Default path - avoid importing settings to prevent circular imports
     log_dir = Path("/data/dsa110-contimg/state/logs/casa")
-    
+
     try:
         log_dir.mkdir(parents=True, exist_ok=True)
-        
+
         # Set CASALOGFILE - some CASA versions may respect this
         os.environ["CASALOGFILE"] = str(log_dir / "casa.log")
-        
+
         # Change CWD to logs directory so CASA writes logs there
         # This is the most reliable way to redirect CASA logs
         os.chdir(log_dir)
-        
+
         return log_dir
     except (OSError, PermissionError):
         # If we can't create/access the directory, logs will go to CWD
@@ -186,17 +186,17 @@ def ensure_casa_path() -> None:
 
 def setup_casa_log_directory() -> Path:
     """Set up CASA log file directory (public API).
-    
+
     CASA writes log files (casa-YYYYMMDD-HHMMSS.log) to the current working
     directory when any CASA module is first imported. This function:
-    
+
     1. Creates the dedicated CASA logs directory if it doesn't exist
     2. Sets CASALOGFILE environment variable (some CASA versions respect this)
     3. Changes CWD to the logs directory so any log files end up there
-    
+
     Returns the logs directory path. The caller is responsible for restoring
     CWD if needed (though for log redirection, we typically don't restore).
-    
+
     Note: This is called automatically at module import time via
     _setup_casa_log_directory_early(). This public function is provided
     for cases where you need to re-run the setup or get the log directory path.

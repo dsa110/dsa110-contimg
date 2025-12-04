@@ -156,11 +156,63 @@ const EMPTY_COUNTS: StageStatusCounts = {
  * Fetch pipeline status from ABSURD endpoint.
  */
 async function fetchPipelineStatus(): Promise<PipelineStatusResponse> {
-  const response = await apiClient.get<PipelineStatusResponse>("/absurd/status", {
-    // Override base URL to hit ABSURD routes even when apiClient default is /api
-    baseURL: "/absurd",
-  });
-  return response.data;
+  // The backend exposes ABSURD management endpoints at
+  // `/absurd/*` (not under `/api/v1`). The frontend's apiClient
+  // has a default baseURL of `/api`, so use the browser `fetch`
+  // API to call the ABSURD endpoints through the dev proxy.
+
+  // We'll query the detailed health and workers endpoints and
+  // synthesize a PipelineStatusResponse. Per-stage task counts
+  // are optional and may not be available from ABSURD; in that
+  // case we fall back to empty counts so the UI still renders.
+  const now = new Date().toISOString();
+
+  // Call endpoints concurrently
+  const [healthRes, workersRes, queuesStatsRes] = await Promise.all([
+    fetch("/absurd/health/detailed", { credentials: "same-origin" }).then(
+      (r) => {
+        if (!r.ok) throw new Error("ABSURD health not available");
+        return r.json();
+      }
+    ),
+    fetch("/absurd/workers", { credentials: "same-origin" })
+      .then((r) => (r.ok ? r.json() : []))
+      .catch(() => []),
+    fetch("/absurd/queues/stats", { credentials: "same-origin" })
+      .then((r) => (r.ok ? r.json() : null))
+      .catch(() => null),
+  ]);
+
+  // Determine health: prefer explicit status, otherwise derive from worker pool
+  const isHealthy =
+    (healthRes &&
+      (healthRes.status === "healthy" ||
+        healthRes.worker_pool_healthy === true)) ||
+    false;
+
+  // Worker count from workers endpoint (array) when available
+  const workerCount = Array.isArray(workersRes) ? workersRes.length : 0;
+
+  // Queue stats may include total counts; we synthesize a simple total structure
+  const total: StageStatusCounts = {
+    pending: queuesStatsRes?.queue_depth ?? healthRes?.queue_depth ?? 0,
+    running: 0,
+    completed: 0,
+    failed: 0,
+  };
+
+  // Build a minimal stages map with empty counts so component can render
+  const stages = Object.fromEntries(
+    PIPELINE_STAGES.map((s) => [s.id, { ...EMPTY_COUNTS }])
+  ) as Record<PipelineStage, StageStatusCounts>;
+
+  return {
+    stages,
+    total,
+    worker_count: workerCount,
+    last_updated: now,
+    is_healthy: Boolean(isHealthy),
+  };
 }
 
 /**
