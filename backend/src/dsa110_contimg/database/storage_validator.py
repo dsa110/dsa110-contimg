@@ -290,10 +290,48 @@ def get_storage_metrics(db_path: str, storage_dir: str) -> dict:
 # Regex pattern for parsing HDF5 filenames
 # Format: 2025-01-15T12:30:00_sb00.hdf5
 import re
+from datetime import datetime, timedelta
 
 _HDF5_FILENAME_PATTERN = re.compile(
     r"(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})_sb(?P<subband>\d{2})\.hdf5$"
 )
+
+# Tolerance for grouping files into the same observation (in seconds).
+# Files written within this window are considered part of the same observation.
+GROUP_TIMESTAMP_TOLERANCE_SECONDS = 10
+
+
+def normalize_group_timestamp(timestamp_iso: str, tolerance_seconds: int = GROUP_TIMESTAMP_TOLERANCE_SECONDS) -> str:
+    """
+    Normalize a timestamp to a canonical group timestamp.
+    
+    This rounds the timestamp down to the nearest tolerance_seconds boundary,
+    ensuring that files written within the tolerance window get the same group_id.
+    
+    For example, with tolerance_seconds=10:
+    - '2025-01-15T12:30:01' -> '2025-01-15T12:30:00'
+    - '2025-01-15T12:30:09' -> '2025-01-15T12:30:00'
+    - '2025-01-15T12:30:10' -> '2025-01-15T12:30:10'
+    - '2025-01-15T12:30:15' -> '2025-01-15T12:30:10'
+    
+    Args:
+        timestamp_iso: ISO format timestamp like '2025-01-15T12:30:05'
+        tolerance_seconds: Time window for grouping (default: 10 seconds)
+    
+    Returns:
+        Normalized ISO timestamp string.
+    """
+    dt = datetime.fromisoformat(timestamp_iso)
+    # Floor to nearest tolerance_seconds boundary
+    seconds_since_midnight = dt.hour * 3600 + dt.minute * 60 + dt.second
+    floored_seconds = (seconds_since_midnight // tolerance_seconds) * tolerance_seconds
+    normalized_dt = dt.replace(
+        hour=floored_seconds // 3600,
+        minute=(floored_seconds % 3600) // 60,
+        second=floored_seconds % 60,
+        microsecond=0
+    )
+    return normalized_dt.strftime("%Y-%m-%dT%H:%M:%S")
 
 
 def parse_hdf5_filename(filename: str) -> Optional[dict]:
@@ -306,6 +344,11 @@ def parse_hdf5_filename(filename: str) -> Optional[dict]:
     Returns:
         Dictionary with parsed metadata or None if parsing fails.
         Keys: timestamp_iso, group_id, subband_code, subband_num, obs_date, obs_time
+        
+    Note:
+        group_id is normalized to a canonical timestamp (rounded to nearest 10s)
+        to ensure all subbands from the same observation get the same group_id,
+        even if they were written a few seconds apart.
     """
     match = _HDF5_FILENAME_PATTERN.search(filename)
     if not match:
@@ -323,9 +366,12 @@ def parse_hdf5_filename(filename: str) -> Optional[dict]:
     obs_date = timestamp_iso.split("T")[0]  # YYYY-MM-DD
     obs_time = timestamp_iso.split("T")[1]  # HH:MM:SS
     
+    # Normalize group_id to canonical timestamp (handles files written seconds apart)
+    group_id = normalize_group_timestamp(timestamp_iso)
+    
     return {
         "timestamp_iso": timestamp_iso,
-        "group_id": timestamp_iso,  # Group ID is the timestamp
+        "group_id": group_id,  # Normalized to canonical timestamp
         "subband_code": f"sb{subband_str}",
         "subband_num": subband_num,
         "obs_date": obs_date,
