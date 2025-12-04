@@ -21,8 +21,8 @@ TODO: Outstanding Feature Work
   - Implementation steps:
     - [x] Define query params (q, level, labels, range, cursor) and response shape; add client + hooks (`useLogs`, `useLogTail`).
     - [x] Implement LogViewer with virtualized list, syntax highlighting, and sticky filters; add saved searches dropdown.
-    - [ ] Add live tail mode with backpressure (batch append) and auto-scroll toggle.
-    - [ ] Wire entry points from Jobs/Health pages with pre-populated filters.
+    - [x] Add live tail mode with backpressure (batch append) and auto-scroll toggle.
+    - [x] Wire entry points from Jobs/Health pages with pre-populated filters.
     - [ ] Tests: hook pagination, tail reconnect, component filter interactions.
 
 - Resource utilization (CPU/memory/disk)

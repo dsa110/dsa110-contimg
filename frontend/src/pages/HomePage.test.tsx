@@ -26,11 +26,16 @@ vi.mock("../components/pipeline", () => ({
 
 vi.mock("../components/skymap", () => ({
   SkyCoverageMap: ({ pointings }: { pointings: Array<{ id: string }> }) => (
+    <div data-testid="sky-coverage-map" data-pointing-count={pointings.length}>
+      Sky Coverage Map
+    </div>
+  ),
+  SkyCoverageMapVAST: ({ pointings }: { pointings: Array<{ id: string }> }) => (
     <div
-      data-testid="sky-coverage-map"
+      data-testid="sky-coverage-map-vast"
       data-pointing-count={pointings.length}
     >
-      Sky Coverage Map
+      Sky Coverage Map VAST
     </div>
   ),
 }));
@@ -103,9 +108,7 @@ describe("HomePage", () => {
     it("renders the primary heading and description", () => {
       renderPage();
 
-      expect(
-        screen.getByText("Operational Dashboard")
-      ).toBeInTheDocument();
+      expect(screen.getByText("Operational Dashboard")).toBeInTheDocument();
       expect(
         screen.getByText(
           /Monitor sky coverage and pipeline activity across the imaging stack/i
@@ -119,9 +122,10 @@ describe("HomePage", () => {
       expect(
         screen.getByRole("link", { name: /browse images/i })
       ).toHaveAttribute("href", ROUTES.IMAGES.LIST);
-      expect(
-        screen.getByRole("link", { name: /view jobs/i })
-      ).toHaveAttribute("href", ROUTES.JOBS.LIST);
+      expect(screen.getByRole("link", { name: /view jobs/i })).toHaveAttribute(
+        "href",
+        ROUTES.JOBS.LIST
+      );
     });
 
     it("displays computed hero metrics from hook data", () => {
@@ -177,9 +181,7 @@ describe("HomePage", () => {
     it("shows loading badge while placeholder data is used", () => {
       renderPage();
       expect(screen.getByText("Loading...")).toBeInTheDocument();
-      expect(
-        screen.getByTestId("pipeline-status-panel")
-      ).toBeInTheDocument();
+      expect(screen.getByTestId("pipeline-status-panel")).toBeInTheDocument();
     });
 
     it("displays health label based on hook result", () => {
@@ -193,9 +195,7 @@ describe("HomePage", () => {
 
       renderPage();
 
-      expect(
-        screen.getByText("Attention needed")
-      ).toBeInTheDocument();
+      expect(screen.getByText("Attention needed")).toBeInTheDocument();
     });
   });
 
@@ -237,9 +237,7 @@ describe("HomePage", () => {
 
       renderPage();
 
-      expect(
-        screen.queryByTestId("sky-coverage-map")
-      ).not.toBeInTheDocument();
+      expect(screen.queryByTestId("sky-coverage-map")).not.toBeInTheDocument();
       expect(
         screen.getByText(/Pointings will appear here once image metadata/i)
       ).toBeInTheDocument();
@@ -307,9 +305,6 @@ describe("HomePage", () => {
 
   it("renders infrastructure status panel", () => {
     renderPage();
-    expect(
-      screen.getByTestId("service-status-panel")
-    ).toBeInTheDocument();
+    expect(screen.getByTestId("service-status-panel")).toBeInTheDocument();
   });
 });
-

@@ -232,9 +232,9 @@ class TestCalibrationDatabaseSchema:
         
         now = time.time()
         
-        # Insert a calibration table record
+        # Insert a calibration table record (use canonical caltables table)
         db.execute(
-            """INSERT INTO calibration_tables 
+            """INSERT INTO caltables 
                (set_name, path, table_type, order_index, created_at, status)
                VALUES (?, ?, ?, ?, ?, ?)""",
             ("test_set", "/path/to/test.bcal", "bandpass", 0, now, "active")
@@ -242,7 +242,7 @@ class TestCalibrationDatabaseSchema:
         
         # Query it back
         results = db.query(
-            "SELECT * FROM calibration_tables WHERE path = ?",
+            "SELECT * FROM caltables WHERE path = ?",
             ("/path/to/test.bcal",)
         )
         

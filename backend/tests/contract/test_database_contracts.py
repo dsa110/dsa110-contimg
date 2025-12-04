@@ -323,13 +323,13 @@ class TestCalibrationOperations:
             "contract test insert",
         )
         db.execute(
-            f"""INSERT INTO calibration_tables 
+            f"""INSERT INTO caltables 
                 ({', '.join(cal_columns)})
                 VALUES ({', '.join('?' for _ in cal_columns)})""",
             cal_values,
         )
         
-        results = db.query("SELECT * FROM calibration_tables WHERE path = ?", (cal_path,))
+        results = db.query("SELECT * FROM caltables WHERE path = ?", (cal_path,))
         
         assert len(results) == 1
         record = results[0]

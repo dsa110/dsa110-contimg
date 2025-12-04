@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import * as d3 from "d3";
 import { geoMollweide } from "d3-geo-projection";
 
@@ -11,6 +11,64 @@ export interface Pointing {
   status?: "completed" | "scheduled" | "failed";
   epoch?: string;
 }
+
+/** Survey footprint definition */
+interface SurveyRegion {
+  id: string;
+  name: string;
+  color: string;
+  /** Declination range [min, max] in degrees */
+  decRange: [number, number];
+  /** RA range [min, max] in degrees, or null for all-sky */
+  raRange: [number, number] | null;
+  /** Fill opacity */
+  fillOpacity: number;
+  /** Whether to show in legend */
+  showInLegend: boolean;
+}
+
+/**
+ * Survey regions used in DSA-110 crossmatch pipeline.
+ * Colors chosen to be distinct and match common conventions.
+ */
+const SURVEY_REGIONS: SurveyRegion[] = [
+  {
+    id: "nvss",
+    name: "NVSS",
+    color: "#ff99cc", // Pink like FIRST in VAST plot
+    decRange: [-40, 90],
+    raRange: null, // All RA
+    fillOpacity: 0.25,
+    showInLegend: true,
+  },
+  {
+    id: "first",
+    name: "FIRST",
+    color: "#cc66ff", // Purple
+    decRange: [-10, 57],
+    raRange: null, // Simplified - actually has complex RA coverage
+    fillOpacity: 0.2,
+    showInLegend: true,
+  },
+  {
+    id: "vlass",
+    name: "VLASS",
+    color: "#66ccff", // Light blue
+    decRange: [-40, 90],
+    raRange: null,
+    fillOpacity: 0.15,
+    showInLegend: true,
+  },
+  {
+    id: "racs",
+    name: "RACS",
+    color: "#99ff99", // Light green
+    decRange: [-90, 41],
+    raRange: null,
+    fillOpacity: 0.2,
+    showInLegend: true,
+  },
+];
 
 export interface SkyCoverageMapVASTProps {
   /** Array of pointing/observation data */
@@ -180,6 +238,52 @@ const SkyCoverageMapVAST: React.FC<SkyCoverageMapVASTProps> = ({
       }
     });
 
+    // Survey footprints - rendered as declination bands
+    const surveysGroup = svg.append("g").attr("class", "surveys");
+
+    SURVEY_REGIONS.forEach((survey) => {
+      // Create a polygon for the declination band
+      // Generate points along the dec boundaries
+      const raSteps = 72; // Every 5 degrees of RA
+      const topPoints: [number, number][] = [];
+      const bottomPoints: [number, number][] = [];
+
+      for (let i = 0; i <= raSteps; i++) {
+        const ra = -180 + (360 * i) / raSteps;
+        topPoints.push([ra, survey.decRange[1]]);
+        bottomPoints.push([ra, survey.decRange[0]]);
+      }
+
+      // Create closed polygon (top left to right, bottom right to left)
+      const polygon: [number, number][] = [
+        ...topPoints,
+        ...bottomPoints.reverse(),
+      ];
+
+      // Create GeoJSON polygon
+      const geoPolygon: GeoJSON.Feature<GeoJSON.Polygon> = {
+        type: "Feature",
+        properties: { name: survey.name },
+        geometry: {
+          type: "Polygon",
+          coordinates: [polygon],
+        },
+      };
+
+      // Draw filled region
+      surveysGroup
+        .append("path")
+        .datum(geoPolygon)
+        .attr("d", path)
+        .attr("clip-path", `url(#${clipId})`)
+        .attr("fill", survey.color)
+        .attr("fill-opacity", survey.fillOpacity)
+        .attr("stroke", survey.color)
+        .attr("stroke-width", 1.5)
+        .attr("stroke-dasharray", "6,3")
+        .attr("stroke-opacity", 0.8);
+    });
+
     // DSA-110 pointings
     const pointingsGroup = svg.append("g").attr("class", "pointings");
 
@@ -249,38 +353,57 @@ const SkyCoverageMapVAST: React.FC<SkyCoverageMapVASTProps> = ({
       .attr("stroke", "#ddd")
       .attr("stroke-width", 1);
 
-    // Legend items
-    const legendItems = [
-      { label: "DSA-110", color: "#00cccc", type: "circle" },
-    ];
-
-    // Add count
+    // Legend items - DSA-110 first, then surveys
     const totalPointings = pointings.length;
 
-    let xOffset = 20;
-    legendItems.forEach((item) => {
-      if (item.type === "circle") {
-        legend
-          .append("circle")
-          .attr("cx", xOffset + 6)
-          .attr("cy", legendHeight / 2)
-          .attr("r", 6)
-          .attr("fill", item.color)
-          .attr("fill-opacity", 0.5)
-          .attr("stroke", item.color)
-          .attr("stroke-width", 2);
-      }
+    let xOffset = 15;
+
+    // DSA-110 item
+    legend
+      .append("circle")
+      .attr("cx", xOffset + 6)
+      .attr("cy", legendHeight / 2)
+      .attr("r", 6)
+      .attr("fill", "#00cccc")
+      .attr("fill-opacity", 0.5)
+      .attr("stroke", "#00cccc")
+      .attr("stroke-width", 2);
+
+    legend
+      .append("text")
+      .attr("x", xOffset + 16)
+      .attr("y", legendHeight / 2 + 4)
+      .attr("fill", "#333")
+      .attr("font-size", 11)
+      .attr("font-weight", "500")
+      .text(`DSA-110 (${totalPointings})`);
+
+    xOffset += 110;
+
+    // Survey items
+    SURVEY_REGIONS.filter((s) => s.showInLegend).forEach((survey) => {
+      // Dashed line rectangle for survey
+      legend
+        .append("rect")
+        .attr("x", xOffset)
+        .attr("y", legendHeight / 2 - 5)
+        .attr("width", 16)
+        .attr("height", 10)
+        .attr("fill", survey.color)
+        .attr("fill-opacity", survey.fillOpacity + 0.1)
+        .attr("stroke", survey.color)
+        .attr("stroke-width", 1.5)
+        .attr("stroke-dasharray", "3,2");
 
       legend
         .append("text")
-        .attr("x", xOffset + 18)
+        .attr("x", xOffset + 22)
         .attr("y", legendHeight / 2 + 4)
         .attr("fill", "#333")
-        .attr("font-size", 12)
-        .attr("font-weight", "500")
-        .text(`${item.label} (${totalPointings} pointings)`);
+        .attr("font-size", 11)
+        .text(survey.name);
 
-      xOffset += 160;
+      xOffset += 70;
     });
   }, [
     pointings,
