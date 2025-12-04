@@ -399,22 +399,19 @@ class DirectSubbandWriter(MSWriter):
                 ms_final_path.parent.mkdir(parents=True, exist_ok=True)
                 src_path = str(ms_stage_path)
                 dst_path = str(ms_final_path)
+                
+                # Use fuse_safe_move for robust FUSE filesystem handling
                 try:
-                    from dsa110_contimg.utils.fuse_lock import get_fuse_lock_manager
-                    lm = get_fuse_lock_manager()
-                except Exception:
-                    lm = None
-
-                if lm is not None:
-                    try:
-                        with lm.write_lock(src_path, timeout=30.0), lm.write_lock(dst_path, timeout=30.0):
-                            shutil.move(src_path, dst_path)
-                            ms_stage_path = ms_final_path
-                    except Exception:
-                        # Fall back to plain move if locking fails
-                        shutil.move(src_path, dst_path)
-                        ms_stage_path = ms_final_path
-                else:
+                    from dsa110_contimg.utils.fuse_lock import fuse_safe_move
+                    fuse_safe_move(src_path, dst_path, timeout=60.0)
+                    ms_stage_path = ms_final_path
+                except ImportError:
+                    # Fallback to plain move if fuse_lock not available
+                    shutil.move(src_path, dst_path)
+                    ms_stage_path = ms_final_path
+                except Exception as move_err:
+                    # Log error and fall back to plain move
+                    logger.warning(f"fuse_safe_move failed: {move_err}, falling back to shutil.move")
                     shutil.move(src_path, dst_path)
                     ms_stage_path = ms_final_path
 
@@ -455,19 +452,15 @@ class DirectSubbandWriter(MSWriter):
 
                     # Replace multi-SPW MS with single-SPW MS
                     shutil.rmtree(ms_multi_spw, ignore_errors=True)
+                    
+                    # Use fuse_safe_move for robust FUSE filesystem handling
                     try:
-                        from dsa110_contimg.utils.fuse_lock import get_fuse_lock_manager
-                        lm2 = get_fuse_lock_manager()
-                    except Exception:
-                        lm2 = None
-
-                    if lm2 is not None:
-                        try:
-                            with lm2.write_lock(ms_single_spw, timeout=30.0), lm2.write_lock(ms_multi_spw, timeout=30.0):
-                                shutil.move(ms_single_spw, ms_multi_spw)
-                        except Exception:
-                            shutil.move(ms_single_spw, ms_multi_spw)
-                    else:
+                        from dsa110_contimg.utils.fuse_lock import fuse_safe_move
+                        fuse_safe_move(ms_single_spw, ms_multi_spw, timeout=60.0)
+                    except ImportError:
+                        shutil.move(ms_single_spw, ms_multi_spw)
+                    except Exception as move_err:
+                        logger.warning(f"fuse_safe_move failed: {move_err}, falling back to shutil.move")
                         shutil.move(ms_single_spw, ms_multi_spw)
 
                     n_spw_after = get_spw_count(str(ms_stage_path))
