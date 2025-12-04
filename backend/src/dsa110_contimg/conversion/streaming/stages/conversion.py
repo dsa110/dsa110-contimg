@@ -73,6 +73,11 @@ class ConversionStage:
         >>> if result.success:
         ...     print(f"Created MS: {result.ms_path}")
     """
+    
+    # Regex to extract timestamp from filename: 2025-10-02T00:05:18_sb00.hdf5
+    _TIMESTAMP_PATTERN = __import__("re").compile(
+        r"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})_sb\d{2}\.hdf5$"
+    )
 
     def __init__(self, config: ConversionConfig) -> None:
         """Initialize the conversion stage.
@@ -89,6 +94,45 @@ class ConversionStage:
             self._execution_module_available = True
         except ImportError:
             logger.debug("Execution module not available, using fallback")
+    
+    def _derive_time_window(
+        self, group_id: str, file_paths: List[str]
+    ) -> Tuple[str, str]:
+        """Derive start/end time window from file paths.
+        
+        Subbands arrive at slightly different times, so we extract the
+        actual timestamp range from file names.
+        
+        Args:
+            group_id: Group identifier (used as fallback)
+            file_paths: List of subband file paths
+            
+        Returns:
+            Tuple of (start_time, end_time) in ISO format with T separator
+        """
+        timestamps = []
+        
+        for fp in file_paths:
+            basename = os.path.basename(fp)
+            match = self._TIMESTAMP_PATTERN.search(basename)
+            if match:
+                timestamps.append(match.group(1))
+        
+        if not timestamps:
+            # Fallback to group_id
+            logger.debug(f"No timestamps extracted from files, using group_id: {group_id}")
+            return group_id, group_id
+        
+        # Sort timestamps and return min/max
+        timestamps.sort()
+        start_time = timestamps[0]
+        end_time = timestamps[-1]
+        
+        logger.debug(
+            f"Derived time window from {len(timestamps)} files: {start_time} to {end_time}"
+        )
+        
+        return start_time, end_time
 
     def validate(
         self, group_id: str, file_paths: List[str]
