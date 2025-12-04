@@ -537,8 +537,11 @@ describe("VOExportPage", () => {
 
       renderPage();
 
-      await user.type(screen.getByLabelText(/^ra \(deg\)/i), "180.0");
-      await user.type(screen.getByLabelText(/^dec \(deg\)/i), "-30.0");
+      // Use sidebar cone search inputs (first ones)
+      const raInputs = screen.getAllByLabelText(/^ra \(deg\)/i);
+      const decInputs = screen.getAllByLabelText(/^dec \(deg\)/i);
+      await user.type(raInputs[0], "180.0");
+      await user.type(decInputs[0], "-30.0");
       await user.click(screen.getByRole("button", { name: /^search$/i }));
 
       await waitFor(() => {
