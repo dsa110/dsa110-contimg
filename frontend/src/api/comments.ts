@@ -104,7 +104,9 @@ export const commentKeys = {
 // API Functions
 // ============================================================================
 
-async function getComments(params: CommentSearchParams = {}): Promise<Comment[]> {
+async function getComments(
+  params: CommentSearchParams = {}
+): Promise<Comment[]> {
   const response = await apiClient.get("/api/comments", { params });
   return response.data;
 }

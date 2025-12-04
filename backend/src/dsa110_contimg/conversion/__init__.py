@@ -4,30 +4,29 @@
 DSA-110 Continuum Imaging Pipeline - Conversion Module.
 
 This module provides functionality for converting UVH5 subband files to 
-Measurement Sets (MS). The main entry points are:
+Measurement Sets (MS). 
 
-- convert_subband_groups_to_ms: Batch conversion of subband groups
-- QueueDB: Streaming queue for real-time data ingest
-
-Usage:
-    from dsa110_contimg.conversion import convert_subband_groups_to_ms
-    results = convert_subband_groups_to_ms(input_dir, output_dir, start_time, end_time)
+Entry Points:
+    Batch conversion:
+        from dsa110_contimg.conversion import convert_subband_groups_to_ms
     
-    # Streaming mode
-    from dsa110_contimg.conversion import QueueDB
-    queue = QueueDB(db_path)
+    Streaming pipeline (NEW - preferred):
+        from dsa110_contimg.conversion.streaming import SubbandQueue, StreamingWorker
+        # CLI: dsa110-stream --input-dir /data/incoming --output-dir /data/output
+    
+    Legacy streaming (DEPRECATED):
+        from dsa110_contimg.conversion import QueueDB
 
-NOTE: Per complexity reduction guide, all implementation files have been
-flattened to this level. The streaming/ and strategies/ submodules remain
-for backwards compatibility but import from the flattened files.
+Database:
+    Both streaming APIs use the `processing_queue` table (see database/schema.sql).
 """
 
 from . import helpers_coordinates  # Make coordinate helpers accessible via the package
 
-# Flattened exports - main conversion API (direct import from flattened files)
+# Flattened exports - main conversion API
 from .hdf5_orchestrator import convert_subband_groups_to_ms
 
-# Flattened exports - streaming API (direct import from flattened file)
+# Legacy streaming API (DEPRECATED - use dsa110_contimg.conversion.streaming instead)
 from .streaming_converter import (
     QueueDB,
     parse_subband_info,
@@ -35,7 +34,7 @@ from .streaming_converter import (
     check_for_complete_group,
 )
 
-# Flattened exports - writers (direct import from flattened files)
+# Writers
 from .writers import (
     MSWriter,
     DirectSubbandWriter,
