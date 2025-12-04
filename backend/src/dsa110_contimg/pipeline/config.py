@@ -301,7 +301,7 @@ class PhotometryConfig(BaseModel):
         default="standard",
         description="Imaging quality tier: 'development', 'standard', or 'high_precision'",
     )
-    backend: str = Field(default="tclean", description="Imaging backend: 'tclean' or 'wsclean'")
+    backend: str = Field(default="wsclean", description="Imaging backend: 'wsclean' (default) or 'tclean'")
 
 
 class MosaicConfig(BaseModel):

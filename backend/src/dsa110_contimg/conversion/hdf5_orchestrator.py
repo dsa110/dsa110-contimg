@@ -17,6 +17,7 @@ import re
 from pathlib import Path
 from typing import Optional
 
+import numpy as np
 import pyuvdata
 
 from dsa110_contimg.config import settings
@@ -363,6 +364,10 @@ def _load_single_subband(subband_file: str, group_id: str) -> pyuvdata.UVData:
             strict_uvw_antpos_check=False,
             run_check=False,
         )
+        # DSA-110 files have uvw_array as float32, but pyuvdata requires float64
+        # for __iadd__ operations during subband combination
+        if subband_data.uvw_array.dtype != np.float64:
+            subband_data.uvw_array = subband_data.uvw_array.astype(np.float64)
         return subband_data
 
     except FileNotFoundError as e:
