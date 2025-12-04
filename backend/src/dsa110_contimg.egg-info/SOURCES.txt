@@ -89,6 +89,7 @@ src/dsa110_contimg/calibration/beam_model.py
 src/dsa110_contimg/calibration/calibration.py
 src/dsa110_contimg/calibration/caltables.py
 src/dsa110_contimg/calibration/catalogs.py
+src/dsa110_contimg/calibration/cli.py
 src/dsa110_contimg/calibration/diagnostics.py
 src/dsa110_contimg/calibration/field_naming.py
 src/dsa110_contimg/calibration/flagging.py
@@ -143,6 +144,21 @@ src/dsa110_contimg/conversion/merge_spws.py
 src/dsa110_contimg/conversion/ms_utils.py
 src/dsa110_contimg/conversion/streaming_converter.py
 src/dsa110_contimg/conversion/writers.py
+src/dsa110_contimg/conversion/streaming/__init__.py
+src/dsa110_contimg/conversion/streaming/cli.py
+src/dsa110_contimg/conversion/streaming/exceptions.py
+src/dsa110_contimg/conversion/streaming/health.py
+src/dsa110_contimg/conversion/streaming/launcher.py
+src/dsa110_contimg/conversion/streaming/queue.py
+src/dsa110_contimg/conversion/streaming/retry.py
+src/dsa110_contimg/conversion/streaming/watcher.py
+src/dsa110_contimg/conversion/streaming/worker.py
+src/dsa110_contimg/conversion/streaming/stages/__init__.py
+src/dsa110_contimg/conversion/streaming/stages/calibration.py
+src/dsa110_contimg/conversion/streaming/stages/conversion.py
+src/dsa110_contimg/conversion/streaming/stages/imaging.py
+src/dsa110_contimg/conversion/streaming/stages/mosaic.py
+src/dsa110_contimg/conversion/streaming/stages/photometry.py
 src/dsa110_contimg/database/__init__.py
 src/dsa110_contimg/database/data_registry.py
 src/dsa110_contimg/database/hdf5_index.py
@@ -175,7 +191,6 @@ src/dsa110_contimg/imaging/spw_imaging.py
 src/dsa110_contimg/imaging/worker.py
 src/dsa110_contimg/migrations/env.py
 src/dsa110_contimg/migrations/versions/0001_baseline.py
-src/dsa110_contimg/migrations/versions/0002_add_calibration_fk.py
 src/dsa110_contimg/migrations/versions/0003_add_cascade_delete.py
 src/dsa110_contimg/monitoring/__init__.py
 src/dsa110_contimg/monitoring/alerting.py

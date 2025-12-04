@@ -33,6 +33,7 @@ const BackupRestorePage = lazy(() => import("./pages/BackupRestorePage"));
 const PipelineTriggersPage = lazy(() => import("./pages/PipelineTriggersPage"));
 const VOExportPage = lazy(() => import("./pages/VOExportPage"));
 const JupyterPage = lazy(() => import("./pages/JupyterPage"));
+const QARatingsPage = lazy(() => import("./pages/QARatingsPage"));
 
 /**
  * Application router configuration.

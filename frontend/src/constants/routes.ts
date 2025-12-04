@@ -94,6 +94,9 @@ export const ROUTES = {
   /** Jupyter notebooks */
   JUPYTER: "/jupyter",
 
+  /** QA Ratings dashboard */
+  RATINGS: "/ratings",
+
   /** Calibrator Imaging Test */
   CALIBRATOR_IMAGING: "/calibrator-imaging",
 } as const;
