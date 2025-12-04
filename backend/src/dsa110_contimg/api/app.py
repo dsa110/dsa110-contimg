@@ -117,6 +117,7 @@ from .routes import (
     pipeline_router,
     ratings_router,
     comments_router,
+    external_router,
 )
 from .rate_limit import limiter, rate_limit_exceeded_handler
 from .websocket import ws_router
@@ -304,6 +305,7 @@ def create_app() -> FastAPI:
         (pipeline_router, "Pipeline Control", True),
         (ratings_router, "QA Ratings", True),
         (comments_router, "Comments", True),
+        (external_router, "External Services", False),  # Sesame proxy, etc.
     ]
     
     # Mosaic router is pre-prefixed with /api/mosaic, include directly

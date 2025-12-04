@@ -11,6 +11,8 @@
 - [ ] make sure visualization module is fully functional and accessible via the webpage
 - [ ] make sure visualization module produces figures and stores them properly
 - [ ] confirm `watchdog` services are active and have fully replaced deprecated systemd services
+
+
 - [ ] make sure simulation module and the production of synthetic data is fully functional and able to be used in testing the pipeline end-to-end
 - [ ] confirm that all code is properly documented with docstrings and comments where necessary
 - [ ] ensure that all dependencies are up to date and compatible with each other

@@ -13,8 +13,8 @@
  * API Configuration
  */
 export const API_CONFIG = {
-  /** Base URL for API requests. Falls back to /api for proxy in development */
-  baseUrl: import.meta.env.VITE_API_URL || "/api",
+  /** Base URL for API requests. Falls back to /api/v1 for proxy in development */
+  baseUrl: import.meta.env.VITE_API_URL || "/api/v1",
 
   /** Default request timeout in milliseconds */
   timeout: 10_000, // 10 seconds - balanced for slow network and large responses

@@ -33,6 +33,7 @@ from .vo_export import router as vo_export_router
 from .pipeline import router as pipeline_router
 from .ratings import router as ratings_router
 from .comments import router as comments_router
+from .external import router as external_router
 
 __all__ = [
     "auth_router",
@@ -64,4 +65,5 @@ __all__ = [
     "pipeline_router",
     "ratings_router",
     "comments_router",
+    "external_router",
 ]

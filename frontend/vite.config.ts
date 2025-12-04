@@ -4,10 +4,13 @@ import react from "@vitejs/plugin-react";
 
 const CSP_DIRECTIVES = [
   "default-src 'self'",
-  "img-src 'self' data: blob: https://js9.si.edu",
+  // Allow images from Aladin HiPS servers, JS9, and data URIs
+  "img-src 'self' data: blob: https://js9.si.edu https://aladin.cds.unistra.fr https://alasky.cds.unistra.fr https://alasky.u-strasbg.fr",
   "style-src 'self' 'unsafe-inline' https://js9.si.edu",
-  "script-src 'self' https://js9.si.edu https://cdnjs.cloudflare.com",
-  "connect-src 'self' http://127.0.0.1:* http://localhost:* ws://localhost:* ws://127.0.0.1:*",
+  // Allow scripts from JS9 and CDNs, plus WASM for Aladin
+  "script-src 'self' 'wasm-unsafe-eval' https://js9.si.edu https://cdnjs.cloudflare.com https://aladin.cds.unistra.fr",
+  // Allow connections to local servers and Aladin HiPS tile servers
+  "connect-src 'self' http://127.0.0.1:* http://localhost:* ws://localhost:* ws://127.0.0.1:* https://aladin.cds.unistra.fr https://alasky.cds.unistra.fr https://alasky.u-strasbg.fr https://cdsweb.u-strasbg.fr",
   "worker-src 'self' blob:",
   "object-src 'none'",
   "frame-ancestors 'self'",

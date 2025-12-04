@@ -11,6 +11,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { config } from "../config";
 
+// API base URL for pipeline endpoints
 const API_BASE = config.api.baseUrl;
 
 // =============================================================================

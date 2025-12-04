@@ -1,9 +1,5 @@
 import React, { useState, useCallback, useRef } from "react";
-import {
-  fetchWithRetry,
-  parseExternalServiceError,
-  DEFAULT_EXTERNAL_RETRY_CONFIG,
-} from "../../utils/fetchWithRetry";
+import { config } from "../../config";
 
 export interface SesameResolverProps {
   /** Callback when coordinates are resolved */
@@ -21,14 +17,26 @@ interface ResolveResult {
   service: string;
 }
 
+// Backend proxy response type
+interface SesameProxyResponse {
+  object_name: string;
+  ra: number;
+  dec: number;
+  service: string;
+}
+
 // Simple in-memory cache for resolved objects
 const resolveCache = new Map<string, ResolveResult>();
 
 /**
  * Sesame name resolver component.
- * Resolves astronomical object names to coordinates using CDS Sesame service.
+ * Resolves astronomical object names to coordinates using backend proxy to CDS Sesame.
+ * The backend proxy avoids CORS issues with direct browser requests.
  */
-const SesameResolver: React.FC<SesameResolverProps> = ({ onResolved, className = "" }) => {
+const SesameResolver: React.FC<SesameResolverProps> = ({
+  onResolved,
+  className = "",
+}) => {
   const [objectName, setObjectName] = useState("");
   const [service, setService] = useState<SesameService>("all");
   const [isLoading, setIsLoading] = useState(false);
@@ -66,66 +74,47 @@ const SesameResolver: React.FC<SesameResolverProps> = ({ onResolved, className =
     setResult(null);
 
     try {
-      // Use CDS Sesame service via their API
-      // Format: https://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/-oI/A?object_name
-      const serviceCode = service === "all" ? "A" : service.charAt(0).toUpperCase();
-      const url = `https://cdsweb.u-strasbg.fr/cgi-bin/nph-sesame/-oI/${serviceCode}?${encodeURIComponent(
+      // Use backend proxy to avoid CORS issues with CDS Sesame
+      const url = `${
+        config.api.baseUrl
+      }/external/sesame/resolve?name=${encodeURIComponent(
         trimmedName
-      )}`;
+      )}&service=${service}`;
 
-      const response = await fetchWithRetry(
-        url,
-        {
-          signal: abortControllerRef.current.signal,
-        },
-        {
-          ...DEFAULT_EXTERNAL_RETRY_CONFIG,
-          maxRetries: 2, // Fewer retries for interactive user requests
-          timeoutMs: 15000, // 15s timeout per attempt
-        }
-      );
+      const response = await fetch(url, {
+        signal: abortControllerRef.current.signal,
+      });
 
       if (!response.ok) {
-        throw new Error(`HTTP error: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.detail || `HTTP error: ${response.status}`);
       }
 
-      const text = await response.text();
-
-      // Parse the Sesame response
-      // Format includes lines like:
-      // %J 83.63308 +22.01450 = 05 34 31.94 +22 00 52.2
-      const jLine = text.split("\n").find((line) => line.startsWith("%J"));
-
-      if (!jLine) {
-        throw new Error("Could not resolve object. Please check the name and try again.");
-      }
-
-      const match = jLine.match(/%J\s+([\d.+-]+)\s+([\d.+-]+)/);
-      if (!match) {
-        throw new Error("Failed to parse coordinates from response.");
-      }
-
-      const ra = parseFloat(match[1]);
-      const dec = parseFloat(match[2]);
+      const data: SesameProxyResponse = await response.json();
 
       const resolved: ResolveResult = {
-        ra,
-        dec,
+        ra: data.ra,
+        dec: data.dec,
         objectName: trimmedName,
-        service,
+        service: data.service,
       };
 
       // Cache the result
       resolveCache.set(cacheKey, resolved);
 
       setResult(resolved);
-      onResolved(ra, dec, trimmedName);
+      onResolved(data.ra, data.dec, trimmedName);
     } catch (err) {
       // Don't show error for aborted requests
       if (err instanceof Error && err.name === "AbortError") {
         return;
       }
-      setError(parseExternalServiceError(err, "CDS Sesame"));
+      // Extract error message
+      const message =
+        err instanceof Error
+          ? err.message
+          : "Could not resolve object name. Please try again.";
+      setError(message);
     } finally {
       setIsLoading(false);
     }
@@ -177,7 +166,9 @@ const SesameResolver: React.FC<SesameResolverProps> = ({ onResolved, className =
               onChange={() => setService(svc)}
               className="w-4 h-4 text-vast-green"
             />
-            <span className="capitalize">{svc === "all" ? "All" : svc.toUpperCase()}</span>
+            <span className="capitalize">
+              {svc === "all" ? "All" : svc.toUpperCase()}
+            </span>
           </label>
         ))}
       </div>
