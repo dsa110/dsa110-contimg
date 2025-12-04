@@ -31,6 +31,7 @@ from ..auth import (
     AuthContext,
     require_auth,
     get_jwt_secret,
+    is_auth_disabled,
 )
 
 logger = logging.getLogger(__name__)
@@ -210,6 +211,28 @@ def invalidate_refresh_token(token: str) -> bool:
 # =============================================================================
 # Route Handlers
 # =============================================================================
+
+
+class AuthStatusResponse(BaseModel):
+    """Authentication status response."""
+
+    auth_enabled: bool = Field(..., description="Whether authentication is enabled")
+    auth_required: bool = Field(..., description="Whether auth is required for API access")
+
+
+@router.get("/status", response_model=AuthStatusResponse)
+async def get_auth_status() -> AuthStatusResponse:
+    """
+    Get authentication status.
+
+    Returns whether authentication is enabled or disabled.
+    This endpoint is always accessible without authentication.
+    """
+    disabled = is_auth_disabled()
+    return AuthStatusResponse(
+        auth_enabled=not disabled,
+        auth_required=not disabled,
+    )
 
 
 @router.post("/login", response_model=LoginResponse)
