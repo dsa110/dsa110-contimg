@@ -1,19 +1,5 @@
 import "@testing-library/jest-dom/vitest";
 import { afterAll, afterEach, beforeAll } from "vitest";
-import { server } from "./mocks/server";
-
-// =============================================================================
-// MSW Server Setup
-// =============================================================================
-
-// Start server before all tests
-beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
-
-// Reset handlers after each test (removes any runtime handlers added during tests)
-afterEach(() => server.resetHandlers());
-
-// Clean up after all tests
-afterAll(() => server.close());
 
 /**
  * Test Setup and Conventions
@@ -40,6 +26,7 @@ afterAll(() => server.close());
  */
 
 // Mock localStorage and sessionStorage for Zustand persist middleware
+// IMPORTANT: These must be set up BEFORE importing MSW server
 const createStorageMock = (): Storage => {
   let store: Record<string, string> = {};
   return {
@@ -67,6 +54,22 @@ Object.defineProperty(window, "localStorage", {
 Object.defineProperty(window, "sessionStorage", {
   value: createStorageMock(),
 });
+
+// =============================================================================
+// MSW Server Setup
+// =============================================================================
+// IMPORTANT: Import MSW server AFTER localStorage/sessionStorage mocks are set up
+// MSW uses localStorage internally for cookie store initialization
+import { server } from "./mocks/server";
+
+// Start server before all tests
+beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
+
+// Reset handlers after each test (removes any runtime handlers added during tests)
+afterEach(() => server.resetHandlers());
+
+// Clean up after all tests
+afterAll(() => server.close());
 
 // Mock ResizeObserver which is not available in jsdom
 global.ResizeObserver = class ResizeObserver {
