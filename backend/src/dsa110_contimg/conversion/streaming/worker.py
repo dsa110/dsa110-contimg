@@ -220,31 +220,32 @@ class StreamingWorker:
         """Initialize pipeline stages."""
         # Products database path
         products_db = self._get_products_db_path()
-        
+
         # Conversion stage
         self.conversion_stage = ConversionStage(
             ConversionConfig(
                 output_dir=self.config.output_dir,
                 scratch_dir=self.config.scratch_dir,
+                input_dir=self.config.input_dir,
                 products_db=products_db,
                 expected_subbands=self.config.expected_subbands,
-                use_subprocess=(self.config.execution_mode == "subprocess"),
+                execution_mode=self.config.execution_mode,
                 memory_limit_mb=self.config.memory_limit_mb,
                 omp_threads=self.config.omp_threads,
             )
         )
-        
+
         # Calibration stage
         self.calibration_stage = CalibrationStage(
             CalibrationConfig(
                 registry_db=self.config.registry_db,
                 enable_solving=self.config.enable_calibration_solving,
                 use_interpolation=self.config.use_interpolated_cal,
-                fence_timeout=self.config.cal_fence_timeout,
+                fence_timeout_seconds=self.config.cal_fence_timeout,
                 validity_hours=12.0,
             )
         )
-        
+
         # Imaging stage
         self.imaging_stage = ImagingStage(
             ImagingConfig(
@@ -255,7 +256,7 @@ class StreamingWorker:
                 validation_catalog="nvss",
             )
         )
-        
+
         # Photometry stage (optional)
         if self.config.enable_photometry:
             self.photometry_stage: Optional[PhotometryStage] = PhotometryStage(
@@ -267,7 +268,7 @@ class StreamingWorker:
             )
         else:
             self.photometry_stage = None
-        
+
         # Mosaic stage (optional)
         if self.config.enable_mosaic_creation:
             self.mosaic_stage: Optional[MosaicStage] = MosaicStage(
