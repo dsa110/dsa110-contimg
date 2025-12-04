@@ -43,7 +43,7 @@ from .queue import SubbandQueue
 from .watcher import StreamingWatcher
 
 # Re-export from worker module
-from .worker import StreamingWorker
+from .worker import StreamingWorker, WorkerConfig
 
 # Stage exports
 from .stages import (
@@ -62,6 +62,7 @@ __all__ = [
     "SubbandQueue",
     "StreamingWatcher", 
     "StreamingWorker",
+    "WorkerConfig",
     # Pipeline stages
     "ConversionStage",
     "CalibrationStage",
