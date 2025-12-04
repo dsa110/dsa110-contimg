@@ -281,7 +281,7 @@ async def get_conversion_stats():
             """
             SELECT group_id FROM processing_queue
             WHERE state = 'pending'
-            ORDER BY created_at ASC
+            ORDER BY received_at ASC
             LIMIT 1
             """
         )
