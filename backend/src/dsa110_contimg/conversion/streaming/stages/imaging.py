@@ -35,8 +35,9 @@ class ImagingResult:
 @dataclass
 class ImagingConfig:
     """Configuration for the imaging stage."""
-    
+
     output_dir: Path
+    products_db: Optional[Path] = None  # Optional database for recording
     imsize: int = 4096
     cell_arcsec: float = 1.0
     weighting: str = "briggs"
@@ -45,6 +46,9 @@ class ImagingConfig:
     threshold_jy: float = 1e-4
     use_wsclean: bool = True
     fits_output: bool = True
+    quality_tier: str = "standard"
+    enable_catalog_validation: bool = True
+    validation_catalog: str = "nvss"
 
 
 class ImagingStage:
