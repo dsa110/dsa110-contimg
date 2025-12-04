@@ -66,6 +66,7 @@ from dsa110_contimg.execution.resources import (
 from dsa110_contimg.execution.task import ExecutionResult, ExecutionTask
 from dsa110_contimg.execution.validate import (
     ValidationResult,
+    ValidationError,
     validate_execution_task,
 )
 
