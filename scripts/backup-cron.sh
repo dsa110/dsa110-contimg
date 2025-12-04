@@ -1,4 +1,25 @@
 #!/bin/bash
+# =============================================================================
+# DEPRECATED: This script has been replaced by ABSURD scheduled tasks.
+# =============================================================================
+#
+# Backups now run via the ABSURD task scheduler for unified monitoring,
+# retry logic, and history tracking.
+#
+# To view/manage backup schedules:
+#   curl http://localhost:8000/absurd/schedules
+#
+# To manually trigger a backup:
+#   curl -X POST http://localhost:8000/absurd/tasks \
+#     -H "Content-Type: application/json" \
+#     -d '{"queue_name": "maintenance", "task_name": "backup-database", "params": {"inputs": {"backup_type": "hourly"}}}'
+#
+# Default schedules are registered automatically on API startup.
+# See: backend/src/dsa110_contimg/absurd/maintenance.py
+#
+# This script is retained for manual/emergency use only.
+# =============================================================================
+#
 # DSA-110 Continuum Imaging Pipeline - Automated Backup Script
 #
 # Performs automated backups of:
