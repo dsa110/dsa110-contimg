@@ -344,9 +344,9 @@ class TestAPIConsistency:
         """All list endpoints return JSON content type."""
         endpoints = [
             "/api/v1/saved-queries",
-            "/api/v1/backup",
+            "/api/v1/backups",
             "/api/v1/triggers",
-            "/api/v1/vo-export",
+            "/api/v1/vo/exports",
         ]
         for endpoint in endpoints:
             response = api_client.get(endpoint)
@@ -358,9 +358,9 @@ class TestAPIConsistency:
         """404 errors return JSON with detail field."""
         endpoints = [
             "/api/v1/saved-queries/nonexistent",
-            "/api/v1/backup/nonexistent",
+            "/api/v1/backups/nonexistent",
             "/api/v1/triggers/nonexistent",
-            "/api/v1/vo-export/nonexistent",
+            "/api/v1/vo/exports/nonexistent",
         ]
         for endpoint in endpoints:
             response = api_client.get(endpoint)
