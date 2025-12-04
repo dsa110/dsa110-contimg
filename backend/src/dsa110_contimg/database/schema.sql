@@ -150,6 +150,67 @@ CREATE INDEX IF NOT EXISTS idx_caltables_valid ON caltables(valid_start_mjd, val
 CREATE INDEX IF NOT EXISTS idx_caltables_status ON caltables(status);
 CREATE INDEX IF NOT EXISTS idx_caltables_source ON caltables(source_ms_path);
 
+-- Legacy calibration_tables table kept for backward compatibility
+CREATE TABLE IF NOT EXISTS calibration_tables (
+    id INTEGER PRIMARY KEY,
+    set_name TEXT NOT NULL,
+    path TEXT NOT NULL UNIQUE,
+    table_type TEXT NOT NULL,
+    order_index INTEGER NOT NULL,
+    cal_field TEXT,
+    refant TEXT,
+    created_at REAL NOT NULL,
+    valid_start_mjd REAL,
+    valid_end_mjd REAL,
+    status TEXT NOT NULL DEFAULT 'active',
+    notes TEXT,
+    source_ms_path TEXT,
+    solver_command TEXT,
+    solver_version TEXT,
+    solver_params TEXT,
+    quality_metrics TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_calibration_tables_set ON calibration_tables(set_name);
+CREATE INDEX IF NOT EXISTS idx_calibration_tables_valid ON calibration_tables(valid_start_mjd, valid_end_mjd);
+CREATE INDEX IF NOT EXISTS idx_calibration_tables_status ON calibration_tables(status);
+CREATE INDEX IF NOT EXISTS idx_calibration_tables_source ON calibration_tables(source_ms_path);
+
+-- Keep legacy table in sync with caltables for compatibility
+CREATE TRIGGER IF NOT EXISTS trg_calibration_tables_ai
+AFTER INSERT ON calibration_tables
+BEGIN
+    INSERT OR REPLACE INTO caltables (
+        id, set_name, path, table_type, order_index, cal_field, refant,
+        created_at, valid_start_mjd, valid_end_mjd, status, notes,
+        source_ms_path, solver_command, solver_version, solver_params, quality_metrics
+    ) VALUES (
+        NEW.id, NEW.set_name, NEW.path, NEW.table_type, NEW.order_index, NEW.cal_field, NEW.refant,
+        NEW.created_at, NEW.valid_start_mjd, NEW.valid_end_mjd, NEW.status, NEW.notes,
+        NEW.source_ms_path, NEW.solver_command, NEW.solver_version, NEW.solver_params, NEW.quality_metrics
+    );
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_calibration_tables_au
+AFTER UPDATE ON calibration_tables
+BEGIN
+    INSERT OR REPLACE INTO caltables (
+        id, set_name, path, table_type, order_index, cal_field, refant,
+        created_at, valid_start_mjd, valid_end_mjd, status, notes,
+        source_ms_path, solver_command, solver_version, solver_params, quality_metrics
+    ) VALUES (
+        NEW.id, NEW.set_name, NEW.path, NEW.table_type, NEW.order_index, NEW.cal_field, NEW.refant,
+        NEW.created_at, NEW.valid_start_mjd, NEW.valid_end_mjd, NEW.status, NEW.notes,
+        NEW.source_ms_path, NEW.solver_command, NEW.solver_version, NEW.solver_params, NEW.quality_metrics
+    );
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_calibration_tables_ad
+AFTER DELETE ON calibration_tables
+BEGIN
+    DELETE FROM caltables WHERE path = OLD.path;
+END;
+
 -- Record of calibration applications
 CREATE TABLE IF NOT EXISTS calibration_applied (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
