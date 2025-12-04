@@ -32,11 +32,13 @@ class PhotometryResult:
 @dataclass
 class PhotometryConfig:
     """Configuration for the photometry stage."""
-    
+
     catalog: str = "nvss"  # nvss, first, rax, vlass, master, atnf
     search_radius_arcsec: float = 30.0
+    search_radius_deg: float = 0.5  # Alternative to search_radius_arcsec
     snr_threshold: float = 5.0
     batch_size: int = 100
+    products_db: Optional[Path] = None  # Optional database for recording
 
 
 class PhotometryStage:
