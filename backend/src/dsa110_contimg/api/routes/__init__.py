@@ -5,6 +5,7 @@ This package contains modular route definitions organized by resource type.
 """
 
 from .auth import router as auth_router
+from .conversion import router as conversion_router
 from .images import router as images_router
 from .ms import router as ms_router
 from .sources import router as sources_router
@@ -32,6 +33,7 @@ from .vo_export import router as vo_export_router
 
 __all__ = [
     "auth_router",
+    "conversion_router",
     "images_router",
     "ms_router",
     "sources_router",

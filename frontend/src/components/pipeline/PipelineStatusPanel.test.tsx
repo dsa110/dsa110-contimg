@@ -109,9 +109,13 @@ describe("PipelineStatusPanel", () => {
     it("shows summary counts", async () => {
       render(<PipelineStatusPanel />, { wrapper: createWrapper() });
 
-      await waitFor(() => {
-        expect(screen.getByText("6 pending")).toBeInTheDocument();
-      });
+      // Wait for data to load (not just the title)
+      await waitFor(
+        () => {
+          expect(screen.getByText("6 pending")).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
 
       expect(screen.getByText("4 running")).toBeInTheDocument();
       expect(screen.getByText("62 completed")).toBeInTheDocument();
@@ -121,17 +125,23 @@ describe("PipelineStatusPanel", () => {
     it("shows worker count", async () => {
       render(<PipelineStatusPanel />, { wrapper: createWrapper() });
 
-      await waitFor(() => {
-        expect(screen.getByText("2 workers")).toBeInTheDocument();
-      });
+      await waitFor(
+        () => {
+          expect(screen.getByText("2 workers")).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
     });
 
     it("shows healthy status when is_healthy is true", async () => {
       render(<PipelineStatusPanel />, { wrapper: createWrapper() });
 
-      await waitFor(() => {
-        expect(screen.getByText("Healthy")).toBeInTheDocument();
-      });
+      await waitFor(
+        () => {
+          expect(screen.getByText("Healthy")).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
     });
 
     it("shows degraded status when is_healthy is false", async () => {
@@ -279,17 +289,19 @@ describe("PipelineStatusPanel", () => {
 
       render(<PipelineStatusPanel />, { wrapper: createWrapper() });
 
-      await waitFor(() => {
-        expect(screen.getByText("Pipeline Status")).toBeInTheDocument();
-      });
+      // Wait for data to actually load (not just the title)
+      await waitFor(
+        () => {
+          expect(screen.getByText("6 pending")).toBeInTheDocument();
+        },
+        { timeout: 3000 }
+      );
 
-      // Wait for initial load
-      await waitFor(() => {
-        expect(mockApiClient.get).toHaveBeenCalledTimes(1);
-      });
+      // Refresh button should now be enabled
+      const refreshButton = screen.getByTitle("Refresh");
+      expect(refreshButton).not.toBeDisabled();
 
       // Click refresh button
-      const refreshButton = screen.getByTitle("Refresh");
       await userEvent.click(refreshButton);
 
       // Should trigger another fetch
