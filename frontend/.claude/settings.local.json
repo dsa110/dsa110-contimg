@@ -3,7 +3,8 @@
     "allow": [
       "Bash(done)",
       "Bash(paste:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(xargs ls:*)"
     ],
     "deny": [],
     "ask": []

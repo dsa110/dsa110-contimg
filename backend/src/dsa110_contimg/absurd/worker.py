@@ -23,6 +23,31 @@ from dsa110_contimg.absurd.config import AbsurdConfig
 
 logger = logging.getLogger(__name__)
 
+# Global WebSocket manager for emitting events
+_websocket_manager = None
+
+
+def set_websocket_manager(manager):
+    """Set the WebSocket manager for emitting events."""
+    global _websocket_manager
+    _websocket_manager = manager
+
+
+async def emit_task_update(queue_name: str, task_id: str, update: dict):
+    """Emit task_update WebSocket event."""
+    if _websocket_manager:
+        try:
+            await _websocket_manager.broadcast(
+                {
+                    "type": "task_update",
+                    "queue_name": queue_name,
+                    "task_id": task_id,
+                    "update": update,
+                }
+            )
+        except Exception as e:
+            logger.warning(f"Failed to emit task update: {e}")
+
 
 def _create_jwt_token(secret: str, worker_id: str) -> str:
     """Create a JWT token for worker API authentication.
@@ -118,7 +143,6 @@ class AbsurdWorker:
                     task = await self.client.claim_task(
                         queue_name=self.config.queue_name,
                         worker_id=self.worker_id,
-                        timeout_sec=self.config.task_timeout_sec,
                     )
 
                     if task:
