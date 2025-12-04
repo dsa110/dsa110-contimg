@@ -35,7 +35,6 @@ const PipelineTriggersPage = lazy(() => import("./pages/PipelineTriggersPage"));
 const VOExportPage = lazy(() => import("./pages/VOExportPage"));
 const JupyterPage = lazy(() => import("./pages/JupyterPage"));
 const QARatingsPage = lazy(() => import("./pages/QARatingsPage"));
-const QARatingsPage = lazy(() => import("./pages/QARatingsPage"));
 const CommentsPage = lazy(() => import("./pages/CommentsPage"));
 const SharedQueriesPage = lazy(() => import("./pages/SharedQueriesPage"));
 

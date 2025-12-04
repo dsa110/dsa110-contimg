@@ -105,6 +105,9 @@ export const ROUTES = {
 
   /** Calibrator Imaging Test */
   CALIBRATOR_IMAGING: "/calibrator-imaging",
+
+  /** HDF5 to MS Conversion */
+  CONVERSION: "/conversion",
 } as const;
 
 /**
@@ -121,6 +124,7 @@ export const NAV_ITEMS = [
   { path: ROUTES.WORKFLOWS.LIST, label: "Workflows" },
   { path: ROUTES.RETENTION, label: "Retention" },
   { path: ROUTES.CALIBRATOR_IMAGING, label: "Cal Test" },
+  { path: ROUTES.CONVERSION, label: "Conversion" },
 ] as const;
 
 /**
