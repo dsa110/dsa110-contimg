@@ -171,14 +171,9 @@ const JobDetailPage: React.FC = () => {
           <Card title="Actions">
             <div className="flex flex-col gap-2">
               {provenance.logsUrl && (
-                <a
-                  href={provenance.logsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn btn-secondary text-center"
-                >
+                <Link to={provenance.logsUrl} className="btn btn-secondary text-center">
                   View Logs
-                </a>
+                </Link>
               )}
               {provenance.imageUrl && (
                 <Link
@@ -335,10 +330,8 @@ const JobDetailPage: React.FC = () => {
                 </Link>
               )}
               {provenance.logsUrl && (
-                <a
-                  href={provenance.logsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <Link
+                  to={provenance.logsUrl}
                   className="p-3 rounded-lg border border-gray-200 hover:border-blue-400 hover:bg-blue-50 transition-colors flex items-center gap-3"
                 >
                   <span className="h-10 w-10 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center font-semibold text-sm">
@@ -348,7 +341,7 @@ const JobDetailPage: React.FC = () => {
                     <div className="font-medium text-gray-900">Logs</div>
                     <div className="text-xs text-gray-500">View job logs</div>
                   </div>
-                </a>
+                </Link>
               )}
               {provenance.qaUrl && (
                 <a

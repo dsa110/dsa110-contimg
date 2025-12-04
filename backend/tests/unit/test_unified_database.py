@@ -313,7 +313,8 @@ class TestUnifiedSchema:
             "ms_index",
             "images",
             "photometry",
-            "calibration_tables",
+            "caltables",  # Canonical table name
+            "calibration_tables",  # Legacy table (kept for backward compat)
             "calibration_applied",
             "calibrator_catalog",
             "calibrator_transits",
@@ -445,7 +446,7 @@ class TestIntegration:
         
         # 4. Register calibration table
         db.execute(
-            """INSERT INTO calibration_tables
+            """INSERT INTO caltables
                (set_name, path, table_type, order_index, created_at, status)
                VALUES (?, ?, ?, ?, ?, ?)""",
             ("cal_set_001", "/stage/cal/bandpass.tb", "bandpass", 0, time.time(), "active")
@@ -463,7 +464,7 @@ class TestIntegration:
         result = db.query("""
             SELECT m.path as ms_path, m.status, c.path as cal_path
             FROM ms_index m
-            LEFT JOIN calibration_tables c ON c.status = 'active'
+            LEFT JOIN caltables c ON c.status = 'active'
             WHERE m.status = 'converted'
         """)
         
