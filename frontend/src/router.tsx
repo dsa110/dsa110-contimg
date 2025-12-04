@@ -167,6 +167,19 @@ export const router = createBrowserRouter(
           ),
         },
         {
+          path: "pipeline",
+          element: (
+            <Suspense fallback={<PageSkeleton variant="list" />}>
+              <ProtectedRoute
+                permission="CREATE_JOB"
+                requiredRoles={["operator", "admin"]}
+              >
+                <PipelineControlPage />
+              </ProtectedRoute>
+            </Suspense>
+          ),
+        },
+        {
           path: "sources",
           children: [
             {
