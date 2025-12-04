@@ -507,10 +507,14 @@ function StartKernelModal({
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label 
+                htmlFor="kernel-type-select"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              >
                 Kernel Type
               </label>
               <select
+                id="kernel-type-select"
                 value={kernelName}
                 onChange={(e) => setKernelName(e.target.value)}
                 className="w-full px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
