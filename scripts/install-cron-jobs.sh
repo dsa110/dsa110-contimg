@@ -1,4 +1,46 @@
 #!/bin/bash
+# =============================================================================
+# DEPRECATED: Scheduled tasks are now managed by ABSURD.
+# =============================================================================
+#
+# All maintenance tasks (backups, cleanup, health checks) now run via the
+# ABSURD scheduler for unified monitoring, retry logic, and history tracking.
+#
+# Default schedules are registered automatically when the API starts.
+# See: backend/src/dsa110_contimg/absurd/maintenance.py
+#
+# To view scheduled tasks:
+#   curl http://localhost:8000/absurd/schedules
+#
+# To check schedule status:
+#   curl http://localhost:8000/absurd/schedules/hourly_database_backup
+#
+# This script is retained for legacy compatibility but should NOT be used.
+# Running this will create duplicate scheduling (cron + ABSURD).
+# =============================================================================
+
+echo "WARNING: This script is deprecated!"
+echo ""
+echo "Scheduled tasks are now managed by ABSURD (the internal task scheduler)."
+echo "Default schedules are registered automatically when the API starts."
+echo ""
+echo "To view schedules:  curl http://localhost:8000/absurd/schedules"
+echo "To trigger backup:  curl -X POST http://localhost:8000/absurd/schedules/hourly_database_backup/trigger"
+echo ""
+echo "If you really need to install cron jobs (not recommended), run with --force"
+echo ""
+
+if [ "$1" != "--force" ]; then
+    exit 0
+fi
+
+echo "Proceeding with legacy cron installation (--force specified)..."
+echo ""
+
+# =============================================================================
+# Legacy cron installation below (use only for emergencies)
+# =============================================================================
+
 # Install Cron Jobs for DSA-110 Continuum Imaging Pipeline
 #
 # This script sets up scheduled tasks for:

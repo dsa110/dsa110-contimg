@@ -258,25 +258,49 @@ Key variables:
 
 ### Automated Backups
 
-Backups are scheduled via cron:
+Backups are scheduled via ABSURD (the internal task scheduler):
 
-- **Hourly:** Database snapshots to `/stage/backups/hourly/`
-- **Daily:** Calibration tables to `/stage/backups/daily/`
+- **Hourly:** Database snapshots to `/stage/backups/hourly/` (7-day retention)
+- **Daily:** Calibration tables to `/stage/backups/daily/` (30-day retention)
 
-Verify cron is running:
+#### View Scheduled Backups
 
 ```bash
-crontab -l | grep backup-cron
+# List all maintenance schedules
+curl -s http://localhost:8000/absurd/schedules | jq '.[] | select(.queue_name == "maintenance")'
+
+# Check specific schedule
+curl -s http://localhost:8000/absurd/schedules/hourly_database_backup | jq .
+
+# View recent backup task history
+curl -s "http://localhost:8000/absurd/tasks?queue_name=maintenance&task_name=backup-database&limit=5" | jq .
 ```
+
+#### Default Maintenance Schedules
+
+| Schedule                       | Task                   | Cron         | Description              |
+| ------------------------------ | ---------------------- | ------------ | ------------------------ |
+| `hourly_database_backup`       | backup-database        | `0 * * * *`  | Hourly SQLite backup     |
+| `daily_database_backup`        | backup-database        | `0 3 * * *`  | Daily SQLite backup      |
+| `daily_caltables_backup`       | backup-caltables       | `0 3 * * *`  | Daily calibration tables |
+| `daily_storage_reconciliation` | storage-reconciliation | `0 2 * * *`  | Storage validation       |
+| `hourly_health_check`          | health-check           | `15 * * * *` | System health check      |
+| `hourly_session_cleanup`       | session-cleanup        | `30 * * * *` | Expired session cleanup  |
+| `daily_data_retention_cleanup` | data-retention-cleanup | `0 4 * * *`  | Old data cleanup         |
 
 ### Manual Backup
 
 ```bash
-# Database only
-/data/dsa110-contimg/scripts/backup-cron.sh hourly
+# Trigger backup via ABSURD (recommended)
+curl -X POST http://localhost:8000/absurd/schedules/hourly_database_backup/trigger
 
-# Full backup including caltables
-/data/dsa110-contimg/scripts/backup-cron.sh daily
+# Or spawn a one-off backup task
+curl -X POST http://localhost:8000/absurd/tasks \
+  -H "Content-Type: application/json" \
+  -d '{"queue_name": "maintenance", "task_name": "backup-database", "params": {"inputs": {"backup_type": "hourly"}}}'
+
+# Legacy script (for emergencies when API is down)
+/data/dsa110-contimg/scripts/backup-cron.sh hourly
 ```
 
 ### Database Restore

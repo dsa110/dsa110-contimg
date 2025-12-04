@@ -167,24 +167,25 @@ async def list_pending_groups(
         conn.row_factory = sqlite3.Row
 
         # Query pending groups from processing_queue
-        since = datetime.utcnow() - timedelta(hours=since_hours)
-        since_str = since.isoformat()
+        # Note: received_at is Unix timestamp, convert since_hours to seconds
+        since_ts = (datetime.utcnow() - timedelta(hours=since_hours)).timestamp()
 
         cursor = conn.execute(
             """
             SELECT
-                group_id,
-                COUNT(*) as file_count,
-                MIN(created_at) as first_seen,
-                GROUP_CONCAT(file_path) as file_paths
-            FROM processing_queue
-            WHERE state = 'pending'
-              AND created_at >= ?
-            GROUP BY group_id
-            ORDER BY first_seen DESC
+                pq.group_id,
+                COUNT(sf.path) as file_count,
+                pq.received_at as first_seen,
+                GROUP_CONCAT(sf.path) as file_paths
+            FROM processing_queue pq
+            LEFT JOIN subband_files sf ON pq.group_id = sf.group_id
+            WHERE pq.state = 'pending'
+              AND pq.received_at >= ?
+            GROUP BY pq.group_id
+            ORDER BY pq.received_at DESC
             LIMIT ?
             """,
-            (since_str, limit),
+            (since_ts, limit),
         )
 
         rows = cursor.fetchall()
@@ -538,8 +539,8 @@ def _execute_conversion_job(
                 results["skipped"].append({"group_id": group_id, "reason": "No files"})
                 continue
 
-            # Mark as converting
-            queue.update_state(group_id, "converting")
+            # Mark as converting (in_progress)
+            queue.update_state(group_id, "in_progress")
 
             # Execute conversion
             t0 = time.time()
@@ -547,14 +548,20 @@ def _execute_conversion_job(
             elapsed = time.time() - t0
 
             if result.success:
-                queue.update_state(group_id, "converted", ms_path=result.ms_path)
+                queue.update_state(group_id, "completed")
+                # Record metrics if available
+                queue.record_metrics(
+                    group_id,
+                    total_time=elapsed,
+                    writer_type=result.writer_type or "fallback",
+                )
                 results["converted"].append({
                     "group_id": group_id,
                     "ms_path": result.ms_path,
                     "elapsed_s": round(elapsed, 1),
                 })
             else:
-                queue.update_state(group_id, "failed", error_message=result.error_message)
+                queue.update_state(group_id, "failed", error=result.error_message)
                 results["failed"].append({
                     "group_id": group_id,
                     "error": result.error_message,
@@ -563,7 +570,7 @@ def _execute_conversion_job(
         except Exception as e:
             logger.exception(f"Conversion failed for {group_id}: {e}")
             try:
-                queue.update_state(group_id, "failed", error_message=str(e)[:500])
+                queue.update_state(group_id, "failed", error=str(e)[:500])
             except Exception:
                 pass
             results["failed"].append({

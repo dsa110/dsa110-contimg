@@ -1,4 +1,21 @@
 #!/bin/bash
+# =============================================================================
+# DEPRECATED: This script has been replaced by ABSURD scheduled tasks.
+# =============================================================================
+#
+# Storage reconciliation now runs via the ABSURD task scheduler for unified
+# monitoring, retry logic, and history tracking.
+#
+# To trigger manually:
+#   curl -X POST http://localhost:8000/absurd/tasks \
+#     -H "Content-Type: application/json" \
+#     -d '{"queue_name": "maintenance", "task_name": "storage-reconciliation", "params": {"inputs": {"do_reconcile": true}}}'
+#
+# See: backend/src/dsa110_contimg/absurd/maintenance.py
+#
+# This script is retained for manual/emergency use only.
+# =============================================================================
+#
 # Storage Reconciliation Cron Script
 # 
 # This script runs daily to validate and optionally reconcile the HDF5 database
