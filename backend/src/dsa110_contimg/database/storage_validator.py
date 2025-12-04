@@ -290,7 +290,7 @@ def get_storage_metrics(db_path: str, storage_dir: str) -> dict:
 # Regex pattern for parsing HDF5 filenames
 # Format: 2025-01-15T12:30:00_sb00.hdf5
 import re
-from datetime import datetime, timedelta
+from datetime import datetime
 
 _HDF5_FILENAME_PATTERN = re.compile(
     r"(?P<timestamp>\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})_sb(?P<subband>\d{2})\.hdf5$"
