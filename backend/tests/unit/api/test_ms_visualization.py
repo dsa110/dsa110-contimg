@@ -352,8 +352,16 @@ class TestGetAntennaInfo:
 # Fixtures for TestClient
 @pytest.fixture
 def client():
-    """Create test client for API."""
-    from dsa110_contimg.api.app import app
+    """Create test client for API with auth disabled."""
+    import os
+    from unittest.mock import patch
+    from dsa110_contimg.api.app import create_app
 
-    with TestClient(app) as test_client:
-        yield test_client
+    env_patches = {
+        "DSA110_AUTH_DISABLED": "true",
+        "DSA110_ENV": "testing",
+    }
+    with patch.dict(os.environ, env_patches):
+        app = create_app()
+        with TestClient(app) as test_client:
+            yield test_client

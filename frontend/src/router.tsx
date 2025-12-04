@@ -24,6 +24,7 @@ const WorkflowsPage = lazy(() => import("./pages/WorkflowsPage"));
 const RetentionPoliciesPage = lazy(
   () => import("./pages/RetentionPoliciesPage")
 );
+const LogsPage = lazy(() => import("./pages/LogsPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 
 /**
@@ -177,6 +178,27 @@ export const router = createBrowserRouter(
               element: (
                 <Suspense fallback={<PageSkeleton variant="detail" />}>
                   <JobDetailPage />
+                </Suspense>
+              ),
+            },
+          ],
+        },
+        {
+          path: "logs",
+          children: [
+            {
+              index: true,
+              element: (
+                <Suspense fallback={<PageSkeleton variant="list" />}>
+                  <LogsPage />
+                </Suspense>
+              ),
+            },
+            {
+              path: ":runId",
+              element: (
+                <Suspense fallback={<PageSkeleton variant="detail" />}>
+                  <LogsPage />
                 </Suspense>
               ),
             },

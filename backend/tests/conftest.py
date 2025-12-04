@@ -151,19 +151,20 @@ def pytest_sessionfinish(session, exitstatus):
 def pytest_unconfigure(config):
     """Called after all other pytest activities are complete.
     
-    If CASA C++ code was loaded during tests and all tests passed,
-    use os._exit(0) to skip Python's normal shutdown sequence and avoid
-    the C++ runtime error.
+    If CASA C++ code was loaded during tests, use os._exit() to skip 
+    Python's normal shutdown sequence and avoid the C++ runtime error.
+    We do this regardless of test pass/fail status to prevent segfaults.
     """
     global _casa_cpp_loaded, _pytest_exit_status
     
-    if _pytest_exit_status == 0 and _casa_cpp_loaded:
+    if _casa_cpp_loaded:
         # Flush output streams before exiting
         sys.stdout.flush()
         sys.stderr.flush()
         
         # Skip Python's normal shutdown to avoid CASA C++ destructor issues
-        os._exit(0)
+        # Use the actual exit status so CI sees failures
+        os._exit(_pytest_exit_status if _pytest_exit_status is not None else 0)
 
 
 @pytest.fixture(scope="session")

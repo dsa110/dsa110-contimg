@@ -413,11 +413,19 @@ class TestImagingAPIEndpoints:
 
     @pytest.fixture
     def client(self):
-        """Create test client."""
+        """Create test client with auth disabled."""
+        import os
+        from unittest.mock import patch
         from dsa110_contimg.api.app import create_app
 
-        app = create_app()
-        return TestClient(app)
+        env_patches = {
+            "DSA110_AUTH_DISABLED": "true",
+            "DSA110_ENV": "testing",
+        }
+        with patch.dict(os.environ, env_patches):
+            app = create_app()
+            with TestClient(app) as test_client:
+                yield test_client
 
     def test_get_imaging_defaults(self, client):
         """Test getting DSA-110 default imaging parameters."""

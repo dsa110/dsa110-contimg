@@ -161,7 +161,7 @@ def should_skip_rate_limit(request: Request) -> bool:
         return True
     
     # Check for internal requests
-    client_ip = get_remote_address(request)
+    client_ip = get_client_ip(request)
     if client_ip in ["127.0.0.1", "::1", "localhost"]:
         if os.getenv("DSA110_ENV", "development") == "development":
             return True

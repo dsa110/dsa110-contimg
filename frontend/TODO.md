@@ -20,7 +20,7 @@ TODO: Outstanding Feature Work
   - Dependencies: log query/tail endpoints and auth redaction of sensitive fields.
   - Implementation steps:
     - [x] Define query params (q, level, labels, range, cursor) and response shape; add client + hooks (`useLogs`, `useLogTail`).
-    - [ ] Implement LogViewer with virtualized list, syntax highlighting, and sticky filters; add saved searches dropdown.
+    - [x] Implement LogViewer with virtualized list, syntax highlighting, and sticky filters; add saved searches dropdown.
     - [ ] Add live tail mode with backpressure (batch append) and auto-scroll toggle.
     - [ ] Wire entry points from Jobs/Health pages with pre-populated filters.
     - [ ] Tests: hook pagination, tail reconnect, component filter interactions.

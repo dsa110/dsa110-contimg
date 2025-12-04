@@ -9,16 +9,34 @@ from unittest.mock import MagicMock, patch
 class TestGetClientIdentifier:
     """Tests for the get_client_identifier function."""
     
-    def test_uses_forwarded_for_header(self):
-        """Should use X-Forwarded-For header when present."""
+    def test_uses_forwarded_for_from_trusted_proxy(self):
+        """Should use X-Forwarded-For header when from trusted proxy."""
         from dsa110_contimg.api.rate_limit import get_client_identifier
         
         request = MagicMock()
         request.headers = {"X-Forwarded-For": "203.0.113.50, 10.0.0.1"}
+        # Simulate request from trusted proxy (localhost)
+        request.client = MagicMock()
+        request.client.host = "127.0.0.1"
         
         result = get_client_identifier(request)
         
         assert result == "203.0.113.50"
+    
+    def test_ignores_forwarded_for_from_untrusted_source(self):
+        """Should ignore X-Forwarded-For when not from trusted proxy."""
+        from dsa110_contimg.api.rate_limit import get_client_identifier
+        
+        request = MagicMock()
+        request.headers = {"X-Forwarded-For": "203.0.113.50, 10.0.0.1"}
+        # Simulate request from untrusted source
+        request.client = MagicMock()
+        request.client.host = "192.168.1.100"
+        
+        result = get_client_identifier(request)
+        
+        # Should return direct client IP, not forwarded header
+        assert result == "192.168.1.100"
     
     def test_uses_api_key_header(self):
         """Should use X-API-Key header when no forwarded header."""
@@ -32,7 +50,7 @@ class TestGetClientIdentifier:
         assert result == "apikey:dsa110_a"
     
     def test_falls_back_to_remote_address(self):
-        """Should fall back to remote address."""
+        """Should fall back to client IP."""
         from dsa110_contimg.api.rate_limit import get_client_identifier
         
         request = MagicMock()
@@ -40,8 +58,8 @@ class TestGetClientIdentifier:
         request.client = MagicMock()
         request.client.host = "192.168.1.100"
         
-        with patch("dsa110_contimg.api.rate_limit.get_remote_address") as mock_remote:
-            mock_remote.return_value = "192.168.1.100"
+        with patch("dsa110_contimg.api.rate_limit.get_client_ip") as mock_client_ip:
+            mock_client_ip.return_value = "192.168.1.100"
             result = get_client_identifier(request)
         
         assert result == "192.168.1.100"
@@ -196,8 +214,8 @@ class TestShouldSkipRateLimit:
         request = MagicMock()
         
         with patch.dict("os.environ", {"DSA110_RATE_LIMIT_DISABLED": ""}, clear=False):
-            with patch("dsa110_contimg.api.rate_limit.get_remote_address") as mock_remote:
-                mock_remote.return_value = "203.0.113.50"
+            with patch("dsa110_contimg.api.rate_limit.get_client_ip") as mock_client_ip:
+                mock_client_ip.return_value = "203.0.113.50"
                 result = should_skip_rate_limit(request)
         
         assert result is False

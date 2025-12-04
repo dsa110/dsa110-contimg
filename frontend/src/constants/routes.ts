@@ -44,6 +44,14 @@ export const ROUTES = {
     DETAIL: (runId: string) => `/jobs/${encodeURIComponent(runId)}` as const,
   },
 
+  /** Log aggregation routes */
+  LOGS: {
+    /** Log viewer with filters */
+    LIST: "/logs",
+    /** Pre-filtered logs for a specific run ID */
+    DETAIL: (runId: string) => `/logs/${encodeURIComponent(runId)}` as const,
+  },
+
   /** Workflow manager routes */
   WORKFLOWS: {
     /** Workflows dashboard page */
@@ -64,7 +72,7 @@ export const ROUTES = {
     /** Calibration table detail */
     CAL: (table: string) => `/cal/${encodeURIComponent(table)}` as const,
     /** Job logs */
-    LOGS: (runId: string) => `/logs/${runId}` as const,
+    LOGS: (runId: string) => `/logs/${encodeURIComponent(runId)}` as const,
     /** QA report for image */
     QA_IMAGE: (id: string) => `/qa/image/${id}` as const,
     /** QA report for MS */
@@ -85,6 +93,7 @@ export const NAV_ITEMS = [
   { path: ROUTES.IMAGES.LIST, label: "Images" },
   { path: ROUTES.SOURCES.LIST, label: "Sources" },
   { path: ROUTES.JOBS.LIST, label: "Jobs" },
+  { path: ROUTES.LOGS.LIST, label: "Logs" },
   { path: ROUTES.WORKFLOWS.LIST, label: "Workflows" },
   { path: ROUTES.RETENTION, label: "Retention" },
   { path: ROUTES.CALIBRATOR_IMAGING, label: "Cal Test" },
