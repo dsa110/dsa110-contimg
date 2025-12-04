@@ -302,7 +302,7 @@ describe("DataCleanupWizardPage", () => {
       await user.click(screen.getByRole("button", { name: /preview impact/i }));
 
       await waitFor(() => {
-        expect(screen.getByText(/10/)).toBeInTheDocument();
+        expect(screen.getByText(/1\.00 MB/)).toBeInTheDocument();
       });
 
       await user.click(screen.getByRole("button", { name: /continue/i }));
@@ -321,6 +321,10 @@ describe("DataCleanupWizardPage", () => {
       // Enter audit note
       const textarea = screen.getByRole("textbox");
       await user.type(textarea, "Quarterly cleanup of temp files");
+
+      // Check the confirmation checkbox
+      const confirmCheckbox = screen.getByRole("checkbox");
+      await user.click(confirmCheckbox);
 
       // Submit button should now be enabled
       expect(submitButton).not.toBeDisabled();
@@ -372,7 +376,7 @@ describe("DataCleanupWizardPage", () => {
       await user.click(screen.getByRole("button", { name: /preview impact/i }));
 
       await waitFor(() => {
-        expect(screen.getByText(/10/)).toBeInTheDocument();
+        expect(screen.getByText(/1\.00 MB/)).toBeInTheDocument();
       });
 
       await user.click(screen.getByRole("button", { name: /continue/i }));
@@ -386,6 +390,9 @@ describe("DataCleanupWizardPage", () => {
         screen.getByRole("textbox"),
         "Quarterly cleanup of temp files"
       );
+
+      // Check the confirmation checkbox
+      await user.click(screen.getByRole("checkbox"));
 
       // Submit
       await user.click(screen.getByRole("button", { name: /submit/i }));
@@ -435,7 +442,9 @@ describe("DataCleanupWizardPage", () => {
       });
 
       // Go back
-      await user.click(screen.getByRole("button", { name: /back to filters/i }));
+      await user.click(
+        screen.getByRole("button", { name: /back to filters/i })
+      );
 
       await waitFor(() => {
         expect(screen.getByText("Select Data to Clean Up")).toBeInTheDocument();
