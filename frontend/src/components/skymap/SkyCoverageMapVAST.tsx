@@ -42,15 +42,6 @@ const SURVEY_REGIONS: SurveyRegion[] = [
     showInLegend: true,
   },
   {
-    id: "first",
-    name: "FIRST",
-    color: "#cc66ff", // Purple
-    decRange: [-10, 57],
-    raRange: null, // Simplified - actually has complex RA coverage
-    fillOpacity: 0.2,
-    showInLegend: true,
-  },
-  {
     id: "vlass",
     name: "VLASS",
     color: "#66ccff", // Light blue
@@ -69,6 +60,54 @@ const SURVEY_REGIONS: SurveyRegion[] = [
     showInLegend: true,
   },
 ];
+
+/**
+ * FIRST survey footprint - two main regions following SDSS coverage:
+ * - North Galactic Cap (NGC): roughly 7h20m to 17h40m, Dec ~-10° to +57°
+ * - South Galactic Cap (SGC): roughly 21h20m to 3h20m, Dec ~-10° to +2°
+ * These are approximations of the actual FIRST coverage.
+ */
+const FIRST_REGIONS: Array<{
+  name: string;
+  polygon: [number, number][]; // [ra, dec] pairs in degrees
+}> = [
+  {
+    // North Galactic Cap - main FIRST coverage area
+    name: "FIRST NGC",
+    polygon: [
+      [110, -10], // 7h20m, -10°
+      [110, 57], // 7h20m, +57°
+      [265, 57], // 17h40m, +57°
+      [265, -10], // 17h40m, -10°
+      [110, -10], // close polygon
+    ],
+  },
+  {
+    // South Galactic Cap - smaller strip
+    name: "FIRST SGC",
+    polygon: [
+      [320, -10], // 21h20m, -10°
+      [320, 2], // 21h20m, +2°
+      [360, 2], // 24h, +2° (wrap)
+      [360, -10], // 24h, -10°
+      [320, -10], // close polygon
+    ],
+  },
+  {
+    // South Galactic Cap continuation (wraps around 0h)
+    name: "FIRST SGC2",
+    polygon: [
+      [0, -10], // 0h, -10°
+      [0, 2], // 0h, +2°
+      [50, 2], // 3h20m, +2°
+      [50, -10], // 3h20m, -10°
+      [0, -10], // close polygon
+    ],
+  },
+];
+
+const FIRST_COLOR = "#cc66ff"; // Purple
+const FIRST_FILL_OPACITY = 0.2;
 
 export interface SkyCoverageMapVASTProps {
   /** Array of pointing/observation data */

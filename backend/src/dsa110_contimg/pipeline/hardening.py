@@ -2062,13 +2062,13 @@ Issue #14: Database Schema Allows Inconsistent States
 
 Status: COMPLETED (2025-12-03)
 
-Fix: Added missing foreign key constraint to calibration_tables.source_ms_path
+Fix: Added missing foreign key constraint to `caltables`.source_ms_path
 
 Implementation:
 - Migration: backend/src/dsa110_contimg/migrations/versions/0002_add_calibration_fk.py
 - Schema update: backend/src/dsa110_contimg/database/schema.sql (line 122)
 
-The calibration_tables.source_ms_path column now has a FOREIGN KEY constraint
+The `caltables`.source_ms_path column now has a FOREIGN KEY constraint
 referencing ms_index(path) with ON DELETE SET NULL policy. This prevents orphaned
 calibration table records while allowing calibration tables to persist even if the
 source MS is deleted (useful for long-term calibration validity).

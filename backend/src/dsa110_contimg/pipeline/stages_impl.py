@@ -1395,12 +1395,12 @@ class CalibrationStage(PipelineStage):
     Example:
         >>> config = PipelineConfig(paths=PathsConfig(...))
         >>> stage = CalibrationStage(config)
-        >>> # Context should have ms_path and calibration_tables
+        >>> # Context should have ms_path and caltables
         >>> context = PipelineContext(
         ...     config=config,
         ...     outputs={
         ...         "ms_path": "/data/converted.ms",
-        ...         "calibration_tables": {"K": "/data/K.cal", "BA": "/data/BA.cal"}
+        ...         "caltables": {"K": "/data/K.cal", "BA": "/data/BA.cal"}
         ...     }
         ... )
         >>> # Validate prerequisites
@@ -1414,7 +1414,7 @@ class CalibrationStage(PipelineStage):
 
     Inputs:
         - `ms_path` (str): Path to uncalibrated Measurement Set (from context.outputs)
-        - `calibration_tables` (dict): Calibration tables from CalibrationSolveStage
+        - `caltables` (dict): Calibration tables from CalibrationSolveStage
 
     Outputs:
         - `ms_path` (str): Path to calibrated Measurement Set (same or updated path)
