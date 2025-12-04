@@ -293,9 +293,7 @@ export function useRestoreJob(id: string) {
   return useQuery({
     queryKey: backupKeys.restore(id),
     queryFn: async () => {
-      const response = await apiClient.get<RestoreJob>(
-        `/v1/restores/${id}`
-      );
+      const response = await apiClient.get<RestoreJob>(`/v1/restores/${id}`);
       return response.data;
     },
     enabled: !!id,

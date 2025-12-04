@@ -129,10 +129,7 @@ async function updateSavedQuery(
   id: string,
   data: Partial<SaveQueryRequest>
 ): Promise<SavedQuery> {
-  const response = await apiClient.patch<SavedQuery>(
-    `/v1/queries/${id}`,
-    data
-  );
+  const response = await apiClient.patch<SavedQuery>(`/v1/queries/${id}`, data);
   return response.data;
 }
 
