@@ -178,7 +178,7 @@ describe("DataCleanupWizardPage", () => {
       await user.click(screen.getByRole("button", { name: /preview impact/i }));
 
       await waitFor(() => {
-        expect(screen.getByText(/analyzing/i)).toBeInTheDocument();
+        expect(screen.getByText(/calculating impact/i)).toBeInTheDocument();
       });
     });
 
@@ -210,7 +210,8 @@ describe("DataCleanupWizardPage", () => {
       await user.click(screen.getByRole("button", { name: /preview impact/i }));
 
       await waitFor(() => {
-        expect(screen.getByText(/150/)).toBeInTheDocument();
+        const matches = screen.getAllByText(/150/);
+        expect(matches.length).toBeGreaterThan(0);
         expect(screen.getByText(/5\.00 GB/)).toBeInTheDocument();
       });
     });
@@ -263,7 +264,7 @@ describe("DataCleanupWizardPage", () => {
 
       // Wait for dry-run results and find continue button
       await waitFor(() => {
-        expect(screen.getByText(/10/)).toBeInTheDocument();
+        expect(screen.getByText(/1\.00 MB/)).toBeInTheDocument();
       });
 
       // Go to confirm
@@ -271,7 +272,7 @@ describe("DataCleanupWizardPage", () => {
       await user.click(continueButton);
 
       await waitFor(() => {
-        expect(screen.getByText(/confirm/i)).toBeInTheDocument();
+        expect(screen.getByText("Confirm Cleanup")).toBeInTheDocument();
       });
     });
 
@@ -401,21 +402,40 @@ describe("DataCleanupWizardPage", () => {
 
   describe("Navigation", () => {
     it("allows going back from preview to filters", async () => {
+      // Set up mock with data so preview step renders fully
+      const mockDryRun: cleanupApi.CleanupDryRunResult = {
+        affected_count: 10,
+        bytes_to_free: 1000000,
+        size_formatted: "1.00 MB",
+        by_category: {},
+        sample_paths: [],
+        warnings: [],
+        can_execute: true,
+      };
+
+      vi.mocked(cleanupApi.useCleanupDryRun).mockReturnValue({
+        data: mockDryRun,
+        isLoading: false,
+        error: null,
+        isError: false,
+        refetch: vi.fn(),
+      } as unknown as ReturnType<typeof cleanupApi.useCleanupDryRun>);
+
       renderWithProviders(<DataCleanupWizardPage />);
       const user = userEvent.setup();
 
       // Go to preview
       await user.click(screen.getByRole("button", { name: /preview impact/i }));
 
+      // Wait for preview step to render with back button
       await waitFor(() => {
         expect(
-          screen.queryByText("Select Data to Clean Up")
-        ).not.toBeInTheDocument();
+          screen.getByRole("button", { name: /back to filters/i })
+        ).toBeInTheDocument();
       });
 
       // Go back
-      const backButton = screen.getByRole("button", { name: /back/i });
-      await user.click(backButton);
+      await user.click(screen.getByRole("button", { name: /back to filters/i }));
 
       await waitFor(() => {
         expect(screen.getByText("Select Data to Clean Up")).toBeInTheDocument();
