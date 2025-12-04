@@ -769,7 +769,9 @@ class AsyncSourceRepository(SourceRepositoryInterface):
             async for row in cursor:
                 # Convert Unix timestamp to MJD for API response
                 unix_ts = row["measured_at"]
-                mjd = Time(unix_ts, format="unix").mjd
+                if unix_ts is None:
+                    continue  # Skip rows with no timestamp
+                mjd = Time(float(unix_ts), format="unix").mjd
                 
                 data_points.append({
                     "mjd": mjd,

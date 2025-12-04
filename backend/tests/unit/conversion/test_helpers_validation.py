@@ -262,12 +262,14 @@ class TestValidateAntennaPositions:
         tables = {"ANTENNA": ant_table}
         mock_factory = create_mock_table_factory(tables)
         
+        # Mock get_itrf to return matching positions (force validation fallback path)
         with patch("dsa110_contimg.conversion.helpers.table", mock_factory):
-            from dsa110_contimg.conversion.helpers import validate_antenna_positions
-            validate_antenna_positions("/test/valid_ant.ms")
+            with patch("dsa110_contimg.utils.antpos_local.get_itrf", side_effect=ImportError("Mock")):
+                from dsa110_contimg.conversion.helpers import validate_antenna_positions
+                validate_antenna_positions("/test/valid_ant.ms")
     
-    def test_zero_positions_warns(self):
-        """All-zero antenna positions should warn (non-fatal validation)."""
+    def test_zero_positions_warns(self, caplog):
+        """All-zero antenna positions should warn (positions too close to Earth center)."""
         nant = 63
         ant_table = MockMSTable(
             data={
@@ -279,16 +281,19 @@ class TestValidateAntennaPositions:
         tables = {"ANTENNA": ant_table}
         mock_factory = create_mock_table_factory(tables)
         
+        # Mock get_itrf to force fallback validation (checks Earth radius)
         with patch("dsa110_contimg.conversion.helpers.table", mock_factory):
-            from dsa110_contimg.conversion.helpers import validate_antenna_positions
-            # This is a non-fatal validation - logs warning but doesn't raise
-            # The function catches the error and logs it as a warning
-            validate_antenna_positions("/test/zero_ant.ms")
+            with patch("dsa110_contimg.utils.antpos_local.get_itrf", side_effect=ImportError("Mock")):
+                from dsa110_contimg.conversion.helpers import validate_antenna_positions
+                # Zero positions trigger fallback validation warning (non-fatal)
+                validate_antenna_positions("/test/zero_ant.ms")
+                # Check that a warning about Earth center was logged
+                assert any("too close to Earth center" in record.message for record in caplog.records)
     
     def test_duplicate_positions_warn(self):
-        """Duplicate antenna positions should warn."""
+        """Duplicate antenna positions at Earth surface should pass fallback validation."""
         nant = 10
-        # All antennas at the same position
+        # All antennas at the same position (valid ITRF on Earth surface)
         positions = np.tile([-2409150.4, -4478573.1, 3838617.3], (nant, 1))
         
         ant_table = MockMSTable(
@@ -301,10 +306,12 @@ class TestValidateAntennaPositions:
         tables = {"ANTENNA": ant_table}
         mock_factory = create_mock_table_factory(tables)
         
-        # Should warn but not necessarily raise
+        # Mock get_itrf to force fallback validation (only checks Earth radius)
         with patch("dsa110_contimg.conversion.helpers.table", mock_factory):
-            from dsa110_contimg.conversion.helpers import validate_antenna_positions
-            validate_antenna_positions("/test/dup_ant.ms")
+            with patch("dsa110_contimg.utils.antpos_local.get_itrf", side_effect=ImportError("Mock")):
+                from dsa110_contimg.conversion.helpers import validate_antenna_positions
+                # Duplicates at valid Earth surface position should pass fallback validation
+                validate_antenna_positions("/test/dup_ant.ms")
 
 
 class TestValidateModelDataQuality:

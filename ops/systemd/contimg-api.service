@@ -8,7 +8,7 @@ Type=simple
 User=ubuntu
 Group=ubuntu
 EnvironmentFile=/data/dsa110-contimg/ops/systemd/contimg.env
-Environment="PYTHONPATH=/data/dsa110-contimg/src"
+Environment="PYTHONPATH=/data/dsa110-contimg/backend/src"
 WorkingDirectory=/data/dsa110-contimg
 ExecStart=/opt/miniforge/envs/casa6/bin/uvicorn dsa110_contimg.api:app --host 0.0.0.0 --port ${CONTIMG_API_PORT}
 Restart=always
