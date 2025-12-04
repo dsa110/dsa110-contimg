@@ -149,8 +149,18 @@ def validate_pointing_matches_calibrator(
     Returns:
         Tuple of (is_valid, actual_dec_deg)
     """
+    import os
+    
+    # Filter to only files that exist on disk
+    existing_files = [p for p in file_paths if os.path.exists(p)]
+    if not existing_files:
+        logger.warning(
+            f"None of {len(file_paths)} HDF5 files exist on disk - data may have been moved/deleted"
+        )
+        return False, None
+    
     # Check pointing from the first available file
-    for path in file_paths[:3]:  # Check up to 3 files for robustness
+    for path in existing_files[:3]:  # Check up to 3 files for robustness
         pointing_dec = get_pointing_from_hdf5(path)
         if pointing_dec is not None:
             offset = abs(pointing_dec - calibrator_dec_deg)
@@ -162,7 +172,7 @@ def validate_pointing_matches_calibrator(
                 )
             return is_valid, pointing_dec
     
-    logger.warning(f"Could not extract pointing from any of {len(file_paths)} files")
+    logger.warning(f"Could not extract pointing from any of {len(existing_files)} existing files")
     return False, None
 
 

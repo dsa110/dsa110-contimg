@@ -245,8 +245,12 @@ describe("BackupRestorePage", () => {
       renderPage();
 
       // Use getAllByText for backup names that may appear in both list and history
-      expect(screen.getAllByText("Daily Backup 2024-01-15").length).toBeGreaterThanOrEqual(1);
-      expect(screen.getAllByText("Incremental Backup").length).toBeGreaterThanOrEqual(1);
+      expect(
+        screen.getAllByText("Daily Backup 2024-01-15").length
+      ).toBeGreaterThanOrEqual(1);
+      expect(
+        screen.getAllByText("Incremental Backup").length
+      ).toBeGreaterThanOrEqual(1);
       expect(screen.getByText("Running Backup")).toBeInTheDocument();
     });
 

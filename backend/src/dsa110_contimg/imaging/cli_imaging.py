@@ -359,7 +359,11 @@ def run_wsclean(
     cmd_str = " ".join(cmd)
     LOG.info("Running WSClean: %s", cmd_str)
 
-    # Execute
+    # Execute with configurable timeout
+    # Set WSCLEAN_DOCKER_TIMEOUT env var to override default (in seconds)
+    wsclean_timeout = int(os.getenv("WSCLEAN_DOCKER_TIMEOUT", "1800"))
+    use_docker = len(wsclean_cmd) > 1 and wsclean_cmd[0] == "docker"
+
     t0 = time.perf_counter()
     try:
         subprocess.run(
@@ -367,9 +371,34 @@ def run_wsclean(
             check=True,
             capture_output=False,
             text=True,
-            timeout=1800,  # 30 min timeout for main imaging
+            timeout=wsclean_timeout,
         )
         LOG.info("WSClean completed in %.2fs", time.perf_counter() - t0)
+    except subprocess.TimeoutExpired:
+        LOG.error(
+            "WSClean timed out after %ds. If using Docker, attempting cleanup...",
+            wsclean_timeout,
+        )
+        # Attempt to kill any orphaned Docker containers
+        if use_docker:
+            try:
+                # Find and kill containers running wsclean image
+                kill_cmd = [
+                    "docker", "ps", "-q", "--filter",
+                    "ancestor=wsclean-everybeam:0.7.4",
+                ]
+                result = subprocess.run(kill_cmd, capture_output=True, text=True, timeout=10)
+                container_ids = result.stdout.strip().split()
+                for cid in container_ids:
+                    if cid:
+                        LOG.warning("Killing orphaned WSClean container: %s", cid)
+                        subprocess.run(["docker", "kill", cid], timeout=10, check=False)
+            except Exception as cleanup_err:
+                LOG.warning("Failed to cleanup Docker containers: %s", cleanup_err)
+        raise RuntimeError(
+            f"WSClean timed out after {wsclean_timeout}s. "
+            "Consider increasing WSCLEAN_DOCKER_TIMEOUT or disabling NVSS seeding."
+        )
     except subprocess.CalledProcessError as e:
         LOG.error("WSClean failed with exit code %d", e.returncode)
         raise RuntimeError(f"WSClean execution failed: {e}") from e

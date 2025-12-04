@@ -9,7 +9,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { apiClient } from "./client";
+import apiClient from "./client";
 
 // ============================================================================
 // Types
@@ -165,7 +165,7 @@ export function useBackups(options?: {
       const response = await apiClient.get<{ backups: Backup[] }>(
         `/api/v1/backups?${params}`
       );
-      return response.backups;
+      return response.data.backups;
     },
     staleTime: 30_000,
   });
@@ -179,7 +179,7 @@ export function useBackup(id: string) {
     queryKey: backupKeys.detail(id),
     queryFn: async () => {
       const response = await apiClient.get<Backup>(`/api/v1/backups/${id}`);
-      return response;
+      return response.data;
     },
     enabled: !!id,
   });
@@ -194,7 +194,7 @@ export function useCreateBackup() {
   return useMutation({
     mutationFn: async (request: CreateBackupRequest) => {
       const response = await apiClient.post<Backup>("/api/v1/backups", request);
-      return response;
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: backupKeys.lists() });
@@ -229,7 +229,7 @@ export function useValidateBackup(id: string) {
       const response = await apiClient.post<BackupValidation>(
         `/api/v1/backups/${id}/validate`
       );
-      return response;
+      return response.data;
     },
     enabled: false, // Manual trigger only
   });
@@ -245,7 +245,7 @@ export function useRestorePreview() {
         `/api/v1/backups/${request.backup_id}/restore/preview`,
         { ...request, dry_run: true }
       );
-      return response;
+      return response.data;
     },
   });
 }
@@ -262,7 +262,7 @@ export function useRestore() {
         `/api/v1/backups/${request.backup_id}/restore`,
         request
       );
-      return response;
+      return response.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: backupKeys.restores() });
@@ -280,7 +280,7 @@ export function useRestoreHistory(limit = 10) {
       const response = await apiClient.get<{ restores: RestoreJob[] }>(
         `/api/v1/restores?limit=${limit}`
       );
-      return response.restores;
+      return response.data.restores;
     },
     staleTime: 30_000,
   });
@@ -296,7 +296,7 @@ export function useRestoreJob(id: string) {
       const response = await apiClient.get<RestoreJob>(
         `/api/v1/restores/${id}`
       );
-      return response;
+      return response.data;
     },
     enabled: !!id,
     refetchInterval: (query) => {
