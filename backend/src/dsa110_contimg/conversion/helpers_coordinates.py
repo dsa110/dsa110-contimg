@@ -264,7 +264,7 @@ def compute_and_set_uvw(uvdata, pt_dec: u.Quantity) -> None:
         # Use rigorous astropy calculation for accurate UVW computation
         ra_icrs, dec_icrs = get_meridian_coords(pt_dec, float(mjd), fast=False)
         try:
-            new_app_ra, new_app_dec = uvutils.calc_app_coords(
+            new_app_ra, new_app_dec = _calc_app_coords(
                 ra_icrs.to_value(u.rad),
                 dec_icrs.to_value(u.rad),
                 coord_frame="icrs",
@@ -280,7 +280,7 @@ def compute_and_set_uvw(uvdata, pt_dec: u.Quantity) -> None:
                 telescope_loc=tel_latlonalt,
                 telescope_frame=tel_frame,
             )
-            new_frame_pa = uvutils.calc_frame_pos_angle(
+            new_frame_pa = _calc_frame_pos_angle(
                 uvdata.time_array[uinvert == i],
                 new_app_ra,
                 new_app_dec,
