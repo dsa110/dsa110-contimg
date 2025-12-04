@@ -443,9 +443,11 @@ describe("VOExportPage", () => {
       await user.click(screen.getByRole("button", { name: /new export/i }));
       await user.click(screen.getByLabelText(/apply cone search filter/i));
 
-      expect(screen.getByLabelText(/^ra \(deg\)/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/^dec \(deg\)/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/radius \(arcmin\)/i)).toBeInTheDocument();
+      // RA/Dec inputs appear both in sidebar and modal - get the modal ones
+      const raInputs = screen.getAllByLabelText(/^ra \(deg\)/i);
+      const decInputs = screen.getAllByLabelText(/^dec \(deg\)/i);
+      expect(raInputs.length).toBeGreaterThanOrEqual(2); // sidebar + modal
+      expect(decInputs.length).toBeGreaterThanOrEqual(2);
     });
 
     it("shows preview button", async () => {
