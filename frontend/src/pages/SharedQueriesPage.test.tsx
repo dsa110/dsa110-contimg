@@ -320,10 +320,12 @@ describe("SharedQueriesPage", () => {
     it("renders target type badges", () => {
       render(<SharedQueriesPage />, { wrapper: createWrapper() });
 
-      // Target types appear in cards - use getAllByText for possible duplicates
+      // Target types appear in cards - use getAllByText for possible duplicates (also in dropdown)
       const sourcesBadges = screen.getAllByText("Sources");
       expect(sourcesBadges.length).toBeGreaterThan(0);
-      expect(screen.getByText("Images")).toBeInTheDocument();
+      // "Images" appears in both badge and target type dropdown option
+      const imagesBadges = screen.getAllByText("Images");
+      expect(imagesBadges.length).toBeGreaterThan(0);
       expect(screen.getByText("Jobs")).toBeInTheDocument();
     });
 

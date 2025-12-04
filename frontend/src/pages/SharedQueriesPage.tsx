@@ -211,6 +211,27 @@ function CreateQueryModal({
   const [tags, setTags] = useState(editQuery?.tags.join(", ") || "");
   const [syntaxError, setSyntaxError] = useState<string | null>(null);
 
+  // Reset form fields when editQuery changes (for edit mode)
+  React.useEffect(() => {
+    if (editQuery) {
+      setName(editQuery.name);
+      setDescription(editQuery.description);
+      setQueryString(editQuery.query_string);
+      setTargetType(editQuery.target_type);
+      setVisibility(editQuery.visibility);
+      setTags(editQuery.tags.join(", "));
+      setSyntaxError(null);
+    } else {
+      setName("");
+      setDescription("");
+      setQueryString("");
+      setTargetType("source");
+      setVisibility("private");
+      setTags("");
+      setSyntaxError(null);
+    }
+  }, [editQuery]);
+
   // Extract detected parameters
   const detectedParams = useMemo(
     () => extractParameters(queryString),
