@@ -219,7 +219,7 @@ describe("HomePage", () => {
 
       renderPage();
 
-      const skyMap = screen.getByTestId("sky-coverage-map");
+      const skyMap = screen.getByTestId("sky-coverage-map-vast");
       expect(skyMap).toHaveAttribute("data-pointing-count", "2");
     });
 
