@@ -1,0 +1,63 @@
+version: "3.8"
+
+services:
+  # E2E test runner with Playwright
+  playwright:
+    build:
+      context: ..
+      dockerfile: docker/playwright.dockerfile
+    volumes:
+      # Mount test results and screenshots
+      - ../playwright-report:/app/playwright-report
+      - ../test-results:/app/test-results
+      # Mount tests for live editing (optional)
+      - ../e2e:/app/e2e:ro
+    environment:
+      - CI=true
+      # Point to host API server
+      - VITE_API_BASE_URL=http://host.docker.internal:8000
+      # Or use the internal network
+      # - VITE_API_BASE_URL=http://api:8000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # Run specific test file
+    command:
+      [
+        "npx",
+        "playwright",
+        "test",
+        "e2e/pipeline-control.spec.ts",
+        "--reporter=html,list",
+      ]
+
+  # Alternative: Run with headed browser via VNC
+  playwright-headed:
+    build:
+      context: ..
+      dockerfile: docker/playwright.dockerfile
+    volumes:
+      - ../playwright-report:/app/playwright-report
+      - ../test-results:/app/test-results
+      - ../e2e:/app/e2e:ro
+    environment:
+      - CI=true
+      - VITE_API_BASE_URL=http://host.docker.internal:8000
+      # Enable headed mode with Xvfb
+      - DISPLAY=:99
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    command: >
+      bash -c "
+        Xvfb :99 -screen 0 1920x1080x24 &
+        sleep 2
+        npx playwright test e2e/pipeline-control.spec.ts --headed --reporter=html,list
+      "
+
+  # Run unit tests (Vitest - no browser needed)
+  vitest:
+    build:
+      context: ..
+      dockerfile: docker/playwright.dockerfile
+    volumes:
+      - ../src:/app/src:ro
+    command: ["npm", "run", "test", "--", "--run"]
