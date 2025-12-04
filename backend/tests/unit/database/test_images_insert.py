@@ -5,15 +5,11 @@ Verifies that images_insert correctly inserts records into the images table
 with the expected type, created_at, pbcor, and other metadata fields.
 """
 
-import sqlite3
-import tempfile
 import time
-from pathlib import Path
 
 import pytest
 
 from dsa110_contimg.database.unified import (
-    Database,
     images_insert,
     init_unified_db,
 )
