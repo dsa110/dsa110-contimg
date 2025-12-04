@@ -821,6 +821,8 @@ class CalibrationSolveStage(PipelineStage):
         flag_autocorr = params.get("flag_autocorr", True)
         # NEW: Enable adaptive flagging by default
         use_adaptive_flagging = params.get("use_adaptive_flagging", True)
+        # NEW: Enable GPU RFI detection (optional, requires CuPy)
+        use_gpu_rfi = params.get("use_gpu_rfi", False)
 
         # Handle existing table discovery
         use_existing = params.get("use_existing_tables", "auto")
@@ -1035,6 +1037,7 @@ class CalibrationSolveStage(PipelineStage):
                     calibrate_kwargs={},
                     aggressive_strategy=aggressive_strategy,
                     backend=backend,
+                    use_gpu_rfi=use_gpu_rfi,
                 )
 
                 logger.info(

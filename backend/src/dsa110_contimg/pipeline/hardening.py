@@ -1538,8 +1538,10 @@ class RFIStats:
 def preflag_rfi(
     ms_path: str,
     *,
+    backend: str = "aoflagger",
     strategy: str = "tfcrop",
     aggressive: bool = False,
+    aoflagger_strategy: Optional[str] = None,
 ) -> RFIStats:
     """
     Pre-flag RFI before calibration.
@@ -1548,8 +1550,10 @@ def preflag_rfi(
 
     Args:
         ms_path: Path to Measurement Set
-        strategy: Flagging strategy ('tfcrop', 'rflag', 'manual')
+        backend: Flagging backend ('aoflagger', 'casa', or 'gpu')
+        strategy: CASA flagging strategy ('tfcrop', 'rflag') - only used when backend='casa'
         aggressive: If True, use more aggressive thresholds
+        aoflagger_strategy: Path to AOFlagger Lua strategy file (optional)
 
     Returns:
         RFIStats with flagging results
@@ -1557,6 +1561,7 @@ def preflag_rfi(
     import casacore.tables as casatables
     import numpy as np
 
+    logger = logging.getLogger(__name__)
     start_time = time.time()
 
     # Get initial flag state
@@ -1564,47 +1569,88 @@ def preflag_rfi(
         flags = tb.getcol("FLAG")
         original_flagged = np.sum(flags) / flags.size
 
-    # Import flagdata with CASA log environment protection
-    try:
-        from dsa110_contimg.utils.tempdirs import casa_log_environment
-        with casa_log_environment():
-            from casatasks import flagdata
-    except ImportError:
-        from casatasks import flagdata
-
-    def _call_flagdata(**kwargs):
-        """Call flagdata with CASA log environment protection."""
+    # Apply flagging based on backend
+    if backend == "aoflagger":
+        # Use AOFlagger (preferred, faster)
+        try:
+            from dsa110_contimg.calibration.flagging import flag_rfi
+            flag_rfi(
+                ms_path,
+                backend="aoflagger",
+                strategy=aoflagger_strategy,
+            )
+            logger.info("Pre-flagging with AOFlagger complete")
+        except Exception as e:
+            logger.warning(f"AOFlagger pre-flagging failed: {e}, falling back to CASA")
+            backend = "casa"  # Fall through to CASA
+    
+    if backend == "gpu":
+        # Use GPU-accelerated RFI detection
+        try:
+            from dsa110_contimg.rfi import gpu_rfi_detection, RFIDetectionConfig
+            
+            threshold = 4.0 if aggressive else 5.0
+            config = RFIDetectionConfig(
+                threshold=threshold,
+                apply_flags=True,
+            )
+            result = gpu_rfi_detection(ms_path, config=config)
+            
+            if result.success:
+                logger.info(f"GPU pre-flagging complete: {result.flag_percent:.2f}% flagged")
+            else:
+                logger.warning(f"GPU pre-flagging failed: {result.error}, falling back to CASA")
+                backend = "casa"  # Fall through to CASA
+        except ImportError:
+            logger.warning("GPU RFI module not available, falling back to CASA")
+            backend = "casa"
+        except Exception as e:
+            logger.warning(f"GPU pre-flagging failed: {e}, falling back to CASA")
+            backend = "casa"
+    
+    if backend == "casa":
+        # Use CASA flagdata modes
+        # Import flagdata with CASA log environment protection
         try:
             from dsa110_contimg.utils.tempdirs import casa_log_environment
             with casa_log_environment():
-                return flagdata(**kwargs)
+                from casatasks import flagdata
         except ImportError:
-            return flagdata(**kwargs)
+            from casatasks import flagdata
 
-    # Apply flagging based on strategy
-    if strategy == "tfcrop":
-        # Time-frequency crop: good for broadband RFI
-        threshold = 3.0 if aggressive else 4.0
-        _call_flagdata(
-            vis=ms_path,
-            mode="tfcrop",
-            datacolumn="DATA",
-            timecutoff=threshold,
-            freqcutoff=threshold,
-            action="apply",
-        )
+        def _call_flagdata(**kwargs):
+            """Call flagdata with CASA log environment protection."""
+            try:
+                from dsa110_contimg.utils.tempdirs import casa_log_environment
+                with casa_log_environment():
+                    return flagdata(**kwargs)
+            except ImportError:
+                return flagdata(**kwargs)
 
-    elif strategy == "rflag":
-        # R-flag: statistical outlier detection
-        threshold = 4.0 if aggressive else 5.0
-        _call_flagdata(
-            vis=ms_path,
-            mode="rflag",
-            datacolumn="DATA",
-            timedevscale=threshold,
-            freqdevscale=threshold,
-            action="apply",
-        )
+        # Apply flagging based on strategy
+        if strategy == "tfcrop":
+            # Time-frequency crop: good for broadband RFI
+            threshold = 3.0 if aggressive else 4.0
+            _call_flagdata(
+                vis=ms_path,
+                mode="tfcrop",
+                datacolumn="DATA",
+                timecutoff=threshold,
+                freqcutoff=threshold,
+                action="apply",
+            )
+
+        elif strategy == "rflag":
+            # R-flag: statistical outlier detection
+            threshold = 4.0 if aggressive else 5.0
+            _call_flagdata(
+                vis=ms_path,
+                mode="rflag",
+                datacolumn="DATA",
+                timedevscale=threshold,
+                freqdevscale=threshold,
+                action="apply",
+            )
 
     # Get final flag state
     with casatables.table(ms_path, readonly=True) as tb:
