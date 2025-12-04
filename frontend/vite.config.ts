@@ -100,7 +100,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: "jsdom",
-    setupFiles: ["./src/testing/setup.ts"],
+    setupFiles: ["./src/testing/msw-setup.ts", "./src/testing/setup.ts"],
     exclude: ["**/node_modules/**", "**/dist/**", "**/e2e/**"],
     typecheck: {
       tsconfig: "./tsconfig.test.json",
