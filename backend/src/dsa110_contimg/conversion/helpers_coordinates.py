@@ -14,6 +14,16 @@ try:  # pyuvdata>=3.2: faster uvw calculator
 except (ImportError, AttributeError):  # pragma: no cover - fallback
     _PU_CALC_UVW = None
 
+# pyuvdata 3.2+: phasing functions moved to submodule
+try:
+    from pyuvdata.utils.phasing import (
+        calc_app_coords as _calc_app_coords,
+        calc_frame_pos_angle as _calc_frame_pos_angle,
+    )
+except (ImportError, AttributeError):  # pragma: no cover - fallback for older versions
+    _calc_app_coords = uvutils.calc_app_coords
+    _calc_frame_pos_angle = uvutils.calc_frame_pos_angle
+
 from dsa110_contimg.conversion.helpers_antenna import (
     _ensure_antenna_diameters,
     set_antenna_positions,
