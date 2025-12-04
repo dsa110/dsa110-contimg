@@ -81,15 +81,6 @@ jobs:
       - name: Run TypeScript type check
         run: npm run type-check
       
-      - name: Check for type errors in API files
-        run: |
-          echo "Checking specific API-related files..."
-          npx tsc --noEmit src/api/*.ts src/types/*.ts 2>&1 | tee /tmp/type-errors.txt
-          if grep -q "error TS" /tmp/type-errors.txt; then
-            echo "::error::TypeScript errors found in API/type files"
-            exit 1
-          fi
-
   # ==========================================================================
   # Alignment Unit Tests
   # ==========================================================================
