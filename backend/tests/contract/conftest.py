@@ -164,11 +164,12 @@ def synthetic_uvh5_files(contract_test_dir: Path) -> Generator[List[Path], None,
         
         yield files
     finally:
-        # Restore CWD for CASA logging
-        try:
-            os.chdir(saved_cwd)
-        except (OSError, PermissionError):
-            pass
+        # Restore CWD for CASA logging (only if we had a valid saved_cwd)
+        if saved_cwd is not None:
+            try:
+                os.chdir(saved_cwd)
+            except (OSError, PermissionError):
+                pass
 
 
 @pytest.fixture(scope="function")

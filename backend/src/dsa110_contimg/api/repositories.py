@@ -662,14 +662,15 @@ class AsyncSourceRepository(SourceRepositoryInterface):
                 dec_deg=row["dec_deg"],
             )
             
-            # Get contributing images
+            # Get contributing images with flux data for lightcurve display
             img_cursor = await conn.execute(
                 """
-                SELECT DISTINCT p.image_path, i.id, i.ms_path, i.created_at
+                SELECT DISTINCT p.image_path, p.flux_jy, p.flux_err_jy, p.measured_at,
+                       i.id, i.ms_path, i.created_at
                 FROM photometry p
                 LEFT JOIN images i ON p.image_path = i.path
                 WHERE p.source_id = ?
-                ORDER BY i.created_at DESC
+                ORDER BY p.measured_at DESC
                 """,
                 (source_id,)
             )
@@ -681,12 +682,18 @@ class AsyncSourceRepository(SourceRepositoryInterface):
                     if latest_id is None:
                         latest_id = str(img_row["id"])
                     
+                    # Use measured_at from photometry if available, fall back to image created_at
+                    timestamp = img_row["measured_at"] or img_row["created_at"]
+                    created_at = datetime.fromtimestamp(timestamp) if timestamp else None
+                    
                     contributing.append({
                         "image_id": str(img_row["id"]),
                         "path": img_row["image_path"],
                         "ms_path": img_row["ms_path"],
                         "qa_grade": "good",
-                        "created_at": datetime.fromtimestamp(img_row["created_at"]) if img_row["created_at"] else None,
+                        "created_at": created_at,
+                        "flux_jy": img_row["flux_jy"],
+                        "flux_error_jy": img_row["flux_err_jy"],
                     })
             
             record.contributing_images = contributing
