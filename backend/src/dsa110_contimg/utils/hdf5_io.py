@@ -223,6 +223,8 @@ def open_uvh5(
     mode: str = "r",
     cache_size: int = HDF5_CACHE_SIZE_DEFAULT,
     cache_slots: int = HDF5_CACHE_SLOTS,
+    use_fuse_lock: bool = False,
+    lock_timeout: float = 5.0,
 ) -> Iterator["h5py.File"]:
     """Open UVH5/HDF5 file with optimized chunk cache settings.
 
@@ -235,6 +237,9 @@ def open_uvh5(
         mode: File mode ('r', 'r+', 'w', 'w-', 'a')
         cache_size: Chunk cache size in bytes (default: 16 MB)
         cache_slots: Number of hash table slots (default: 1009)
+        use_fuse_lock: If True, acquire a read lock to prevent races with
+                       file moves on FUSE mounts (default: False for backward compat)
+        lock_timeout: Timeout for lock acquisition in seconds (default: 5.0)
 
     Yields:
         h5py.File object with optimized settings
@@ -245,18 +250,32 @@ def open_uvh5(
         ...     data = f['visdata'][:]
     """
     import h5py
+    from contextlib import nullcontext
 
-    # rdcc_nbytes: raw data chunk cache size in bytes
-    # rdcc_nslots: number of chunk slots in cache hash table
-    # rdcc_w0: preemption policy (0.0 = LRU, 1.0 = evict fully read chunks)
-    with h5py.File(
-        path,
-        mode,
-        rdcc_nbytes=cache_size,
-        rdcc_nslots=cache_slots,
-        rdcc_w0=0.75,  # Balanced preemption
-    ) as f:
-        yield f
+    # Acquire FUSE-aware read lock if requested (only for read modes)
+    lock_context = nullcontext()
+    if use_fuse_lock and mode in ("r", "r+"):
+        try:
+            from dsa110_contimg.utils.fuse_lock import get_fuse_lock_manager
+            lock_mgr = get_fuse_lock_manager()
+            lock_context = lock_mgr.read_lock(str(path), timeout=lock_timeout)
+        except ImportError:
+            pass
+        except Exception as e:
+            logger.debug(f"Could not acquire FUSE read lock for {path}: {e}")
+
+    with lock_context:
+        # rdcc_nbytes: raw data chunk cache size in bytes
+        # rdcc_nslots: number of chunk slots in cache hash table
+        # rdcc_w0: preemption policy (0.0 = LRU, 1.0 = evict fully read chunks)
+        with h5py.File(
+            path,
+            mode,
+            rdcc_nbytes=cache_size,
+            rdcc_nslots=cache_slots,
+            rdcc_w0=0.75,  # Balanced preemption
+        ) as f:
+            yield f
 
 
 @contextmanager
