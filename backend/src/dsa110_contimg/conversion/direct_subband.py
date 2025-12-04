@@ -137,8 +137,19 @@ class DirectSubbandWriter(MSWriter):
                 try:
                     # Use lightweight peek to get midpoint time without full read
                     from dsa110_contimg.utils.fast_meta import peek_uvh5_phase_and_midtime
+                    # Use FUSE-aware read lock to avoid racing with moves
+                    try:
+                        from dsa110_contimg.utils.fuse_lock import get_fuse_lock_manager
+                        lm = get_fuse_lock_manager()
+                    except Exception:
+                        lm = None
 
-                    _, pt_dec, mid_mjd = peek_uvh5_phase_and_midtime(sb_file)
+                    if lm is not None:
+                        with lm.read_lock(sb_file, timeout=5.0):
+                            _, pt_dec, mid_mjd = peek_uvh5_phase_and_midtime(sb_file)
+                    else:
+                        _, pt_dec, mid_mjd = peek_uvh5_phase_and_midtime(sb_file)
+
                     if group_pt_dec is None:
                         group_pt_dec = pt_dec
                     if np.isfinite(mid_mjd) and mid_mjd > 0:
@@ -150,17 +161,36 @@ class DirectSubbandWriter(MSWriter):
                     if group_pt_dec is None:
                         try:
                             from pyuvdata import UVData
+                            try:
+                                from dsa110_contimg.utils.fuse_lock import get_fuse_lock_manager
+                                lm2 = get_fuse_lock_manager()
+                            except Exception:
+                                lm2 = None
 
-                            temp_uv = UVData()
-                            temp_uv.read(
-                                sb_file,
-                                file_type="uvh5",
-                                read_data=False,
-                                run_check=False,
-                                check_extra=False,
-                                run_check_acceptability=False,
-                                strict_uvw_antpos_check=False,
-                            )
+                            if lm2 is not None:
+                                with lm2.read_lock(sb_file, timeout=10.0):
+                                    temp_uv = UVData()
+                                    temp_uv.read(
+                                        sb_file,
+                                        file_type="uvh5",
+                                        read_data=False,
+                                        run_check=False,
+                                        check_extra=False,
+                                        run_check_acceptability=False,
+                                        strict_uvw_antpos_check=False,
+                                    )
+                            else:
+                                temp_uv = UVData()
+                                temp_uv.read(
+                                    sb_file,
+                                    file_type="uvh5",
+                                    read_data=False,
+                                    run_check=False,
+                                    check_extra=False,
+                                    run_check_acceptability=False,
+                                    strict_uvw_antpos_check=False,
+                                )
+
                             if group_pt_dec is None:
                                 group_pt_dec = (
                                     temp_uv.extra_keywords.get("phase_center_dec", 0.0) * u.rad
@@ -588,8 +618,18 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
         for sb_file in file_list:
             try:
                 from dsa110_contimg.utils.fast_meta import peek_uvh5_phase_and_midtime
+                try:
+                    from dsa110_contimg.utils.fuse_lock import get_fuse_lock_manager
+                    lm = get_fuse_lock_manager()
+                except Exception:
+                    lm = None
 
-                _, pt_dec, mid_mjd = peek_uvh5_phase_and_midtime(sb_file)
+                if lm is not None:
+                    with lm.read_lock(sb_file, timeout=5.0):
+                        _, pt_dec, mid_mjd = peek_uvh5_phase_and_midtime(sb_file)
+                else:
+                    _, pt_dec, mid_mjd = peek_uvh5_phase_and_midtime(sb_file)
+
                 if group_pt_dec is None:
                     group_pt_dec = pt_dec
                 if np.isfinite(mid_mjd) and mid_mjd > 0:
@@ -598,17 +638,36 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
                 # Fallback: read file fully if peek fails
                 try:
                     from pyuvdata import UVData
+                    try:
+                        from dsa110_contimg.utils.fuse_lock import get_fuse_lock_manager
+                        lm2 = get_fuse_lock_manager()
+                    except Exception:
+                        lm2 = None
 
-                    temp_uv = UVData()
-                    temp_uv.read(
-                        sb_file,
-                        file_type="uvh5",
-                        read_data=False,
-                        run_check=False,
-                        check_extra=False,
-                        run_check_acceptability=False,
-                        strict_uvw_antpos_check=False,
-                    )
+                    if lm2 is not None:
+                        with lm2.read_lock(sb_file, timeout=10.0):
+                            temp_uv = UVData()
+                            temp_uv.read(
+                                sb_file,
+                                file_type="uvh5",
+                                read_data=False,
+                                run_check=False,
+                                check_extra=False,
+                                run_check_acceptability=False,
+                                strict_uvw_antpos_check=False,
+                            )
+                    else:
+                        temp_uv = UVData()
+                        temp_uv.read(
+                            sb_file,
+                            file_type="uvh5",
+                            read_data=False,
+                            run_check=False,
+                            check_extra=False,
+                            run_check_acceptability=False,
+                            strict_uvw_antpos_check=False,
+                        )
+
                     if group_pt_dec is None:
                         group_pt_dec = temp_uv.extra_keywords.get("phase_center_dec", 0.0) * u.rad
                     mid_mjd = Time(float(np.mean(temp_uv.time_array)), format="jd").mjd
