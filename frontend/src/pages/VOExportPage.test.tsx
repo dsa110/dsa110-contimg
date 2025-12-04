@@ -245,8 +245,9 @@ describe("VOExportPage", () => {
     it("shows record count and file size", () => {
       renderPage();
 
-      expect(screen.getByText("5,000")).toBeInTheDocument();
-      expect(screen.getByText("2.00 MB")).toBeInTheDocument();
+      // Record count may appear in stats too
+      expect(screen.getAllByText("5,000").length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText("2.00 MB").length).toBeGreaterThanOrEqual(1);
     });
 
     it("shows download button for completed exports", () => {
@@ -284,7 +285,10 @@ describe("VOExportPage", () => {
     it("shows cone search info when present", () => {
       renderPage();
 
-      expect(screen.getByText(/cone search/i)).toBeInTheDocument();
+      // Cone search appears in sidebar panel and job card
+      expect(screen.getAllByText(/cone search/i).length).toBeGreaterThanOrEqual(
+        1
+      );
     });
 
     it("shows empty state when no exports", () => {
@@ -401,11 +405,11 @@ describe("VOExportPage", () => {
 
       await user.click(screen.getByRole("button", { name: /new export/i }));
 
-      // Format selection radio buttons
-      expect(screen.getByText("VOTable")).toBeInTheDocument();
-      expect(screen.getByText("FITS")).toBeInTheDocument();
-      expect(screen.getByText("CSV")).toBeInTheDocument();
-      expect(screen.getByText("JSON")).toBeInTheDocument();
+      // Format selection - may appear multiple times (modal + sidebar info)
+      expect(screen.getAllByText("VOTable").length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText("FITS").length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText("CSV").length).toBeGreaterThanOrEqual(1);
+      expect(screen.getAllByText("JSON").length).toBeGreaterThanOrEqual(1);
     });
 
     it("allows selecting data type", async () => {
