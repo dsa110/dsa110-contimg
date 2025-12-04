@@ -118,11 +118,21 @@ def select_bandpass_from_catalog(
     freq_GHz: float = 1.4,
     window: int = 3,
     min_pb: float | None = None,
+    calibrator_name: Optional[str] = None,
 ) -> Tuple[str, List[int], np.ndarray, Tuple[str, float, float, float], int]:
     """Select bandpass fields by scanning a VLA calibrator catalog.
 
     Automatically prefers SQLite catalog if available, falls back to CSV.
     If catalog_path is None, uses automatic resolution (prefers SQLite).
+
+    Args:
+        ms_path: Path to Measurement Set
+        catalog_path: Path to calibrator catalog (auto-resolved if None)
+        search_radius_deg: Maximum angular separation for calibrator match
+        freq_GHz: Observation frequency in GHz
+        window: Number of fields around peak to include
+        min_pb: Minimum primary beam response threshold
+        calibrator_name: If specified, only match this calibrator (e.g., "0834+555")
 
     Returns (field_sel_str, indices, weighted_flux_per_field, calibrator_info, peak_field_idx)
     where:
@@ -194,6 +204,14 @@ def select_bandpass_from_catalog(
     best_wflux: Optional[np.ndarray] = None
 
     for name, row in df.iterrows():
+        # If calibrator_name is specified, only match that exact calibrator
+        if calibrator_name is not None:
+            # Normalize names for comparison (handle J2000 prefix variations)
+            target_name = calibrator_name.upper().replace("J", "").replace(" ", "")
+            catalog_name = str(name).upper().replace("J", "").replace(" ", "")
+            if target_name not in catalog_name and catalog_name not in target_name:
+                continue  # Skip this calibrator, it's not the one we want
+
         try:
             # Handle both SQLite (ra_deg, dec_deg) and CSV (ra, dec) formats
             ra_deg = float(row.get("ra_deg", row.get("ra", row.get("RA", np.nan))))
@@ -265,6 +283,11 @@ def select_bandpass_from_catalog(
             best_wflux = wflux
 
     if best is None or best_wflux is None:
+        if calibrator_name is not None:
+            raise RuntimeError(
+                f"Specified calibrator '{calibrator_name}' not found within "
+                f"{search_radius_deg}° search radius of any field in the MS"
+            )
         raise RuntimeError("No calibrator candidates found within search radius")
 
     _, peak_idx_filtered, name, ra_deg, dec_deg, flux_jy = best

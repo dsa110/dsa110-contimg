@@ -711,6 +711,7 @@ def main():
                 caltables_dir=DEFAULT_CALTABLES_DIR,
                 db_path=args.db_path,
                 dry_run=args.dry_run,
+                calibrator_name=CALIBRATOR_NAME,
             )
             if not args.dry_run and not cal_success:
                 logger.warning(f"Skipping imaging for {obs.group_id} due to calibration failure")

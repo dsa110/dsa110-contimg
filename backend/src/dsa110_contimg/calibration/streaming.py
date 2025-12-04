@@ -115,11 +115,14 @@ def solve_calibration_for_ms(
         if cal_field is None:
             logger.info(f"Auto-detecting calibrator field for {ms_path}")
             try:
+                # If calibrator_name is specified, use it to filter the selection
+                # Otherwise, the nearest calibrator will be selected
                 field_sel_str, _, _, calinfo, _ = select_bandpass_from_catalog(
                     ms_path,
                     catalog_path=catalog_path,
                     search_radius_deg=1.0,
                     window=3,
+                    calibrator_name=calibrator_name,  # Pass expected calibrator
                 )
                 if not field_sel_str:
                     error_msg = (

@@ -2536,7 +2536,16 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                     ]:
                         p = f"{imgroot}{suffix}"
                         if os.path.isdir(p) or os.path.isfile(p):
-                            images_insert(conn, p, ms_path, now_ts, "5min", pbcor)
+                            # Use explicit keyword args to ensure correct mapping
+                            # images_insert(conn, path, ms_path, image_type, **kwargs)
+                            images_insert(
+                                conn,
+                                p,
+                                ms_path,
+                                "5min",
+                                created_at=now_ts,
+                                pbcor=pbcor,
+                            )
                     conn.commit()
 
                     # Trigger photometry if enabled
