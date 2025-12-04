@@ -36,6 +36,15 @@ from dsa110_contimg.calibration.qa import (
     get_qa_store,
 )
 
+# Adaptive flagging
+from dsa110_contimg.calibration.flagging_adaptive import (
+    CalibrationFailure,
+    flag_rfi_adaptive,
+    flag_rfi_with_gpu_fallback,
+    FlaggingStrategy,
+    AdaptiveFlaggingResult,
+)
+
 __all__ = [
     # Transit utilities
     "next_transit_time",
@@ -64,4 +73,10 @@ __all__ = [
     "assess_calibration_quality",
     "compute_calibration_metrics",
     "get_qa_store",
+    # Adaptive flagging
+    "CalibrationFailure",
+    "flag_rfi_adaptive",
+    "flag_rfi_with_gpu_fallback",
+    "FlaggingStrategy",
+    "AdaptiveFlaggingResult",
 ]

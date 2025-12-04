@@ -203,11 +203,13 @@ def create_hdf5_index_db(db_path: Path, files: List[Path], timestamp: str) -> No
         timestamp: Group timestamp
     """
     conn = sqlite3.connect(db_path)
+    # Use the actual schema expected by hdf5_index.py
     conn.execute(
         """
         CREATE TABLE IF NOT EXISTS hdf5_file_index (
             id INTEGER PRIMARY KEY,
-            filepath TEXT NOT NULL UNIQUE,
+            path TEXT NOT NULL UNIQUE,
+            timestamp_iso TEXT,
             group_id TEXT,
             subband_idx INTEGER,
             mid_mjd REAL,
@@ -231,11 +233,12 @@ def create_hdf5_index_db(db_path: Path, files: List[Path], timestamp: str) -> No
         conn.execute(
             """
             INSERT INTO hdf5_file_index 
-            (filepath, group_id, subband_idx, mid_mjd, nblts, nfreqs, file_size_bytes, indexed_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            (path, timestamp_iso, group_id, subband_idx, mid_mjd, nblts, nfreqs, file_size_bytes, indexed_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 str(filepath),
+                timestamp,
                 timestamp,
                 sb_idx,
                 mid_mjd,
