@@ -82,6 +82,9 @@ export const ROUTES = {
   /** Data cleanup wizard */
   CLEANUP: "/cleanup",
 
+  /** Backup and restore dashboard */
+  BACKUPS: "/backups",
+
   /** Calibrator Imaging Test */
   CALIBRATOR_IMAGING: "/calibrator-imaging",
 } as const;
