@@ -1747,3 +1747,434 @@ async def get_pointing_status() -> PointingStatusResponse:
             upcoming_transits=[],
             timestamp=datetime.utcnow().isoformat() + "Z",
         )
+
+
+# ============================================================================
+# Storage Monitoring Endpoints
+# ============================================================================
+
+
+class DirectoryUsage(BaseModel):
+    """Disk usage for a directory."""
+
+    path: str
+    name: str
+    size_bytes: int
+    size_formatted: str
+    file_count: int
+    last_modified: Optional[str] = None
+    category: str  # hdf5, ms, images, calibration, logs, other
+
+
+class DiskPartition(BaseModel):
+    """Disk partition information."""
+
+    mount_point: str
+    device: str
+    filesystem: str
+    total_bytes: int
+    used_bytes: int
+    free_bytes: int
+    usage_percent: float
+    total_formatted: str
+    used_formatted: str
+    free_formatted: str
+
+
+class StorageAlert(BaseModel):
+    """Storage-related alert."""
+
+    severity: str  # info, warning, critical
+    message: str
+    path: Optional[str] = None
+    threshold_percent: Optional[float] = None
+    current_percent: Optional[float] = None
+
+
+class StorageSummary(BaseModel):
+    """Complete storage summary."""
+
+    partitions: List[DiskPartition]
+    directories: List[DirectoryUsage]
+    alerts: List[StorageAlert]
+    total_pipeline_data_bytes: int
+    total_pipeline_data_formatted: str
+    checked_at: str
+    check_duration_ms: Optional[float] = None
+
+
+class CleanupCandidate(BaseModel):
+    """A file recommended for cleanup."""
+
+    path: str
+    size_bytes: int
+    size_formatted: str
+    age_days: float
+    last_accessed: Optional[str] = None
+    reason: str
+    category: str  # old_ms, old_images, old_logs, temp, orphaned
+    safe_to_delete: bool
+
+
+class CleanupRecommendations(BaseModel):
+    """Cleanup recommendations response."""
+
+    candidates: List[CleanupCandidate]
+    total_reclaimable_bytes: int
+    total_reclaimable_formatted: str
+    generated_at: str
+
+
+class StorageTrendPoint(BaseModel):
+    """A point in storage trend history."""
+
+    timestamp: str
+    used_bytes: int
+    usage_percent: float
+
+
+class StorageTrend(BaseModel):
+    """Storage trend data for a partition."""
+
+    mount_point: str
+    data_points: List[StorageTrendPoint]
+    growth_rate_bytes_per_day: float
+    days_until_full: Optional[float] = None
+    period_start: str
+    period_end: str
+
+
+def format_bytes(size_bytes: int) -> str:
+    """Format bytes to human-readable string."""
+    if size_bytes == 0:
+        return "0 B"
+    units = ["B", "KB", "MB", "GB", "TB", "PB"]
+    i = 0
+    size = float(size_bytes)
+    while size >= 1024 and i < len(units) - 1:
+        size /= 1024
+        i += 1
+    return f"{size:.2f} {units[i]}"
+
+
+@router.get("/storage/summary", response_model=StorageSummary)
+async def get_storage_summary() -> StorageSummary:
+    """
+    Get comprehensive storage summary including disk usage and directory breakdown.
+    """
+    import shutil
+    import time
+    from pathlib import Path
+
+    start_time = time.time()
+    checked_at = datetime.utcnow().isoformat() + "Z"
+
+    partitions: List[DiskPartition] = []
+    directories: List[DirectoryUsage] = []
+    alerts: List[StorageAlert] = []
+    total_pipeline_data = 0
+
+    # Check main data partitions
+    partition_paths = [
+        ("/data/dsa110-contimg", "data"),
+        ("/stage/dsa110-contimg", "ssd"),
+        ("/", "root"),
+    ]
+
+    for mount_path, name in partition_paths:
+        path = Path(mount_path)
+        if path.exists():
+            try:
+                usage = shutil.disk_usage(path)
+                partition = DiskPartition(
+                    mount_point=mount_path,
+                    device=name,
+                    filesystem="ext4",  # Simplified
+                    total_bytes=usage.total,
+                    used_bytes=usage.used,
+                    free_bytes=usage.free,
+                    usage_percent=round((usage.used / usage.total) * 100, 1),
+                    total_formatted=format_bytes(usage.total),
+                    used_formatted=format_bytes(usage.used),
+                    free_formatted=format_bytes(usage.free),
+                )
+                partitions.append(partition)
+
+                # Generate alerts for high usage
+                usage_pct = (usage.used / usage.total) * 100
+                if usage_pct >= 95:
+                    alerts.append(StorageAlert(
+                        severity="critical",
+                        message=f"Disk {mount_path} is critically full ({usage_pct:.1f}%)",
+                        path=mount_path,
+                        threshold_percent=95,
+                        current_percent=usage_pct,
+                    ))
+                elif usage_pct >= 85:
+                    alerts.append(StorageAlert(
+                        severity="warning",
+                        message=f"Disk {mount_path} is filling up ({usage_pct:.1f}%)",
+                        path=mount_path,
+                        threshold_percent=85,
+                        current_percent=usage_pct,
+                    ))
+            except OSError as e:
+                logger.warning(f"Could not check partition {mount_path}: {e}")
+
+    # Check pipeline data directories
+    data_dirs = [
+        ("/data/dsa110-contimg/state/hdf5", "HDF5 Data", "hdf5"),
+        ("/data/dsa110-contimg/state/ms", "Measurement Sets", "ms"),
+        ("/data/dsa110-contimg/state/images", "FITS Images", "images"),
+        ("/data/dsa110-contimg/state/cal", "Calibration Tables", "calibration"),
+        ("/data/dsa110-contimg/state/logs", "Log Files", "logs"),
+        ("/stage/dsa110-contimg/tmp", "Temporary Files", "other"),
+    ]
+
+    for dir_path, name, category in data_dirs:
+        path = Path(dir_path)
+        if path.exists():
+            try:
+                total_size = 0
+                file_count = 0
+                latest_mtime = 0
+
+                for f in path.rglob("*"):
+                    if f.is_file():
+                        try:
+                            stat = f.stat()
+                            total_size += stat.st_size
+                            file_count += 1
+                            if stat.st_mtime > latest_mtime:
+                                latest_mtime = stat.st_mtime
+                        except OSError:
+                            pass
+
+                directories.append(DirectoryUsage(
+                    path=dir_path,
+                    name=name,
+                    size_bytes=total_size,
+                    size_formatted=format_bytes(total_size),
+                    file_count=file_count,
+                    last_modified=(
+                        datetime.fromtimestamp(latest_mtime).isoformat() + "Z"
+                        if latest_mtime > 0 else None
+                    ),
+                    category=category,
+                ))
+                total_pipeline_data += total_size
+            except OSError as e:
+                logger.warning(f"Could not check directory {dir_path}: {e}")
+
+    check_duration = (time.time() - start_time) * 1000
+
+    return StorageSummary(
+        partitions=partitions,
+        directories=directories,
+        alerts=alerts,
+        total_pipeline_data_bytes=total_pipeline_data,
+        total_pipeline_data_formatted=format_bytes(total_pipeline_data),
+        checked_at=checked_at,
+        check_duration_ms=round(check_duration, 2),
+    )
+
+
+@router.get("/storage/cleanup-recommendations", response_model=CleanupRecommendations)
+async def get_cleanup_recommendations() -> CleanupRecommendations:
+    """
+    Get recommendations for files that can be safely cleaned up.
+    """
+    from pathlib import Path
+    import time
+
+    generated_at = datetime.utcnow().isoformat() + "Z"
+    candidates: List[CleanupCandidate] = []
+    total_reclaimable = 0
+
+    now = time.time()
+
+    # Check for old temporary files
+    temp_dirs = [
+        "/stage/dsa110-contimg/tmp",
+        "/data/dsa110-contimg/state/tmp",
+    ]
+
+    for temp_dir in temp_dirs:
+        path = Path(temp_dir)
+        if path.exists():
+            try:
+                for f in path.rglob("*"):
+                    if f.is_file():
+                        try:
+                            stat = f.stat()
+                            age_days = (now - stat.st_mtime) / 86400
+                            if age_days > 1:  # Temp files older than 1 day
+                                candidates.append(CleanupCandidate(
+                                    path=str(f),
+                                    size_bytes=stat.st_size,
+                                    size_formatted=format_bytes(stat.st_size),
+                                    age_days=round(age_days, 1),
+                                    last_accessed=(
+                                        datetime.fromtimestamp(stat.st_atime).isoformat() + "Z"
+                                    ),
+                                    reason="Temporary file older than 1 day",
+                                    category="temp",
+                                    safe_to_delete=True,
+                                ))
+                                total_reclaimable += stat.st_size
+                        except OSError:
+                            pass
+            except OSError:
+                pass
+
+    # Check for old log files (> 30 days)
+    log_dir = Path("/data/dsa110-contimg/state/logs")
+    if log_dir.exists():
+        try:
+            for f in log_dir.rglob("*.log*"):
+                if f.is_file():
+                    try:
+                        stat = f.stat()
+                        age_days = (now - stat.st_mtime) / 86400
+                        if age_days > 30:
+                            candidates.append(CleanupCandidate(
+                                path=str(f),
+                                size_bytes=stat.st_size,
+                                size_formatted=format_bytes(stat.st_size),
+                                age_days=round(age_days, 1),
+                                reason="Log file older than 30 days",
+                                category="old_logs",
+                                safe_to_delete=True,
+                            ))
+                            total_reclaimable += stat.st_size
+                    except OSError:
+                        pass
+        except OSError:
+            pass
+
+    # Sort by size descending and limit
+    candidates.sort(key=lambda c: c.size_bytes, reverse=True)
+    candidates = candidates[:100]
+
+    return CleanupRecommendations(
+        candidates=candidates,
+        total_reclaimable_bytes=total_reclaimable,
+        total_reclaimable_formatted=format_bytes(total_reclaimable),
+        generated_at=generated_at,
+    )
+
+
+@router.get("/storage/trends", response_model=List[StorageTrend])
+async def get_storage_trends(
+    days: int = Query(30, ge=1, le=365, description="Days of history"),
+) -> List[StorageTrend]:
+    """
+    Get storage usage trends over time.
+
+    Returns historical disk usage data for trend analysis and capacity planning.
+    """
+    import sqlite3
+    from pathlib import Path
+
+    now = datetime.utcnow()
+    period_end = now.isoformat() + "Z"
+    period_start = (now - __import__("datetime").timedelta(days=days)).isoformat() + "Z"
+
+    trends: List[StorageTrend] = []
+
+    # Check if we have historical data in the database
+    db_path = Path(
+        os.environ.get("PIPELINE_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3")
+    )
+
+    if db_path.exists():
+        try:
+            conn = sqlite3.connect(str(db_path), timeout=5.0)
+            conn.row_factory = sqlite3.Row
+
+            # Check if storage_history table exists
+            table_check = conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' AND name='storage_history'"
+            ).fetchone()
+
+            if table_check:
+                # Get historical data
+                rows = conn.execute(
+                    """
+                    SELECT mount_point, timestamp, used_bytes, usage_percent
+                    FROM storage_history
+                    WHERE timestamp >= datetime('now', ?)
+                    ORDER BY mount_point, timestamp
+                    """,
+                    (f"-{days} days",),
+                ).fetchall()
+
+                # Group by mount point
+                mount_data: Dict[str, List[StorageTrendPoint]] = {}
+                for row in rows:
+                    mp = row["mount_point"]
+                    if mp not in mount_data:
+                        mount_data[mp] = []
+                    mount_data[mp].append(StorageTrendPoint(
+                        timestamp=row["timestamp"],
+                        used_bytes=row["used_bytes"],
+                        usage_percent=row["usage_percent"],
+                    ))
+
+                for mount_point, data_points in mount_data.items():
+                    if len(data_points) >= 2:
+                        # Calculate growth rate
+                        first = data_points[0]
+                        last = data_points[-1]
+                        days_span = days  # Approximate
+                        growth = (last.used_bytes - first.used_bytes) / max(days_span, 1)
+
+                        # Estimate days until full
+                        days_until_full = None
+                        if growth > 0:
+                            # Get total capacity (would need to store this)
+                            # For now, estimate based on 100% usage
+                            remaining = (100 - last.usage_percent) / 100 * last.used_bytes / (last.usage_percent / 100)
+                            if remaining > 0:
+                                days_until_full = remaining / growth
+
+                        trends.append(StorageTrend(
+                            mount_point=mount_point,
+                            data_points=data_points,
+                            growth_rate_bytes_per_day=growth,
+                            days_until_full=days_until_full,
+                            period_start=period_start,
+                            period_end=period_end,
+                        ))
+
+            conn.close()
+        except Exception as e:
+            logger.warning(f"Could not get storage trends: {e}")
+
+    # If no historical data, return current snapshot as single point
+    if not trends:
+        import shutil
+
+        for mount_path in ["/data/dsa110-contimg", "/stage/dsa110-contimg"]:
+            path = Path(mount_path)
+            if path.exists():
+                try:
+                    usage = shutil.disk_usage(path)
+                    usage_pct = (usage.used / usage.total) * 100
+
+                    trends.append(StorageTrend(
+                        mount_point=mount_path,
+                        data_points=[StorageTrendPoint(
+                            timestamp=period_end,
+                            used_bytes=usage.used,
+                            usage_percent=round(usage_pct, 1),
+                        )],
+                        growth_rate_bytes_per_day=0,
+                        days_until_full=None,
+                        period_start=period_start,
+                        period_end=period_end,
+                    ))
+                except OSError:
+                    pass
+
+    return trends

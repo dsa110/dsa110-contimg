@@ -65,7 +65,7 @@ CREATE TABLE IF NOT EXISTS images (
     freq_ghz REAL,
     bandwidth_mhz REAL,
     integration_sec REAL,
-    FOREIGN KEY (ms_path) REFERENCES ms_index(path)
+    FOREIGN KEY (ms_path) REFERENCES ms_index(path) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_images_ms_path ON images(ms_path);
@@ -118,7 +118,8 @@ CREATE TABLE IF NOT EXISTS calibration_tables (
     solver_version TEXT,
     solver_params TEXT,
     quality_metrics TEXT,
-    notes TEXT
+    notes TEXT,
+    FOREIGN KEY (source_ms_path) REFERENCES ms_index(path) ON DELETE SET NULL
 );
 
 CREATE INDEX IF NOT EXISTS idx_caltables_set ON calibration_tables(set_name);

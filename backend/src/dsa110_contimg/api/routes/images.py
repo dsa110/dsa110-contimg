@@ -747,26 +747,398 @@ async def delete_region(
 ):
     """
     Delete a region file.
-    
+
     Raises:
         RecordNotFoundError: If image or region is not found
     """
     from pathlib import Path
-    
+
     image = await service.get_image(image_id)
     if not image:
         raise RecordNotFoundError("Image", image_id)
-    
+
     # Find and delete region file
     image_path = Path(image.path)
-    
+
     deleted = False
     for region_file in image_path.parent.glob(f"{image_path.stem}.*.{region_id}.*"):
         if region_file.suffix in (".reg", ".crtf", ".json") and ".mask." not in region_file.name:
             region_file.unlink()
             deleted = True
-    
+
     if not deleted:
         raise RecordNotFoundError("Region", region_id)
-    
+
     return {"status": "deleted", "region_id": region_id}
+
+
+# =============================================================================
+# Rating Endpoints
+# =============================================================================
+
+
+class RatingRequest(BaseModel):
+    """Request to submit an image rating."""
+    rating: int = Field(..., ge=1, le=5, description="Rating from 1-5")
+    comment: Optional[str] = Field(None, description="Optional comment")
+    rater: Optional[str] = Field(None, description="Username of rater")
+
+
+class RatingResponse(BaseModel):
+    """Response after submitting a rating."""
+    image_id: str
+    rating: int
+    comment: Optional[str]
+    rater: Optional[str]
+    rated_at: str
+    new_average: Optional[float] = None
+
+
+@router.post("/{image_id}/rating", response_model=RatingResponse)
+async def submit_image_rating(
+    image_id: str,
+    request: RatingRequest,
+    service: AsyncImageService = Depends(get_async_image_service),
+    _auth: AuthContext = Depends(require_write_access),
+):
+    """
+    Submit a quality rating for an image.
+
+    Ratings help with quality assessment and filtering.
+
+    Raises:
+        RecordNotFoundError: If image is not found
+    """
+    from datetime import datetime
+    import sqlite3
+    import os
+    from pathlib import Path
+
+    image = await service.get_image(image_id)
+    if not image:
+        raise RecordNotFoundError("Image", image_id)
+
+    rated_at = datetime.utcnow().isoformat() + "Z"
+
+    # Store rating in database
+    db_path = Path(
+        os.environ.get("PIPELINE_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3")
+    )
+
+    new_average = None
+
+    if db_path.exists():
+        try:
+            conn = sqlite3.connect(str(db_path), timeout=10.0)
+            conn.row_factory = sqlite3.Row
+
+            # Ensure ratings table exists
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS image_ratings (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    image_id TEXT NOT NULL,
+                    rating INTEGER NOT NULL,
+                    comment TEXT,
+                    rater TEXT,
+                    rated_at TEXT NOT NULL
+                )
+            """)
+
+            # Insert rating
+            conn.execute(
+                """
+                INSERT INTO image_ratings (image_id, rating, comment, rater, rated_at)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (image_id, request.rating, request.comment, request.rater, rated_at),
+            )
+
+            # Calculate new average
+            result = conn.execute(
+                "SELECT AVG(rating) as avg_rating FROM image_ratings WHERE image_id = ?",
+                (image_id,),
+            ).fetchone()
+
+            if result and result["avg_rating"]:
+                new_average = round(result["avg_rating"], 2)
+
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            # Log but don't fail - rating is not critical
+            pass
+
+    return RatingResponse(
+        image_id=image_id,
+        rating=request.rating,
+        comment=request.comment,
+        rater=request.rater,
+        rated_at=rated_at,
+        new_average=new_average,
+    )
+
+
+# =============================================================================
+# Image Delete Endpoint
+# =============================================================================
+
+
+@router.delete("/{image_id}")
+async def delete_image(
+    image_id: str,
+    delete_files: bool = Query(False, description="Also delete FITS file from disk"),
+    service: AsyncImageService = Depends(get_async_image_service),
+    _auth: AuthContext = Depends(require_write_access),
+):
+    """
+    Delete an image from the database.
+
+    By default, only removes the database record. Set delete_files=true
+    to also delete the FITS file from disk.
+
+    Raises:
+        RecordNotFoundError: If image is not found
+        HTTPException: If deletion fails
+    """
+    from pathlib import Path
+
+    image = await service.get_image(image_id)
+    if not image:
+        raise RecordNotFoundError("Image", image_id)
+
+    deleted_file = False
+
+    # Delete file if requested
+    if delete_files and image.path:
+        try:
+            file_path = Path(image.path)
+            if file_path.exists():
+                file_path.unlink()
+                deleted_file = True
+
+                # Also delete associated files (masks, regions, thumbnails)
+                for related_file in file_path.parent.glob(f"{file_path.stem}.*"):
+                    if related_file != file_path:
+                        try:
+                            related_file.unlink()
+                        except OSError:
+                            pass
+        except OSError as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to delete file: {str(e)}"
+            )
+
+    # Delete from database
+    try:
+        await service.delete_image(image_id)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to delete image record: {str(e)}"
+        )
+
+    return {
+        "status": "deleted",
+        "image_id": image_id,
+        "file_deleted": deleted_file,
+    }
+
+
+# =============================================================================
+# Bulk Download Endpoint
+# =============================================================================
+
+
+class BulkDownloadRequest(BaseModel):
+    """Request for bulk download."""
+    image_ids: list[str] = Field(..., description="List of image IDs to download")
+    format: str = Field(default="zip", description="Archive format (zip, tar)")
+
+
+@router.post("/bulk-download")
+async def bulk_download_images(
+    request: BulkDownloadRequest,
+    service: AsyncImageService = Depends(get_async_image_service),
+):
+    """
+    Download multiple images as an archive.
+
+    Returns a ZIP or TAR file containing the requested FITS images.
+
+    Raises:
+        HTTPException: If no valid images found or archive creation fails
+    """
+    from pathlib import Path
+    import tempfile
+    import zipfile
+    import tarfile
+    import os
+
+    # Collect valid image paths
+    valid_paths = []
+    for image_id in request.image_ids:
+        image = await service.get_image(image_id)
+        if image and image.path:
+            path = Path(image.path)
+            if path.exists():
+                valid_paths.append((image_id, path))
+
+    if not valid_paths:
+        raise HTTPException(
+            status_code=404,
+            detail="No valid images found for download"
+        )
+
+    # Create temporary archive
+    try:
+        if request.format == "tar":
+            # Create tar archive
+            with tempfile.NamedTemporaryFile(suffix=".tar.gz", delete=False) as tmp:
+                archive_path = tmp.name
+
+            with tarfile.open(archive_path, "w:gz") as tar:
+                for image_id, path in valid_paths:
+                    tar.add(path, arcname=path.name)
+
+            media_type = "application/gzip"
+            filename = "images.tar.gz"
+        else:
+            # Create zip archive
+            with tempfile.NamedTemporaryFile(suffix=".zip", delete=False) as tmp:
+                archive_path = tmp.name
+
+            with zipfile.ZipFile(archive_path, "w", zipfile.ZIP_DEFLATED) as zf:
+                for image_id, path in valid_paths:
+                    zf.write(path, arcname=path.name)
+
+            media_type = "application/zip"
+            filename = "images.zip"
+
+        return FileResponse(
+            path=archive_path,
+            media_type=media_type,
+            filename=filename,
+            background=None,  # Will be cleaned up by FileResponse
+        )
+
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to create archive: {str(e)}"
+        )
+
+
+# =============================================================================
+# Animation Endpoint
+# =============================================================================
+
+
+@router.get("/{image_id}/animation")
+async def get_image_animation(
+    image_id: str,
+    frames: int = Query(10, ge=2, le=50, description="Number of frames"),
+    fps: int = Query(2, ge=1, le=10, description="Frames per second"),
+    service: AsyncImageService = Depends(get_async_image_service),
+):
+    """
+    Generate an animated GIF showing different stretches/scales of the image.
+
+    This is useful for visualizing faint features at different intensity levels.
+
+    Raises:
+        RecordNotFoundError: If image is not found
+        HTTPException: If animation generation fails
+    """
+    from pathlib import Path
+    import tempfile
+
+    image = await service.get_image(image_id)
+    if not image:
+        raise RecordNotFoundError("Image", image_id)
+
+    fits_path = Path(image.path)
+    if not fits_path.exists():
+        raise FileNotAccessibleError(image.path, "read")
+
+    try:
+        # Try to generate animation using astropy/matplotlib
+        import numpy as np
+        from astropy.io import fits
+        from astropy.visualization import (
+            AsinhStretch, LinearStretch, LogStretch,
+            MinMaxInterval, ZScaleInterval, ImageNormalize
+        )
+        import matplotlib
+        matplotlib.use('Agg')
+        import matplotlib.pyplot as plt
+        import imageio
+
+        # Read FITS data
+        with fits.open(fits_path) as hdul:
+            # Find image data
+            data = None
+            for hdu in hdul:
+                if hdu.data is not None and len(hdu.data.shape) >= 2:
+                    data = hdu.data
+                    break
+
+            if data is None:
+                raise HTTPException(
+                    status_code=422,
+                    detail="No image data found in FITS file"
+                )
+
+            # Handle 3D+ data by taking first slice
+            while len(data.shape) > 2:
+                data = data[0]
+
+        # Generate frames with different stretches
+        frames_list = []
+        stretches = [
+            ("linear", LinearStretch()),
+            ("asinh_0.1", AsinhStretch(0.1)),
+            ("asinh_0.5", AsinhStretch(0.5)),
+            ("asinh_1", AsinhStretch(1)),
+            ("asinh_2", AsinhStretch(2)),
+            ("log", LogStretch()),
+        ]
+
+        interval = ZScaleInterval()
+
+        for name, stretch in stretches[:frames]:
+            fig, ax = plt.subplots(figsize=(6, 6))
+            norm = ImageNormalize(data, interval=interval, stretch=stretch)
+            ax.imshow(data, origin='lower', cmap='gray', norm=norm)
+            ax.set_title(f"Stretch: {name}")
+            ax.axis('off')
+
+            # Save to buffer
+            fig.canvas.draw()
+            frame = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
+            frame = frame.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+            frames_list.append(frame)
+            plt.close(fig)
+
+        # Create GIF
+        with tempfile.NamedTemporaryFile(suffix=".gif", delete=False) as tmp:
+            gif_path = tmp.name
+
+        imageio.mimsave(gif_path, frames_list, fps=fps, loop=0)
+
+        return FileResponse(
+            path=gif_path,
+            media_type="image/gif",
+            filename=f"{fits_path.stem}_animation.gif",
+        )
+
+    except ImportError as e:
+        raise HTTPException(
+            status_code=501,
+            detail=f"Animation generation requires additional packages: {str(e)}"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to generate animation: {str(e)}"
+        )

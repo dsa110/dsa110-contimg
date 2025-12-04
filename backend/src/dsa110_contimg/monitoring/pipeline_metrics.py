@@ -30,11 +30,11 @@ import time
 from collections import defaultdict, deque
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 from enum import Enum
 from pathlib import Path
 from threading import Lock
-from typing import Any, Deque, Dict, Generator, List, Optional, Tuple
+from typing import Any, Deque, Dict, Generator, List, Optional, Tuple, Union
 
 logger = logging.getLogger(__name__)
 
@@ -205,6 +205,63 @@ class ThroughputMetrics:
             "ms_per_hour": round(self.ms_per_hour, 2),
             "bytes_processed": self.bytes_processed,
             "gb_per_hour": round(self.gb_per_hour, 2),
+            "time_window_hours": self.time_window_hours,
+        }
+
+
+@dataclass
+class IngestRateMetrics:
+    """Ingest (incoming data) rate metrics.
+
+    Tracks rate of incoming subband groups vs processing rate
+    to detect when the pipeline is falling behind.
+
+    Attributes:
+        groups_arrived: Number of subband groups that arrived
+        groups_per_hour: Arrival rate (groups per hour)
+        groups_processed: Number of groups successfully processed
+        processed_per_hour: Processing rate (groups per hour)
+        backlog_groups: Current backlog (arrived - processed)
+        backlog_growing: True if backlog is increasing
+        time_window_hours: Time window for calculations
+    """
+
+    groups_arrived: int = 0
+    groups_per_hour: float = 0.0
+    groups_processed: int = 0
+    processed_per_hour: float = 0.0
+    backlog_groups: int = 0
+    backlog_growing: bool = False
+    time_window_hours: float = 1.0
+
+    @property
+    def rate_ratio(self) -> float:
+        """Ratio of processing rate to arrival rate.
+
+        Returns:
+            >1.0 means pipeline is keeping up
+            <1.0 means pipeline is falling behind
+        """
+        if self.groups_per_hour <= 0:
+            return float("inf")  # No incoming data
+        return self.processed_per_hour / self.groups_per_hour
+
+    @property
+    def is_keeping_up(self) -> bool:
+        """Check if pipeline is keeping up with incoming data."""
+        return self.rate_ratio >= 1.0
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
+        return {
+            "groups_arrived": self.groups_arrived,
+            "groups_per_hour": round(self.groups_per_hour, 2),
+            "groups_processed": self.groups_processed,
+            "processed_per_hour": round(self.processed_per_hour, 2),
+            "backlog_groups": self.backlog_groups,
+            "backlog_growing": self.backlog_growing,
+            "rate_ratio": round(self.rate_ratio, 2) if self.rate_ratio != float("inf") else None,
+            "is_keeping_up": self.is_keeping_up,
             "time_window_hours": self.time_window_hours,
         }
 
@@ -395,6 +452,9 @@ class PipelineMetricsCollector:
         self._completed_jobs: Deque[JobMetrics] = deque(maxlen=history_size)
         self._stage_gpu_utilization: Dict[PipelineStage, List[float]] = defaultdict(list)
         self._throughput_timestamps: Deque[Tuple[float, int]] = deque(maxlen=1000)
+        # Track incoming data arrivals for backlog monitoring
+        self._ingest_timestamps: Deque[Tuple[float, str]] = deque(maxlen=2000)
+        self._previous_backlog: int = 0  # For tracking if backlog is growing
 
         if db_path:
             self._init_db()
@@ -598,6 +658,71 @@ class PipelineMetricsCollector:
                 time_window_hours=hours,
             )
 
+    def record_ingest(self, group_id: str) -> None:
+        """Record arrival of a new subband group for ingest rate tracking.
+
+        Call this when a new complete subband group arrives
+        in the incoming directory.
+
+        Args:
+            group_id: Unique identifier for the subband group
+        """
+        with self._lock:
+            self._ingest_timestamps.append((time.time(), group_id))
+
+    def get_ingest_rate(self, hours: float = 1.0) -> IngestRateMetrics:
+        """Get ingest rate metrics comparing incoming vs processed data.
+
+        This helps detect when the pipeline is falling behind
+        the incoming data rate.
+
+        Args:
+            hours: Time window in hours
+
+        Returns:
+            IngestRateMetrics showing arrival vs processing rates
+        """
+        with self._lock:
+            cutoff = time.time() - (hours * 3600)
+
+            # Count arrivals in window
+            recent_arrivals = [
+                (ts, gid)
+                for ts, gid in self._ingest_timestamps
+                if ts >= cutoff
+            ]
+            groups_arrived = len(recent_arrivals)
+            groups_per_hour = groups_arrived / hours if hours > 0 else 0.0
+
+            # Count processed in window
+            recent_processed = [
+                (ts, size)
+                for ts, size in self._throughput_timestamps
+                if ts >= cutoff
+            ]
+            groups_processed = len(recent_processed)
+            processed_per_hour = groups_processed / hours if hours > 0 else 0.0
+
+            # Calculate backlog
+            # Total arrivals - total processed (since collector start)
+            total_arrived = len(self._ingest_timestamps)
+            total_processed = len(self._throughput_timestamps)
+            backlog = max(0, total_arrived - total_processed)
+
+            # Track if backlog is growing
+            backlog_growing = backlog > self._previous_backlog
+            self._previous_backlog = backlog
+
+            return IngestRateMetrics(
+                groups_arrived=groups_arrived,
+                groups_per_hour=groups_per_hour,
+                groups_processed=groups_processed,
+                processed_per_hour=processed_per_hour,
+                backlog_groups=backlog,
+                backlog_growing=backlog_growing,
+                time_window_hours=hours,
+            )
+
     def get_stage_gpu_utilization(
         self, stage: Optional[PipelineStage] = None
     ) -> Dict[str, float]:
@@ -702,11 +827,15 @@ class PipelineMetricsCollector:
 
         success_rate = success_count / total_count if total_count > 0 else 0.0
 
+        # Get ingest rate metrics
+        ingest_rate = self.get_ingest_rate(hours)
+
         return {
             "time_window_hours": hours,
             "jobs_completed": total_count,
             "success_rate": round(success_rate, 3),
             "throughput": throughput.to_dict(),
+            "ingest_rate": ingest_rate.to_dict(),
             "gpu_utilization_by_stage": gpu_util,
             "timing_by_stage": timing,
             "memory_high_water_marks": memory,

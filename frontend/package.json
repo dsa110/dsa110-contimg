@@ -38,7 +38,9 @@
     "openapi:fetch": "node scripts/fetch-openapi.cjs",
     "openapi:generate": "npx openapi-typescript http://localhost:8000/api/openapi.json -o src/api/generated/api.d.ts",
     "openapi:generate:file": "npx openapi-typescript src/api/openapi.json -o src/api/generated/api.d.ts",
-    "openapi:sync": "npm run openapi:fetch && npm run openapi:generate:file"
+    "openapi:sync": "npm run openapi:fetch && npm run openapi:generate:file",
+    "precommit:api-check": "node scripts/check-type-drift.cjs",
+    "precommit:api-fix": "node scripts/check-type-drift.cjs --fix"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.17.0",

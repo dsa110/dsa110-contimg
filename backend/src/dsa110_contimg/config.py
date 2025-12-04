@@ -11,11 +11,11 @@ Configuration sources (in priority order):
 
 Usage:
     from dsa110_contimg.config import settings
-    
+
     # Access typed, validated config
     ms_dir = settings.paths.ms_dir
     timeout = settings.database.timeout
-    
+
     # All values validated at import time (fail-fast)
 
 Environment variable naming convention:
@@ -27,7 +27,7 @@ Environment variable naming convention:
 from enum import Enum
 from functools import lru_cache
 from pathlib import Path
-from typing import Set, Optional
+from typing import Optional, Set
 
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -43,7 +43,7 @@ class Environment(str, Enum):
 
 class PathSettings(BaseSettings):
     """Path configuration for all pipeline directories and databases.
-    
+
     All paths are validated to ensure parent directories exist.
     Uses Path type for type safety (CASA wrappers handle string conversion).
     """
@@ -51,7 +51,7 @@ class PathSettings(BaseSettings):
         env_prefix="CONTIMG_",
         extra="ignore",
     )
-    
+
     # Base directories
     input_dir: Path = Field(
         default=Path("/data/incoming"),
@@ -69,7 +69,7 @@ class PathSettings(BaseSettings):
         default=Path("/data/dsa110-contimg/state/db"),
         description="Pipeline state directory (SQLite databases)"
     )
-    
+
     # Scratch subdirectories (derived from scratch_dir by default)
     ms_dir: Optional[Path] = Field(
         default=None,
@@ -95,7 +95,7 @@ class PathSettings(BaseSettings):
         default=Path("/data/dsa110-contimg/state/logs/casa"),
         description="CASA log files directory (persistent storage)"
     )
-    
+
     # tmpfs staging
     stage_to_tmpfs: bool = Field(
         default=True,
@@ -105,7 +105,7 @@ class PathSettings(BaseSettings):
         default=Path("/dev/shm"),
         description="tmpfs mount point"
     )
-    
+
     @model_validator(mode="after")
     def set_scratch_subdirs(self) -> "PathSettings":
         """Set scratch subdirectories if not explicitly configured."""
@@ -124,21 +124,21 @@ class PathSettings(BaseSettings):
 
 class DatabaseSettings(BaseSettings):
     """Database configuration for the unified SQLite database.
-    
+
     All pipeline data is stored in a single unified database (pipeline.sqlite3).
     Legacy per-domain databases have been migrated and deprecated.
     """
     model_config = SettingsConfigDict(
         extra="ignore",
     )
-    
+
     # Unified database - the single source of truth
     path: Path = Field(
         default=Path("/data/dsa110-contimg/state/db/pipeline.sqlite3"),
         validation_alias="PIPELINE_DB",
         description="Unified pipeline database path"
     )
-    
+
     # Connection settings
     timeout: float = Field(
         default=30.0,
@@ -149,39 +149,39 @@ class DatabaseSettings(BaseSettings):
         default=True,
         description="Enable WAL mode for concurrent access"
     )
-    
+
     # Deprecated aliases for backwards compatibility during transition
     # These all point to the unified database now
     @property
     def unified_db(self) -> Path:
         """Deprecated: Use 'path' instead."""
         return self.path
-    
+
     @property
     def products_db(self) -> Path:
         """Deprecated: Use unified 'path' instead."""
         return self.path
-    
+
     @property
     def ingest_db(self) -> Path:
         """Deprecated: Use unified 'path' instead."""
         return self.path
-    
+
     @property
     def cal_registry_db(self) -> Path:
         """Deprecated: Use unified 'path' instead."""
         return self.path
-    
+
     @property
     def hdf5_db(self) -> Path:
         """Deprecated: Use unified 'path' instead."""
         return self.path
-    
+
     @property
     def calibrators_db(self) -> Path:
         """Deprecated: Use unified 'path' instead."""
         return self.path
-    
+
     @property
     def data_registry_db(self) -> Path:
         """Deprecated: Use unified 'path' instead."""
@@ -190,14 +190,14 @@ class DatabaseSettings(BaseSettings):
 
 class ConversionSettings(BaseSettings):
     """Configuration for UVH5 -> MS conversion.
-    
+
     All conversion parameters are centralized here instead of being passed
     as 10+ function arguments. Functions only need essential parameters
     (input, output) and pull configuration from settings.conversion.
-    
+
     Example:
         from dsa110_contimg.config import settings
-        
+
         # Instead of convert_group(..., max_workers=4, skip_incomplete=True, ...)
         # Just use:
         timeout = settings.conversion.timeout_s
@@ -207,7 +207,7 @@ class ConversionSettings(BaseSettings):
         env_prefix="CONTIMG_",
         extra="ignore",
     )
-    
+
     # Subband configuration
     expected_subbands: int = Field(
         default=16,
@@ -217,13 +217,13 @@ class ConversionSettings(BaseSettings):
         default=5.0,
         description="Observation chunk duration in minutes"
     )
-    
+
     # Time windowing for grouping
     cluster_tolerance_s: float = Field(
         default=60.0,
         description="Time window for grouping subbands (seconds)"
     )
-    
+
     # Parallelization
     max_workers: int = Field(
         default=4,
@@ -235,7 +235,15 @@ class ConversionSettings(BaseSettings):
         validation_alias="OMP_NUM_THREADS",
         description="OpenMP threads per worker"
     )
-    
+    parallel_loading: bool = Field(
+        default=True,
+        description="Enable parallel I/O for subband loading"
+    )
+    io_max_workers: int = Field(
+        default=4,
+        description="Maximum I/O threads for parallel subband loading"
+    )
+
     # Behavior flags (rarely changed - moved from function args)
     skip_incomplete: bool = Field(
         default=True,
@@ -249,7 +257,7 @@ class ConversionSettings(BaseSettings):
         default=True,
         description="Auto-detect and rename calibrator fields"
     )
-    
+
     # Timeout and retry
     timeout_s: float = Field(
         default=3600.0,
@@ -259,7 +267,7 @@ class ConversionSettings(BaseSettings):
         default=2,
         description="Number of retries on failure"
     )
-    
+
     # Writer configuration
     writer_type: str = Field(
         default="parallel-subband",
@@ -277,7 +285,7 @@ class CalibrationSettings(BaseSettings):
         env_prefix="CONTIMG_CAL_",
         extra="ignore",
     )
-    
+
     bandpass_interval_hours: float = Field(
         default=24.0,
         validation_alias="bandpass_interval_hours",
@@ -316,7 +324,7 @@ class ImagingSettings(BaseSettings):
         env_prefix="IMG_",
         extra="ignore",
     )
-    
+
     imsize: int = Field(
         default=2048,
         description="Image size in pixels"
@@ -337,7 +345,7 @@ class GPUSettings(BaseSettings):
         env_prefix="PIPELINE_GPU_",
         extra="ignore",
     )
-    
+
     enabled: bool = Field(
         default=True,
         description="Enable GPU acceleration"
@@ -368,18 +376,18 @@ class QASettings(BaseSettings):
         env_prefix="CONTIMG_QA_",
         extra="ignore",
     )
-    
+
     # MS quality
     ms_max_flagged: float = Field(default=0.5, description="Max flagged fraction for MS")
     ms_max_zeros: float = Field(default=0.3, description="Max zero fraction for MS")
     ms_min_amp: float = Field(default=1e-6, description="Minimum amplitude for MS")
-    
+
     # Calibration quality
     cal_max_flagged: float = Field(default=0.3, description="Max flagged fraction for cal")
     cal_min_amp: float = Field(default=0.1, description="Minimum amplitude for cal")
     cal_max_amp: float = Field(default=10.0, description="Maximum amplitude for cal")
     cal_max_phase_scatter: float = Field(default=90.0, description="Max phase scatter (deg)")
-    
+
     # Image quality
     img_min_dynamic_range: float = Field(default=5.0, description="Min dynamic range")
     img_min_peak_snr: float = Field(default=5.0, description="Min peak SNR")
@@ -391,7 +399,7 @@ class LoggingSettings(BaseSettings):
     model_config = SettingsConfigDict(
         extra="ignore",
     )
-    
+
     level: str = Field(
         default="INFO",
         validation_alias="CONTIMG_LOG_LEVEL",
@@ -418,7 +426,7 @@ class APISettings(BaseSettings):
         env_prefix="DSA110_",
         extra="ignore",
     )
-    
+
     environment: Environment = Field(
         default=Environment.DEVELOPMENT,
         validation_alias="env",
@@ -440,7 +448,7 @@ class APISettings(BaseSettings):
         default=1,
         description="Number of workers"
     )
-    
+
     # Auth settings
     auth_disabled: bool = Field(
         default=False,
@@ -454,7 +462,7 @@ class APISettings(BaseSettings):
         default="",
         description="JWT signing secret"
     )
-    
+
     # Rate limiting
     rate_limit_disabled: bool = Field(
         default=False,
@@ -468,7 +476,7 @@ class APISettings(BaseSettings):
         default=1000,
         description="Requests per hour"
     )
-    
+
     @property
     def api_keys(self) -> Set[str]:
         """Parse comma-separated API keys into a set."""
@@ -482,7 +490,7 @@ class RedisSettings(BaseSettings):
     model_config = SettingsConfigDict(
         extra="ignore",
     )
-    
+
     url: str = Field(
         default="redis://localhost:6379",
         validation_alias="DSA110_REDIS_URL",
@@ -519,7 +527,7 @@ class AlertingSettings(BaseSettings):
         env_prefix="CONTIMG_",
         extra="ignore",
     )
-    
+
     # Slack
     slack_webhook_url: Optional[str] = Field(
         default=None,
@@ -529,7 +537,7 @@ class AlertingSettings(BaseSettings):
         default="WARNING",
         description="Minimum severity for Slack alerts"
     )
-    
+
     # Email
     smtp_host: Optional[str] = Field(default=None, description="SMTP host")
     smtp_port: int = Field(default=587, description="SMTP port")
@@ -551,7 +559,7 @@ class DiskSettings(BaseSettings):
         env_prefix="CONTIMG_",
         extra="ignore",
     )
-    
+
     disk_warn_gb: int = Field(
         default=200,
         description="Warning threshold for disk space (GB)"
@@ -580,7 +588,7 @@ class TLSSettings(BaseSettings):
         env_prefix="DSA110_TLS_",
         extra="ignore",
     )
-    
+
     enabled: bool = Field(default=False, description="Enable TLS")
     cert: Optional[Path] = Field(default=None, description="TLS certificate path")
     key: Optional[Path] = Field(default=None, description="TLS key path")
@@ -590,7 +598,7 @@ class TLSSettings(BaseSettings):
 class Settings(BaseSettings):
     """
     Root configuration for DSA-110 Continuum Imaging Pipeline.
-    
+
     All configuration is loaded and validated at import time.
     Access via the global `settings` singleton.
     """
@@ -600,7 +608,7 @@ class Settings(BaseSettings):
         extra="ignore",
         case_sensitive=False,
     )
-    
+
     # Domain settings
     paths: PathSettings = Field(default_factory=PathSettings)
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
@@ -615,7 +623,7 @@ class Settings(BaseSettings):
     alerting: AlertingSettings = Field(default_factory=AlertingSettings)
     disk: DiskSettings = Field(default_factory=DiskSettings)
     tls: TLSSettings = Field(default_factory=TLSSettings)
-    
+
     # Threading
     omp_num_threads: int = Field(
         default=4,
@@ -627,18 +635,18 @@ class Settings(BaseSettings):
         validation_alias="MKL_NUM_THREADS",
         description="MKL thread count"
     )
-    
+
     # Telescope identity
     telescope_name: str = Field(
         default="DSA_110",
         validation_alias="PIPELINE_TELESCOPE_NAME",
         description="Telescope name (use DSA_110 for EveryBeam)"
     )
-    
+
     def validate_production(self) -> list[str]:
         """Validate production-critical settings. Returns list of errors."""
         errors = []
-        
+
         if self.api.environment == Environment.PRODUCTION:
             if self.api.auth_disabled:
                 errors.append("Authentication cannot be disabled in production")
@@ -648,9 +656,9 @@ class Settings(BaseSettings):
                 errors.append("JWT secret must be at least 32 characters")
             if self.api.debug:
                 errors.append("Debug mode cannot be enabled in production")
-        
+
         return errors
-    
+
     def validate_or_raise(self) -> None:
         """Validate and raise if errors found."""
         errors = self.validate_production()

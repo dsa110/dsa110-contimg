@@ -1,26 +1,51 @@
 /**
  * Centralized API type definitions.
  *
- * This file contains all TypeScript interfaces for API request/response types.
- * All API-related types should be defined here to ensure consistency and
- * prevent type duplication across the codebase.
+ * This file bridges frontend types with backend-generated OpenAPI types.
+ * Where possible, types are re-exported from the generated schema.
+ * Application-specific types extend or augment the generated types.
+ *
+ * Regenerate backend types with:
+ *   npm run openapi:sync
  */
 
 import type { ProvenanceStripProps } from "./provenance";
+import type {
+  QAGrade as GeneratedQAGrade,
+  JobStatus as GeneratedJobStatus,
+  CalibratorMatch as GeneratedCalibratorMatch,
+  ContributingImage as GeneratedContributingImage,
+} from "../api/generated";
 
 // =============================================================================
-// Shared Base Types
+// Shared Base Types (re-exported from generated where available)
 // =============================================================================
 
 /**
  * QA grade values used across the application.
+ * Extended to include null for ungraded items.
  */
-export type QAGrade = "good" | "warn" | "fail" | null;
+export type QAGrade = GeneratedQAGrade | null;
 
 /**
  * Job/pipeline status values.
+ * Re-exported from generated types.
  */
-export type JobStatus = "pending" | "running" | "completed" | "failed";
+export type JobStatus = GeneratedJobStatus;
+
+/**
+ * Calibrator match entry from MS metadata.
+ * Re-exported from generated types.
+ */
+export type CalibratorMatch = GeneratedCalibratorMatch;
+
+/**
+ * Contributing image entry for source detail.
+ * Extended from generated types with additional frontend fields.
+ */
+export interface ContributingImage extends GeneratedContributingImage {
+  flux_jy?: number; // Additional field used in frontend lightcurve display
+}
 
 /**
  * Base interface for entities with an ID.
@@ -50,14 +75,6 @@ export interface WithProvenance {
 export interface WithCoordinates {
   pointing_ra_deg?: number | null;
   pointing_dec_deg?: number | null;
-}
-
-/**
- * Calibrator match entry from MS metadata.
- */
-export interface CalibratorMatch {
-  type: string;
-  cal_table: string;
 }
 
 // =============================================================================
@@ -118,18 +135,6 @@ export interface SourceSummary extends BaseEntity {
   eta?: number;
   v?: number;
   peak_flux_jy?: number;
-}
-
-/**
- * Contributing image entry for source detail.
- */
-export interface ContributingImage {
-  image_id: string;
-  path: string;
-  ms_path?: string;
-  qa_grade?: QAGrade;
-  created_at?: string;
-  flux_jy?: number;
 }
 
 /**

@@ -1,0 +1,311 @@
+# API Alignment Check Workflow
+#
+# This workflow validates that frontend TypeScript types match backend API responses.
+# It runs on PRs that modify API-related code and on pushes to the default branch.
+#
+# The workflow performs multiple levels of validation:
+# 1. TypeScript type check - ensures types compile
+# 2. Unit tests with fixtures - fast, no backend needed
+# 3. Structural API check - validates live API if backend is available
+#
+# Usage:
+#   - Triggered automatically on relevant file changes
+#   - Can be manually triggered via workflow_dispatch
+
+name: API Alignment Check
+
+on:
+  pull_request:
+    paths:
+      # Backend API changes
+      - 'backend/src/dsa110_contimg/api/**'
+      - 'backend/src/dsa110_contimg/api/schemas.py'
+      - 'backend/src/dsa110_contimg/api/routes/**'
+      # Frontend type changes
+      - 'frontend/src/types/**'
+      - 'frontend/src/api/**'
+      - 'frontend/src/hooks/use*.ts'
+      # Generated types
+      - 'frontend/src/api/generated/**'
+      # This workflow
+      - '.github/workflows/api-alignment.yml'
+  
+  push:
+    branches:
+      - master
+      - master-dev
+    paths:
+      - 'backend/src/dsa110_contimg/api/**'
+      - 'frontend/src/types/**'
+      - 'frontend/src/api/**'
+  
+  # Allow manual trigger
+  workflow_dispatch:
+    inputs:
+      run_integration:
+        description: 'Run integration tests against live backend'
+        required: false
+        default: 'false'
+        type: boolean
+
+# Cancel in-progress runs for the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ==========================================================================
+  # Frontend Type Checking
+  # ==========================================================================
+  frontend-typecheck:
+    name: Frontend TypeScript Check
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run TypeScript type check
+        run: npm run type-check
+      
+      - name: Check for type errors in API files
+        run: |
+          echo "Checking specific API-related files..."
+          npx tsc --noEmit src/api/*.ts src/types/*.ts 2>&1 | tee /tmp/type-errors.txt
+          if grep -q "error TS" /tmp/type-errors.txt; then
+            echo "::error::TypeScript errors found in API/type files"
+            exit 1
+          fi
+
+  # ==========================================================================
+  # Alignment Unit Tests
+  # ==========================================================================
+  alignment-unit-tests:
+    name: Alignment Unit Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run alignment tests
+        run: npm run test:alignment
+      
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: alignment-test-results
+          path: frontend/test-results/
+          retention-days: 7
+
+  # ==========================================================================
+  # OpenAPI Schema Sync Check
+  # ==========================================================================
+  openapi-sync-check:
+    name: OpenAPI Schema Sync Check
+    runs-on: ubuntu-latest
+    needs: [frontend-typecheck]
+    defaults:
+      run:
+        working-directory: frontend
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Check if OpenAPI schema is up-to-date
+        id: schema-check
+        run: |
+          # Save current generated types
+          cp src/api/generated/api.d.ts /tmp/api.d.ts.current
+          
+          # Regenerate from saved schema
+          npm run openapi:generate:file
+          
+          # Compare
+          if ! diff -q src/api/generated/api.d.ts /tmp/api.d.ts.current > /dev/null 2>&1; then
+            echo "schema_changed=true" >> $GITHUB_OUTPUT
+            echo "::warning::Generated types differ from committed types. Run 'npm run openapi:sync' locally."
+          else
+            echo "schema_changed=false" >> $GITHUB_OUTPUT
+            echo "✓ Generated types are up-to-date"
+          fi
+      
+      - name: Add PR comment if schema changed
+        if: steps.schema-check.outputs.schema_changed == 'true' && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '⚠️ **OpenAPI Schema Drift Detected**\n\nThe generated TypeScript types differ from the OpenAPI schema. Please run:\n\n```bash\ncd frontend\nnpm run openapi:sync\n```\n\nAnd commit the updated `src/api/generated/api.d.ts` file.'
+            })
+
+  # ==========================================================================
+  # Integration Tests (Optional - requires backend)
+  # ==========================================================================
+  integration-tests:
+    name: Live API Integration Tests
+    runs-on: ubuntu-latest
+    needs: [alignment-unit-tests, openapi-sync-check]
+    # Only run if manually triggered with integration flag, or on push to main branches
+    if: |
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.run_integration == 'true') ||
+      (github.event_name == 'push' && (github.ref == 'refs/heads/master' || github.ref == 'refs/heads/master-dev'))
+    
+    services:
+      # Note: This would require a Docker image of the backend
+      # For now, this job is more of a template
+      backend:
+        image: python:3.11-slim
+        options: --health-cmd "exit 0" --health-interval 10s --health-timeout 5s --health-retries 3
+    
+    defaults:
+      run:
+        working-directory: frontend
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: backend/pyproject.toml
+      
+      - name: Install backend dependencies
+        working-directory: backend
+        run: |
+          pip install -e ".[dev]"
+      
+      - name: Start backend server
+        working-directory: backend
+        run: |
+          # Set test mode to avoid heavy dependencies
+          export DSA110_TEST_MODE=true
+          export DSA110_ENV=test
+          
+          # Start server in background
+          uvicorn dsa110_contimg.api.app:app --host 0.0.0.0 --port 8000 &
+          
+          # Wait for server to be ready
+          for i in {1..30}; do
+            if curl -s http://localhost:8000/api/health > /dev/null; then
+              echo "Backend is ready"
+              break
+            fi
+            echo "Waiting for backend... ($i/30)"
+            sleep 2
+          done
+        env:
+          DSA110_TEST_MODE: 'true'
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+      
+      - name: Install frontend dependencies
+        run: npm ci
+      
+      - name: Run structural API check
+        run: npm run test:alignment:check:all:verbose
+        env:
+          API_BASE_URL: http://localhost:8000
+      
+      - name: Run integration tests
+        run: npm run test:alignment:live
+        env:
+          INTEGRATION_TEST: 'true'
+          API_BASE_URL: http://localhost:8000
+
+  # ==========================================================================
+  # Summary Report
+  # ==========================================================================
+  summary:
+    name: Alignment Check Summary
+    runs-on: ubuntu-latest
+    needs: [frontend-typecheck, alignment-unit-tests, openapi-sync-check]
+    if: always()
+    
+    steps:
+      - name: Check job results
+        run: |
+          echo "## API Alignment Check Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.frontend-typecheck.result }}" == "success" ]; then
+            echo "✅ Frontend TypeScript Check: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Frontend TypeScript Check: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.alignment-unit-tests.result }}" == "success" ]; then
+            echo "✅ Alignment Unit Tests: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ Alignment Unit Tests: Failed" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          if [ "${{ needs.openapi-sync-check.result }}" == "success" ]; then
+            echo "✅ OpenAPI Schema Sync: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ OpenAPI Schema Sync: Check warnings" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Quick Commands" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo "cd frontend" >> $GITHUB_STEP_SUMMARY
+          echo "npm run test:alignment        # Run unit tests" >> $GITHUB_STEP_SUMMARY
+          echo "npm run openapi:sync          # Sync OpenAPI types" >> $GITHUB_STEP_SUMMARY
+          echo "npm run test:alignment:check  # Quick API check" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+      
+      - name: Fail if any check failed
+        if: needs.frontend-typecheck.result == 'failure' || needs.alignment-unit-tests.result == 'failure'
+        run: |
+          echo "One or more alignment checks failed"
+          exit 1

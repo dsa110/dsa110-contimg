@@ -13,7 +13,7 @@ export type { SourceDetail as SourceDetailResponse };
 export function mapProvenanceFromImageDetail(image: ImageDetail): ProvenanceStripProps {
   return {
     runId: image.run_id,
-    msPath: image.ms_path,
+    msPath: image.ms_path ?? undefined,
     calTable: image.cal_table,
     calUrl: image.cal_table ? ROUTES.INTERNAL.CAL(image.cal_table) : undefined,
     pointingRaDeg: image.pointing_ra_deg,
@@ -24,7 +24,7 @@ export function mapProvenanceFromImageDetail(image: ImageDetail): ProvenanceStri
     qaUrl: image.id ? ROUTES.INTERNAL.QA_IMAGE(image.id) : undefined,
     msUrl: image.ms_path ? ROUTES.MS.DETAIL(image.ms_path) : undefined,
     imageUrl: ROUTES.IMAGES.DETAIL(image.id),
-    createdAt: image.created_at,
+    createdAt: image.created_at ?? undefined,
   };
 }
 
@@ -70,10 +70,10 @@ export function mapProvenanceFromSourceDetail(
   }
 
   return {
-    msPath: image.ms_path,
+    msPath: image.ms_path ?? undefined,
     qaGrade: image.qa_grade,
     imageUrl: ROUTES.IMAGES.DETAIL(image.image_id),
     msUrl: image.ms_path ? ROUTES.MS.DETAIL(image.ms_path) : undefined,
-    createdAt: image.created_at,
+    createdAt: image.created_at ?? undefined,
   };
 }
