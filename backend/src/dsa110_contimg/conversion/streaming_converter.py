@@ -1860,24 +1860,72 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                     writer_type = "auto"
                 else:
                     # Use flattened import from top-level conversion module
+                    # Before converting, validate recorded file paths and acquire
+                    # a group-level exclusive lock to prevent races with watchdog
                     from dsa110_contimg.conversion import convert_subband_groups_to_ms
+                    try:
+                        from dsa110_contimg.utils.fuse_lock import get_fuse_lock_manager
+                        lock_mgr = get_fuse_lock_manager()
+                    except Exception:
+                        lock_mgr = None
 
-                    convert_subband_groups_to_ms(
-                        args.input_dir,
-                        args.output_dir,
-                        start_time,
-                        end_time,
-                        scratch_dir=args.scratch_dir,
-                        writer="auto",
-                        writer_kwargs={
-                            "max_workers": getattr(args, "max_workers", 4),
-                            "stage_to_tmpfs": getattr(args, "stage_to_tmpfs", False),
-                            "tmpfs_path": getattr(args, "tmpfs_path", "/dev/shm"),
-                        },
-                        path_mapper=path_mapper,  # Write directly to organized location
-                    )
-                    ret = 0
-                    writer_type = "auto"
+                    try:
+                        # Validate files recorded for this group and remove any stale paths
+                        valid_paths, invalid_paths = queue.validate_group_files(gid)
+                        if invalid_paths:
+                            log.warning(
+                                "Removing stale paths for %s: %s",
+                                gid,
+                                invalid_paths,
+                            )
+                            try:
+                                queue.remove_invalid_files(gid, invalid_paths)
+                            except Exception:
+                                log.debug("Failed to remove invalid paths for %s", gid, exc_info=True)
+
+                        if not valid_paths:
+                            raise RuntimeError("no valid subband files available for group")
+
+                        if lock_mgr is not None:
+                            # Acquire exclusive group lock for the duration of conversion
+                            with lock_mgr.group_lock(gid, valid_paths, timeout=30.0):
+                                convert_subband_groups_to_ms(
+                                    args.input_dir,
+                                    args.output_dir,
+                                    start_time,
+                                    end_time,
+                                    scratch_dir=args.scratch_dir,
+                                    writer="auto",
+                                    writer_kwargs={
+                                        "max_workers": getattr(args, "max_workers", 4),
+                                        "stage_to_tmpfs": getattr(args, "stage_to_tmpfs", False),
+                                        "tmpfs_path": getattr(args, "tmpfs_path", "/dev/shm"),
+                                    },
+                                    path_mapper=path_mapper,  # Write directly to organized location
+                                )
+                        else:
+                            # No lock manager available - fall back to direct call
+                            convert_subband_groups_to_ms(
+                                args.input_dir,
+                                args.output_dir,
+                                start_time,
+                                end_time,
+                                scratch_dir=args.scratch_dir,
+                                writer="auto",
+                                writer_kwargs={
+                                    "max_workers": getattr(args, "max_workers", 4),
+                                    "stage_to_tmpfs": getattr(args, "stage_to_tmpfs", False),
+                                    "tmpfs_path": getattr(args, "tmpfs_path", "/dev/shm"),
+                                },
+                                path_mapper=path_mapper,  # Write directly to organized location
+                            )
+
+                        ret = 0
+                        writer_type = "auto"
+                    except Exception as e:
+                        log.error("Conversion failed for %s: %s", gid, e, exc_info=True)
+                        queue.update_state(gid, "failed", error=str(e))
+                        continue
             except Exception as exc:
                 log.error("Conversion failed for %s: %s", gid, exc)
                 _update_state_machine(state_machine, gid, "FAILED", log)
