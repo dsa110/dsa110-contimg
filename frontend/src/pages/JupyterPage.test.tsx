@@ -581,7 +581,9 @@ describe("JupyterPage", () => {
       renderPage();
 
       // Get header "Start Kernel" button (first one)
-      const startButtons = screen.getAllByRole("button", { name: /start kernel/i });
+      const startButtons = screen.getAllByRole("button", {
+        name: /start kernel/i,
+      });
       await user.click(startButtons[0]);
 
       expect(screen.getByText("Start New Kernel")).toBeInTheDocument();
@@ -591,7 +593,9 @@ describe("JupyterPage", () => {
       const user = userEvent.setup();
       renderPage();
 
-      const startButtons = screen.getAllByRole("button", { name: /start kernel/i });
+      const startButtons = screen.getAllByRole("button", {
+        name: /start kernel/i,
+      });
       await user.click(startButtons[0]);
 
       expect(screen.getByLabelText(/kernel type/i)).toBeInTheDocument();
@@ -601,7 +605,9 @@ describe("JupyterPage", () => {
       const user = userEvent.setup();
       renderPage();
 
-      const startButtons = screen.getAllByRole("button", { name: /start kernel/i });
+      const startButtons = screen.getAllByRole("button", {
+        name: /start kernel/i,
+      });
       await user.click(startButtons[0]);
       await user.click(screen.getByRole("button", { name: /cancel/i }));
 
@@ -620,11 +626,15 @@ describe("JupyterPage", () => {
 
       renderPage();
 
-      const startButtons = screen.getAllByRole("button", { name: /start kernel/i });
+      const startButtons = screen.getAllByRole("button", {
+        name: /start kernel/i,
+      });
       await user.click(startButtons[0]);
-      
+
       // Submit button in modal has exact text "Start Kernel"
-      const submitButton = screen.getByRole("button", { name: /^start kernel$/i });
+      const submitButton = screen.getByRole("button", {
+        name: /^start kernel$/i,
+      });
       await user.click(submitButton);
 
       await waitFor(() => {
