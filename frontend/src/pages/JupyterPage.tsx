@@ -398,7 +398,7 @@ function LaunchNotebookModal({
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label 
+              <label
                 htmlFor="notebook-name-input"
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
               >
@@ -416,7 +416,7 @@ function LaunchNotebookModal({
 
             {template.parameters.map((param) => (
               <div key={param.name}>
-                <label 
+                <label
                   htmlFor={`param-${param.name}`}
                   className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
                 >
