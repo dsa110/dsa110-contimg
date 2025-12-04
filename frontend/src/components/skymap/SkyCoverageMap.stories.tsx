@@ -66,6 +66,34 @@ export const WithSurveyFootprints: Story = {
 };
 
 /**
+ * Map with Global Sky Model (GSM) radio background showing the radio sky at 1400 MHz.
+ * The bright band across the center is the galactic plane.
+ * Similar to VAST/ASKAP sky coverage plots.
+ */
+export const WithRadioBackground: Story = {
+  args: {
+    pointings: generatePointings(30),
+    projection: "mollweide",
+    showGalacticPlane: true,
+    showSurveyFootprints: true,
+    showRadioBackground: true,
+  },
+};
+
+/**
+ * Map without radio background (plain dark background)
+ */
+export const WithoutRadioBackground: Story = {
+  args: {
+    pointings: generatePointings(30),
+    projection: "mollweide",
+    showGalacticPlane: true,
+    showSurveyFootprints: true,
+    showRadioBackground: false,
+  },
+};
+
+/**
  * Map without survey footprints
  */
 export const WithoutSurveyFootprints: Story = {

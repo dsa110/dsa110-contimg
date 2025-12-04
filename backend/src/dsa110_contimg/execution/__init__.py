@@ -63,7 +63,12 @@ from dsa110_contimg.execution.resources import (
     get_recommended_limits,
     resource_limits,
 )
-from dsa110_contimg.execution.task import ExecutionResult, ExecutionTask
+from dsa110_contimg.execution.task import (
+    ExecutionMetrics,
+    ExecutionResult,
+    ExecutionTask,
+    ResourceLimits,
+)
 from dsa110_contimg.execution.validate import (
     ValidationResult,
     ValidationError,
@@ -81,6 +86,8 @@ __all__ = [
     # Task and Result
     "ExecutionTask",
     "ExecutionResult",
+    "ExecutionMetrics",
+    "ResourceLimits",
     # Error handling
     "ErrorCode",
     "ExecutionError",

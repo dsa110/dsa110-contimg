@@ -42,7 +42,8 @@ dev = [
 ]
 
 [project.scripts]
-dsa110-cli = "dsa110_contimg.conversion.cli:main"
+dsa110-cli = "dsa110_contimg.execution.cli:main"
+# Note: conversion.cli is deprecated, use execution.cli instead
 
 [tool.setuptools.packages.find]
 where = ["src"]
