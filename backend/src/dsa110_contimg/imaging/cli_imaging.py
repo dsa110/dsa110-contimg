@@ -930,7 +930,9 @@ def image_ms(
                         dec_str = f"{dec_sign}{dec_d}d{dec_m}m{dec_s:.3f}s"
 
                         # Step 1: Render model image from text list using long-running container
-                        # This avoids Docker volume unmount hang issues
+                        # NOTE: This code path is currently non-functional (docker_utils module
+                        # doesn't exist). The Docker hang issue was fixed by removing the NTFS-FUSE
+                        # /data mount from gpu_utils.py default volumes.
                         from dsa110_contimg.imaging.docker_utils import (
                             convert_host_path_to_container,
                             get_wsclean_container,

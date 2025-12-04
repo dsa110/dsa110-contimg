@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ConversionResult:
     """Result of a conversion operation."""
-    
+
     success: bool
     ms_path: Optional[str] = None
     group_id: Optional[str] = None
@@ -28,15 +28,21 @@ class ConversionResult:
     elapsed_seconds: float = 0.0
     error_message: Optional[str] = None
     metrics: Dict[str, Any] = field(default_factory=dict)
+    # Extracted metadata
+    ra_deg: Optional[float] = None
+    dec_deg: Optional[float] = None
+    mid_mjd: Optional[float] = None
+    is_calibrator: bool = False
 
 
 @dataclass
 class ConversionConfig:
     """Configuration for the conversion stage."""
-    
-    input_dir: Path
+
     output_dir: Path
     scratch_dir: Path
+    input_dir: Optional[Path] = None  # Optional, may be derived from file paths
+    products_db: Optional[Path] = None  # Optional database for recording
     expected_subbands: int = 16
     chunk_duration_minutes: float = 5.0
     execution_mode: str = "auto"  # "inprocess", "subprocess", "auto"
