@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeAll, afterEach, afterAll } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -11,6 +11,13 @@ import {
   createABSURDQueuesStats,
 } from "../../testing/mocks/handlers";
 import { PipelineStatusPanel } from "./PipelineStatusPanel";
+
+// =============================================================================
+// MSW Server Lifecycle (opt-in for this test file)
+// =============================================================================
+beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
 
 /**
  * Create a test wrapper with QueryClient and Router.

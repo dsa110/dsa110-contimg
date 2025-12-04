@@ -56,20 +56,20 @@ Object.defineProperty(window, "sessionStorage", {
 });
 
 // =============================================================================
-// MSW Server Setup
+// MSW Server Setup - DISABLED
 // =============================================================================
-// IMPORTANT: Import MSW server AFTER localStorage/sessionStorage mocks are set up
-// MSW uses localStorage internally for cookie store initialization
-import { server } from "./mocks/server";
-
-// Start server before all tests
-beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
-
-// Reset handlers after each test (removes any runtime handlers added during tests)
-afterEach(() => server.resetHandlers());
-
-// Clean up after all tests
-afterAll(() => server.close());
+// MSW has been set up but is NOT started globally because:
+// 1. Many existing tests mock `global.fetch` directly
+// 2. MSW intercepts fetch which conflicts with those mocks
+// 3. To use MSW, import the server in individual test files:
+//
+//    import { server } from "../../testing/mocks/server";
+//    beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
+//    afterEach(() => server.resetHandlers());
+//    afterAll(() => server.close());
+//
+// Tests that need MSW (like PipelineStatusPanel.test.tsx) manage their own
+// server lifecycle. Tests that mock fetch directly continue to work.
 
 // Mock ResizeObserver which is not available in jsdom
 global.ResizeObserver = class ResizeObserver {
