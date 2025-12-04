@@ -14,8 +14,72 @@ import { http, HttpResponse, delay } from "msw";
 import type { PipelineStatusResponse } from "../../components/pipeline/PipelineStatusPanel";
 
 // =============================================================================
+// ABSURD API Response Types
+// =============================================================================
+
+/** Response from /absurd/health/detailed */
+interface ABSURDHealthResponse {
+  status: "healthy" | "degraded" | "unhealthy";
+  worker_pool_healthy: boolean;
+  queue_depth: number;
+}
+
+/** Response from /absurd/workers */
+interface ABSURDWorkersResponse {
+  workers: Array<{ id: string; status: string }>;
+  total: number;
+}
+
+/** Response from /absurd/queues/stats */
+interface ABSURDQueuesStatsResponse {
+  queue_depth: number;
+}
+
+// =============================================================================
 // Mock Data Factories
 // =============================================================================
+
+/**
+ * Create ABSURD health response.
+ */
+export function createABSURDHealth(
+  overrides: Partial<ABSURDHealthResponse> = {}
+): ABSURDHealthResponse {
+  return {
+    status: "healthy",
+    worker_pool_healthy: true,
+    queue_depth: 6,
+    ...overrides,
+  };
+}
+
+/**
+ * Create ABSURD workers response.
+ */
+export function createABSURDWorkers(
+  overrides: Partial<ABSURDWorkersResponse> = {}
+): ABSURDWorkersResponse {
+  return {
+    workers: [
+      { id: "worker-1", status: "active" },
+      { id: "worker-2", status: "active" },
+    ],
+    total: 2,
+    ...overrides,
+  };
+}
+
+/**
+ * Create ABSURD queues stats response.
+ */
+export function createABSURDQueuesStats(
+  overrides: Partial<ABSURDQueuesStatsResponse> = {}
+): ABSURDQueuesStatsResponse {
+  return {
+    queue_depth: 6,
+    ...overrides,
+  };
+}
 
 /**
  * Create a pipeline status response with sensible defaults.
@@ -54,7 +118,58 @@ export function createPipelineStatus(
 // =============================================================================
 
 /**
- * Create handlers for pipeline status endpoint.
+ * Create handlers for ABSURD pipeline endpoints.
+ * The PipelineStatusPanel fetches from multiple endpoints:
+ * - /absurd/health/detailed
+ * - /absurd/workers
+ * - /absurd/queues/stats
+ */
+export function createABSURDHandlers(
+  options: {
+    health?: ABSURDHealthResponse;
+    workers?: ABSURDWorkersResponse;
+    queuesStats?: ABSURDQueuesStatsResponse;
+    error?: boolean;
+    delayMs?: number;
+  } = {}
+) {
+  const {
+    health = createABSURDHealth(),
+    workers = createABSURDWorkers(),
+    queuesStats = createABSURDQueuesStats(),
+    error = false,
+    delayMs = 0,
+  } = options;
+
+  return [
+    http.get("*/absurd/health/detailed", async () => {
+      if (delayMs > 0) await delay(delayMs);
+      if (error) {
+        return new HttpResponse(null, { status: 503 });
+      }
+      return HttpResponse.json(health);
+    }),
+
+    http.get("*/absurd/workers", async () => {
+      if (delayMs > 0) await delay(delayMs);
+      if (error) {
+        return new HttpResponse(null, { status: 503 });
+      }
+      return HttpResponse.json(workers);
+    }),
+
+    http.get("*/absurd/queues/stats", async () => {
+      if (delayMs > 0) await delay(delayMs);
+      if (error) {
+        return new HttpResponse(null, { status: 503 });
+      }
+      return HttpResponse.json(queuesStats);
+    }),
+  ];
+}
+
+/**
+ * Legacy handler for direct /absurd/status endpoint (for backwards compatibility).
  */
 export function createPipelineStatusHandlers(
   options: {
@@ -95,4 +210,7 @@ export function createPipelineStatusHandlers(
  * Default handlers that return successful responses.
  * These are used as baseline handlers and can be overridden per-test.
  */
-export const defaultHandlers = [...createPipelineStatusHandlers()];
+export const defaultHandlers = [
+  ...createABSURDHandlers(),
+  ...createPipelineStatusHandlers(),
+];

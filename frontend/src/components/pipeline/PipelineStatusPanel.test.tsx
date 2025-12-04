@@ -5,11 +5,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
 import { http, HttpResponse, delay } from "msw";
 import { server } from "../../testing/mocks/server";
-import { createPipelineStatus } from "../../testing/mocks/handlers";
 import {
-  PipelineStatusPanel,
-  type PipelineStatusResponse,
-} from "./PipelineStatusPanel";
+  createABSURDHealth,
+  createABSURDWorkers,
+  createABSURDQueuesStats,
+} from "../../testing/mocks/handlers";
+import { PipelineStatusPanel } from "./PipelineStatusPanel";
 
 /**
  * Create a test wrapper with QueryClient and Router.
