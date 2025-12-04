@@ -89,7 +89,7 @@ CREATE TABLE IF NOT EXISTS photometry (
     pa_deg REAL,
     measured_at REAL NOT NULL,
     quality_flag TEXT,
-    FOREIGN KEY (image_path) REFERENCES images(path)
+    FOREIGN KEY (image_path) REFERENCES images(path) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_photometry_image ON photometry(image_path);
@@ -135,8 +135,8 @@ CREATE TABLE IF NOT EXISTS calibration_applied (
     quality REAL,
     success INTEGER DEFAULT 1,
     error_message TEXT,
-    FOREIGN KEY (ms_path) REFERENCES ms_index(path),
-    FOREIGN KEY (caltable_path) REFERENCES calibration_tables(path)
+    FOREIGN KEY (ms_path) REFERENCES ms_index(path) ON DELETE CASCADE,
+    FOREIGN KEY (caltable_path) REFERENCES calibration_tables(path) ON DELETE CASCADE
 );
 
 CREATE INDEX IF NOT EXISTS idx_cal_applied_ms ON calibration_applied(ms_path);
