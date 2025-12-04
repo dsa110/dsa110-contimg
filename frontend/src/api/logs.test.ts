@@ -133,4 +133,77 @@ describe("logs API helpers", () => {
 
     unmount();
   });
+
+  it("applies buffer limit and drops oldest entries", async () => {
+    const batches: LogSearchResponse[] = [
+      {
+        entries: [
+          { timestamp: "2024-01-01T00:00:00Z", level: "info", message: "first", cursor: "c1" },
+        ],
+        next_cursor: "c1",
+      },
+      {
+        entries: [
+          { timestamp: "2024-01-01T00:00:05Z", level: "info", message: "second", cursor: "c2" },
+        ],
+        next_cursor: "c2",
+      },
+      {
+        entries: [
+          { timestamp: "2024-01-01T00:00:10Z", level: "error", message: "third", cursor: "c3" },
+        ],
+        next_cursor: "c3",
+      },
+    ];
+
+    mockedClient.get
+      .mockResolvedValueOnce({ data: batches[0] })
+      .mockResolvedValueOnce({ data: batches[1] })
+      .mockResolvedValueOnce({ data: batches[2] });
+
+    const { result, unmount } = renderHook(() =>
+      useLogTail({ labels: { service: "api" } }, { pollInterval: 10, batchSize: 1, bufferLimit: 2 })
+    );
+
+    // first poll
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+    // second poll
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10);
+    });
+    // third poll
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10);
+    });
+
+    expect(result.current.buffer.map((e) => e.message)).toEqual(["second", "third"]);
+    unmount();
+  });
+
+  it("captures tail errors and invokes onError", async () => {
+    const tailError = new Error("tail failed");
+    mockedClient.get.mockRejectedValueOnce(tailError);
+    mockedClient.get.mockResolvedValueOnce({ data: { entries: [], next_cursor: null } });
+    const onError = vi.fn();
+
+    const { result, unmount } = renderHook(() =>
+      useLogTail({ q: "test" }, { pollInterval: 10, onError })
+    );
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(0);
+    });
+
+    expect(onError).toHaveBeenCalledWith(tailError);
+    expect(result.current.error).toBe(tailError);
+
+    // allow a follow-up poll to ensure it keeps running
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10);
+    });
+    expect(result.current.isRunning).toBe(true);
+    unmount();
+  });
 });
