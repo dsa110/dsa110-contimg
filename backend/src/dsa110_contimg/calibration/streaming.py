@@ -83,6 +83,7 @@ def solve_calibration_for_ms(
     refant: Optional[str] = None,
     do_k: bool = False,
     catalog_path: Optional[str] = None,
+    calibrator_name: Optional[str] = None,
 ) -> Tuple[bool, Optional[str]]:
     """Solve calibration for a single MS file.
 
@@ -95,6 +96,8 @@ def solve_calibration_for_ms(
         refant: Reference antenna ID (auto-detected if None)
         do_k: If True, perform K-calibration (delay). Default False for DSA-110.
         catalog_path: Optional path to calibrator catalog (auto-resolved if None)
+        calibrator_name: Expected calibrator name (e.g., "0834+555"). If provided,
+            used for model lookup instead of auto-detection.
 
     Returns:
         Tuple of (success: bool, error_message: Optional[str])

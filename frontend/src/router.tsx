@@ -29,9 +29,7 @@ const LoginPage = lazy(() => import("./pages/LoginPage"));
 const DataCleanupWizardPage = lazy(
   () => import("./pages/DataCleanupWizardPage")
 );
-const BackupRestorePage = lazy(
-  () => import("./pages/BackupRestorePage")
-);
+const BackupRestorePage = lazy(() => import("./pages/BackupRestorePage"));
 
 /**
  * Application router configuration.

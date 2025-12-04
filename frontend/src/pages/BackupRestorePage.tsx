@@ -42,11 +42,23 @@ function BackupScopeSelector({
   onChange,
   disabled,
 }: BackupScopeSelectorProps) {
-  const scopeItems: Array<{ key: keyof BackupScope; label: string; desc: string }> = [
-    { key: "measurement_sets", label: "Measurement Sets", desc: "Raw visibility data" },
+  const scopeItems: Array<{
+    key: keyof BackupScope;
+    label: string;
+    desc: string;
+  }> = [
+    {
+      key: "measurement_sets",
+      label: "Measurement Sets",
+      desc: "Raw visibility data",
+    },
     { key: "images", label: "Images", desc: "FITS image products" },
     { key: "catalogs", label: "Catalogs", desc: "Source catalogs" },
-    { key: "pipeline_configs", label: "Pipeline Configs", desc: "Processing configurations" },
+    {
+      key: "pipeline_configs",
+      label: "Pipeline Configs",
+      desc: "Processing configurations",
+    },
     { key: "job_history", label: "Job History", desc: "Pipeline run records" },
     { key: "qa_ratings", label: "QA Ratings", desc: "Quality assessments" },
   ];
@@ -134,9 +146,15 @@ interface CreateBackupModalProps {
   parentBackup?: Backup;
 }
 
-function CreateBackupModal({ isOpen, onClose, parentBackup }: CreateBackupModalProps) {
+function CreateBackupModal({
+  isOpen,
+  onClose,
+  parentBackup,
+}: CreateBackupModalProps) {
   const [name, setName] = useState("");
-  const [type, setType] = useState<BackupType>(parentBackup ? "incremental" : "full");
+  const [type, setType] = useState<BackupType>(
+    parentBackup ? "incremental" : "full"
+  );
   const [scope, setScope] = useState<BackupScope>(getDefaultBackupScope());
   const [notes, setNotes] = useState("");
 
@@ -192,7 +210,9 @@ function CreateBackupModal({ isOpen, onClose, parentBackup }: CreateBackupModalP
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder={`Backup ${new Date().toISOString().slice(0, 10)}`}
+                  placeholder={`Backup ${new Date()
+                    .toISOString()
+                    .slice(0, 10)}`}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 />
               </div>
@@ -203,27 +223,27 @@ function CreateBackupModal({ isOpen, onClose, parentBackup }: CreateBackupModalP
                   Backup Type
                 </label>
                 <div className="flex gap-4">
-                  {(["full", "incremental", "differential"] as BackupType[]).map(
-                    (t) => (
-                      <label key={t} className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="backup-type"
-                          value={t}
-                          checked={type === t}
-                          onChange={() => setType(t)}
-                          disabled={
-                            (t === "incremental" || t === "differential") &&
-                            !parentBackup
-                          }
-                          className="text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="text-gray-700 dark:text-gray-300 capitalize">
-                          {t}
-                        </span>
-                      </label>
-                    )
-                  )}
+                  {(
+                    ["full", "incremental", "differential"] as BackupType[]
+                  ).map((t) => (
+                    <label key={t} className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="backup-type"
+                        value={t}
+                        checked={type === t}
+                        onChange={() => setType(t)}
+                        disabled={
+                          (t === "incremental" || t === "differential") &&
+                          !parentBackup
+                        }
+                        className="text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="text-gray-700 dark:text-gray-300 capitalize">
+                        {t}
+                      </span>
+                    </label>
+                  ))}
                 </div>
                 {type !== "full" && !parentBackup && (
                   <p className="mt-1 text-sm text-yellow-600 dark:text-yellow-400">
@@ -275,7 +295,9 @@ function CreateBackupModal({ isOpen, onClose, parentBackup }: CreateBackupModalP
               </button>
               <button
                 type="submit"
-                disabled={createBackup.isPending || !Object.values(scope).some(Boolean)}
+                disabled={
+                  createBackup.isPending || !Object.values(scope).some(Boolean)
+                }
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {createBackup.isPending ? (
@@ -383,7 +405,8 @@ function RestoreModal({ backup, onClose }: RestoreModalProps) {
                   Overwrite existing data
                 </span>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  If checked, existing data will be replaced. Otherwise, only missing data will be restored.
+                  If checked, existing data will be replaced. Otherwise, only
+                  missing data will be restored.
                 </p>
               </div>
             </label>
@@ -393,7 +416,10 @@ function RestoreModal({ backup, onClose }: RestoreModalProps) {
               <button
                 type="button"
                 onClick={handlePreview}
-                disabled={previewMutation.isPending || !Object.values(scope).some(Boolean)}
+                disabled={
+                  previewMutation.isPending ||
+                  !Object.values(scope).some(Boolean)
+                }
                 className="w-full px-4 py-2 border border-blue-500 text-blue-600 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/20 disabled:opacity-50 flex items-center justify-center gap-2"
               >
                 {previewMutation.isPending ? (
@@ -418,11 +444,21 @@ function RestoreModal({ backup, onClose }: RestoreModalProps) {
                     Restore Preview
                   </h4>
                   <dl className="grid grid-cols-2 gap-2 text-sm">
-                    <dt className="text-gray-500 dark:text-gray-400">Items to restore:</dt>
-                    <dd className="text-gray-900 dark:text-gray-100">{preview.items_to_restore}</dd>
-                    <dt className="text-gray-500 dark:text-gray-400">Conflicts:</dt>
-                    <dd className="text-gray-900 dark:text-gray-100">{preview.conflicts.length}</dd>
-                    <dt className="text-gray-500 dark:text-gray-400">Estimated time:</dt>
+                    <dt className="text-gray-500 dark:text-gray-400">
+                      Items to restore:
+                    </dt>
+                    <dd className="text-gray-900 dark:text-gray-100">
+                      {preview.items_to_restore}
+                    </dd>
+                    <dt className="text-gray-500 dark:text-gray-400">
+                      Conflicts:
+                    </dt>
+                    <dd className="text-gray-900 dark:text-gray-100">
+                      {preview.conflicts.length}
+                    </dd>
+                    <dt className="text-gray-500 dark:text-gray-400">
+                      Estimated time:
+                    </dt>
                     <dd className="text-gray-900 dark:text-gray-100">
                       {Math.ceil(preview.estimated_time_seconds / 60)} min
                     </dd>
@@ -481,7 +517,8 @@ function RestoreModal({ backup, onClose }: RestoreModalProps) {
                           I understand and confirm this restore operation
                         </span>
                         <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                          This will restore {preview.items_to_restore} items from the backup.
+                          This will restore {preview.items_to_restore} items
+                          from the backup.
                           {overwrite && " Existing data will be overwritten."}
                         </p>
                       </div>
@@ -493,7 +530,8 @@ function RestoreModal({ backup, onClose }: RestoreModalProps) {
 
             {restoreMutation.isError && (
               <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-700 dark:text-red-300 text-sm">
-                Restore failed: {(restoreMutation.error as Error)?.message || "Unknown error"}
+                Restore failed:{" "}
+                {(restoreMutation.error as Error)?.message || "Unknown error"}
               </div>
             )}
           </div>
@@ -662,7 +700,9 @@ function RestoreHistoryPanel() {
             <span className="font-medium text-gray-900 dark:text-gray-100 text-sm">
               {restore.backup_name}
             </span>
-            <span className={`text-xs capitalize ${statusColors[restore.status]}`}>
+            <span
+              className={`text-xs capitalize ${statusColors[restore.status]}`}
+            >
               {restore.status}
             </span>
           </div>
@@ -792,27 +832,38 @@ export function BackupRestorePage() {
               {backups && (
                 <dl className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <dt className="text-gray-500 dark:text-gray-400">Total Backups</dt>
+                    <dt className="text-gray-500 dark:text-gray-400">
+                      Total Backups
+                    </dt>
                     <dd className="font-medium text-gray-900 dark:text-gray-100">
                       {backups.length}
                     </dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-gray-500 dark:text-gray-400">Full Backups</dt>
+                    <dt className="text-gray-500 dark:text-gray-400">
+                      Full Backups
+                    </dt>
                     <dd className="font-medium text-gray-900 dark:text-gray-100">
                       {backups.filter((b: Backup) => b.type === "full").length}
                     </dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-gray-500 dark:text-gray-400">Total Size</dt>
+                    <dt className="text-gray-500 dark:text-gray-400">
+                      Total Size
+                    </dt>
                     <dd className="font-medium text-gray-900 dark:text-gray-100">
                       {formatBytes(
-                        backups.reduce((sum: number, b: Backup) => sum + b.size_bytes, 0)
+                        backups.reduce(
+                          (sum: number, b: Backup) => sum + b.size_bytes,
+                          0
+                        )
                       )}
                     </dd>
                   </div>
                   <div className="flex justify-between">
-                    <dt className="text-gray-500 dark:text-gray-400">Last Backup</dt>
+                    <dt className="text-gray-500 dark:text-gray-400">
+                      Last Backup
+                    </dt>
                     <dd className="font-medium text-gray-900 dark:text-gray-100">
                       {backups.length > 0
                         ? new Date(backups[0].created_at).toLocaleDateString()
@@ -831,7 +882,10 @@ export function BackupRestorePage() {
         isOpen={showCreateModal}
         onClose={() => setShowCreateModal(false)}
       />
-      <RestoreModal backup={restoreBackup} onClose={() => setRestoreBackup(null)} />
+      <RestoreModal
+        backup={restoreBackup}
+        onClose={() => setRestoreBackup(null)}
+      />
     </div>
   );
 }
