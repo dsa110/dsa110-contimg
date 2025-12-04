@@ -58,6 +58,9 @@ def pytest_configure(config):
         "DSA110_ALLOWED_IPS",
         "127.0.0.1,::1,testclient,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
     )
+    # Disable authentication in test environment by default so contract
+    # tests that exercise public/read endpoints don't require API keys.
+    os.environ.setdefault("DSA110_AUTH_DISABLED", "true")
     
     # Clear API config cache if already imported
     try:
