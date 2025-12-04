@@ -116,6 +116,26 @@ from dsa110_contimg.utils.casa_init import ensure_casa_path  # noqa: E402
 
 ensure_casa_path()
 
+# Issue #11: Unified execution interface for subprocess/in-process consistency
+try:
+    from dsa110_contimg.execution import (
+        ErrorCode,
+        ExecutionResult,
+        ExecutionTask,
+        InProcessExecutor,
+        ResourceLimits,
+        SubprocessExecutor,
+    )
+    HAVE_EXECUTION_MODULE = True
+except ImportError:  # pragma: no cover
+    HAVE_EXECUTION_MODULE = False
+    ErrorCode = None  # type: ignore
+    ExecutionResult = None  # type: ignore
+    ExecutionTask = None  # type: ignore
+    InProcessExecutor = None  # type: ignore
+    SubprocessExecutor = None  # type: ignore
+    ResourceLimits = None  # type: ignore
+
 import casacore.tables as casatables  # noqa
 
 table = casatables.table  # noqa: N816
@@ -1732,6 +1752,132 @@ def _update_state_machine(
         log.debug("State machine update failed for %s -> %s: %s", group_id, state_name, e)
 
 
+def _run_conversion_with_executor(
+    args: argparse.Namespace,
+    gid: str,
+    start_time: str,
+    end_time: str,
+    log: logging.Logger,
+) -> Tuple[int, str, Optional["ExecutionResult"]]:
+    """
+    Execute conversion using the unified execution module (Issue #11).
+
+    This provides consistent execution semantics between in-process and
+    subprocess modes, with proper resource limits and error handling.
+
+    Args:
+        args: Command line arguments
+        gid: Group ID being processed
+        start_time: Start time for conversion window
+        end_time: End time for conversion window
+        log: Logger instance
+
+    Returns:
+        Tuple of (return_code, writer_type, execution_result)
+        - return_code: 0 for success, non-zero for failure
+        - writer_type: Writer type used (e.g., "auto", "parallel-subband")
+        - execution_result: Full ExecutionResult object (if execution module available)
+    """
+    if not HAVE_EXECUTION_MODULE:
+        log.warning("Execution module not available, falling back to direct call")
+        return _run_conversion_fallback(args, gid, start_time, end_time, log)
+
+    # Determine execution mode
+    # --use-subprocess is deprecated but still supported for backwards compatibility
+    execution_mode = getattr(args, "execution_mode", "auto")
+    if getattr(args, "use_subprocess", False) and execution_mode == "auto":
+        log.warning(
+            "--use-subprocess is deprecated, use --execution-mode=subprocess instead"
+        )
+        execution_mode = "subprocess"
+
+    # "auto" defaults to inprocess for efficiency
+    if execution_mode == "auto":
+        execution_mode = "inprocess"
+
+    # Build resource limits
+    resource_limits = ResourceLimits(
+        memory_mb=getattr(args, "memory_limit_mb", 16000),
+        omp_threads=getattr(args, "omp_threads", 4),
+        max_workers=getattr(args, "max_workers", 4),
+    )
+
+    # Create execution task
+    task = ExecutionTask(
+        group_id=gid,
+        input_dir=Path(args.input_dir),
+        output_dir=Path(args.output_dir),
+        scratch_dir=Path(args.scratch_dir),
+        start_time=start_time,
+        end_time=end_time,
+        writer=getattr(args, "writer", "auto"),
+        resource_limits=resource_limits,
+    )
+
+    # Select executor
+    if execution_mode == "subprocess":
+        executor = SubprocessExecutor()
+        log.debug("Using SubprocessExecutor for group %s", gid)
+    else:
+        executor = InProcessExecutor()
+        log.debug("Using InProcessExecutor for group %s", gid)
+
+    # Execute
+    try:
+        result = executor.run(task)
+
+        if result.success:
+            return 0, result.writer_type or "auto", result
+        else:
+            error_msg = f"{result.error_code.name}: {result.error_message}"
+            log.error("Conversion failed for %s: %s", gid, error_msg)
+            return result.return_code or 1, "auto", result
+
+    except Exception as e:
+        log.exception("Executor error for %s: %s", gid, e)
+        # Create a failure result
+        error_result = ExecutionResult.failure_result(
+            error_code=ErrorCode.GENERAL_ERROR,
+            error_message=str(e),
+            execution_mode=execution_mode,
+        )
+        return 1, "auto", error_result
+
+
+def _run_conversion_fallback(
+    args: argparse.Namespace,
+    gid: str,
+    start_time: str,
+    end_time: str,
+    log: logging.Logger,
+) -> Tuple[int, str, None]:
+    """
+    Fallback conversion when execution module is not available.
+
+    This preserves the original direct-call behavior for backwards compatibility.
+    """
+    from dsa110_contimg.conversion import convert_subband_groups_to_ms
+
+    try:
+        convert_subband_groups_to_ms(
+            args.input_dir,
+            args.output_dir,
+            start_time,
+            end_time,
+            scratch_dir=args.scratch_dir,
+            writer="auto",
+            writer_kwargs={
+                "max_workers": getattr(args, "max_workers", 4),
+                "stage_to_tmpfs": getattr(args, "stage_to_tmpfs", False),
+                "tmpfs_path": getattr(args, "tmpfs_path", "/dev/shm"),
+            },
+        )
+        return 0, "auto", None
+    except Exception as e:
+        log.exception("Fallback conversion failed for %s: %s", gid, e)
+        return 1, "auto", None
+
+
 def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
     """Poll for pending groups, convert via orchestrator, and mark complete."""
     log = logging.getLogger("stream.worker")
@@ -2683,12 +2829,37 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--expected-subbands", type=int, default=16)
     p.add_argument("--chunk-duration", type=float, default=5.0, help="Minutes per group")
     p.add_argument("--log-level", default="INFO")
-    p.add_argument("--use-subprocess", action="store_true")
+    # Issue #11: Unified execution mode (supersedes --use-subprocess)
+    p.add_argument(
+        "--execution-mode",
+        choices=["inprocess", "subprocess", "auto"],
+        default="auto",
+        help="Execution mode: 'inprocess' runs in same process, 'subprocess' spawns "
+             "isolated child processes, 'auto' uses inprocess by default (Issue #11)",
+    )
+    p.add_argument(
+        "--use-subprocess",
+        action="store_true",
+        help="[DEPRECATED] Use --execution-mode=subprocess instead",
+    )
     p.add_argument("--monitoring", action="store_true")
     p.add_argument("--monitor-interval", type=float, default=60.0)
     p.add_argument("--poll-interval", type=float, default=5.0)
     p.add_argument("--worker-poll-interval", type=float, default=5.0)
     p.add_argument("--max-workers", type=int, default=4)
+    # Resource limits for execution module (Issue #11)
+    p.add_argument(
+        "--memory-limit-mb",
+        type=int,
+        default=16000,
+        help="Memory limit in MB for conversion tasks (default: 16GB)",
+    )
+    p.add_argument(
+        "--omp-threads",
+        type=int,
+        default=4,
+        help="OMP_NUM_THREADS for conversion tasks (default: 4)",
+    )
     p.add_argument(
         "--enable-calibration-solving",
         action="store_true",
