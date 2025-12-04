@@ -414,11 +414,14 @@ class TestExecutionTaskCreation:
 
         args = task.to_cli_args()
 
-        # Old CLI only accepts positional args (no --writer flag)
+        # execution.cli uses named arguments
+        assert "--input-dir" in args
+        assert "--output-dir" in args
+        assert "--start-time" in args
+        assert "--end-time" in args
+        assert "--writer" in args
         assert str(data["input_dir"].resolve()) in args
         assert str(data["output_dir"].resolve()) in args
-        assert data["start_time"] in args
-        assert data["end_time"] in args
 
 
 # ============================================================================
@@ -572,13 +575,15 @@ class TestSubprocessExecutorIntegration:
         executor = SubprocessExecutor()
         cmd = executor._build_command(task)
 
-        # Should include python, module, and 'batch' subcommand
+        # Should include python, module, and 'convert' subcommand
         assert "python" in cmd[0] or "python3" in cmd[0]
         assert "-m" in cmd
-        assert "dsa110_contimg.conversion.cli" in cmd
-        assert "batch" in cmd  # CLI uses 'batch' (not 'groups')
+        assert "dsa110_contimg.execution.cli" in cmd
+        assert "convert" in cmd
 
-        # Should include input/output dirs
+        # Should include input/output dirs as named args
+        assert "--input-dir" in cmd
+        assert "--output-dir" in cmd
         assert str(data["input_dir"].resolve()) in cmd
         assert str(data["output_dir"].resolve()) in cmd
 

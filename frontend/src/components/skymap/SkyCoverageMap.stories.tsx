@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import SkyCoverageMap, { Pointing } from "./SkyCoverageMap";
+import SkyCoverageMap, { Pointing, SURVEY_FOOTPRINTS } from "./SkyCoverageMap";
 
 /**
  * SkyCoverageMap displays astronomical observations on a sky projection map.
@@ -8,6 +8,7 @@ import SkyCoverageMap, { Pointing } from "./SkyCoverageMap";
  * - Multiple projections (Aitoff, Mollweide, Hammer, Mercator)
  * - Galactic plane and ecliptic overlays
  * - Constellation names, lines, and boundaries
+ * - Survey footprint overlays (NVSS, FIRST, VLASS, RACS)
  * - Color coding by status or epoch
  * - Interactive zoom and pan
  */
@@ -42,10 +43,49 @@ const generatePointings = (count: number): Pointing[] => {
 export const Default: Story = {
   args: {
     pointings: generatePointings(50),
-    projection: "aitoff",
+    projection: "mollweide",
     showGalacticPlane: true,
     showEcliptic: false,
     showConstellations: true,
+    showSurveyFootprints: true,
+  },
+};
+
+/**
+ * Map with survey footprints (NVSS, FIRST, VLASS, RACS)
+ * Shows the coverage of reference catalogs used in the DSA-110 pipeline.
+ */
+export const WithSurveyFootprints: Story = {
+  args: {
+    pointings: generatePointings(30),
+    projection: "mollweide",
+    showGalacticPlane: true,
+    showSurveyFootprints: true,
+    surveyFootprints: SURVEY_FOOTPRINTS,
+  },
+};
+
+/**
+ * Map without survey footprints
+ */
+export const WithoutSurveyFootprints: Story = {
+  args: {
+    pointings: generatePointings(50),
+    projection: "mollweide",
+    showGalacticPlane: true,
+    showSurveyFootprints: false,
+  },
+};
+
+/**
+ * Map with Aitoff projection
+ */
+export const AitoffProjection: Story = {
+  args: {
+    pointings: generatePointings(50),
+    projection: "aitoff",
+    showGalacticPlane: true,
+    showSurveyFootprints: true,
   },
 };
 

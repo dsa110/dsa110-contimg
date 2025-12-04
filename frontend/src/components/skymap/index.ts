@@ -1,5 +1,11 @@
 export { default as SkyCoverageMap } from "./SkyCoverageMap";
-export type { SkyCoverageMapProps, Pointing, ConstellationOptions } from "./SkyCoverageMap";
+export type {
+  SkyCoverageMapProps,
+  Pointing,
+  ConstellationOptions,
+  SurveyFootprint,
+} from "./SkyCoverageMap";
+export { SURVEY_FOOTPRINTS } from "./SkyCoverageMap";
 
 export { CelestialMap } from "./CelestialMap";
 export type {

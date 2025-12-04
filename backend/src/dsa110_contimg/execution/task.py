@@ -183,17 +183,30 @@ class ExecutionTask:
         """Convert task to CLI arguments for subprocess execution.
 
         Returns:
-            List of command-line arguments for the batch CLI.
-            Note: The old CLI only accepts positional args (input_dir, output_dir, start_time, end_time).
-            Other options (writer, scratch-dir, etc.) are not supported by the deprecated CLI.
+            List of command-line arguments for the execution.cli convert command.
+            This uses the modern execution CLI (not the deprecated conversion.cli).
         """
-        # The deprecated conversion.cli batch command only accepts these 4 positional args
         args = [
-            str(self.input_dir.resolve()),
-            str(self.output_dir.resolve()),
-            self.start_time,
-            self.end_time,
+            "--input-dir", str(self.input_dir.resolve()),
+            "--output-dir", str(self.output_dir.resolve()),
+            "--start-time", self.start_time,
+            "--end-time", self.end_time,
+            "--scratch-dir", str(self.scratch_dir.resolve()),
+            "--writer", self.writer,
+            "--group-id", self.group_id,
+            # Force inprocess mode in subprocess - the subprocess itself runs in-process
+            "--execution-mode", "inprocess",
         ]
+
+        # Resource limits
+        if self.resource_limits.memory_mb:
+            args.extend(["--memory-mb", str(self.resource_limits.memory_mb)])
+        if self.resource_limits.omp_threads:
+            args.extend(["--omp-threads", str(self.resource_limits.omp_threads)])
+        if self.resource_limits.max_workers:
+            args.extend(["--max-workers", str(self.resource_limits.max_workers)])
+        if self.resource_limits.timeout_seconds:
+            args.extend(["--timeout", str(self.resource_limits.timeout_seconds)])
 
         return args
 

@@ -21,6 +21,70 @@ export interface Pointing {
   epoch?: string;
 }
 
+/** Survey footprint definition for reference catalog overlays */
+export interface SurveyFootprint {
+  id: string;
+  name: string;
+  color: string;
+  /** Declination range [min, max] in degrees */
+  decRange: [number, number];
+  /** RA range [min, max] in degrees, or null for all-sky in RA */
+  raRange?: [number, number] | null;
+  /** Optional: frequency in MHz for display */
+  frequency?: number;
+  /** Optional: description */
+  description?: string;
+  /** Whether this survey is used in our pipeline */
+  usedInPipeline: boolean;
+}
+
+/**
+ * Survey footprints for catalogs used in DSA-110 pipeline.
+ * These are approximate coverage areas based on survey documentation.
+ */
+export const SURVEY_FOOTPRINTS: SurveyFootprint[] = [
+  {
+    id: "nvss",
+    name: "NVSS",
+    color: "#00cccc",
+    decRange: [-40, 90], // Dec > -40°
+    raRange: null, // All RA
+    frequency: 1400,
+    description: "NRAO VLA Sky Survey (1.4 GHz) - Dec > -40°",
+    usedInPipeline: true,
+  },
+  {
+    id: "first",
+    name: "FIRST",
+    color: "#cc00cc",
+    decRange: [-10, 57], // Main coverage ~-10° to +57°
+    raRange: null, // Primarily north galactic cap, simplified to all RA
+    frequency: 1400,
+    description: "Faint Images of the Radio Sky at Twenty-cm (1.4 GHz)",
+    usedInPipeline: true,
+  },
+  {
+    id: "vlass",
+    name: "VLASS",
+    color: "#ff6666",
+    decRange: [-40, 90], // Dec > -40°
+    raRange: null,
+    frequency: 3000,
+    description: "VLA Sky Survey (3 GHz) - Dec > -40°",
+    usedInPipeline: true,
+  },
+  {
+    id: "racs",
+    name: "RACS",
+    color: "#66ff66",
+    decRange: [-90, 41], // Dec < +41° (ASKAP southern)
+    raRange: null,
+    frequency: 888,
+    description: "Rapid ASKAP Continuum Survey (888 MHz) - Dec < +41°",
+    usedInPipeline: true,
+  },
+];
+
 /** Constellation display options */
 export interface ConstellationOptions {
   /** Show constellation names (IAU abbreviations) */
@@ -57,6 +121,10 @@ export interface SkyCoverageMapProps {
   showEcliptic?: boolean;
   /** Whether to show constellations (true = names only for backwards compat, or pass options object) */
   showConstellations?: boolean | ConstellationOptions;
+  /** Whether to show reference survey footprints (NVSS, FIRST, VLASS, RACS) */
+  showSurveyFootprints?: boolean;
+  /** Which survey footprints to show (defaults to all pipeline-used surveys) */
+  surveyFootprints?: SurveyFootprint[];
   /** Color scheme for pointings */
   colorScheme?: "status" | "epoch" | "uniform";
   /** Default radius for pointings without radius (degrees) */
@@ -177,15 +245,18 @@ const ECLIPTIC_COORDS = Array.from({ length: 361 }, (_, i) => {
 
 /**
  * All-sky coverage map with D3.js celestial projections.
+ * Supports survey footprint overlays similar to VAST/ASKAP sky coverage plots.
  */
 const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
   pointings,
-  projection = "aitoff",
+  projection = "mollweide", // Default to Mollweide like VAST
   width = 800,
   height = 400,
   showGalacticPlane = true,
   showEcliptic = false,
   showConstellations = false,
+  showSurveyFootprints = true,
+  surveyFootprints = SURVEY_FOOTPRINTS.filter((s) => s.usedInPipeline),
   colorScheme = "status",
   defaultRadius = 1.5,
   onPointingClick,
@@ -399,6 +470,103 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
       .attr("fill", "none")
       .attr("stroke", "#555")
       .attr("stroke-width", 1);
+
+    // Survey footprints (rendered as semi-transparent bands)
+    if (showSurveyFootprints && surveyFootprints.length > 0) {
+      const surveyGroup = svg.append("g").attr("class", "survey-footprints");
+
+      surveyFootprints.forEach((survey) => {
+        // Create a GeoJSON polygon for the survey footprint
+        // For dec-limited surveys, create a band across all RA
+        const [decMin, decMax] = survey.decRange;
+        const raMin = survey.raRange?.[0] ?? 0;
+        const raMax = survey.raRange?.[1] ?? 360;
+
+        // Generate polygon coordinates (clockwise for proper fill)
+        // Bottom edge (dec min, RA from min to max)
+        const bottomEdge: [number, number][] = [];
+        for (let ra = raMin; ra <= raMax; ra += 5) {
+          bottomEdge.push([ra, decMin]);
+        }
+
+        // Right edge (RA max, dec from min to max)
+        const rightEdge: [number, number][] = [];
+        for (let dec = decMin; dec <= decMax; dec += 5) {
+          rightEdge.push([raMax, dec]);
+        }
+
+        // Top edge (dec max, RA from max to min)
+        const topEdge: [number, number][] = [];
+        for (let ra = raMax; ra >= raMin; ra -= 5) {
+          topEdge.push([ra, decMax]);
+        }
+
+        // Left edge (RA min, dec from max to min)
+        const leftEdge: [number, number][] = [];
+        for (let dec = decMax; dec >= decMin; dec -= 5) {
+          leftEdge.push([raMin, dec]);
+        }
+
+        // Combine all edges
+        const polygonCoords = [
+          ...bottomEdge,
+          ...rightEdge,
+          ...topEdge,
+          ...leftEdge,
+        ];
+
+        // Create GeoJSON feature
+        const surveyPolygon: GeoJSON.Feature<GeoJSON.Polygon> = {
+          type: "Feature",
+          properties: { name: survey.name },
+          geometry: {
+            type: "Polygon",
+            coordinates: [polygonCoords],
+          },
+        };
+
+        // Render the survey footprint
+        surveyGroup
+          .append("path")
+          .datum(surveyPolygon)
+          .attr("d", path)
+          .attr("fill", survey.color)
+          .attr("fill-opacity", 0.15)
+          .attr("stroke", survey.color)
+          .attr("stroke-width", 1)
+          .attr("stroke-opacity", 0.5)
+          .attr("class", `survey-${survey.id}`);
+
+        // Add boundary line with dots (like VAST plot edge markers)
+        // Top boundary (dec max)
+        const topBoundary: [number, number][] = [];
+        for (let ra = raMin; ra <= raMax; ra += 2) {
+          topBoundary.push([ra, decMax]);
+        }
+
+        // Bottom boundary (dec min)
+        const bottomBoundary: [number, number][] = [];
+        for (let ra = raMin; ra <= raMax; ra += 2) {
+          bottomBoundary.push([ra, decMin]);
+        }
+
+        // Render boundary dots for top and bottom edges
+        [topBoundary, bottomBoundary].forEach((boundary) => {
+          boundary.forEach((coord) => {
+            const projected = proj(coord);
+            if (projected) {
+              surveyGroup
+                .append("circle")
+                .attr("cx", projected[0])
+                .attr("cy", projected[1])
+                .attr("r", 0.8)
+                .attr("fill", survey.color)
+                .attr("opacity", 0.6);
+            }
+          });
+        });
+      });
+    }
 
     // Galactic plane
     if (showGalacticPlane) {
@@ -734,26 +902,78 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
         });
     });
 
-    // Legend
+    // Legend - positioned at bottom like VAST plot
+    // Survey footprints legend (bottom center)
+    if (showSurveyFootprints && surveyFootprints.length > 0) {
+      const surveyLegend = svg
+        .append("g")
+        .attr("class", "survey-legend")
+        .attr(
+          "transform",
+          `translate(${width / 2 - (surveyFootprints.length * 70) / 2}, ${
+            height - 25
+          })`
+        );
+
+      surveyFootprints.forEach((survey, i) => {
+        const xOffset = i * 70;
+
+        // Color box
+        surveyLegend
+          .append("rect")
+          .attr("x", xOffset)
+          .attr("y", 0)
+          .attr("width", 12)
+          .attr("height", 12)
+          .attr("fill", survey.color)
+          .attr("fill-opacity", 0.5)
+          .attr("stroke", survey.color)
+          .attr("stroke-width", 1);
+
+        // Label
+        surveyLegend
+          .append("text")
+          .attr("x", xOffset + 16)
+          .attr("y", 10)
+          .attr("fill", "#ccc")
+          .attr("font-size", 10)
+          .attr("font-weight", "500")
+          .text(survey.name);
+      });
+    }
+
+    // Pointing status legend (top right corner)
     const legend = svg
       .append("g")
-      .attr("transform", `translate(${width - 120}, 20)`);
+      .attr("transform", `translate(${width - 130}, 20)`);
 
     // Calculate legend height based on content
-    let legendHeight = 10; // base padding
-    if (colorScheme === "status") legendHeight += 45; // 3 status items
+    let legendHeight = 15; // base padding
+    if (colorScheme === "status") legendHeight += 50; // 3 status items + header
     if (showGalacticPlane) legendHeight += 18;
     if (showEcliptic) legendHeight += 18;
-    legendHeight = Math.max(legendHeight, 30); // minimum height
+    legendHeight = Math.max(legendHeight, 40); // minimum height
 
     legend
       .append("rect")
-      .attr("width", 110)
+      .attr("width", 120)
       .attr("height", legendHeight)
-      .attr("fill", "rgba(0,0,0,0.5)")
+      .attr("fill", "rgba(0,0,0,0.6)")
       .attr("rx", 4);
 
-    let legendY = 15;
+    let legendY = 12;
+
+    // Header for DSA-110 pointings
+    legend
+      .append("text")
+      .attr("x", 8)
+      .attr("y", legendY)
+      .attr("fill", "#fff")
+      .attr("font-size", 9)
+      .attr("font-weight", "bold")
+      .text("DSA-110 Pointings");
+
+    legendY += 12;
 
     if (colorScheme === "status") {
       const statuses = [
@@ -766,16 +986,16 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
         legend
           .append("circle")
           .attr("cx", 15)
-          .attr("cy", legendY + i * 15)
-          .attr("r", 5)
+          .attr("cy", legendY + i * 14)
+          .attr("r", 4)
           .attr("fill", s.color);
 
         legend
           .append("text")
-          .attr("x", 28)
-          .attr("y", legendY + i * 15 + 4)
+          .attr("x", 26)
+          .attr("y", legendY + i * 14 + 3)
           .attr("fill", "#ccc")
-          .attr("font-size", 10)
+          .attr("font-size", 9)
           .text(s.label);
       });
 
@@ -796,9 +1016,9 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
       legend
         .append("text")
         .attr("x", 28)
-        .attr("y", legendY + 4)
+        .attr("y", legendY + 3)
         .attr("fill", "#ccc")
-        .attr("font-size", 10)
+        .attr("font-size", 9)
         .text("Galactic plane");
 
       legendY += 15;
@@ -818,9 +1038,9 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
       legend
         .append("text")
         .attr("x", 28)
-        .attr("y", legendY + 4)
+        .attr("y", legendY + 3)
         .attr("fill", "#ccc")
-        .attr("font-size", 10)
+        .attr("font-size", 9)
         .text("Ecliptic");
     }
 
@@ -852,6 +1072,8 @@ const SkyCoverageMap: React.FC<SkyCoverageMapProps> = ({
     showGalacticPlane,
     showEcliptic,
     showConstellations,
+    showSurveyFootprints,
+    surveyFootprints,
     constOptions,
     constellationNames,
     constellationLines,
