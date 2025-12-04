@@ -318,7 +318,9 @@ describe("PipelineTriggersPage", () => {
     it("shows trigger event type and pipeline", () => {
       renderPage();
 
-      expect(screen.getByText(/New Measurement Set → Standard Imaging/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/New Measurement Set → Standard Imaging/)
+      ).toBeInTheDocument();
       expect(screen.getByText(/Scheduled → Data Cleanup/)).toBeInTheDocument();
     });
 
@@ -408,7 +410,9 @@ describe("PipelineTriggersPage", () => {
 
       const runButtons = screen.getAllByRole("button", { name: /run now/i });
       // The third trigger is disabled, so its Run Now button should be disabled
-      const disabledButton = runButtons.find((btn) => btn.hasAttribute("disabled"));
+      const disabledButton = runButtons.find((btn) =>
+        btn.hasAttribute("disabled")
+      );
       expect(disabledButton).toBeDefined();
     });
 
@@ -441,7 +445,10 @@ describe("PipelineTriggersPage", () => {
       const toggles = screen.getAllByRole("checkbox");
       await user.click(toggles[0]);
 
-      expect(mutateAsync).toHaveBeenCalledWith({ id: "trigger-1", enabled: false });
+      expect(mutateAsync).toHaveBeenCalledWith({
+        id: "trigger-1",
+        enabled: false,
+      });
     });
 
     it("calls delete mutation when delete clicked and confirmed", async () => {
@@ -550,7 +557,9 @@ describe("PipelineTriggersPage", () => {
       );
 
       // Find and click the submit button (second "Create Trigger" button)
-      const buttons = screen.getAllByRole("button", { name: /create trigger/i });
+      const buttons = screen.getAllByRole("button", {
+        name: /create trigger/i,
+      });
       await user.click(buttons[buttons.length - 1]);
 
       await waitFor(() => {
@@ -625,7 +634,9 @@ describe("PipelineTriggersPage", () => {
     it("shows event type filter", () => {
       renderPage();
 
-      expect(screen.getByLabelText(/filter by event type/i)).toBeInTheDocument();
+      expect(
+        screen.getByLabelText(/filter by event type/i)
+      ).toBeInTheDocument();
     });
 
     it("shows status filter", () => {
