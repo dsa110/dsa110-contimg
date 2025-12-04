@@ -249,11 +249,24 @@ class ConversionStage:
         try:
             from dsa110_contimg.conversion import convert_subband_groups_to_ms
 
+            # Determine input_dir - either from config or from file paths
+            input_dir = self.config.input_dir
+            if input_dir is None:
+                # Derive from the current file_paths stored in object
+                if hasattr(self, '_current_file_paths') and self._current_file_paths:
+                    input_dir = Path(self._current_file_paths[0]).parent
+                else:
+                    return ConversionResult(
+                        success=False,
+                        group_id=group_id,
+                        error_message="Cannot determine input directory",
+                    )
+
             # Note: The orchestrator signature is:
             # convert_subband_groups_to_ms(input_dir, output_dir, start_time, end_time, ...)
             # It does NOT take scratch_dir or expected_subbands
             results = convert_subband_groups_to_ms(
-                input_dir=str(self.config.input_dir),
+                input_dir=str(input_dir),
                 output_dir=str(self.config.output_dir),
                 start_time=start_time,
                 end_time=end_time,
