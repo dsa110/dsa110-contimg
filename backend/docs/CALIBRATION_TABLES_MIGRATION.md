@@ -1,55 +1,46 @@
-# Calibration Tables Migration: `calibration_tables` → `caltables`
+# Calibration Tables Migration: Complete
 
 ## Overview
 
-This document records the migration from the legacy `calibration_tables` database
-table to the canonical `caltables` table name.
+**Status**: ✅ COMPLETED (December 2024)
 
-## Background
+The codebase has been fully migrated to use `caltables` as the canonical table name.
+The legacy `calibration_tables` table and sync triggers have been removed.
 
-The codebase historically had two table names:
+## Changes Made
 
-- **`caltables`** - The canonical/production table name
-- **`calibration_tables`** - Legacy table name kept for backward compatibility
+### Database Schema
 
-A trigger-based sync mechanism was in place to keep both tables in sync:
+- Removed `calibration_tables` table from `schema.sql`
+- Removed sync triggers (`trg_calibration_tables_ai`, `trg_calibration_tables_au`, `trg_calibration_tables_ad`)
+- All code now uses `caltables` directly
 
-- `trg_calibration_tables_ai` - After INSERT
-- `trg_calibration_tables_au` - After UPDATE
-- `trg_calibration_tables_ad` - After DELETE
+### Pipeline Context Keys
 
-## Migration Status
+- Changed `context.outputs["calibration_tables"]` to `context.outputs["caltables"]`
+- Updated in: `stages_impl.py`, `absurd/adapter.py`
 
-**Date**: December 2024
+### Function Renames
 
-### Production Code (Already Using `caltables`)
+- `_register_calibration_tables()` to `_register_caltables()` (streaming_converter.py)
+- `compare_calibration_tables()` to `compare_caltables()` (diagnostics.py)
 
-- `src/dsa110_contimg/database/unified.py` - ✅ Uses `caltables`
-- `src/dsa110_contimg/database/provenance.py` - ✅ Uses `caltables`
-- `src/dsa110_contimg/monitoring/tasks.py` - ✅ Uses `caltables`
+### Parameter Renames
 
-### Test Code (Migrated to `caltables`)
+- `calibration_tables` to `caltables` in `save_group_definition()` (path_utils.py)
 
-- `tests/unit/test_unified_database.py` - ✅ Migrated
-- `tests/contract/test_database_contracts.py` - ✅ Migrated
-- `tests/contract/test_calibration_contracts.py` - ✅ Migrated
+### Migration Files
 
-### Archived Files
+- Updated `0003_add_cascade_delete.py` FK references to use `caltables`
 
-The following files were moved to `/data/dsa110-contimg/.local/archive/legacy/migrations/`:
+### Tests
 
-- `0002_add_calibration_fk.py` - Historical migration referencing legacy table
+- Updated all test files to use `caltables`
+- Removed `calibration_tables` from expected tables list
 
-## Schema Changes
+## Note
 
-The `calibration_tables` table and its triggers remain in `schema.sql` for:
-
-1. Backward compatibility with any external tools
-2. Historical data access
-3. Graceful migration period
-
-These will be removed in a future cleanup phase once all external dependencies are verified.
-
-## Verification
-
-All 1700+ tests pass after migration, confirming no regressions.
+The function `_ensure_calibration_tables()` in `calibration/jobs.py` was NOT renamed
+because it creates tracking tables (`calibration_solves`, `calibration_applications`),
+not the `caltables` registry table. The name refers to ensuring tables for calibration
+tracking exist, not the registry table itself.
