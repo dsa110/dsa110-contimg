@@ -512,16 +512,38 @@ def _write_ms_subband_part(
         Path to created MS file
     """
     from pyuvdata import UVData
+    # Acquire a process-level shared lock on the input file to prevent it being
+    # moved/deleted while this process is reading it (avoids .fuse_hidden* on FUSE).
+    lock_fd = None
+    try:
+        try:
+            from dsa110_contimg.utils.fuse_lock import acquire_process_lock
+        except Exception:
+            acquire_process_lock = None
 
-    uv = UVData()
-    uv.read(
-        subband_file,
-        file_type="uvh5",
-        run_check=False,
-        run_check_acceptability=False,
-        strict_uvw_antpos_check=False,
-        check_extra=False,
-    )
+        if acquire_process_lock is not None:
+            try:
+                lock_fd = acquire_process_lock(subband_file, exclusive=False, timeout=10.0)
+            except Exception:
+                lock_fd = None
+
+        uv = UVData()
+        uv.read(
+            subband_file,
+            file_type="uvh5",
+            run_check=False,
+            run_check_acceptability=False,
+            strict_uvw_antpos_check=False,
+            check_extra=False,
+        )
+    finally:
+        if lock_fd is not None:
+            try:
+                from dsa110_contimg.utils.fuse_lock import release_process_lock
+
+                release_process_lock(lock_fd)
+            except Exception:
+                pass
 
     # Stamp telescope identity prior to phasing/UVW
     # Uses OVRO_LOCATION from constants.py (single source of truth)
