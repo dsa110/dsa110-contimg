@@ -152,7 +152,7 @@ class TestImagesInsert:
         now_ts = time.time()
 
         # First insert
-        id1 = images_insert(
+        _id1 = images_insert(
             db.conn,
             "/test/same_path.fits",
             "/test/observation.ms",
@@ -162,7 +162,7 @@ class TestImagesInsert:
         )
 
         # Second insert with same path but different metadata
-        id2 = images_insert(
+        _id2 = images_insert(
             db.conn,
             "/test/same_path.fits",
             "/test/observation.ms",
