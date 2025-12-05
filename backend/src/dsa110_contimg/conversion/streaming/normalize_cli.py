@@ -4,7 +4,7 @@ Normalize subband filenames in a directory.
 
 This script normalizes historical subband files by renaming them to use
 canonical group_ids. Files with similar timestamps (within tolerance) are
-grouped together, and all files in a group are renamed to use the earliest
+grouped together, and all files in a group are renamed to use sb00's
 timestamp as the canonical group_id.
 
 Usage:

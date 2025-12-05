@@ -7,7 +7,7 @@ dsa110_contimg.conversion.streaming package. New development should use:
 
     from dsa110_contimg.conversion.streaming import (
         SubbandQueue,      # Queue management
-        StreamingWatcher,  # File watching  
+        StreamingWatcher,  # File watching
         StreamingWorker,   # Pipeline orchestration
     )
 
@@ -19,7 +19,7 @@ This daemon watches an ingest directory for new *_sb??.hdf5 files, queues
 complete 16-subband groups, and invokes the existing batch converter on each
 group using a scratch directory for staging.
 
-The queue is persisted in SQLite (processing_queue table) so the service 
+The queue is persisted in SQLite (processing_queue table) so the service
 can resume after restarts.
 """
 
@@ -40,7 +40,6 @@ import os  # noqa: E402
 import re  # noqa: E402
 import sqlite3  # noqa: E402
 import subprocess  # noqa: E402
-import sys  # noqa: E402
 import threading  # noqa: E402
 import time  # noqa: E402
 from contextlib import contextmanager  # noqa: E402
@@ -934,7 +933,7 @@ class QueueDB:
 
         Uses multiple validation strategies:
         1. Path existence check
-        2. Read permission check  
+        2. Read permission check
         3. Non-zero file size check
         4. Inode tracking (if available) - detects file replacement
 
@@ -1101,7 +1100,7 @@ class QueueDB:
                 for subband_idx, new_path in new_paths.items():
                     self._conn.execute(
                         """
-                        UPDATE subband_files 
+                        UPDATE subband_files
                         SET group_id = ?, path = ?
                         WHERE group_id = ? AND subband_idx = ?
                         """,
@@ -3166,6 +3165,4 @@ def main(argv: Optional[List[str]] = None) -> int:
 
 
 if __name__ == "__main__":  # pragma: no cover
-    import sys
-
     raise SystemExit(main())
