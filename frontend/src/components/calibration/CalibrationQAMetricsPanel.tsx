@@ -86,7 +86,7 @@ function MetricGauge({
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between text-sm">
-        <span className="text-gray-600 dark:text-gray-400">{label}</span>
+        <span className="text-muted">{label}</span>
         <span className={`font-mono font-medium ${textColors[status]}`}>
           {typeof value === "number" ? value.toFixed(1) : value}
           {unit && <span className="text-xs ml-0.5">{unit}</span>}
@@ -119,9 +119,7 @@ function IssuesList({ issues }: { issues: CalibrationQAMetrics["issues"] }) {
 
   return (
     <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-      <h4 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-        Issues Detected
-      </h4>
+      <h4 className="label-text mb-2">Issues Detected</h4>
       <div className="space-y-2">
         {issues.map((issue, i) => (
           <div

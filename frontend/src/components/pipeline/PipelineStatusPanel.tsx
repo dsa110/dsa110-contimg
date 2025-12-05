@@ -315,9 +315,7 @@ function StatusIndicator({ counts, size = "md" }: StatusIndicatorProps) {
           title={`${counts.pending} pending`}
         >
           <span className={`${dotSize} rounded-full bg-gray-400`} />
-          <span className="text-gray-600 dark:text-gray-400">
-            {counts.pending}
-          </span>
+          <span className="text-muted">{counts.pending}</span>
         </span>
       )}
       {counts.failed > 0 && (
@@ -441,9 +439,7 @@ function SummaryBar({ total, workerCount, isHealthy }: SummaryBarProps) {
       <div className="flex flex-wrap items-center gap-4">
         <span className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-gray-400" />
-          <span className="text-gray-600 dark:text-gray-400">
-            {total.pending} pending
-          </span>
+          <span className="text-muted">{total.pending} pending</span>
         </span>
         <span className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse" />
@@ -469,7 +465,7 @@ function SummaryBar({ total, workerCount, isHealthy }: SummaryBarProps) {
 
       {/* Worker status */}
       <div className="flex items-center gap-3">
-        <span className="text-gray-500 dark:text-gray-400">
+        <span className="text-hint">
           {workerCount} worker{workerCount !== 1 ? "s" : ""}
         </span>
         <span

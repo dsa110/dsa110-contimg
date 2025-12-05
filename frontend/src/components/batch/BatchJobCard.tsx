@@ -58,12 +58,14 @@ export function BatchJobCard({
           <h4 className="font-medium text-gray-900 dark:text-white">
             {job.name}
           </h4>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
+          <p className="text-hint">
             {getOperationLabel(job.operationType)} • {job.items.length} items
           </p>
         </div>
         <span
-          className={`px-2 py-1 text-xs font-medium rounded ${getStatusColorClass(job.status)}`}
+          className={`px-2 py-1 text-xs font-medium rounded ${getStatusColorClass(
+            job.status
+          )}`}
         >
           {getStatusLabel(job.status)}
         </span>
@@ -73,8 +75,10 @@ export function BatchJobCard({
       {(job.status === "running" || job.status === "paused") && (
         <div className="mb-3">
           <div className="flex items-center justify-between text-sm mb-1">
-            <span className="text-gray-600 dark:text-gray-400">Progress</span>
-            <span className="text-gray-900 dark:text-white">{job.progress}%</span>
+            <span className="text-muted">Progress</span>
+            <span className="text-gray-900 dark:text-white">
+              {job.progress}%
+            </span>
           </div>
           <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
             <div
@@ -88,7 +92,7 @@ export function BatchJobCard({
       )}
 
       {/* Stats */}
-      <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-3">
+      <div className="flex items-center gap-4 text-hint mb-3">
         <span>{timeAgo}</span>
         {job.completedCount > 0 && (
           <span className="text-green-600 dark:text-green-400">
@@ -110,7 +114,10 @@ export function BatchJobCard({
       )}
 
       {/* Actions */}
-      <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="flex items-center gap-2"
+        onClick={(e) => e.stopPropagation()}
+      >
         {canPauseJob(job) && (
           <button
             type="button"

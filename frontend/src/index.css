@@ -249,6 +249,36 @@
   }
 
   /* ============================================
+     TEXT UTILITY CLASSES - Semantic naming for common patterns
+     Reduces duplication of dark mode aware text styles
+     ============================================ */
+
+  /** Muted text - for secondary/supporting content */
+  .text-muted {
+    @apply text-gray-600 dark:text-gray-400;
+  }
+
+  /** Hint text - for descriptions, captions, metadata */
+  .text-hint {
+    @apply text-sm text-gray-500 dark:text-gray-400;
+  }
+
+  /** Label text - for form labels and section headers */
+  .label-text {
+    @apply text-sm font-medium text-gray-700 dark:text-gray-300;
+  }
+
+  /** Caption text - for timestamps, counts, minor details */
+  .text-caption {
+    @apply text-xs text-gray-500 dark:text-gray-400;
+  }
+
+  /** Disabled text - for inactive/disabled states */
+  .text-disabled {
+    @apply text-gray-400 dark:text-gray-500;
+  }
+
+  /* ============================================
      BADGES/TAGS - GitHub dark theme
      ============================================ */
   .badge {
@@ -598,6 +628,56 @@
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* ============================================
+     TEXT UTILITIES - Consolidated styling patterns
+     Reduces repeated className strings throughout components
+     ============================================ */
+
+  /* Muted text - secondary information */
+  .text-muted {
+    @apply text-gray-600 dark:text-gray-400;
+  }
+
+  /* Hint text - small secondary text for descriptions */
+  .text-hint {
+    @apply text-sm text-gray-500 dark:text-gray-400;
+  }
+
+  /* Label text - form labels and small headings */
+  .label-text {
+    @apply text-sm font-medium text-gray-700 dark:text-gray-300;
+  }
+
+  /* Section title - subsection headings */
+  .section-title {
+    @apply text-lg font-semibold text-gray-900 dark:text-gray-100;
+  }
+
+  /* Stat value - large numeric displays */
+  .stat-value {
+    @apply text-2xl font-bold text-gray-900 dark:text-gray-100;
+  }
+
+  /* Stat label - labels for stat values */
+  .stat-label {
+    @apply text-sm text-gray-500 dark:text-gray-400;
+  }
+
+  /* Code/mono text - for paths, IDs, technical values */
+  .text-mono {
+    @apply font-mono text-sm text-gray-600 dark:text-gray-400;
+  }
+
+  /* Truncate with ellipsis */
+  .text-truncate {
+    @apply truncate;
+  }
+
+  /* Interactive text link style */
+  .text-link {
+    @apply text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 cursor-pointer;
   }
 }
 

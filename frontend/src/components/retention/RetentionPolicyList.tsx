@@ -106,36 +106,26 @@ export function RetentionPolicyList({
       {showStats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              {stats.totalPolicies}
-            </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              Total Policies
-            </div>
+            <div className="stat-value">{stats.totalPolicies}</div>
+            <div className="stat-label">Total Policies</div>
           </div>
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
             <div className="text-2xl font-bold text-green-600 dark:text-green-400">
               {stats.activePolicies}
             </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              Active
-            </div>
+            <div className="stat-label">Active</div>
           </div>
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
             <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
               {stats.pausedPolicies}
             </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              Paused
-            </div>
+            <div className="stat-label">Paused</div>
           </div>
           <div className="bg-white dark:bg-gray-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700">
             <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
               {formatBytes(stats.spaceFreedLast30Days)}
             </div>
-            <div className="text-sm text-gray-500 dark:text-gray-400">
-              Freed (30 days)
-            </div>
+            <div className="stat-label">Freed (30 days)</div>
           </div>
         </div>
       )}

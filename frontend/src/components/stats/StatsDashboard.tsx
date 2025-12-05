@@ -123,7 +123,6 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({
       };
     };
 
-     
     init();
   }, [byUser, chartsReady]);
 
@@ -200,13 +199,13 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({
       };
     };
 
-     
     init();
   }, [byTag, chartsReady]);
 
   // Render Pie Chart
   useEffect(() => {
-    if (!chartsReady || !pieChartRef.current || tagDistribution.length === 0) return;
+    if (!chartsReady || !pieChartRef.current || tagDistribution.length === 0)
+      return;
 
     let disposed = false;
     const init = async () => {
@@ -257,7 +256,6 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({
       };
     };
 
-     
     init();
   }, [tagDistribution, chartsReady]);
 
@@ -269,7 +267,9 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({
     const totalRated = totalTrue + totalFalse + totalUnsure;
     const unrated = totalCandidates - ratedCandidates;
     const progressPercent =
-      totalCandidates > 0 ? Math.round((ratedCandidates / totalCandidates) * 100) : 0;
+      totalCandidates > 0
+        ? Math.round((ratedCandidates / totalCandidates) * 100)
+        : 0;
 
     return {
       totalTrue,
@@ -294,7 +294,9 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({
     return (
       <div className={`flex items-center justify-center h-64 ${className}`}>
         <div className="flex flex-col items-center gap-3 text-gray-600">
-          <p className="text-sm text-center">Charts are deferred to avoid loading heavy libraries automatically.</p>
+          <p className="text-sm text-center">
+            Charts are deferred to avoid loading heavy libraries automatically.
+          </p>
           <button
             type="button"
             className="btn btn-primary btn-sm"
@@ -314,19 +316,23 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="card p-4 text-center">
           <p className="text-3xl font-bold text-vast-blue">{totalCandidates}</p>
-          <p className="text-sm text-gray-500">Total Candidates</p>
+          <p className="stat-label">Total Candidates</p>
         </div>
         <div className="card p-4 text-center">
-          <p className="text-3xl font-bold text-vast-green">{ratedCandidates}</p>
-          <p className="text-sm text-gray-500">Rated</p>
+          <p className="text-3xl font-bold text-vast-green">
+            {ratedCandidates}
+          </p>
+          <p className="stat-label">Rated</p>
         </div>
         <div className="card p-4 text-center">
           <p className="text-3xl font-bold text-gray-400">{stats.unrated}</p>
-          <p className="text-sm text-gray-500">Unrated</p>
+          <p className="stat-label">Unrated</p>
         </div>
         <div className="card p-4 text-center">
-          <p className="text-3xl font-bold text-blue-500">{stats.progressPercent}%</p>
-          <p className="text-sm text-gray-500">Progress</p>
+          <p className="text-3xl font-bold text-blue-500">
+            {stats.progressPercent}%
+          </p>
+          <p className="stat-label">Progress</p>
         </div>
       </div>
 
@@ -350,15 +356,17 @@ const StatsDashboard: React.FC<StatsDashboardProps> = ({
       <div className="grid grid-cols-3 gap-4">
         <div className="card p-4 text-center border-l-4 border-green-500">
           <p className="text-2xl font-bold text-green-600">{stats.totalTrue}</p>
-          <p className="text-sm text-gray-500">True</p>
+          <p className="stat-label">True</p>
         </div>
         <div className="card p-4 text-center border-l-4 border-red-500">
           <p className="text-2xl font-bold text-red-600">{stats.totalFalse}</p>
-          <p className="text-sm text-gray-500">False</p>
+          <p className="stat-label">False</p>
         </div>
         <div className="card p-4 text-center border-l-4 border-yellow-500">
-          <p className="text-2xl font-bold text-yellow-600">{stats.totalUnsure}</p>
-          <p className="text-sm text-gray-500">Unsure</p>
+          <p className="text-2xl font-bold text-yellow-600">
+            {stats.totalUnsure}
+          </p>
+          <p className="stat-label">Unsure</p>
         </div>
       </div>
 
