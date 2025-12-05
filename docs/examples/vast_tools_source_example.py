@@ -7,12 +7,12 @@ from pathlib import Path
 from dsa110_contimg.photometry.source import Source
 
 # Example 1: Create Source from database
-products_db = Path("state/db/products.sqlite3")
+pipeline_db = Path("state/db/pipeline.sqlite3")
 source_id = "NVSS J123456+420312"
 
 source = Source(
     source_id=source_id,
-    products_db=products_db
+    db_path=pipeline_db
 )
 
 # Access properties

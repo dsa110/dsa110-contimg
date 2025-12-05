@@ -25,34 +25,19 @@ DEFAULT_DB_PATH = "/data/dsa110-contimg/state/db/pipeline.sqlite3"
 class PoolConfig:
     """Configuration for the database connection pool.
     
-    All paths now point to the unified pipeline.sqlite3 database.
-    Legacy separate database paths are maintained for backwards compatibility
-    but all resolve to the same unified database.
+    All paths point to the unified pipeline.sqlite3 database.
     """
     
     db_path: str = DEFAULT_DB_PATH
     timeout: float = 30.0
-    
-    # Backwards compatibility aliases (all point to unified DB)
-    @property
-    def products_db_path(self) -> str:
-        return self.db_path
-    
-    @property
-    def cal_registry_db_path(self) -> str:
-        return self.db_path
     
     @classmethod
     def from_env(cls) -> "PoolConfig":
         """Create config from environment variables.
         
         Uses PIPELINE_DB for the unified database path.
-        Falls back to legacy env vars for backwards compatibility.
         """
-        # Prefer unified db path, fallback to legacy
-        db_path = os.getenv("PIPELINE_DB")
-        if db_path is None:
-            db_path = os.getenv("PIPELINE_PRODUCTS_DB", DEFAULT_DB_PATH)
+        db_path = os.getenv("PIPELINE_DB", DEFAULT_DB_PATH)
         
         return cls(
             db_path=db_path,
@@ -64,9 +49,7 @@ class DatabasePool:
     """
     Async database connection pool for the unified pipeline database.
     
-    All database operations now use a single unified pipeline.sqlite3 database.
-    The legacy products_db and cal_registry_db methods are maintained for
-    backwards compatibility but both return the same connection.
+    All database operations use the unified pipeline.sqlite3 database.
     """
     
     def __init__(self, config: Optional[PoolConfig] = None):
@@ -113,9 +96,7 @@ class SyncDatabasePool:
     """
     Synchronous database connection pool for the unified pipeline database.
     
-    All database operations now use a single unified pipeline.sqlite3 database.
-    The legacy products_db and cal_registry_db methods are maintained for
-    backwards compatibility but both return the same connection.
+    All database operations use the unified pipeline.sqlite3 database.
     
     Thread-Safety: This pool is NOT thread-safe. Each thread should
     have its own pool instance, or use thread-local storage.

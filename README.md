@@ -235,7 +235,6 @@ The unified database contains tables previously spread across multiple files:
   - `PIPELINE_STATE_DIR` (e.g., `state`)
   - `HDF5_USE_FILE_LOCKING=FALSE` (recommended)
   - `OMP_NUM_THREADS`, `MKL_NUM_THREADS` (e.g., 4)
-  - Legacy aliases (still supported): `PIPELINE_PRODUCTS_DB`, `CAL_REGISTRY_DB`, `INGEST_DB`, `HDF5_DB`
 - PIPELINE FRAMEWORK
   - The pipeline orchestration framework is the default implementation
     - All job execution uses direct function calls (no subprocess overhead)

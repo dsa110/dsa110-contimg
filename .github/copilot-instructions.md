@@ -5,13 +5,13 @@
 **We are undergoing a major refactoring, and this document contains the _old_ code structure. The _new_ version we are migrating to is outlined as an instructive guide located at:**
 
 ```
-/data/dsa110-contimg/dsa110-contimg-complexity-reduction-guide.md
+/data/dsa110-contimg/docs/design/COMPLEXITY_REDUCTION.md
 ```
 
 and
 
 ```
-/data/dsa110-contimg/dsa110-contimg-complexity-reduction-additional-notes.md
+/data/dsa110-contimg/docs/design/COMPLEXITY_REDUCTION_NOTES.md
 ```
 
 ## Project Overview

@@ -42,37 +42,85 @@ from .build_atnf_pulsars import build_atnf_pulsar_db
 from .builders import (
     CATALOG_COVERAGE_LIMITS,
     auto_build_missing_catalog_databases,
+    # ATNF
+    atnf_full_db_exists,
+    build_atnf_full_db,
     build_atnf_strip_db,
+    build_atnf_strip_from_full,
+    # FIRST
+    build_first_full_db,
     build_first_strip_db,
+    build_first_strip_from_full,
+    first_full_db_exists,
+    get_atnf_full_db_path,
+    get_first_full_db_path,
+    get_nvss_full_db_path,
+    # RAX
+    get_rax_full_db_path,
+    # VLASS
+    get_vlass_full_db_path,
+    # NVSS
     build_nvss_full_db,
     build_nvss_strip_db,
     build_nvss_strip_from_full,
+    nvss_full_db_exists,
+    # RAX
+    build_rax_full_db,
     build_rax_strip_db,
+    build_rax_strip_from_full,
+    rax_full_db_exists,
+    # VLASS
+    build_vlass_full_db,
     build_vlass_strip_db,
+    build_vlass_strip_from_full,
+    vlass_full_db_exists,
+    # Utilities
     check_catalog_database_exists,
     check_missing_catalog_databases,
-    get_nvss_full_db_path,
-    nvss_full_db_exists,
 )
 from .query import query_sources, resolve_catalog_path
 
 __all__ = [
+    # Query
     "query_sources",
     "resolve_catalog_path",
+    # NVSS
     "build_nvss_strip_db",
     "build_nvss_full_db",
     "build_nvss_strip_from_full",
     "nvss_full_db_exists",
     "get_nvss_full_db_path",
+    # FIRST
     "build_first_strip_db",
+    "build_first_full_db",
+    "build_first_strip_from_full",
+    "first_full_db_exists",
+    "get_first_full_db_path",
+    # RAX
     "build_rax_strip_db",
+    "build_rax_full_db",
+    "build_rax_strip_from_full",
+    "rax_full_db_exists",
+    "get_rax_full_db_path",
+    # VLASS
+    "build_vlass_strip_db",
+    "build_vlass_full_db",
+    "build_vlass_strip_from_full",
+    "vlass_full_db_exists",
+    "get_vlass_full_db_path",
+    # ATNF
     "build_atnf_strip_db",
+    "build_atnf_full_db",
+    "build_atnf_strip_from_full",
     "build_atnf_pulsar_db",
+    "atnf_full_db_exists",
+    "get_atnf_full_db_path",
+    # Utilities
     "auto_build_missing_catalog_databases",
     "check_missing_catalog_databases",
     "check_catalog_database_exists",
     "CATALOG_COVERAGE_LIMITS",
-    "build_vlass_strip_db",
+    # External
     "simbad_search",
     "ned_search",
     "gaia_search",
