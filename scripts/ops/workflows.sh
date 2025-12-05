@@ -37,8 +37,8 @@ alias casa-status="sudo systemctl status casa-log-daemon"
 alias dashboard-build="$SCRIPT_DIR/dashboard/build-dashboard-production.sh"
 alias dashboard-serve="$SCRIPT_DIR/dashboard/serve-dashboard-production.sh"
 
-# Calibration
-alias cal-check="$SCRIPT_DIR/calibration/check_ms_phasing.py"
+# Calibration / Validation
+alias ms-validate="python -m dsa110_contimg.validation.ms_validator"
 
 # Monitoring
 alias monitor-cal="$SCRIPT_DIR/monitoring/monitor_calibration.py"

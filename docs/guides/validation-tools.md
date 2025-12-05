@@ -1,12 +1,110 @@
 # Validation Tools
 
-These scripts validate the DSA-110 continuum imaging pipeline configuration
-before deployment or during development.
+Tools for validating DSA-110 continuum imaging pipeline data products
+and configuration.
 
-## Overview
+## Measurement Set Validation
 
-All validation tools are **portable** - they auto-detect the project root and
-can run from any directory or CI environment.
+### Unified MS Validator (Recommended)
+
+**Location**: `backend/src/dsa110_contimg/validation/ms_validator.py`
+
+The unified MS validator consolidates all MS validation functionality into
+a single, comprehensive module. Use this instead of the legacy scripts.
+
+**Python API**:
+
+```python
+from dsa110_contimg.validation import validate_ms, MSValidator
+
+# Quick validation
+report = validate_ms("/stage/dsa110-contimg/ms/2025-11-18T23:50:25.ms")
+print(report.summary())
+
+# With calibrator check
+report = validate_ms(
+    "/path/to/file.ms",
+    calibrator_name="3C286",
+    calibrator_ra_deg=202.7845,
+    calibrator_dec_deg=30.5091,
+)
+
+# JSON output
+import json
+print(json.dumps(report.to_dict(), indent=2))
+
+# Access individual results
+if report.passed:
+    print("All checks passed!")
+else:
+    for error in report.errors:
+        print(f"FAILED: {error.name}: {error.message}")
+```
+
+**CLI**:
+
+```bash
+# Basic validation
+python -m dsa110_contimg.validation.ms_validator /path/to/file.ms
+
+# With calibrator alignment check
+python -m dsa110_contimg.validation.ms_validator /path/to/file.ms \
+    --calibrator 3C286 --cal-ra 202.7845 --cal-dec 30.5091
+
+# JSON output
+python -m dsa110_contimg.validation.ms_validator /path/to/file.ms --json
+
+# Skip data check (faster)
+python -m dsa110_contimg.validation.ms_validator /path/to/file.ms --no-data
+```
+
+**Validation Checks**:
+
+| Check                  | Description                           | Severity |
+| ---------------------- | ------------------------------------- | -------- |
+| `ms_exists`            | MS path exists and is valid directory | error    |
+| `required_tables`      | All required subtables present        | error    |
+| `properties_extracted` | Basic properties readable             | error    |
+| `phase_center_valid`   | Phase center has valid coordinates    | error    |
+| `rephase_status`       | REFERENCE_DIR vs PHASE_DIR comparison | info     |
+| `calibrator_alignment` | Field aligned with calibrator         | warning  |
+| `data_nonzero`         | DATA column has non-zero values       | error    |
+| `flagging`             | Flag fraction check                   | info     |
+| `timing_duration`      | Observation duration check            | warning  |
+
+**Output Properties**:
+
+- `nrows`: Number of data rows
+- `nants`: Number of antennas
+- `nfields`: Number of fields
+- `field_names`: List of field names
+- `nspw`: Number of spectral windows
+- `total_channels`: Total frequency channels
+- `data_shape`: Shape of DATA column
+- `time_start`, `time_end`: Observation time range
+- `duration_seconds`: Observation duration
+- `phase_centers`: List of field phase centers
+
+---
+
+### Legacy Scripts (Archived)
+
+The following scripts have been **archived** to `scripts/archive/validation/`.
+Use the unified `ms_validator` instead.
+
+| Archived Script              | Replacement                                                  |
+| ---------------------------- | ------------------------------------------------------------ |
+| `check_ms_properties.py`     | `validate_ms()` - properties in report                       |
+| `check_ms_phasing.py`        | `validate_ms(calibrator_ra_deg=..., calibrator_dec_deg=...)` |
+| `check_ms_rephase_status.py` | `report.properties["rephase_status"]`                        |
+| `validate_ms_timing.py`      | `report.properties["time_start"]`, `duration_seconds`        |
+
+---
+
+## Configuration Validation
+
+All configuration validation tools are **portable** - they auto-detect the
+project root and can run from any directory or CI environment.
 
 ## Tools
 

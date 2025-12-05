@@ -107,9 +107,10 @@ CASA log management and utilities
 
 ### :folder: [calibration/](calibration/)
 
-Calibration workflows and validation
+Calibration workflows
 
-- **Check Phasing**: `calibration/check_ms_phasing.py`
+- **MS Validation**: Use `python -m dsa110_contimg.validation.ms_validator`
+- See [validation-tools.md](validation-tools.md) for full documentation
 
 ### :folder: [imaging/](imaging/)
 

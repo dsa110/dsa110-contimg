@@ -27,10 +27,6 @@ General utility scripts for various tasks.
 - **`analyze_coverage.py`** - Analyze test coverage
 - **`benchmark_nvss_query.py`** - Benchmark NVSS queries
 - **`backfill_eta_metric.py`** - Backfill ETA metrics
-- **`find_earliest_data.py`** - Find earliest data files
-- **`register_existing_data.py`** - Register existing data
-- **`reorganize_ms_directory.py`** - Reorganize measurement set directories
-- **`validate_ms_timing.py`** - Validate MS timing
 
 ### Conversion & Processing
 
