@@ -234,20 +234,32 @@ export default function CARTAViewerPage() {
     );
   }
 
-  // CARTA unavailable
-  if (!status?.available) {
+  // No file specified - show file browser (with warning if CARTA unavailable)
+  if (!filePath) {
     return (
       <div className="h-full">
-        <UnavailableState message={status?.message} />
+        {!status?.available && (
+          <div className="bg-amber-50 dark:bg-amber-900/20 border-b border-amber-200 dark:border-amber-800 px-4 py-3">
+            <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200">
+              <span>⚠️</span>
+              <span className="text-sm">
+                <strong>CARTA server is currently unavailable.</strong>{" "}
+                {status?.message ||
+                  "You can browse files, but viewing will require CARTA to be running."}
+              </span>
+            </div>
+          </div>
+        )}
+        <FileBrowserState sessions={sessions} onSelectFile={handleSelectFile} />
       </div>
     );
   }
 
-  // No file specified - show file browser
-  if (!filePath) {
+  // CARTA unavailable but file specified - show unavailable state
+  if (!status?.available) {
     return (
       <div className="h-full">
-        <FileBrowserState sessions={sessions} onSelectFile={handleSelectFile} />
+        <UnavailableState message={status?.message} />
       </div>
     );
   }

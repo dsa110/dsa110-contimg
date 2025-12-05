@@ -12,11 +12,14 @@
     <script src="/vendor/fabric-4.6.0.min.js"></script>
     <!-- Configure JS9 to use local paths for worker files -->
     <script>
+      // Create Module object before astroemw loads to signal we want the ready event
+      var Module = { astroemReady: true };
       var JS9Prefs = {
         globalOpts: {
           helperType: "none",
           installDir: "/vendor/js9/",
-          debug: 0,
+          useWasm: true,
+          debug: 1,
         },
         imageOpts: {
           colormap: "grey",
@@ -24,8 +27,9 @@
         },
       };
     </script>
-    <!-- js9support.min.js provides in-browser FITS parsing (required when no helper is available) -->
+    <!-- js9support.min.js provides additional in-browser support -->
     <script src="/vendor/js9/js9support.min.js"></script>
+    <!-- JS9 will load astroemw.js itself after init -->
     <script src="/vendor/js9/js9.min.js"></script>
 
     <!-- Aladin Lite v3 - self-hosted to avoid cross-origin WASM fetch issues -->
