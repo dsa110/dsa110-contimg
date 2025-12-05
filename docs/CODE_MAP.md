@@ -23,13 +23,13 @@ corresponding documentation and status. Use this to navigate the codebase.
 
 ### 2. Workflow Management ("ABSURD")
 
-**Code Location:** `backend/src/dsa110_contimg/absurd/` & `ops/scripts/absurd/`
+**Code Location:** `backend/src/dsa110_contimg/absurd/` & `scripts/ops/absurd/`
 **Status:** :green_circle: **Active Integration**
 
 | Component        | Code File                               | Documentation                                   |
 | :--------------- | :-------------------------------------- | :---------------------------------------------- |
 | **Overview**     | `README.md`                             | `backend/docs/ops/absurd-service-activation.md` |
-| **Setup Script** | `ops/scripts/absurd/setup_absurd_db.sh` | `backend/docs/ops/absurd-service-activation.md` |
+| **Setup Script** | `scripts/ops/absurd/setup_absurd_db.sh` | `backend/docs/ops/absurd-service-activation.md` |
 
 ### 3. Quality Assurance (QA)
 

@@ -217,13 +217,8 @@ for c in chunks:
 DocSearch now supports indexing TypeScript/React code for semantic search over
 components, hooks, and API clients.
 
-> **:lightbulb: Quick Start:** See
-> **[Frontend Code Search Guide](../guides/code-search.md)** for a simple
-> task-oriented introduction.
->
-> **:book: Detailed Reference:** See
-> [Complete Frontend Code Search Guide](../how-to/development/frontend_code_search.md)
-> for comprehensive documentation.
+> **:lightbulb: Usage:** The frontend code indexer provides semantic search
+> over React components and hooks. See examples below.
 
 ### Quick Start (Frontend)
 
@@ -338,6 +333,5 @@ for r in results:
 
 ### See Also
 
-- [Frontend Code Search Guide](../../docs/how-to/development/frontend_code_search.md) -
-  Complete usage documentation
 - [code_indexer.py](./code_indexer.py) - Implementation details
+- [Visualization Guide](../guides/visualization.md) - Dashboard visualization

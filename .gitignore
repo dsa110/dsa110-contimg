@@ -203,7 +203,7 @@ state/
 .serena/
 .gemini/
 .codacy/
-.claude/
+**/.claude/
 .watch/
 *watch*
 

@@ -144,7 +144,7 @@ simplicity. As of Phase 2 consolidation, all pipeline state is stored in a
 | **Debug WSClean**      | `backend/src/dsa110_contimg/imaging/cli_imaging.py`                         |
 | **Check Health Logic** | `backend/src/dsa110_contimg/pipeline/health.py`                             |
 | **Frontend Routes**    | `frontend/src/App.tsx` (implied)                                            |
-| **Run Tests**          | `ops/scripts/tests/`                                                        |
+| **Run Tests**          | `scripts/ops/tests/`                                                        |
 
 ---
 

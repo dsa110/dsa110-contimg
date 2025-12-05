@@ -27,7 +27,7 @@ The monitoring system consists of:
 
 ```bash
 cd /data/dsa110-contimg
-bash ops/scripts/setup_qa_directories.sh
+bash scripts/ops/setup_qa_directories.sh
 ```
 
 This creates:
