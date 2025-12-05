@@ -141,8 +141,9 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
 
     try {
       // AddDivs scans for new JS9 divs and initializes them
+      // Pass the specific ID to AddDivs to initialize just this display
       if (typeof window.JS9.AddDivs === "function") {
-        window.JS9.AddDivs();
+        window.JS9.AddDivs(displayId);
         displayInitializedRef.current = true;
         logger.debug("JS9.AddDivs called for display", { displayId });
       } else if (typeof window.JS9.init === "function") {
@@ -164,7 +165,7 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
   useEffect(() => {
     if (!isJS9Ready || !fitsUrl) return;
 
-    // Wait a short time for JS9 to initialize the display
+    // Wait for JS9 to initialize the display
     const loadTimeout = setTimeout(() => {
       setIsLoading(true);
       setError(null);
@@ -174,12 +175,24 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
         const displayElement = document.getElementById(displayId);
         const hasCanvas = displayElement?.querySelector("canvas");
         if (!hasCanvas) {
-          logger.warn("JS9 display not initialized, retrying AddDivs", {
+          logger.warn("JS9 display not initialized, calling AddDivs with ID", {
             displayId,
           });
           if (typeof window.JS9.AddDivs === "function") {
-            window.JS9.AddDivs();
+            // Pass the specific display ID
+            window.JS9.AddDivs(displayId);
           }
+        }
+
+        // Verify display is now available
+        const display = window.JS9.LookupDisplay?.(displayId);
+        if (!display) {
+          logger.error("JS9 display still not found after AddDivs", {
+            displayId,
+          });
+          setError(`JS9 display initialization failed for ${displayId}`);
+          setIsLoading(false);
+          return;
         }
 
         window.JS9.Load(fitsUrl, {

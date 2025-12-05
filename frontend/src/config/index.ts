@@ -120,6 +120,9 @@ export const FEATURES = {
 
   /** Enable CARTA viewer integration */
   enableCARTA: import.meta.env.VITE_ENABLE_CARTA !== "false",
+
+  /** Enable Grafana dashboard embedding */
+  enableGrafana: import.meta.env.VITE_ENABLE_GRAFANA !== "false",
 } as const;
 
 /**
@@ -134,6 +137,25 @@ export const CARTA_CONFIG = {
 } as const;
 
 /**
+ * Grafana Configuration
+ */
+export const GRAFANA_CONFIG = {
+  /** Base URL for Grafana server */
+  baseUrl: import.meta.env.VITE_GRAFANA_URL || "http://localhost:3030",
+
+  /** Default organization ID */
+  orgId: 1,
+
+  /** Default dashboards */
+  dashboards: {
+    pipelineOverview: "pipeline-overview",
+    systemResources: "node-exporter",
+    apiPerformance: "fastapi-metrics",
+    streamingConverter: "streaming-converter",
+  },
+} as const;
+
+/**
  * Main configuration object - use this as the default import
  */
 export const config = {
@@ -142,6 +164,7 @@ export const config = {
   ui: UI_CONFIG,
   features: FEATURES,
   carta: CARTA_CONFIG,
+  grafana: GRAFANA_CONFIG,
   timing: QUERY_TIMING,
 
   /** Legacy flat access for gradual migration */

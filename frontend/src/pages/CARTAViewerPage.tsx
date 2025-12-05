@@ -13,7 +13,7 @@
  */
 
 import React, { useMemo } from "react";
-import { useSearchParams, Link, useNavigate } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import {
   useCARTAStatus,
   useCARTASessions,
@@ -203,7 +203,6 @@ function FileBrowserState({ sessions, onSelectFile }: FileBrowserStateProps) {
 
 export default function CARTAViewerPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
   const { data: status, isLoading: statusLoading } = useCARTAStatus();
   const { data: sessions = [] } = useCARTASessions();
 

@@ -402,8 +402,9 @@ export interface JS9Static {
   /**
    * Add dynamically created JS9 divs.
    * Scans the DOM for new divs with class "JS9" and initializes them.
+   * @param id Optional specific div ID to initialize (if omitted, scans all)
    */
-  AddDivs?: () => void;
+  AddDivs?: (id?: string) => void;
 
   /**
    * Look up a display by ID.

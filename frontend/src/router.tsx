@@ -45,6 +45,7 @@ const CommentsPage = lazy(() => import("./pages/CommentsPage"));
 const SharedQueriesPage = lazy(() => import("./pages/SharedQueriesPage"));
 const PipelineControlPage = lazy(() => import("./pages/PipelineControlPage"));
 const CARTAViewerPage = lazy(() => import("./pages/CARTAViewerPage"));
+const GrafanaPage = lazy(() => import("./pages/GrafanaPage"));
 
 // =============================================================================
 // Route Helper Functions
@@ -218,6 +219,15 @@ export const router = createBrowserRouter(
           path: "viewer/carta",
           element: protectedPage(CARTAViewerPage, {
             variant: "detail",
+            roles: ["viewer", "operator", "admin"],
+          }),
+        },
+
+        // Grafana dashboards (accessible to all authenticated users)
+        {
+          path: "monitoring/grafana",
+          element: protectedPage(GrafanaPage, {
+            variant: "cards",
             roles: ["viewer", "operator", "admin"],
           }),
         },

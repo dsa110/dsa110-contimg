@@ -12,6 +12,7 @@ import CARTAViewerPage from "./CARTAViewerPage";
 // Mock the carta API module
 vi.mock("../api/carta", () => ({
   useCARTAStatus: vi.fn(),
+  useCARTASessions: vi.fn(() => ({ data: [], isLoading: false })),
   getCARTAViewerUrl: vi.fn(
     (filePath: string, baseUrl?: string) =>
       `${baseUrl || "/carta"}?file=${encodeURIComponent(filePath)}`
@@ -83,9 +84,11 @@ describe("CARTAViewerPage", () => {
       } as unknown as ReturnType<typeof useCARTAStatus>);
 
       renderPage("/viewer/carta");
-      expect(screen.getByText(/no file specified/i)).toBeInTheDocument();
       expect(
-        screen.getByText(/please specify a file to open in carta/i)
+        screen.getByRole("heading", { name: /carta viewer/i })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText(/advanced visualization for fits images/i)
       ).toBeInTheDocument();
     });
 
@@ -331,7 +334,7 @@ describe("CARTAViewerPage", () => {
 
       renderPage("/viewer/carta");
       expect(
-        screen.getByRole("heading", { name: /no file specified/i })
+        screen.getByRole("heading", { name: /carta viewer/i })
       ).toBeInTheDocument();
     });
   });

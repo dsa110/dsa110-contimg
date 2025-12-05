@@ -114,6 +114,9 @@ export const ROUTES = {
 
   /** CARTA Viewer */
   CARTA: "/viewer/carta",
+
+  /** Grafana Dashboards */
+  GRAFANA: "/monitoring/grafana",
 } as const;
 
 /**
