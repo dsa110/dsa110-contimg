@@ -97,9 +97,9 @@ python -m dsa110_contimg.conversion.cli groups \
 **Key files:**
 
 - `conversion/hdf5_orchestrator.py` - Batch conversion logic
-- `conversion/streaming_converter.py` - Real-time streaming daemon
 - `conversion/writers.py` - MS writing strategies
-- `conversion/cli.py` - Command-line interface (deprecated, use ABSURD pipeline)
+- `conversion/cli.py` - Command-line interface for batch conversion
+- `conversion/streaming/normalize.py` - Filename normalization for ABSURD ingestion
 
 ### 3. Pipeline Stages (`pipeline/`)
 
@@ -117,9 +117,10 @@ Start here if you're working on data calibration.
 
 **Key files:**
 
-- `calibration/bandpass.py` - Bandpass calibration
-- `calibration/field_naming.py` - Calibrator field detection
-- `calibration/calibrator_registry.py` - Known calibrators database
+- `calibration/calibration.py` - Core calibration routines (gaincal)
+- `calibration/selection.py` - Bandpass field selection with PB-weighted flux
+- `calibration/field_naming.py` - Calibrator field detection and renaming
+- `calibration/catalog_registry.py` - Unified catalog query interface
 
 ## Running Tests
 

@@ -454,16 +454,15 @@ Located in `state/catalogs/`:
 ### Query Processing Status
 
 ```bash
-# Count by state
+# Check MS processing stages
 sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
-  "SELECT state, COUNT(*) FROM processing_queue GROUP BY state;"
+  "SELECT stage, COUNT(*) FROM ms_index GROUP BY stage;"
 
-# Recent completions
+# Recent MS registrations
 sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
-  "SELECT group_id, datetime(last_update, 'unixepoch')
-   FROM processing_queue
-   WHERE state='completed'
-   ORDER BY last_update DESC LIMIT 10;"
+  "SELECT group_id, datetime(created_at, 'unixepoch'), status
+   FROM ms_index
+   ORDER BY created_at DESC LIMIT 10;"
 ```
 
 ### Find Products for Observation

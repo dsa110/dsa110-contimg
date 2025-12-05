@@ -76,11 +76,10 @@ imaging.
 ## Directory Layout
 
 - `backend/src/dsa110_contimg/`
-  - `conversion/`: Streaming and legacy conversion logic
-    - `streaming/streaming_converter.py`: Main daemon for monitoring and
-      processing
-    - `strategies/`: Pluggable processing strategies (orchestrator, direct
-      writers)
+  - `conversion/`: UVH5 to Measurement Set conversion
+    - `hdf5_orchestrator.py`: Batch conversion for subband groups
+    - `streaming/normalize.py`: Filename normalization for ABSURD ingestion
+    - `strategies/`: MS writing strategies (direct subband writer)
   - `calibration/`: CASA-based calibration routines
   - `imaging/`: Imaging workers (tclean wrappers)
   - `database/`: Database interaction helpers (registry, products)

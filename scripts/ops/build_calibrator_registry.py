@@ -139,6 +139,6 @@ print("Next steps:")
 print(
     '  1. Test registry: python -c "from dsa110_contimg.catalog.calibrator_registry import get_best_calibrator; print(get_best_calibrator(30.0))"'
 )
-print("  2. Update pipeline to use fast selection: calibration/bandpass.py")
+print("  2. Update pipeline to use fast selection: calibration/selection.py")
 print("  3. Monitor performance in production")
 print()
