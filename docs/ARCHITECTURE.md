@@ -486,7 +486,8 @@ python -m dsa110_contimg.imaging.cli ...
 ## Related Documentation
 
 - **[Quick Start](QUICKSTART.md)**: Get running in 5 minutes
-- **[User Guide](USER_GUIDE.md)**: Operations and workflows
+- **[Storage & Files](guides/storage-and-file-organization.md)**: File organization and database paths
+- **[Dashboard Guide](guides/dashboard.md)**: Web interface operations
 - **[Developer Guide](DEVELOPER_GUIDE.md)**: Contributing guidelines
 - **[API Reference](API_REFERENCE.md)**: REST API documentation
 - **[Troubleshooting](TROUBLESHOOTING.md)**: Problem resolution

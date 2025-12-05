@@ -652,6 +652,7 @@ Fatal errors (require intervention):
 ## Related Documentation
 
 - **[Quick Start](QUICKSTART.md)**: Initial setup
-- **[User Guide](USER_GUIDE.md)**: Operations
+- **[Storage & Files](guides/storage-and-file-organization.md)**: File organization and database paths
+- **[Dashboard Guide](guides/dashboard.md)**: Web interface
 - **[Developer Guide](DEVELOPER_GUIDE.md)**: Development
 - **[Architecture](ARCHITECTURE.md)**: System design

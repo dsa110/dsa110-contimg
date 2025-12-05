@@ -198,7 +198,7 @@ sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
 
 | Goal                     | Documentation                         |
 | ------------------------ | ------------------------------------- |
-| Complete user operations | [User Guide](USER_GUIDE.md)           |
+| Pipeline workflows       | [Storage & Files](guides/storage-and-file-organization.md) |
 | Develop new features     | [Developer Guide](DEVELOPER_GUIDE.md) |
 | API integration          | [API Reference](API_REFERENCE.md)     |
 | System architecture      | [Architecture](ARCHITECTURE.md)       |
