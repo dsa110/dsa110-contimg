@@ -19,9 +19,15 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Dict, List, Optional
+
+if TYPE_CHECKING:
+    from dsa110_contimg.absurd.client import AbsurdClient
 
 logger = logging.getLogger(__name__)
+
+# Global client pool (created once, reused for all operations)
+_global_client: Optional[AbsurdClient] = None
 
 # SQL for schema creation (added to absurd/schema.sql)
 INGESTION_SCHEMA = """
@@ -74,25 +80,28 @@ async def get_client():
 
     Returns connected client from the global pool or creates new one.
     The client is guaranteed to have a non-None _pool after this call.
+    Reuses a single connection pool across all operations.
     """
-    from dsa110_contimg.absurd import AbsurdClient
-    from dsa110_contimg.absurd.config import AbsurdConfig
+    global _global_client
+    
+    if _global_client is None:
+        from dsa110_contimg.absurd import AbsurdClient
+        from dsa110_contimg.absurd.config import AbsurdConfig
 
-    config = AbsurdConfig.from_env()
-    client = AbsurdClient(config.database_url)
-    await client.connect()
-    return client
+        config = AbsurdConfig.from_env()
+        _global_client = AbsurdClient(config.database_url)
+        await _global_client.connect()
+        logger.info("Created global ABSURD client connection pool")
+    
+    return _global_client
 
 
 async def ensure_ingestion_schema() -> None:
     """Ensure ingestion tables exist in the database."""
     client = await get_client()
-    try:
-        async with client._pool.acquire() as conn:  # type: ignore[union-attr]
-            await conn.execute(INGESTION_SCHEMA)
-            logger.info("Ensured ingestion schema exists")
-    finally:
-        await client.close()
+    async with client._pool.acquire() as conn:  # type: ignore[union-attr]
+        await conn.execute(INGESTION_SCHEMA)
+        logger.info("Ensured ingestion schema exists")
 
 
 async def find_or_create_group(
@@ -113,14 +122,13 @@ async def find_or_create_group(
         Canonical group_id to use (existing or new)
     """
     client = await get_client()
-    try:
-        async with client._pool.acquire() as conn:  # type: ignore[union-attr]
-            # Parse incoming timestamp
-            try:
-                incoming_dt = datetime.strptime(group_id, "%Y-%m-%dT%H:%M:%S")
-            except ValueError:
-                # Invalid format - use as-is
-                return group_id
+    async with client._pool.acquire() as conn:  # type: ignore[union-attr]
+        # Parse incoming timestamp
+        try:
+            incoming_dt = datetime.strptime(group_id, "%Y-%m-%dT%H:%M:%S")
+        except ValueError:
+            # Invalid format - use as-is
+            return group_id
             
             # Look for existing groups within tolerance
             min_time = incoming_dt - timedelta(seconds=tolerance_s)
@@ -153,8 +161,6 @@ async def find_or_create_group(
                 group_id,
             )
             return group_id
-    finally:
-        await client.close()
 
 
 async def record_subband(
@@ -172,7 +178,7 @@ async def record_subband(
         dec_deg: Declination in degrees (for metadata)
     """
     client = await get_client()
-    try:
+
         async with client._pool.acquire() as conn:  # type: ignore[union-attr]
             async with conn.transaction():
                 # Insert subband (ignore if already exists)
@@ -207,22 +213,18 @@ async def record_subband(
                     group_id,
                     dec_deg,
                 )
-    finally:
-        await client.close()
 
 
 async def get_group_subband_count(group_id: str) -> int:
     """Get the current subband count for a group."""
     client = await get_client()
-    try:
+
         async with client._pool.acquire() as conn:  # type: ignore[union-attr]
             row = await conn.fetchrow(
                 "SELECT subband_count FROM absurd.ingestion_groups WHERE group_id = $1",
                 group_id,
             )
             return row["subband_count"] if row else 0
-    finally:
-        await client.close()
 
 
 async def get_group_files(group_id: str) -> Dict[int, str]:
@@ -232,7 +234,7 @@ async def get_group_files(group_id: str) -> Dict[int, str]:
         Dict mapping subband_idx to file_path
     """
     client = await get_client()
-    try:
+
         async with client._pool.acquire() as conn:  # type: ignore[union-attr]
             rows = await conn.fetch(
                 """
@@ -244,8 +246,6 @@ async def get_group_files(group_id: str) -> Dict[int, str]:
                 group_id,
             )
             return {row["subband_idx"]: row["file_path"] for row in rows}
-    finally:
-        await client.close()
 
 
 async def update_group_after_normalize(
@@ -261,7 +261,7 @@ async def update_group_after_normalize(
         new_paths: Dict mapping subband_idx to new file path
     """
     client = await get_client()
-    try:
+
         async with client._pool.acquire() as conn:  # type: ignore[union-attr]
             async with conn.transaction():
                 if old_group_id != new_group_id:
@@ -321,8 +321,6 @@ async def update_group_after_normalize(
                         new_group_id,
                         subband_idx,
                     )
-    finally:
-        await client.close()
 
 
 async def update_group_state(
@@ -340,7 +338,7 @@ async def update_group_state(
         ms_path: Output MS path (if state is completed)
     """
     client = await get_client()
-    try:
+
         async with client._pool.acquire() as conn:  # type: ignore[union-attr]
             await conn.execute(
                 """
@@ -357,14 +355,12 @@ async def update_group_state(
                 error,
                 ms_path,
             )
-    finally:
-        await client.close()
 
 
 async def get_pending_groups(limit: int = 100) -> List[Dict[str, Any]]:
     """Get groups that are ready for processing (pending state)."""
     client = await get_client()
-    try:
+
         async with client._pool.acquire() as conn:  # type: ignore[union-attr]
             rows = await conn.fetch(
                 """
@@ -377,14 +373,12 @@ async def get_pending_groups(limit: int = 100) -> List[Dict[str, Any]]:
                 limit,
             )
             return [dict(row) for row in rows]
-    finally:
-        await client.close()
 
 
 async def get_ingestion_stats() -> Dict[str, Any]:
     """Get ingestion queue statistics for monitoring."""
     client = await get_client()
-    try:
+
         async with client._pool.acquire() as conn:  # type: ignore[union-attr]
             row = await conn.fetchrow(
                 """
@@ -400,8 +394,6 @@ async def get_ingestion_stats() -> Dict[str, Any]:
                 """
             )
             return dict(row) if row else {}
-    finally:
-        await client.close()
 
 
 async def get_recorded_files() -> List[str]:
@@ -413,11 +405,9 @@ async def get_recorded_files() -> List[str]:
         List of file paths already in the database
     """
     client = await get_client()
-    try:
+
         async with client._pool.acquire() as conn:  # type: ignore[union-attr]
             rows = await conn.fetch(
                 "SELECT file_path FROM absurd.ingestion_subbands"
             )
             return [row["file_path"] for row in rows]
-    finally:
-        await client.close()

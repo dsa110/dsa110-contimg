@@ -60,8 +60,13 @@ async def main() -> int:
 
     # Set up signal handlers for graceful shutdown
     shutdown_event = asyncio.Event()
+    shutdown_requested = False
 
     def signal_handler(sig: int, frame) -> None:
+        nonlocal shutdown_requested
+        if shutdown_requested:
+            return  # Already shutting down, ignore duplicate signals
+        shutdown_requested = True
         logger.info(f"Received signal {sig}, initiating graceful shutdown...")
         shutdown_event.set()
 
