@@ -65,7 +65,6 @@ except ImportError:
     sys.exit(1)
 
 from dsa110_contimg.calibration.selection import select_bandpass_from_catalog
-from dsa110_contimg.utils.constants import DSA110_LOCATION
 
 # Known calibrator flux densities at 1.4 GHz (Perley & Butler 2017)
 # Format: {name: (flux_Jy, spectral_index_alpha, reference_freq_GHz)}
