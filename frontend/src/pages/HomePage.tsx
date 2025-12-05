@@ -202,11 +202,8 @@ const HomePage: React.FC = () => {
     return [...images]
       .filter((img) => {
         const filename = img.path?.split("/").pop() || "";
-        // Only show .fits files, prefer primary-beam-corrected images
+        // Only show .fits files
         if (!filename.endsWith(".fits")) return false;
-        // Exclude test files
-        if (filename.startsWith("test_") || filename.includes("_test"))
-          return false;
         return true;
       })
       .sort((a, b) => {
