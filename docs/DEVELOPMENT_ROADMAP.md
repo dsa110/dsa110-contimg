@@ -55,7 +55,7 @@ Pipeline development.
 
 - **Goal**: Simplify codebase architecture per complexity reduction guide
 - **Status**: In Progress
-- **Docs**: [Complexity Reduction Guide](../dsa110-contimg-complexity-reduction-guide.md)
+- **Docs**: See `TODOs.tmp/dsa110-contimg-complexity-reduction-guide.md` in repository root
 
 ### 2. Backend API Completion
 
@@ -117,4 +117,3 @@ Missing endpoints identified in [Production Readiness Roadmap](design/PRODUCTION
 - [Developer Guide](DEVELOPER_GUIDE.md) - Contributing guidelines
 - [Production Readiness](design/PRODUCTION_READINESS_ROADMAP.md) - Detailed backend gaps
 - [GPU Implementation](design/GPU_implementation_plan.md) - GPU acceleration plan
-- [Complexity Reduction](../dsa110-contimg-complexity-reduction-guide.md) - Refactoring guide

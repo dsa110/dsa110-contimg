@@ -12,16 +12,19 @@ Last updated: Phase 4 completion (complexity reduction)
 Run the comprehensive health check first:
 
 ```bash
+conda activate casa6
+cd /data/dsa110-contimg/backend
+
 # Full health check
-python scripts/health_check.py
+python scripts/ops/health_check.py
 
 # JSON output (for monitoring)
-python scripts/health_check.py --json
+python scripts/ops/health_check.py --json
 
 # Check specific component
-python scripts/health_check.py --component disk
-python scripts/health_check.py --component database
-python scripts/health_check.py --component services
+python scripts/ops/health_check.py --component disk
+python scripts/ops/health_check.py --component database
+python scripts/ops/health_check.py --component services
 ```
 
 ---
@@ -113,13 +116,15 @@ sqlite3.OperationalError: no such column: X
 **Diagnosis:**
 
 ```bash
-python scripts/fix_schemas.py --verbose
+conda activate casa6
+cd /data/dsa110-contimg/backend
+python scripts/dev/fix_schemas.py --verbose
 ```
 
 **Fix:**
 
 ```bash
-python scripts/fix_schemas.py --fix
+python scripts/dev/fix_schemas.py --fix
 ```
 
 ---
@@ -146,7 +151,8 @@ lsof /data/dsa110-contimg/state/db/pipeline.sqlite3
 
 ```bash
 # Clear stale locks
-python scripts/fix_schemas.py --clear-locks
+cd /data/dsa110-contimg/backend
+python scripts/dev/fix_schemas.py --clear-locks
 
 # Force WAL checkpoint
 sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 "PRAGMA wal_checkpoint(TRUNCATE);"
@@ -588,7 +594,8 @@ journalctl -u contimg-stream --since "1 hour ago"
 3. **Run health check** for automated diagnosis:
 
    ```bash
-   python scripts/health_check.py
+   cd /data/dsa110-contimg/backend
+   python scripts/ops/health_check.py
    ```
 
 4. **Review logs** for error messages:
