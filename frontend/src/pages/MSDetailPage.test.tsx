@@ -12,15 +12,21 @@ vi.mock("../hooks/useQueries", () => ({
 }));
 
 // Mock config with mutable features for testing
-const mockFeatures = {
-  enableCARTA: true,
-  enableCalibrationComparison: true,
-};
+// Note: Using object that gets imported/exported so we can modify it in tests
+vi.mock("../config", async () => {
+  const actual = await vi.importActual<typeof import("../config")>("../config");
+  return {
+    ...actual,
+    FEATURES: {
+      ...actual.FEATURES,
+      enableCARTA: true,
+      enableCalibrationComparison: true,
+    },
+  };
+});
 
-vi.mock("../config", () => ({
-  config: {},
-  FEATURES: mockFeatures,
-}));
+// Import FEATURES so we can modify it in tests
+import { FEATURES } from "../config";
 
 import { useMS } from "../hooks/useQueries";
 
@@ -264,8 +270,10 @@ describe("MSDetailPage", () => {
   describe("action buttons", () => {
     beforeEach(() => {
       // Reset feature flags to defaults
-      mockFeatures.enableCARTA = true;
-      mockFeatures.enableCalibrationComparison = true;
+      (FEATURES as { enableCARTA: boolean }).enableCARTA = true;
+      (
+        FEATURES as { enableCalibrationComparison: boolean }
+      ).enableCalibrationComparison = true;
 
       mockUseMS.mockReturnValue({
         data: mockMS,
@@ -283,7 +291,7 @@ describe("MSDetailPage", () => {
     });
 
     it("renders Open in CARTA button when feature enabled", () => {
-      mockFeatures.enableCARTA = true;
+      (FEATURES as { enableCARTA: boolean }).enableCARTA = true;
       renderPage();
       expect(
         screen.getByRole("button", { name: /open in carta/i })
@@ -291,7 +299,7 @@ describe("MSDetailPage", () => {
     });
 
     it("hides Open in CARTA button when feature disabled", () => {
-      mockFeatures.enableCARTA = false;
+      (FEATURES as { enableCARTA: boolean }).enableCARTA = false;
       renderPage();
       expect(
         screen.queryByRole("button", { name: /open in carta/i })

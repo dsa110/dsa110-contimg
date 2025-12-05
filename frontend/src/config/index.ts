@@ -55,6 +55,48 @@ export const UI_CONFIG = {
 } as const;
 
 /**
+ * Query Timing Configuration
+ *
+ * Centralized timing constants for React Query cache and refetch behavior.
+ * Use these instead of hardcoded magic numbers.
+ */
+export const QUERY_TIMING = {
+  /** Stale times - how long data is considered fresh */
+  staleTime: {
+    /** Real-time data (logs, metrics) - very short */
+    realtime: 5_000, // 5 seconds
+    /** Frequently changing data (tasks, jobs) */
+    short: 10_000, // 10 seconds
+    /** Moderately changing data (status, health) */
+    medium: 30_000, // 30 seconds
+    /** Slowly changing data (pipelines, configs) */
+    long: 60_000, // 1 minute
+    /** Static/semi-static data (stages, catalogs) */
+    extended: 300_000, // 5 minutes
+  },
+
+  /** Refetch intervals - how often to poll for updates */
+  refetchInterval: {
+    /** Aggressive polling for active operations */
+    fast: 5_000, // 5 seconds
+    /** Standard polling for status updates */
+    normal: 10_000, // 10 seconds
+    /** Background updates for dashboards */
+    slow: 30_000, // 30 seconds
+    /** Infrequent checks for stable data */
+    lazy: 60_000, // 1 minute
+  },
+
+  /** UI update intervals */
+  uiInterval: {
+    /** Relative time display updates */
+    relativeTime: 5_000, // 5 seconds
+    /** Service health polling */
+    healthCheck: 30_000, // 30 seconds
+  },
+} as const;
+
+/**
  * Feature Flags
  */
 export const FEATURES = {
@@ -100,6 +142,7 @@ export const config = {
   ui: UI_CONFIG,
   features: FEATURES,
   carta: CARTA_CONFIG,
+  timing: QUERY_TIMING,
 
   /** Legacy flat access for gradual migration */
   apiUrl: API_CONFIG.baseUrl,

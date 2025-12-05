@@ -3,7 +3,7 @@
  */
 
 import React from "react";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
@@ -86,12 +86,7 @@ describe("getCARTAViewerUrl", () => {
 
 describe("useCARTAStatus", () => {
   beforeEach(() => {
-    vi.useFakeTimers();
     mockedClient.get.mockReset();
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
   });
 
   it("returns available status when API responds successfully", async () => {

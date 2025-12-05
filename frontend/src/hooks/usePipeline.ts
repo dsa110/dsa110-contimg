@@ -278,7 +278,7 @@ export function useRegisteredPipelines() {
   return useQuery({
     queryKey: pipelineKeys.registered(),
     queryFn: fetchRegisteredPipelines,
-    staleTime: 60000, // 1 minute
+    staleTime: config.timing.staleTime.long, // 1 minute
   });
 }
 
@@ -289,7 +289,7 @@ export function useAvailableStages() {
   return useQuery({
     queryKey: pipelineKeys.stages(),
     queryFn: fetchAvailableStages,
-    staleTime: 300000, // 5 minutes (stages don't change often)
+    staleTime: config.timing.staleTime.extended, // 5 minutes (stages don't change often)
   });
 }
 
@@ -399,7 +399,7 @@ export function useExecutions(limit: number = 50, statusFilter?: string) {
   return useQuery({
     queryKey: pipelineKeys.executionList({ limit, statusFilter }),
     queryFn: () => fetchExecutions(limit, statusFilter),
-    refetchInterval: 10000, // Refresh every 10 seconds
+    refetchInterval: config.timing.refetchInterval.normal, // 10 seconds
   });
 }
 
@@ -411,6 +411,6 @@ export function useExecution(executionId: string | null) {
     queryKey: pipelineKeys.execution(executionId!),
     queryFn: () => fetchExecution(executionId!),
     enabled: !!executionId,
-    refetchInterval: 5000, // Refresh every 5 seconds while viewing
+    refetchInterval: config.timing.refetchInterval.fast, // 5 seconds while viewing
   });
 }
