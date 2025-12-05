@@ -6,29 +6,38 @@ Welcome to the documentation for the DSA-110 Continuum Imaging Pipeline.
 
 **New here?** Start with the **[Quick Start Guide](QUICKSTART.md)** - get the pipeline running in 5 minutes.
 
-| I want to...          | Go to...                              |
-| --------------------- | ------------------------------------- |
-| Get running fast      | **[Quick Start](QUICKSTART.md)**      |
-| Understand the system | [Architecture](ARCHITECTURE.md)       |
-| Operate the pipeline  | [User Guide](USER_GUIDE.md)           |
-| Develop features      | [Developer Guide](DEVELOPER_GUIDE.md) |
-| Use the API           | [API Reference](API_REFERENCE.md)     |
-| Fix problems          | [Troubleshooting](TROUBLESHOOTING.md) |
+| I want to...          | Go to...                                                   |
+| --------------------- | ---------------------------------------------------------- |
+| Get running fast      | **[Quick Start](QUICKSTART.md)**                           |
+| Understand the system | [Architecture](ARCHITECTURE.md)                            |
+| Understand storage    | [Storage & Files](guides/storage-and-file-organization.md) |
+| Use the dashboard     | [Dashboard Guide](guides/dashboard.md)                     |
+| Develop features      | [Developer Guide](DEVELOPER_GUIDE.md)                      |
+| Use the API           | [API Reference](API_REFERENCE.md)                          |
+| Fix problems          | [Troubleshooting](TROUBLESHOOTING.md)                      |
 
 ---
 
 ## 📚 Core Documentation
 
-These 6 consolidated documents cover all essential pipeline documentation:
-
 | Document                                  | Description                                    |
 | ----------------------------------------- | ---------------------------------------------- |
 | **[Quick Start](QUICKSTART.md)**          | Get running in 5 minutes                       |
-| **[User Guide](USER_GUIDE.md)**           | Complete operations & workflow guide           |
 | **[Developer Guide](DEVELOPER_GUIDE.md)** | Development environment, testing, contributing |
 | **[Architecture](ARCHITECTURE.md)**       | System design, data flow, components           |
 | **[API Reference](API_REFERENCE.md)**     | REST API, CLI, Python API documentation        |
 | **[Troubleshooting](TROUBLESHOOTING.md)** | Problem diagnosis & resolution                 |
+
+## 🔧 Workflow Guides
+
+| Guide                                                          | Description                               |
+| -------------------------------------------------------------- | ----------------------------------------- |
+| **[Storage & Files](guides/storage-and-file-organization.md)** | File organization, naming, database paths |
+| **[Dashboard](guides/dashboard.md)**                           | Web interface navigation                  |
+| **[Calibration](guides/calibration.md)**                       | Bandpass and gain calibration             |
+| **[Imaging](guides/imaging.md)**                               | Creating FITS images from MS              |
+| **[Mosaicking](guides/mosaicking.md)**                         | Combining images into mosaics             |
+| **[Visualization](guides/visualization.md)**                   | CARTA integration and plotting            |
 
 ---
 

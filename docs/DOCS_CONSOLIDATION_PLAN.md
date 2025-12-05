@@ -1,7 +1,18 @@
 # Documentation Consolidation Plan
 
+> **⚠️ NOTE (December 2024):** This plan has been **superseded**. Instead of creating a monolithic `USER_GUIDE.md`, we adopted a **topic-based approach** with focused guides:
+>
+> - `guides/storage-and-file-organization.md` - File paths, naming, databases
+> - `guides/dashboard.md` - Web interface
+> - `guides/calibration.md` - Calibration workflows
+> - `guides/imaging.md` - Image creation
+> - `guides/mosaicking.md` - Mosaic building
+> - `guides/visualization.md` - CARTA and plotting
+>
+> The original USER_GUIDE.md has been deleted and its content redistributed to these topic files.
+
 **Date:** 2025-12-01  
-**Status:** Planning Phase  
+**Status:** ~~Planning Phase~~ Superseded  
 **Target:** Reduce ~127 active docs → 6 core files + specialized directories
 
 ---
