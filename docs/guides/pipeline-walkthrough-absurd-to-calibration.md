@@ -436,11 +436,11 @@ EOF
 
 **Result:**
 
-| Parameter | Value |
-|-----------|-------|
-| Calibrator | 1911+161 |
-| RA | 287.993° (19.1995h) |
-| Dec | +16.196° |
+| Parameter  | Value               |
+| ---------- | ------------------- |
+| Calibrator | 1911+161            |
+| RA         | 287.993° (19.1995h) |
+| Dec        | +16.196°            |
 
 ---
 
@@ -556,12 +556,12 @@ EOF
 
 **Result:**
 
-| Parameter | Value |
-|-----------|-------|
-| Calibrator | 1911+161 |
-| Peak field | **19** |
+| Parameter     | Value                   |
+| ------------- | ----------------------- |
+| Calibrator    | 1911+161                |
+| Peak field    | **19**                  |
 | Beam response | 0.9996 (nearly on-axis) |
-| Separation | 0.03° |
+| Separation    | 0.03°                   |
 
 ---
 

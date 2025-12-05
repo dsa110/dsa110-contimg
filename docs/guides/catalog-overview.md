@@ -553,8 +553,8 @@ field_sel, indices, flux, calibrator_info, peak_idx = select_bandpass_from_catal
     search_radius_deg=15.0,
     min_pb=0.1  # Minimum primary beam response
 )
-# Returns: field="0~2", indices=[0,1,2], flux=[12.3, 14.5, 10.1],
-#          calibrator_info=("3C286", 123.456, 12.345, 14.5), peak_idx=1
+# Returns: field="18~20", indices=[18,19,20], flux=<array>,
+#          calibrator_info=("1911+161", 287.99, 16.19, 1.0), peak_idx=19
 ```
 
 **Functions**:
@@ -566,8 +566,10 @@ field_sel, indices, flux, calibrator_info, peak_idx = select_bandpass_from_catal
 **Notes**:
 
 - SQLite databases preferred for speed (no CSV parsing)
-- VLA calibrator catalog used as reference (bright, well-characterized sources)
-- Primary beam weighting ensures good sensitivity on calibrator
+- VLA calibrator catalog includes ALL calibrators (uses LEFT JOIN to fluxes)
+- Calibrators without 20cm flux are assigned default 1.0 Jy
+- Primary beam weighting uses Airy disk model: `PB(θ) = (2·J₁(x)/x)²`
+- `scipy.special.j1` used for accurate Bessel function calculation
 
 ---
 
