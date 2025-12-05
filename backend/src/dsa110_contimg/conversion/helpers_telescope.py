@@ -105,21 +105,21 @@ def set_telescope_identity(
     name : str, optional
         Telescope name. Defaults to ENV PIPELINE_TELESCOPE_NAME or 'DSA_110'.
     lon_deg, lat_deg, alt_m : float, optional
-        Observatory geodetic coordinates (WGS84). If not provided, uses OVRO_LOCATION
+        Observatory geodetic coordinates (WGS84). If not provided, uses DSA110_LOCATION
         from constants.py (single source of truth for DSA-110 coordinates).
     """
     import os as _os
 
     # Use constants if coordinates not provided (single source of truth)
     if lon_deg is None or lat_deg is None or alt_m is None:
-        from dsa110_contimg.utils.constants import OVRO_LOCATION
+        from dsa110_contimg.utils.constants import DSA110_LOCATION
 
         if lon_deg is None:
-            lon_deg = OVRO_LOCATION.lon.to(u.deg).value
+            lon_deg = DSA110_LOCATION.lon.to(u.deg).value
         if lat_deg is None:
-            lat_deg = OVRO_LOCATION.lat.to(u.deg).value
+            lat_deg = DSA110_LOCATION.lat.to(u.deg).value
         if alt_m is None:
-            alt_m = OVRO_LOCATION.height.to(u.m).value
+            alt_m = DSA110_LOCATION.height.to(u.m).value
 
     tel_name = name or _os.getenv("PIPELINE_TELESCOPE_NAME", "DSA_110")
     try:

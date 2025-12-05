@@ -38,8 +38,7 @@
 1. Create in `simulations/notebooks/` with descriptive name
 2. Use pipeline code from `backend/src/dsa110_contimg/`
 3. Document purpose and expected outputs in markdown cells
-4. Add to [simulations/README.md](../simulations/README.md)
-5. Strip outputs before committing:
+4. Strip outputs before committing:
    `jupyter nbconvert --clear-output --inplace notebook.ipynb`
 
 **For quick debugging**:

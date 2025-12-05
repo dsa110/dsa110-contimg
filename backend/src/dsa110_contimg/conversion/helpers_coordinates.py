@@ -67,16 +67,16 @@ def angular_separation(ra1, dec1, ra2, dec2):
 
 # OPTIMIZATION: Pre-compute OVRO longitude in radians for fast LST calculation
 # This avoids repeated attribute access during batch processing
-_OVRO_LON_RAD: Optional[float] = None
+_DSA110_LON_RAD: Optional[float] = None
 
 
-def _get_ovro_lon_rad() -> float:
-    """Get OVRO longitude in radians (cached)."""
-    global _OVRO_LON_RAD
-    if _OVRO_LON_RAD is None:
-        from dsa110_contimg.utils.constants import OVRO_LOCATION
-        _OVRO_LON_RAD = float(OVRO_LOCATION.lon.to_value(u.rad))
-    return _OVRO_LON_RAD
+def _get_dsa110_lon_rad() -> float:
+    """Get DSA-110 longitude in radians (cached)."""
+    global _DSA110_LON_RAD
+    if _DSA110_LON_RAD is None:
+        from dsa110_contimg.utils.constants import DSA110_LOCATION
+        _DSA110_LON_RAD = float(DSA110_LOCATION.lon.to_value(u.rad))
+    return _DSA110_LON_RAD
 
 
 def get_meridian_coords(
@@ -108,7 +108,7 @@ def get_meridian_coords(
         try:
             from dsa110_contimg.utils.numba_accel import approx_lst_jit, NUMBA_AVAILABLE
             if NUMBA_AVAILABLE:
-                lon_rad = _get_ovro_lon_rad()
+                lon_rad = _get_dsa110_lon_rad()
                 mjd_arr = np.array([time_mjd], dtype=np.float64)
                 lst_rad = approx_lst_jit(mjd_arr, lon_rad)[0]
                 # At meridian, RA = LST
@@ -117,9 +117,9 @@ def get_meridian_coords(
             pass  # Fall through to astropy path
 
     # Use DSA-110 coordinates from constants.py (single source of truth)
-    from dsa110_contimg.utils.constants import OVRO_LOCATION
+    from dsa110_contimg.utils.constants import DSA110_LOCATION
 
-    dsa110_loc = OVRO_LOCATION
+    dsa110_loc = DSA110_LOCATION
     obstime = Time(time_mjd, format="mjd")
     hadec_coord = SkyCoord(
         ha=0 * u.hourangle,

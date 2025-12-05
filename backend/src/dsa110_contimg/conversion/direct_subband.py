@@ -569,7 +569,7 @@ def _write_ms_subband_part(
                 pass
 
     # Stamp telescope identity prior to phasing/UVW
-    # Uses OVRO_LOCATION from constants.py (single source of truth)
+    # Uses DSA110_LOCATION from constants.py (single source of truth)
     try:
         set_telescope_identity(
             uv,

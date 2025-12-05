@@ -5,14 +5,12 @@ import astropy.units as u
 from astropy.coordinates import Angle, EarthLocation
 from astropy.time import Time
 
-# Use precise DSA-110 coordinates from constants.py (single source of truth)
-from dsa110_contimg.utils.constants import OVRO_LOCATION
+# Use DSA-110 coordinates from constants.py (single source of truth)
+from dsa110_contimg.utils.constants import DSA110_LOCATION
 
-# Alias for backward compatibility
-DSA110_LOCATION = OVRO_LOCATION
-DSA110_LON_DEG = OVRO_LOCATION.lon.to(u.deg).value
-DSA110_LAT_DEG = OVRO_LOCATION.lat.to(u.deg).value
-DSA110_ALT_M = OVRO_LOCATION.height.to(u.m).value
+DSA110_LON_DEG = DSA110_LOCATION.lon.to(u.deg).value
+DSA110_LAT_DEG = DSA110_LOCATION.lat.to(u.deg).value
+DSA110_ALT_M = DSA110_LOCATION.height.to(u.m).value
 
 SIDEREAL_RATE = 1.002737909350795  # sidereal days per solar day
 
