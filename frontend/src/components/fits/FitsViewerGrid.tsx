@@ -5,7 +5,13 @@ import { logger } from "../../utils/logger";
 /** Props passed to individual FitsViewer cells, excluding grid-managed properties */
 type FitsViewerCellProps = Omit<
   FitsViewerProps,
-  "fitsUrl" | "displayId" | "width" | "height" | "showControls" | "onLoad" | "onCoordinateClick"
+  | "fitsUrl"
+  | "displayId"
+  | "width"
+  | "height"
+  | "showControls"
+  | "onLoad"
+  | "onCoordinateClick"
 >;
 
 export interface FitsViewerGridProps {
@@ -74,24 +80,17 @@ const FitsViewerGrid: React.FC<FitsViewerGridProps> = ({
   }, [syncEnabled, fitsUrls.length]);
 
   // Set up sync event listeners
+  // Note: JS9 doesn't have SetCallback - sync functionality is disabled
+  // until we implement proper event handling through shape layer callbacks
   useEffect(() => {
     if (!syncEnabled || loadedCount < fitsUrls.length) return;
 
-    const handleChange = () => {
-      handleSync();
-    };
-
-    // Set up callbacks on first viewer
-    if (window.JS9) {
-      window.JS9.SetCallback("onzoom", handleChange, { display: "JS9Grid_0" });
-      window.JS9.SetCallback("onpan", handleChange, { display: "JS9Grid_0" });
-    }
+    // TODO: Implement sync via DOM events or shape layer callbacks
+    // JS9 doesn't have SetCallback/RemoveCallback functions
+    logger.debug("Sync enabled but SetCallback not available in JS9");
 
     return () => {
-      if (window.JS9) {
-        window.JS9.RemoveCallback("onzoom", { display: "JS9Grid_0" });
-        window.JS9.RemoveCallback("onpan", { display: "JS9Grid_0" });
-      }
+      // Cleanup would go here if we implement sync
     };
   }, [syncEnabled, loadedCount, fitsUrls.length, handleSync]);
 
@@ -115,7 +114,11 @@ const FitsViewerGrid: React.FC<FitsViewerGridProps> = ({
   };
 
   if (fitsUrls.length === 0) {
-    return <div className="text-center text-gray-500 py-8">No FITS files to display</div>;
+    return (
+      <div className="text-center text-gray-500 py-8">
+        No FITS files to display
+      </div>
+    );
   }
 
   return (
@@ -127,7 +130,9 @@ const FitsViewerGrid: React.FC<FitsViewerGridProps> = ({
             {loadedCount}/{fitsUrls.length} images loaded
           </span>
           {syncEnabled && syncState.zoom && (
-            <span className="text-xs text-gray-500">Zoom: {syncState.zoom.toFixed(2)}x</span>
+            <span className="text-xs text-gray-500">
+              Zoom: {syncState.zoom.toFixed(2)}x
+            </span>
           )}
         </div>
         <label className="flex items-center gap-2 text-sm cursor-pointer">
@@ -161,7 +166,9 @@ const FitsViewerGrid: React.FC<FitsViewerGridProps> = ({
               showControls={false}
               onLoad={handleLoad}
               onCoordinateClick={
-                onCoordinateClick ? (ra, dec) => onCoordinateClick(ra, dec, index) : undefined
+                onCoordinateClick
+                  ? (ra, dec) => onCoordinateClick(ra, dec, index)
+                  : undefined
               }
               {...viewerProps}
             />
@@ -172,7 +179,9 @@ const FitsViewerGrid: React.FC<FitsViewerGridProps> = ({
       {/* Shared controls */}
       <div className="mt-4 p-3 bg-gray-50 rounded-lg">
         <div className="flex items-center gap-4">
-          <span className="text-sm font-medium text-gray-700">Grid Controls:</span>
+          <span className="text-sm font-medium text-gray-700">
+            Grid Controls:
+          </span>
           <button
             onClick={() => {
               if (window.JS9) {
