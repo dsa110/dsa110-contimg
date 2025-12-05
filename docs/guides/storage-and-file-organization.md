@@ -41,12 +41,12 @@ The pipeline uses a tiered storage architecture optimized for different I/O patt
 
 ### Storage Tier Summary
 
-| Mount       | Type     | Speed    | Use Case                                    |
-| ----------- | -------- | -------- | ------------------------------------------- |
-| `/data/`    | HDD      | Slow     | Raw input, source code, databases           |
-| `/stage/`   | NVMe SSD | Fast     | Output products, working data               |
-| `/scratch/` | NVMe SSD | Fast     | Ephemeral builds, temp files                |
-| `/dev/shm/` | tmpfs    | Fastest  | In-memory staging during conversion         |
+| Mount       | Type     | Speed   | Use Case                            |
+| ----------- | -------- | ------- | ----------------------------------- |
+| `/data/`    | HDD      | Slow    | Raw input, source code, databases   |
+| `/stage/`   | NVMe SSD | Fast    | Output products, working data       |
+| `/scratch/` | NVMe SSD | Fast    | Ephemeral builds, temp files        |
+| `/dev/shm/` | tmpfs    | Fastest | In-memory staging during conversion |
 
 > **⚠️ CRITICAL**: `/data/` is on HDD. Avoid I/O-intensive operations there.
 > Use `/scratch/` or `/stage/` for builds, processing, and temporary files.
@@ -112,21 +112,73 @@ Examples:
 
 #### Filename Normalization
 
-The correlator may write subbands with slightly different timestamps. The pipeline **normalizes filenames on ingest** so all 16 subbands share the same canonical timestamp:
+The correlator may write subbands with slightly different timestamps due to I/O timing variations. The pipeline **normalizes filenames on ingest** so all 16 subbands share the same canonical timestamp.
+
+**The Problem:**
 
 ```
-# Before normalization (as correlator writes):
-2025-01-15T12:00:00_sb00.hdf5  ← First arrival = canonical
-2025-01-15T12:00:01_sb01.hdf5  ← 1 second drift
-2025-01-15T12:00:02_sb02.hdf5  ← 2 seconds drift
-
-# After normalization:
-2025-01-15T12:00:00_sb00.hdf5  ← canonical
-2025-01-15T12:00:00_sb01.hdf5  ← renamed
-2025-01-15T12:00:00_sb02.hdf5  ← renamed
+# As correlator writes (timestamps drift by 1-2 seconds):
+2025-01-15T12:00:00_sb00.hdf5   # First subband
+2025-01-15T12:00:01_sb01.hdf5   # 1 second later
+2025-01-15T12:00:00_sb02.hdf5   # Same as first
+2025-01-15T12:00:02_sb03.hdf5   # 2 seconds later
 ```
 
-See [Subband Filename Normalization](subband-normalization.md) for the full algorithm.
+Previously, the pipeline used ±60 second fuzzy clustering to group these files, which required complex SQL queries and was non-deterministic at edge cases.
+
+**The Solution:**
+
+When a subband arrives, if it clusters with an existing group in the database, rename the file to use the canonical `group_id` (the timestamp of the first subband that arrived):
+
+```
+BEFORE (as correlator writes):             AFTER (normalized):
+2025-01-15T12:00:00_sb00.hdf5       →      2025-01-15T12:00:00_sb00.hdf5  (canonical)
+2025-01-15T12:00:01_sb01.hdf5       →      2025-01-15T12:00:00_sb01.hdf5  (renamed)
+2025-01-15T12:00:00_sb02.hdf5       →      2025-01-15T12:00:00_sb02.hdf5  (unchanged)
+2025-01-15T12:00:02_sb03.hdf5       →      2025-01-15T12:00:00_sb03.hdf5  (renamed)
+```
+
+**How It Works:**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  New file arrives: 2025-01-15T12:00:02_sb05.hdf5                │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Parse filename → group_id="2025-01-15T12:00:02", subband_idx=5 │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Query: Does a group exist within ±60s of this timestamp?       │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+              ┌───────────────┴───────────────┐
+              │                               │
+              ▼                               ▼
+┌──────────────────────────┐    ┌──────────────────────────────────┐
+│  No existing group       │    │  Found group: canonical=T12:00:00│
+│  → This becomes canonical│    │  → Rename file to match          │
+└──────────────────────────┘    └──────────────────────────────────┘
+              │                               │
+              └───────────────┬───────────────┘
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Result: 2025-01-15T12:00:00_sb05.hdf5                          │
+│  All 16 subbands now share the same timestamp in filesystem     │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Benefits:**
+
+| Aspect          | Before (Fuzzy Clustering)                | After (Normalization)                         |
+| --------------- | ---------------------------------------- | --------------------------------------------- |
+| **Grouping**    | Complex SQL with tolerance windows       | Simple `GROUP BY group_id`                    |
+| **Filesystem**  | Mixed timestamps, unclear membership     | Self-documenting: same timestamp = same group |
+| **Queries**     | `ABS(julianday(a) - julianday(b)) <= 60` | `WHERE group_id = ?`                          |
+| **Idempotency** | N/A                                      | Safe to re-run normalizer                     |
 
 ### Measurement Sets
 
@@ -159,19 +211,19 @@ Examples:
 
 The `group_id` is the **canonical timestamp** that uniquely identifies an observation:
 
-| Property       | Value                          |
-| -------------- | ------------------------------ |
-| **Format**     | `YYYY-MM-DDTHH:MM:SS` (ISO 8601 UTC) |
-| **Source**     | First subband filename to arrive |
-| **Immutable**  | Once set, never changes        |
-| **Primary Key**| Used across all database tables |
+| Property        | Value                                |
+| --------------- | ------------------------------------ |
+| **Format**      | `YYYY-MM-DDTHH:MM:SS` (ISO 8601 UTC) |
+| **Source**      | First subband filename to arrive     |
+| **Immutable**   | Once set, never changes              |
+| **Primary Key** | Used across all database tables      |
 
 ### How `group_id` Links Everything
 
 ```sql
 -- All products trace back to group_id:
 processing_queue.group_id  -- Ingest queue entry
-subband_files.group_id     -- Individual HDF5 files  
+subband_files.group_id     -- Individual HDF5 files
 ms_index.group_id          -- Converted Measurement Set
 images.ms_path → ms_index  -- FITS images (via MS)
 ```
@@ -180,7 +232,7 @@ images.ms_path → ms_index  -- FITS images (via MS)
 
 ```sql
 -- Find all products for an observation
-SELECT 
+SELECT
     q.group_id,
     q.state AS queue_state,
     COUNT(sf.subband_idx) AS subbands,
@@ -207,15 +259,15 @@ This is the **single source of truth** for all pipeline state. It uses SQLite wi
 
 #### Core Tables
 
-| Table | Purpose | Primary Key |
-| ----- | ------- | ----------- |
-| `processing_queue` | Ingest queue (collecting → completed) | `group_id` |
-| `subband_files` | Individual HDF5 file paths | `(group_id, subband_idx)` |
-| `ms_index` | Measurement Set registry | `path` |
-| `images` | FITS image registry | `id` (auto) |
-| `calibration_tables` | Calibration table registry | `path` |
-| `photometry` | Source measurements | `id` (auto) |
-| `mosaics` | Combined mosaic images | `id` (auto) |
+| Table                | Purpose                               | Primary Key               |
+| -------------------- | ------------------------------------- | ------------------------- |
+| `processing_queue`   | Ingest queue (collecting → completed) | `group_id`                |
+| `subband_files`      | Individual HDF5 file paths            | `(group_id, subband_idx)` |
+| `ms_index`           | Measurement Set registry              | `path`                    |
+| `images`             | FITS image registry                   | `id` (auto)               |
+| `calibration_tables` | Calibration table registry            | `path`                    |
+| `photometry`         | Source measurements                   | `id` (auto)               |
+| `mosaics`            | Combined mosaic images                | `id` (auto)               |
 
 #### Queue States
 
@@ -225,13 +277,13 @@ collecting → pending → in_progress → completed
                     → failed (retry up to 3x)
 ```
 
-| State | Meaning |
-| ----- | ------- |
-| `collecting` | Waiting for all 16 subbands |
-| `pending` | Complete, queued for conversion |
-| `in_progress` | Currently being converted |
-| `completed` | Successfully converted to MS |
-| `failed` | Conversion failed (see `error` column) |
+| State         | Meaning                                |
+| ------------- | -------------------------------------- |
+| `collecting`  | Waiting for all 16 subbands            |
+| `pending`     | Complete, queued for conversion        |
+| `in_progress` | Currently being converted              |
+| `completed`   | Successfully converted to MS           |
+| `failed`      | Conversion failed (see `error` column) |
 
 #### Schema: `processing_queue`
 
@@ -284,23 +336,23 @@ CREATE TABLE ms_index (
 
 ### Other Databases
 
-| Database | Location | Purpose |
-| -------- | -------- | ------- |
-| `hdf5.sqlite3` | `state/db/` | Fast HDF5 metadata cache |
-| `docsearch.sqlite3` | `state/db/` | Documentation search index |
-| `embedding_cache.sqlite3` | `state/db/` | OpenAI embedding cache |
+| Database                  | Location    | Purpose                    |
+| ------------------------- | ----------- | -------------------------- |
+| `hdf5.sqlite3`            | `state/db/` | Fast HDF5 metadata cache   |
+| `docsearch.sqlite3`       | `state/db/` | Documentation search index |
+| `embedding_cache.sqlite3` | `state/db/` | OpenAI embedding cache     |
 
 ### Catalog Databases
 
 Located in `state/catalogs/`:
 
-| Database | Content |
-| -------- | ------- |
-| `nvss_dec+XX.X.sqlite3` | NVSS sources by declination strip |
-| `first_dec+XX.X.sqlite3` | FIRST survey sources |
-| `vlass_dec+XX.X.sqlite3` | VLASS sources |
-| `vla_calibrators.sqlite3` | VLA calibrator catalog |
-| `master_sources.sqlite3` | Combined crossmatch (~1.6M sources) |
+| Database                  | Content                             |
+| ------------------------- | ----------------------------------- |
+| `nvss_dec+XX.X.sqlite3`   | NVSS sources by declination strip   |
+| `first_dec+XX.X.sqlite3`  | FIRST survey sources                |
+| `vlass_dec+XX.X.sqlite3`  | VLASS sources                       |
+| `vla_calibrators.sqlite3` | VLA calibrator catalog              |
+| `master_sources.sqlite3`  | Combined crossmatch (~1.6M sources) |
 
 ---
 
@@ -308,48 +360,48 @@ Located in `state/catalogs/`:
 
 ### Input Directories
 
-| Path | Contents | Retention |
-| ---- | -------- | --------- |
+| Path              | Contents               | Retention                |
+| ----------------- | ---------------------- | ------------------------ |
 | `/data/incoming/` | Raw HDF5 subband files | Cleared after conversion |
 
 ### Output Directories
 
-| Path | Contents | Retention |
-| ---- | -------- | --------- |
-| `/stage/dsa110-contimg/ms/` | Measurement Sets | Permanent |
-| `/stage/dsa110-contimg/images/` | FITS images | Permanent |
-| `/stage/dsa110-contimg/mosaics/` | Mosaic images | Permanent |
-| `/stage/dsa110-contimg/thumbnails/` | Preview PNGs | Regenerable |
-| `/stage/dsa110-contimg/caltables/` | Calibration tables | Permanent |
+| Path                                | Contents           | Retention   |
+| ----------------------------------- | ------------------ | ----------- |
+| `/stage/dsa110-contimg/ms/`         | Measurement Sets   | Permanent   |
+| `/stage/dsa110-contimg/images/`     | FITS images        | Permanent   |
+| `/stage/dsa110-contimg/mosaics/`    | Mosaic images      | Permanent   |
+| `/stage/dsa110-contimg/thumbnails/` | Preview PNGs       | Regenerable |
+| `/stage/dsa110-contimg/caltables/`  | Calibration tables | Permanent   |
 
 ### State Directories
 
-| Path | Contents |
-| ---- | -------- |
-| `/data/dsa110-contimg/state/db/` | SQLite databases |
-| `/data/dsa110-contimg/state/catalogs/` | Survey catalogs |
-| `/data/dsa110-contimg/state/logs/` | Pipeline logs |
-| `/data/dsa110-contimg/state/run/` | PID files, status |
+| Path                                   | Contents          |
+| -------------------------------------- | ----------------- |
+| `/data/dsa110-contimg/state/db/`       | SQLite databases  |
+| `/data/dsa110-contimg/state/catalogs/` | Survey catalogs   |
+| `/data/dsa110-contimg/state/logs/`     | Pipeline logs     |
+| `/data/dsa110-contimg/state/run/`      | PID files, status |
 
 ### Temporary Directories
 
-| Path | Contents | Cleanup |
-| ---- | -------- | ------- |
-| `/stage/dsa110-contimg/scratch/` | Conversion temp files | Auto-cleanup |
-| `/scratch/` | Build artifacts | Manual cleanup |
-| `/dev/shm/` | In-memory staging | Auto-cleanup |
+| Path                             | Contents              | Cleanup        |
+| -------------------------------- | --------------------- | -------------- |
+| `/stage/dsa110-contimg/scratch/` | Conversion temp files | Auto-cleanup   |
+| `/scratch/`                      | Build artifacts       | Manual cleanup |
+| `/dev/shm/`                      | In-memory staging     | Auto-cleanup   |
 
 ---
 
 ## Environment Variables
 
-| Variable | Default | Description |
-| -------- | ------- | ----------- |
-| `PIPELINE_INPUT_DIR` | `/data/incoming` | HDF5 input directory |
-| `PIPELINE_OUTPUT_DIR` | `/stage/dsa110-contimg/ms` | MS output directory |
-| `PIPELINE_SCRATCH_DIR` | `/stage/dsa110-contimg` | Fast scratch storage |
-| `PIPELINE_STATE_DIR` | `state` | State/database directory |
-| `PIPELINE_DB` | `state/db/pipeline.sqlite3` | Primary database path |
+| Variable               | Default                     | Description              |
+| ---------------------- | --------------------------- | ------------------------ |
+| `PIPELINE_INPUT_DIR`   | `/data/incoming`            | HDF5 input directory     |
+| `PIPELINE_OUTPUT_DIR`  | `/stage/dsa110-contimg/ms`  | MS output directory      |
+| `PIPELINE_SCRATCH_DIR` | `/stage/dsa110-contimg`     | Fast scratch storage     |
+| `PIPELINE_STATE_DIR`   | `state`                     | State/database directory |
+| `PIPELINE_DB`          | `state/db/pipeline.sqlite3` | Primary database path    |
 
 ---
 
@@ -364,9 +416,9 @@ sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
 
 # Recent completions
 sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
-  "SELECT group_id, datetime(last_update, 'unixepoch') 
-   FROM processing_queue 
-   WHERE state='completed' 
+  "SELECT group_id, datetime(last_update, 'unixepoch')
+   FROM processing_queue
+   WHERE state='completed'
    ORDER BY last_update DESC LIMIT 10;"
 ```
 
@@ -375,10 +427,48 @@ sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
 ```bash
 # Find MS and images for a group_id
 sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
-  "SELECT m.path, i.path 
-   FROM ms_index m 
-   LEFT JOIN images i ON i.ms_path = m.path 
+  "SELECT m.path, i.path
+   FROM ms_index m
+   LEFT JOIN images i ON i.ms_path = m.path
    WHERE m.group_id = '2025-01-15T12:00:00';"
+```
+
+### Normalize Historical Files
+
+If you have historical files with mixed timestamps, normalize them using the batch CLI:
+
+```bash
+# Preview what would be renamed (safe - no changes made)
+python -m dsa110_contimg.conversion.streaming.normalize_cli \
+    --dry-run --verbose /data/incoming
+
+# Actually perform renames
+python -m dsa110_contimg.conversion.streaming.normalize_cli /data/incoming
+
+# Custom tolerance (default is 60 seconds)
+python -m dsa110_contimg.conversion.streaming.normalize_cli \
+    --tolerance 30 /data/incoming
+```
+
+**Python API:**
+
+```python
+from dsa110_contimg.conversion.streaming import (
+    normalize_subband_path,      # Rename single file
+    normalize_subband_on_ingest, # Entry point for streaming
+    normalize_directory,         # Batch normalize historical files
+)
+
+# Batch normalize with preview
+stats = normalize_directory(
+    directory=Path("/data/incoming"),
+    cluster_tolerance_s=60.0,
+    dry_run=True,
+)
+print(f"Would rename {stats['files_renamed']} of {stats['files_scanned']} files")
+
+# Apply renames
+stats = normalize_directory(Path("/data/incoming"), dry_run=False)
 ```
 
 ### Disk Usage
@@ -394,6 +484,5 @@ du -sh /stage/dsa110-contimg/images/
 
 ## Related Documentation
 
-- [Subband Filename Normalization](subband-normalization.md) - Normalization algorithm details
 - [Streaming Pipeline Operations](../../backend/docs/ops/streaming-pipeline.md) - Streaming converter guide
 - [User Guide](../USER_GUIDE.md) - Full operations documentation

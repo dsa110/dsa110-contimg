@@ -123,6 +123,7 @@ nav:
       - Error Handling:
           - Resilience: guides/error-handling/error-handling-resilience.md
           - Warning Detection: guides/error-handling/warning-detection.md
+      - Storage & Files: guides/storage-and-file-organization.md
       - Configuration:
           - Pipeline Configuration: guides/configuration/pipeline_configuration.md
       - Benchmarking: guides/benchmarking.md

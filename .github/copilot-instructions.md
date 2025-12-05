@@ -219,7 +219,7 @@ print(f"Would rename {stats['files_renamed']} files")
 cursor.execute("SELECT * FROM subband_files WHERE group_id = ?", (group_id,))
 ```
 
-See `docs/guides/subband-normalization.md` for the full algorithm.
+See `docs/guides/storage-and-file-organization.md` for full details.
 
 **Legacy: Time-Windowing for Grouping**
 

@@ -1,16 +1,18 @@
 # DSA-110 Configuration Files
 
-Consolidated configuration files. Symlinks are maintained at the root for tool compatibility.
+Configuration files for development tools and services.
 
 ## Structure
 
-- `linting/` - Code linting configs (.flake8, .prettierrc, eslint)
-- `hooks/` - Git hooks (pre-commit, husky)
-- `docker/` - Docker/compose files
-- `editor/` - Editor settings (.editorconfig, .nvmrc)
-- `environment-pins.txt` - Python environment version pins
+- `hooks/` - Git hooks (husky). Root `.husky/` symlinks here.
+- `environment-pins.txt` - Python environment version pins (e.g., setuptools<81 for CASA compatibility)
+- `ragflow.env` - RAGFlow MCP server configuration
 
-## Note
+## Symlinks
 
-Most tools expect config files at the repository root. Symlinks are created automatically
-to maintain compatibility while keeping the actual files organized here.
+- `/.husky` → `config/hooks/husky` (git hooks path configured in `.git/config`)
+
+## Related
+
+- Docker configs: `ops/docker/`
+- Operational scripts: `scripts/ops/`
