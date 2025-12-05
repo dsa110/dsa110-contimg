@@ -477,6 +477,57 @@ def _validate_solve_success(caltable_path: str, refant: Optional[Union[int, str]
         ) from e
 
 
+def _check_flag_fraction(
+    caltable_path: str,
+    max_flag_fraction: float = 0.25,
+    cal_type: str = "calibration",
+) -> float:
+    """Check if flag fraction in calibration table exceeds threshold.
+
+    Args:
+        caltable_path: Path to calibration table
+        max_flag_fraction: Maximum allowed flag fraction (default: 0.25 = 25%)
+        cal_type: Type of calibration for error message (e.g., "bandpass", "gain")
+
+    Returns:
+        Actual flag fraction (0.0 to 1.0)
+
+    Raises:
+        ValueError: If flag fraction exceeds max_flag_fraction
+    """
+    import numpy as np
+
+    with table(caltable_path, readonly=True, ack=False) as tb:
+        if "FLAG" not in tb.colnames():
+            logger.warning(f"No FLAG column in {caltable_path}, skipping flag check")
+            return 0.0
+
+        flags = tb.getcol("FLAG")
+        total = flags.size
+        flagged = np.sum(flags)
+        flag_fraction = flagged / total if total > 0 else 0.0
+
+    logger.info(
+        f"Flag fraction in {cal_type} table: {flag_fraction*100:.1f}% "
+        f"({flagged:,}/{total:,} solutions flagged)"
+    )
+
+    if flag_fraction > max_flag_fraction:
+        raise ValueError(
+            f"{cal_type.upper()} SOLVE FAILED: Excessive flagging detected.\n"
+            f"  Flag fraction: {flag_fraction*100:.1f}% (threshold: {max_flag_fraction*100:.0f}%)\n"
+            f"  Flagged solutions: {flagged:,} / {total:,}\n\n"
+            f"This indicates poor data quality or incorrect calibration setup.\n"
+            f"Common causes:\n"
+            f"  - Data not coherently phased to calibrator\n"
+            f"  - Low SNR (calibrator too faint or too far from beam center)\n"
+            f"  - RFI contamination\n"
+            f"  - Incorrect MODEL_DATA (wrong flux or position)\n"
+        )
+
+    return flag_fraction
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -1035,6 +1086,7 @@ def solve_bandpass(
     # Custom combine string (e.g., "scan,obs,field")
     combine: Optional[str] = None,
     require_coherent_phasing: bool = True,
+    max_flag_fraction: float = 0.25,
 ) -> List[str]:
     """Solve bandpass using CASA bandpass task with bandtype='B'.
 
@@ -1074,12 +1126,16 @@ def solve_bandpass(
         require_coherent_phasing: If True (default), check that fields are
             coherently phased to calibrator (not meridian-tracking) when
             combine_fields=True. Set to False to skip this check.
+        max_flag_fraction: Maximum allowed flag fraction in solutions (default: 0.25).
+            If more than this fraction of solutions are flagged, the solve fails.
+            Set to 1.0 to disable this check.
 
     Returns:
         List of calibration table paths created
 
     Raises:
-        ValueError: If MODEL_DATA is missing/empty or fields are not coherently phased
+        ValueError: If MODEL_DATA is missing/empty, fields are not coherently phased,
+            or flag fraction exceeds max_flag_fraction
     """
     import numpy as np  # type: ignore[import]
 
@@ -1277,6 +1333,15 @@ def solve_bandpass(
     # This ensures we follow "measure twice, cut once" - verify solutions exist
     # immediately after solve completes, before proceeding.
     _validate_solve_success(f"{table_prefix}_bpcal", refant=refant)
+
+    # CHECK FLAG FRACTION: Fail early if too many solutions are flagged
+    # This prevents wasting time on downstream calibration with bad solutions
+    _check_flag_fraction(
+        f"{table_prefix}_bpcal",
+        max_flag_fraction=max_flag_fraction,
+        cal_type="bandpass",
+    )
+
     # Track provenance after successful solve
     _track_calibration_provenance(
         ms_path=ms,
