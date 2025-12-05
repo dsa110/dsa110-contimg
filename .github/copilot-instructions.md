@@ -17,6 +17,7 @@
 ## AI Instruction Pack
 
 Use the companion instruction set as defaults for AI coding agents:
+
 - Charter with goals and priorities
 - Problem-solving playbook outlining the workflow
 - Coding standards, testing checklist, review self-check, and tooling usage guidance
@@ -200,7 +201,25 @@ python -m dsa110_contimg.catalog.build_vla_calibrators \
 **Subband Grouping**
 
 The correlator may write subbands with slightly different timestamps (±60s jitter).
-The pipeline uses **time-windowing** to group files that belong together:
+The pipeline uses two mechanisms to group files that belong together:
+
+| Method             | When Used        | How It Works                                        |
+| ------------------ | ---------------- | --------------------------------------------------- |
+| **Normalization**  | ABSURD ingestion | Renames files to canonical `group_id` (sb00's time) |
+| **Time-Windowing** | Batch processing | Clusters files within 60s tolerance at query time   |
+
+**Normalization (ABSURD)**: When subbands are ingested via ABSURD, files are
+renamed to use sb00's timestamp as the canonical group_id:
+
+```python
+from dsa110_contimg.conversion.streaming import normalize_directory
+
+# Batch normalize historical files
+stats = normalize_directory(Path("/data/incoming"), dry_run=True)
+print(f"Would rename {stats['files_renamed']} files")
+```
+
+**Time-Windowing (Batch)**: For batch processing, use `query_subband_groups()`:
 
 ```python
 from dsa110_contimg.database.hdf5_index import query_subband_groups
@@ -228,6 +247,7 @@ See `docs/guides/storage-and-file-organization.md` for full details.
 2. **ABSURD Ingestion** (`backend/src/dsa110_contimg/absurd/ingestion.py`):
    - For scheduled/automated data ingest
    - Uses PostgreSQL-backed task queue with durable execution
+   - **Normalizes filenames** to canonical group_id before conversion
    - Run via scheduler or API triggers
    - **Note**: ABSURD is labeled EXPERIMENTAL
 

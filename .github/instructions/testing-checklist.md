@@ -6,21 +6,9 @@ applyTo: "**"
 # Testing Checklist
 
 - **Scope the fastest test**: run the smallest relevant test (unit/contract) before full suite.
-- **Python backend**:
-  - `conda activate casa6`
-  - `cd backend`
-  - Unit/contract: `python -m pytest tests/unit/ -v` or `tests/contract/ -v`
-  - Integration (CASA): `python -m pytest tests/integration/ -v` when MS/CASA involved
-  - Lint/format: `ruff check src/`; format with `ruff format src/` if needed
-- **Frontend**:
-  - `cd frontend`
-  - `npm run lint`
-  - `npm run test` (or targeted `npm test -- <file>`)
-  - Type checks when relevant: `npm run type-check`
-- **Data-sensitive ops**:
-  - For converters, verify a single group first (16 subbands) and inspect MS key tables exist.
-  - For DB changes, run read-only queries to confirm counts/shapes.
-- **Performance-sensitive changes**: capture before/after timings or counts; note storage path (`/scratch` vs `/data`).
-- **Failure paths**: exercise retries/circuit breakers/DLQ where modified.
+- **Backend**: run targeted unit/contract/integration tests using the project’s test command; run linters/formatters.
+- **Frontend**: run lint, unit tests, and type checks using project scripts; target the smallest scope first.
+- **Data-sensitive ops**: verify a single record/group first; run read-only queries to confirm counts/shapes before writes.
+- **Performance-sensitive changes**: capture before/after timings or counts; note environment and storage choices.
+- **Failure paths**: exercise retries/circuit breakers/dead-letter handling where modified.
 - Record what was run in the PR/summary; if a check was skipped, state why.
-

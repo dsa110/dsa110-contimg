@@ -187,16 +187,16 @@ flowchart TB
 
 ### Processing Stages
 
-| Stage         | Module                            | Description              |
-| ------------- | --------------------------------- | ------------------------ |
-| **Scan**      | `absurd/ingestion.py`             | Poll for new UVH5 files  |
-| **Record**    | `absurd/ingestion.py`             | Track subband arrivals   |
-| **Normalize** | `absurd/ingestion.py`             | Rename to sb00 timestamp |
-| **Convert**   | `conversion/hdf5_orchestrator.py` | UVH5 → Measurement Set   |
-| **Calibrate** | `calibration/calibration.py`      | Solve K/BP/G solutions   |
-| **Apply**     | `calibration/applycal.py`         | Apply calibration tables |
-| **Image**     | `imaging/fast_imaging.py`         | WSClean/tclean imaging   |
-| **Index**     | `database/registry.py`            | Register products        |
+| Stage         | Module                              | Description              |
+| ------------- | ----------------------------------- | ------------------------ |
+| **Scan**      | `absurd/ingestion.py`               | Poll for new UVH5 files  |
+| **Record**    | `absurd/ingestion.py`               | Track subband arrivals   |
+| **Normalize** | `conversion/streaming/normalize.py` | Rename to sb00 timestamp |
+| **Convert**   | `conversion/hdf5_orchestrator.py`   | UVH5 → Measurement Set   |
+| **Calibrate** | `calibration/calibration.py`        | Solve K/BP/G solutions   |
+| **Apply**     | `calibration/applycal.py`           | Apply calibration tables |
+| **Image**     | `imaging/fast_imaging.py`           | WSClean/tclean imaging   |
+| **Index**     | `database/registry.py`              | Register products        |
 
 ---
 
@@ -310,9 +310,24 @@ DSA-110 produces **16 subband files per observation** (`sb00`-`sb15`):
 
 **Critical**: Subbands may have slightly different timestamps (up to ±60s) due to correlator write timing jitter.
 
-#### Subband Grouping
+#### Two Grouping Mechanisms
 
-The pipeline uses **time-windowing** with 60-second tolerance to group subbands:
+The pipeline uses **two complementary mechanisms** to handle timestamp jitter:
+
+| Mechanism          | Used By          | How It Works                                       |
+| ------------------ | ---------------- | -------------------------------------------------- |
+| **Normalization**  | ABSURD ingestion | Renames files to canonical timestamp (sb00's time) |
+| **Time-Windowing** | Batch processing | Clusters files within 60s tolerance at query time  |
+
+**Normalization (ABSURD ingestion)**: When files are ingested via ABSURD, they are renamed so all 16 subbands share sb00's timestamp as the canonical `group_id`. This ensures clean grouping for ongoing ingestion into `pipeline.sqlite3`:
+
+```python
+from dsa110_contimg.conversion.streaming.normalize import normalize_directory
+
+stats = normalize_directory(Path("/data/incoming"), dry_run=True)
+```
+
+**Time-Windowing (Batch processing)**: For historical data or batch queries against `hdf5_file_index.sqlite3`, use clustering:
 
 ```python
 from dsa110_contimg.database.hdf5_index import query_subband_groups
@@ -491,11 +506,11 @@ curl http://localhost:8000/api/v1/services/health
 # API Server
 uvicorn dsa110_contimg.api.app:app --port 8000
 
-# Streaming Converter
-python -m dsa110_contimg.conversion.streaming_converter
-
 # Batch Conversion
 python -m dsa110_contimg.conversion.cli groups ...
+
+# ABSURD Worker (ingestion with normalization)
+python -m dsa110_contimg.absurd.worker
 
 # Imaging
 python -m dsa110_contimg.imaging.cli ...

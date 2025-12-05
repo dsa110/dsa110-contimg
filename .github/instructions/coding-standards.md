@@ -6,32 +6,29 @@ applyTo: "**"
 # Coding Standards
 
 ## General
-- Code is truth; mirror active patterns in `backend/src/dsa110_contimg/` and `frontend/src/`.
-- Prefer explicit, pure functions and typed interfaces (pydantic models, Protocols, TS types).
-- Keep functions focused; avoid hidden globals and side effects.
+- Code is truth; mirror active patterns in the repository.
+- Prefer explicit, pure functions and typed interfaces; avoid hidden globals and side effects.
+- Keep functions focused and small; favor clarity over cleverness.
 
 ## Python (backend)
-- Python 3.11 in casa6; stay compatible with CASA 6.7 and pyuvdata 3.2.4.
+- Match the project’s runtime and dependency constraints.
 - Imports: standard library, third party, local; no unused imports.
-- Types: use type hints; prefer `typing` Protocols/TypedDict for contracts.
-- Logging: use structured logging helpers (`pipeline/structured_logging`, `get_logger`), include correlation IDs when available.
-- Database: SQLite only unless in ABSURD PostgreSQL; use adapters/repos, not raw file scans when DBs exist.
-- File/group rules: always handle 16 subbands; use time-windowing or normalization utilities, never process lone `_sbXX` files.
-- Style/tools: follow ruff (`ruff check src/`), `ruff format` for formatting. Line length 100.
+- Types: use type hints; prefer Protocols/TypedDict for contracts.
+- Logging: use structured logging utilities; include correlation IDs when available.
+- Data access: use repositories/adapters and existing stores; avoid ad-hoc file scans when indexed data exists.
+- Style/tools: follow the repo’s linters/formatters and line-length rules.
 
 ## TypeScript/React (frontend)
-- Use React Query for server state; Zustand for client state.
 - Prefer functional components, hooks, and explicit props typing.
-- Data fetching: centralize in hooks/api; handle loading/error states.
-- Routing: React Router v7 patterns; avoid ad-hoc history manipulation.
-- Linting/format: `npm run lint`, `npm run lint:fix`; follow existing Tailwind/utility classes patterns.
+- Match the project’s state management and data-fetching patterns; handle loading and error states.
+- Follow established routing/navigation approaches; avoid ad-hoc history manipulation.
+- Use the repo’s lint/format commands and styling conventions.
 
 ## Error Handling
 - Fail fast with clear messages; avoid bare `except` or silent passes.
-- Add retries/circuit breakers where patterns exist (pipeline retry/circuit breaker utilities).
+- Add retries/circuit breakers where patterns exist.
 - Return structured errors (error_code, message) at API boundaries.
 
 ## I/O and Paths
-- Prefer `/scratch` or `/stage` for temp/build outputs; `/data` is HDD and production.
-- Never create new top-level data stores; keep SQLite DBs in `state/db/` or `state/catalogs/`.
-
+- Use appropriate storage for temp/build outputs; avoid polluting production paths.
+- Do not introduce new data stores or directories without alignment and approval; follow existing conventions.

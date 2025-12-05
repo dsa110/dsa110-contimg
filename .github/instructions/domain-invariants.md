@@ -1,28 +1,18 @@
 ---
-description: Domain invariants and constants for DSA-110 continuum imaging
+description: Domain invariants and constants for this project
 applyTo: '**'
 ---
 
 # Domain Invariants
 
-- **Subbands**: Every observation group has 16 subbands (`sb00`-`sb15`). Never process a single subband alone.
-- **Grouping**: Use `query_subband_groups()` with `cluster_tolerance_s=60.0` to cluster files within ±60 seconds.
-- **File patterns**: `YYYY-MM-DDTHH:MM:SS_sbXX.hdf5`
-- **Active codebase**: Use `backend/src/dsa110_contimg/` (not legacy paths).
-- **Databases**:
-  - Pipeline SQLite at `/data/dsa110-contimg/state/db/pipeline.sqlite3` is production.
-  - Catalog SQLite DBs live in `/data/dsa110-contimg/state/catalogs/`; use existing indexes before filesystem scans.
-  - ABSURD uses PostgreSQL (`dsa110_absurd`) and is labeled EXPERIMENTAL.
-- **Storage**:
-  - `/data` = HDD, production data (slow; avoid heavy I/O)
-  - `/stage` = NVMe for outputs and working data
-  - `/scratch` = NVMe for temp/builds
-  - `/dev/shm` = tmpfs for in-memory staging
-- **CASA/pyuvdata compatibility**:
-  - CASA 6.7, Python 3.11, pyuvdata 3.2.4
-  - Use `Nants_telescope`, not deprecated `Nants_data`; set `strict_uvw_antpos_check=False`
-- **Antenna positions**: Always use `dsa110_contimg.utils.antpos_local.get_itrf()` (ITRF meters). Do not hardcode.
-- **Field naming**: Default 24 fields `meridian_icrs_t0..t23`; auto-renamed to calibrators when detected.
-- **MS writing**: Use direct/parallel subband writers (`conversion/strategies/writers.py`); `pyuvdata` writer is test-only.
-- **Environments**: Activate `casa6` for backend; Node 22+ for frontend.
-- **Safety**: Treat `pipeline.sqlite3` and streaming converter state as production; avoid destructive operations.
+- **Cardinality and grouping**: Know the required batch size or grouping rules; avoid processing partial sets that violate domain assumptions.
+- **Normalization**: Use canonical naming/normalization rules before grouping or indexing; avoid ad-hoc filename parsing.
+- **Active code paths**: Work in the current codebase, not legacy directories. Confirm which modules are authoritative.
+- **Data stores**: Identify production databases and indexes; query them instead of scanning file systems. Treat production stores as read-mostly unless change is intentional and reviewed.
+- **Storage tiers**: Understand which locations are production, scratch, or temporary. Keep heavy I/O off slow or production-only storage.
+- **Compatibility**: Respect the project’s runtime versions and required flags; avoid changing them without approval.
+- **Reference data**: Use shared utilities/constants for domain data instead of hardcoding values.
+- **Naming conventions**: Follow established naming schemes for fields/records; understand any auto-renaming rules before overriding.
+- **Writers/adapters**: Use supported writers/adapters for outputs; keep test-only components in tests.
+- **Environments**: Activate the expected environment/toolchain before running commands.
+- **Safety**: Treat production state carefully; avoid destructive operations without backups and approvals.

@@ -38,8 +38,9 @@ sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 "SELECT COUNT(*) FROM <ta
 | System              | Status           | Database                   |
 | ------------------- | ---------------- | -------------------------- |
 | pipeline.sqlite3    | **PRODUCTION**   | SQLite                     |
-| streaming_converter | **PRODUCTION**   | Uses pipeline.sqlite3      |
-| ABSURD              | **EXPERIMENTAL** | PostgreSQL (dsa110_absurd) |
+| hdf5_file_index     | **PRODUCTION**   | SQLite (/data/incoming/)   |
+| batch conversion    | **PRODUCTION**   | Uses hdf5_file_index       |
+| ABSURD ingestion    | **EXPERIMENTAL** | PostgreSQL + pipeline.sqlite3 |
 
 When in doubt about a subsystem's status, check:
 

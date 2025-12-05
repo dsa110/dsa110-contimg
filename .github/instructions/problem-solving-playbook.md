@@ -7,11 +7,11 @@ applyTo: "**"
 
 1) **Clarify the ask**
 - Restate the goal, inputs, outputs, and constraints (envs, data paths, perf targets).
-- Identify prod vs experimental subsystems (see ground-truth hierarchy).
+- Identify production vs experimental subsystems.
 
 2) **Inspect reality first**
 - Read the relevant code before trusting docs.
-- Query existing data/DBs (SQLite in `/data/dsa110-contimg/state/db/`) before writing code.
+- Query existing data/DBs before writing code.
 - Check scale (counts) before scanning directories or tables.
 
 3) **Plan**
@@ -19,13 +19,13 @@ applyTo: "**"
 - Choose the fastest validation path (unit/contract test, dry-run, small sample).
 
 4) **Implement**
-- Follow existing patterns in `backend/src/dsa110_contimg/` and `frontend/src/`.
+- Follow existing patterns in the repo.
 - Keep changes small; prefer pure functions and explicit parameters.
-- Use scratch/NVMe for I/O-heavy work; avoid `/data` for builds.
+- Use appropriate fast storage for I/O-heavy work when needed.
 
 5) **Validate**
-- Run targeted tests (`python -m pytest ...`, `npm run test`, `npm run lint`, `ruff check`).
-- For conversions, sanity-check counts/shapes and key tables (MS, SQLite indexes).
+- Run targeted tests, linters, and type checks.
+- For data flows, sanity-check counts/shapes and key tables or indexes.
 - Log or print minimal, structured evidence.
 
 6) **Document and decide next**
@@ -33,4 +33,3 @@ applyTo: "**"
 - Summarize risks, follow-ups, and how to run verification.
 
 Defaults: fail closed on ambiguity, add guardrails (timeouts, retries, logging), and prefer incremental rollout.
-

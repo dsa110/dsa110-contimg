@@ -5,14 +5,12 @@ applyTo: "**"
 
 # Performance and Scaling
 
-- **I/O locality**: Use `/scratch` or `/stage` for builds, temp files, and conversions; avoid heavy reads/writes on `/data` (HDD).
-- **Batching**: Load subbands in batches (default 4) to control memory; combine to 16 subbands for full bandwidth.
-- **Memory**: A full 16-subband group can use 2-4 GB RAM; avoid unbounded concatenations or in-memory copies.
-- **Threading**: Tune OpenMP/MKL threads (`--omp-threads 4` on 8-core, `--omp-threads 8` on 16-core) to prevent oversubscription.
-- **Streaming converter**: Monitors ingest queue; watch `performance_metrics` for total/load/phase/write times. Groups >4.5 min indicate I/O bottlenecks.
-- **Precomputation**: Pointing tracker triggers catalog/calibrator prep on Dec changes; avoid disabling unless necessary.
-- **Filenames**: Normalization reduces clustering overhead—prefer normalized workflows.
-- **Frontend builds**: Use `npm run build:scratch` to keep Vite builds off HDD.
-- **Docs builds**: Build MkDocs to `/scratch/mkdocs-build/site` then move to `/data/dsa110-contimg/site`.
+- **I/O locality**: Put heavy builds and temp files on fast storage; avoid heavy reads/writes on slow or production-only volumes.
+- **Batching**: Process data in batches to control memory; avoid unbounded concatenations or full in-memory copies.
+- **Memory**: Estimate footprint before running; stream or chunk large data when possible.
+- **Threading**: Set thread/worker counts to avoid oversubscription relative to available cores.
+- **Pipelines/queues**: Monitor throughput and latency metrics; investigate stragglers or long-running groups.
+- **Precomputation**: Keep useful precomputation enabled; only disable with a clear reason.
+- **Normalization**: Normalize inputs early to reduce grouping or clustering overhead.
+- **Builds**: Run heavy builds (frontend/docs) on fast storage and move artifacts to their final destinations afterward.
 - **Logging overhead**: Prefer structured, leveled logs; avoid chatty debug in tight loops.
-
