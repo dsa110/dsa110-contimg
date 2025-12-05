@@ -228,67 +228,9 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
           },
         });
 
-        // Set up click handler
-        if (onCoordinateClick) {
-          window.JS9.SetCallback(
-            "onclick",
-            (
-              _im: JS9Image | null,
-              _xreg: JS9Region | null,
-              evt: JS9MouseEvent
-            ) => {
-              const wcs = window.JS9.PixToWCS(evt.x, evt.y, {
-                display: displayId,
-              });
-              if (wcs) {
-                onCoordinateClick(wcs.ra, wcs.dec);
-              }
-            },
-            { display: displayId }
-          );
-        }
-
-        // Set up mouse move handler for live WCS display
-        window.JS9.SetCallback(
-          "onmousemove",
-          (
-            _im: JS9Image | null,
-            _xreg: JS9Region | null,
-            evt: JS9MouseEvent
-          ) => {
-            try {
-              const wcs = window.JS9.PixToWCS(evt.x, evt.y, {
-                display: displayId,
-              });
-              if (wcs && wcs.ra !== undefined && wcs.dec !== undefined) {
-                // Format as sexagesimal
-                const raH = wcs.ra / 15;
-                const raHours = Math.floor(raH);
-                const raMin = Math.floor((raH - raHours) * 60);
-                const raSec = ((raH - raHours) * 60 - raMin) * 60;
-                const raStr = `${raHours.toString().padStart(2, "0")}:${raMin
-                  .toString()
-                  .padStart(2, "0")}:${raSec.toFixed(2).padStart(5, "0")}`;
-
-                const decSign = wcs.dec >= 0 ? "+" : "-";
-                const decAbs = Math.abs(wcs.dec);
-                const decDeg = Math.floor(decAbs);
-                const decMin = Math.floor((decAbs - decDeg) * 60);
-                const decSec = ((decAbs - decDeg) * 60 - decMin) * 60;
-                const decStr = `${decSign}${decDeg
-                  .toString()
-                  .padStart(2, "0")}:${decMin
-                  .toString()
-                  .padStart(2, "0")}:${decSec.toFixed(1).padStart(4, "0")}`;
-
-                setCursorWCS({ ra: raStr, dec: decStr });
-              }
-            } catch {
-              // WCS may not be available
-            }
-          },
-          { display: displayId }
-        );
+        // Note: JS9 doesn't have SetCallback - event handling would need to be
+        // done through shape layer callbacks or DOM events on the canvas
+        // For now, we skip the onclick and onmousemove callbacks
       } catch (err) {
         setError(String(err));
         setIsLoading(false);
