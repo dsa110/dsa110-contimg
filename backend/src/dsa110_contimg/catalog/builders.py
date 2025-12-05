@@ -616,11 +616,11 @@ def build_nvss_strip_db(
     """
     dec_min, dec_max = dec_range
 
-    # Resolve output path
+    # Resolve output path - use absolute path to state/catalogs
     if output_path is None:
         dec_rounded = round(dec_center, 1)
         db_name = f"nvss_dec{dec_rounded:+.1f}.sqlite3"
-        output_path = Path("state/catalogs") / db_name
+        output_path = Path("/data/dsa110-contimg/state/catalogs") / db_name
 
     output_path = Path(output_path)
 

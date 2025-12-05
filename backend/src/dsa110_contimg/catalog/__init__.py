@@ -44,11 +44,15 @@ from .builders import (
     auto_build_missing_catalog_databases,
     build_atnf_strip_db,
     build_first_strip_db,
+    build_nvss_full_db,
     build_nvss_strip_db,
+    build_nvss_strip_from_full,
     build_rax_strip_db,
     build_vlass_strip_db,
     check_catalog_database_exists,
     check_missing_catalog_databases,
+    get_nvss_full_db_path,
+    nvss_full_db_exists,
 )
 from .query import query_sources, resolve_catalog_path
 
@@ -56,6 +60,10 @@ __all__ = [
     "query_sources",
     "resolve_catalog_path",
     "build_nvss_strip_db",
+    "build_nvss_full_db",
+    "build_nvss_strip_from_full",
+    "nvss_full_db_exists",
+    "get_nvss_full_db_path",
     "build_first_strip_db",
     "build_rax_strip_db",
     "build_atnf_strip_db",

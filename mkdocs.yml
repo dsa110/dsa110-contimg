@@ -96,6 +96,10 @@ nav:
 
   - Examples:
       - Real World Examples: examples/real_world_examples.md
+      - Notebooks: notebooks/README.md
+
+  - Tools:
+      - DocSearch: docsearch/README.md
 
   - Changelog:
       - 2025-12-03 Visualization: changelog/2025-12-03-visualization-and-nightly-mosaics.md
