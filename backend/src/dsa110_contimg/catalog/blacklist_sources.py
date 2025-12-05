@@ -58,14 +58,26 @@ def blacklist_atnf_pulsars(
 def _query_atnf_pulsars() -> List[Tuple[str, float, float]]:
     """Query ATNF pulsar catalog for pulsar positions.
 
+    Set SKIP_ATNF_QUERY=1 environment variable to skip network query
+    and use hardcoded pulsar list (faster, avoids network timeouts).
+
     Returns:
         List of (name, ra_deg, dec_deg) tuples
     """
+    import os
+
+    # Allow skipping network query via environment variable
+    if os.environ.get("SKIP_ATNF_QUERY", "0") == "1":
+        logger.info("SKIP_ATNF_QUERY=1 - using hardcoded pulsar list")
+        return _get_hardcoded_pulsars()
+
     try:
         # Try importing psrqpy (ATNF catalog query tool)
         import psrqpy
 
         # Query all pulsars with valid positions
+        # Note: This can be slow or hang if ATNF server is unresponsive
+        logger.info("Querying ATNF pulsar catalog (this may take a few minutes)...")
         query = psrqpy.QueryATNF(
             params=["NAME", "RAJ", "DECJ"], condition="RAJ != '' && DECJ != ''"
         )
