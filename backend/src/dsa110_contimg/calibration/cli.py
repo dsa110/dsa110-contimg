@@ -275,6 +275,39 @@ def run_calibrator(
 
             logger.info("Flagging autocorrelations...")
             flagdata(vis=ms_file, autocorr=True, flagbackup=False)
+
+            # RFI flagging with AOFlagger (critical for bandpass!)
+            logger.info("Running AOFlagger RFI flagging...")
+            try:
+                from dsa110_contimg.calibration.flagging import flag_rfi
+
+                flag_rfi(ms_file, backend="aoflagger")
+                logger.info("✓ AOFlagger RFI flagging complete")
+            except Exception as aoflagger_err:
+                logger.warning(
+                    "AOFlagger failed (%s), falling back to CASA tfcrop+rflag",
+                    aoflagger_err
+                )
+                # Fallback to CASA flagging
+                flagdata(
+                    vis=ms_file,
+                    mode="tfcrop",
+                    datacolumn="data",
+                    timecutoff=4.0,
+                    freqcutoff=4.0,
+                    extendflags=False,
+                    flagbackup=False,
+                )
+                flagdata(
+                    vis=ms_file,
+                    mode="rflag",
+                    datacolumn="data",
+                    timedevscale=4.0,
+                    freqdevscale=4.0,
+                    extendflags=False,
+                    flagbackup=False,
+                )
+                logger.info("✓ CASA tfcrop+rflag flagging complete")
         except Exception as err:
             logger.warning("Pre-calibration flagging failed (continuing): %s", err)
 
