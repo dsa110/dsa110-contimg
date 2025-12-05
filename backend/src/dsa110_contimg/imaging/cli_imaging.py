@@ -1191,15 +1191,16 @@ def image_ms(
     ):
         if ra0_deg is not None and dec0_deg is not None:
             try:
-                from dsa110_contimg.imaging.nvss_tools import create_unicat_fits_mask
+                from dsa110_contimg.imaging.catalog_tools import create_catalog_fits_mask
 
-                mask_path = create_unicat_fits_mask(
+                mask_path = create_catalog_fits_mask(
+                    catalog="unicat",
                     imagename=imagename,
                     imsize=imsize,
                     cell_arcsec=cell_arcsec,
                     ra0_deg=ra0_deg,
                     dec0_deg=dec0_deg,
-                    unicat_min_mjy=unicat_min_mjy,
+                    min_mjy=unicat_min_mjy,
                     radius_arcsec=mask_radius_arcsec,
                 )
                 LOG.info(
