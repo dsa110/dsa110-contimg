@@ -80,13 +80,13 @@ BEFORE (as written by correlator):         AFTER (normalized):
 
 ## Benefits
 
-| Aspect | Before (Fuzzy Clustering) | After (Normalization) |
-|--------|---------------------------|------------------------|
-| **Grouping** | Complex SQL with tolerance windows | Simple `GROUP BY group_id` |
-| **Filesystem** | Mixed timestamps, unclear membership | Self-documenting: same timestamp = same group |
-| **Queries** | `ABS(julianday(a) - julianday(b)) <= 60` | `WHERE group_id = ?` |
-| **SubbandGroup** | Tracked multiple timestamps | Single canonical timestamp |
-| **Idempotency** | N/A | Safe to re-run normalizer |
+| Aspect           | Before (Fuzzy Clustering)                | After (Normalization)                         |
+| ---------------- | ---------------------------------------- | --------------------------------------------- |
+| **Grouping**     | Complex SQL with tolerance windows       | Simple `GROUP BY group_id`                    |
+| **Filesystem**   | Mixed timestamps, unclear membership     | Self-documenting: same timestamp = same group |
+| **Queries**      | `ABS(julianday(a) - julianday(b)) <= 60` | `WHERE group_id = ?`                          |
+| **SubbandGroup** | Tracked multiple timestamps              | Single canonical timestamp                    |
+| **Idempotency**  | N/A                                      | Safe to re-run normalizer                     |
 
 ## Implementation
 
@@ -136,10 +136,12 @@ python -m dsa110_contimg.conversion.streaming.normalize_cli \
 ### Integration Points
 
 1. **Streaming Handler** (`streaming_converter.py`):
+
    - `_FSHandler._maybe_record()` calls `normalize_subband_on_ingest()`
    - Happens automatically when files arrive
 
 2. **QueueDB** (`streaming_converter.py`):
+
    - `find_target_group()` queries for existing groups within tolerance
    - Returns canonical group_id if found
 

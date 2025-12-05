@@ -192,16 +192,42 @@ python -m dsa110_contimg.catalog.build_vla_calibrators \
 2025-10-05T12:30:00_sb15.hdf5
 ```
 
-**CRITICAL: Time-Windowing for Grouping**
+**Filename Normalization (Preferred)**
 
-Subbands from the same observation may have slightly different timestamps
-(seconds apart) due to write timing. **Never** group by exact timestamp match.
+The streaming converter automatically **normalizes filenames on ingest**. When a
+subband arrives with a slightly different timestamp, it's renamed to match the
+canonical group_id (first arrival wins):
 
-The pipeline uses **±60 second tolerance** (default) to group subbands that
-belong together:
+```
+# Correlator writes files with jittered timestamps:
+2025-01-15T12:00:00_sb00.hdf5  → 2025-01-15T12:00:00_sb00.hdf5  (canonical)
+2025-01-15T12:00:01_sb01.hdf5  → 2025-01-15T12:00:00_sb01.hdf5  (renamed)
+2025-01-15T12:00:02_sb02.hdf5  → 2025-01-15T12:00:00_sb02.hdf5  (renamed)
+```
+
+This enables **exact matching** by `group_id` without fuzzy time windows:
 
 ```python
-# CORRECT - use pipeline's time-windowing functions
+# After normalization - simple exact match
+from dsa110_contimg.conversion.streaming import normalize_directory
+
+# Batch normalize historical files
+stats = normalize_directory(Path("/data/incoming"), dry_run=True)
+print(f"Would rename {stats['files_renamed']} files")
+
+# Query by exact group_id
+cursor.execute("SELECT * FROM subband_files WHERE group_id = ?", (group_id,))
+```
+
+See `docs/guides/subband-normalization.md` for the full algorithm.
+
+**Legacy: Time-Windowing for Grouping**
+
+For unnormalized files, the pipeline uses **±60 second tolerance** to group
+subbands that belong together:
+
+```python
+# For unnormalized files - use time-windowing functions
 from dsa110_contimg.database.hdf5_index import query_subband_groups
 groups = query_subband_groups(
     hdf5_db,
