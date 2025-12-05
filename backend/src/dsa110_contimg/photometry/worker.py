@@ -11,7 +11,7 @@ import sqlite3
 from typing import Dict, List, Optional, Tuple
 
 from dsa110_contimg.api.job_adapters import run_batch_photometry_job
-from dsa110_contimg.database import ensure_products_db
+from dsa110_contimg.database import ensure_pipeline_db
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ class PhotometryBatchWorker:
             self._thread.join(timeout=5.0)
 
     def _claim_next_job(self) -> Optional[Tuple[int, List[str], List[Dict[str, float]], Dict]]:
-        conn = ensure_products_db(self.products_db_path)
+        conn = ensure_pipeline_db()
         conn.row_factory = sqlite3.Row  # type: ignore[attr-defined]
         try:
             row = conn.execute(
@@ -101,7 +101,7 @@ class PhotometryBatchWorker:
 
     def status(self) -> Dict[str, int]:
         """Return counts of photometry batch jobs by status for observability."""
-        conn = ensure_products_db(self.products_db_path)
+        conn = ensure_pipeline_db()
         try:
             counts = conn.execute(
                 """

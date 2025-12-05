@@ -18,7 +18,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Callable, Optional, Tuple
 
-from dsa110_contimg.database import ensure_products_db, ms_index_upsert
+from dsa110_contimg.database import ensure_pipeline_db, ms_index_upsert
 
 logger = logging.getLogger(__name__)
 

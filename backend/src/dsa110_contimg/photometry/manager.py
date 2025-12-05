@@ -27,7 +27,7 @@ from dsa110_contimg.database.data_registry import (
     link_photometry_to_data,
 )
 from dsa110_contimg.database import (
-    ensure_products_db,
+    ensure_pipeline_db,
     photometry_insert,
 )
 from dsa110_contimg.photometry.ese_pipeline import auto_detect_ese_for_new_measurements
@@ -477,7 +477,7 @@ class PhotometryManager:
                 successful = len([r for r in results if r.success])
 
                 if self.products_db_path:
-                    conn = ensure_products_db(self.products_db_path)
+                    conn = ensure_pipeline_db()
                     try:
                         # Store results
                         for i, res in enumerate(results):
@@ -557,7 +557,7 @@ class PhotometryManager:
             return None
 
         try:
-            conn = ensure_products_db(self.products_db_path)
+            conn = ensure_pipeline_db()
 
             # Prepare batch job parameters
             params = {

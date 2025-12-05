@@ -12,7 +12,7 @@ import time
 from pathlib import Path
 from typing import List, Optional
 
-from dsa110_contimg.database import ensure_products_db
+from dsa110_contimg.database import ensure_pipeline_db
 from dsa110_contimg.photometry.caching import (
     invalidate_cache,
 )
@@ -240,7 +240,7 @@ def auto_detect_ese_after_photometry(
         logger.warning(f"Products database not found: {products_db}")
         return []
 
-    conn = ensure_products_db(products_db)
+    conn = ensure_pipeline_db()
 
     try:
         # Ensure tables exist
@@ -329,7 +329,7 @@ def auto_detect_ese_for_new_measurements(
     if not products_db.exists():
         return None
 
-    conn = ensure_products_db(products_db)
+    conn = ensure_pipeline_db()
 
     try:
         # Update variability stats for this source

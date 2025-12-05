@@ -185,8 +185,7 @@ from dsa110_contimg.calibration.streaming import (  # noqa: E402
     solve_calibration_for_ms,
 )
 from dsa110_contimg.database import (  # noqa: E402
-    ensure_ingest_db,
-    ensure_products_db,
+    ensure_pipeline_db,
     images_insert,
     log_pointing,
     ms_index_upsert,

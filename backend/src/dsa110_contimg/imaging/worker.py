@@ -29,7 +29,7 @@ from typing import List, Optional, Tuple
 import numpy as np
 
 from dsa110_contimg.database import (
-    ensure_products_db,
+    ensure_pipeline_db,
     images_insert,
     ms_index_upsert,
     get_active_applylist,

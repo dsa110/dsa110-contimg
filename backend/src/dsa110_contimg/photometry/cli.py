@@ -40,7 +40,7 @@ from matplotlib.colors import Normalize
 
 from dsa110_contimg.catalog.query import query_sources
 from dsa110_contimg.database import (
-    ensure_products_db,
+    ensure_pipeline_db,
     photometry_insert,
 )
 from dsa110_contimg.photometry.ese_detection import detect_ese_candidates
@@ -175,7 +175,7 @@ def cmd_batch(args: argparse.Namespace) -> int:
 
     # Setup database connection - always store results
     pdb_path = _get_pipeline_db_path(getattr(args, 'products_db', None))
-    conn = ensure_products_db(pdb_path)
+    conn = ensure_pipeline_db()
 
     results = []
     now = time.time()
@@ -375,7 +375,7 @@ def cmd_nvss(args: argparse.Namespace) -> int:
     results = []
     now = time.time()
     pdb_path = _get_pipeline_db_path(getattr(args, 'products_db', None))
-    conn = ensure_products_db(pdb_path)
+    conn = ensure_pipeline_db()
     try:
         inserted = 0
         skipped = 0
@@ -567,7 +567,7 @@ def cmd_plot(args: argparse.Namespace) -> int:
 
     # Load photometry rows for this image
     pdb_path = _get_pipeline_db_path(getattr(args, 'products_db', None))
-    conn = ensure_products_db(pdb_path)
+    conn = ensure_pipeline_db()
     rows = conn.execute(
         "SELECT ra_deg, dec_deg, peak_jyb, nvss_flux_mjy FROM photometry WHERE image_path = ?",
         (args.fits,),

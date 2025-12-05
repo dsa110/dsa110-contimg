@@ -22,7 +22,7 @@ from dsa110_contimg.database import (
     get_job as db_get_job,
     list_jobs as db_list_jobs,
     update_job_status as db_update_job_status,
-    ensure_products_db,
+    ensure_pipeline_db,
 )
 
 
