@@ -443,8 +443,6 @@ def ensure_pipeline_db() -> sqlite3.Connection:
     """
     Ensure the unified pipeline database exists and return a connection.
     
-    This replaces ensure_products_db, ensure_ingest_db, etc.
-    
     Returns:
         sqlite3.Connection to the pipeline database
     """

@@ -178,8 +178,7 @@ class TestStreamingConverterImports:
 
         assert hasattr(sc, "register_set_from_prefix")
         assert hasattr(sc, "get_active_applylist")
-        assert hasattr(sc, "ensure_products_db")
-        assert hasattr(sc, "ensure_ingest_db")
+        assert hasattr(sc, "ensure_pipeline_db")
         assert hasattr(sc, "images_insert")
         assert hasattr(sc, "ms_index_upsert")
 

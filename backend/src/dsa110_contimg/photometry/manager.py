@@ -297,7 +297,7 @@ class PhotometryManager:
                 successful = len([r for r in results if r.success])
 
                 if self.products_db_path:
-                    conn = ensure_products_db(self.products_db_path)
+                    conn = ensure_pipeline_db()
                     try:
                         # Store results
                         for i, res in enumerate(results):

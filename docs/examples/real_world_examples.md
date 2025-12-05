@@ -318,8 +318,7 @@ result = orchestrator.execute(context)
 Store pipeline results in database.
 
 ```python
-from dsa110_contimg.database.products import ensure_products_db
-import sqlite3
+from dsa110_contimg.database import ensure_pipeline_db
 
 class DatabaseStorageStage(PipelineStage):
     """Store pipeline results in database."""
@@ -335,18 +334,19 @@ class DatabaseStorageStage(PipelineStage):
     def execute(self, context: PipelineContext) -> PipelineContext:
         image_path = context.outputs["image_path"]
 
-        # Ensure database exists
-        db_path = ensure_products_db(context.config.paths.output_dir)
-
-        # Store image metadata
-        with sqlite3.connect(db_path) as conn:
+        # Get unified pipeline database connection
+        conn = ensure_pipeline_db()
+        try:
+            # Store image metadata
             conn.execute("""
                 INSERT INTO images (path, created_at, job_id)
                 VALUES (?, datetime('now'), ?)
-            """, (image_path, context.job_id))
+            """, (str(image_path), context.job_id))
             conn.commit()
+        finally:
+            conn.close()
 
-        return context.with_output("db_path", db_path)
+        return context
 
     def get_name(self) -> str:
         return "database_storage"

@@ -370,7 +370,7 @@ def register_image_in_db(image_path: Path, ms_path: Path, products_db: Path,
     """Register image in products database."""
     import time
 
-    from dsa110_contimg.database.products import (ensure_products_db,
+    from dsa110_contimg.database import (ensure_pipeline_db,
                                                   images_insert)
     
     conn = ensure_pipeline_db()

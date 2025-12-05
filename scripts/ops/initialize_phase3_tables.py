@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """Initialize Phase 3 database tables for transient detection and astrometric calibration.
 
-NOTE: As of v0.9, Phase 3 tables are automatically created by ensure_products_db()
-in backend/src/dsa110_contimg/database/products.py. This script is kept for:
+NOTE: As of v0.10, Phase 3 tables are automatically created by ensure_pipeline_db()
+in backend/src/dsa110_contimg/database/unified.py. This script is kept for:
   1. Verification of existing databases
   2. Force-recreating tables if needed
   3. Backward compatibility
