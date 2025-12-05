@@ -79,13 +79,13 @@ Cleaning up temporary files...
 
 **Root Cause:**
 
-The `images_insert()` function in `streaming_converter.py` was called with
-positional arguments in the wrong order, causing `created_at` timestamp to be
-stored in the wrong field position.
+The `images_insert()` function in the legacy `streaming_converter.py` (now deprecated)
+was called with positional arguments in the wrong order, causing `created_at` timestamp
+to be stored in the wrong field position.
 
 **Fix Applied:**
 
-Changed to explicit keyword arguments in `streaming_converter.py`:
+Changed to explicit keyword arguments (historical fix, module now deprecated):
 
 ```python
 # Before (wrong):

@@ -385,8 +385,8 @@ from `backend/tests/fixtures/writers.py`.
 
 **Expected visibility shape**: `(nblt, nfreq, npol)`
 
-- Typical: `nblt = nbaselines * ntimes`, `nfreq = 1024 per subband`, `npol = 4`
-- After combining 16 subbands: `nfreq = 16384`
+- Typical: `nblt = nbaselines * ntimes`, `nfreq = 48 per subband`, `npol = 4`
+- After combining 16 subbands: `nfreq = 768` (16 × 48 channels)
 
 ## Field Naming and Calibrator Auto-Detection
 

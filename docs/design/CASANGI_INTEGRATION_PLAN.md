@@ -575,7 +575,7 @@ Add visibility raster plots showing:
 | --------------- | ---------------------------- |
 | Antennas        | 110 (63 currently active)    |
 | Baselines       | ~2000 (active)               |
-| Channels        | 16,384 (16 subbands × 1024)  |
+| Channels        | 768 (16 subbands × 48)       |
 | Polarizations   | 4 (XX, XY, YX, YY)           |
 | Time samples    | ~24 per 5-minute observation |
 | Typical MS size | 2-4 GB                       |
@@ -728,11 +728,11 @@ class RasterPlotParams(BaseModel):
 Create new file `frontend/src/components/ms/MsRasterPlot.tsx`:
 
 ```tsx
-import React, { useState } from "react";
-import { config } from "../../config";
+import React, { useState } from 'react';
+import { config } from '../../config';
 
-export type RasterAxis = "time" | "baseline" | "frequency";
-export type RasterVisAxis = "amp" | "phase" | "real" | "imag";
+export type RasterAxis = 'time' | 'baseline' | 'frequency';
+export type RasterVisAxis = 'amp' | 'phase' | 'real' | 'imag';
 
 interface MsRasterPlotProps {
   /** Full path to the Measurement Set */
@@ -755,11 +755,11 @@ interface MsRasterPlotProps {
  */
 const MsRasterPlot: React.FC<MsRasterPlotProps> = ({
   msPath,
-  initialXAxis = "time",
-  initialYAxis = "amp",
+  initialXAxis = 'time',
+  initialYAxis = 'amp',
   spw,
   antenna,
-  className = "",
+  className = '',
 }) => {
   const [xaxis, setXAxis] = useState<RasterAxis>(initialXAxis);
   const [yaxis, setYAxis] = useState<RasterVisAxis>(initialYAxis);
@@ -774,9 +774,7 @@ const MsRasterPlot: React.FC<MsRasterPlotProps> = ({
     ...(antenna && { antenna }),
   });
 
-  const url = `${config.api.baseUrl}/ms/${encodeURIComponent(
-    msPath
-  )}/raster?${params}`;
+  const url = `${config.api.baseUrl}/ms/${encodeURIComponent(msPath)}/raster?${params}`;
 
   return (
     <div className={`bg-gray-900 rounded-lg overflow-hidden ${className}`}>
@@ -814,9 +812,7 @@ const MsRasterPlot: React.FC<MsRasterPlotProps> = ({
       <div className="relative aspect-[4/3]">
         {isLoading && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-900">
-            <div className="animate-pulse text-gray-500">
-              Generating plot...
-            </div>
+            <div className="animate-pulse text-gray-500">Generating plot...</div>
           </div>
         )}
 
@@ -836,7 +832,7 @@ const MsRasterPlot: React.FC<MsRasterPlotProps> = ({
           }}
           onError={() => {
             setIsLoading(false);
-            setError("Failed to load raster plot");
+            setError('Failed to load raster plot');
           }}
         />
       </div>
@@ -856,8 +852,7 @@ export const queryKeys = {
   // ... existing keys ...
 
   // MS Raster plots (for prefetching)
-  msRaster: (path: string, params: object) =>
-    ["ms", path, "raster", params] as const,
+  msRaster: (path: string, params: object) => ['ms', path, 'raster', params] as const,
 };
 ```
 
@@ -867,7 +862,7 @@ Modify `frontend/src/pages/MSDetailPage.tsx`:
 
 ```tsx
 // Add import at top
-import MsRasterPlot from "../components/ms/MsRasterPlot";
+import MsRasterPlot from '../components/ms/MsRasterPlot';
 
 // Add inside the main grid, after the Metadata card:
 {
@@ -888,8 +883,8 @@ import MsRasterPlot from "../components/ms/MsRasterPlot";
 Create the directory and index file:
 
 ```typescript
-export { default as MsRasterPlot } from "./MsRasterPlot";
-export type { RasterAxis, RasterVisAxis } from "./MsRasterPlot";
+export { default as MsRasterPlot } from './MsRasterPlot';
+export type { RasterAxis, RasterVisAxis } from './MsRasterPlot';
 ```
 
 #### 1.4.2 Testing Checklist
@@ -932,19 +927,19 @@ def test_raster_endpoint_handles_missing_ms(client: TestClient):
 **Frontend Tests** (`frontend/src/components/ms/MsRasterPlot.test.tsx`):
 
 ```tsx
-import { render, screen, fireEvent } from "@testing-library/react";
-import MsRasterPlot from "./MsRasterPlot";
+import { render, screen, fireEvent } from '@testing-library/react';
+import MsRasterPlot from './MsRasterPlot';
 
-describe("MsRasterPlot", () => {
-  it("renders with loading state", () => {
+describe('MsRasterPlot', () => {
+  it('renders with loading state', () => {
     render(<MsRasterPlot msPath="/test/observation.ms" />);
-    expect(screen.getByText("Generating plot...")).toBeInTheDocument();
+    expect(screen.getByText('Generating plot...')).toBeInTheDocument();
   });
 
-  it("updates URL when axis changes", () => {
+  it('updates URL when axis changes', () => {
     render(<MsRasterPlot msPath="/test/observation.ms" />);
     const select = screen.getByLabelText(/X-axis/);
-    fireEvent.change(select, { target: { value: "frequency" } });
+    fireEvent.change(select, { target: { value: 'frequency' } });
     // Verify img src contains new axis param
   });
 });
@@ -1077,11 +1072,11 @@ Implementation:
      const [session, setSession] = useState<ICleanSession | null>(null);
 
      const startSession = async (msPath: string) => {
-       const response = await api.post("/imaging/interactive", {
+       const response = await api.post('/imaging/interactive', {
          ms_path: msPath,
        });
        setSession(response.data);
-       window.open(response.data.url, "_blank");
+       window.open(response.data.url, '_blank');
      };
 
      return (
@@ -1427,22 +1422,19 @@ Add to `frontend/src/pages/MSDetailPage.tsx` in the Actions card:
   className="btn btn-primary"
   onClick={async () => {
     try {
-      const response = await fetch(
-        `${config.api.baseUrl}/imaging/interactive`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            ms_path: ms.path,
-            imagename: ms.path.replace(".ms", ".interactive"),
-          }),
-        }
-      );
-      if (!response.ok) throw new Error("Failed to start session");
+      const response = await fetch(`${config.api.baseUrl}/imaging/interactive`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ms_path: ms.path,
+          imagename: ms.path.replace('.ms', '.interactive'),
+        }),
+      });
+      if (!response.ok) throw new Error('Failed to start session');
       const data = await response.json();
-      window.open(data.url, "_blank", "noopener,noreferrer");
+      window.open(data.url, '_blank', 'noopener,noreferrer');
     } catch (error) {
-      console.error("Failed to launch interactive clean:", error);
+      console.error('Failed to launch interactive clean:', error);
       // Show error toast
     }
   }}
@@ -1585,27 +1577,13 @@ const AntennaLayoutWidget: React.FC<{ msPath: string }> = ({ msPath }) => {
   const { data: antennas } = useAntennaPositions(msPath);
 
   // DSA-110 T-shape layout extents
-  const viewBox = "-800 -200 1600 600"; // Wider EW, narrower NS
+  const viewBox = '-800 -200 1600 600'; // Wider EW, narrower NS
 
   return (
     <svg viewBox={viewBox} className="w-full h-48">
       {/* Grid lines for scale */}
-      <line
-        x1="-600"
-        y1="0"
-        x2="600"
-        y2="0"
-        stroke="#333"
-        strokeDasharray="4"
-      />
-      <line
-        x1="0"
-        y1="-150"
-        x2="0"
-        y2="300"
-        stroke="#333"
-        strokeDasharray="4"
-      />
+      <line x1="-600" y1="0" x2="600" y2="0" stroke="#333" strokeDasharray="4" />
+      <line x1="0" y1="-150" x2="0" y2="300" stroke="#333" strokeDasharray="4" />
 
       {/* Antenna markers */}
       {antennas?.map((ant) => (
@@ -1633,9 +1611,9 @@ const AntennaLayoutWidget: React.FC<{ msPath: string }> = ({ msPath }) => {
 };
 
 function getFlagColor(pct: number): string {
-  if (pct > 50) return "#EF4444"; // red - severe flagging
-  if (pct > 20) return "#F59E0B"; // amber - moderate flagging
-  return "#22C55E"; // green - good
+  if (pct > 50) return '#EF4444'; // red - severe flagging
+  if (pct > 20) return '#F59E0B'; // amber - moderate flagging
+  return '#22C55E'; // green - good
 }
 ```
 
@@ -1742,7 +1720,7 @@ Add to `frontend/src/hooks/useQueries.ts`:
 // Add to queryKeys
 export const queryKeys = {
   // ... existing keys ...
-  msAntennas: (path: string) => ["ms", path, "antennas"] as const,
+  msAntennas: (path: string) => ['ms', path, 'antennas'] as const,
 };
 
 // Add hook
@@ -1756,10 +1734,10 @@ export interface AntennaInfo {
 
 export function useAntennaPositions(msPath: string | undefined) {
   return useQuery({
-    queryKey: queryKeys.msAntennas(msPath ?? ""),
+    queryKey: queryKeys.msAntennas(msPath ?? ''),
     queryFn: async () => {
       const response = await apiClient.get<AntennaInfo[]>(
-        `/ms/${encodeURIComponent(msPath ?? "")}/antennas`
+        `/ms/${encodeURIComponent(msPath ?? '')}/antennas`
       );
       return response.data;
     },
@@ -1774,8 +1752,8 @@ export function useAntennaPositions(msPath: string | undefined) {
 Create `frontend/src/components/antenna/AntennaLayoutWidget.tsx`:
 
 ```tsx
-import React, { useMemo } from "react";
-import { useAntennaPositions, AntennaInfo } from "../../hooks/useQueries";
+import React, { useMemo } from 'react';
+import { useAntennaPositions, AntennaInfo } from '../../hooks/useQueries';
 
 interface AntennaLayoutWidgetProps {
   /** Path to the Measurement Set */
@@ -1796,13 +1774,13 @@ const AntennaLayoutWidget: React.FC<AntennaLayoutWidgetProps> = ({
   msPath,
   height = 200,
   showLegend = true,
-  className = "",
+  className = '',
 }) => {
   const { data: antennas, isLoading, error } = useAntennaPositions(msPath);
 
   // Calculate SVG viewBox based on antenna positions
   const viewBox = useMemo(() => {
-    if (!antennas?.length) return "-800 -300 1600 600";
+    if (!antennas?.length) return '-800 -300 1600 600';
 
     const xs = antennas.map((a) => a.x);
     const ys = antennas.map((a) => a.y);
@@ -1845,18 +1823,8 @@ const AntennaLayoutWidget: React.FC<AntennaLayoutWidgetProps> = ({
       <svg viewBox={viewBox} style={{ height }} className="w-full">
         {/* Background grid */}
         <defs>
-          <pattern
-            id="grid"
-            width="100"
-            height="100"
-            patternUnits="userSpaceOnUse"
-          >
-            <path
-              d="M 100 0 L 0 0 0 100"
-              fill="none"
-              stroke="#333"
-              strokeWidth="0.5"
-            />
+          <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
+            <path d="M 100 0 L 0 0 0 100" fill="none" stroke="#333" strokeWidth="0.5" />
           </pattern>
         </defs>
         <rect width="100%" height="100%" fill="url(#grid)" />
@@ -1896,7 +1864,7 @@ const AntennaLayoutWidget: React.FC<AntennaLayoutWidgetProps> = ({
             {/* Tooltip via title element */}
             <title>
               {ant.name}
-              {"\n"}Flagged: {ant.flagged_pct.toFixed(1)}%{"\n"}
+              {'\n'}Flagged: {ant.flagged_pct.toFixed(1)}%{'\n'}
               Position: ({ant.x.toFixed(0)}m E, {ant.y.toFixed(0)}m N)
             </title>
           </g>
@@ -1906,14 +1874,7 @@ const AntennaLayoutWidget: React.FC<AntennaLayoutWidgetProps> = ({
         <g transform="translate(-700, 200)">
           <line x1="0" y1="0" x2="200" y2="0" stroke="white" strokeWidth="2" />
           <line x1="0" y1="-5" x2="0" y2="5" stroke="white" strokeWidth="2" />
-          <line
-            x1="200"
-            y1="-5"
-            x2="200"
-            y2="5"
-            stroke="white"
-            strokeWidth="2"
-          />
+          <line x1="200" y1="-5" x2="200" y2="5" stroke="white" strokeWidth="2" />
           <text
             x="100"
             y="20"
@@ -1927,14 +1888,7 @@ const AntennaLayoutWidget: React.FC<AntennaLayoutWidgetProps> = ({
         </g>
 
         {/* Direction labels */}
-        <text
-          x="750"
-          y="0"
-          fill="#888"
-          textAnchor="start"
-          fontSize="14"
-          dominantBaseline="middle"
-        >
+        <text x="750" y="0" fill="#888" textAnchor="start" fontSize="14" dominantBaseline="middle">
           E
         </text>
         <text
@@ -1974,9 +1928,9 @@ const AntennaLayoutWidget: React.FC<AntennaLayoutWidgetProps> = ({
  * Get color for antenna based on flagging percentage.
  */
 function getFlagColor(flaggedPct: number): string {
-  if (flaggedPct > 50) return "#EF4444"; // red-500
-  if (flaggedPct > 20) return "#F59E0B"; // amber-500
-  return "#22C55E"; // green-500
+  if (flaggedPct > 50) return '#EF4444'; // red-500
+  if (flaggedPct > 20) return '#F59E0B'; // amber-500
+  return '#22C55E'; // green-500
 }
 
 export default AntennaLayoutWidget;
@@ -1987,7 +1941,7 @@ export default AntennaLayoutWidget;
 Create `frontend/src/components/antenna/index.ts`:
 
 ```typescript
-export { default as AntennaLayoutWidget } from "./AntennaLayoutWidget";
+export { default as AntennaLayoutWidget } from './AntennaLayoutWidget';
 ```
 
 **Step 5: Integrate into MSDetailPage**
@@ -1996,7 +1950,7 @@ Add to `frontend/src/pages/MSDetailPage.tsx`:
 
 ```tsx
 // Add import
-import { AntennaLayoutWidget } from "../components/antenna";
+import { AntennaLayoutWidget } from '../components/antenna';
 
 // Add in the grid after existing cards:
 <Card title="Antenna Layout">
@@ -2067,16 +2021,16 @@ const MaskToolbar: React.FC<MaskToolbarProps> = ({ imageId, onMaskSaved }) => {
   const handleCreateMask = () => {
     if (window.JS9) {
       // Enable region creation mode
-      window.JS9.SetRegions("circle", { color: "green" });
+      window.JS9.SetRegions('circle', { color: 'green' });
       setMaskMode(true);
     }
   };
 
   const handleSaveMask = async () => {
     if (window.JS9) {
-      const regions = window.JS9.GetRegions("all", { format: "ds9" });
+      const regions = window.JS9.GetRegions('all', { format: 'ds9' });
       await api.post(`/images/${imageId}/masks`, {
-        format: "ds9",
+        format: 'ds9',
         regions,
       });
       setMaskMode(false);
@@ -2086,7 +2040,7 @@ const MaskToolbar: React.FC<MaskToolbarProps> = ({ imageId, onMaskSaved }) => {
 
   const handleClearRegions = () => {
     if (window.JS9) {
-      window.JS9.RemoveRegions("all");
+      window.JS9.RemoveRegions('all');
     }
   };
 
@@ -2232,21 +2186,19 @@ Add "Re-image" workflow directly from ImageDetailPage:
      onClose: () => void;
    }> = ({ image, onClose }) => {
      const navigate = useNavigate();
-     const [params, setParams] = useState<ReimageParams>(
-       getDsa110Defaults(image)
-     );
+     const [params, setParams] = useState<ReimageParams>(getDsa110Defaults(image));
      const [isInteractive, setIsInteractive] = useState(false);
      const [useExistingMask, setUseExistingMask] = useState(!!image.mask_path);
 
      const handleSubmit = async () => {
        if (isInteractive) {
          // Launch interactive session
-         const session = await api.post("/imaging/interactive", {
+         const session = await api.post('/imaging/interactive', {
            ms_path: image.ms_path,
            mask: useExistingMask ? image.mask_path : undefined,
            ...params,
          });
-         window.open(session.url, "_blank");
+         window.open(session.url, '_blank');
        } else {
          // Queue background job
          const job = await api.post(`/images/${image.id}/reimage`, {
@@ -2289,10 +2241,10 @@ Add "Re-image" workflow directly from ImageDetailPage:
    function getDsa110Defaults(image: ImageDetail): ReimageParams {
      return {
        imsize: [5040, 5040],
-       cell: "2.5arcsec",
+       cell: '2.5arcsec',
        niter: 10000,
-       threshold: "0.5mJy",
-       weighting: "briggs",
+       threshold: '0.5mJy',
+       weighting: 'briggs',
        robust: 0.5,
        // Preserve any custom params from original image
        ...image.imaging_params,
@@ -2726,7 +2678,7 @@ def validate_imaging_parameters(imsize: list[int], niter: int) -> None:
 export class ApiError extends Error {
   constructor(public readonly status: number, public readonly detail: string) {
     super(`API Error ${status}: ${detail}`);
-    this.name = "ApiError";
+    this.name = 'ApiError';
   }
 }
 
@@ -2754,7 +2706,7 @@ export async function safeApiCall<T>(
     });
 
     if (!response.ok) {
-      const detail = await response.text().catch(() => "Unknown error");
+      const detail = await response.text().catch(() => 'Unknown error');
       throw new ApiError(response.status, detail);
     }
 
@@ -2763,7 +2715,7 @@ export async function safeApiCall<T>(
     if (error instanceof ApiError) {
       throw error;
     }
-    if (error instanceof Error && error.name === "AbortError") {
+    if (error instanceof Error && error.name === 'AbortError') {
       throw new ApiError(408, `Request timeout after ${timeoutMs}ms`);
     }
     throw new ApiError(500, String(error));
@@ -2775,10 +2727,7 @@ export async function safeApiCall<T>(
 /**
  * Fetch binary data (images) with timeout.
  */
-export async function safeBinaryFetch(
-  url: string,
-  timeoutMs: number = 60000
-): Promise<Blob> {
+export async function safeBinaryFetch(url: string, timeoutMs: number = 60000): Promise<Blob> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
@@ -2794,7 +2743,7 @@ export async function safeBinaryFetch(
     if (error instanceof ApiError) {
       throw error;
     }
-    if (error instanceof Error && error.name === "AbortError") {
+    if (error instanceof Error && error.name === 'AbortError') {
       throw new ApiError(408, `Image load timeout after ${timeoutMs}ms`);
     }
     throw new ApiError(500, String(error));
@@ -2959,7 +2908,7 @@ DSA110_LON = -118.2817 # degrees
 # Array characteristics
 DSA110_NANTS = 110     # Total antennas
 DSA110_NBASELINES = 2000  # Typical active baselines
-DSA110_NCHANNELS = 16384  # 16 subbands × 1024 channels
+DSA110_NCHANNELS = 768    # 16 subbands × 48 channels
 ```
 
 ---

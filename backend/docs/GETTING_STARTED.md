@@ -14,7 +14,7 @@ correlator output) in HDF5 format. This pipeline:
 4. **Catalogs** detected sources with photometry
 5. **Serves** results via a REST API and web dashboard
 
-```
+```text
 UVH5 files → Conversion → MS files → Calibration → Imaging → FITS → Catalog
      ↓                                                              ↓
   /data/incoming                                              /stage/products

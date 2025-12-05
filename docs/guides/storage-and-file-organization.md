@@ -6,7 +6,7 @@ This guide consolidates all documentation about file handling, storage architect
 
 The pipeline uses a tiered storage architecture optimized for different I/O patterns:
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                         DSA-110 Storage Architecture                        │
 ├─────────────────────────────────────────────────────────────────────────────┤
@@ -59,7 +59,7 @@ The project uses symlinks for three distinct purposes:
 
 Route heavy I/O to fast NVMe storage while keeping the codebase on HDD:
 
-```
+```text
 products/caltables  →  /stage/dsa110-contimg/caltables
 products/catalogs   →  /stage/dsa110-contimg/catalogs
 products/images     →  /stage/dsa110-contimg/images
@@ -73,7 +73,7 @@ Code references `products/ms`, but writes actually go to SSD. This is **performa
 
 Provide shorter aliases within the `state/` directory:
 
-```
+```text
 state/ms             →  data/ms
 state/pointing       →  data/pointing
 state/skymodels      →  data/skymodels
@@ -88,7 +88,7 @@ Instead of `state/data/pointing`, code can use `state/pointing`. These are docum
 
 Keep configuration files organized while meeting tool requirements:
 
-```
+```text
 .husky              →  config/hooks/husky
 docker-compose.yml  →  ops/docker/docker-compose.yml
 ```
@@ -101,7 +101,7 @@ Tools like husky and docker-compose expect files at the repo root. Symlinks sati
 
 ## Data Flow Through the Pipeline
 
-```
+```text
                               DATA FLOW
                               =========
 
@@ -142,7 +142,7 @@ Tools like husky and docker-compose expect files at the repo root. Symlinks sati
 
 ### HDF5 Subband Files
 
-```
+```text
 {timestamp}_sb{XX}.hdf5
 
 Examples:
@@ -162,7 +162,7 @@ The correlator may write subbands with slightly different timestamps due to I/O 
 
 **The Problem:**
 
-```
+```text
 # As correlator writes (timestamps drift by 1-2 seconds):
 2025-01-15T12:00:00_sb00.hdf5   # First subband
 2025-01-15T12:00:01_sb01.hdf5   # 1 second later
@@ -176,7 +176,7 @@ Previously, the pipeline used ±60 second fuzzy clustering to group these files,
 
 When a subband arrives, if it clusters with an existing group in the database, rename the file to use the canonical `group_id` (the timestamp of the first subband that arrived):
 
-```
+```text
 BEFORE (as correlator writes):             AFTER (normalized):
 2025-01-15T12:00:00_sb00.hdf5       →      2025-01-15T12:00:00_sb00.hdf5  (canonical)
 2025-01-15T12:00:01_sb01.hdf5       →      2025-01-15T12:00:00_sb01.hdf5  (renamed)
@@ -186,7 +186,7 @@ BEFORE (as correlator writes):             AFTER (normalized):
 
 **How It Works:**
 
-```
+```text
 ┌─────────────────────────────────────────────────────────────────┐
 │  New file arrives: 2025-01-15T12:00:02_sb05.hdf5                │
 └─────────────────────────────────────────────────────────────────┘
@@ -228,7 +228,7 @@ BEFORE (as correlator writes):             AFTER (normalized):
 
 ### Measurement Sets
 
-```
+```text
 {timestamp}.ms
 
 Example:
@@ -241,7 +241,7 @@ Example:
 
 ### FITS Images
 
-```
+```text
 {ms_name}-{field}-{type}.fits
 
 Examples:
@@ -568,8 +568,8 @@ du -sh /stage/dsa110-contimg/images/
 ## Getting Help
 
 - **Local Docs Search**: `python -m dsa110_contimg.docsearch.cli search "your query"`
-- **API Docs**: http://localhost:8000/api/docs
-- **GitHub Issues**: https://github.com/dsa110/dsa110-contimg/issues
+- **API Docs**: <http://localhost:8000/api/docs>
+- **GitHub Issues**: <https://github.com/dsa110/dsa110-contimg/issues>
 - **Troubleshooting Guide**: [TROUBLESHOOTING.md](../TROUBLESHOOTING.md)
 
 ---

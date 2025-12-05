@@ -207,11 +207,11 @@ database file.
 
 The unified database contains tables previously spread across multiple files:
 
-- Processing queue management and performance metrics (`processing_queue`, `performance_metrics`)
-- Calibration table registry with validity windows (`caltables`, `calibration_source_catalog`)
-- Product tracking: MS index, images, photometry (`ms_index`, `images`, `photometry_results`)
-- HDF5 file index for fast queries (`hdf5_file_index`)
-- Mosaic groups and planning (`mosaic_groups`, `mosaic_members`)
+- Calibration table registry with validity windows (`caltables`, `calibrator_transits`)
+- Product tracking: MS index, images, photometry (`ms_index`, `images`, `photometry`)
+- HDF5 file tracking (`hdf5_files`)
+- Mosaic groups and planning (`mosaics`, `mosaic_groups`)
+- Job execution history (`jobs`, `batch_jobs`)
 
 > **📖 Full Documentation:** See
 > [Database Reference](docs/reference/DATABASE_REFERENCE_INDEX.md) for complete
@@ -223,7 +223,7 @@ The unified database contains tables previously spread across multiple files:
 - ~~`state/cal_registry.sqlite3`~~ (merged into `pipeline.sqlite3`)
 - ~~`state/products.sqlite3`~~ (merged into `pipeline.sqlite3`)
 - ~~`state/hdf5.sqlite3`~~ (merged into `pipeline.sqlite3`)
-- ~~`state/streaming_queue.sqlite3`~~ (replaced by `processing_queue` table)
+- ~~`state/streaming_queue.sqlite3`~~ (deprecated; queue moved to ABSURD PostgreSQL)
 - ~~`state/products.db`, `state/queue.db`, `state/pipeline_queue.db`~~ (old
   schema, removed)
 
@@ -290,8 +290,8 @@ Image:
 
 ## CLI Reference
 
-- Streaming worker (manual):
-  - `python -m dsa110_contimg.conversion.streaming.streaming_converter --input-dir /data/incoming --output-dir /stage/dsa110-contimg/ms --scratch-dir /stage/dsa110-contimg --log-level INFO --use-subprocess --expected-subbands 16 --chunk-duration 5 --monitoring`
+- Batch conversion (preferred):
+  - `python -m dsa110_contimg.conversion.cli groups /data/incoming /stage/dsa110-contimg/ms "2025-01-01T00:00:00" "2025-01-01T12:00:00"`
   - Uses `PIPELINE_DB` environment variable (default: `state/db/pipeline.sqlite3`)
 - Backfill imaging worker:
   - Scan:

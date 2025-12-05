@@ -17,6 +17,22 @@ Get the pipeline running in 5 minutes.
 
 ---
 
+## One-Time Setup (First Installation)
+
+Before first use, build the calibrator registry from the VLA catalog:
+
+```bash
+conda activate casa6
+
+# Build calibrator registry (required for calibrator selection)
+python /data/dsa110-contimg/scripts/ops/build_calibrator_registry.py
+```
+
+This creates `/data/dsa110-contimg/state/db/calibrator_registry.sqlite3` with
+pre-computed beam weights for fast calibrator selection.
+
+---
+
 ## Quick Start: 3 Steps
 
 ### Step 1: Activate Environment (10 seconds)
@@ -28,7 +44,7 @@ cd /data/dsa110-contimg
 
 ### Step 2: Start Services (30 seconds)
 
-**Option A: systemd (Production)**
+#### Option A: systemd (Production)
 
 ```bash
 # Start API and ABSURD worker
@@ -38,7 +54,7 @@ sudo systemctl start contimg-api contimg-absurd-worker
 sudo systemctl status contimg-api contimg-absurd-worker
 ```
 
-**Option B: Manual (Development)**
+#### Option B: Manual (Development)
 
 ```bash
 # Terminal 1 - Backend API
@@ -55,7 +71,7 @@ npm run dev -- --host 0.0.0.0 --port 5173
 
 ### Step 3: Access Dashboard (10 seconds)
 
-Open browser to: **http://localhost:3210/ui/**
+Open browser to: **<http://localhost:3210/ui/>**
 
 Or check API health:
 
@@ -171,12 +187,12 @@ python -m dsa110_contimg.photometry.cli --help
 
 ## Port Reference
 
-| Port | Service                | URL                            |
-| ---- | ---------------------- | ------------------------------ |
-| 8000 | FastAPI Backend        | http://localhost:8000/api/docs |
-| 3210 | Dashboard (Production) | http://localhost:3210/ui/      |
-| 5173 | Vite Dev Server        | http://localhost:5173          |
-| 3030 | Grafana Monitoring     | http://localhost:3030          |
+| Port | Service                | URL                              |
+| ---- | ---------------------- | -------------------------------- |
+| 8000 | FastAPI Backend        | <http://localhost:8000/api/docs> |
+| 3210 | Dashboard (Production) | <http://localhost:3210/ui/>      |
+| 5173 | Vite Dev Server        | <http://localhost:5173>          |
+| 3030 | Grafana Monitoring     | <http://localhost:3030>          |
 
 ---
 
@@ -237,7 +253,7 @@ sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
 
 ### File Structure
 
-```
+```text
 /data/incoming/           # Raw HDF5 subband files from correlator
   └── 2025-12-01T12:30:00_sb00.hdf5
   └── 2025-12-01T12:30:00_sb01.hdf5
@@ -256,7 +272,7 @@ sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
 
 ### Processing Pipeline
 
-```
+```text
 UVH5 files → Group by timestamp → Combine 16 subbands →
 → Write MS → Calibrate → Image → Mosaic
 ```
@@ -275,5 +291,5 @@ Both ensure all 16 subbands are combined into a single Measurement Set.
 ## Getting Help
 
 - **Local Docs Search**: `python -m dsa110_contimg.docsearch.cli search "your query"`
-- **API Docs**: http://localhost:8000/api/docs
-- **GitHub Issues**: https://github.com/dsa110/dsa110-contimg/issues
+- **API Docs**: <http://localhost:8000/api/docs>
+- **GitHub Issues**: <https://github.com/dsa110/dsa110-contimg/issues>
