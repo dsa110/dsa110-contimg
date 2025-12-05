@@ -2,7 +2,7 @@
 
 Get the pipeline running in 5 minutes.
 
-**Last Updated:** December 1, 2025
+**Last Updated:** December 5, 2025
 
 ---
 
@@ -13,6 +13,7 @@ Get the pipeline running in 5 minutes.
 | **Conda Environment** | `casa6` with Python 3.11, CASA 6.7, pyuvdata 3.2.4               |
 | **Storage Access**    | `/data/incoming` (raw HDF5), `/stage/dsa110-contimg` (output MS) |
 | **Network**           | Ports 8000 (API), 3210 (Dashboard) available                     |
+| **PostgreSQL**        | ABSURD task queue database                                       |
 
 ---
 
@@ -30,11 +31,11 @@ cd /data/dsa110-contimg
 **Option A: systemd (Production)**
 
 ```bash
-# Start both API and streaming converter
-sudo systemctl start contimg-api contimg-stream
+# Start API and ABSURD worker
+sudo systemctl start contimg-api contimg-absurd-worker
 
 # Verify running
-sudo systemctl status contimg-api contimg-stream
+sudo systemctl status contimg-api contimg-absurd-worker
 ```
 
 **Option B: Manual (Development)**
@@ -44,7 +45,10 @@ sudo systemctl status contimg-api contimg-stream
 cd /data/dsa110-contimg/backend/src
 uvicorn dsa110_contimg.api.app:app --host 0.0.0.0 --port 8000 --reload
 
-# Terminal 2 - Frontend (optional)
+# Terminal 2 - ABSURD Worker
+python -m dsa110_contimg.absurd.worker
+
+# Terminal 3 - Frontend (optional)
 cd /data/dsa110-contimg/frontend
 npm run dev -- --host 0.0.0.0 --port 5173
 ```
@@ -57,6 +61,26 @@ Or check API health:
 
 ```bash
 curl http://localhost:8000/api/status
+```
+
+---
+
+## Enable Automatic Ingestion
+
+The ABSURD scheduler automatically polls for new files:
+
+```python
+# Run once to register the ingestion schedule
+from dsa110_contimg.absurd import AbsurdClient, setup_ingestion_schedule
+from dsa110_contimg.absurd.config import AbsurdConfig
+import asyncio
+
+async def setup():
+    config = AbsurdConfig.from_env()
+    async with AbsurdClient(config.database_url) as client:
+        await setup_ingestion_schedule(client)
+
+asyncio.run(setup())
 ```
 
 ---
@@ -102,13 +126,13 @@ python -m dsa110_contimg.conversion.cli groups --dry-run \
 
 ```bash
 # Check service status
-sudo systemctl status contimg-api contimg-stream
+sudo systemctl status contimg-api contimg-absurd-worker
 
-# View logs
-journalctl -u contimg-stream -f --no-pager
+# View worker logs
+journalctl -u contimg-absurd-worker -f --no-pager
 
 # Restart services
-sudo systemctl restart contimg-api contimg-stream
+sudo systemctl restart contimg-api contimg-absurd-worker
 ```
 
 ### API Endpoints
@@ -117,8 +141,8 @@ sudo systemctl restart contimg-api contimg-stream
 # Pipeline status
 curl http://localhost:8000/api/status
 
-# Streaming queue status
-curl http://localhost:8000/api/streaming/status
+# ABSURD queue status
+curl http://localhost:8000/api/absurd/status
 
 # List recent observations
 curl http://localhost:8000/api/data/observations

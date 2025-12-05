@@ -4,14 +4,15 @@ Topic-focused documentation for DSA-110 pipeline operations.
 
 ## Workflow Guides
 
-| Guide                                               | Description                                           |
-| --------------------------------------------------- | ----------------------------------------------------- |
-| [Storage & Files](storage-and-file-organization.md) | File organization, naming conventions, database paths |
-| [Dashboard](dashboard.md)                           | Web interface navigation and features                 |
-| [Calibration](calibration.md)                       | Bandpass and gain calibration                         |
-| [Imaging](imaging.md)                               | Creating FITS images from Measurement Sets            |
-| [Mosaicking](mosaicking.md)                         | Combining images into mosaics                         |
-| [Visualization](visualization.md)                   | CARTA integration and plotting utilities              |
+| Guide                                               | Description                                             |
+| --------------------------------------------------- | ------------------------------------------------------- |
+| [Ingestion](ingestion.md)                           | How UVH5 files flow from correlator to Measurement Sets |
+| [Storage & Files](storage-and-file-organization.md) | File organization, naming conventions, database paths   |
+| [Dashboard](dashboard.md)                           | Web interface navigation and features                   |
+| [Calibration](calibration.md)                       | Bandpass and gain calibration                           |
+| [Imaging](imaging.md)                               | Creating FITS images from Measurement Sets              |
+| [Mosaicking](mosaicking.md)                         | Combining images into mosaics                           |
+| [Visualization](visualization.md)                   | CARTA integration and plotting utilities                |
 
 ## Tutorials
 
@@ -30,7 +31,4 @@ Topic-focused documentation for DSA-110 pipeline operations.
 
 Additional operational documentation lives in `backend/docs/ops/`:
 
-- `streaming-pipeline.md` - Service management, queue monitoring
-- `absurd-service-activation.md` - Task queue activation guide
-
-These are not part of the MkDocs site but are available in the repository.
+- `absurd-service-activation.md` - ABSURD task queue activation guide

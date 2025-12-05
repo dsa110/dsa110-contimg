@@ -3,13 +3,13 @@
 **System architecture and design patterns for the DSA-110 Continuum Imaging Pipeline.**
 
 !!! note "Version"
-Last updated: December 4, 2025
+Last updated: December 5, 2025
 
 ---
 
 ## System Overview
 
-The DSA-110 Continuum Imaging Pipeline is a **hybrid streaming/batch system** for processing radio astronomy data from the DSA-110 telescope.
+The DSA-110 Continuum Imaging Pipeline is a **unified task-based system** for processing radio astronomy data from the DSA-110 telescope.
 
 ### High-Level Flow
 
@@ -21,9 +21,10 @@ The DSA-110 Continuum Imaging Pipeline is a **hybrid streaming/batch system** fo
                                           │
                                           ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                    Streaming Converter                           │
-│  - Watches for new files                                        │
+│                    ABSURD Ingestion                              │
+│  - Scheduled polling (every minute)                             │
 │  - Groups 16 subbands by timestamp                              │
+│  - Normalizes to sb00's timestamp                               │
 │  - Converts UVH5 → Measurement Set (MS)                         │
 └─────────────────────────────────────────┬───────────────────────┘
                                           │
@@ -44,7 +45,7 @@ The DSA-110 Continuum Imaging Pipeline is a **hybrid streaming/batch system** fo
 
 - **Input**: Raw visibility data (UVH5 format) in `/data/incoming/`
 - **Processing**: Stage-based Python pipeline (`dsa110_contimg`)
-- **Orchestration**: ABSURD task queue (custom asyncio/SQLite workflow manager)
+- **Orchestration**: ABSURD task queue (PostgreSQL-backed durable workflow manager)
 - **Output**: Calibrated Measurement Sets and Images in `/stage/dsa110-contimg/`
 - **Interface**: React/Vite dashboard for monitoring and control
 
@@ -91,10 +92,15 @@ backend/src/dsa110_contimg/
 │   └── db_adapters/    # Database abstraction
 │
 ├── conversion/         # UVH5 → MS Conversion
-│   ├── streaming_converter.py  # Real-time daemon
 │   ├── hdf5_orchestrator.py    # Batch orchestration
 │   ├── direct_subband.py       # MS writer
 │   └── writers.py              # Writer factory
+│
+├── absurd/             # ABSURD Task Queue
+│   ├── client.py       # PostgreSQL client
+│   ├── worker.py       # Task worker
+│   ├── ingestion.py    # Ingestion tasks
+│   └── scheduling.py   # Cron-like scheduler
 │
 ├── calibration/        # CASA Calibration
 │   ├── calibration.py  # Core calibration
@@ -181,15 +187,16 @@ flowchart TB
 
 ### Processing Stages
 
-| Stage         | Module                              | Description                    |
-| ------------- | ----------------------------------- | ------------------------------ |
-| **Ingest**    | `conversion/streaming_converter.py` | Watch for new UVH5 files       |
-| **Group**     | `conversion/streaming_converter.py` | Group 16 subbands by timestamp |
-| **Convert**   | `conversion/direct_subband.py`      | UVH5 → Measurement Set         |
-| **Calibrate** | `calibration/calibration.py`        | Solve K/BP/G solutions         |
-| **Apply**     | `calibration/applycal.py`           | Apply calibration tables       |
-| **Image**     | `imaging/fast_imaging.py`           | WSClean/tclean imaging         |
-| **Index**     | `database/registry.py`              | Register products              |
+| Stage         | Module                            | Description              |
+| ------------- | --------------------------------- | ------------------------ |
+| **Scan**      | `absurd/ingestion.py`             | Poll for new UVH5 files  |
+| **Record**    | `absurd/ingestion.py`             | Track subband arrivals   |
+| **Normalize** | `absurd/ingestion.py`             | Rename to sb00 timestamp |
+| **Convert**   | `conversion/hdf5_orchestrator.py` | UVH5 → Measurement Set   |
+| **Calibrate** | `calibration/calibration.py`      | Solve K/BP/G solutions   |
+| **Apply**     | `calibration/applycal.py`         | Apply calibration tables |
+| **Image**     | `imaging/fast_imaging.py`         | WSClean/tclean imaging   |
+| **Index**     | `database/registry.py`            | Register products        |
 
 ---
 

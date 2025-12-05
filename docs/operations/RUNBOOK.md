@@ -2,6 +2,8 @@
 
 This runbook provides procedures for operating and troubleshooting the DSA-110 continuum imaging pipeline.
 
+**Last Updated:** December 5, 2025
+
 ## Table of Contents
 
 - [Quick Reference](#quick-reference)
@@ -30,15 +32,15 @@ This runbook provides procedures for operating and troubleshooting the DSA-110 c
 
 ```bash
 # Check status
-sudo systemctl status contimg-api contimg-stream
+sudo systemctl status contimg-api contimg-absurd-worker
 
 # Restart services
 sudo systemctl restart contimg-api
-sudo systemctl restart contimg-stream
+sudo systemctl restart contimg-absurd-worker
 
 # View logs
 journalctl -u contimg-api -f
-journalctl -u contimg-stream -f
+journalctl -u contimg-absurd-worker -f
 ```
 
 ### API Health Check
@@ -60,14 +62,14 @@ conda activate casa6
 
 # Start in order
 sudo systemctl start contimg-api
-sudo systemctl start contimg-stream
+sudo systemctl start contimg-absurd-worker
 ```
 
 ### Stopping Services
 
 ```bash
-# Stop streaming first (graceful shutdown)
-sudo systemctl stop contimg-stream
+# Stop worker first (graceful shutdown)
+sudo systemctl stop contimg-absurd-worker
 sudo systemctl stop contimg-api
 ```
 
@@ -78,6 +80,7 @@ Configuration via environment file: `/data/dsa110-contimg/ops/env/production.env
 Key variables:
 
 - `PIPELINE_DB` - Database path
+- `ABSURD_DATABASE_URL` - PostgreSQL connection for ABSURD
 - `DSA110_AUTH_DISABLED` - Set `false` in production
 - `LOG_LEVEL` - DEBUG, INFO, WARNING, ERROR
 

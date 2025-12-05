@@ -10,12 +10,12 @@ Entry Points:
     Batch conversion:
         from dsa110_contimg.conversion import convert_subband_groups_to_ms
     
-    Streaming pipeline:
-        from dsa110_contimg.conversion.streaming import SubbandQueue, StreamingWorker
-        # CLI: dsa110-stream --input-dir /data/incoming --output-dir /data/output
+    ABSURD-based ingestion (replaces old streaming pipeline):
+        from dsa110_contimg.absurd import setup_ingestion_schedule
+        # See docs/guides/ingestion.md for details
 
-Database:
-    The streaming API uses the `processing_queue` table (see database/schema.sql).
+Writers:
+    DirectSubbandWriter - Main MS writer for production use
 """
 
 from . import helpers_coordinates  # Make coordinate helpers accessible via the package
