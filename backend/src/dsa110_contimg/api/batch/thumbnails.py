@@ -83,14 +83,14 @@ def generate_image_thumbnail(
         return None
 
 
-def _normalize_image_data(img_data) -> Optional["numpy.ndarray"]:
+def _normalize_image_data(img_data):
     """Normalize image data to [0, 1] range using percentile clipping.
 
     Args:
         img_data: 2D numpy array of image data
 
     Returns:
-        Normalized array, or None if normalization failed
+        Normalized numpy array, or None if normalization failed
     """
     import numpy as np
 

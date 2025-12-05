@@ -9,7 +9,7 @@ Reference: archive/references/vast-tools/vasttools/utils.py
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, Tuple
 
 import numpy as np
 import pandas as pd

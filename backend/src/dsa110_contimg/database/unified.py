@@ -4,6 +4,14 @@ Unified database layer for DSA-110 Continuum Imaging Pipeline.
 This module provides a simplified database interface as outlined in the
 complexity reduction guide. It replaces the multi-database architecture
 with a single unified database (pipeline.sqlite3).
+"""
+
+import logging
+
+logger = logging.getLogger(__name__)
+
+"""
+Database design goals:
 
 Design Goals:
 - Single SQLite database instead of 5+ separate databases

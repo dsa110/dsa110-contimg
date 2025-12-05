@@ -304,7 +304,7 @@ class FITSParsingService:
 
     def get_data_slice(
         self, fits_path: str, channel: int = 0, stokes: int = 0
-    ) -> Optional["numpy.ndarray"]:
+    ):
         """
         Get a 2D slice of FITS data.
 

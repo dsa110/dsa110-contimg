@@ -172,9 +172,9 @@ def measure_with_adaptive_binning(
                 # Filter non-finite values from RMS calculation
                 if rms_jy is None or not np.isfinite(rms_jy):
                     # Use safe filtering if rms_jy is invalid
-                    if hasattr(measure_result, "rms_jy") and measure_result.rms_jy is not None:
+                    if hasattr(result, "rms_jy") and result.rms_jy is not None:
                         rms_jy = (
-                            measure_result.rms_jy if np.isfinite(measure_result.rms_jy) else None
+                            result.rms_jy if np.isfinite(result.rms_jy) else None
                         )
                     rms_jy = 0.001  # Default RMS if not available
                 return flux_jy, rms_jy
