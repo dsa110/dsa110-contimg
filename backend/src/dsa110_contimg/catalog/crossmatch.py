@@ -496,7 +496,7 @@ def calculate_flux_scale(
     return ufloat(flux_corr, flux_corr_err), ufloat(median_ratio, mad_ratio)
 
 
-def search_around_sky(
+def search_around_sky_all(
     coords1: SkyCoord,
     coords2: SkyCoord,
     radius: Angle,

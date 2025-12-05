@@ -21,7 +21,10 @@ import subprocess
 import tarfile
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict
+from typing import TYPE_CHECKING, Any, Dict
+
+if TYPE_CHECKING:
+    from dsa110_contimg.absurd import AbsurdClient
 
 logger = logging.getLogger(__name__)
 

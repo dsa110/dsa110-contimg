@@ -313,59 +313,6 @@ async def create_backup(
     )
 
 
-@router.get("/status", response_model=BackupInfo)
-async def get_latest_backup_status(
-    db: sqlite3.Connection = Depends(get_pipeline_db),
-):
-    """Get status of the most recent backup."""
-    cursor = db.execute("SELECT * FROM backup_history ORDER BY created_at DESC LIMIT 1")
-    cursor.row_factory = sqlite3.Row
-    row = cursor.fetchone()
-
-    if not row:
-        raise HTTPException(status_code=404, detail="No backups found")
-
-    return _row_to_backup(row)
-
-
-@router.get("/history", response_model=BackupListResponse)
-async def list_backups(
-    backup_type: Optional[str] = Query(None),
-    status: Optional[str] = Query(None),
-    limit: int = Query(50, ge=1, le=200),
-    db: sqlite3.Connection = Depends(get_pipeline_db),
-):
-    """List backup history."""
-    conditions = []
-    params = []
-
-    if backup_type:
-        conditions.append("backup_type = ?")
-        params.append(backup_type)
-
-    if status:
-        conditions.append("status = ?")
-        params.append(status)
-
-    where_clause = " AND ".join(conditions) if conditions else "1=1"
-    params.append(limit)
-
-    cursor = db.execute(
-        f"""
-        SELECT * FROM backup_history
-        WHERE {where_clause}
-        ORDER BY created_at DESC
-        LIMIT ?
-        """,
-        params,
-    )
-    cursor.row_factory = sqlite3.Row
-    rows = cursor.fetchall()
-
-    backups = [_row_to_backup(row) for row in rows]
-    return BackupListResponse(backups=backups, total=len(backups))
-
-
 @router.get("/{backup_id}", response_model=BackupInfo)
 async def get_backup(
     backup_id: str,
