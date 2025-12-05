@@ -28,7 +28,9 @@ Topic-focused documentation for DSA-110 pipeline operations.
 
 ## Backend Operations Documentation
 
-Additional operational documentation lives in the backend:
+Additional operational documentation lives in `backend/docs/ops/`:
 
-- [Streaming Pipeline Operations](../../backend/docs/ops/streaming-pipeline.md) - Service management, monitoring
-- [ABSURD Workflow Manager](../../backend/docs/ops/absurd-service-activation.md) - Task queue activation
+- `streaming-pipeline.md` - Service management, queue monitoring
+- `absurd-service-activation.md` - Task queue activation guide
+
+These are not part of the MkDocs site but are available in the repository.

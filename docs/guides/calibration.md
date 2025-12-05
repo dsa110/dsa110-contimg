@@ -67,4 +67,4 @@ python -m dsa110_contimg.calibration.cli apply --help
 
 - [Imaging Guide](imaging.md) - Apply calibration then image
 - [Storage & File Organization](storage-and-file-organization.md) - Database paths
-- [Streaming Pipeline](../../backend/docs/ops/streaming-pipeline.md) - Automatic calibration in streaming mode
+- Streaming Pipeline (`backend/docs/ops/streaming-pipeline.md`) - Automatic calibration in streaming mode
