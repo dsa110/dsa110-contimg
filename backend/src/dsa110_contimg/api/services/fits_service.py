@@ -302,9 +302,7 @@ class FITSParsingService:
 
         return None
 
-    def get_data_slice(
-        self, fits_path: str, channel: int = 0, stokes: int = 0
-    ):
+    def get_data_slice(self, fits_path: str, channel: int = 0, stokes: int = 0):
         """
         Get a 2D slice of FITS data.
 

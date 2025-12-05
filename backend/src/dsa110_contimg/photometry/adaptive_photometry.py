@@ -56,10 +56,6 @@ def measure_with_adaptive_binning(
 ) -> AdaptivePhotometryResult:
     """Measure photometry using adaptive channel binning.
 
-    import time
-    start_time_sec = time.time()
-    log_progress(f"Starting adaptive photometry at ({ra_deg:.6f}, {dec_deg:.6f})...")
-
     This function:
     1. Images all SPWs individually
     2. Measures photometry on each SPW image
@@ -94,6 +90,11 @@ def measure_with_adaptive_binning(
         >>> for det in result.detections:
         ...     print(f"SPWs {det.channels}: SNR={det.snr:.2f}, Flux={det.flux_jy:.6f} Jy")
     """
+    import time
+
+    start_time_sec = time.time()
+    LOG.info(f"Starting adaptive photometry at ({ra_deg:.6f}, {dec_deg:.6f})...")
+
     try:
         # Get SPW information
         spw_info_list = get_spw_info(ms_path)
@@ -173,9 +174,7 @@ def measure_with_adaptive_binning(
                 if rms_jy is None or not np.isfinite(rms_jy):
                     # Use safe filtering if rms_jy is invalid
                     if hasattr(result, "rms_jy") and result.rms_jy is not None:
-                        rms_jy = (
-                            result.rms_jy if np.isfinite(result.rms_jy) else None
-                        )
+                        rms_jy = result.rms_jy if np.isfinite(result.rms_jy) else None
                     rms_jy = 0.001  # Default RMS if not available
                 return flux_jy, rms_jy
 

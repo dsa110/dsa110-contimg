@@ -847,7 +847,7 @@ def solve_prebandpass_phase(
     if table_prefix is None:
         table_prefix = f"{os.path.splitext(ms)[0]}_{cal_field}"
 
-    # PRECONDITION CHECK: Verify MODEL_DATA exists and is populated
+    # PRECONDITION CHECK: Verify MODEL_DATA exists and is populated for cal_field
     logger.info(f"Validating MODEL_DATA for pre-bandpass phase solve on field(s) {cal_field}...")
     with table(ms) as tb:
         if "MODEL_DATA" not in tb.colnames():
@@ -857,10 +857,34 @@ def solve_prebandpass_phase(
                 "Populate MODEL_DATA before calling solve_prebandpass_phase()."
             )
 
-        model_sample = tb.getcol("MODEL_DATA", startrow=0, nrow=min(100, tb.nrows()))
+        # Parse field selection to determine which field(s) to check
+        # MODEL_DATA may only be populated for the calibration field(s)
+        if "~" in str(cal_field):
+            # Field range: check first field in range
+            check_field = int(str(cal_field).split("~")[0])
+        elif str(cal_field).isdigit():
+            check_field = int(cal_field)
+        else:
+            # Field name - check all data as fallback
+            check_field = None
+
+        if check_field is not None:
+            # Query only the cal_field's rows to check MODEL_DATA
+            field_ids = tb.getcol("FIELD_ID")
+            field_mask = field_ids == check_field
+            field_rows = np.where(field_mask)[0]
+            if len(field_rows) == 0:
+                raise ValueError(f"No data found for field {check_field}. Check field selection.")
+            # Sample up to 100 rows from the field
+            sample_rows = field_rows[: min(100, len(field_rows))]
+            model_sample = np.array([tb.getcell("MODEL_DATA", int(r)) for r in sample_rows])
+        else:
+            # Fallback: check first 100 rows
+            model_sample = tb.getcol("MODEL_DATA", startrow=0, nrow=min(100, tb.nrows()))
+
         if np.all(np.abs(model_sample) < 1e-10):
             raise ValueError(
-                "MODEL_DATA column exists but is all zeros (unpopulated). "
+                f"MODEL_DATA column exists but is all zeros for field {cal_field}. "
                 "This is a required precondition for phase-only calibration. "
                 "Populate MODEL_DATA before calling solve_prebandpass_phase()."
             )

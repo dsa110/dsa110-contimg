@@ -19,6 +19,11 @@ ensure_casa_path()
 import casacore.tables as casatables  # type: ignore[import]
 import numpy as np  # type: ignore[import]
 
+from dsa110_contimg.utils.antenna_classification import (
+    get_outrigger_antennas,
+    select_outrigger_refant,
+)
+
 table = casatables.table  # noqa: N816
 
 logger = logging.getLogger(__name__)
