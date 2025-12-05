@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Optional
 
 import numpy as np
+from scipy.special import j1
 
 logger = logging.getLogger(__name__)
 
@@ -195,7 +196,7 @@ def _airy_primary_beam_response(
 
     This matches EveryBeam's generic dish model for circular apertures.
     Formula: PB(theta) = (2 * J1(x) / x)²
-    where J1 is the first-order Bessel function.
+    where J1 is the first-order Bessel function of the first kind.
 
     Args:
         ant_ra: Antenna/field phase center RA in radians
@@ -224,14 +225,12 @@ def _airy_primary_beam_response(
     x = np.pi * dish_dia_m * np.sin(theta) / lam_m
 
     # Avoid division by zero (but we already handled theta == 0 above)
-    if x == 0.0 or x < 1e-10:
+    if x == 0.0 or abs(x) < 1e-10:
         return 1.0
 
     # Airy pattern: (2 * J1(x) / x)²
-    # Using identity: J1(x) = (sin(x) - x*cos(x)) / x²
-    # So: 2*J1(x)/x = 2*(sin(x) - x*cos(x)) / x³
-    # But more numerically stable: (2 * (sin(x) - x*cos(x)) / x²)²
-    resp = (2 * (np.sin(x) - x * np.cos(x)) / (x * x)) ** 2
+    # Using scipy's first-order Bessel function of the first kind
+    resp = (2.0 * j1(x) / x) ** 2
 
     # Clamp numeric noise
     return float(np.clip(resp, 0.0, 1.0))

@@ -26,7 +26,7 @@ import json
 import logging
 import os
 from functools import wraps
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, Optional
 
 # Import Redis exception type with fallback
 try:
@@ -35,7 +35,9 @@ except ImportError:
     # Define a fallback if redis is not installed
     class RedisError(Exception):
         """Placeholder for redis.exceptions.RedisError when redis is not installed."""
+
         pass
+
 
 logger = logging.getLogger(__name__)
 
@@ -44,6 +46,7 @@ def _get_cache_settings():
     """Get cache settings from centralized config."""
     try:
         from dsa110_contimg.config import get_settings
+
         settings = get_settings()
         return {
             "redis_url": getattr(settings.api, "redis_url", "redis://localhost:6379/0"),
@@ -62,6 +65,7 @@ def _get_cache_settings():
 # Load settings at module level (with lazy evaluation)
 _cache_settings = None
 
+
 def get_cache_settings():
     global _cache_settings
     if _cache_settings is None:
@@ -72,8 +76,10 @@ def get_cache_settings():
 def _get_redis_url():
     return get_cache_settings()["redis_url"]
 
+
 def _get_redis_enabled():
     return get_cache_settings()["redis_enabled"]
+
 
 def _get_default_ttl():
     return get_cache_settings()["default_ttl"]
@@ -88,15 +94,15 @@ DEFAULT_TTL = None  # Deprecated: use _get_default_ttl()
 # TTL configuration by cache key prefix
 # Shorter TTL for frequently changing data, longer for static data
 CACHE_TTL_CONFIG = {
-    "stats": 30,           # Summary stats - refresh every 30s
-    "sources:list": 300,   # Source list - 5 minutes
-    "sources:detail": 300, # Source detail - 5 minutes
-    "images:list": 300,    # Image list - 5 minutes
+    "stats": 30,  # Summary stats - refresh every 30s
+    "sources:list": 300,  # Source list - 5 minutes
+    "sources:detail": 300,  # Source detail - 5 minutes
+    "images:list": 300,  # Image list - 5 minutes
     "images:detail": 600,  # Image detail - 10 minutes (rarely changes)
-    "cal:tables": 3600,    # Calibrator catalog - 1 hour (nearly static)
-    "cal:matches": 1800,   # Cal matches - 30 minutes
-    "ms:metadata": 600,    # MS metadata - 10 minutes
-    "jobs:list": 60,       # Job list - 1 minute (changes during runs)
+    "cal:tables": 3600,  # Calibrator catalog - 1 hour (nearly static)
+    "cal:matches": 1800,  # Cal matches - 30 minutes
+    "ms:metadata": 600,  # MS metadata - 10 minutes
+    "jobs:list": 60,  # Job list - 1 minute (changes during runs)
 }
 
 # Keys that should NEVER be cached
@@ -104,36 +110,37 @@ CACHE_TTL_CONFIG = {
 # - Active job status
 # - Real-time logs
 CACHE_BLACKLIST = [
-    "lightcurve:open",     # Open-ended lightcurve queries
-    "jobs:active",         # Currently running jobs
-    "logs:",               # Real-time logs
+    "lightcurve:open",  # Open-ended lightcurve queries
+    "jobs:active",  # Currently running jobs
+    "logs:",  # Real-time logs
 ]
 
 
 class CacheManager:
     """
     Redis cache manager with TTL-based expiration.
-    
+
     Gracefully degrades if Redis is unavailable - all operations
     become no-ops and the API falls back to direct DB queries.
     """
-    
+
     _instance: Optional["CacheManager"] = None
-    
+
     def __init__(self):
         self.client = None
         self.enabled = _get_redis_enabled()
         self._connect()
-    
+
     def _connect(self):
         """Establish Redis connection."""
         if not self.enabled:
             logger.info("Redis caching disabled via config")
             return
-        
+
         try:
             import redis
             from redis.exceptions import RedisError
+
             redis_url = _get_redis_url()
             self.client = redis.from_url(
                 redis_url,
@@ -151,34 +158,34 @@ class CacheManager:
             logger.warning(f"Redis connection failed: {e}, caching disabled")
             self.enabled = False
             self.client = None
-    
+
     @classmethod
     def get_instance(cls) -> "CacheManager":
         """Get singleton cache manager instance."""
         if cls._instance is None:
             cls._instance = CacheManager()
         return cls._instance
-    
+
     def _is_blacklisted(self, key: str) -> bool:
         """Check if key matches blacklist patterns."""
         return any(key.startswith(pattern) for pattern in CACHE_BLACKLIST)
-    
+
     def _get_ttl(self, key: str, default_ttl: int) -> int:
         """Get TTL for a key based on prefix configuration."""
         for prefix, ttl in CACHE_TTL_CONFIG.items():
             if key.startswith(prefix):
                 return ttl
         return default_ttl
-    
+
     def get(self, key: str) -> Optional[Any]:
         """
         Get value from cache.
-        
+
         Returns None if key doesn't exist, is expired, or Redis unavailable.
         """
         if not self.enabled or not self.client:
             return None
-        
+
         try:
             data = self.client.get(key)
             if data:
@@ -192,7 +199,7 @@ class CacheManager:
         except RedisError as e:
             logger.warning(f"Cache get error for {key}: {e}")
             return None
-    
+
     def set(
         self,
         key: str,
@@ -201,22 +208,22 @@ class CacheManager:
     ) -> bool:
         """
         Set value in cache with TTL.
-        
+
         Args:
             key: Cache key
             value: JSON-serializable value
             ttl: Time-to-live in seconds (uses config default if not specified)
-        
+
         Returns:
             True if cached successfully, False otherwise
         """
         if not self.enabled or not self.client:
             return False
-        
+
         if self._is_blacklisted(key):
             logger.debug(f"Cache SKIP (blacklisted): {key}")
             return False
-        
+
         try:
             ttl = ttl or self._get_ttl(key, _get_default_ttl())
             self.client.setex(key, ttl, json.dumps(value, default=str))
@@ -228,12 +235,12 @@ class CacheManager:
         except RedisError as e:
             logger.warning(f"Cache set error for {key}: {e}")
             return False
-    
+
     def delete(self, key: str) -> bool:
         """Delete a specific key from cache."""
         if not self.enabled or not self.client:
             return False
-        
+
         try:
             self.client.delete(key)
             logger.debug(f"Cache DELETE: {key}")
@@ -241,20 +248,20 @@ class CacheManager:
         except RedisError as e:
             logger.warning(f"Cache delete error for {key}: {e}")
             return False
-    
+
     def invalidate(self, pattern: str) -> int:
         """
         Invalidate all keys matching pattern.
-        
+
         Args:
             pattern: Redis glob pattern (e.g., "sources:*")
-        
+
         Returns:
             Number of keys deleted
         """
         if not self.enabled or not self.client:
             return 0
-        
+
         try:
             keys = list(self.client.scan_iter(match=pattern, count=100))
             if keys:
@@ -265,31 +272,30 @@ class CacheManager:
         except RedisError as e:
             logger.warning(f"Cache invalidate error for {pattern}: {e}")
             return 0
-    
+
     def get_stats(self) -> dict:
         """Get cache statistics."""
         if not self.enabled or not self.client:
             return {"enabled": False, "status": "disabled"}
-        
+
         try:
             info = self.client.info("stats")
             memory = self.client.info("memory")
             keyspace = self.client.info("keyspace")
-            
+
             return {
                 "enabled": True,
                 "status": "connected",
                 "hits": info.get("keyspace_hits", 0),
                 "misses": info.get("keyspace_misses", 0),
                 "hit_rate": (
-                    info.get("keyspace_hits", 0) /
-                    max(1, info.get("keyspace_hits", 0) + info.get("keyspace_misses", 0))
+                    info.get("keyspace_hits", 0)
+                    / max(1, info.get("keyspace_hits", 0) + info.get("keyspace_misses", 0))
                 ),
                 "memory_used_bytes": memory.get("used_memory", 0),
                 "memory_used_human": memory.get("used_memory_human", "0B"),
                 "total_keys": sum(
-                    db.get("keys", 0) for db in keyspace.values()
-                    if isinstance(db, dict)
+                    db.get("keys", 0) for db in keyspace.values() if isinstance(db, dict)
                 ),
             }
         except RedisError as e:
@@ -303,35 +309,35 @@ cache_manager = CacheManager.get_instance()
 def make_cache_key(prefix: str, *args, **kwargs) -> str:
     """
     Generate a cache key from prefix and arguments.
-    
+
     Args:
         prefix: Key prefix (e.g., "sources:list")
         *args: Positional arguments to include in key
         **kwargs: Keyword arguments to include in key
-    
+
     Returns:
         Cache key string
     """
     parts = [prefix]
-    
+
     # Add positional args
     for arg in args:
         if arg is not None:
             parts.append(str(arg))
-    
+
     # Add sorted kwargs
     for key in sorted(kwargs.keys()):
         value = kwargs[key]
         if value is not None:
             parts.append(f"{key}={value}")
-    
+
     key = ":".join(parts)
-    
+
     # Hash if too long
     if len(key) > 200:
         hash_suffix = hashlib.md5(key.encode()).hexdigest()[:12]
         key = f"{prefix}:hash:{hash_suffix}"
-    
+
     return key
 
 
@@ -342,17 +348,18 @@ def cached(
 ):
     """
     Decorator for caching async route handler responses.
-    
+
     Args:
         prefix: Cache key prefix
         ttl: Time-to-live in seconds (uses config default if not specified)
         key_builder: Custom function to build cache key from args/kwargs
-    
+
     Example:
         @cached("sources:list", ttl=300)
         async def list_sources(limit: int = 100, offset: int = 0):
             ...
     """
+
     def decorator(func: Callable):
         @wraps(func)
         async def wrapper(*args, **kwargs):
@@ -361,15 +368,15 @@ def cached(
                 cache_key = key_builder(*args, **kwargs)
             else:
                 cache_key = make_cache_key(prefix, **kwargs)
-            
+
             # Try cache first
             cached_data = cache_manager.get(cache_key)
             if cached_data is not None:
                 return cached_data
-            
+
             # Call actual function
             result = await func(*args, **kwargs)
-            
+
             # Cache the result if it's JSON-serializable
             if isinstance(result, (dict, list)):
                 cache_manager.set(cache_key, result, ttl)
@@ -379,21 +386,23 @@ def cached(
             elif hasattr(result, "dict"):
                 # Pydantic v1 model
                 cache_manager.set(cache_key, result.dict(), ttl)
-            
+
             return result
+
         return wrapper
+
     return decorator
 
 
 def cache_lightcurve_key(source_id: str, start_mjd: float = None, end_mjd: float = None) -> str:
     """
     Build cache key for lightcurve queries.
-    
+
     Only caches queries with explicit end_date to ensure scientists
     always get current data for open-ended queries.
     """
     if end_mjd is None:
         # Open-ended query - use blacklisted prefix to prevent caching
         return f"lightcurve:open:{source_id}"
-    
+
     return make_cache_key("lightcurve", source_id, start=start_mjd, end=end_mjd)

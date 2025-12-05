@@ -48,6 +48,7 @@ try:
         ApplyCalResult,
         apply_gains,
     )
+
     GPU_CALIBRATION_AVAILABLE = True
 except ImportError:
     GPU_CALIBRATION_AVAILABLE = False
@@ -58,6 +59,7 @@ except ImportError:
 # =============================================================================
 # Issue #2: Interpolated Calibration Application
 # =============================================================================
+
 
 def apply_interpolated_calibration(
     ms_target: str,
@@ -106,30 +108,23 @@ def apply_interpolated_calibration(
     if weight_before >= 0.999 or not paths_after:
         if not paths_before:
             raise ValueError("No calibration paths provided")
-        logger.info(
-            "Applying single calibration set (before), weight=%.3f", weight_before
-        )
-        apply_to_target(
-            ms_target, field, paths_before, calwt=calwt, verify=verify
-        )
+        logger.info("Applying single calibration set (before), weight=%.3f", weight_before)
+        apply_to_target(ms_target, field, paths_before, calwt=calwt, verify=verify)
         return
 
     if weight_before <= 0.001 or not paths_before:
         if not paths_after:
             raise ValueError("No calibration paths provided")
-        logger.info(
-            "Applying single calibration set (after), weight=%.3f", 1.0 - weight_before
-        )
-        apply_to_target(
-            ms_target, field, paths_after, calwt=calwt, verify=verify
-        )
+        logger.info("Applying single calibration set (after), weight=%.3f", 1.0 - weight_before)
+        apply_to_target(ms_target, field, paths_after, calwt=calwt, verify=verify)
         return
 
     # True interpolation case
     weight_after = 1.0 - weight_before
     logger.info(
         "Applying interpolated calibration: before=%.1f%%, after=%.1f%%",
-        weight_before * 100, weight_after * 100
+        weight_before * 100,
+        weight_after * 100,
     )
 
     # Match table types between before and after sets
@@ -140,7 +135,16 @@ def apply_interpolated_calibration(
     def get_table_type(path: str) -> str:
         """Extract table type from path suffix."""
         name = Path(path).name.lower()
-        for suffix in ["_kcal", "_2kcal", "_bacal", "_bpcal", "_gacal", "_gpcal", "_2gcal", "_fluxcal"]:
+        for suffix in [
+            "_kcal",
+            "_2kcal",
+            "_bacal",
+            "_bpcal",
+            "_gacal",
+            "_gpcal",
+            "_2gcal",
+            "_fluxcal",
+        ]:
             if name.endswith(suffix):
                 return suffix
         return "_unknown"
@@ -153,12 +157,9 @@ def apply_interpolated_calibration(
 
     if not common_types:
         logger.warning(
-            "No common table types between before and after sets. "
-            "Falling back to before set only."
+            "No common table types between before and after sets. Falling back to before set only."
         )
-        apply_to_target(
-            ms_target, field, paths_before, calwt=calwt, verify=verify
-        )
+        apply_to_target(ms_target, field, paths_before, calwt=calwt, verify=verify)
         return
 
     # Create temporary directory for merged tables
@@ -172,34 +173,25 @@ def apply_interpolated_calibration(
 
             try:
                 _merge_caltables_weighted(
-                    before_path, after_path, merged_path,
-                    weight_before, weight_after
+                    before_path, after_path, merged_path, weight_before, weight_after
                 )
                 merged_paths.append(merged_path)
                 logger.debug(
-                    "Merged %s: %s + %s -> %s",
-                    table_type, before_path, after_path, merged_path
+                    "Merged %s: %s + %s -> %s", table_type, before_path, after_path, merged_path
                 )
             except (OSError, RuntimeError, ValueError) as e:
-                logger.warning(
-                    "Failed to merge %s tables, using before only: %s",
-                    table_type, e
-                )
+                logger.warning("Failed to merge %s tables, using before only: %s", table_type, e)
                 merged_paths.append(before_path)
 
         # Add any non-common tables from before set
         for table_type, path in before_by_type.items():
             if table_type not in common_types:
                 merged_paths.append(path)
-                logger.debug(
-                    "Including non-interpolated table from before: %s", path
-                )
+                logger.debug("Including non-interpolated table from before: %s", path)
 
         # Apply merged calibration
         if merged_paths:
-            apply_to_target(
-                ms_target, field, merged_paths, calwt=calwt, verify=verify
-            )
+            apply_to_target(ms_target, field, merged_paths, calwt=calwt, verify=verify)
         else:
             raise RuntimeError("No merged calibration tables to apply")
 
@@ -243,9 +235,7 @@ def _merge_caltables_weighted(
 
     # Verify shapes match
     if gains_before.shape != gains_after.shape:
-        raise ValueError(
-            f"Gain shapes don't match: {gains_before.shape} vs {gains_after.shape}"
-        )
+        raise ValueError(f"Gain shapes don't match: {gains_before.shape} vs {gains_after.shape}")
 
     # Compute weighted average of complex gains
     # For flagged data, use the unflagged value; if both flagged, use before
@@ -255,8 +245,7 @@ def _merge_caltables_weighted(
     # Where both are unflagged: weighted average
     both_good = ~flags_before & ~flags_after
     merged_gains[both_good] = (
-        weight_before * gains_before[both_good] +
-        weight_after * gains_after[both_good]
+        weight_before * gains_before[both_good] + weight_after * gains_after[both_good]
     )
 
     # Where only before is good: use before
@@ -280,8 +269,7 @@ def _merge_caltables_weighted(
         tb_out.putcol("FLAG", merged_flags)
 
     logger.debug(
-        "Merged gains: %.1f%% interpolated, %.1f%% from before, "
-        "%.1f%% from after, %.1f%% flagged",
+        "Merged gains: %.1f%% interpolated, %.1f%% from before, %.1f%% from after, %.1f%% flagged",
         100 * np.sum(both_good) / both_good.size,
         100 * np.sum(only_before_good) / both_good.size,
         100 * np.sum(only_after_good) / both_good.size,
@@ -356,7 +344,9 @@ def _verify_nonzero_fraction(tb, ms_path: str, min_fraction: float) -> None:
 
     logger.info(
         "Verified CORRECTED_DATA populated: %.1f%% non-zero (%d/%d samples)",
-        nonzero_fraction * 100, nonzero_count, len(unflagged)
+        nonzero_fraction * 100,
+        nonzero_count,
+        len(unflagged),
     )
 
 
@@ -394,7 +384,8 @@ def _read_gains_from_caltable(caltable_path: str) -> Tuple[np.ndarray, np.ndarra
 
 
 def _read_ms_for_gpu_cal(
-    ms_path: str, datacolumn: str = "DATA",
+    ms_path: str,
+    datacolumn: str = "DATA",
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Read visibilities and antenna indices from MS for GPU calibration.
 
@@ -486,9 +477,7 @@ def apply_gains_to_ms(
         actual_use_gpu = use_gpu and gpu_ok and is_gpu_available()
 
         # Apply gains
-        result = apply_gains(
-            vis_flat, gains_scalar, ant1_exp, ant2_exp, use_gpu=actual_use_gpu
-        )
+        result = apply_gains(vis_flat, gains_scalar, ant1_exp, ant2_exp, use_gpu=actual_use_gpu)
 
         # Reshape and write back
         corrected = vis_flat.reshape(original_shape)
@@ -496,7 +485,9 @@ def apply_gains_to_ms(
 
         logger.info(
             "GPU calibration complete: %d/%d vis calibrated in %.2fs",
-            result.n_vis_calibrated, result.n_vis_processed, result.processing_time_s
+            result.n_vis_calibrated,
+            result.n_vis_processed,
+            result.processing_time_s,
         )
         return result
 
@@ -585,11 +576,14 @@ def apply_to_target(
     # Import and call applycal with CASA log environment protection
     try:
         from dsa110_contimg.utils.tempdirs import casa_log_environment
+
         with casa_log_environment():
             from casatasks import applycal as casa_applycal
+
             casa_applycal(**kwargs)
     except ImportError:
         from casatasks import applycal as casa_applycal
+
         casa_applycal(**kwargs)
 
     # POSTCONDITION CHECK: Verify CORRECTED_DATA was populated successfully

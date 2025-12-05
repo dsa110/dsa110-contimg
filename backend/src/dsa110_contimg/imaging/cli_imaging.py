@@ -6,7 +6,7 @@ import os
 import shutil
 import subprocess
 import time
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 # Initialize CASA environment before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
@@ -26,7 +26,7 @@ table = casatables.table  # noqa: N816 (kept for test patchability)
 # from casatasks import exportfits, tclean  # MOVED TO _get_casatasks()
 
 if TYPE_CHECKING:
-    from casatasks import exportfits as _exportfits_type, tclean as _tclean_type
+    pass
 
 # Lazy-loaded casatasks references
 _casatasks_loaded = False
@@ -36,7 +36,7 @@ _tclean = None
 
 def _get_casatasks():
     """Lazily import casatasks with CASA log environment protection.
-    
+
     CASA writes log files to CWD when casatasks is first imported.
     This function defers that import and wraps it in the log environment
     context manager to ensure logs go to the correct directory.
@@ -45,13 +45,16 @@ def _get_casatasks():
     if not _casatasks_loaded:
         try:
             from dsa110_contimg.utils.tempdirs import casa_log_environment
+
             with casa_log_environment():
                 from casatasks import exportfits, tclean  # type: ignore[import]
+
                 _exportfits = exportfits
                 _tclean = tclean
         except ImportError:
             # Fallback: import without log environment protection
             from casatasks import exportfits, tclean  # type: ignore[import]
+
             _exportfits = exportfits
             _tclean = tclean
         _casatasks_loaded = True
@@ -170,7 +173,7 @@ def run_wsclean(
     # But for GPU acceleration, Docker with nvidia-container-toolkit is required
     gpu_config = get_gpu_config()
     use_docker_for_gpu = gpu_config.enabled and gpu_config.has_gpu
-    
+
     if wsclean_path:
         if wsclean_path == "docker":
             # Check for native WSClean first (faster than Docker) - unless GPU is needed
@@ -183,7 +186,7 @@ def run_wsclean(
                 docker_cmd = shutil.which("docker")
                 if not docker_cmd:
                     raise RuntimeError("Docker not found but --wsclean-path=docker was specified")
-                
+
                 # Build Docker command with GPU support
                 docker_base = build_docker_command(
                     image="wsclean-everybeam:0.7.4",
@@ -384,7 +387,10 @@ def run_wsclean(
             try:
                 # Find and kill containers running wsclean image
                 kill_cmd = [
-                    "docker", "ps", "-q", "--filter",
+                    "docker",
+                    "ps",
+                    "-q",
+                    "--filter",
                     "ancestor=wsclean-everybeam:0.7.4",
                 ]
                 result = subprocess.run(kill_cmd, capture_output=True, text=True, timeout=10)
@@ -632,8 +638,7 @@ def image_ms(
             unicat_min_mjy = nvss_min_mjy
         else:
             LOG.warning(
-                "Both unicat_min_mjy and deprecated nvss_min_mjy provided; "
-                "using unicat_min_mjy=%s",
+                "Both unicat_min_mjy and deprecated nvss_min_mjy provided; using unicat_min_mjy=%s",
                 unicat_min_mjy,
             )
 
@@ -952,7 +957,7 @@ def image_ms(
                                 "-name",
                                 f"{txt_dir_container}/nvss_model",
                                 "-draw-frequencies",
-                                f"{freq_ghz*1e9}",
+                                f"{freq_ghz * 1e9}",
                                 f"{bandwidth_hz}",
                                 "-draw-spectral-terms",
                                 "2",
@@ -1033,7 +1038,7 @@ def image_ms(
                             "-name",
                             f"{imagename}.nvss_model",
                             "-draw-frequencies",
-                            f"{freq_ghz*1e9}",
+                            f"{freq_ghz * 1e9}",
                             f"{bandwidth_hz}",
                             "-draw-spectral-terms",
                             "2",
@@ -1294,6 +1299,7 @@ def image_ms(
             try:
                 try:
                     from dsa110_contimg.utils.tempdirs import casa_log_environment
+
                     with casa_log_environment():
                         from casatasks import importfits
                 except ImportError:

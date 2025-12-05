@@ -1,50 +1,92 @@
 version: 2
 updates:
-  # Frontend dependencies
-  - package-ecosystem: "npm"
-    directory: "/frontend"
+  # Python/Backend dependencies
+  - package-ecosystem: 'pip'
+    directory: '/backend'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
     open-pull-requests-limit: 5
     reviewers:
-      - "jakobtfaber"
+      - 'jakobtfaber'
     labels:
-      - "dependencies"
-      - "frontend"
+      - 'dependencies'
+      - 'backend'
     commit-message:
-      prefix: "chore(frontend)"
-      include: "scope"
+      prefix: 'chore(deps)'
+      include: 'scope'
+    # Group updates to reduce PR noise
+    groups:
+      production-dependencies:
+        patterns:
+          - 'fastapi*'
+          - 'pydantic*'
+          - 'sqlalchemy*'
+          - 'uvicorn*'
+      development-dependencies:
+        patterns:
+          - 'pytest*'
+          - 'ruff'
+          - 'mypy'
+          - 'black'
+    # Ignore major version updates for core CASA packages
+    # These require careful testing with the casa6 conda environment
+    ignore:
+      - dependency-name: 'pyuvdata'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'astropy'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'casatasks'
+        update-types: ['version-update:semver-major']
+      - dependency-name: 'casatools'
+        update-types: ['version-update:semver-major']
+
+  # Frontend dependencies
+  - package-ecosystem: 'npm'
+    directory: '/frontend'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+    open-pull-requests-limit: 5
+    reviewers:
+      - 'jakobtfaber'
+    labels:
+      - 'dependencies'
+      - 'frontend'
+    commit-message:
+      prefix: 'chore(frontend)'
+      include: 'scope'
     # Group updates to reduce PR noise
     groups:
       frontend-dependencies:
         patterns:
-          - "@mui/*"
-          - "@types/*"
-          - "react*"
-          - "typescript"
-          - "vite"
+          - '@mui/*'
+          - '@types/*'
+          - 'react*'
+          - 'typescript'
+          - 'vite'
       frontend-dev-dependencies:
         patterns:
-          - "eslint*"
-          - "prettier"
-          - "@testing-library/*"
-          - "vitest"
-          - "playwright"
+          - 'eslint*'
+          - 'prettier'
+          - '@testing-library/*'
+          - 'vitest'
+          - 'playwright'
 
   # GitHub Actions
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: 'github-actions'
+    directory: '/'
     schedule:
-      interval: "weekly"
-      day: "monday"
-      time: "09:00"
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
     open-pull-requests-limit: 3
     reviewers:
-      - "jakobtfaber"
+      - 'jakobtfaber'
     labels:
-      - "dependencies"
-      - "ci"
+      - 'dependencies'
+      - 'ci'
     commit-message:
-      prefix: "chore(ci)"
+      prefix: 'chore(ci)'

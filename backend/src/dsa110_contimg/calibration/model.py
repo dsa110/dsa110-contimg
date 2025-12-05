@@ -6,12 +6,12 @@ from typing import Optional
 
 # IMPORTANT: Import casa_init BEFORE casacore to ensure CWD is set to logs directory
 from dsa110_contimg.utils.casa_init import ensure_casa_path
+
 ensure_casa_path()
 
 import astropy.units as u  # noqa: E402
 import casacore.tables as tb  # noqa: E402
 import numpy as np  # noqa: E402
-
 from astropy.coordinates import SkyCoord  # noqa: E402
 from casacore.tables import addImagingColumns  # noqa: E402
 
@@ -360,6 +360,7 @@ def write_point_model_with_ft(
 
     try:
         from dsa110_contimg.utils.tempdirs import casa_log_environment
+
         with casa_log_environment():
             from casatasks import ft
             from casatools import componentlist as cltool
@@ -484,6 +485,7 @@ def write_component_model_with_ft(ms_path: str, component_path: str) -> None:
     )
     try:
         from dsa110_contimg.utils.tempdirs import casa_log_environment
+
         with casa_log_environment():
             from casatasks import ft
     except ImportError:
@@ -526,6 +528,7 @@ def write_image_model_with_ft(ms_path: str, image_path: str) -> None:
     )
     try:
         from dsa110_contimg.utils.tempdirs import casa_log_environment
+
         with casa_log_environment():
             from casatasks import ft
     except ImportError:
@@ -563,6 +566,7 @@ def export_model_as_fits(
 
     try:
         from dsa110_contimg.utils.tempdirs import casa_log_environment
+
         with casa_log_environment():
             from casatasks import exportfits, tclean
     except ImportError:
@@ -710,6 +714,7 @@ def populate_model_from_catalog(
     try:
         try:
             from dsa110_contimg.utils.tempdirs import casa_log_environment
+
             with casa_log_environment():
                 from casatasks import clearcal
         except ImportError:

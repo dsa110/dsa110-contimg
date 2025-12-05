@@ -45,9 +45,7 @@ class ValidationResult:
         return cls(valid=True, errors=[], warnings=warnings or [])
 
     @classmethod
-    def failure(
-        cls, errors: List[str], warnings: Optional[List[str]] = None
-    ) -> "ValidationResult":
+    def failure(cls, errors: List[str], warnings: Optional[List[str]] = None) -> "ValidationResult":
         """Create a failed validation result."""
         return cls(valid=False, errors=errors, warnings=warnings or [])
 
@@ -135,9 +133,7 @@ def validate_scratch_dir(scratch_dir: Optional[Path]) -> List[str]:
     return errors
 
 
-def validate_time_range(
-    start_time: str | datetime, end_time: str | datetime
-) -> List[str]:
+def validate_time_range(start_time: str | datetime, end_time: str | datetime) -> List[str]:
     """Validate time range.
 
     Args:
@@ -169,16 +165,14 @@ def validate_time_range(
         end_dt = end_time
 
     if start_dt >= end_dt:
-        errors.append(
-            f"Start time ({start_time}) must be before end time ({end_time})"
-        )
+        errors.append(f"Start time ({start_time}) must be before end time ({end_time})")
         return errors
 
     # Check for suspiciously wide time ranges (more than 24 hours)
     duration = (end_dt - start_dt).total_seconds()
     if duration > 86400:  # 24 hours
         logger.warning(
-            f"Time range spans {duration/3600:.1f} hours - this may process "
+            f"Time range spans {duration / 3600:.1f} hours - this may process "
             "many observation groups"
         )
 

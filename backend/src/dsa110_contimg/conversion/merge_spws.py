@@ -32,11 +32,14 @@ def _get_mstransform():
     if _mstransform is None:
         try:
             from dsa110_contimg.utils.tempdirs import casa_log_environment
+
             with casa_log_environment():
                 from casatasks import mstransform  # type: ignore[import]
+
                 _mstransform = mstransform
         except ImportError:
             from casatasks import mstransform  # type: ignore[import]
+
             _mstransform = mstransform
     return _mstransform
 
@@ -137,6 +140,7 @@ def merge_spws(
     mstransform = _get_mstransform()
     try:
         from dsa110_contimg.utils.tempdirs import casa_log_environment
+
         with casa_log_environment():
             mstransform(**kwargs)
     except ImportError:

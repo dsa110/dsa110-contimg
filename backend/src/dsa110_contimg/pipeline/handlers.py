@@ -84,9 +84,7 @@ def setup_event_handlers(
     # Data Ingestion → Streaming Calibration
     if config.enable_streaming_cal:
         handler = StreamingCalHandler(executor, config)
-        unsub = emitter.subscribe_async(
-            EventType.DATA_INGESTED, handler.on_data_ingested
-        )
+        unsub = emitter.subscribe_async(EventType.DATA_INGESTED, handler.on_data_ingested)
         unsubscribers.append(unsub)
         logger.info("Registered data ingestion → streaming calibration handler")
 
@@ -131,14 +129,10 @@ class ESEMosaicHandler:
         dec = event.data.get("dec")
         snr = event.data.get("detection_snr", 0)
 
-        logger.info(
-            f"ESE detection received: {source_name} at RA={ra}, Dec={dec} (SNR={snr})"
-        )
+        logger.info(f"ESE detection received: {source_name} at RA={ra}, Dec={dec} (SNR={snr})")
 
         if ra is None or dec is None:
-            logger.warning(
-                f"ESE detection missing coordinates, skipping mosaic trigger"
-            )
+            logger.warning("ESE detection missing coordinates, skipping mosaic trigger")
             return
 
         try:
@@ -172,9 +166,7 @@ class ESEMosaicHandler:
 
             # Execute pipeline
             execution_id = await self.executor.execute(pipeline)
-            logger.info(
-                f"Triggered deep mosaic for ESE {source_name}: {execution_id}"
-            )
+            logger.info(f"Triggered deep mosaic for ESE {source_name}: {execution_id}")
 
             # Emit pipeline started event
             emitter = EventEmitter.get_instance()
@@ -254,9 +246,7 @@ class StreamingCalHandler:
 
             # Execute pipeline
             execution_id = await self.executor.execute(pipeline)
-            logger.info(
-                f"Triggered streaming calibration for {ms_path}: {execution_id}"
-            )
+            logger.info(f"Triggered streaming calibration for {ms_path}: {execution_id}")
 
         except Exception as e:
             logger.exception(f"Failed to trigger streaming calibration for {ms_path}: {e}")
@@ -289,19 +279,18 @@ class QAAlertHandler:
         warnings = event.data.get("warnings", [])
         ms_path = event.data.get("ms_path", "unknown")
 
-        logger.warning(
-            f"QA failure for {validation_type}: {ms_path} ({len(warnings)} warnings)"
-        )
+        logger.warning(f"QA failure for {validation_type}: {ms_path} ({len(warnings)} warnings)")
 
         try:
+            import os
+            import time
+
             from dsa110_contimg.monitoring.alerting import (
                 Alert,
                 AlertManager,
                 AlertSeverity,
                 AlertState,
             )
-            import os
-            import time
 
             # Create alert
             alert = Alert(
@@ -323,7 +312,7 @@ class QAAlertHandler:
             if slack_webhook:
                 manager = AlertManager(slack_webhook=slack_webhook)
                 asyncio.run(manager.send_notifications([alert]))
-                logger.info(f"Sent QA failure alert to Slack")
+                logger.info("Sent QA failure alert to Slack")
 
         except Exception as e:
             logger.error(f"Failed to send QA failure alert: {e}")

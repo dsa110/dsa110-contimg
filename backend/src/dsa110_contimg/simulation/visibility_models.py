@@ -551,7 +551,7 @@ def load_real_calibration_solutions(
         from casacore.tables import table
     except ImportError:
         raise ImportError(
-            "casacore is required to read caltables. " "Install with: pip install python-casacore"
+            "casacore is required to read caltables. Install with: pip install python-casacore"
         )
 
     if not Path(caltable_path).exists():
@@ -600,7 +600,7 @@ def load_real_calibration_solutions(
             # This is more complex - would need to track time indices
             # For now, raise not implemented
             raise NotImplementedError(
-                "Time-dependent gain loading not yet implemented. " "Use time_avg=True for now."
+                "Time-dependent gain loading not yet implemented. Use time_avg=True for now."
             )
 
     return gains, unique_ants

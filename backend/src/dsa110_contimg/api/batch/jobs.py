@@ -28,12 +28,13 @@ logger = logging.getLogger(__name__)
 # Database Schema Management
 # =============================================================================
 
+
 def ensure_batch_tables(conn: sqlite3.Connection) -> None:
     """Ensure batch job tables exist in the database.
-    
+
     Creates the batch_jobs and batch_job_items tables if they don't exist.
     This should be called before any batch operations to ensure schema exists.
-    
+
     Args:
         conn: SQLite database connection
     """
@@ -71,10 +72,10 @@ def ensure_batch_tables(conn: sqlite3.Connection) -> None:
 
 def ensure_data_id_column(conn: sqlite3.Connection) -> None:
     """Ensure data_id column exists in batch_job_items table.
-    
+
     This handles migration for older databases that don't have
     the data_id column.
-    
+
     Args:
         conn: SQLite database connection
     """
@@ -91,6 +92,7 @@ def ensure_data_id_column(conn: sqlite3.Connection) -> None:
 # =============================================================================
 # Validation Helpers
 # =============================================================================
+
 
 def _validate_job_type(job_type: str) -> None:
     """Validate job_type parameter."""
@@ -116,6 +118,7 @@ def _validate_params(params: Dict[str, Any]) -> None:
 # Batch Job Creation
 # =============================================================================
 
+
 def create_batch_job(
     conn: sqlite3.Connection,
     job_type: str,
@@ -123,16 +126,16 @@ def create_batch_job(
     params: Dict[str, Any],
 ) -> int:
     """Create a batch job in the database.
-    
+
     Args:
         conn: SQLite database connection
         job_type: Type of batch job (e.g., "batch_calibration", "batch_image")
         ms_paths: List of measurement set paths to process
         params: Job parameters dictionary
-        
+
     Returns:
         Batch job ID
-        
+
     Raises:
         ValueError: If parameters are invalid
     """
@@ -189,7 +192,7 @@ def create_batch_conversion_job(
 
     Returns:
         Batch job ID
-        
+
     Raises:
         ValueError: If parameters are invalid
     """
@@ -260,7 +263,7 @@ def create_batch_publish_job(
 
     Returns:
         Batch job ID
-        
+
     Raises:
         ValueError: If parameters are invalid
     """
@@ -320,7 +323,7 @@ def create_batch_photometry_job(
 
     Returns:
         Batch job ID
-        
+
     Raises:
         ValueError: If parameters are invalid
     """
@@ -383,7 +386,7 @@ def create_batch_ese_detect_job(
 
     Returns:
         Batch job ID
-        
+
     Raises:
         ValueError: If parameters are invalid
     """
@@ -451,6 +454,7 @@ def create_batch_ese_detect_job(
 # Batch Item Updates
 # =============================================================================
 
+
 def update_batch_item(
     conn: sqlite3.Connection,
     batch_id: int,
@@ -460,7 +464,7 @@ def update_batch_item(
     error: Optional[str] = None,
 ) -> None:
     """Update a batch job item status.
-    
+
     Args:
         conn: Database connection
         batch_id: Batch job ID
@@ -468,7 +472,7 @@ def update_batch_item(
         job_id: Individual job ID (if created)
         status: New status (pending, running, done, failed, cancelled)
         error: Error message (if failed)
-        
+
     Raises:
         ValueError: If parameters are invalid
     """

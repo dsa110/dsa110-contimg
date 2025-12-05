@@ -7,7 +7,7 @@ All configuration is now centralized in dsa110_contimg.config with Pydantic vali
 For new code, prefer importing directly from config:
     from dsa110_contimg.config import settings
     minsnr = settings.calibration.bp_minsnr
-    
+
 This module is retained for backwards compatibility with existing CLI code.
 """
 

@@ -28,6 +28,7 @@ logger = logging.getLogger(__name__)
 # Try to import numba, fall back to pure numpy if unavailable
 try:
     from numba import jit, prange
+
     NUMBA_AVAILABLE = True
     logger.debug("Numba JIT compilation available")
 except ImportError:
@@ -37,8 +38,10 @@ except ImportError:
     # Create no-op decorator for fallback
     def jit(*args, **kwargs):
         """No-op decorator when numba is not available."""
+
         def decorator(func):
             return func
+
         if len(args) == 1 and callable(args[0]):
             return args[0]
         return decorator
@@ -51,6 +54,7 @@ except ImportError:
 # =============================================================================
 # Angular Separation (Haversine formula)
 # =============================================================================
+
 
 @jit(nopython=True, cache=True, fastmath=True)
 def angular_separation_jit(
@@ -106,10 +110,7 @@ def angular_separation_scalar_jit(
     Returns:
         Angular separation in radians
     """
-    cos_sep = (
-        np.sin(dec1) * np.sin(dec2) +
-        np.cos(dec1) * np.cos(dec2) * np.cos(ra1 - ra2)
-    )
+    cos_sep = np.sin(dec1) * np.sin(dec2) + np.cos(dec1) * np.cos(dec2) * np.cos(ra1 - ra2)
     # Clip to [-1, 1]
     if cos_sep > 1.0:
         cos_sep = 1.0
@@ -121,6 +122,7 @@ def angular_separation_scalar_jit(
 # =============================================================================
 # UVW Rotation Matrix
 # =============================================================================
+
 
 @jit(nopython=True, cache=True, fastmath=True)
 def compute_uvw_rotation_matrix(
@@ -147,11 +149,13 @@ def compute_uvw_rotation_matrix(
     cos_dec = np.cos(dec)
 
     # Rotation matrix from XYZ to UVW
-    R = np.array([
-        [sin_ha, cos_ha, 0.0],
-        [-sin_dec * cos_ha, sin_dec * sin_ha, cos_dec],
-        [cos_dec * cos_ha, -cos_dec * sin_ha, sin_dec],
-    ])
+    R = np.array(
+        [
+            [sin_ha, cos_ha, 0.0],
+            [-sin_dec * cos_ha, sin_dec * sin_ha, cos_dec],
+            [cos_dec * cos_ha, -cos_dec * sin_ha, sin_dec],
+        ]
+    )
     return R
 
 
@@ -201,6 +205,7 @@ def rotate_xyz_to_uvw_jit(
 # Time Conversions
 # =============================================================================
 
+
 @jit(nopython=True, cache=True, fastmath=True)
 def jd_to_mjd_jit(jd: np.ndarray) -> np.ndarray:
     """Convert Julian Date to Modified Julian Date (JIT-compiled).
@@ -234,6 +239,7 @@ def mjd_to_jd_jit(mjd: np.ndarray) -> np.ndarray:
 # =============================================================================
 # LST Calculation (approximation for speed)
 # =============================================================================
+
 
 @jit(nopython=True, cache=True, fastmath=True)
 def approx_lst_jit(
@@ -277,6 +283,7 @@ def approx_lst_jit(
 # Batch Operations
 # =============================================================================
 
+
 @jit(nopython=True, cache=True, fastmath=True, parallel=True)
 def compute_phase_corrections_jit(
     uvw: np.ndarray,
@@ -313,6 +320,7 @@ def compute_phase_corrections_jit(
 # =============================================================================
 # Utility Functions
 # =============================================================================
+
 
 def is_numba_available() -> bool:
     """Check if numba JIT compilation is available.

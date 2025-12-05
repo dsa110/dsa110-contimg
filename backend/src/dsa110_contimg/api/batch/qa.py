@@ -21,15 +21,15 @@ def extract_calibration_qa(
     caltables: Dict[str, str],
 ) -> Dict[str, Any]:
     """Extract QA metrics from calibration tables.
-    
+
     Analyzes K (delay), BP (bandpass), and G (gain) calibration tables
     to produce quality metrics and an overall quality assessment.
-    
+
     Args:
         ms_path: Path to the measurement set
         job_id: Job ID for tracking
         caltables: Dictionary mapping table type to path (e.g., {"k": "/path/to/k.cal"})
-        
+
     Returns:
         Dictionary containing:
         - ms_path: The measurement set path
@@ -43,10 +43,12 @@ def extract_calibration_qa(
     """
     # Ensure CASAPATH is set before importing CASA modules
     from dsa110_contimg.utils.casa_init import ensure_casa_path
+
     ensure_casa_path()
 
     try:
         from casatools import table
+
         tb = table()
 
         qa_metrics = {
@@ -58,10 +60,10 @@ def extract_calibration_qa(
 
         # Analyze K table if present
         qa_metrics.update(_extract_k_table_qa(tb, caltables, ms_path))
-        
+
         # Analyze BP table if present
         qa_metrics.update(_extract_bp_table_qa(tb, caltables, ms_path))
-        
+
         # Analyze G table if present
         qa_metrics.update(_extract_g_table_qa(tb, caltables, ms_path))
 
@@ -80,13 +82,13 @@ def extract_calibration_qa(
 def _extract_k_table_qa(tb, caltables: Dict[str, str], ms_path: str) -> Dict[str, Any]:
     """Extract QA metrics from K (delay) calibration table."""
     result = {}
-    
+
     if "k" not in caltables or not caltables["k"]:
         return result
-        
+
     if not Path(caltables["k"]).exists():
         return result
-        
+
     try:
         tb.open(caltables["k"])
         flags = tb.getcol("FLAG")
@@ -102,20 +104,20 @@ def _extract_k_table_qa(tb, caltables: Dict[str, str], ms_path: str) -> Dict[str
         }
     except (RuntimeError, ValueError, KeyError) as e:
         logger.warning(f"Failed to extract K QA for {ms_path}: {e}")
-        
+
     return result
 
 
 def _extract_bp_table_qa(tb, caltables: Dict[str, str], ms_path: str) -> Dict[str, Any]:
     """Extract QA metrics from BP (bandpass) calibration table."""
     result = {}
-    
+
     if "bp" not in caltables or not caltables["bp"]:
         return result
-        
+
     if not Path(caltables["bp"]).exists():
         return result
-        
+
     try:
         tb.open(caltables["bp"])
         flags = tb.getcol("FLAG")
@@ -135,20 +137,20 @@ def _extract_bp_table_qa(tb, caltables: Dict[str, str], ms_path: str) -> Dict[st
 
         # Extract per-SPW statistics
         result.update(_extract_per_spw_stats(caltables["bp"], ms_path))
-        
+
     except (RuntimeError, ValueError, KeyError) as e:
         logger.warning(f"Failed to extract BP QA for {ms_path}: {e}")
-        
+
     return result
 
 
 def _extract_per_spw_stats(bp_path: str, ms_path: str) -> Dict[str, Any]:
     """Extract per-SPW flagging statistics from BP table."""
     result = {}
-    
+
     try:
         from dsa110_contimg.qa.calibration_quality import analyze_per_spw_flagging
-        
+
         spw_stats = analyze_per_spw_flagging(bp_path)
         result["per_spw_stats"] = [
             {
@@ -166,20 +168,20 @@ def _extract_per_spw_stats(bp_path: str, ms_path: str) -> Dict[str, Any]:
         ]
     except (ImportError, RuntimeError, ValueError, KeyError, AttributeError) as e:
         logger.warning(f"Failed to extract per-SPW statistics for {ms_path}: {e}")
-        
+
     return result
 
 
 def _extract_g_table_qa(tb, caltables: Dict[str, str], ms_path: str) -> Dict[str, Any]:
     """Extract QA metrics from G (gain) calibration table."""
     result = {}
-    
+
     if "g" not in caltables or not caltables["g"]:
         return result
-        
+
     if not Path(caltables["g"]).exists():
         return result
-        
+
     try:
         tb.open(caltables["g"])
         flags = tb.getcol("FLAG")
@@ -196,14 +198,14 @@ def _extract_g_table_qa(tb, caltables: Dict[str, str], ms_path: str) -> Dict[str
         }
     except (RuntimeError, ValueError, KeyError) as e:
         logger.warning(f"Failed to extract G QA for {ms_path}: {e}")
-        
+
     return result
 
 
 def _calculate_overall_quality(qa_metrics: Dict[str, Any]) -> Dict[str, Any]:
     """Calculate overall quality assessment from individual metrics."""
     result = {}
-    
+
     total_flags = []
     for key in ["k_metrics", "bp_metrics", "g_metrics"]:
         if key in qa_metrics and qa_metrics[key]:
@@ -221,7 +223,7 @@ def _calculate_overall_quality(qa_metrics: Dict[str, Any]) -> Dict[str, Any]:
             result["overall_quality"] = "marginal"
         else:
             result["overall_quality"] = "poor"
-            
+
     return result
 
 
@@ -231,15 +233,15 @@ def extract_image_qa(
     image_path: str,
 ) -> Dict[str, Any]:
     """Extract QA metrics from an image.
-    
+
     Analyzes a CASA image to extract quality metrics including
     noise levels, peak flux, dynamic range, and beam parameters.
-    
+
     Args:
         ms_path: Path to the source measurement set
         job_id: Job ID for tracking
         image_path: Path to the CASA image
-        
+
     Returns:
         Dictionary containing:
         - ms_path: The measurement set path
@@ -255,6 +257,7 @@ def extract_image_qa(
     """
     try:
         from casatools import image
+
         ia = image()
 
         qa_metrics = {
@@ -302,7 +305,7 @@ def extract_image_qa(
 def _extract_beam_info(ia) -> Dict[str, Any]:
     """Extract beam parameters from image analysis tool."""
     result = {}
-    
+
     beam = ia.restoringbeam()
     if beam:
         major = beam.get("major", {})
@@ -315,14 +318,14 @@ def _extract_beam_info(ia) -> Dict[str, Any]:
             result["beam_minor"] = float(minor["value"])
         if "value" in pa:
             result["beam_pa"] = float(pa["value"])
-            
+
     return result
 
 
 def _assess_image_quality(qa_metrics: Dict[str, Any]) -> Dict[str, Any]:
     """Assess image quality based on dynamic range."""
     result = {}
-    
+
     if qa_metrics.get("dynamic_range"):
         dr = qa_metrics["dynamic_range"]
         if dr > 1000:
@@ -333,5 +336,5 @@ def _assess_image_quality(qa_metrics: Dict[str, Any]) -> Dict[str, Any]:
             result["overall_quality"] = "marginal"
         else:
             result["overall_quality"] = "poor"
-            
+
     return result

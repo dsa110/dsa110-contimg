@@ -4,15 +4,15 @@ QA service - business logic for quality assessment.
 
 from __future__ import annotations
 
-from typing import Optional, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ..repositories import ImageRecord, MSRecord, JobRecord
+    from ..repositories import ImageRecord, JobRecord, MSRecord
 
 
 class QAService:
     """Business logic for quality assessment operations."""
-    
+
     def build_image_qa(self, image: "ImageRecord") -> dict:
         """Build QA report for an image."""
         metrics = dict(image.qa_metrics) if image.qa_metrics else {}
@@ -30,7 +30,7 @@ class QAService:
             "flags": image.qa_flags or [],
             "timestamp": image.qa_timestamp,
         }
-    
+
     def build_ms_qa(self, ms: "MSRecord") -> dict:
         """Build QA report for a measurement set."""
         metrics = dict(ms.qa_metrics) if ms.qa_metrics else {}
@@ -48,7 +48,7 @@ class QAService:
             "flags": ms.qa_flags or [],
             "timestamp": ms.qa_timestamp,
         }
-    
+
     def build_job_qa(self, job: "JobRecord") -> dict:
         """Build QA report for a pipeline job."""
         return {

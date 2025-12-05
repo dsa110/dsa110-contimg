@@ -41,9 +41,9 @@ __all__ = [
 from .build_atnf_pulsars import build_atnf_pulsar_db
 from .builders import (
     CATALOG_COVERAGE_LIMITS,
-    auto_build_missing_catalog_databases,
     # ATNF
     atnf_full_db_exists,
+    auto_build_missing_catalog_databases,
     build_atnf_full_db,
     build_atnf_strip_db,
     build_atnf_strip_from_full,
@@ -51,6 +51,21 @@ from .builders import (
     build_first_full_db,
     build_first_strip_db,
     build_first_strip_from_full,
+    # NVSS
+    build_nvss_full_db,
+    build_nvss_strip_db,
+    build_nvss_strip_from_full,
+    # RAX
+    build_rax_full_db,
+    build_rax_strip_db,
+    build_rax_strip_from_full,
+    # VLASS
+    build_vlass_full_db,
+    build_vlass_strip_db,
+    build_vlass_strip_from_full,
+    # Utilities
+    check_catalog_database_exists,
+    check_missing_catalog_databases,
     first_full_db_exists,
     get_atnf_full_db_path,
     get_first_full_db_path,
@@ -59,24 +74,9 @@ from .builders import (
     get_rax_full_db_path,
     # VLASS
     get_vlass_full_db_path,
-    # NVSS
-    build_nvss_full_db,
-    build_nvss_strip_db,
-    build_nvss_strip_from_full,
     nvss_full_db_exists,
-    # RAX
-    build_rax_full_db,
-    build_rax_strip_db,
-    build_rax_strip_from_full,
     rax_full_db_exists,
-    # VLASS
-    build_vlass_full_db,
-    build_vlass_strip_db,
-    build_vlass_strip_from_full,
     vlass_full_db_exists,
-    # Utilities
-    check_catalog_database_exists,
-    check_missing_catalog_databases,
 )
 from .query import query_sources, resolve_catalog_path
 

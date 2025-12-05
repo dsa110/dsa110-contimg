@@ -116,7 +116,9 @@ def resolve_catalog_path(
                     dec_str = catalog_file.stem.replace(f"{catalog_type}_dec", "").replace("+", "")
                     file_dec = float(dec_str)
                     diff = abs(file_dec - float(dec_strip))
-                    if diff < best_diff and diff <= 6.0:  # Within 6 degree tolerance (matches strip width)
+                    if (
+                        diff < best_diff and diff <= 6.0
+                    ):  # Within 6 degree tolerance (matches strip width)
                         best_diff = diff
                         best_match = catalog_file
                 except (ValueError, AttributeError):
@@ -164,11 +166,11 @@ def resolve_catalog_path(
     if auto_build and dec_strip is not None:
         from dsa110_contimg.catalog.builders import (
             CATALOG_COVERAGE_LIMITS,
-            build_nvss_strip_db,
+            build_atnf_strip_db,
             build_first_strip_db,
+            build_nvss_strip_db,
             build_rax_strip_db,
             build_vlass_strip_db,
-            build_atnf_strip_db,
         )
 
         limits = CATALOG_COVERAGE_LIMITS.get(catalog_type, {})
@@ -176,7 +178,9 @@ def resolve_catalog_path(
         dec_max = limits.get("dec_max", 90.0)
 
         # Handle array inputs
-        dec_val = float(dec_strip.flat[0]) if isinstance(dec_strip, np.ndarray) else float(dec_strip)
+        dec_val = (
+            float(dec_strip.flat[0]) if isinstance(dec_strip, np.ndarray) else float(dec_strip)
+        )
 
         if dec_min <= dec_val <= dec_max:
             # Within coverage - build the database
@@ -201,6 +205,7 @@ def resolve_catalog_path(
             except Exception as e:
                 # Log but don't crash - fall through to FileNotFoundError
                 import logging
+
                 logging.getLogger(__name__).warning(
                     f"Auto-build of {catalog_type} catalog for dec={dec_val:.1f}° failed: {e}"
                 )

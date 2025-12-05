@@ -88,15 +88,15 @@ class AbsurdConfig:
             raise ValueError("ABSURD_DATABASE_URL must be set when Absurd is enabled")
 
         if self.worker_concurrency < 1:
-            raise ValueError(f"worker_concurrency must be >= 1, " f"got {self.worker_concurrency}")
+            raise ValueError(f"worker_concurrency must be >= 1, got {self.worker_concurrency}")
 
         if self.worker_poll_interval_sec <= 0:
             raise ValueError(
-                f"worker_poll_interval_sec must be > 0, " f"got {self.worker_poll_interval_sec}"
+                f"worker_poll_interval_sec must be > 0, got {self.worker_poll_interval_sec}"
             )
 
         if self.task_timeout_sec < 1:
-            raise ValueError(f"task_timeout_sec must be >= 1, " f"got {self.task_timeout_sec}")
+            raise ValueError(f"task_timeout_sec must be >= 1, got {self.task_timeout_sec}")
 
         if self.max_retries < 0:
             raise ValueError(f"max_retries must be >= 0, got {self.max_retries}")

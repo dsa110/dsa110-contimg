@@ -4,37 +4,37 @@ Routes package for DSA-110 Continuum Imaging Pipeline API.
 This package contains modular route definitions organized by resource type.
 """
 
+from .absurd import router as absurd_router
+from .alert_policies import router as alert_policies_router
 from .auth import router as auth_router
-from .carta import router as carta_router
-from .conversion import router as conversion_router
-from .images import router as images_router
-from .ms import router as ms_router
-from .sources import router as sources_router
-from .jobs import router as jobs_router
-from .queue import router as queue_router
-from .qa import router as qa_router
+from .backup import router as backup_router
+from .cache import router as cache_router
 from .cal import router as cal_router
+from .calibrator_imaging import router as calibrator_imaging_router
+from .carta import router as carta_router
+from .comments import router as comments_router
+from .conversion import router as conversion_router
+from .external import router as external_router
+from .health import router as health_router
+from .images import router as images_router
+from .imaging import router as imaging_router
+from .jobs import router as jobs_router
+from .jupyter import router as jupyter_router
 from .logs import router as logs_router
 from .metrics_dashboard import router as metrics_dashboard_router
-from .stats import router as stats_router
-from .cache import router as cache_router
-from .services import router as services_router
-from .imaging import router as imaging_router
-from .absurd import router as absurd_router
-from .calibrator_imaging import router as calibrator_imaging_router
-from .health import router as health_router
-from .alert_policies import router as alert_policies_router
-from .retention import router as retention_router
+from .ms import router as ms_router
 from .performance import router as performance_router
-from .saved_queries import router as queries_router
-from .backup import router as backup_router
-from .triggers import router as triggers_router
-from .jupyter import router as jupyter_router
-from .vo_export import router as vo_export_router
 from .pipeline import router as pipeline_router
+from .qa import router as qa_router
+from .queue import router as queue_router
 from .ratings import router as ratings_router
-from .comments import router as comments_router
-from .external import router as external_router
+from .retention import router as retention_router
+from .saved_queries import router as queries_router
+from .services import router as services_router
+from .sources import router as sources_router
+from .stats import router as stats_router
+from .triggers import router as triggers_router
+from .vo_export import router as vo_export_router
 
 __all__ = [
     "auth_router",

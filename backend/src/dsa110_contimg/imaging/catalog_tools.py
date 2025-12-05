@@ -399,7 +399,9 @@ def create_catalog_overlay(
         # Scale circle sizes by log10(flux)
         fluxes = np.maximum(sources["flux_mjy"].values, 1.0)
         log_flux = np.log10(fluxes)
-        sizes = 50 * (log_flux - np.min(log_flux)) / (np.max(log_flux) - np.min(log_flux) + 1e-6) + 20
+        sizes = (
+            50 * (log_flux - np.min(log_flux)) / (np.max(log_flux) - np.min(log_flux) + 1e-6) + 20
+        )
 
         ax.scatter(
             pix[0],

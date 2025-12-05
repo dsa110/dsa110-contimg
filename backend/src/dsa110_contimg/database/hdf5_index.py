@@ -9,15 +9,15 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Any, Optional
+from typing import Any
 
 import h5py
 
 from dsa110_contimg.utils.exceptions import (
     DatabaseError,
+    InvalidPathError,
     UVH5ReadError,
     ValidationError,
-    InvalidPathError,
 )
 from dsa110_contimg.utils.logging_config import log_context
 
@@ -32,7 +32,7 @@ def index_hdf5_files(directory: str) -> list[tuple[str, list[str]]]:
         directory: The path to the directory containing HDF5 files.
 
     Returns:
-        A list of tuples where each tuple contains the filename and 
+        A list of tuples where each tuple contains the filename and
         a list of datasets within that file.
 
     Raises:
@@ -50,13 +50,13 @@ def index_hdf5_files(directory: str) -> list[tuple[str, list[str]]]:
     errors = []
 
     for filename in os.listdir(directory):
-        if not filename.endswith('.hdf5'):
+        if not filename.endswith(".hdf5"):
             continue
-            
+
         file_path = os.path.join(directory, filename)
-        
+
         try:
-            with h5py.File(file_path, 'r') as hdf_file:
+            with h5py.File(file_path, "r") as hdf_file:
                 datasets = list(hdf_file.keys())
                 indexed_files.append((filename, datasets))
                 logger.debug(
@@ -64,7 +64,7 @@ def index_hdf5_files(directory: str) -> list[tuple[str, list[str]]]:
                     extra={
                         "file_path": file_path,
                         "dataset_count": len(datasets),
-                    }
+                    },
                 )
         except OSError as e:
             error_msg = f"Failed to read HDF5 file: {filename}: {e}"
@@ -83,7 +83,7 @@ def index_hdf5_files(directory: str) -> list[tuple[str, list[str]]]:
                 "indexed_count": len(indexed_files),
                 "error_count": len(errors),
                 "errors": errors,
-            }
+            },
         )
     else:
         logger.info(
@@ -91,7 +91,7 @@ def index_hdf5_files(directory: str) -> list[tuple[str, list[str]]]:
             extra={
                 "directory": directory,
                 "indexed_count": len(indexed_files),
-            }
+            },
         )
 
     return indexed_files
@@ -121,7 +121,7 @@ def query_hdf5_file(file_path: str, dataset_name: str) -> Any:
         )
 
     try:
-        with h5py.File(file_path, 'r') as hdf_file:
+        with h5py.File(file_path, "r") as hdf_file:
             if dataset_name not in hdf_file:
                 available = list(hdf_file.keys())
                 raise ValidationError(
@@ -133,7 +133,7 @@ def query_hdf5_file(file_path: str, dataset_name: str) -> Any:
                     file_path=file_path,
                 )
             return hdf_file[dataset_name][:]
-            
+
     except ValidationError:
         raise
     except OSError as e:
@@ -175,24 +175,24 @@ def get_hdf5_metadata(file_path: str) -> dict[str, Any]:
         )
 
     try:
-        with h5py.File(file_path, 'r') as hdf_file:
+        with h5py.File(file_path, "r") as hdf_file:
             metadata = {
-                'filename': os.path.basename(file_path),
-                'datasets': list(hdf_file.keys()),
-                'attributes': {key: hdf_file.attrs[key] for key in hdf_file.attrs}
+                "filename": os.path.basename(file_path),
+                "datasets": list(hdf_file.keys()),
+                "attributes": {key: hdf_file.attrs[key] for key in hdf_file.attrs},
             }
-            
+
             logger.debug(
                 f"Retrieved metadata for {metadata['filename']}",
                 extra={
                     "file_path": file_path,
-                    "dataset_count": len(metadata['datasets']),
-                    "attribute_count": len(metadata['attributes']),
-                }
+                    "dataset_count": len(metadata["datasets"]),
+                    "attribute_count": len(metadata["attributes"]),
+                },
             )
-            
+
             return metadata
-            
+
     except OSError as e:
         raise UVH5ReadError(
             file_path=file_path,
@@ -249,24 +249,27 @@ def query_subband_groups(
     ):
         try:
             import sqlite3
-            
+
             conn = sqlite3.connect(db_path, timeout=30)
             cursor = conn.cursor()
-            
+
             # Query files in time window using correct column names
-            cursor.execute("""
+            cursor.execute(
+                """
                 SELECT path, timestamp_iso
                 FROM hdf5_file_index
                 WHERE timestamp_iso BETWEEN ? AND ?
                 ORDER BY timestamp_iso, path
-            """, (start_time, end_time))
-            
+            """,
+                (start_time, end_time),
+            )
+
             rows = cursor.fetchall()
             conn.close()
-            
+
             # Group by timestamp within tolerance
             groups = _cluster_by_timestamp(rows, cluster_tolerance_s)
-            
+
             logger.info(
                 f"Found {len(groups)} subband groups",
                 extra={
@@ -274,11 +277,11 @@ def query_subband_groups(
                     "file_count": sum(len(g) for g in groups),
                     "start_time": start_time,
                     "end_time": end_time,
-                }
+                },
             )
-            
+
             return groups
-            
+
         except sqlite3.Error as e:
             raise DatabaseError(
                 f"Failed to query HDF5 index database: {e}",
@@ -314,23 +317,23 @@ def _cluster_by_timestamp(
     """
     if not rows:
         return []
-    
+
     from datetime import datetime
-    
+
     groups = []
     current_group = []
     current_time = None
-    
+
     for file_path, timestamp in rows:
         try:
-            file_time = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+            file_time = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
         except ValueError:
             logger.warning(
                 f"Invalid timestamp format: {timestamp}",
-                extra={"file_path": file_path, "timestamp": timestamp}
+                extra={"file_path": file_path, "timestamp": timestamp},
             )
             continue
-        
+
         if current_time is None:
             current_time = file_time
             current_group = [file_path]
@@ -341,8 +344,8 @@ def _cluster_by_timestamp(
                 groups.append(current_group)
             current_group = [file_path]
             current_time = file_time
-    
+
     if current_group:
         groups.append(current_group)
-    
+
     return groups

@@ -38,7 +38,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from enum import Enum
 from pathlib import Path
-from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, TypeVar, Union
+from typing import Any, Callable, Dict, Generator, List, Optional, Tuple, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -210,7 +210,6 @@ def state_machine_context(
     # Import here to avoid circular imports
     from dsa110_contimg.database.state_machine import (
         MSState,
-        MSStateMachine,
         StateTransitionError,
         get_state_machine,
     )
@@ -254,21 +253,15 @@ def state_machine_context(
         # Success - transition to success state
         try:
             sm.transition(ms_path, success_state)
-            logger.debug(
-                "State transition: %s -> %s (success)", ms_path, success_state.value
-            )
+            logger.debug("State transition: %s -> %s (success)", ms_path, success_state.value)
         except StateTransitionError as e:
-            logger.debug(
-                "Success state transition skipped for %s: %s", stage_name, e
-            )
+            logger.debug("Success state transition skipped for %s: %s", stage_name, e)
 
     except Exception as exc:
         # Failure - mark as failed with checkpoint data
         try:
             sm.mark_failed(ms_path, exc, checkpoint=checkpoint_data)
-            logger.warning(
-                "Stage %s failed, state -> FAILED: %s", stage_name, str(exc)[:200]
-            )
+            logger.warning("Stage %s failed, state -> FAILED: %s", stage_name, str(exc)[:200])
         except (StateTransitionError, RuntimeError) as e:
             logger.debug("Failed state transition skipped for %s: %s", stage_name, e)
         raise
@@ -304,6 +297,8 @@ def metrics_context(
     # Import here to avoid circular imports
     from dsa110_contimg.monitoring.pipeline_metrics import (
         PipelineStage as MetricStage,
+    )
+    from dsa110_contimg.monitoring.pipeline_metrics import (
         get_metrics_collector,
     )
 
@@ -525,14 +520,12 @@ def execute_stage_with_tracking(
         with state_machine_context(
             stage_name, ms_path, enable=config.enable_state_machine
         ) as sm_ctx:
-
             with metrics_context(
                 stage_name,
                 ms_path,
                 enable=config.enable_metrics,
                 record_gpu=config.record_gpu_metrics,
             ) as metrics_helper:
-
                 # Execute the stage
                 result_context = stage.execute(context)
 
@@ -583,9 +576,7 @@ def execute_stage_with_tracking(
         else:
             # Send alert if enabled
             if config.alert_on_failure:
-                _send_failure_alert(
-                    stage_name, ms_path, retry_result.final_error
-                )
+                _send_failure_alert(stage_name, ms_path, retry_result.final_error)
 
             return StageExecutionResult(
                 success=False,
@@ -705,11 +696,7 @@ def tracked_stage_execute(
         @functools.wraps(func)
         def wrapper(self, context, *args, **kwargs):
             # Get stage name
-            stage_name = (
-                self.get_name()
-                if hasattr(self, "get_name")
-                else func.__name__
-            )
+            stage_name = self.get_name() if hasattr(self, "get_name") else func.__name__
 
             # Get MS path from context
             ms_path = _get_ms_path_from_context(context)
@@ -719,12 +706,8 @@ def tracked_stage_execute(
             retry_count = 0
 
             def _execute_once():
-                with state_machine_context(
-                    stage_name, ms_path, enable=enable_state_machine
-                ):
-                    with metrics_context(
-                        stage_name, ms_path, enable=enable_metrics
-                    ):
+                with state_machine_context(stage_name, ms_path, enable=enable_state_machine):
+                    with metrics_context(stage_name, ms_path, enable=enable_metrics):
                         return func(self, context, *args, **kwargs)
 
             if enable_retry:

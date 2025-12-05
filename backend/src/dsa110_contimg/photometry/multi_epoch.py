@@ -10,8 +10,8 @@ Reference: askap-vast/vast-pipeline pipeline/utils.py, models.py Source
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class WeightedPositionStats:
     """Weighted average position statistics.
-    
+
     Attributes:
         wavg_ra: Weighted average RA (degrees)
         wavg_dec: Weighted average Dec (degrees)
@@ -50,7 +50,7 @@ class WeightedPositionStats:
 @dataclass
 class FluxAggregateStats:
     """Aggregate flux statistics across epochs.
-    
+
     Attributes:
         avg_flux_int: Average integrated flux (Jy)
         avg_flux_peak: Average peak flux (Jy/beam)
@@ -94,7 +94,7 @@ class FluxAggregateStats:
 @dataclass
 class SNRAggregateStats:
     """Aggregate SNR statistics across epochs.
-    
+
     Attributes:
         min_snr: Minimum SNR
         max_snr: Maximum SNR
@@ -120,10 +120,10 @@ class SNRAggregateStats:
 @dataclass
 class NewSourceMetrics:
     """Metrics for evaluating new source significance.
-    
+
     Adopted from VAST Pipeline for assessing whether a newly detected
     source is genuinely new (transient) vs an artifact or barely-detected.
-    
+
     Attributes:
         new_high_sigma: Highest significance (sigma) the source would have had
             if placed in previous images where it was not detected
@@ -153,9 +153,9 @@ class NewSourceMetrics:
 @dataclass
 class MultiEpochSourceStats:
     """Complete multi-epoch statistics for a source.
-    
+
     Combines all aggregate metrics into a single container.
-    
+
     Attributes:
         source_id: Source identifier
         position: Weighted average position
@@ -203,47 +203,50 @@ def calc_weighted_average_position(
     dec_err_deg: np.ndarray,
 ) -> WeightedPositionStats:
     """Calculate weighted average position.
-    
+
     Adopted from VAST Pipeline: Source.wavg_ra, wavg_dec
-    
+
     Weights are inverse-variance: w = 1 / sigma^2
-    
+
     Args:
         ra_deg: Array of RA values (degrees)
         dec_deg: Array of Dec values (degrees)
         ra_err_deg: Array of RA uncertainties (degrees)
         dec_err_deg: Array of Dec uncertainties (degrees)
-        
+
     Returns:
         WeightedPositionStats
     """
     # Filter valid measurements
     valid = (
-        np.isfinite(ra_deg) & np.isfinite(dec_deg) &
-        np.isfinite(ra_err_deg) & np.isfinite(dec_err_deg) &
-        (ra_err_deg > 0) & (dec_err_deg > 0)
+        np.isfinite(ra_deg)
+        & np.isfinite(dec_deg)
+        & np.isfinite(ra_err_deg)
+        & np.isfinite(dec_err_deg)
+        & (ra_err_deg > 0)
+        & (dec_err_deg > 0)
     )
-    
+
     if not np.any(valid):
         raise ValueError("No valid measurements for weighted average")
-    
+
     ra = ra_deg[valid]
     dec = dec_deg[valid]
     ra_err = ra_err_deg[valid]
     dec_err = dec_err_deg[valid]
-    
+
     # Weights = 1 / sigma^2
-    w_ra = 1.0 / (ra_err ** 2)
-    w_dec = 1.0 / (dec_err ** 2)
-    
+    w_ra = 1.0 / (ra_err**2)
+    w_dec = 1.0 / (dec_err**2)
+
     # Weighted averages
     wavg_ra = np.sum(w_ra * ra) / np.sum(w_ra)
     wavg_dec = np.sum(w_dec * dec) / np.sum(w_dec)
-    
+
     # Weighted uncertainties
     wavg_ra_err = 1.0 / np.sqrt(np.sum(w_ra))
     wavg_dec_err = 1.0 / np.sqrt(np.sum(w_dec))
-    
+
     return WeightedPositionStats(
         wavg_ra=float(wavg_ra),
         wavg_dec=float(wavg_dec),
@@ -259,14 +262,14 @@ def calc_flux_aggregates(
     is_forced: Optional[np.ndarray] = None,
 ) -> FluxAggregateStats:
     """Calculate flux aggregate statistics.
-    
+
     Adopted from VAST Pipeline: Source flux statistics
-    
+
     Args:
         flux_int: Array of integrated fluxes (Jy)
         flux_peak: Array of peak fluxes (Jy/beam)
         is_forced: Boolean array indicating forced photometry measurements
-        
+
     Returns:
         FluxAggregateStats
     """
@@ -274,13 +277,13 @@ def calc_flux_aggregates(
     valid_int = np.isfinite(flux_int)
     valid_peak = np.isfinite(flux_peak)
     valid = valid_int & valid_peak
-    
+
     if not np.any(valid):
         raise ValueError("No valid flux measurements")
-    
+
     f_int = flux_int[valid]
     f_peak = flux_peak[valid]
-    
+
     # Count forced vs detection
     n_total = len(f_int)
     if is_forced is not None:
@@ -290,7 +293,7 @@ def calc_flux_aggregates(
     else:
         n_forced = 0
         n_detections = n_total
-    
+
     return FluxAggregateStats(
         avg_flux_int=float(np.mean(f_int)),
         avg_flux_peak=float(np.mean(f_peak)),
@@ -307,20 +310,20 @@ def calc_flux_aggregates(
 
 def calc_snr_aggregates(snr: np.ndarray) -> SNRAggregateStats:
     """Calculate SNR aggregate statistics.
-    
+
     Args:
         snr: Array of SNR values
-        
+
     Returns:
         SNRAggregateStats
     """
     valid = np.isfinite(snr) & (snr > 0)
-    
+
     if not np.any(valid):
         raise ValueError("No valid SNR measurements")
-    
+
     s = snr[valid]
-    
+
     return SNRAggregateStats(
         min_snr=float(np.min(s)),
         max_snr=float(np.max(s)),
@@ -336,18 +339,18 @@ def calc_new_source_significance(
     detection_threshold_sigma: float = 5.0,
 ) -> NewSourceMetrics:
     """Calculate new source significance metrics.
-    
+
     Adopted from VAST Pipeline: Source.new_high_sigma
-    
+
     For a newly detected source, calculate how significant it would have
     been if placed in previous images (where it was not detected).
-    
+
     Args:
         source_flux_peak: Peak flux of the source (Jy/beam)
         previous_rms_values: RMS values of images where source was not detected
         previous_mjd_values: MJD timestamps of previous images (optional)
         detection_threshold_sigma: Detection threshold (default 5σ)
-        
+
     Returns:
         NewSourceMetrics
     """
@@ -358,31 +361,31 @@ def calc_new_source_significance(
             is_new=True,
             n_images_missed=0,
         )
-    
+
     # Filter valid RMS values
     valid = np.isfinite(previous_rms_values) & (previous_rms_values > 0)
-    
+
     if not np.any(valid):
         return NewSourceMetrics(
             new_high_sigma=float("inf"),
             is_new=True,
             n_images_missed=0,
         )
-    
+
     rms = previous_rms_values[valid]
-    
+
     # Calculate sigma in each previous image
     sigma_values = source_flux_peak / rms
-    
+
     # New high sigma is the maximum significance in previous images
     new_high_sigma = float(np.max(sigma_values))
-    
+
     # Count images where source would have been below threshold
     n_missed = int(np.sum(sigma_values < detection_threshold_sigma))
-    
+
     # Source is "new" if it was below threshold in all previous images
     is_new = new_high_sigma < detection_threshold_sigma
-    
+
     return NewSourceMetrics(
         new_high_sigma=new_high_sigma,
         is_new=is_new,
@@ -396,9 +399,9 @@ def compute_multi_epoch_stats(
     previous_image_rms: Optional[np.ndarray] = None,
 ) -> MultiEpochSourceStats:
     """Compute complete multi-epoch statistics for a source.
-    
+
     This is the main entry point for multi-epoch analysis.
-    
+
     Args:
         source_id: Source identifier
         measurements: List of measurement dicts with keys:
@@ -410,27 +413,27 @@ def compute_multi_epoch_stats(
             - mjd: Observation timestamp (optional)
         previous_image_rms: RMS of images where source was not detected
             (for new source analysis)
-            
+
     Returns:
         MultiEpochSourceStats
     """
     if not measurements:
         raise ValueError("No measurements provided")
-    
+
     # Extract arrays
     n = len(measurements)
     ra = np.array([m["ra_deg"] for m in measurements])
     dec = np.array([m["dec_deg"] for m in measurements])
-    
+
     # Position errors (default to 1 arcsec if not provided)
     default_err = 1.0 / 3600  # 1 arcsec in degrees
     ra_err = np.array([m.get("ra_err_deg", default_err) for m in measurements])
     dec_err = np.array([m.get("dec_err_deg", default_err) for m in measurements])
-    
+
     # Fluxes
     flux_int = np.array([m.get("flux_int", m.get("flux_peak", 0)) for m in measurements])
     flux_peak = np.array([m.get("flux_peak", m.get("flux_int", 0)) for m in measurements])
-    
+
     # SNR - either provided or calculated from flux/rms
     snr = []
     for m in measurements:
@@ -441,19 +444,19 @@ def compute_multi_epoch_stats(
         else:
             snr.append(np.nan)
     snr = np.array(snr)
-    
+
     # Forced photometry flag
     is_forced = np.array([m.get("is_forced", False) for m in measurements])
-    
+
     # Calculate position stats
     position = calc_weighted_average_position(ra, dec, ra_err, dec_err)
-    
+
     # Calculate flux stats
     flux = calc_flux_aggregates(flux_int, flux_peak, is_forced)
-    
+
     # Calculate SNR stats
     snr_stats = calc_snr_aggregates(snr)
-    
+
     # New source analysis
     new_source = None
     if previous_image_rms is not None and len(previous_image_rms) > 0:
@@ -463,11 +466,11 @@ def compute_multi_epoch_stats(
             source_flux_peak=brightest_flux,
             previous_rms_values=previous_image_rms,
         )
-    
+
     # Counts
     n_forced = int(np.sum(is_forced))
     n_selavy = n - n_forced
-    
+
     return MultiEpochSourceStats(
         source_id=source_id,
         position=position,
@@ -484,41 +487,42 @@ def calc_two_epoch_pair_metrics(
     measurements: List[Dict[str, Any]],
 ) -> List[Dict[str, Any]]:
     """Calculate two-epoch metrics for all measurement pairs.
-    
+
     Adopted from VAST Pipeline: pipeline/pairs.py
-    
+
     For each unique pair of measurements, calculate Vs and m metrics.
     Returns the most significant pair metrics.
-    
+
     Args:
         measurements: List of measurement dicts with flux_int, flux_peak,
             flux_int_err, flux_peak_err
-            
+
     Returns:
         List of pair metric dicts with vs_int, vs_peak, m_int, m_peak
     """
-    from dsa110_contimg.photometry.variability import calculate_vs_metric, calculate_m_metric
-    
+    from dsa110_contimg.photometry.variability import calculate_m_metric, calculate_vs_metric
+
     if len(measurements) < 2:
         return []
-    
+
     pairs = []
     n = len(measurements)
-    
+
     for i in range(n):
         for j in range(i + 1, n):
             m1 = measurements[i]
             m2 = measurements[j]
-            
+
             pair = {
                 "idx_a": i,
                 "idx_b": j,
             }
-            
+
             # Integrated flux metrics
             try:
                 pair["vs_int"] = calculate_vs_metric(
-                    m1["flux_int"], m2["flux_int"],
+                    m1["flux_int"],
+                    m2["flux_int"],
                     m1.get("flux_int_err", m1.get("flux_err", 0.001)),
                     m2.get("flux_int_err", m2.get("flux_err", 0.001)),
                 )
@@ -526,11 +530,12 @@ def calc_two_epoch_pair_metrics(
             except (ValueError, ZeroDivisionError):
                 pair["vs_int"] = np.nan
                 pair["m_int"] = np.nan
-            
+
             # Peak flux metrics
             try:
                 pair["vs_peak"] = calculate_vs_metric(
-                    m1["flux_peak"], m2["flux_peak"],
+                    m1["flux_peak"],
+                    m2["flux_peak"],
                     m1.get("flux_peak_err", m1.get("flux_err", 0.001)),
                     m2.get("flux_peak_err", m2.get("flux_err", 0.001)),
                 )
@@ -538,9 +543,9 @@ def calc_two_epoch_pair_metrics(
             except (ValueError, ZeroDivisionError):
                 pair["vs_peak"] = np.nan
                 pair["m_peak"] = np.nan
-            
+
             pairs.append(pair)
-    
+
     return pairs
 
 
@@ -549,34 +554,35 @@ def get_most_significant_pair(
     min_abs_vs: float = 4.3,
 ) -> Optional[Dict[str, Any]]:
     """Get the most significant two-epoch pair.
-    
+
     Adopted from VAST Pipeline: Source.vs_abs_significant_max_*
-    
+
     Returns the pair with highest |Vs| that exceeds the threshold.
-    
+
     Args:
         pairs: List of pair metrics from calc_two_epoch_pair_metrics
         min_abs_vs: Minimum |Vs| threshold (default 4.3)
-        
+
     Returns:
         Most significant pair dict, or None if none exceed threshold
     """
     if not pairs:
         return None
-    
+
     significant = [
-        p for p in pairs
-        if (np.isfinite(p.get("vs_int", np.nan)) and abs(p["vs_int"]) >= min_abs_vs) or
-           (np.isfinite(p.get("vs_peak", np.nan)) and abs(p["vs_peak"]) >= min_abs_vs)
+        p
+        for p in pairs
+        if (np.isfinite(p.get("vs_int", np.nan)) and abs(p["vs_int"]) >= min_abs_vs)
+        or (np.isfinite(p.get("vs_peak", np.nan)) and abs(p["vs_peak"]) >= min_abs_vs)
     ]
-    
+
     if not significant:
         return None
-    
+
     # Sort by maximum |Vs| (either int or peak)
     def max_vs(p: Dict) -> float:
         vs_int = abs(p.get("vs_int", 0)) if np.isfinite(p.get("vs_int", np.nan)) else 0
         vs_peak = abs(p.get("vs_peak", 0)) if np.isfinite(p.get("vs_peak", np.nan)) else 0
         return max(vs_int, vs_peak)
-    
+
     return max(significant, key=max_vs)

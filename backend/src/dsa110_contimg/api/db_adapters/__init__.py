@@ -10,14 +10,14 @@ manager uses its own PostgreSQL database separately.
 
 Basic Usage:
     from dsa110_contimg.api.db_adapters import create_adapter, DatabaseConfig
-    
+
     # Create adapter from environment variables
     adapter = create_adapter()
     await adapter.connect()
-    
+
     # Execute queries
     rows = await adapter.fetch_all("SELECT * FROM products")
-    
+
     # Clean up
     await adapter.disconnect()
 
@@ -33,9 +33,9 @@ Environment Variables (prefix: DSA110_DB):
 """
 
 from .backend import (
-    create_adapter,
     DatabaseAdapter,
     DatabaseConfig,
+    create_adapter,
 )
 from .query_builder import QueryBuilder
 

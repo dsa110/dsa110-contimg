@@ -7,9 +7,9 @@ to rename subband files to canonical timestamps.
 
 from .normalize import (
     build_subband_filename,
-    normalize_subband_path,
-    normalize_subband_on_ingest,
     normalize_directory,
+    normalize_subband_on_ingest,
+    normalize_subband_path,
 )
 
 __all__ = [

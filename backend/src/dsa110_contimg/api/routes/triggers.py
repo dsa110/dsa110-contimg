@@ -12,7 +12,7 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, Query, Depends
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from ..dependencies import get_pipeline_db
@@ -136,14 +136,14 @@ def _ensure_schema(db: sqlite3.Connection):
 def _row_to_trigger(row: sqlite3.Row) -> Trigger:
     """Convert database row to Trigger model."""
     import json
-    
+
     action_params = None
     if row["action_params"]:
         try:
             action_params = json.loads(row["action_params"])
         except json.JSONDecodeError:
             pass
-    
+
     return Trigger(
         id=row["id"],
         name=row["name"],
@@ -163,14 +163,14 @@ def _row_to_trigger(row: sqlite3.Row) -> Trigger:
 def _row_to_execution(row: sqlite3.Row, trigger_name: str = "") -> TriggerExecution:
     """Convert database row to TriggerExecution model."""
     import json
-    
+
     result = None
     if row["result"]:
         try:
             result = json.loads(row["result"])
         except json.JSONDecodeError:
             pass
-    
+
     return TriggerExecution(
         id=row["id"],
         trigger_id=row["trigger_id"],
@@ -187,9 +187,10 @@ def _calculate_next_run(schedule: Optional[str], trigger_type: str) -> Optional[
     """Calculate next run time for scheduled triggers."""
     if trigger_type != "schedule" or not schedule:
         return None
-    
+
     try:
         from croniter import croniter
+
         now = datetime.utcnow()
         cron = croniter(schedule, now)
         return cron.get_next(datetime).isoformat()
@@ -210,20 +211,20 @@ async def list_triggers(
 ):
     """List all pipeline triggers."""
     _ensure_schema(db)
-    
+
     conditions = []
     params = []
-    
+
     if trigger_type:
         conditions.append("trigger_type = ?")
         params.append(trigger_type)
-    
+
     if enabled is not None:
         conditions.append("enabled = ?")
         params.append(1 if enabled else 0)
-    
+
     where_clause = " AND ".join(conditions) if conditions else "1=1"
-    
+
     cursor = db.execute(
         f"""
         SELECT * FROM pipeline_triggers
@@ -234,7 +235,7 @@ async def list_triggers(
     )
     cursor.row_factory = sqlite3.Row
     rows = cursor.fetchall()
-    
+
     triggers = [_row_to_trigger(row) for row in rows]
     return TriggerListResponse(triggers=triggers, total=len(triggers))
 
@@ -246,17 +247,17 @@ async def get_trigger(
 ):
     """Get a single trigger by ID."""
     _ensure_schema(db)
-    
+
     cursor = db.execute(
         "SELECT * FROM pipeline_triggers WHERE id = ?",
         (trigger_id,),
     )
     cursor.row_factory = sqlite3.Row
     row = cursor.fetchone()
-    
+
     if not row:
         raise HTTPException(status_code=404, detail=f"Trigger {trigger_id} not found")
-    
+
     return _row_to_trigger(row)
 
 
@@ -267,15 +268,15 @@ async def create_trigger(
 ):
     """Create a new pipeline trigger."""
     import json
-    
+
     _ensure_schema(db)
-    
+
     trigger_id = str(uuid.uuid4())
     now = datetime.utcnow().isoformat()
     next_run = _calculate_next_run(data.schedule, data.trigger_type)
-    
+
     action_params_json = json.dumps(data.action_params) if data.action_params else None
-    
+
     db.execute(
         """
         INSERT INTO pipeline_triggers 
@@ -297,7 +298,7 @@ async def create_trigger(
         ),
     )
     db.commit()
-    
+
     return Trigger(
         id=trigger_id,
         name=data.name,
@@ -321,9 +322,9 @@ async def update_trigger(
 ):
     """Update an existing trigger."""
     import json
-    
+
     _ensure_schema(db)
-    
+
     # Check exists
     cursor = db.execute(
         "SELECT id FROM pipeline_triggers WHERE id = ?",
@@ -331,10 +332,10 @@ async def update_trigger(
     )
     if not cursor.fetchone():
         raise HTTPException(status_code=404, detail=f"Trigger {trigger_id} not found")
-    
+
     next_run = _calculate_next_run(data.schedule, data.trigger_type)
     action_params_json = json.dumps(data.action_params) if data.action_params else None
-    
+
     db.execute(
         """
         UPDATE pipeline_triggers
@@ -356,12 +357,12 @@ async def update_trigger(
         ),
     )
     db.commit()
-    
+
     # Fetch updated
     cursor = db.execute("SELECT * FROM pipeline_triggers WHERE id = ?", (trigger_id,))
     cursor.row_factory = sqlite3.Row
     row = cursor.fetchone()
-    
+
     return _row_to_trigger(row)
 
 
@@ -372,19 +373,19 @@ async def delete_trigger(
 ):
     """Delete a trigger."""
     _ensure_schema(db)
-    
+
     cursor = db.execute(
         "SELECT id FROM pipeline_triggers WHERE id = ?",
         (trigger_id,),
     )
     if not cursor.fetchone():
         raise HTTPException(status_code=404, detail=f"Trigger {trigger_id} not found")
-    
+
     # Delete executions first
     db.execute("DELETE FROM trigger_executions WHERE trigger_id = ?", (trigger_id,))
     db.execute("DELETE FROM pipeline_triggers WHERE id = ?", (trigger_id,))
     db.commit()
-    
+
     return None
 
 
@@ -395,23 +396,23 @@ async def execute_trigger(
 ):
     """Manually execute a trigger immediately."""
     _ensure_schema(db)
-    
+
     cursor = db.execute(
         "SELECT * FROM pipeline_triggers WHERE id = ?",
         (trigger_id,),
     )
     cursor.row_factory = sqlite3.Row
     row = cursor.fetchone()
-    
+
     if not row:
         raise HTTPException(status_code=404, detail=f"Trigger {trigger_id} not found")
-    
+
     trigger = _row_to_trigger(row)
-    
+
     # Create execution record
     execution_id = str(uuid.uuid4())
     now = datetime.utcnow().isoformat()
-    
+
     db.execute(
         """
         INSERT INTO trigger_executions (id, trigger_id, started_at, status)
@@ -419,14 +420,14 @@ async def execute_trigger(
         """,
         (execution_id, trigger_id, now),
     )
-    
+
     # Update last triggered
     db.execute(
         "UPDATE pipeline_triggers SET last_triggered_at = ? WHERE id = ?",
         (now, trigger_id),
     )
     db.commit()
-    
+
     # TODO: Actually dispatch to Absurd task queue
     # For now, mark as completed
     db.execute(
@@ -438,9 +439,9 @@ async def execute_trigger(
         (datetime.utcnow().isoformat(), execution_id),
     )
     db.commit()
-    
+
     logger.info(f"Executed trigger {trigger.name} ({trigger_id})")
-    
+
     return TriggerExecutionResponse(
         execution_id=execution_id,
         trigger_id=trigger_id,
@@ -457,7 +458,7 @@ async def get_trigger_history(
 ):
     """Get execution history for a trigger."""
     _ensure_schema(db)
-    
+
     # Get trigger name
     cursor = db.execute(
         "SELECT name FROM pipeline_triggers WHERE id = ?",
@@ -466,9 +467,9 @@ async def get_trigger_history(
     row = cursor.fetchone()
     if not row:
         raise HTTPException(status_code=404, detail=f"Trigger {trigger_id} not found")
-    
+
     trigger_name = row[0]
-    
+
     cursor = db.execute(
         """
         SELECT * FROM trigger_executions
@@ -480,5 +481,5 @@ async def get_trigger_history(
     )
     cursor.row_factory = sqlite3.Row
     rows = cursor.fetchall()
-    
+
     return [_row_to_execution(row, trigger_name) for row in rows]

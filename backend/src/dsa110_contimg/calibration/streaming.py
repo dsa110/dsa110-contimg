@@ -157,6 +157,7 @@ def solve_calibration_for_ms(
         # Issue #8: Pre-calibration RFI flagging
         try:
             from dsa110_contimg.pipeline.hardening import preflag_rfi
+
             preflag_rfi(ms_path, backend="aoflagger")
             logger.info(f"Pre-calibration RFI flagging complete for {ms_path}")
         except ImportError:
@@ -187,35 +188,29 @@ def solve_calibration_for_ms(
         qa_warnings = []
         try:
             from dsa110_contimg.pipeline.hardening import (
-                assess_calibration_quality,
                 CalibrationQAResult,
+                assess_calibration_quality,
             )
-            
+
             for caltable in caltables:
                 qa_result: CalibrationQAResult = assess_calibration_quality(
                     caltable_path=caltable,
                     snr_min=3.0,  # Default minimum SNR threshold
                     flagged_max=0.5,  # Max 50% flagged
                 )
-                
+
                 if not qa_result.passed:
-                    qa_warnings.append(
-                        f"QA failed for {caltable}: {', '.join(qa_result.issues)}"
-                    )
-                    logger.warning(
-                        "Calibration QA failed for %s: %s",
-                        caltable, qa_result.issues
-                    )
+                    qa_warnings.append(f"QA failed for {caltable}: {', '.join(qa_result.issues)}")
+                    logger.warning("Calibration QA failed for %s: %s", caltable, qa_result.issues)
                 elif qa_result.warnings:
                     qa_warnings.extend(qa_result.warnings)
-                    logger.info(
-                        "Calibration QA warnings for %s: %s",
-                        caltable, qa_result.warnings
-                    )
+                    logger.info("Calibration QA warnings for %s: %s", caltable, qa_result.warnings)
                 else:
                     logger.debug(
                         "Calibration QA passed for %s (SNR=%.1f, flagged=%.1f%%)",
-                        caltable, qa_result.snr_median, qa_result.flagged_fraction * 100
+                        caltable,
+                        qa_result.snr_median,
+                        qa_result.flagged_fraction * 100,
                     )
         except ImportError:
             logger.debug("Hardening module not available, skipping QA")
@@ -224,8 +219,9 @@ def solve_calibration_for_ms(
 
         logger.info(
             "Successfully solved calibration for %s: produced %d calibration table(s)%s",
-            ms_path, len(caltables),
-            f" (QA warnings: {len(qa_warnings)})" if qa_warnings else ""
+            ms_path,
+            len(caltables),
+            f" (QA warnings: {len(qa_warnings)})" if qa_warnings else "",
         )
         return True, None
 

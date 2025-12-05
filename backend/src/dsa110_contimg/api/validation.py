@@ -8,17 +8,16 @@ and reusable validation patterns for API endpoints.
 import re
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Generic, List, Optional, TypeVar, Union
+from typing import Any, List, Optional
 
-from fastapi import HTTPException, Query, Path
+from fastapi import HTTPException, Path, Query
 from pydantic import (
     BaseModel,
+    ConfigDict,
     Field,
     field_validator,
     model_validator,
-    ConfigDict,
 )
-
 
 # ============================================================================
 # Common Validation Patterns
@@ -48,9 +47,10 @@ UUID_PATTERN = re.compile(
 # Validation Exceptions
 # ============================================================================
 
+
 class ValidationError(HTTPException):
     """Raised when request validation fails."""
-    
+
     def __init__(
         self,
         field: str,
@@ -64,7 +64,7 @@ class ValidationError(HTTPException):
         }
         if value is not None:
             detail["value"] = str(value)[:100]  # Truncate long values
-        
+
         super().__init__(status_code=422, detail=detail)
 
 
@@ -72,11 +72,12 @@ class ValidationError(HTTPException):
 # Pagination Models
 # ============================================================================
 
+
 class PaginationParams(BaseModel):
     """Standard pagination parameters."""
-    
+
     model_config = ConfigDict(extra="forbid")
-    
+
     limit: int = Field(
         default=50,
         ge=1,
@@ -88,7 +89,7 @@ class PaginationParams(BaseModel):
         ge=0,
         description="Number of items to skip",
     )
-    
+
     @field_validator("limit")
     @classmethod
     def validate_limit(cls, v: int) -> int:
@@ -99,9 +100,9 @@ class PaginationParams(BaseModel):
 
 class CursorPaginationParams(BaseModel):
     """Cursor-based pagination parameters."""
-    
+
     model_config = ConfigDict(extra="forbid")
-    
+
     cursor: Optional[str] = Field(
         default=None,
         max_length=500,
@@ -119,17 +120,19 @@ class CursorPaginationParams(BaseModel):
 # Sort/Filter Models
 # ============================================================================
 
+
 class SortOrder(str, Enum):
     """Sort order options."""
+
     ASC = "asc"
     DESC = "desc"
 
 
 class SortParams(BaseModel):
     """Standard sort parameters."""
-    
+
     model_config = ConfigDict(extra="forbid")
-    
+
     sort_by: Optional[str] = Field(
         default=None,
         max_length=50,
@@ -144,9 +147,9 @@ class SortParams(BaseModel):
 
 class DateRangeParams(BaseModel):
     """Date range filter parameters."""
-    
+
     model_config = ConfigDict(extra="forbid")
-    
+
     start_date: Optional[datetime] = Field(
         default=None,
         description="Start of date range (ISO 8601)",
@@ -155,7 +158,7 @@ class DateRangeParams(BaseModel):
         default=None,
         description="End of date range (ISO 8601)",
     )
-    
+
     @model_validator(mode="after")
     def validate_date_range(self) -> "DateRangeParams":
         if self.start_date and self.end_date:
@@ -168,11 +171,12 @@ class DateRangeParams(BaseModel):
 # Entity Validation Models
 # ============================================================================
 
+
 class ImageQueryParams(BaseModel):
     """Query parameters for image listing."""
-    
+
     model_config = ConfigDict(extra="forbid")
-    
+
     source: Optional[str] = Field(
         default=None,
         max_length=200,
@@ -193,7 +197,7 @@ class ImageQueryParams(BaseModel):
         ge=0,
         description="Maximum flux in Jy",
     )
-    
+
     @model_validator(mode="after")
     def validate_flux_range(self) -> "ImageQueryParams":
         if self.min_flux is not None and self.max_flux is not None:
@@ -204,9 +208,9 @@ class ImageQueryParams(BaseModel):
 
 class SourceQueryParams(BaseModel):
     """Query parameters for source listing."""
-    
+
     model_config = ConfigDict(extra="forbid")
-    
+
     name: Optional[str] = Field(
         default=None,
         max_length=200,
@@ -240,9 +244,9 @@ class SourceQueryParams(BaseModel):
 
 class JobQueryParams(BaseModel):
     """Query parameters for job listing."""
-    
+
     model_config = ConfigDict(extra="forbid")
-    
+
     status: Optional[str] = Field(
         default=None,
         pattern=r"^(pending|running|completed|failed|cancelled)$",
@@ -258,6 +262,7 @@ class JobQueryParams(BaseModel):
 # ============================================================================
 # Path Parameter Validators
 # ============================================================================
+
 
 def validate_image_id(image_id: str) -> str:
     """Validate image ID path parameter."""
@@ -297,8 +302,9 @@ def validate_ms_path(ms_path: str) -> str:
     """Validate MS path parameter."""
     # Decode URL-encoded paths
     import urllib.parse
+
     decoded_path = urllib.parse.unquote(ms_path)
-    
+
     # Check for path traversal attempts
     if ".." in decoded_path or decoded_path.startswith("/"):
         raise ValidationError(
@@ -306,7 +312,7 @@ def validate_ms_path(ms_path: str) -> str:
             message="Invalid MS path. Path traversal not allowed.",
             value=ms_path,
         )
-    
+
     return decoded_path
 
 
@@ -314,9 +320,8 @@ def validate_ms_path(ms_path: str) -> str:
 # FastAPI Dependency Helpers
 # ============================================================================
 
-def ImageIdPath(
-    description: str = "Image identifier"
-) -> str:
+
+def ImageIdPath(description: str = "Image identifier") -> str:
     """Path parameter for image ID with validation."""
     return Path(
         ...,
@@ -328,9 +333,7 @@ def ImageIdPath(
     )
 
 
-def SourceIdPath(
-    description: str = "Source identifier or name"
-) -> str:
+def SourceIdPath(description: str = "Source identifier or name") -> str:
     """Path parameter for source ID with validation."""
     return Path(
         ...,
@@ -341,9 +344,7 @@ def SourceIdPath(
     )
 
 
-def JobIdPath(
-    description: str = "Job UUID"
-) -> str:
+def JobIdPath(description: str = "Job UUID") -> str:
     """Path parameter for job ID with validation."""
     return Path(
         ...,
@@ -384,11 +385,12 @@ def OffsetQuery(
 # Request Body Validation
 # ============================================================================
 
+
 class JobCreateRequest(BaseModel):
     """Request body for creating a new job."""
-    
+
     model_config = ConfigDict(extra="forbid")
-    
+
     pipeline: str = Field(
         ...,
         min_length=1,
@@ -409,16 +411,16 @@ class JobCreateRequest(BaseModel):
 
 class CacheInvalidateRequest(BaseModel):
     """Request body for cache invalidation."""
-    
+
     model_config = ConfigDict(extra="forbid")
-    
+
     keys: List[str] = Field(
         ...,
         min_length=1,
         max_length=100,
         description="Cache keys to invalidate",
     )
-    
+
     @field_validator("keys")
     @classmethod
     def validate_keys(cls, v: List[str]) -> List[str]:
@@ -433,6 +435,7 @@ class CacheInvalidateRequest(BaseModel):
 # ============================================================================
 # Content Validation
 # ============================================================================
+
 
 def validate_json_content_type(content_type: Optional[str]) -> bool:
     """Validate that content type is JSON."""
@@ -451,15 +454,16 @@ def validate_file_extension(filename: str, allowed: List[str]) -> bool:
 # Coordinate Validation
 # ============================================================================
 
+
 def normalize_ra(ra: float) -> float:
     """Normalize Right Ascension to [0, 360) range.
-    
+
     Args:
         ra: Right Ascension in degrees (any range)
-        
+
     Returns:
         RA normalized to [0, 360) range
-        
+
     Example:
         >>> normalize_ra(-125.0)
         235.0
@@ -471,14 +475,14 @@ def normalize_ra(ra: float) -> float:
 
 def validate_ra(ra: float, normalize: bool = False) -> float:
     """Validate Right Ascension (0-360 degrees).
-    
+
     Args:
         ra: Right Ascension in degrees
         normalize: If True, normalize to [0, 360) before validation
-        
+
     Returns:
         Validated (and optionally normalized) RA value
-        
+
     Raises:
         ValidationError: If RA is outside [0, 360] range and normalize=False
     """
@@ -525,6 +529,7 @@ def validate_search_radius(radius: float, max_radius: float = 10.0) -> float:
 # Measurement Set Validation for Visualization
 # ============================================================================
 
+
 def validate_ms_for_visualization(ms_path: str) -> None:
     """
     Validate MS is suitable for casangi/raster visualization.
@@ -563,28 +568,18 @@ def validate_ms_for_visualization(ms_path: str) -> None:
 
         with table(str(path), readonly=True) as t:
             if t.nrows() == 0:
-                raise HTTPException(
-                    status_code=422,
-                    detail="MS is empty (0 rows)"
-                )
+                raise HTTPException(status_code=422, detail="MS is empty (0 rows)")
 
             colnames = t.colnames()
             if "CORRECTED_DATA" not in colnames and "DATA" not in colnames:
                 raise HTTPException(
-                    status_code=422,
-                    detail="MS has no DATA or CORRECTED_DATA column"
+                    status_code=422, detail="MS has no DATA or CORRECTED_DATA column"
                 )
     except RuntimeError as e:
         error_str = str(e).lower()
         if "cannot be opened" in error_str or "lock" in error_str:
-            raise HTTPException(
-                status_code=423,
-                detail=f"MS is locked by another process: {e}"
-            )
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to open MS: {e}"
-        )
+            raise HTTPException(status_code=423, detail=f"MS is locked by another process: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to open MS: {e}")
     except ImportError:
         # casacore not available - skip detailed validation
         pass
@@ -628,6 +623,7 @@ def validate_imaging_parameters(
     if cell is not None:
         # Validate cell format (e.g., "2.5arcsec", "0.5arcmin")
         import re
+
         if not re.match(r"^\d+(\.\d+)?(arcsec|arcmin|deg)$", cell):
             raise ValidationError(
                 field="cell",
@@ -746,4 +742,3 @@ class ImagingSessionParams(BaseModel):
         """Validate imaging parameters."""
         validate_imaging_parameters(self.imsize, self.niter, self.cell)
         return self
-

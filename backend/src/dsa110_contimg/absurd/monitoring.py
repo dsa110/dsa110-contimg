@@ -16,8 +16,8 @@ import asyncio
 import logging
 import time
 from collections import defaultdict, deque
-from dataclasses import asdict, dataclass, field
-from datetime import datetime, timedelta
+from dataclasses import asdict, dataclass
+from datetime import datetime
 from enum import Enum
 from typing import Any, Dict, List, Optional, Set
 
@@ -625,9 +625,9 @@ class AbsurdMonitor:
             age_oldest_pending_sec = now - created_at
 
             if age_oldest_pending_sec > 3600:  # 1 hour
-                alerts.append(f"Task pending for {age_oldest_pending_sec/3600:.1f} hours")
+                alerts.append(f"Task pending for {age_oldest_pending_sec / 3600:.1f} hours")
             elif age_oldest_pending_sec > 600:  # 10 minutes
-                warnings.append(f"Task pending for {age_oldest_pending_sec/60:.1f} minutes")
+                warnings.append(f"Task pending for {age_oldest_pending_sec / 60:.1f} minutes")
 
         # Check last completed task
         completed_tasks = await self.client.list_tasks(
@@ -641,7 +641,9 @@ class AbsurdMonitor:
             last_task_completed_sec_ago = now - completed_at
 
             if queue_depth > 0 and last_task_completed_sec_ago > 300:  # 5 minutes
-                alerts.append(f"No tasks completed in {last_task_completed_sec_ago/60:.1f} minutes")
+                alerts.append(
+                    f"No tasks completed in {last_task_completed_sec_ago / 60:.1f} minutes"
+                )
 
         # Check worker pool
         worker_metrics = await self.collect_worker_metrics()

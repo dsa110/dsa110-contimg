@@ -172,8 +172,7 @@ def image_spw(
             return Path(exported[0])
 
     raise RuntimeError(
-        f"Failed to create image for SPW {spw_id}. "
-        f"Expected output: {pbcor_fits} or {pbcor_casa}"
+        f"Failed to create image for SPW {spw_id}. Expected output: {pbcor_fits} or {pbcor_casa}"
     )  # noqa: E501
 
 
@@ -304,10 +303,7 @@ def _image_all_spws_impl(
         available_ids = {info.spw_id for info in spw_info_list}
         invalid_ids = set(spw_ids) - available_ids
         if invalid_ids:
-            msg = (
-                f"Invalid SPW IDs: {sorted(invalid_ids)}. "
-                f"Available SPWs: {sorted(available_ids)}"
-            )
+            msg = f"Invalid SPW IDs: {sorted(invalid_ids)}. Available SPWs: {sorted(available_ids)}"
             raise ValueError(msg)
         spw_ids_to_image = sorted(spw_ids)
 

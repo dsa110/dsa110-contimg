@@ -40,29 +40,6 @@ from .dependencies import (
     topological_sort,
 )
 
-# Scheduling module
-from .scheduling import (
-    ScheduledTask,
-    ScheduleState,
-    TaskScheduler,
-    calculate_next_run,
-    create_schedule,
-    delete_schedule,
-    ensure_scheduled_tasks_table,
-    get_schedule,
-    list_schedules,
-    parse_cron_expression,
-    trigger_schedule_now,
-    update_schedule,
-)
-from .worker import AbsurdWorker, set_websocket_manager
-
-# Maintenance tasks (consolidated from cron/systemd timers)
-from .maintenance import (
-    DEFAULT_SCHEDULES,
-    setup_default_schedules,
-)
-
 # Ingestion tasks (scheduled polling approach)
 from .ingestion import (
     INGESTION_SCHEDULE,
@@ -81,6 +58,29 @@ from .ingestion_db import (
     record_subband,
     update_group_state,
 )
+
+# Maintenance tasks (consolidated from cron/systemd timers)
+from .maintenance import (
+    DEFAULT_SCHEDULES,
+    setup_default_schedules,
+)
+
+# Scheduling module
+from .scheduling import (
+    ScheduledTask,
+    ScheduleState,
+    TaskScheduler,
+    calculate_next_run,
+    create_schedule,
+    delete_schedule,
+    ensure_scheduled_tasks_table,
+    get_schedule,
+    list_schedules,
+    parse_cron_expression,
+    trigger_schedule_now,
+    update_schedule,
+)
+from .worker import AbsurdWorker, set_websocket_manager
 
 __all__ = [
     # Core client and worker

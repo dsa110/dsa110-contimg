@@ -14,11 +14,14 @@ def _get_gaincal():
     if _casa_gaincal is None:
         try:
             from dsa110_contimg.utils.tempdirs import casa_log_environment
+
             with casa_log_environment():
                 from casatasks import gaincal  # type: ignore[import]
+
                 _casa_gaincal = gaincal
         except ImportError:
             from casatasks import gaincal  # type: ignore[import]
+
             _casa_gaincal = gaincal
     return _casa_gaincal
 
@@ -27,8 +30,8 @@ from dsa110_contimg.calibration.validate import (
     validate_caltables_for_use,
 )
 from dsa110_contimg.conversion.merge_spws import get_spw_count
-from dsa110_contimg.utils.casa_init import ensure_casa_path
 from dsa110_contimg.utils import timed
+from dsa110_contimg.utils.casa_init import ensure_casa_path
 
 # Initialize CASA environment before importing CASA modules
 ensure_casa_path()
@@ -45,13 +48,14 @@ table = _casatables.table  # noqa: N816
 
 def _call_gaincal(**kwargs):
     """Call casa_gaincal with CASA log environment protection.
-    
+
     This wrapper ensures CASA log files are written to the designated
     logs directory rather than the current working directory.
     """
     gaincal = _get_gaincal()
     try:
         from dsa110_contimg.utils.tempdirs import casa_log_environment
+
         with casa_log_environment():
             return gaincal(**kwargs)
     except ImportError:
@@ -188,8 +192,9 @@ def _extract_quality_metrics(
         Dictionary with quality metrics (SNR, flagged_fraction, etc.),
         qa_passed (bool), and any issues/warnings. Returns None on read error.
     """
-    import numpy as np  # type: ignore[import]
     import time
+
+    import numpy as np  # type: ignore[import]
 
     try:
         with table(caltable_path, readonly=True) as tb:
@@ -217,7 +222,7 @@ def _extract_quality_metrics(
                     total_count = flags.size
                     flagged_fraction = float(flagged_count / total_count)
                     metrics["flagged_fraction"] = flagged_fraction
-                    
+
                     # QA check: flagged fraction
                     if flagged_fraction > flagged_max:
                         metrics["qa_passed"] = False
@@ -226,9 +231,7 @@ def _extract_quality_metrics(
                             f"(max: {flagged_max:.1%})"
                         )
                     elif flagged_fraction > flagged_warn:
-                        metrics["warnings"].append(
-                            f"High flagged fraction: {flagged_fraction:.1%}"
-                        )
+                        metrics["warnings"].append(f"High flagged fraction: {flagged_fraction:.1%}")
 
             # Check for SNR column
             if "SNR" in tb.colnames():
@@ -241,23 +244,20 @@ def _extract_quality_metrics(
                         snr_median = float(np.median(snr_valid))
                         snr_min_val = float(np.min(snr_valid))
                         snr_max_val = float(np.max(snr_valid))
-                        
+
                         metrics["snr_mean"] = snr_mean
                         metrics["snr_median"] = snr_median
                         metrics["snr_min"] = snr_min_val
                         metrics["snr_max"] = snr_max_val
-                        
+
                         # QA check: mean SNR
                         if snr_mean < snr_min:
                             metrics["qa_passed"] = False
                             metrics["issues"].append(
-                                f"Mean SNR too low: {snr_mean:.1f} "
-                                f"(min: {snr_min:.1f})"
+                                f"Mean SNR too low: {snr_mean:.1f} (min: {snr_min:.1f})"
                             )
                         elif snr_mean < snr_warn:
-                            metrics["warnings"].append(
-                                f"Low mean SNR: {snr_mean:.1f}"
-                            )
+                            metrics["warnings"].append(f"Low mean SNR: {snr_mean:.1f}")
 
             # Number of antennas
             if "ANTENNA1" in tb.colnames():
@@ -265,13 +265,12 @@ def _extract_quality_metrics(
                 unique_ants = np.unique(ant1)
                 n_antennas = len(unique_ants)
                 metrics["n_antennas"] = n_antennas
-                
+
                 # QA check: minimum antennas
                 if n_antennas < min_antennas:
                     metrics["qa_passed"] = False
                     metrics["issues"].append(
-                        f"Too few antennas: {n_antennas} "
-                        f"(min: {min_antennas})"
+                        f"Too few antennas: {n_antennas} (min: {min_antennas})"
                     )
 
             # Number of spectral windows
@@ -353,8 +352,7 @@ def _track_calibration_provenance(
         )
 
         logger.debug(
-            f"Tracked provenance for {caltable_path} "
-            f"(source: {ms_path}, version: {casa_version})"
+            f"Tracked provenance for {caltable_path} (source: {ms_path}, version: {casa_version})"
         )
 
     except Exception as e:
@@ -472,8 +470,7 @@ def _validate_solve_success(caltable_path: str, refant: Optional[Union[int, str]
         raise
     except Exception as e:
         raise RuntimeError(
-            f"Calibration solve validation failed: unable to read table {caltable_path}. "
-            f"Error: {e}"
+            f"Calibration solve validation failed: unable to read table {caltable_path}. Error: {e}"
         ) from e
 
 
@@ -508,14 +505,14 @@ def _check_flag_fraction(
         flag_fraction = flagged / total if total > 0 else 0.0
 
     logger.info(
-        f"Flag fraction in {cal_type} table: {flag_fraction*100:.1f}% "
+        f"Flag fraction in {cal_type} table: {flag_fraction * 100:.1f}% "
         f"({flagged:,}/{total:,} solutions flagged)"
     )
 
     if flag_fraction > max_flag_fraction:
         raise ValueError(
             f"{cal_type.upper()} SOLVE FAILED: Excessive flagging detected.\n"
-            f"  Flag fraction: {flag_fraction*100:.1f}% (threshold: {max_flag_fraction*100:.0f}%)\n"
+            f"  Flag fraction: {flag_fraction * 100:.1f}% (threshold: {max_flag_fraction * 100:.0f}%)\n"
             f"  Flagged solutions: {flagged:,} / {total:,}\n\n"
             f"This indicates poor data quality or incorrect calibration setup.\n"
             f"Common causes:\n"
@@ -673,7 +670,7 @@ def solve_delay(
             raise ValueError(f"All data in field {cal_field} is flagged")
 
         logger.debug(
-            f"Field {cal_field}: {np.sum(field_mask)} rows, " f"{unflagged_count} unflagged points"
+            f"Field {cal_field}: {np.sum(field_mask)} rows, {unflagged_count} unflagged points"
         )
 
     # Use more conservative combination settings to avoid empty arrays
@@ -957,7 +954,9 @@ def solve_prebandpass_phase(
             logger.info(
                 f"    :arrow_right: Each of the {len(spw_ids_with_data)} SPWs will be solved separately"
             )
-            logger.info(f"    :arrow_right: Solutions will be stored in SPW IDs {spw_ids_with_data}")
+            logger.info(
+                f"    :arrow_right: Solutions will be stored in SPW IDs {spw_ids_with_data}"
+            )
 
     logger.info("=" * 70 + "\n")
 
@@ -1045,7 +1044,9 @@ def _check_coherent_phasing(
 
     logger.debug(
         "Phase center RA: scatter=%.1f arcsec, span=%.1f arcsec (%d fields)",
-        ra_scatter_arcsec, ra_span_arcsec, len(ra_values)
+        ra_scatter_arcsec,
+        ra_span_arcsec,
+        len(ra_values),
     )
 
     if ra_scatter_arcsec > max_ra_scatter_arcsec:
@@ -1062,7 +1063,8 @@ def _check_coherent_phasing(
 
     logger.info(
         "✓ Coherent phasing OK: RA scatter=%.1f arcsec (< %.1f threshold)",
-        ra_scatter_arcsec, max_ra_scatter_arcsec
+        ra_scatter_arcsec,
+        max_ra_scatter_arcsec,
     )
 
 
@@ -1142,6 +1144,7 @@ def solve_bandpass(
     # use module-level table
     try:
         from dsa110_contimg.utils.tempdirs import casa_log_environment
+
         with casa_log_environment():
             from casatasks import bandpass as casa_bandpass  # type: ignore[import]
     except ImportError:
@@ -1277,7 +1280,9 @@ def solve_bandpass(
             logger.info(
                 f"    :arrow_right: Each of the {len(spw_ids_with_data)} SPWs will be solved separately"
             )
-            logger.info(f"    :arrow_right: Solutions will be stored in SPW IDs {spw_ids_with_data}")
+            logger.info(
+                f"    :arrow_right: Solutions will be stored in SPW IDs {spw_ids_with_data}"
+            )
 
     logger.info("=" * 70 + "\n")
 
@@ -1362,6 +1367,7 @@ def solve_bandpass(
             # Prefer CASA smoothcal if available
             try:
                 from dsa110_contimg.utils.tempdirs import casa_log_environment
+
                 with casa_log_environment():
                     from casatasks import smoothcal as casa_smoothcal  # type: ignore[import]
             except ImportError:
@@ -1592,7 +1598,9 @@ def solve_gains(
             task_name="gaincal",
             params=kwargs,
         )
-        logger.info(f":check: Short-timescale phase-only gain solve completed: {table_prefix}_2gcal")
+        logger.info(
+            f":check: Short-timescale phase-only gain solve completed: {table_prefix}_2gcal"
+        )
         out.append(f"{table_prefix}_2gcal")
 
     # QA validation of gain calibration tables

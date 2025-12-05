@@ -7,7 +7,7 @@ Read operations remain public for observatory data access.
 Usage:
     # In routes that require authentication:
     from .auth import require_api_key, require_write_access
-    
+
     @router.post("/jobs/{run_id}/rerun")
     async def rerun_job(run_id: str, _: str = Depends(require_write_access)):
         ...
@@ -22,17 +22,16 @@ Environment Variables:
 from __future__ import annotations
 
 import hashlib
-import hmac
 import logging
 import os
 import secrets
 import time
 from dataclasses import dataclass
-from datetime import datetime, timedelta
-from typing import Optional, List
+from datetime import timedelta
+from typing import List, Optional
 
 from fastapi import Depends, HTTPException, Request, Security
-from fastapi.security import APIKeyHeader, HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
 
 logger = logging.getLogger(__name__)
 
@@ -50,9 +49,7 @@ def is_auth_disabled() -> bool:
     env = os.getenv("DSA110_ENV", "development").lower()
     if env in {"development", "testing"}:
         return True
-    logger.warning(
-        "Ignoring DSA110_AUTH_DISABLED in environment '%s' (auth always on)", env
-    )
+    logger.warning("Ignoring DSA110_AUTH_DISABLED in environment '%s' (auth always on)", env)
     return False
 
 
@@ -82,11 +79,12 @@ def hash_api_key(key: str) -> str:
 @dataclass
 class AuthContext:
     """Authentication context for a request."""
+
     authenticated: bool
     method: str  # "api_key", "jwt", "none"
     key_id: Optional[str] = None  # Partial key for logging (last 8 chars)
     claims: Optional[dict] = None  # JWT claims if applicable
-    
+
     @property
     def is_write_allowed(self) -> bool:
         """Check if this context allows write operations."""
@@ -111,7 +109,7 @@ def verify_api_key(api_key: str) -> bool:
     if not valid_keys:
         logger.warning("No API keys configured - authentication will fail")
         return False
-    
+
     # Use constant-time comparison to prevent timing attacks
     for valid_key in valid_keys:
         if secrets.compare_digest(api_key, valid_key):
@@ -125,14 +123,15 @@ def decode_jwt(token: str) -> Optional[dict]:
     if not jwt_secret:
         logger.warning("JWT_SECRET not configured - JWT auth disabled")
         return None
-    
+
     try:
         import jwt
         from jwt.exceptions import PyJWTError
+
         # Add leeway to handle clock skew between token creation and verification
         payload = jwt.decode(
-            token, 
-            jwt_secret, 
+            token,
+            jwt_secret,
             algorithms=[JWT_ALGORITHM],
             leeway=timedelta(seconds=10),  # Allow 10 seconds of clock skew
         )
@@ -154,12 +153,12 @@ def create_jwt(
     jwt_secret = get_jwt_secret()
     if not jwt_secret:
         raise ValueError("JWT_SECRET not configured")
-    
+
     try:
         import jwt
     except ImportError:
         raise ImportError("PyJWT required for JWT creation: pip install PyJWT")
-    
+
     # Use time.time() for consistent timestamps (PyJWT uses time.time() internally)
     now = int(time.time())
     payload = {
@@ -168,7 +167,7 @@ def create_jwt(
         "exp": now + (expiry_hours * 3600),
         "scopes": scopes or ["read"],
     }
-    
+
     return jwt.encode(payload, jwt_secret, algorithm=JWT_ALGORITHM)
 
 
@@ -179,7 +178,7 @@ async def get_auth_context(
 ) -> AuthContext:
     """
     Extract authentication context from request.
-    
+
     Checks in order:
     1. API Key in header
     2. Bearer token (JWT)
@@ -189,7 +188,7 @@ async def get_auth_context(
     if is_auth_disabled():
         logger.debug("Authentication disabled via DSA110_AUTH_DISABLED")
         return AuthContext(authenticated=True, method="disabled")
-    
+
     # Try API key first
     if api_key:
         if verify_api_key(api_key):
@@ -201,8 +200,8 @@ async def get_auth_context(
                 key_id=key_id,
             )
         else:
-            logger.warning(f"Invalid API key attempted")
-    
+            logger.warning("Invalid API key attempted")
+
     # Try Bearer token (JWT)
     if bearer and bearer.credentials:
         claims = decode_jwt(bearer.credentials)
@@ -213,7 +212,7 @@ async def get_auth_context(
                 method="jwt",
                 claims=claims,
             )
-    
+
     # No authentication
     return AuthContext(authenticated=False, method="none")
 
@@ -223,7 +222,7 @@ async def require_auth(
 ) -> AuthContext:
     """
     Dependency that requires any valid authentication.
-    
+
     Raises HTTPException 401 if not authenticated.
     """
     if not auth.authenticated:
@@ -236,7 +235,7 @@ async def require_auth(
                 "action": f"Provide a valid API key in the {API_KEY_HEADER_NAME} header",
                 "ref_id": "",
             },
-            headers={"WWW-Authenticate": f'ApiKey realm="DSA-110 API"'},
+            headers={"WWW-Authenticate": 'ApiKey realm="DSA-110 API"'},
         )
     return auth
 
@@ -246,7 +245,7 @@ async def require_write_access(
 ) -> AuthContext:
     """
     Dependency that requires write access.
-    
+
     Raises HTTPException 403 if authenticated but lacking write permission.
     """
     if not auth.is_write_allowed:

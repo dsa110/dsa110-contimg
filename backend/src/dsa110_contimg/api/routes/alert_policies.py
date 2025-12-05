@@ -124,9 +124,7 @@ class AlertPolicyDryRunResponse(BaseModel):
 
 def get_db_connection() -> sqlite3.Connection:
     """Get a connection to the pipeline database."""
-    db_path = Path(
-        os.environ.get("PIPELINE_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3")
-    )
+    db_path = Path(os.environ.get("PIPELINE_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3"))
     conn = sqlite3.connect(str(db_path), timeout=10.0)
     conn.row_factory = sqlite3.Row
     return conn
@@ -249,9 +247,7 @@ async def get_alert_policy(policy_id: str) -> AlertPolicy:
     conn = get_db_connection()
     ensure_tables_exist(conn)
 
-    row = conn.execute(
-        "SELECT * FROM alert_policies WHERE id = ?", (policy_id,)
-    ).fetchone()
+    row = conn.execute("SELECT * FROM alert_policies WHERE id = ?", (policy_id,)).fetchone()
     conn.close()
 
     if not row:
@@ -296,9 +292,7 @@ async def create_alert_policy(input: AlertPolicyInput) -> AlertPolicy:
     )
     conn.commit()
 
-    row = conn.execute(
-        "SELECT * FROM alert_policies WHERE id = ?", (policy_id,)
-    ).fetchone()
+    row = conn.execute("SELECT * FROM alert_policies WHERE id = ?", (policy_id,)).fetchone()
     conn.close()
 
     return policy_from_row(row)
@@ -315,9 +309,7 @@ async def update_alert_policy(policy_id: str, input: AlertPolicyInput) -> AlertP
     ensure_tables_exist(conn)
 
     # Check if exists
-    existing = conn.execute(
-        "SELECT id FROM alert_policies WHERE id = ?", (policy_id,)
-    ).fetchone()
+    existing = conn.execute("SELECT id FROM alert_policies WHERE id = ?", (policy_id,)).fetchone()
     if not existing:
         conn.close()
         raise HTTPException(status_code=404, detail=f"Policy {policy_id} not found")
@@ -346,9 +338,7 @@ async def update_alert_policy(policy_id: str, input: AlertPolicyInput) -> AlertP
     )
     conn.commit()
 
-    row = conn.execute(
-        "SELECT * FROM alert_policies WHERE id = ?", (policy_id,)
-    ).fetchone()
+    row = conn.execute("SELECT * FROM alert_policies WHERE id = ?", (policy_id,)).fetchone()
     conn.close()
 
     return policy_from_row(row)
@@ -363,9 +353,7 @@ async def delete_alert_policy(policy_id: str) -> Dict[str, Any]:
     ensure_tables_exist(conn)
 
     # Check if exists
-    existing = conn.execute(
-        "SELECT id FROM alert_policies WHERE id = ?", (policy_id,)
-    ).fetchone()
+    existing = conn.execute("SELECT id FROM alert_policies WHERE id = ?", (policy_id,)).fetchone()
     if not existing:
         conn.close()
         raise HTTPException(status_code=404, detail=f"Policy {policy_id} not found")
@@ -392,9 +380,7 @@ async def toggle_alert_policy(
     ensure_tables_exist(conn)
 
     # Check if exists
-    existing = conn.execute(
-        "SELECT id FROM alert_policies WHERE id = ?", (policy_id,)
-    ).fetchone()
+    existing = conn.execute("SELECT id FROM alert_policies WHERE id = ?", (policy_id,)).fetchone()
     if not existing:
         conn.close()
         raise HTTPException(status_code=404, detail=f"Policy {policy_id} not found")
@@ -407,9 +393,7 @@ async def toggle_alert_policy(
     )
     conn.commit()
 
-    row = conn.execute(
-        "SELECT * FROM alert_policies WHERE id = ?", (policy_id,)
-    ).fetchone()
+    row = conn.execute("SELECT * FROM alert_policies WHERE id = ?", (policy_id,)).fetchone()
     conn.close()
 
     return policy_from_row(row)
@@ -465,9 +449,7 @@ async def list_all_silences() -> List[AlertSilence]:
     conn = get_db_connection()
     ensure_tables_exist(conn)
 
-    rows = conn.execute(
-        "SELECT * FROM alert_silences ORDER BY created_at DESC"
-    ).fetchall()
+    rows = conn.execute("SELECT * FROM alert_silences ORDER BY created_at DESC").fetchall()
     conn.close()
 
     return [silence_from_row(row) for row in rows]
@@ -482,9 +464,7 @@ async def list_policy_silences(policy_id: str) -> List[AlertSilence]:
     ensure_tables_exist(conn)
 
     # Check if policy exists
-    existing = conn.execute(
-        "SELECT id FROM alert_policies WHERE id = ?", (policy_id,)
-    ).fetchone()
+    existing = conn.execute("SELECT id FROM alert_policies WHERE id = ?", (policy_id,)).fetchone()
     if not existing:
         conn.close()
         raise HTTPException(status_code=404, detail=f"Policy {policy_id} not found")
@@ -499,9 +479,7 @@ async def list_policy_silences(policy_id: str) -> List[AlertSilence]:
 
 
 @router.post("/{policy_id}/silences", response_model=AlertSilence)
-async def create_alert_silence(
-    policy_id: str, input: CreateSilenceInput
-) -> AlertSilence:
+async def create_alert_silence(policy_id: str, input: CreateSilenceInput) -> AlertSilence:
     """
     Create a silence for an alert policy.
 
@@ -511,9 +489,7 @@ async def create_alert_silence(
     ensure_tables_exist(conn)
 
     # Check if policy exists
-    existing = conn.execute(
-        "SELECT id FROM alert_policies WHERE id = ?", (policy_id,)
-    ).fetchone()
+    existing = conn.execute("SELECT id FROM alert_policies WHERE id = ?", (policy_id,)).fetchone()
     if not existing:
         conn.close()
         raise HTTPException(status_code=404, detail=f"Policy {policy_id} not found")
@@ -539,9 +515,7 @@ async def create_alert_silence(
     )
     conn.commit()
 
-    row = conn.execute(
-        "SELECT * FROM alert_silences WHERE id = ?", (silence_id,)
-    ).fetchone()
+    row = conn.execute("SELECT * FROM alert_silences WHERE id = ?", (silence_id,)).fetchone()
     conn.close()
 
     return silence_from_row(row)

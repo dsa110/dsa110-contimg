@@ -24,9 +24,9 @@ Usage:
 """
 
 from .gpu_detection import (
-    gpu_rfi_detection,
-    RFIDetectionResult,
     RFIDetectionConfig,
+    RFIDetectionResult,
+    gpu_rfi_detection,
 )
 
 __all__ = [

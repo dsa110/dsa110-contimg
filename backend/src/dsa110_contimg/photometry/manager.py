@@ -22,13 +22,13 @@ from astropy.io import fits
 from astropy.wcs import WCS
 
 from dsa110_contimg.api.batch import create_batch_photometry_job
-from dsa110_contimg.database.data_registry import (
-    ensure_data_registry_db,
-    link_photometry_to_data,
-)
 from dsa110_contimg.database import (
     ensure_pipeline_db,
     photometry_insert,
+)
+from dsa110_contimg.database.data_registry import (
+    ensure_data_registry_db,
+    link_photometry_to_data,
 )
 from dsa110_contimg.photometry.ese_pipeline import auto_detect_ese_for_new_measurements
 from dsa110_contimg.photometry.forced import ForcedPhotometryResult, measure_many

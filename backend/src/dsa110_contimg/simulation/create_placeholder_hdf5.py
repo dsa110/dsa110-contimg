@@ -54,8 +54,7 @@ def create_placeholder_hdf5(
         n_pols = ref_uv.Npols
 
         logger.info(
-            f"Reference dimensions: {n_blts} blts, {n_times} times, "
-            f"{n_freqs} freqs, {n_pols} pols"
+            f"Reference dimensions: {n_blts} blts, {n_times} times, {n_freqs} freqs, {n_pols} pols"
         )
 
         # Calculate target subband frequency array

@@ -51,11 +51,11 @@ async def emit_task_update(queue_name: str, task_id: str, update: dict):
 
 def _create_jwt_token(secret: str, worker_id: str) -> str:
     """Create a JWT token for worker API authentication.
-    
+
     Args:
         secret: The JWT secret (DSA110_JWT_SECRET)
         worker_id: The worker ID to use as subject
-        
+
     Returns:
         JWT token string
     """
@@ -64,7 +64,7 @@ def _create_jwt_token(secret: str, worker_id: str) -> str:
     except ImportError:
         logger.warning("PyJWT not installed - cannot create JWT token")
         return ""
-    
+
     now = int(time.time())
     payload = {
         "sub": f"worker:{worker_id}",
@@ -125,9 +125,7 @@ class AbsurdWorker:
             # Start API heartbeat loop if configured
             if self.config.api_base_url:
                 self._http_session = aiohttp.ClientSession()
-                self._api_heartbeat_task = asyncio.create_task(
-                    self._api_heartbeat_loop()
-                )
+                self._api_heartbeat_task = asyncio.create_task(self._api_heartbeat_loop())
                 logger.info(
                     f"API heartbeat enabled: {self.config.api_base_url} "
                     f"(every {self.config.api_heartbeat_interval_sec}s)"
@@ -165,7 +163,7 @@ class AbsurdWorker:
                 await self._api_heartbeat_task
             except asyncio.CancelledError:
                 pass
-        
+
         if self._http_session:
             await self._http_session.close()
 
@@ -241,18 +239,16 @@ class AbsurdWorker:
 
     async def _api_heartbeat_loop(self) -> None:
         """Send periodic heartbeats to the API server for worker registration.
-        
+
         This allows the API's AbsurdMonitor to track active workers even when
         they are idle (not processing tasks).
         """
         interval = self.config.api_heartbeat_interval_sec
         jwt_secret = os.getenv("DSA110_JWT_SECRET", "")
-        
+
         if not jwt_secret:
-            logger.warning(
-                "DSA110_JWT_SECRET not set - API heartbeats will fail authentication"
-            )
-        
+            logger.warning("DSA110_JWT_SECRET not set - API heartbeats will fail authentication")
+
         while self.running:
             try:
                 # Refresh JWT token if needed (every 50 minutes to be safe)
@@ -262,28 +258,26 @@ class AbsurdWorker:
                         self._jwt_token = _create_jwt_token(jwt_secret, self.worker_id)
                         self._jwt_refresh_time = now
                         logger.debug(f"Refreshed JWT token for worker {self.worker_id}")
-                
+
                 # Send heartbeat to API
                 url = f"{self.config.api_base_url}/absurd/workers/{self.worker_id}/heartbeat"
                 headers = {}
                 if self._jwt_token:
                     headers["Authorization"] = f"Bearer {self._jwt_token}"
-                
+
                 params = {}
                 if self._current_task_id:
                     params["task_id"] = self._current_task_id
-                
+
                 async with self._http_session.post(url, params=params, headers=headers) as resp:
                     if resp.status == 200:
                         logger.debug(f"API heartbeat sent for worker {self.worker_id}")
                     else:
                         text = await resp.text()
-                        logger.warning(
-                            f"API heartbeat failed ({resp.status}): {text[:200]}"
-                        )
-                
+                        logger.warning(f"API heartbeat failed ({resp.status}): {text[:200]}")
+
                 await asyncio.sleep(interval)
-                
+
             except asyncio.CancelledError:
                 break
             except aiohttp.ClientError as e:

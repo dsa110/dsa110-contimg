@@ -43,7 +43,6 @@ from pathlib import Path
 from typing import Optional
 
 from dsa110_contimg.execution import (
-    ExecutionResult,
     ExecutionTask,
     get_executor,
 )
@@ -104,7 +103,8 @@ Examples:
     )
 
     parser.add_argument(
-        "-v", "--verbose",
+        "-v",
+        "--verbose",
         action="count",
         default=0,
         help="Increase verbosity (can be repeated: -v for INFO, -vv for DEBUG)",
@@ -281,7 +281,7 @@ def cmd_convert(args: argparse.Namespace) -> int:
         print(f"  Scratch: {scratch_dir}")
         print(f"  Time window: {args.start_time} to {args.end_time}")
         print(f"  Writer: {args.writer}")
-        print(f"\nResource Limits:")
+        print("\nResource Limits:")
         print(f"  Memory: {limits.memory_mb} MB")
         print(f"  OMP threads: {limits.omp_threads}")
         print(f"  Max workers: {limits.max_workers}")

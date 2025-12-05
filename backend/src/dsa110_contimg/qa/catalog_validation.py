@@ -182,7 +182,7 @@ def extract_sources_from_image(
 
     # Simple peak detection using scipy
     try:
-        from scipy.ndimage import maximum_filter, label
+        from scipy.ndimage import label, maximum_filter
     except ImportError:
         logger.warning("scipy not available - returning empty source list")
         return pd.DataFrame(columns=["ra_deg", "dec_deg", "flux_jy", "snr", "x_pix", "y_pix"])
@@ -342,9 +342,7 @@ def validate_flux_scale(
 
     if len(detected_filtered) == 0 or len(catalog_filtered) == 0:
         result.has_warnings = True
-        result.warnings.append(
-            f"No sources in flux range {min_flux:.3f}-{max_flux:.3f} Jy"
-        )
+        result.warnings.append(f"No sources in flux range {min_flux:.3f}-{max_flux:.3f} Jy")
         return result
 
     # Cross-match
@@ -368,9 +366,7 @@ def validate_flux_scale(
 
     if n_matched < 3:
         result.has_warnings = True
-        result.warnings.append(
-            f"Only {n_matched} matched sources (need ≥3 for robust statistics)"
-        )
+        result.warnings.append(f"Only {n_matched} matched sources (need ≥3 for robust statistics)")
         if n_matched == 0:
             return result
 
@@ -420,9 +416,7 @@ def validate_flux_scale(
 
     if std_ratio > 0.3:
         result.has_warnings = True
-        result.warnings.append(
-            f"High flux ratio scatter (RMS={std_ratio:.2f})"
-        )
+        result.warnings.append(f"High flux ratio scatter (RMS={std_ratio:.2f})")
 
     # Store matched sources for detailed analysis
     matched_df = pd.DataFrame(
@@ -494,9 +488,7 @@ def _validate_astrometry(
 
     if n_matched < 5:
         result.has_warnings = True
-        result.warnings.append(
-            f"Only {n_matched} matched sources (need ≥5 for robust astrometry)"
-        )
+        result.warnings.append(f"Only {n_matched} matched sources (need ≥5 for robust astrometry)")
         if n_matched == 0:
             return result
 
@@ -506,52 +498,46 @@ def _validate_astrometry(
 
     # RA offset (corrected for cos(dec))
     cos_dec = np.cos(np.radians(matched_detected["dec_deg"].values))
-    ra_offset_deg = (
-        matched_detected["ra_deg"].values - matched_catalog["ra_deg"].values
-    ) * cos_dec
-    dec_offset_deg = (
-        matched_detected["dec_deg"].values - matched_catalog["dec_deg"].values
-    )
+    ra_offset_deg = (matched_detected["ra_deg"].values - matched_catalog["ra_deg"].values) * cos_dec
+    dec_offset_deg = matched_detected["dec_deg"].values - matched_catalog["dec_deg"].values
 
     ra_offset_arcsec = ra_offset_deg * 3600.0
     dec_offset_arcsec = dec_offset_deg * 3600.0
 
     # Total offset
-    total_offset_arcsec = np.sqrt(ra_offset_arcsec ** 2 + dec_offset_arcsec ** 2)
+    total_offset_arcsec = np.sqrt(ra_offset_arcsec**2 + dec_offset_arcsec**2)
 
     # Statistics
     result.ra_offset_arcsec = float(np.nanmean(ra_offset_arcsec))
     result.dec_offset_arcsec = float(np.nanmean(dec_offset_arcsec))
     result.median_offset_arcsec = float(np.nanmedian(total_offset_arcsec))
-    result.rms_offset_arcsec = float(np.sqrt(np.nanmean(total_offset_arcsec ** 2)))
+    result.rms_offset_arcsec = float(np.sqrt(np.nanmean(total_offset_arcsec**2)))
 
     # Check for issues
     if result.rms_offset_arcsec > max_rms_arcsec:
         result.has_issues = True
         result.issues.append(
-            f"RMS offset ({result.rms_offset_arcsec:.2f}\") exceeds threshold ({max_rms_arcsec}\")"
+            f'RMS offset ({result.rms_offset_arcsec:.2f}") exceeds threshold ({max_rms_arcsec}")'
         )
     elif result.rms_offset_arcsec > max_rms_arcsec / 2:
         result.has_warnings = True
         result.warnings.append(
-            f"RMS offset ({result.rms_offset_arcsec:.2f}\") approaching threshold"
+            f'RMS offset ({result.rms_offset_arcsec:.2f}") approaching threshold'
         )
 
     # Check for systematic offset
-    systematic_offset = np.sqrt(
-        result.ra_offset_arcsec ** 2 + result.dec_offset_arcsec ** 2
-    )
+    systematic_offset = np.sqrt(result.ra_offset_arcsec**2 + result.dec_offset_arcsec**2)
     if systematic_offset > 2.0:
         result.has_warnings = True
         result.warnings.append(
-            f"Systematic offset detected: ΔRA={result.ra_offset_arcsec:.2f}\", "
-            f"ΔDec={result.dec_offset_arcsec:.2f}\""
+            f'Systematic offset detected: ΔRA={result.ra_offset_arcsec:.2f}", '
+            f'ΔDec={result.dec_offset_arcsec:.2f}"'
         )
 
     logger.info(
         f"Astrometry validation: {n_matched} matched, "
-        f"RMS={result.rms_offset_arcsec:.2f}\", "
-        f"median={result.median_offset_arcsec:.2f}\""
+        f'RMS={result.rms_offset_arcsec:.2f}", '
+        f'median={result.median_offset_arcsec:.2f}"'
     )
 
     return result
@@ -584,9 +570,11 @@ def _validate_source_counts(
     result = SourceCountsResult()
 
     # Filter by flux
-    detected_filtered = detected_sources[
-        detected_sources["flux_jy"] >= min_flux_jy
-    ] if "flux_jy" in detected_sources.columns else detected_sources
+    detected_filtered = (
+        detected_sources[detected_sources["flux_jy"] >= min_flux_jy]
+        if "flux_jy" in detected_sources.columns
+        else detected_sources
+    )
 
     # Determine catalog flux column
     flux_col = "flux_mjy" if "flux_mjy" in catalog_sources.columns else "flux_jy"
@@ -722,9 +710,7 @@ def run_full_validation(
 
     # Extract sources once for all validation types
     try:
-        detected_sources = extract_sources_from_image(
-            image_path, min_snr=min_snr, max_sources=500
-        )
+        detected_sources = extract_sources_from_image(image_path, min_snr=min_snr, max_sources=500)
     except Exception as e:
         logger.error(f"Source extraction failed: {e}")
         # Return empty results with issues flagged
@@ -785,9 +771,7 @@ def run_full_validation(
             )
         except Exception as e:
             logger.warning(f"Flux scale validation failed: {e}")
-            flux_scale_result = FluxScaleResult(
-                has_issues=True, issues=[f"Validation failed: {e}"]
-            )
+            flux_scale_result = FluxScaleResult(has_issues=True, issues=[f"Validation failed: {e}"])
 
     if "source_counts" in validation_types:
         try:
@@ -914,23 +898,29 @@ def _generate_html_report(
 
     # Astrometry section
     if astrometry_result:
-        status_class = "fail" if astrometry_result.has_issues else (
-            "warn" if astrometry_result.has_warnings else "pass"
+        status_class = (
+            "fail"
+            if astrometry_result.has_issues
+            else ("warn" if astrometry_result.has_warnings else "pass")
         )
-        status_text = "FAIL" if astrometry_result.has_issues else (
-            "WARNING" if astrometry_result.has_warnings else "PASS"
+        status_text = (
+            "FAIL"
+            if astrometry_result.has_issues
+            else ("WARNING" if astrometry_result.has_warnings else "PASS")
         )
-        html_parts.extend([
-            "<h2>Astrometry Validation</h2>",
-            f"<p>Status: <span class='{status_class}'>{status_text}</span></p>",
-            "<table>",
-            f"<tr><th>Sources Matched</th><td>{astrometry_result.n_matched}</td></tr>",
-            f"<tr><th>RMS Offset</th><td>{astrometry_result.rms_offset_arcsec:.2f}\"</td></tr>",
-            f"<tr><th>Median Offset</th><td>{astrometry_result.median_offset_arcsec:.2f}\"</td></tr>",
-            f"<tr><th>RA Offset</th><td>{astrometry_result.ra_offset_arcsec:.2f}\"</td></tr>",
-            f"<tr><th>Dec Offset</th><td>{astrometry_result.dec_offset_arcsec:.2f}\"</td></tr>",
-            "</table>",
-        ])
+        html_parts.extend(
+            [
+                "<h2>Astrometry Validation</h2>",
+                f"<p>Status: <span class='{status_class}'>{status_text}</span></p>",
+                "<table>",
+                f"<tr><th>Sources Matched</th><td>{astrometry_result.n_matched}</td></tr>",
+                f'<tr><th>RMS Offset</th><td>{astrometry_result.rms_offset_arcsec:.2f}"</td></tr>',
+                f'<tr><th>Median Offset</th><td>{astrometry_result.median_offset_arcsec:.2f}"</td></tr>',
+                f'<tr><th>RA Offset</th><td>{astrometry_result.ra_offset_arcsec:.2f}"</td></tr>',
+                f'<tr><th>Dec Offset</th><td>{astrometry_result.dec_offset_arcsec:.2f}"</td></tr>',
+                "</table>",
+            ]
+        )
         for issue in astrometry_result.issues:
             html_parts.append(f"<p class='issue'>⚠ {issue}</p>")
         for warning in astrometry_result.warnings:
@@ -938,23 +928,29 @@ def _generate_html_report(
 
     # Flux scale section
     if flux_scale_result:
-        status_class = "fail" if flux_scale_result.has_issues else (
-            "warn" if flux_scale_result.has_warnings else "pass"
+        status_class = (
+            "fail"
+            if flux_scale_result.has_issues
+            else ("warn" if flux_scale_result.has_warnings else "pass")
         )
-        status_text = "FAIL" if flux_scale_result.has_issues else (
-            "WARNING" if flux_scale_result.has_warnings else "PASS"
+        status_text = (
+            "FAIL"
+            if flux_scale_result.has_issues
+            else ("WARNING" if flux_scale_result.has_warnings else "PASS")
         )
-        html_parts.extend([
-            "<h2>Flux Scale Validation</h2>",
-            f"<p>Status: <span class='{status_class}'>{status_text}</span></p>",
-            "<table>",
-            f"<tr><th>Sources Matched</th><td>{flux_scale_result.n_matched}</td></tr>",
-            f"<tr><th>Mean Flux Ratio</th><td>{flux_scale_result.mean_flux_ratio:.3f}</td></tr>",
-            f"<tr><th>Median Flux Ratio</th><td>{flux_scale_result.median_flux_ratio:.3f}</td></tr>",
-            f"<tr><th>RMS Scatter</th><td>{flux_scale_result.rms_flux_ratio:.3f}</td></tr>",
-            f"<tr><th>Flux Scale Error</th><td>{flux_scale_result.flux_scale_error * 100:.1f}%</td></tr>",
-            "</table>",
-        ])
+        html_parts.extend(
+            [
+                "<h2>Flux Scale Validation</h2>",
+                f"<p>Status: <span class='{status_class}'>{status_text}</span></p>",
+                "<table>",
+                f"<tr><th>Sources Matched</th><td>{flux_scale_result.n_matched}</td></tr>",
+                f"<tr><th>Mean Flux Ratio</th><td>{flux_scale_result.mean_flux_ratio:.3f}</td></tr>",
+                f"<tr><th>Median Flux Ratio</th><td>{flux_scale_result.median_flux_ratio:.3f}</td></tr>",
+                f"<tr><th>RMS Scatter</th><td>{flux_scale_result.rms_flux_ratio:.3f}</td></tr>",
+                f"<tr><th>Flux Scale Error</th><td>{flux_scale_result.flux_scale_error * 100:.1f}%</td></tr>",
+                "</table>",
+            ]
+        )
         for issue in flux_scale_result.issues:
             html_parts.append(f"<p class='issue'>⚠ {issue}</p>")
         for warning in flux_scale_result.warnings:
@@ -962,32 +958,40 @@ def _generate_html_report(
 
     # Source counts section
     if source_counts_result:
-        status_class = "fail" if source_counts_result.has_issues else (
-            "warn" if source_counts_result.has_warnings else "pass"
+        status_class = (
+            "fail"
+            if source_counts_result.has_issues
+            else ("warn" if source_counts_result.has_warnings else "pass")
         )
-        status_text = "FAIL" if source_counts_result.has_issues else (
-            "WARNING" if source_counts_result.has_warnings else "PASS"
+        status_text = (
+            "FAIL"
+            if source_counts_result.has_issues
+            else ("WARNING" if source_counts_result.has_warnings else "PASS")
         )
-        html_parts.extend([
-            "<h2>Source Counts Validation</h2>",
-            f"<p>Status: <span class='{status_class}'>{status_text}</span></p>",
-            "<table>",
-            f"<tr><th>Sources Detected</th><td>{source_counts_result.n_detected}</td></tr>",
-            f"<tr><th>Sources Expected</th><td>{source_counts_result.n_expected}</td></tr>",
-            f"<tr><th>Sources Matched</th><td>{source_counts_result.n_matched}</td></tr>",
-            f"<tr><th>Completeness</th><td>{source_counts_result.completeness * 100:.1f}%</td></tr>",
-            f"<tr><th>False Positive Rate</th><td>{source_counts_result.false_positive_rate * 100:.1f}%</td></tr>",
-            "</table>",
-        ])
+        html_parts.extend(
+            [
+                "<h2>Source Counts Validation</h2>",
+                f"<p>Status: <span class='{status_class}'>{status_text}</span></p>",
+                "<table>",
+                f"<tr><th>Sources Detected</th><td>{source_counts_result.n_detected}</td></tr>",
+                f"<tr><th>Sources Expected</th><td>{source_counts_result.n_expected}</td></tr>",
+                f"<tr><th>Sources Matched</th><td>{source_counts_result.n_matched}</td></tr>",
+                f"<tr><th>Completeness</th><td>{source_counts_result.completeness * 100:.1f}%</td></tr>",
+                f"<tr><th>False Positive Rate</th><td>{source_counts_result.false_positive_rate * 100:.1f}%</td></tr>",
+                "</table>",
+            ]
+        )
         for issue in source_counts_result.issues:
             html_parts.append(f"<p class='issue'>⚠ {issue}</p>")
         for warning in source_counts_result.warnings:
             html_parts.append(f"<p class='warning'>⚡ {warning}</p>")
 
-    html_parts.extend([
-        "</body>",
-        "</html>",
-    ])
+    html_parts.extend(
+        [
+            "</body>",
+            "</html>",
+        ]
+    )
 
     # Write HTML file
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)

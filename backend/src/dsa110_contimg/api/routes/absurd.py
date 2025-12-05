@@ -24,7 +24,7 @@ from fastapi import (  # type: ignore[import-not-found]
 from pydantic import BaseModel, Field  # type: ignore[import-not-found]
 
 from dsa110_contimg.absurd import AbsurdClient, AbsurdConfig
-from dsa110_contimg.absurd.monitoring import AbsurdMonitor, TaskMetrics
+from dsa110_contimg.absurd.monitoring import AbsurdMonitor
 from dsa110_contimg.api.websocket import manager
 
 from ..auth import require_write_access

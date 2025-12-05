@@ -58,8 +58,7 @@ def make_point_skymodel(
         from pyradiosky import SkyModel  # noqa: F401
     except ImportError:
         raise ImportError(
-            "pyradiosky is required for make_point_skymodel(). "
-            "Install with: pip install pyradiosky"
+            "pyradiosky is required for make_point_skymodel(). Install with: pip install pyradiosky"
         )
 
     import astropy.units as u
@@ -159,8 +158,10 @@ def ft_from_cl(
 
     import casacore.tables as casatables  # type: ignore
     import numpy as np
+
     try:
         from dsa110_contimg.utils.tempdirs import casa_log_environment
+
         with casa_log_environment():
             from casatasks import ft as casa_ft  # type: ignore
     except ImportError:
@@ -401,8 +402,7 @@ def make_nvss_skymodel(
         from pyradiosky import SkyModel  # noqa: F401
     except ImportError:
         raise ImportError(
-            "pyradiosky is required for make_nvss_skymodel(). "
-            "Install with: pip install pyradiosky"
+            "pyradiosky is required for make_nvss_skymodel(). Install with: pip install pyradiosky"
         )
 
     import astropy.units as u
@@ -692,7 +692,6 @@ def write_wsclean_source_list(
 
     Format: Name, Type, Ra, Dec, I, Q, U, V, SpectralIndex, LogarithmicSI, ReferenceFrequency, MajorAxis, MinorAxis, Orientation
     """
-    from astropy.coordinates import Angle
 
     try:
         # Ensure we start with a fresh file

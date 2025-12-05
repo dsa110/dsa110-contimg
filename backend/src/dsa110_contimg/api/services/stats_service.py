@@ -7,25 +7,24 @@ from __future__ import annotations
 import os
 import sqlite3
 from datetime import datetime
-from typing import Optional
 
 from ..database import DatabasePool
 
 
 class StatsService:
     """Business logic for pipeline statistics."""
-    
+
     def __init__(self, db_pool: DatabasePool):
         self.db_pool = db_pool
-    
+
     async def get_dashboard_stats(self) -> dict:
         """
         Get comprehensive dashboard statistics.
-        
+
         Returns counts and status summaries in efficient queries.
         """
         stats = {}
-        
+
         async with self.db_pool.products_db() as conn:
             # MS counts by stage
             cursor = await conn.execute("""
@@ -45,14 +44,14 @@ class StatsService:
                     "calibrated": row["calibrated"] or 0,
                     "ingested": row["ingested"] or 0,
                     "pending": row["pending"] or 0,
-                }
+                },
             }
-            
+
             # Image count
             cursor = await conn.execute("SELECT COUNT(*) as cnt FROM images")
             row = await cursor.fetchone()
             stats["images"] = {"total": row["cnt"] or 0}
-            
+
             # Photometry and source counts
             cursor = await conn.execute("""
                 SELECT 
@@ -63,7 +62,7 @@ class StatsService:
             row = await cursor.fetchone()
             stats["photometry"] = {"total": row["total_photometry"] or 0}
             stats["sources"] = {"total": row["unique_sources"] or 0}
-            
+
             # Job counts by status
             cursor = await conn.execute("""
                 SELECT 
@@ -82,9 +81,9 @@ class StatsService:
                     "running": row["running"] or 0,
                     "pending": row["pending"] or 0,
                     "failed": row["failed"] or 0,
-                }
+                },
             }
-            
+
             # Recent activity
             cursor = await conn.execute("""
                 SELECT path, created_at, type 
@@ -98,31 +97,30 @@ class StatsService:
                     "path": row["path"],
                     "created_at": (
                         datetime.fromtimestamp(row["created_at"]).isoformat()
-                        if row["created_at"] else None
+                        if row["created_at"]
+                        else None
                     ),
                     "type": row["type"],
                 }
                 for row in rows
             ]
-        
+
         # Cal table count (separate database)
         try:
             if os.path.exists(self.db_pool.config.cal_registry_db_path):
                 async with self.db_pool.cal_registry_db() as cal_conn:
-                    cursor = await cal_conn.execute(
-                        "SELECT COUNT(*) as cnt FROM caltables"
-                    )
+                    cursor = await cal_conn.execute("SELECT COUNT(*) as cnt FROM caltables")
                     row = await cursor.fetchone()
                     stats["cal_tables"] = {"total": row["cnt"] or 0}
             else:
                 stats["cal_tables"] = {"total": 0}
         except sqlite3.Error:
             stats["cal_tables"] = {"total": 0}
-        
+
         # Metadata for caching
         stats["_meta"] = {
             "generated_at": datetime.utcnow().isoformat() + "Z",
             "cache_hint_seconds": 30,
         }
-        
+
         return stats

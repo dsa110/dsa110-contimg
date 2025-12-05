@@ -19,22 +19,19 @@ from pathlib import Path
 from typing import Any
 
 from dsa110_contimg.pipeline import (
-    Pipeline,
-    register_pipeline,
-    RetryPolicy,
-    RetryBackoff,
     NotificationConfig,
+    Pipeline,
+    RetryBackoff,
+    RetryPolicy,
+    register_pipeline,
 )
 
 from .jobs import (
-    JobResult,
     MosaicBuildJob,
-    MosaicJobConfig,
     MosaicPlanningJob,
     MosaicQAJob,
 )
 from .tiers import select_tier_for_request
-
 
 # Re-export for backward compatibility
 __all__ = [
@@ -333,21 +330,18 @@ def run_nightly_mosaic(
     Returns:
         PipelineResult with execution status
     """
-    from dsa110_contimg.pipeline import PipelineExecutor
     import asyncio
+
+    from dsa110_contimg.pipeline import PipelineExecutor
 
     pipeline = NightlyMosaicPipeline(config, target_date=target_date)
 
     # Use executor for proper tracking
     executor = PipelineExecutor(config.database_path)
-    execution_id = asyncio.get_event_loop().run_until_complete(
-        executor.execute(pipeline)
-    )
+    execution_id = asyncio.get_event_loop().run_until_complete(executor.execute(pipeline))
 
     # Get status
-    status = asyncio.get_event_loop().run_until_complete(
-        executor.get_status(execution_id)
-    )
+    status = asyncio.get_event_loop().run_until_complete(executor.get_status(execution_id))
 
     # Convert to PipelineResult
     return _status_to_result(status, pipeline)
@@ -372,8 +366,9 @@ def run_on_demand_mosaic(
     Returns:
         PipelineResult with execution status
     """
-    from dsa110_contimg.pipeline import PipelineExecutor
     import asyncio
+
+    from dsa110_contimg.pipeline import PipelineExecutor
 
     pipeline = OnDemandMosaicPipeline(
         config=config,
@@ -385,14 +380,10 @@ def run_on_demand_mosaic(
 
     # Use executor for proper tracking
     executor = PipelineExecutor(config.database_path)
-    execution_id = asyncio.get_event_loop().run_until_complete(
-        executor.execute(pipeline)
-    )
+    execution_id = asyncio.get_event_loop().run_until_complete(executor.execute(pipeline))
 
     # Get status
-    status = asyncio.get_event_loop().run_until_complete(
-        executor.get_status(execution_id)
-    )
+    status = asyncio.get_event_loop().run_until_complete(executor.get_status(execution_id))
 
     return _status_to_result(status, pipeline)
 
@@ -439,6 +430,7 @@ def _status_to_result(status: Any, pipeline: Pipeline) -> PipelineResult:
     for job in status.jobs:
         if job.get("outputs_json"):
             import json
+
             outputs = json.loads(job["outputs_json"])
             if job["job_id"] == "plan":
                 plan_id = outputs.get("plan_id")
@@ -462,8 +454,12 @@ def _status_to_result(status: Any, pipeline: Pipeline) -> PipelineResult:
         message=f"Pipeline {status.status}",
         errors=errors,
         execution_id=status.execution_id,
-        started_at=datetime.fromtimestamp(status.started_at, tz=timezone.utc) if status.started_at else None,
-        completed_at=datetime.fromtimestamp(status.completed_at, tz=timezone.utc) if status.completed_at else None,
+        started_at=datetime.fromtimestamp(status.started_at, tz=timezone.utc)
+        if status.started_at
+        else None,
+        completed_at=datetime.fromtimestamp(status.completed_at, tz=timezone.utc)
+        if status.completed_at
+        else None,
     )
 
 

@@ -11,7 +11,6 @@ from __future__ import annotations
 
 import sqlite3
 
-
 # SQL for creating mosaic tables
 MOSAIC_TABLES: dict[str, str] = {
     "mosaic_plans": """
@@ -40,7 +39,6 @@ MOSAIC_TABLES: dict[str, str] = {
                 CHECK(status IN ('pending', 'building', 'completed', 'failed'))
         )
     """,
-    
     "mosaics": """
         CREATE TABLE IF NOT EXISTS mosaics (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -64,7 +62,6 @@ MOSAIC_TABLES: dict[str, str] = {
             created_at INTEGER NOT NULL
         )
     """,
-    
     "mosaic_qa": """
         CREATE TABLE IF NOT EXISTS mosaic_qa (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -104,18 +101,18 @@ MOSAIC_INDEXES: list[str] = [
 
 def ensure_mosaic_tables(conn: sqlite3.Connection) -> None:
     """Create mosaic tables if they don't exist.
-    
+
     Args:
         conn: SQLite connection
     """
     cursor = conn.cursor()
-    
+
     for table_name, create_sql in MOSAIC_TABLES.items():
         cursor.execute(create_sql)
-    
+
     for index_sql in MOSAIC_INDEXES:
         cursor.execute(index_sql)
-    
+
     conn.commit()
 
 

@@ -59,7 +59,7 @@ class ArtifactResult:
 @dataclass
 class QAResult:
     """Complete quality assessment results.
-    
+
     Attributes:
         astrometry_rms: Astrometric RMS in arcsec
         n_stars: Number of reference stars matched
@@ -118,13 +118,13 @@ def run_qa_checks(
     median_rms_jy: float | None = None,
 ) -> QAResult:
     """Run quality checks on mosaic.
-    
+
     Four checks:
     1. Astrometry (compare to reference catalog)
     2. Photometry (noise, dynamic range)
     3. Artifacts (visual inspection heuristics)
     4. Noise improvement (validate √N improvement if n_images provided)
-    
+
     Args:
         mosaic_path: Path to mosaic FITS file
         tier: Tier name for tier-specific thresholds
@@ -136,10 +136,10 @@ def run_qa_checks(
             attempts to read from FITS header NIMAGES keyword.
         median_rms_jy: Median RMS noise of input images (for noise validation).
             If None, attempts to read from FITS header MEDRMS keyword.
-        
+
     Returns:
         QAResult with all metrics and pass/fail status
-        
+
     Example:
         >>> result = run_qa_checks(Path("mosaic.fits"), "science")
         >>> if result.passed:
@@ -155,14 +155,13 @@ def run_qa_checks(
         header = hdulist[0].header.copy()
 
     wcs = WCS(header, naxis=2)
-    
+
     # Try to get noise parameters from header if not provided
     if n_images is None:
-        n_images = header.get('NIMAGES', None)
+        n_images = header.get("NIMAGES", None)
     if median_rms_jy is None:
-        median_rms_jy = header.get('MEDRMS', None)
-    effective_noise_jy = header.get('EFFNOISE', None)
-
+        median_rms_jy = header.get("MEDRMS", None)
+    effective_noise_jy = header.get("EFFNOISE", None)
 
     warnings = []
     failures = []
@@ -180,9 +179,7 @@ def run_qa_checks(
             f"(threshold: {astro_threshold_fail})"
         )
     elif astro_result.rms_arcsec > astro_threshold_warn:
-        warnings.append(
-            f"Astrometry RMS: {astro_result.rms_arcsec:.2f} arcsec"
-        )
+        warnings.append(f"Astrometry RMS: {astro_result.rms_arcsec:.2f} arcsec")
 
     # 2. Photometric check
     photo_result = check_photometry(data)
@@ -190,21 +187,22 @@ def run_qa_checks(
     dr_threshold = 50 if tier == "quicklook" else 100
     if photo_result.dynamic_range < dr_threshold:
         failures.append(
-            f"Low dynamic range: {photo_result.dynamic_range:.1f} "
-            f"(threshold: {dr_threshold})"
+            f"Low dynamic range: {photo_result.dynamic_range:.1f} (threshold: {dr_threshold})"
         )
 
     # 3. Artifact check
     artifact_result = check_artifacts(data)
 
     if artifact_result.score > 0.5:
-        warnings.append(
-            f"Possible artifacts detected (score: {artifact_result.score:.2f})"
-        )
+        warnings.append(f"Possible artifacts detected (score: {artifact_result.score:.2f})")
 
     # 4. Noise improvement check (if we have the parameters)
-    if (n_images is not None and median_rms_jy is not None 
-            and effective_noise_jy is not None and n_images > 1):
+    if (
+        n_images is not None
+        and median_rms_jy is not None
+        and effective_noise_jy is not None
+        and n_images > 1
+    ):
         noise_result = validate_noise_improvement(
             effective_noise_jy=effective_noise_jy,
             median_rms_jy=median_rms_jy,
@@ -226,10 +224,12 @@ def run_qa_checks(
         critical_failures=failures,
     )
 
-    logger.info(f"QA result: {result.status} "
-                f"(astrometry={astro_result.rms_arcsec:.2f}\", "
-                f"DR={photo_result.dynamic_range:.1f}, "
-                f"artifacts={artifact_result.score:.2f})")
+    logger.info(
+        f"QA result: {result.status} "
+        f'(astrometry={astro_result.rms_arcsec:.2f}", '
+        f"DR={photo_result.dynamic_range:.1f}, "
+        f"artifacts={artifact_result.score:.2f})"
+    )
 
     return result
 
@@ -241,10 +241,10 @@ def check_astrometry(
     catalog: str = "radio",
 ) -> AstrometryResult:
     """Check astrometric accuracy against reference radio catalog.
-    
+
     Uses the unified NVSS+FIRST radio catalog for cross-matching,
     which is more appropriate for radio continuum imaging than optical catalogs.
-    
+
     Args:
         wcs: WCS of the mosaic
         data: Image data array
@@ -252,23 +252,23 @@ def check_astrometry(
             - "radio" (default): Merged NVSS+FIRST catalog
             - "nvss": NVSS catalog only
             - "first": FIRST catalog only
-        
+
     Returns:
         AstrometryResult with RMS and source count
     """
-    from astropy.coordinates import SkyCoord
     import astropy.units as u
+    from astropy.coordinates import SkyCoord
 
     try:
         # Get image center and size
         ny, nx = data.shape[-2:]
-        center = wcs.pixel_to_world(nx/2, ny/2)
+        center = wcs.pixel_to_world(nx / 2, ny / 2)
 
         # Search radius based on image size (use 0.5 deg or image extent)
         # Get approximate image extent from WCS
         try:
             pixel_scale = wcs.proj_plane_pixel_scales()[0]
-            if hasattr(pixel_scale, 'value'):
+            if hasattr(pixel_scale, "value"):
                 pixel_scale = pixel_scale.value
             image_radius_deg = float(pixel_scale) * max(nx, ny) / 2
             radius_deg = min(0.5, image_radius_deg)
@@ -297,8 +297,8 @@ def check_astrometry(
 
         # Create SkyCoord for catalog sources
         catalog_coords = SkyCoord(
-            ra=catalog_df['ra_deg'].values * u.deg,
-            dec=catalog_df['dec_deg'].values * u.deg,
+            ra=catalog_df["ra_deg"].values * u.deg,
+            dec=catalog_df["dec_deg"].values * u.deg,
         )
 
         # Convert catalog positions to pixel coordinates
@@ -314,10 +314,8 @@ def check_astrometry(
         # - Catalog type (FIRST has ~1" accuracy, NVSS ~2")
 
         # Estimate RMS based on catalog accuracy
-        has_first = (
-            catalog == "first"
-            or (catalog == "radio"
-                and "first" in catalog_df.get("catalog", ["nvss"]).values)
+        has_first = catalog == "first" or (
+            catalog == "radio" and "first" in catalog_df.get("catalog", ["nvss"]).values
         )
         if has_first:
             base_rms = 0.15  # FIRST has ~1" accuracy, we expect ~0.15" residuals
@@ -361,7 +359,7 @@ def _query_radio_catalog(
     max_sources: int = 100,
 ):
     """Query radio catalog for sources.
-    
+
     Args:
         ra_deg: Field center RA in degrees
         dec_deg: Field center Dec in degrees
@@ -369,7 +367,7 @@ def _query_radio_catalog(
         catalog: Catalog to query ("radio", "nvss", "first")
         min_flux_mjy: Minimum flux in mJy
         max_sources: Maximum sources to return
-        
+
     Returns:
         DataFrame with columns: ra_deg, dec_deg, flux_mjy, [catalog]
     """
@@ -381,6 +379,7 @@ def _query_radio_catalog(
             from dsa110_contimg.calibration.catalogs import (
                 query_merged_nvss_first_sources,
             )
+
             return query_merged_nvss_first_sources(
                 ra_deg=ra_deg,
                 dec_deg=dec_deg,
@@ -390,6 +389,7 @@ def _query_radio_catalog(
             )
         elif catalog == "nvss":
             from dsa110_contimg.calibration.catalogs import query_nvss_sources
+
             return query_nvss_sources(
                 ra_deg=ra_deg,
                 dec_deg=dec_deg,
@@ -399,6 +399,7 @@ def _query_radio_catalog(
             )
         elif catalog == "first":
             from dsa110_contimg.calibration.catalogs import query_first_sources
+
             return query_first_sources(
                 ra_deg=ra_deg,
                 dec_deg=dec_deg,
@@ -409,6 +410,7 @@ def _query_radio_catalog(
         else:
             logger.warning(f"Unknown catalog '{catalog}', falling back to NVSS")
             from dsa110_contimg.calibration.catalogs import query_nvss_sources
+
             return query_nvss_sources(
                 ra_deg=ra_deg,
                 dec_deg=dec_deg,
@@ -423,10 +425,10 @@ def _query_radio_catalog(
 
 def check_photometry(data: NDArray) -> PhotometryResult:
     """Check photometric quality of mosaic.
-    
+
     Args:
         data: Image data array
-        
+
     Returns:
         PhotometryResult with noise and dynamic range
     """
@@ -452,7 +454,7 @@ def check_photometry(data: NDArray) -> PhotometryResult:
     if noise > 0:
         dynamic_range = (data_max - data_min) / noise
     else:
-        dynamic_range = float('inf')
+        dynamic_range = float("inf")
 
     passed = dynamic_range > 100
 
@@ -466,15 +468,15 @@ def check_photometry(data: NDArray) -> PhotometryResult:
 
 def check_artifacts(data: NDArray) -> ArtifactResult:
     """Check for imaging artifacts.
-    
+
     Uses simple heuristics to detect common artifacts:
     - Edge effects
     - Ringing around bright sources
     - Stripes/banding
-    
+
     Args:
         data: Image data array
-        
+
     Returns:
         ArtifactResult with artifact score
     """
@@ -495,12 +497,14 @@ def check_artifacts(data: NDArray) -> ArtifactResult:
     edge_width = min(10, ny // 10, nx // 10)
 
     if edge_width > 0:
-        edges = np.concatenate([
-            data[:edge_width, :].flatten(),
-            data[-edge_width:, :].flatten(),
-            data[:, :edge_width].flatten(),
-            data[:, -edge_width:].flatten(),
-        ])
+        edges = np.concatenate(
+            [
+                data[:edge_width, :].flatten(),
+                data[-edge_width:, :].flatten(),
+                data[:, :edge_width].flatten(),
+                data[:, -edge_width:].flatten(),
+            ]
+        )
         interior = data[edge_width:-edge_width, edge_width:-edge_width].flatten()
 
         edges = edges[np.isfinite(edges)]
@@ -569,20 +573,20 @@ def validate_noise_improvement(
     min_efficiency: float = 0.5,
 ) -> NoiseImprovementResult:
     """Validate that mosaic achieves expected √N noise improvement.
-    
+
     For N images with equal noise σ₀, inverse-variance weighting should
     produce σ_eff = σ₀ / √N. In practice, non-uniform coverage and
     systematic errors reduce this.
-    
+
     Args:
         effective_noise_jy: Actual effective noise from weight map
         median_rms_jy: Median noise of input images
         n_images: Number of images combined
         min_efficiency: Minimum acceptable efficiency (default 0.5 = 50%)
-        
+
     Returns:
         NoiseImprovementResult with efficiency metrics
-        
+
     Example:
         >>> result = validate_noise_improvement(
         ...     effective_noise_jy=0.00015,
@@ -603,21 +607,21 @@ def validate_noise_improvement(
             passed=False,
             message="Invalid input parameters",
         )
-    
+
     # Expected improvement: sqrt(N)
     expected_improvement = np.sqrt(n_images)
-    
+
     # Actual improvement
     if effective_noise_jy > 0:
         actual_improvement = median_rms_jy / effective_noise_jy
     else:
-        actual_improvement = float('inf')
-    
+        actual_improvement = float("inf")
+
     # Efficiency: how close to theoretical √N improvement
     efficiency = actual_improvement / expected_improvement
-    
+
     passed = efficiency >= min_efficiency
-    
+
     if efficiency >= 0.9:
         message = f"Excellent noise improvement: {efficiency:.0%} of theoretical √N"
     elif efficiency >= 0.7:
@@ -626,7 +630,7 @@ def validate_noise_improvement(
         message = f"Acceptable noise improvement: {efficiency:.0%} of theoretical √N"
     else:
         message = f"Poor noise improvement: {efficiency:.0%} (expected ≥{min_efficiency:.0%})"
-    
+
     return NoiseImprovementResult(
         effective_noise_jy=effective_noise_jy,
         median_input_noise_jy=median_rms_jy,
@@ -637,4 +641,3 @@ def validate_noise_improvement(
         passed=passed,
         message=message,
     )
-

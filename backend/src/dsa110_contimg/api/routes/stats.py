@@ -18,7 +18,7 @@ async def get_stats(
 ):
     """
     Get summary statistics for the pipeline.
-    
+
     Returns counts and status summaries in a single efficient query.
     """
     return await service.get_dashboard_stats()

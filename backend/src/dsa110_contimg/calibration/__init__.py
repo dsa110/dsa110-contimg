@@ -1,11 +1,22 @@
 # This file initializes the calibration module.
 
-from dsa110_contimg.calibration.transit import (
-    next_transit_time,
-    previous_transits,
-    upcoming_transits,
-    observation_overlaps_transit,
-    pick_best_observation,
+# Catalog registry (unified catalog query interface)
+from dsa110_contimg.calibration.catalog_registry import (
+    CATALOG_REGISTRY,
+    CatalogConfig,
+    CatalogName,
+    list_available_catalogs,
+    query_catalog,
+    query_multiple_catalogs,
+)
+
+# Adaptive flagging
+from dsa110_contimg.calibration.flagging_adaptive import (
+    AdaptiveFlaggingResult,
+    CalibrationFailure,
+    FlaggingStrategy,
+    flag_rfi_adaptive,
+    flag_rfi_with_gpu_fallback,
 )
 
 # Pipeline jobs and orchestration
@@ -36,34 +47,22 @@ from dsa110_contimg.calibration.qa import (
     get_qa_store,
 )
 
-# Adaptive flagging
-from dsa110_contimg.calibration.flagging_adaptive import (
-    CalibrationFailure,
-    flag_rfi_adaptive,
-    flag_rfi_with_gpu_fallback,
-    FlaggingStrategy,
-    AdaptiveFlaggingResult,
-)
-
 # Self-calibration
 from dsa110_contimg.calibration.selfcal import (
-    SelfCalMode,
-    SelfCalStatus,
     SelfCalConfig,
     SelfCalIterationResult,
+    SelfCalMode,
     SelfCalResult,
+    SelfCalStatus,
     selfcal_iteration,
     selfcal_ms,
 )
-
-# Catalog registry (unified catalog query interface)
-from dsa110_contimg.calibration.catalog_registry import (
-    CatalogName,
-    CatalogConfig,
-    CATALOG_REGISTRY,
-    query_catalog,
-    query_multiple_catalogs,
-    list_available_catalogs,
+from dsa110_contimg.calibration.transit import (
+    next_transit_time,
+    observation_overlaps_transit,
+    pick_best_observation,
+    previous_transits,
+    upcoming_transits,
 )
 
 __all__ = [

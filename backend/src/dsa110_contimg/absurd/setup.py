@@ -79,9 +79,7 @@ async def check_schema_status(pool: asyncpg.Pool) -> dict:
 
             # Count tasks if table exists
             if "tasks" in status["tables"]:
-                task_count = await conn.fetchval(
-                    "SELECT COUNT(*) FROM absurd.tasks"
-                )
+                task_count = await conn.fetchval("SELECT COUNT(*) FROM absurd.tasks")
                 status["task_count"] = task_count
 
     return status
@@ -218,7 +216,8 @@ Examples:
     )
 
     parser.add_argument(
-        "--yes", "-y",
+        "--yes",
+        "-y",
         action="store_true",
         help="Skip confirmation prompts",
     )
@@ -235,7 +234,9 @@ Examples:
         logger.error("Set ABSURD_DATABASE_URL environment variable")
         return 1
 
-    logger.info(f"Database: {config.database_url.split('@')[1] if '@' in config.database_url else 'localhost'}")
+    logger.info(
+        f"Database: {config.database_url.split('@')[1] if '@' in config.database_url else 'localhost'}"
+    )
 
     try:
         if args.command == "init":

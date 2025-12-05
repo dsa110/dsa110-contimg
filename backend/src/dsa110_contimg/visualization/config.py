@@ -19,8 +19,8 @@ logger = logging.getLogger(__name__)
 
 class PlotStyle(Enum):
     """Predefined plot styles."""
-    
-    QUICKLOOK = "quicklook"      # Fast, web-ready, PNG
+
+    QUICKLOOK = "quicklook"  # Fast, web-ready, PNG
     PUBLICATION = "publication"  # High-quality PDF for papers
     PRESENTATION = "presentation"  # Large fonts for slides
     INTERACTIVE = "interactive"  # For Jupyter notebooks
@@ -29,7 +29,7 @@ class PlotStyle(Enum):
 @dataclass
 class FigureConfig:
     """Configuration for figure generation.
-    
+
     Attributes:
         style: Predefined style (quicklook, publication, presentation)
         figsize: Figure size in inches (width, height)
@@ -44,7 +44,7 @@ class FigureConfig:
         tight_layout: Use tight layout
         output_format: Default output format (png, pdf, eps)
     """
-    
+
     style: PlotStyle = PlotStyle.QUICKLOOK
     figsize: tuple[float, float] = (8, 6)
     dpi: int = 150
@@ -57,22 +57,22 @@ class FigureConfig:
     grid: bool = False
     tight_layout: bool = True
     output_format: str = "png"
-    
+
     # Additional style options
     line_width: float = 1.5
     marker_size: float = 6.0
     alpha: float = 0.8
-    
+
     # Astronomy-specific
     flux_unit: str = "Jy/beam"
     coord_format: str = "hms"  # hms or deg
-    
+
     def __post_init__(self) -> None:
         """Apply style presets after initialization."""
         if isinstance(self.style, str):
             self.style = PlotStyle(self.style)
         self._apply_style_preset()
-    
+
     def _apply_style_preset(self) -> None:
         """Apply predefined style settings."""
         if self.style == PlotStyle.QUICKLOOK:
@@ -81,7 +81,7 @@ class FigureConfig:
             self.font_size = 10
             self.output_format = "png"
             self.cmap = "inferno"
-            
+
         elif self.style == PlotStyle.PUBLICATION:
             self.dpi = 300
             self.figsize = (8, 6)
@@ -89,7 +89,7 @@ class FigureConfig:
             self.output_format = "pdf"
             self.cmap = "viridis"
             self.line_width = 1.0
-            
+
         elif self.style == PlotStyle.PRESENTATION:
             self.dpi = 150
             self.figsize = (12, 9)
@@ -97,28 +97,28 @@ class FigureConfig:
             self.output_format = "png"
             self.line_width = 2.0
             self.marker_size = 10.0
-            
+
         elif self.style == PlotStyle.INTERACTIVE:
             self.dpi = 100
             self.figsize = (10, 8)
             self.font_size = 11
             self.tight_layout = True
-    
+
     @property
     def effective_title_size(self) -> int:
         """Get title font size, with auto-scaling."""
         return self.title_size or int(self.font_size * 1.2)
-    
+
     @property
     def effective_label_size(self) -> int:
         """Get label font size, with auto-scaling."""
         return self.label_size or self.font_size
-    
+
     @property
     def effective_tick_size(self) -> int:
         """Get tick label font size, with auto-scaling."""
         return self.tick_size or int(self.font_size * 0.9)
-    
+
     def to_mpl_params(self) -> dict[str, Any]:
         """Convert to matplotlib rcParams dictionary."""
         return {
@@ -133,10 +133,11 @@ class FigureConfig:
             "lines.markersize": self.marker_size,
             "image.cmap": self.cmap,
         }
-    
+
     def apply_to_mpl(self) -> None:
         """Apply configuration to matplotlib."""
         import matplotlib.pyplot as plt
+
         plt.rcParams.update(self.to_mpl_params())
 
 
@@ -148,14 +149,14 @@ PRESENTATION_CONFIG = FigureConfig(style=PlotStyle.PRESENTATION)
 
 def get_config(style: str | PlotStyle = "quicklook") -> FigureConfig:
     """Get a FigureConfig for a given style name.
-    
+
     Args:
         style: Style name or PlotStyle enum
-        
+
     Returns:
         Configured FigureConfig instance
     """
     if isinstance(style, str):
         style = PlotStyle(style.lower())
-    
+
     return FigureConfig(style=style)

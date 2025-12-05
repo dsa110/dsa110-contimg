@@ -16,11 +16,11 @@ from __future__ import annotations
 import logging
 import os
 from datetime import datetime
-from typing import Any, Dict, List, Literal, Optional
+from typing import Dict, List, Literal, Optional
 from uuid import uuid4
 
 import httpx
-from fastapi import APIRouter, HTTPException, Query, Path
+from fastapi import APIRouter, HTTPException, Path
 from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
@@ -75,9 +75,7 @@ class CARTAOpenRequest(BaseModel):
     """Request to open a file in CARTA."""
 
     file_path: str = Field(..., description="Path to the file to open")
-    file_type: Literal["ms", "fits", "image"] = Field(
-        "ms", description="Type of file being opened"
-    )
+    file_type: Literal["ms", "fits", "image"] = Field("ms", description="Type of file being opened")
     new_session: bool = Field(
         False, description="Whether to create a new session or reuse existing"
     )
@@ -108,7 +106,7 @@ _active_sessions: Dict[str, CARTASession] = {}
 async def _check_carta_server() -> tuple[bool, Optional[str], Optional[str]]:
     """
     Check if CARTA server is running and get its version.
-    
+
     Returns:
         Tuple of (is_available, version, error_message)
     """
@@ -131,10 +129,10 @@ async def _check_carta_server() -> tuple[bool, Optional[str], Optional[str]]:
                         return True, version, None
                 except httpx.RequestError:
                     continue
-            
+
             # If no endpoints worked, server might be running but not responding
             return False, None, "CARTA server is not responding on expected endpoints"
-            
+
     except httpx.TimeoutException:
         logger.warning(f"CARTA server timeout at {CARTA_SERVER_URL}")
         return False, None, "CARTA server connection timed out"
@@ -154,7 +152,7 @@ def _build_viewer_url(file_path: str, session_id: str) -> str:
     # - http://host:port/#session_id
     # - http://host:port/api/open?file=path
     from urllib.parse import quote
-    
+
     encoded_path = quote(file_path, safe="")
     return f"{CARTA_SERVER_URL}/?file={encoded_path}&session={session_id}"
 
@@ -162,25 +160,25 @@ def _build_viewer_url(file_path: str, session_id: str) -> str:
 def _validate_file_path(file_path: str) -> bool:
     """
     Validate that the file path is accessible to CARTA.
-    
+
     Security: Prevents path traversal and access to unauthorized directories.
     """
     import os.path
-    
+
     # Normalize the path
     normalized = os.path.normpath(file_path)
-    
+
     # Must be absolute
     if not os.path.isabs(normalized):
         return False
-    
+
     # Must be under allowed data roots
     allowed_roots = [
         "/data/",
         "/stage/",
         CARTA_DATA_ROOT,
     ]
-    
+
     return any(normalized.startswith(root) for root in allowed_roots)
 
 
@@ -193,19 +191,19 @@ def _validate_file_path(file_path: str) -> bool:
 async def get_carta_status():
     """
     Check CARTA server availability and status.
-    
+
     Returns information about whether CARTA is running, its version,
     and current session usage. This is used by the frontend to determine
     whether to show CARTA integration options.
     """
     available, version, error_msg = await _check_carta_server()
-    
+
     if not available:
         return CARTAStatus(
             available=False,
             message=error_msg or "CARTA server is not available",
         )
-    
+
     return CARTAStatus(
         available=True,
         version=version,
@@ -220,7 +218,7 @@ async def get_carta_status():
 async def list_carta_sessions():
     """
     List all active CARTA sessions.
-    
+
     Returns information about currently open CARTA viewer sessions,
     including the files being viewed and when they were opened.
     """
@@ -228,7 +226,7 @@ async def list_carta_sessions():
     # In production, CARTA server would manage this
     now = datetime.utcnow()
     stale_threshold = 24 * 60 * 60  # 24 hours in seconds
-    
+
     active = []
     for session_id, session in list(_active_sessions.items()):
         try:
@@ -240,7 +238,7 @@ async def list_carta_sessions():
                 del _active_sessions[session_id]
         except Exception:
             active.append(session)  # Keep if we can't parse timestamp
-    
+
     return active
 
 
@@ -248,17 +246,17 @@ async def list_carta_sessions():
 async def open_in_carta(request: CARTAOpenRequest):
     """
     Open a file in CARTA viewer.
-    
+
     Creates a new CARTA session (or reuses existing) for viewing the
     specified file. Returns the viewer URL that can be embedded in
     an iframe or opened in a new window.
-    
+
     Args:
         request: File path and options for opening
-        
+
     Returns:
         Session information and viewer URL
-        
+
     Raises:
         HTTPException: If CARTA is unavailable or file cannot be accessed
     """
@@ -272,7 +270,7 @@ async def open_in_carta(request: CARTAOpenRequest):
                 "message": error_msg,
             },
         )
-    
+
     # Validate file path for security
     if not _validate_file_path(request.file_path):
         raise HTTPException(
@@ -282,9 +280,10 @@ async def open_in_carta(request: CARTAOpenRequest):
                 "message": "File path must be under allowed data directories",
             },
         )
-    
+
     # Check if file exists
     import os
+
     if not os.path.exists(request.file_path):
         raise HTTPException(
             status_code=404,
@@ -293,7 +292,7 @@ async def open_in_carta(request: CARTAOpenRequest):
                 "message": f"The file does not exist: {request.file_path}",
             },
         )
-    
+
     # Check session limits
     if MAX_CARTA_SESSIONS > 0 and len(_active_sessions) >= MAX_CARTA_SESSIONS:
         if request.new_session:
@@ -304,7 +303,7 @@ async def open_in_carta(request: CARTAOpenRequest):
                     "message": f"Maximum of {MAX_CARTA_SESSIONS} concurrent sessions allowed",
                 },
             )
-    
+
     # Check for existing session with same file (if not requesting new)
     if not request.new_session:
         for session_id, session in _active_sessions.items():
@@ -315,11 +314,11 @@ async def open_in_carta(request: CARTAOpenRequest):
                     viewer_url=_build_viewer_url(request.file_path, session_id),
                     message="Reusing existing session",
                 )
-    
+
     # Create new session
     session_id = str(uuid4())
     now = datetime.utcnow().isoformat() + "Z"
-    
+
     session = CARTASession(
         id=session_id,
         file_path=request.file_path,
@@ -327,13 +326,13 @@ async def open_in_carta(request: CARTAOpenRequest):
         created_at=now,
         last_activity=now,
     )
-    
+
     _active_sessions[session_id] = session
-    
+
     viewer_url = _build_viewer_url(request.file_path, session_id)
-    
+
     logger.info(f"Opened CARTA session {session_id} for {request.file_path}")
-    
+
     return CARTAOpenResponse(
         success=True,
         session_id=session_id,
@@ -348,16 +347,16 @@ async def close_carta_session(
 ):
     """
     Close a CARTA session.
-    
+
     Terminates an active CARTA viewer session and frees up resources.
     This should be called when the user navigates away from the viewer.
-    
+
     Args:
         session_id: The session ID to close
-        
+
     Returns:
         Confirmation of session closure
-        
+
     Raises:
         HTTPException: If session is not found
     """
@@ -369,10 +368,10 @@ async def close_carta_session(
                 "message": f"No active session with ID: {session_id}",
             },
         )
-    
+
     session = _active_sessions.pop(session_id)
     logger.info(f"Closed CARTA session {session_id} for {session.file_path}")
-    
+
     return {
         "success": True,
         "session_id": session_id,
@@ -386,13 +385,13 @@ async def get_carta_session(
 ):
     """
     Get information about a specific CARTA session.
-    
+
     Args:
         session_id: The session ID to look up
-        
+
     Returns:
         Session details including file path and timestamps
-        
+
     Raises:
         HTTPException: If session is not found
     """
@@ -404,9 +403,9 @@ async def get_carta_session(
                 "message": f"No active session with ID: {session_id}",
             },
         )
-    
+
     # Update last activity
     session = _active_sessions[session_id]
     session.last_activity = datetime.utcnow().isoformat() + "Z"
-    
+
     return session

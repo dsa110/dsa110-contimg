@@ -55,7 +55,7 @@ class DsaSyslogger:
 
             # Create formatter
             formatter = logging.Formatter(
-                f"%(asctime)s - {proj_name}/{subsystem_name} - " "%(levelname)s - %(message)s"
+                f"%(asctime)s - {proj_name}/{subsystem_name} - %(levelname)s - %(message)s"
             )
             handler.setFormatter(formatter)
             self.logger.addHandler(handler)

@@ -27,13 +27,10 @@ import pandas as pd
 from dsa110_contimg.catalog.coverage import validate_catalog_choice
 from dsa110_contimg.pipeline.config import PipelineConfig
 from dsa110_contimg.pipeline.context import PipelineContext
-from dsa110_contimg.pipeline.stages import PipelineStage
 from dsa110_contimg.pipeline.stage_integration import (
-    metrics_context,
-    state_machine_context,
     tracked_stage_execute,
-    with_stage_retry,
 )
+from dsa110_contimg.pipeline.stages import PipelineStage
 from dsa110_contimg.utils.ms_organization import (
     create_path_mapper,
     determine_ms_type,
@@ -301,7 +298,9 @@ class CatalogSetupStage(PipelineStage):
                         catalog_type=catalog_type, dec_strip=dec_center
                     )
                     if catalog_path.exists():
-                        logger.info(f":check_mark: {catalog_type.upper()} catalog exists: {catalog_path}")
+                        logger.info(
+                            f":check_mark: {catalog_type.upper()} catalog exists: {catalog_path}"
+                        )
                         catalogs_existed.append(catalog_type)
                         continue
                 except FileNotFoundError:
@@ -780,9 +779,7 @@ class CalibrationSolveStage(PipelineStage):
             logger.error(error_msg)
             raise RuntimeError(error_msg) from e
 
-    def _execute_calibration_solve(
-        self, context: PipelineContext, ms_path: str
-    ) -> PipelineContext:  # noqa: E501
+    def _execute_calibration_solve(self, context: PipelineContext, ms_path: str) -> PipelineContext:  # noqa: E501
         """Internal calibration solve execution (called within lock)."""
         import glob
         import os
@@ -1117,12 +1114,15 @@ class CalibrationSolveStage(PipelineStage):
             if flag_autocorr:
                 try:
                     from dsa110_contimg.utils.tempdirs import casa_log_environment
+
                     with casa_log_environment():
                         from casatasks import flagdata
+
                         logger.info("Flagging autocorrelations...")
                         flagdata(vis=str(ms_path), autocorr=True, flagbackup=False)
                 except ImportError:
                     from casatasks import flagdata
+
                     logger.info("Flagging autocorrelations...")
                     flagdata(vis=str(ms_path), autocorr=True, flagbackup=False)
                 logger.info(":check_mark: Autocorrelations flagged")
@@ -1898,7 +1898,10 @@ class SelfCalibrationStage(PipelineStage):
             do_amplitude=params.get("do_amplitude", True),
             amp_solint=params.get("amp_solint", "inf"),
             amp_minsnr=params.get("amp_minsnr", 5.0),
-            imsize=params.get("imsize", context.config.imaging.imsize if hasattr(context.config, 'imaging') else 1024),
+            imsize=params.get(
+                "imsize",
+                context.config.imaging.imsize if hasattr(context.config, "imaging") else 1024,
+            ),
             niter=params.get("niter", 10000),
             threshold=params.get("threshold", "0.1mJy"),
             robust=params.get("robust", 0.0),
@@ -1932,7 +1935,9 @@ class SelfCalibrationStage(PipelineStage):
 
         if success:
             context = context.with_output("selfcal_tables", summary.get("final_gaintables", []))
-            context = context.with_output("selfcal_snr_improvement", summary.get("improvement_factor", 1.0))
+            context = context.with_output(
+                "selfcal_snr_improvement", summary.get("improvement_factor", 1.0)
+            )
             context = context.with_output("selfcal_final_image", summary.get("final_image"))
 
             logger.info(
@@ -2415,9 +2420,8 @@ class MosaicStage(PipelineStage):
         start_time_sec = time.time()
         log_progress("Starting mosaic stage...")
 
-        from dsa110_contimg.mosaic.streaming_mosaic import StreamingMosaicManager
         from dsa110_contimg.database import ensure_pipeline_db
-        from dsa110_contimg.utils.time_utils import extract_ms_time_range
+        from dsa110_contimg.mosaic.streaming_mosaic import StreamingMosaicManager
 
         # Get image paths
         if "image_paths" in context.outputs:
@@ -2664,17 +2668,11 @@ class LightCurveStage(PipelineStage):
             Updated context with variable_sources, ese_candidates, metrics_updated
         """
         import time
-        from datetime import datetime
 
         start_time_sec = time.time()
         log_progress("Starting light curve computation stage...")
 
         from dsa110_contimg.database import ensure_pipeline_db
-        from dsa110_contimg.photometry.variability import (
-            calculate_eta_metric,
-            calculate_v_metric,
-            calculate_sigma_deviation,
-        )
 
         products_db = ensure_pipeline_db()
 
@@ -2830,10 +2828,11 @@ class LightCurveStage(PipelineStage):
         """
         import numpy as np
         import pandas as pd
+
         from dsa110_contimg.photometry.variability import (
             calculate_eta_metric,
-            calculate_v_metric,
             calculate_sigma_deviation,
+            calculate_v_metric,
         )
 
         # Query photometry for this source
@@ -2904,7 +2903,9 @@ class LightCurveStage(PipelineStage):
         return {
             "ra_deg": float(df["ra_deg"].iloc[0]),
             "dec_deg": float(df["dec_deg"].iloc[0]),
-            "nvss_flux_mjy": float(df["nvss_flux_mjy"].iloc[0]) if pd.notna(df["nvss_flux_mjy"].iloc[0]) else None,
+            "nvss_flux_mjy": float(df["nvss_flux_mjy"].iloc[0])
+            if pd.notna(df["nvss_flux_mjy"].iloc[0])
+            else None,
             "mean_flux_mjy": float(mean_flux * 1000),  # Convert Jy to mJy
             "std_flux_mjy": float(np.std(fluxes) * 1000),
             "chi2_nu": float(chi2_nu),
@@ -3450,9 +3451,7 @@ class CrossMatchStage(PipelineStage):
                     catalog_type=catalog_type, ra_deg=ra_center, dec_deg=dec_center
                 )
                 if not is_valid:
-                    logger.info(
-                        f"Skipping {catalog_type.upper()}: {warning}"
-                    )
+                    logger.info(f"Skipping {catalog_type.upper()}: {warning}")
                     continue
 
                 logger.info(f"Querying {catalog_type.upper()} catalog...")
@@ -3595,9 +3594,7 @@ class CrossMatchStage(PipelineStage):
                 )
                 all_offsets[catalog_type] = {
                     "dra_median_arcsec": dra_median.to(u.arcsec).value,  # pylint: disable=no-member
-                    "ddec_median_arcsec": ddec_median.to(
-                        u.arcsec
-                    ).value,  # pylint: disable=no-member
+                    "ddec_median_arcsec": ddec_median.to(u.arcsec).value,  # pylint: disable=no-member
                     "dra_madfm_arcsec": dra_madfm.to(u.arcsec).value,  # pylint: disable=no-member
                     "ddec_madfm_arcsec": ddec_madfm.to(u.arcsec).value,  # pylint: disable=no-member
                 }

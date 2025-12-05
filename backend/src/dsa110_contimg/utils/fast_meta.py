@@ -12,7 +12,7 @@ Usage:
     >>> from dsa110_contimg.utils.fast_meta import get_uvh5_times, get_uvh5_freqs
     >>> times = get_uvh5_times("/path/to/file.hdf5")
     >>> freqs = get_uvh5_freqs("/path/to/file.hdf5")
-    
+
     # Or use the class directly for multiple attributes
     >>> from dsa110_contimg.utils.fast_meta import FastMeta
     >>> with FastMeta("/path/to/file.hdf5") as meta:
@@ -44,20 +44,18 @@ try:
     HAS_FAST_META = True
 except ImportError:
     HAS_FAST_META = False
-    logger.warning(
-        "FastUVH5Meta not available. Install pyuvdata >= 2.4 for faster metadata reads."
-    )
+    logger.warning("FastUVH5Meta not available. Install pyuvdata >= 2.4 for faster metadata reads.")
 
 
 class FastMeta:
     """Context manager wrapper for FastUVH5Meta.
-    
+
     Provides a clean interface with automatic resource management.
     Falls back to UVData.read(read_data=False) if FastUVH5Meta unavailable.
-    
+
     Performance: ~700x faster than UVData.read(read_data=False) for
     accessing individual attributes like time_array or freq_array.
-    
+
     Example:
         >>> with FastMeta("file.hdf5") as meta:
         ...     print(f"Times: {meta.time_array}")
@@ -66,7 +64,7 @@ class FastMeta:
 
     def __init__(self, path: str | Path):
         """Initialize with path to UVH5 file.
-        
+
         Args:
             path: Path to UVH5 file
         """
@@ -105,7 +103,7 @@ class FastMeta:
             return getattr(self._meta, name)
         elif self._uvdata is not None:
             return getattr(self._uvdata, name)
-        raise AttributeError(f"FastMeta not initialized. Use as context manager.")
+        raise AttributeError("FastMeta not initialized. Use as context manager.")
 
     @property
     def unique_times(self) -> NDArray[np.float64]:
@@ -126,11 +124,11 @@ class FastMeta:
 
 def get_uvh5_times(path: str | Path, unique: bool = True) -> NDArray[np.float64]:
     """Get times from UVH5 file.
-    
+
     Args:
         path: Path to UVH5 file
         unique: If True, return unique times; if False, return raw time_array
-        
+
     Returns:
         Array of times in JD
     """
@@ -142,10 +140,10 @@ def get_uvh5_times(path: str | Path, unique: bool = True) -> NDArray[np.float64]
 
 def get_uvh5_mid_mjd(path: str | Path) -> float:
     """Get middle time as MJD from UVH5 file.
-    
+
     Args:
         path: Path to UVH5 file
-        
+
     Returns:
         Middle time as MJD
     """
@@ -155,10 +153,10 @@ def get_uvh5_mid_mjd(path: str | Path) -> float:
 
 def get_uvh5_freqs(path: str | Path) -> NDArray[np.float64]:
     """Get frequency array from UVH5 file.
-    
+
     Args:
         path: Path to UVH5 file
-        
+
     Returns:
         Frequency array in Hz
     """
@@ -168,12 +166,12 @@ def get_uvh5_freqs(path: str | Path) -> NDArray[np.float64]:
 
 def get_uvh5_basic_info(path: str | Path) -> dict:
     """Get basic metadata from UVH5 file.
-    
+
     Returns commonly needed attributes in a single read.
-    
+
     Args:
         path: Path to UVH5 file
-        
+
     Returns:
         Dict with keys: times, mid_mjd, nfreqs, npols, nants, channel_width
     """
@@ -191,22 +189,22 @@ def get_uvh5_basic_info(path: str | Path) -> dict:
 
 def peek_uvh5_phase_and_midtime(path: str | Path) -> tuple[float, float, float]:
     """Get phase center (RA, Dec in radians) and mid-time (MJD) from UVH5 file.
-    
+
     This is a fast peek operation that reads minimal metadata.
     Uses phase_center_catalog (pyuvdata 3.x) or legacy attributes.
-    
+
     Args:
         path: Path to UVH5 file
-        
+
     Returns:
         Tuple of (phase_center_ra_rad, phase_center_dec_rad, mid_time_mjd)
-        
+
     Raises:
         KeyError: If phase center information cannot be found
     """
     with FastMeta(path) as meta:
         mid_mjd = meta.mid_time_mjd
-        
+
         # Try pyuvdata 3.x phase_center_catalog first
         try:
             catalog = meta.phase_center_catalog
@@ -217,7 +215,7 @@ def peek_uvh5_phase_and_midtime(path: str | Path) -> tuple[float, float, float]:
                 return (float(ra_rad), float(dec_rad), mid_mjd)
         except (AttributeError, KeyError):
             pass
-        
+
         # Fallback to legacy attributes
         try:
             ra_rad = meta.phase_center_ra
@@ -225,5 +223,5 @@ def peek_uvh5_phase_and_midtime(path: str | Path) -> tuple[float, float, float]:
             return (float(ra_rad), float(dec_rad), mid_mjd)
         except AttributeError:
             pass
-        
+
         raise KeyError(f"No phase center information found in {path}")

@@ -42,6 +42,7 @@ warnings.filterwarnings(
 # CASA Log Directory Setup (MUST happen before any CASA imports)
 # =============================================================================
 
+
 def _setup_casa_log_directory_early() -> Path:
     """Set up CASA log file directory BEFORE any CASA imports.
 
@@ -77,6 +78,7 @@ _casa_log_dir_early = _setup_casa_log_directory_early()
 # =============================================================================
 # CASA Path Setup
 # =============================================================================
+
 
 def ensure_casa_path() -> None:
     """
@@ -204,6 +206,7 @@ def setup_casa_log_directory() -> Path:
     # Use centralized settings if available, otherwise use default path
     try:
         from dsa110_contimg.config import settings
+
         log_dir = settings.paths.casa_logs_dir
     except ImportError:
         log_dir = Path("/data/dsa110-contimg/state/logs/casa")
@@ -244,6 +247,7 @@ def cleanup_stray_casa_logs(
     if target_dir is None:
         try:
             from dsa110_contimg.config import settings
+
             target_dir = settings.paths.casa_logs_dir
         except ImportError:
             target_dir = Path("/data/dsa110-contimg/state/logs/casa")

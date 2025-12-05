@@ -6,14 +6,13 @@ Provides endpoints for rating sources and images with star ratings and quality f
 
 from __future__ import annotations
 
-import json
 import logging
 import sqlite3
 import uuid
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Literal, Optional
 
-from fastapi import APIRouter, HTTPException, Query, Depends
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from ..dependencies import get_pipeline_db
@@ -34,7 +33,7 @@ QualityFlag = Literal["good", "uncertain", "bad", "needs_review"]
 
 class Rating(BaseModel):
     """A rating record."""
-    
+
     id: str
     target_type: RatingTarget
     target_id: str
@@ -50,7 +49,7 @@ class Rating(BaseModel):
 
 class RatingSubmission(BaseModel):
     """Input for submitting a rating."""
-    
+
     target_type: RatingTarget
     target_id: str
     category: RatingCategory = "overall"
@@ -61,7 +60,7 @@ class RatingSubmission(BaseModel):
 
 class RatingSummary(BaseModel):
     """Summary of ratings for a target."""
-    
+
     target_type: RatingTarget
     target_id: str
     category: RatingCategory
@@ -73,7 +72,7 @@ class RatingSummary(BaseModel):
 
 class TargetRatingSummary(BaseModel):
     """Complete rating summary for a target across all categories."""
-    
+
     target_type: RatingTarget
     target_id: str
     overall_average: float
@@ -85,7 +84,7 @@ class TargetRatingSummary(BaseModel):
 
 class RatingStats(BaseModel):
     """Global rating statistics."""
-    
+
     total_ratings: int
     sources_rated: int
     images_rated: int
@@ -98,7 +97,7 @@ class RatingStats(BaseModel):
 
 class QueueItem(BaseModel):
     """Item in the rating queue."""
-    
+
     target_type: RatingTarget
     target_id: str
     name: str
@@ -109,7 +108,7 @@ class QueueItem(BaseModel):
 
 class QueueListResponse(BaseModel):
     """Response for rating queue."""
-    
+
     items: List[QueueItem]
     total: int
 
@@ -190,10 +189,10 @@ async def get_rating_stats(
 ):
     """Get global rating statistics."""
     _ensure_schema(db)
-    
+
     # Total ratings
     total = db.execute("SELECT COUNT(*) FROM qa_ratings").fetchone()[0]
-    
+
     # Sources and images rated
     sources = db.execute(
         "SELECT COUNT(DISTINCT target_id) FROM qa_ratings WHERE target_type = 'source'"
@@ -201,25 +200,23 @@ async def get_rating_stats(
     images = db.execute(
         "SELECT COUNT(DISTINCT target_id) FROM qa_ratings WHERE target_type = 'image'"
     ).fetchone()[0]
-    
+
     # Average rating
     avg_result = db.execute("SELECT AVG(value) FROM qa_ratings").fetchone()[0]
     avg_rating = float(avg_result) if avg_result else 0.0
-    
+
     # Today and this week
     today = datetime.utcnow().date().isoformat()
     week_ago = (datetime.utcnow() - timedelta(days=7)).isoformat()
-    
+
     today_count = db.execute(
-        "SELECT COUNT(*) FROM qa_ratings WHERE created_at >= ?",
-        (today,)
+        "SELECT COUNT(*) FROM qa_ratings WHERE created_at >= ?", (today,)
     ).fetchone()[0]
-    
+
     week_count = db.execute(
-        "SELECT COUNT(*) FROM qa_ratings WHERE created_at >= ?",
-        (week_ago,)
+        "SELECT COUNT(*) FROM qa_ratings WHERE created_at >= ?", (week_ago,)
     ).fetchone()[0]
-    
+
     # Top raters
     cursor = db.execute("""
         SELECT user_id, username, COUNT(*) as rating_count
@@ -229,10 +226,9 @@ async def get_rating_stats(
         LIMIT 10
     """)
     top_raters = [
-        {"user_id": row[0], "username": row[1], "rating_count": row[2]}
-        for row in cursor.fetchall()
+        {"user_id": row[0], "username": row[1], "rating_count": row[2]} for row in cursor.fetchall()
     ]
-    
+
     # Flag distribution
     cursor = db.execute("""
         SELECT flag, COUNT(*) as count
@@ -240,7 +236,7 @@ async def get_rating_stats(
         GROUP BY flag
     """)
     flag_dist = {row[0]: row[1] for row in cursor.fetchall()}
-    
+
     return RatingStats(
         total_ratings=total,
         sources_rated=sources,
@@ -261,22 +257,22 @@ async def get_rating_queue(
 ):
     """Get items in the rating queue."""
     _ensure_schema(db)
-    
+
     sql = "SELECT * FROM rating_queue"
     params: List[Any] = []
-    
+
     if priority:
         sql += " WHERE priority = ?"
         params.append(priority)
-    
+
     sql += " ORDER BY CASE priority WHEN 'high' THEN 1 WHEN 'medium' THEN 2 ELSE 3 END, created_at DESC"
     sql += " LIMIT ?"
     params.append(limit)
-    
+
     cursor = db.execute(sql, params)
     cursor.row_factory = sqlite3.Row
     rows = cursor.fetchall()
-    
+
     items = [
         QueueItem(
             target_type=row["target_type"],
@@ -288,7 +284,7 @@ async def get_rating_queue(
         )
         for row in rows
     ]
-    
+
     return QueueListResponse(items=items, total=len(items))
 
 
@@ -300,7 +296,7 @@ async def remove_from_queue(
 ):
     """Remove an item from the rating queue (after rating)."""
     _ensure_schema(db)
-    
+
     db.execute(
         "DELETE FROM rating_queue WHERE target_type = ? AND target_id = ?",
         (target_type, target_id),
@@ -316,10 +312,10 @@ async def get_user_ratings(
 ):
     """Get ratings by a specific user."""
     _ensure_schema(db)
-    
+
     current_user_id, _ = _get_current_user()
     target_user = user_id or current_user_id
-    
+
     cursor = db.execute(
         """
         SELECT * FROM qa_ratings
@@ -331,7 +327,7 @@ async def get_user_ratings(
     )
     cursor.row_factory = sqlite3.Row
     rows = cursor.fetchall()
-    
+
     return [_row_to_rating(row) for row in rows]
 
 
@@ -344,20 +340,20 @@ async def get_ratings(
 ):
     """Get all ratings for a specific target."""
     _ensure_schema(db)
-    
+
     sql = "SELECT * FROM qa_ratings WHERE target_type = ? AND target_id = ?"
     params: List[Any] = [target_type, target_id]
-    
+
     if category:
         sql += " AND category = ?"
         params.append(category)
-    
+
     sql += " ORDER BY created_at DESC"
-    
+
     cursor = db.execute(sql, params)
     cursor.row_factory = sqlite3.Row
     rows = cursor.fetchall()
-    
+
     return [_row_to_rating(row) for row in rows]
 
 
@@ -370,7 +366,7 @@ async def get_rating_summary(
 ):
     """Get rating summary for a target in a specific category."""
     _ensure_schema(db)
-    
+
     # Get ratings for this category
     cursor = db.execute(
         """
@@ -382,9 +378,9 @@ async def get_rating_summary(
     )
     cursor.row_factory = sqlite3.Row
     rows = cursor.fetchall()
-    
+
     ratings = [_row_to_rating(row) for row in rows]
-    
+
     # Calculate stats
     if ratings:
         avg = sum(r.value for r in ratings) / len(ratings)
@@ -394,7 +390,7 @@ async def get_rating_summary(
     else:
         avg = 0.0
         flag_dist = {}
-    
+
     return RatingSummary(
         target_type=target_type,
         target_id=target_id,
@@ -414,7 +410,7 @@ async def get_complete_summary(
 ):
     """Get complete rating summary across all categories."""
     _ensure_schema(db)
-    
+
     cursor = db.execute(
         """
         SELECT category, AVG(value) as avg, COUNT(*) as count
@@ -424,18 +420,18 @@ async def get_complete_summary(
         """,
         (target_type, target_id),
     )
-    
+
     categories = {}
     total_count = 0
     total_sum = 0.0
-    
+
     for row in cursor.fetchall():
         categories[row[0]] = {"average": round(row[1], 2), "count": row[2]}
         total_count += row[2]
         total_sum += row[1] * row[2]
-    
+
     overall_avg = round(total_sum / total_count, 2) if total_count > 0 else 0.0
-    
+
     # Get primary flag (most common)
     cursor = db.execute(
         """
@@ -450,10 +446,10 @@ async def get_complete_summary(
     )
     row = cursor.fetchone()
     primary_flag = row[0] if row else "good"
-    
+
     # Needs attention if any bad/needs_review flags or low ratings
     needs_attention = primary_flag in ("bad", "needs_review") or overall_avg < 2.5
-    
+
     return TargetRatingSummary(
         target_type=target_type,
         target_id=target_id,
@@ -472,10 +468,10 @@ async def submit_rating(
 ):
     """Submit or update a rating."""
     _ensure_schema(db)
-    
+
     user_id, username = _get_current_user()
     now = datetime.utcnow().isoformat()
-    
+
     # Check if rating exists (upsert)
     cursor = db.execute(
         """
@@ -485,7 +481,7 @@ async def submit_rating(
         (data.target_type, data.target_id, user_id, data.category),
     )
     existing = cursor.fetchone()
-    
+
     if existing:
         # Update
         rating_id = existing[0]
@@ -505,23 +501,35 @@ async def submit_rating(
             INSERT INTO qa_ratings (id, target_type, target_id, user_id, username, category, value, flag, comment, created_at, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (rating_id, data.target_type, data.target_id, user_id, username, data.category, data.value, data.flag, data.comment, now, now),
+            (
+                rating_id,
+                data.target_type,
+                data.target_id,
+                user_id,
+                username,
+                data.category,
+                data.value,
+                data.flag,
+                data.comment,
+                now,
+                now,
+            ),
         )
-    
+
     db.commit()
-    
+
     # Remove from queue if present
     db.execute(
         "DELETE FROM rating_queue WHERE target_type = ? AND target_id = ?",
         (data.target_type, data.target_id),
     )
     db.commit()
-    
+
     # Fetch and return
     cursor = db.execute("SELECT * FROM qa_ratings WHERE id = ?", (rating_id,))
     cursor.row_factory = sqlite3.Row
     row = cursor.fetchone()
-    
+
     return _row_to_rating(row)
 
 
@@ -532,21 +540,21 @@ async def delete_rating(
 ):
     """Delete a rating (owner only)."""
     _ensure_schema(db)
-    
+
     user_id, _ = _get_current_user()
-    
+
     # Check ownership
     cursor = db.execute(
         "SELECT user_id FROM qa_ratings WHERE id = ?",
         (rating_id,),
     )
     row = cursor.fetchone()
-    
+
     if not row:
         raise HTTPException(status_code=404, detail="Rating not found")
-    
+
     if row[0] != user_id:
         raise HTTPException(status_code=403, detail="Cannot delete another user's rating")
-    
+
     db.execute("DELETE FROM qa_ratings WHERE id = ?", (rating_id,))
     db.commit()

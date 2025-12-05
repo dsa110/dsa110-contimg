@@ -11,7 +11,6 @@ Provides comprehensive health monitoring for:
 
 from __future__ import annotations
 
-import asyncio
 import logging
 import os
 from datetime import datetime
@@ -138,12 +137,8 @@ async def get_system_health(
     include_docker: bool = Query(True, description="Check Docker containers"),
     include_systemd: bool = Query(True, description="Check systemd services"),
     include_http: bool = Query(True, description="Check HTTP endpoints"),
-    docker_containers: Optional[str] = Query(
-        None, description="Comma-separated container names"
-    ),
-    systemd_services: Optional[str] = Query(
-        None, description="Comma-separated service names"
-    ),
+    docker_containers: Optional[str] = Query(None, description="Comma-separated container names"),
+    systemd_services: Optional[str] = Query(None, description="Comma-separated service names"),
 ) -> SystemHealthReport:
     """
     Get comprehensive system health status.
@@ -151,17 +146,13 @@ async def get_system_health(
     Checks all infrastructure components and returns aggregated health report.
     """
     from dsa110_contimg.monitoring.service_health import (
-        check_system_health,
         ServiceStatus,
+        check_system_health,
     )
 
     # Parse custom lists or use defaults
-    containers = (
-        docker_containers.split(",") if docker_containers else DEFAULT_DOCKER_CONTAINERS
-    )
-    services = (
-        systemd_services.split(",") if systemd_services else DEFAULT_SYSTEMD_SERVICES
-    )
+    containers = docker_containers.split(",") if docker_containers else DEFAULT_DOCKER_CONTAINERS
+    services = systemd_services.split(",") if systemd_services else DEFAULT_SYSTEMD_SERVICES
 
     report = await check_system_health(
         docker_containers=containers if include_docker else None,
@@ -245,12 +236,9 @@ async def check_database_health() -> Dict[str, Any]:
     import os
     import sqlite3
     import time
-    from pathlib import Path
 
     # Unified database path (Phase 2 consolidation)
-    unified_db = os.environ.get(
-        "PIPELINE_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3"
-    )
+    unified_db = os.environ.get("PIPELINE_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3")
 
     # Check unified database with domain labels for clarity
     databases = {
@@ -393,9 +381,7 @@ async def get_active_validity_windows(
                     else None
                 ),
                 "valid_end_iso": (
-                    Time(row["valid_end_mjd"], format="mjd").isot
-                    if row["valid_end_mjd"]
-                    else None
+                    Time(row["valid_end_mjd"], format="mjd").isot if row["valid_end_mjd"] else None
                 ),
             }
         )
@@ -626,9 +612,7 @@ async def get_flux_monitoring_status(
 
         # Stability check: ratio within 10% of 1.0
         is_stable = (
-            mean_ratio is not None
-            and 0.9 <= mean_ratio <= 1.1
-            and (max_ratio - min_ratio) < 0.2
+            mean_ratio is not None and 0.9 <= mean_ratio <= 1.1 and (max_ratio - min_ratio) < 0.2
         )
 
         calibrators.append(
@@ -637,15 +621,11 @@ async def get_flux_monitoring_status(
                 "n_measurements": row["n_measurements"],
                 "latest_mjd": row["latest_mjd"],
                 "latest_iso": (
-                    Time(row["latest_mjd"], format="mjd").isot
-                    if row["latest_mjd"]
-                    else None
+                    Time(row["latest_mjd"], format="mjd").isot if row["latest_mjd"] else None
                 ),
                 "mean_flux_ratio": round(mean_ratio, 4) if mean_ratio else None,
                 "flux_ratio_range": (
-                    [round(min_ratio, 4), round(max_ratio, 4)]
-                    if min_ratio and max_ratio
-                    else None
+                    [round(min_ratio, 4), round(max_ratio, 4)] if min_ratio and max_ratio else None
                 ),
                 "is_stable": is_stable,
                 "alerts_count": alert_counts.get(name, 0),
@@ -1108,13 +1088,15 @@ async def get_calibration_coverage_timeline(
         # Check for gap before this entry
         if entry_start > prev_end:
             gap_hours = (entry_start - prev_end) * 24
-            gaps.append({
-                "start_mjd": prev_end,
-                "end_mjd": entry_start,
-                "start_iso": Time(prev_end, format="mjd").isot,
-                "end_iso": Time(entry_start, format="mjd").isot,
-                "duration_hours": gap_hours,
-            })
+            gaps.append(
+                {
+                    "start_mjd": prev_end,
+                    "end_mjd": entry_start,
+                    "start_iso": Time(prev_end, format="mjd").isot,
+                    "end_iso": Time(entry_start, format="mjd").isot,
+                    "duration_hours": gap_hours,
+                }
+            )
 
         # Update coverage
         if entry_end > prev_end:
@@ -1124,13 +1106,15 @@ async def get_calibration_coverage_timeline(
     # Check for final gap
     if prev_end < end_mjd:
         gap_hours = (end_mjd - prev_end) * 24
-        gaps.append({
-            "start_mjd": prev_end,
-            "end_mjd": end_mjd,
-            "start_iso": Time(prev_end, format="mjd").isot,
-            "end_iso": Time(end_mjd, format="mjd").isot,
-            "duration_hours": gap_hours,
-        })
+        gaps.append(
+            {
+                "start_mjd": prev_end,
+                "end_mjd": end_mjd,
+                "start_iso": Time(prev_end, format="mjd").isot,
+                "end_iso": Time(end_mjd, format="mjd").isot,
+                "duration_hours": gap_hours,
+            }
+        )
 
     coverage_pct = (covered_hours / total_duration * 100) if total_duration > 0 else 0
 
@@ -1342,9 +1326,7 @@ async def get_calibration_qa_stats(
 @router.get("/calibration/qa/{ms_path:path}")
 async def get_calibration_qa_for_ms(
     ms_path: str,
-    run_assessment: bool = Query(
-        False, description="Run new assessment if not found"
-    ),
+    run_assessment: bool = Query(False, description="Run new assessment if not found"),
     save_result: bool = Query(True, description="Save result to database"),
 ) -> Dict[str, Any]:
     """
@@ -1668,9 +1650,8 @@ async def get_pointing_status() -> PointingStatusResponse:
     This endpoint aggregates data from the pointing tracker and transit
     prediction systems to provide a unified view for the health dashboard.
     """
-    from astropy.time import Time
-    from astropy.coordinates import Longitude
     import astropy.units as u
+    from astropy.time import Time
 
     try:
         # Get current LST
@@ -1678,7 +1659,7 @@ async def get_pointing_status() -> PointingStatusResponse:
 
         # DSA-110 location
         dsa_longitude = -118.2819  # degrees West
-        lst = now.sidereal_time('apparent', longitude=dsa_longitude * u.deg)
+        lst = now.sidereal_time("apparent", longitude=dsa_longitude * u.deg)
         current_lst_hours = lst.hour
         current_lst_deg = lst.deg
 
@@ -1687,8 +1668,8 @@ async def get_pointing_status() -> PointingStatusResponse:
         active_calibrator = None
 
         try:
-            from dsa110_contimg.pointing.monitor import get_all_upcoming_transits
             from dsa110_contimg.pipeline.precompute import get_pointing_tracker
+            from dsa110_contimg.pointing.monitor import get_all_upcoming_transits
 
             # Get current pointing
             tracker = get_pointing_tracker()
@@ -1714,16 +1695,20 @@ async def get_pointing_status() -> PointingStatusResponse:
                 else:
                     status = "scheduled"
 
-                upcoming_transits.append(TransitPrediction(
-                    calibrator=t.get("calibrator", t.get("name", "Unknown")),
-                    ra_deg=t.get("ra_deg", 0),
-                    dec_deg=t.get("dec_deg", 0),
-                    transit_utc=t.get("transit_utc", t.get("transit_time", now.iso)),
-                    time_to_transit_sec=time_to_transit,
-                    lst_at_transit=t.get("lst_at_transit", t.get("transit_lst_hours", 0)),
-                    elevation_at_transit=t.get("elevation_at_transit", t.get("max_elevation", 90)),
-                    status=status,
-                ))
+                upcoming_transits.append(
+                    TransitPrediction(
+                        calibrator=t.get("calibrator", t.get("name", "Unknown")),
+                        ra_deg=t.get("ra_deg", 0),
+                        dec_deg=t.get("dec_deg", 0),
+                        transit_utc=t.get("transit_utc", t.get("transit_time", now.iso)),
+                        time_to_transit_sec=time_to_transit,
+                        lst_at_transit=t.get("lst_at_transit", t.get("transit_lst_hours", 0)),
+                        elevation_at_transit=t.get(
+                            "elevation_at_transit", t.get("max_elevation", 90)
+                        ),
+                        status=status,
+                    )
+                )
         except ImportError:
             logger.warning("Pointing monitor not available, returning empty transits")
         except Exception as e:
@@ -1737,7 +1722,7 @@ async def get_pointing_status() -> PointingStatusResponse:
             timestamp=now.iso,
         )
 
-    except Exception as e:
+    except Exception:
         logger.exception("Failed to get pointing status")
         # Return minimal valid response
         return PointingStatusResponse(
@@ -1903,21 +1888,25 @@ async def get_storage_summary() -> StorageSummary:
                 # Generate alerts for high usage
                 usage_pct = (usage.used / usage.total) * 100
                 if usage_pct >= 95:
-                    alerts.append(StorageAlert(
-                        severity="critical",
-                        message=f"Disk {mount_path} is critically full ({usage_pct:.1f}%)",
-                        path=mount_path,
-                        threshold_percent=95,
-                        current_percent=usage_pct,
-                    ))
+                    alerts.append(
+                        StorageAlert(
+                            severity="critical",
+                            message=f"Disk {mount_path} is critically full ({usage_pct:.1f}%)",
+                            path=mount_path,
+                            threshold_percent=95,
+                            current_percent=usage_pct,
+                        )
+                    )
                 elif usage_pct >= 85:
-                    alerts.append(StorageAlert(
-                        severity="warning",
-                        message=f"Disk {mount_path} is filling up ({usage_pct:.1f}%)",
-                        path=mount_path,
-                        threshold_percent=85,
-                        current_percent=usage_pct,
-                    ))
+                    alerts.append(
+                        StorageAlert(
+                            severity="warning",
+                            message=f"Disk {mount_path} is filling up ({usage_pct:.1f}%)",
+                            path=mount_path,
+                            threshold_percent=85,
+                            current_percent=usage_pct,
+                        )
+                    )
             except OSError as e:
                 logger.warning(f"Could not check partition {mount_path}: {e}")
 
@@ -1950,18 +1939,21 @@ async def get_storage_summary() -> StorageSummary:
                         except OSError:
                             pass
 
-                directories.append(DirectoryUsage(
-                    path=dir_path,
-                    name=name,
-                    size_bytes=total_size,
-                    size_formatted=format_bytes(total_size),
-                    file_count=file_count,
-                    last_modified=(
-                        datetime.fromtimestamp(latest_mtime).isoformat() + "Z"
-                        if latest_mtime > 0 else None
-                    ),
-                    category=category,
-                ))
+                directories.append(
+                    DirectoryUsage(
+                        path=dir_path,
+                        name=name,
+                        size_bytes=total_size,
+                        size_formatted=format_bytes(total_size),
+                        file_count=file_count,
+                        last_modified=(
+                            datetime.fromtimestamp(latest_mtime).isoformat() + "Z"
+                            if latest_mtime > 0
+                            else None
+                        ),
+                        category=category,
+                    )
+                )
                 total_pipeline_data += total_size
             except OSError as e:
                 logger.warning(f"Could not check directory {dir_path}: {e}")
@@ -1984,8 +1976,8 @@ async def get_cleanup_recommendations() -> CleanupRecommendations:
     """
     Get recommendations for files that can be safely cleaned up.
     """
-    from pathlib import Path
     import time
+    from pathlib import Path
 
     generated_at = datetime.utcnow().isoformat() + "Z"
     candidates: List[CleanupCandidate] = []
@@ -2009,18 +2001,20 @@ async def get_cleanup_recommendations() -> CleanupRecommendations:
                             stat = f.stat()
                             age_days = (now - stat.st_mtime) / 86400
                             if age_days > 1:  # Temp files older than 1 day
-                                candidates.append(CleanupCandidate(
-                                    path=str(f),
-                                    size_bytes=stat.st_size,
-                                    size_formatted=format_bytes(stat.st_size),
-                                    age_days=round(age_days, 1),
-                                    last_accessed=(
-                                        datetime.fromtimestamp(stat.st_atime).isoformat() + "Z"
-                                    ),
-                                    reason="Temporary file older than 1 day",
-                                    category="temp",
-                                    safe_to_delete=True,
-                                ))
+                                candidates.append(
+                                    CleanupCandidate(
+                                        path=str(f),
+                                        size_bytes=stat.st_size,
+                                        size_formatted=format_bytes(stat.st_size),
+                                        age_days=round(age_days, 1),
+                                        last_accessed=(
+                                            datetime.fromtimestamp(stat.st_atime).isoformat() + "Z"
+                                        ),
+                                        reason="Temporary file older than 1 day",
+                                        category="temp",
+                                        safe_to_delete=True,
+                                    )
+                                )
                                 total_reclaimable += stat.st_size
                         except OSError:
                             pass
@@ -2037,15 +2031,17 @@ async def get_cleanup_recommendations() -> CleanupRecommendations:
                         stat = f.stat()
                         age_days = (now - stat.st_mtime) / 86400
                         if age_days > 30:
-                            candidates.append(CleanupCandidate(
-                                path=str(f),
-                                size_bytes=stat.st_size,
-                                size_formatted=format_bytes(stat.st_size),
-                                age_days=round(age_days, 1),
-                                reason="Log file older than 30 days",
-                                category="old_logs",
-                                safe_to_delete=True,
-                            ))
+                            candidates.append(
+                                CleanupCandidate(
+                                    path=str(f),
+                                    size_bytes=stat.st_size,
+                                    size_formatted=format_bytes(stat.st_size),
+                                    age_days=round(age_days, 1),
+                                    reason="Log file older than 30 days",
+                                    category="old_logs",
+                                    safe_to_delete=True,
+                                )
+                            )
                             total_reclaimable += stat.st_size
                     except OSError:
                         pass
@@ -2083,9 +2079,7 @@ async def get_storage_trends(
     trends: List[StorageTrend] = []
 
     # Check if we have historical data in the database
-    db_path = Path(
-        os.environ.get("PIPELINE_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3")
-    )
+    db_path = Path(os.environ.get("PIPELINE_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3"))
 
     if db_path.exists():
         try:
@@ -2115,11 +2109,13 @@ async def get_storage_trends(
                     mp = row["mount_point"]
                     if mp not in mount_data:
                         mount_data[mp] = []
-                    mount_data[mp].append(StorageTrendPoint(
-                        timestamp=row["timestamp"],
-                        used_bytes=row["used_bytes"],
-                        usage_percent=row["usage_percent"],
-                    ))
+                    mount_data[mp].append(
+                        StorageTrendPoint(
+                            timestamp=row["timestamp"],
+                            used_bytes=row["used_bytes"],
+                            usage_percent=row["usage_percent"],
+                        )
+                    )
 
                 for mount_point, data_points in mount_data.items():
                     if len(data_points) >= 2:
@@ -2134,18 +2130,25 @@ async def get_storage_trends(
                         if growth > 0:
                             # Get total capacity (would need to store this)
                             # For now, estimate based on 100% usage
-                            remaining = (100 - last.usage_percent) / 100 * last.used_bytes / (last.usage_percent / 100)
+                            remaining = (
+                                (100 - last.usage_percent)
+                                / 100
+                                * last.used_bytes
+                                / (last.usage_percent / 100)
+                            )
                             if remaining > 0:
                                 days_until_full = remaining / growth
 
-                        trends.append(StorageTrend(
-                            mount_point=mount_point,
-                            data_points=data_points,
-                            growth_rate_bytes_per_day=growth,
-                            days_until_full=days_until_full,
-                            period_start=period_start,
-                            period_end=period_end,
-                        ))
+                        trends.append(
+                            StorageTrend(
+                                mount_point=mount_point,
+                                data_points=data_points,
+                                growth_rate_bytes_per_day=growth,
+                                days_until_full=days_until_full,
+                                period_start=period_start,
+                                period_end=period_end,
+                            )
+                        )
 
             conn.close()
         except Exception as e:
@@ -2162,18 +2165,22 @@ async def get_storage_trends(
                     usage = shutil.disk_usage(path)
                     usage_pct = (usage.used / usage.total) * 100
 
-                    trends.append(StorageTrend(
-                        mount_point=mount_path,
-                        data_points=[StorageTrendPoint(
-                            timestamp=period_end,
-                            used_bytes=usage.used,
-                            usage_percent=round(usage_pct, 1),
-                        )],
-                        growth_rate_bytes_per_day=0,
-                        days_until_full=None,
-                        period_start=period_start,
-                        period_end=period_end,
-                    ))
+                    trends.append(
+                        StorageTrend(
+                            mount_point=mount_path,
+                            data_points=[
+                                StorageTrendPoint(
+                                    timestamp=period_end,
+                                    used_bytes=usage.used,
+                                    usage_percent=round(usage_pct, 1),
+                                )
+                            ],
+                            growth_rate_bytes_per_day=0,
+                            days_until_full=None,
+                            period_start=period_start,
+                            period_end=period_end,
+                        )
+                    )
                 except OSError:
                     pass
 

@@ -17,7 +17,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
-from fastapi import APIRouter, HTTPException, Query, Depends, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from ..dependencies import get_pipeline_db
@@ -139,10 +139,10 @@ def _perform_backup(
     """Perform the actual backup in background."""
     conn = sqlite3.connect(str(db_path))
     conn.row_factory = sqlite3.Row
-    
+
     try:
         backup_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         if backup_type == "database_only":
             # SQLite backup
             dest_db = backup_path / "pipeline.sqlite3"
@@ -154,7 +154,7 @@ def _perform_backup(
             )
             size = dest_db.stat().st_size
             checksum = _compute_checksum(dest_db)
-            
+
         elif backup_type == "caltables_only":
             # Rsync caltables
             subprocess.run(
@@ -163,7 +163,7 @@ def _perform_backup(
             )
             size = sum(f.stat().st_size for f in backup_path.rglob("*") if f.is_file())
             checksum = None  # Directory backup
-            
+
         elif backup_type == "full":
             # Both database and caltables
             dest_db = backup_path / "pipeline.sqlite3"
@@ -178,10 +178,10 @@ def _perform_backup(
             )
             size = sum(f.stat().st_size for f in backup_path.rglob("*") if f.is_file())
             checksum = _compute_checksum(dest_db) if dest_db.exists() else None
-            
+
         else:
             raise ValueError(f"Unknown backup type: {backup_type}")
-        
+
         # Update record
         conn.execute(
             """
@@ -193,7 +193,7 @@ def _perform_backup(
         )
         conn.commit()
         logger.info(f"Backup {backup_id} completed successfully")
-        
+
     except Exception as e:
         logger.error(f"Backup {backup_id} failed: {e}")
         conn.execute(
@@ -224,27 +224,27 @@ async def list_backups(
     """List all backups."""
     query = "SELECT * FROM backup_history WHERE 1=1"
     params = []
-    
+
     if backup_type:
         query += " AND backup_type = ?"
         params.append(backup_type)
     if status:
         query += " AND status = ?"
         params.append(status)
-    
+
     query += " ORDER BY created_at DESC LIMIT ?"
     params.append(limit)
-    
+
     cursor = db.execute(query, params)
     cursor.row_factory = sqlite3.Row
     rows = cursor.fetchall()
-    
+
     backups = [_row_to_backup(row) for row in rows]
-    
+
     # Get total count
     count_cursor = db.execute("SELECT COUNT(*) FROM backup_history")
     total = count_cursor.fetchone()[0]
-    
+
     return BackupListResponse(backups=backups, total=total)
 
 
@@ -253,12 +253,10 @@ async def get_latest_backup_status(
     db: sqlite3.Connection = Depends(get_pipeline_db),
 ):
     """Get status of the most recent backup."""
-    cursor = db.execute(
-        "SELECT * FROM backup_history ORDER BY created_at DESC LIMIT 1"
-    )
+    cursor = db.execute("SELECT * FROM backup_history ORDER BY created_at DESC LIMIT 1")
     cursor.row_factory = sqlite3.Row
     row = cursor.fetchone()
-    
+
     if not row:
         return BackupInfo(
             id="none",
@@ -267,7 +265,7 @@ async def get_latest_backup_status(
             created_at="",
             status="no_backups",
         )
-    
+
     return _row_to_backup(row)
 
 
@@ -281,11 +279,11 @@ async def create_backup(
     current_user = _get_current_user()
     backup_id = str(uuid.uuid4())
     now = datetime.utcnow()
-    
+
     # Generate backup path
     timestamp = now.strftime("%Y%m%d_%H%M%S")
     backup_path = BACKUP_DIR / data.backup_type / f"{timestamp}_{backup_id[:8]}"
-    
+
     # Create record
     db.execute(
         """
@@ -295,7 +293,7 @@ async def create_backup(
         (backup_id, str(backup_path), data.backup_type, now.isoformat(), current_user),
     )
     db.commit()
-    
+
     # Schedule background task
     background_tasks.add_task(
         _perform_backup,
@@ -304,7 +302,7 @@ async def create_backup(
         backup_path,
         PIPELINE_DB,
     )
-    
+
     return BackupInfo(
         id=backup_id,
         backup_path=str(backup_path),
@@ -320,15 +318,13 @@ async def get_latest_backup_status(
     db: sqlite3.Connection = Depends(get_pipeline_db),
 ):
     """Get status of the most recent backup."""
-    cursor = db.execute(
-        "SELECT * FROM backup_history ORDER BY created_at DESC LIMIT 1"
-    )
+    cursor = db.execute("SELECT * FROM backup_history ORDER BY created_at DESC LIMIT 1")
     cursor.row_factory = sqlite3.Row
     row = cursor.fetchone()
-    
+
     if not row:
         raise HTTPException(status_code=404, detail="No backups found")
-    
+
     return _row_to_backup(row)
 
 
@@ -342,18 +338,18 @@ async def list_backups(
     """List backup history."""
     conditions = []
     params = []
-    
+
     if backup_type:
         conditions.append("backup_type = ?")
         params.append(backup_type)
-    
+
     if status:
         conditions.append("status = ?")
         params.append(status)
-    
+
     where_clause = " AND ".join(conditions) if conditions else "1=1"
     params.append(limit)
-    
+
     cursor = db.execute(
         f"""
         SELECT * FROM backup_history
@@ -365,7 +361,7 @@ async def list_backups(
     )
     cursor.row_factory = sqlite3.Row
     rows = cursor.fetchall()
-    
+
     backups = [_row_to_backup(row) for row in rows]
     return BackupListResponse(backups=backups, total=len(backups))
 
@@ -382,10 +378,10 @@ async def get_backup(
     )
     cursor.row_factory = sqlite3.Row
     row = cursor.fetchone()
-    
+
     if not row:
         raise HTTPException(status_code=404, detail=f"Backup {backup_id} not found")
-    
+
     return _row_to_backup(row)
 
 
@@ -401,29 +397,29 @@ async def validate_backup(
     )
     cursor.row_factory = sqlite3.Row
     row = cursor.fetchone()
-    
+
     if not row:
         raise HTTPException(status_code=404, detail=f"Backup {backup_id} not found")
-    
+
     backup_path = Path(row["backup_path"])
     expected_checksum = row["checksum"]
-    
+
     # Find database file
     db_file = backup_path / "pipeline.sqlite3"
     if not db_file.exists():
         db_file = backup_path  # Might be direct file
-    
+
     if not db_file.exists():
         return BackupValidationResult(
             id=backup_id,
             is_valid=False,
             error="Backup file not found",
         )
-    
+
     try:
         actual_checksum = _compute_checksum(db_file)
         is_valid = expected_checksum is None or actual_checksum == expected_checksum
-        
+
         # Update validation status
         now = datetime.utcnow().isoformat()
         db.execute(
@@ -435,14 +431,14 @@ async def validate_backup(
             ("valid" if is_valid else "invalid", now, backup_id),
         )
         db.commit()
-        
+
         return BackupValidationResult(
             id=backup_id,
             is_valid=is_valid,
             expected_checksum=expected_checksum,
             actual_checksum=actual_checksum,
         )
-        
+
     except Exception as e:
         return BackupValidationResult(
             id=backup_id,
@@ -463,16 +459,16 @@ async def restore_backup(
     )
     cursor.row_factory = sqlite3.Row
     row = cursor.fetchone()
-    
+
     if not row:
         raise HTTPException(status_code=404, detail=f"Backup {backup_id} not found")
-    
+
     if row["status"] != "completed":
         raise HTTPException(status_code=400, detail="Cannot restore incomplete backup")
-    
+
     backup_path = Path(row["backup_path"])
     backup_type = row["backup_type"]
-    
+
     try:
         if backup_type in ("database_only", "full"):
             src_db = backup_path / "pipeline.sqlite3"
@@ -480,7 +476,7 @@ async def restore_backup(
                 # Close current connection and restore
                 db.close()
                 shutil.copy2(src_db, PIPELINE_DB)
-        
+
         if backup_type in ("caltables_only", "full"):
             src_caltables = backup_path / "caltables"
             if src_caltables.exists():
@@ -488,14 +484,14 @@ async def restore_backup(
                     ["rsync", "-a", "--delete", str(src_caltables) + "/", str(CALTABLES_DIR) + "/"],
                     check=True,
                 )
-        
+
         return RestoreResult(
             success=True,
             backup_id=backup_id,
             restored_at=datetime.utcnow().isoformat(),
             message=f"Successfully restored {backup_type} backup",
         )
-        
+
     except Exception as e:
         logger.error(f"Restore failed: {e}")
         raise HTTPException(status_code=500, detail=f"Restore failed: {e}")
@@ -512,24 +508,24 @@ async def delete_backup(
         (backup_id,),
     )
     row = cursor.fetchone()
-    
+
     if not row:
         raise HTTPException(status_code=404, detail=f"Backup {backup_id} not found")
-    
+
     backup_path = Path(row[0])
-    
+
     # Delete files
     if backup_path.exists():
         if backup_path.is_dir():
             shutil.rmtree(backup_path)
         else:
             backup_path.unlink()
-    
+
     # Update status
     db.execute(
         "UPDATE backup_history SET status = 'deleted' WHERE id = ?",
         (backup_id,),
     )
     db.commit()
-    
+
     return None

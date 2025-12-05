@@ -10,11 +10,11 @@ Consolidates all MS validation functionality:
 
 Usage:
     from dsa110_contimg.validation.ms_validator import MSValidator
-    
+
     validator = MSValidator("/path/to/file.ms")
     report = validator.validate_all()
     print(report.summary())
-    
+
 CLI:
     python -m dsa110_contimg.validation.ms_validator /path/to/file.ms
     python -m dsa110_contimg.validation.ms_validator /path/to/file.ms --json
@@ -125,28 +125,30 @@ class MSValidationReport:
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
-        return _convert_numpy_types({
-            "ms_path": self.ms_path,
-            "validated_at": self.validated_at,
-            "passed": self.passed,
-            "properties": self.properties,
-            "results": [
-                {
-                    "name": r.name,
-                    "passed": r.passed,
-                    "message": r.message,
-                    "severity": r.severity,
-                    "details": r.details,
-                }
-                for r in self.results
-            ],
-            "summary": {
-                "total": len(self.results),
-                "passed": sum(1 for r in self.results if r.passed),
-                "errors": len(self.errors),
-                "warnings": len(self.warnings),
-            },
-        })
+        return _convert_numpy_types(
+            {
+                "ms_path": self.ms_path,
+                "validated_at": self.validated_at,
+                "passed": self.passed,
+                "properties": self.properties,
+                "results": [
+                    {
+                        "name": r.name,
+                        "passed": r.passed,
+                        "message": r.message,
+                        "severity": r.severity,
+                        "details": r.details,
+                    }
+                    for r in self.results
+                ],
+                "summary": {
+                    "total": len(self.results),
+                    "passed": sum(1 for r in self.results if r.passed),
+                    "errors": len(self.errors),
+                    "warnings": len(self.warnings),
+                },
+            }
+        )
 
 
 class MSValidator:
@@ -377,12 +379,14 @@ class MSValidator:
                 for i in range(len(names)):
                     ra_deg = np.degrees(phase_dirs[i, 0, 0])
                     dec_deg = np.degrees(phase_dirs[i, 0, 1])
-                    centers.append({
-                        "field": i,
-                        "name": names[i],
-                        "ra_deg": float(ra_deg),
-                        "dec_deg": float(dec_deg),
-                    })
+                    centers.append(
+                        {
+                            "field": i,
+                            "name": names[i],
+                            "ra_deg": float(ra_deg),
+                            "dec_deg": float(dec_deg),
+                        }
+                    )
 
                 self._report.properties["phase_centers"] = centers
 
@@ -545,7 +549,11 @@ class MSValidator:
                     return
 
                 data = tb.getcol("DATA", startrow=0, nrow=sample_size)
-                flags = tb.getcol("FLAG", startrow=0, nrow=sample_size) if "FLAG" in tb.colnames() else None
+                flags = (
+                    tb.getcol("FLAG", startrow=0, nrow=sample_size)
+                    if "FLAG" in tb.colnames()
+                    else None
+                )
 
                 # Check data shape
                 self._report.properties["data_shape"] = list(data.shape)
@@ -565,7 +573,7 @@ class MSValidator:
                     self._add_result(
                         "data_nonzero",
                         True,
-                        f"DATA has values (mean abs: {mean_abs:.4f}, {nonzero_frac*100:.1f}% nonzero)",
+                        f"DATA has values (mean abs: {mean_abs:.4f}, {nonzero_frac * 100:.1f}% nonzero)",
                         {"mean_abs": float(mean_abs), "nonzero_fraction": float(nonzero_frac)},
                     )
 
@@ -576,7 +584,7 @@ class MSValidator:
                         self._add_result(
                             "flagging",
                             False,
-                            f"{flag_frac*100:.1f}% of data flagged (>90%)",
+                            f"{flag_frac * 100:.1f}% of data flagged (>90%)",
                             {"flag_fraction": float(flag_frac)},
                             severity="warning",
                         )
@@ -584,7 +592,7 @@ class MSValidator:
                         self._add_result(
                             "flagging",
                             True,
-                            f"{flag_frac*100:.1f}% of data flagged",
+                            f"{flag_frac * 100:.1f}% of data flagged",
                             {"flag_fraction": float(flag_frac)},
                             severity="info",
                         )

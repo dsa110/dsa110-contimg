@@ -17,12 +17,10 @@ import argparse
 import logging
 import os
 import sqlite3
-import time
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
-import numpy as np
 import pandas as pd
 
 logger = logging.getLogger(__name__)
@@ -305,7 +303,7 @@ def build_atnf_pulsar_db(
         with sqlite3.connect(str(output_path)) as conn:
             cursor = conn.execute("SELECT COUNT(*) FROM pulsars")
             count = cursor.fetchone()[0]
-            print(f"\n:check: Successfully created ATNF Pulsar database")
+            print("\n:check: Successfully created ATNF Pulsar database")
             print(f"  Database: {output_path}")
             print(f"  Pulsars: {count}")
 

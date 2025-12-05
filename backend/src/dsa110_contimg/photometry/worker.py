@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import json
 import logging
+import sqlite3
 import threading
 import time
 from pathlib import Path
-import sqlite3
 from typing import Dict, List, Optional, Tuple
 
 from dsa110_contimg.api.job_adapters import run_batch_photometry_job
@@ -19,7 +19,9 @@ logger = logging.getLogger(__name__)
 class PhotometryBatchWorker:
     """Polls the products DB for pending batch photometry jobs and executes them."""
 
-    def __init__(self, products_db_path: Path, poll_interval: float = 10.0, max_workers: Optional[int] = None):
+    def __init__(
+        self, products_db_path: Path, poll_interval: float = 10.0, max_workers: Optional[int] = None
+    ):
         self.products_db_path = products_db_path
         self.poll_interval = poll_interval
         self.max_workers = max_workers
@@ -30,7 +32,9 @@ class PhotometryBatchWorker:
     def start(self) -> None:
         if self._thread and self._thread.is_alive():
             return
-        self._thread = threading.Thread(target=self._run_loop, name="photometry-batch-worker", daemon=True)
+        self._thread = threading.Thread(
+            target=self._run_loop, name="photometry-batch-worker", daemon=True
+        )
         self._thread.start()
 
     def stop(self) -> None:
@@ -150,11 +154,17 @@ class PhotometryBatchWorker:
             )
             start_time = time.time()
             try:
-                run_batch_photometry_job(batch_id, fits_paths, coordinates, params, self.products_db_path)
+                run_batch_photometry_job(
+                    batch_id, fits_paths, coordinates, params, self.products_db_path
+                )
             except (OSError, ValueError, RuntimeError):
                 logger.exception(f"Batch photometry job {batch_id} failed")
             duration = time.time() - start_time
             logger.info(
                 "Finished batch photometry job",
-                extra={"batch_id": batch_id, "duration_sec": round(duration, 2), "status": self.status()},
+                extra={
+                    "batch_id": batch_id,
+                    "duration_sec": round(duration, 2),
+                    "status": self.status(),
+                },
             )

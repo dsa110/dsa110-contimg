@@ -29,22 +29,22 @@ See absurd/ingestion_db.py for schema.
 
 Usage:
     from dsa110_contimg.database.unified import Database
-    
+
     # Query with dict-like results
     db = Database()
     images = db.query(
-        "SELECT * FROM images WHERE noise_jy < ?", 
+        "SELECT * FROM images WHERE noise_jy < ?",
         (0.001,)
     )
     for img in images:
         print(f"{img['path']}: {img['noise_jy']} Jy")
-    
+
     # Write operations
     db.execute(
         "INSERT INTO images (path, ms_path, created_at, type) VALUES (?, ?, ?, ?)",
         ("/path/to/image.fits", "/path/to/ms", time.time(), "dirty")
     )
-    
+
     # Context manager for transactions
     with db.transaction() as conn:
         conn.execute("INSERT INTO ...")
@@ -90,7 +90,7 @@ def get_pipeline_db_path() -> Path:
 
     Returns:
         Path to the pipeline.sqlite3 database.
-        
+
     Note:
         Checks PIPELINE_DB environment variable first,
         then falls back to default path.
@@ -111,9 +111,9 @@ _CACHED_SCHEMA: Optional[str] = None
 
 def get_unified_schema() -> str:
     """Get the unified database schema SQL.
-    
+
     The schema is loaded from schema.sql and cached for subsequent calls.
-    
+
     Returns:
         SQL schema definition string
     """
@@ -137,29 +137,29 @@ def __getattr__(name: str) -> str:
 class Database:
     """
     Simple SQLite database wrapper for the unified pipeline database.
-    
+
     This class replaces ~800 lines of abstraction with a simple, direct
     interface to SQLite. It uses sqlite3.Row for dict-like access and
     provides WAL mode for concurrent access.
-    
+
     Thread Safety:
         The connection is created with check_same_thread=False, but
         concurrent writes should use the transaction() context manager
         to ensure proper locking.
-    
+
     Attributes:
         db_path: Path to the SQLite database file
         timeout: Connection timeout in seconds (default: 30.0)
     """
-    
+
     def __init__(
-        self, 
+        self,
         db_path: Optional[Union[str, Path]] = None,
         timeout: float = 30.0,
     ):
         """
         Initialize database connection.
-        
+
         Args:
             db_path: Path to SQLite database. If None, reads from
                      PIPELINE_DB env var or uses default.
@@ -167,18 +167,18 @@ class Database:
         """
         if db_path is None:
             db_path = os.environ.get("PIPELINE_DB", DEFAULT_PIPELINE_DB)
-        
+
         self.db_path = Path(db_path)
         self.timeout = timeout
         self._conn: Optional[sqlite3.Connection] = None
-    
+
     @property
     def conn(self) -> sqlite3.Connection:
         """Get or create database connection with proper settings."""
         if self._conn is None:
             # Ensure parent directory exists
             self.db_path.parent.mkdir(parents=True, exist_ok=True)
-            
+
             self._conn = sqlite3.connect(
                 str(self.db_path),
                 timeout=self.timeout,
@@ -189,94 +189,78 @@ class Database:
             self._conn.execute("PRAGMA journal_mode=WAL")
             self._conn.execute("PRAGMA busy_timeout=30000")  # 30s busy timeout
         return self._conn
-    
-    def query(
-        self, 
-        sql: str, 
-        params: tuple = ()
-    ) -> List[Dict[str, Any]]:
+
+    def query(self, sql: str, params: tuple = ()) -> List[Dict[str, Any]]:
         """
         Execute SELECT query and return list of dicts.
-        
+
         Args:
             sql: SQL query string with ? placeholders
             params: Query parameters tuple
-            
+
         Returns:
             List of dictionaries, one per row
-            
+
         Example:
             images = db.query(
-                "SELECT * FROM images WHERE type = ?", 
+                "SELECT * FROM images WHERE type = ?",
                 ("dirty",)
             )
         """
         cursor = self.conn.execute(sql, params)
         return [dict(row) for row in cursor.fetchall()]
-    
-    def query_one(
-        self, 
-        sql: str, 
-        params: tuple = ()
-    ) -> Optional[Dict[str, Any]]:
+
+    def query_one(self, sql: str, params: tuple = ()) -> Optional[Dict[str, Any]]:
         """
         Execute SELECT query and return single row or None.
-        
+
         Args:
             sql: SQL query string with ? placeholders
             params: Query parameters tuple
-            
+
         Returns:
             Single row as dict, or None if no results
         """
         cursor = self.conn.execute(sql, params)
         row = cursor.fetchone()
         return dict(row) if row else None
-    
-    def query_val(
-        self, 
-        sql: str, 
-        params: tuple = ()
-    ) -> Any:
+
+    def query_val(self, sql: str, params: tuple = ()) -> Any:
         """
         Execute SELECT query and return single value.
-        
+
         Args:
             sql: SQL query string with ? placeholders
             params: Query parameters tuple
-            
+
         Returns:
             First column of first row, or None
-            
+
         Example:
             count = db.query_val("SELECT COUNT(*) FROM images")
         """
         cursor = self.conn.execute(sql, params)
         row = cursor.fetchone()
         return row[0] if row else None
-    
-    def execute(
-        self, 
-        sql: str, 
-        params: tuple = ()
-    ) -> int:
+
+    def execute(self, sql: str, params: tuple = ()) -> int:
         """
         Execute INSERT/UPDATE/DELETE and return affected rows.
-        
+
         This method auto-commits. For multi-statement transactions,
         use the transaction() context manager.
-        
+
         Args:
             sql: SQL statement with ? placeholders
             params: Statement parameters tuple
-            
+
         Returns:
             Number of rows affected
         """
         cursor = self.conn.execute(sql, params)
         self.conn.commit()
         return cursor.rowcount
-    
+
     def execute_many(
         self,
         sql: str,
@@ -284,37 +268,37 @@ class Database:
     ) -> int:
         """
         Execute statement for multiple parameter sets.
-        
+
         More efficient than calling execute() in a loop.
-        
+
         Args:
             sql: SQL statement with ? placeholders
             params_list: List of parameter tuples
-            
+
         Returns:
             Total number of rows affected
         """
         cursor = self.conn.executemany(sql, params_list)
         self.conn.commit()
         return cursor.rowcount
-    
+
     def execute_script(self, sql: str) -> None:
         """
         Execute multiple SQL statements (for schema creation).
-        
+
         Args:
             sql: SQL script with multiple statements
         """
         self.conn.executescript(sql)
-    
+
     @contextmanager
     def transaction(self) -> Iterator[sqlite3.Connection]:
         """
         Transaction context manager with auto-commit/rollback.
-        
+
         Yields:
             sqlite3.Connection for executing statements
-            
+
         Example:
             with db.transaction() as conn:
                 conn.execute("INSERT INTO ...")
@@ -328,21 +312,20 @@ class Database:
         except (sqlite3.Error, OSError, ValueError):
             self.conn.rollback()
             raise
-    
+
     def close(self) -> None:
         """Close database connection."""
         if self._conn is not None:
             self._conn.close()
             self._conn = None
-    
+
     def __enter__(self) -> "Database":
         """Context manager entry."""
         return self
-    
+
     def __exit__(self, exc_type, exc_val, exc_tb) -> None:
         """Context manager exit - close connection."""
         self.close()
-
 
 
 # =============================================================================
@@ -356,14 +339,14 @@ class Database:
 def init_unified_db(db_path: Optional[Union[str, Path]] = None) -> Database:
     """
     Initialize the unified database with schema.
-    
+
     Creates the database file and all tables if they don't exist.
     The schema is loaded from schema.sql in the same directory.
     Also runs pending migrations for schema updates.
-    
+
     Args:
         db_path: Path to database. Uses PIPELINE_DB env var or default.
-        
+
     Returns:
         Database instance ready for use
     """
@@ -376,10 +359,10 @@ def init_unified_db(db_path: Optional[Union[str, Path]] = None) -> Database:
 
 def _run_migrations(db: Database) -> None:
     """Run schema migrations for existing databases.
-    
+
     This handles adding new columns to existing tables.
     Uses PRAGMA table_info to check if columns exist before adding.
-    
+
     Args:
         db: Database instance
     """
@@ -387,12 +370,12 @@ def _run_migrations(db: Database) -> None:
         # Add effective_noise_jy to mosaics table
         ("mosaics", "effective_noise_jy", "ALTER TABLE mosaics ADD COLUMN effective_noise_jy REAL"),
     ]
-    
+
     for table, column, sql in migrations:
         # Check if column exists
         cursor = db.conn.execute(f"PRAGMA table_info({table})")
         columns = [row[1] for row in cursor.fetchall()]
-        
+
         if column not in columns:
             try:
                 db.conn.execute(sql)
@@ -402,7 +385,6 @@ def _run_migrations(db: Database) -> None:
                 # Column might already exist in some edge cases
                 if "duplicate column" not in str(e).lower():
                     logger.warning(f"Migration failed for {table}.{column}: {e}")
-
 
 
 # =============================================================================
@@ -415,13 +397,13 @@ _global_db: Optional[Database] = None
 def get_db(db_path: Optional[Union[str, Path]] = None) -> Database:
     """
     Get or create global database instance.
-    
+
     This provides a singleton database connection for the application.
     For multi-threaded contexts, consider creating per-thread instances.
-    
+
     Args:
         db_path: Path to database (only used on first call)
-        
+
     Returns:
         Shared Database instance
     """
@@ -443,10 +425,11 @@ def close_db() -> None:
 # Helper Functions (replacing legacy modules)
 # =============================================================================
 
+
 def ensure_pipeline_db() -> sqlite3.Connection:
     """
     Ensure the unified pipeline database exists and return a connection.
-    
+
     Returns:
         sqlite3.Connection to the pipeline database
     """
@@ -456,6 +439,7 @@ def ensure_pipeline_db() -> sqlite3.Connection:
 
 # Jobs helpers (replacing jobs.py)
 
+
 def create_job(
     conn: sqlite3.Connection,
     job_type: str,
@@ -464,39 +448,35 @@ def create_job(
 ) -> int:
     """
     Create a new job record.
-    
+
     Args:
         conn: Database connection
         job_type: Type of job (e.g., 'calibration', 'imaging')
         ms_path: Path to measurement set
         params: Optional job parameters (stored as JSON)
-        
+
     Returns:
         Job ID
     """
     import json
     import time
+
     params_json = json.dumps(params) if params else None
     cursor = conn.execute(
         """
         INSERT INTO jobs (type, status, ms_path, params, created_at)
         VALUES (?, 'pending', ?, ?, ?)
         """,
-        (job_type, ms_path, params_json, time.time())
+        (job_type, ms_path, params_json, time.time()),
     )
     conn.commit()
     return cursor.lastrowid
 
 
-def update_job_status(
-    conn: sqlite3.Connection,
-    job_id: int,
-    status: str,
-    **kwargs
-) -> None:
+def update_job_status(conn: sqlite3.Connection, job_id: int, status: str, **kwargs) -> None:
     """
     Update job status and optional fields.
-    
+
     Args:
         conn: Database connection
         job_id: Job ID to update
@@ -505,18 +485,18 @@ def update_job_status(
     """
     import json
     import time
-    
+
     updates = ["status = ?"]
     values = [status]
-    
+
     if status == "running" and "started_at" not in kwargs:
         updates.append("started_at = ?")
         values.append(time.time())
-    
+
     if status in ("completed", "failed") and "finished_at" not in kwargs:
         updates.append("finished_at = ?")
         values.append(time.time())
-    
+
     for key, value in kwargs.items():
         if key in ("started_at", "finished_at"):
             updates.append(f"{key} = ?")
@@ -524,7 +504,7 @@ def update_job_status(
         elif key in ("logs", "artifacts"):
             updates.append(f"{key} = ?")
             values.append(json.dumps(value) if isinstance(value, (dict, list)) else value)
-    
+
     values.append(job_id)
     conn.execute(f"UPDATE jobs SET {', '.join(updates)} WHERE id = ?", values)
     conn.commit()
@@ -533,7 +513,7 @@ def update_job_status(
 def append_job_log(conn: sqlite3.Connection, job_id: int, line: str) -> None:
     """
     Append a line to the job's log.
-    
+
     Args:
         conn: Database connection
         job_id: Job ID
@@ -550,11 +530,11 @@ def append_job_log(conn: sqlite3.Connection, job_id: int, line: str) -> None:
 def get_job(conn: sqlite3.Connection, job_id: int) -> Optional[Dict[str, Any]]:
     """
     Get a job by ID.
-    
+
     Args:
         conn: Database connection
         job_id: Job ID
-        
+
     Returns:
         Job record as dict, or None if not found
     """
@@ -566,62 +546,53 @@ def get_job(conn: sqlite3.Connection, job_id: int) -> Optional[Dict[str, Any]]:
 
 
 def list_jobs(
-    conn: sqlite3.Connection,
-    limit: int = 50,
-    status: Optional[str] = None
+    conn: sqlite3.Connection, limit: int = 50, status: Optional[str] = None
 ) -> List[Dict[str, Any]]:
     """
     List jobs, optionally filtered by status.
-    
+
     Args:
         conn: Database connection
         limit: Maximum number of jobs to return
         status: Optional status filter
-        
+
     Returns:
         List of job records as dicts
     """
     if status:
         cursor = conn.execute(
-            "SELECT * FROM jobs WHERE status = ? ORDER BY created_at DESC LIMIT ?",
-            (status, limit)
+            "SELECT * FROM jobs WHERE status = ? ORDER BY created_at DESC LIMIT ?", (status, limit)
         )
     else:
-        cursor = conn.execute(
-            "SELECT * FROM jobs ORDER BY created_at DESC LIMIT ?",
-            (limit,)
-        )
+        cursor = conn.execute("SELECT * FROM jobs ORDER BY created_at DESC LIMIT ?", (limit,))
     return [dict(zip([d[0] for d in cursor.description], row)) for row in cursor.fetchall()]
 
 
 # MS/Products helpers (replacing products.py)
 
-def ms_index_upsert(
-    conn: sqlite3.Connection,
-    ms_path: str,
-    **kwargs
-) -> None:
+
+def ms_index_upsert(conn: sqlite3.Connection, ms_path: str, **kwargs) -> None:
     """
     Insert or update an MS index record.
-    
+
     Args:
         conn: Database connection
         ms_path: Path to measurement set (primary key)
         **kwargs: Additional fields to set
     """
     import time
-    
+
     # Check if record exists
     cursor = conn.execute("SELECT 1 FROM ms_index WHERE path = ?", (ms_path,))
     exists = cursor.fetchone() is not None
-    
+
     if exists:
         # Update existing record
         if kwargs:
             updates = [f"{k} = ?" for k in kwargs.keys()]
             conn.execute(
                 f"UPDATE ms_index SET {', '.join(updates)} WHERE path = ?",
-                list(kwargs.values()) + [ms_path]
+                list(kwargs.values()) + [ms_path],
             )
     else:
         # Insert new record
@@ -630,39 +601,36 @@ def ms_index_upsert(
         placeholders = ", ".join("?" for _ in columns)
         conn.execute(
             f"INSERT INTO ms_index ({', '.join(columns)}) VALUES ({placeholders})",
-            [ms_path] + list(kwargs.values())
+            [ms_path] + list(kwargs.values()),
         )
     conn.commit()
 
 
 def images_insert(
-    conn: sqlite3.Connection,
-    path: str,
-    ms_path: str,
-    image_type: str,
-    **kwargs
+    conn: sqlite3.Connection, path: str, ms_path: str, image_type: str, **kwargs
 ) -> int:
     """
     Insert an image record.
-    
+
     Args:
         conn: Database connection
         path: Path to image file
         ms_path: Path to source measurement set
         image_type: Type of image (e.g., 'dirty', 'clean', 'residual')
         **kwargs: Additional fields
-        
+
     Returns:
         Image ID
     """
     import time
+
     kwargs.setdefault("created_at", time.time())
-    
+
     columns = ["path", "ms_path", "type"] + list(kwargs.keys())
     placeholders = ", ".join("?" for _ in columns)
     cursor = conn.execute(
         f"INSERT OR REPLACE INTO images ({', '.join(columns)}) VALUES ({placeholders})",
-        [path, ms_path, image_type] + list(kwargs.values())
+        [path, ms_path, image_type] + list(kwargs.values()),
     )
     conn.commit()
     return cursor.lastrowid
@@ -676,11 +644,11 @@ def photometry_insert(
     dec_deg: float,
     flux_jy: float,
     validate_image: bool = True,
-    **kwargs
+    **kwargs,
 ) -> int:
     """
     Insert a photometry measurement.
-    
+
     Args:
         conn: Database connection
         image_path: Path to source image (must exist in images table if validate_image=True)
@@ -690,34 +658,31 @@ def photometry_insert(
         flux_jy: Flux in Jansky
         validate_image: If True, verify image_path exists in images table (default: True)
         **kwargs: Additional fields (flux_err_jy, peak_flux_jy, rms_jy, etc.)
-        
+
     Returns:
         Photometry record ID
-        
+
     Raises:
         ValueError: If validate_image=True and image_path not found in images table
     """
     import time
-    
+
     # Validate image exists in images table for proper foreign key relationship
     if validate_image:
-        cursor = conn.execute(
-            "SELECT id FROM images WHERE path = ?",
-            (image_path,)
-        )
+        cursor = conn.execute("SELECT id FROM images WHERE path = ?", (image_path,))
         if cursor.fetchone() is None:
             raise ValueError(
                 f"Image path '{image_path}' not found in images table. "
                 "Register the image first with register_image() or set validate_image=False."
             )
-    
+
     kwargs.setdefault("measured_at", time.time())
-    
+
     columns = ["image_path", "source_id", "ra_deg", "dec_deg", "flux_jy"] + list(kwargs.keys())
     placeholders = ", ".join("?" for _ in columns)
     cursor = conn.execute(
         f"INSERT INTO photometry ({', '.join(columns)}) VALUES ({placeholders})",
-        [image_path, source_id, ra_deg, dec_deg, flux_jy] + list(kwargs.values())
+        [image_path, source_id, ra_deg, dec_deg, flux_jy] + list(kwargs.values()),
     )
     conn.commit()
     return cursor.lastrowid
@@ -725,19 +690,18 @@ def photometry_insert(
 
 # Calibrator helpers (replacing calibrators.py)
 
+
 def get_bandpass_calibrators(
-    conn: sqlite3.Connection,
-    dec_range: Optional[tuple] = None,
-    status: str = "active"
+    conn: sqlite3.Connection, dec_range: Optional[tuple] = None, status: str = "active"
 ) -> List[Dict[str, Any]]:
     """
     Get bandpass calibrators, optionally filtered by declination range.
-    
+
     Args:
         conn: Database connection
         dec_range: Optional (min_dec, max_dec) tuple to filter by declination
         status: Status filter (default: 'active')
-        
+
     Returns:
         List of calibrator records as dicts
     """
@@ -748,50 +712,47 @@ def get_bandpass_calibrators(
             WHERE status = ? AND dec_range_min <= ? AND dec_range_max >= ?
             ORDER BY dec_deg
             """,
-            (status, dec_range[1], dec_range[0])
+            (status, dec_range[1], dec_range[0]),
         )
     else:
         cursor = conn.execute(
-            "SELECT * FROM bandpass_calibrators WHERE status = ? ORDER BY dec_deg",
-            (status,)
+            "SELECT * FROM bandpass_calibrators WHERE status = ? ORDER BY dec_deg", (status,)
         )
     return [dict(zip([d[0] for d in cursor.description], row)) for row in cursor.fetchall()]
 
 
 def register_bandpass_calibrator(
-    conn: sqlite3.Connection,
-    name: str,
-    ra_deg: float,
-    dec_deg: float,
-    **kwargs
+    conn: sqlite3.Connection, name: str, ra_deg: float, dec_deg: float, **kwargs
 ) -> int:
     """
     Register a bandpass calibrator.
-    
+
     Args:
         conn: Database connection
         name: Calibrator name
         ra_deg: Right ascension in degrees
         dec_deg: Declination in degrees
         **kwargs: Additional fields (dec_range_min, dec_range_max, flux_jy, etc.)
-        
+
     Returns:
         Calibrator ID
     """
     import time
+
     kwargs.setdefault("registered_at", time.time())
-    
+
     columns = ["calibrator_name", "ra_deg", "dec_deg"] + list(kwargs.keys())
     placeholders = ", ".join("?" for _ in columns)
     cursor = conn.execute(
         f"INSERT OR REPLACE INTO bandpass_calibrators ({', '.join(columns)}) VALUES ({placeholders})",
-        [name, ra_deg, dec_deg] + list(kwargs.values())
+        [name, ra_deg, dec_deg] + list(kwargs.values()),
     )
     conn.commit()
     return cursor.lastrowid
 
 
 # Pointing helpers
+
 
 def log_pointing(
     conn: sqlite3.Connection,
@@ -824,19 +785,20 @@ def log_pointing(
 
 # Default calibration table apply order
 DEFAULT_CALTABLE_ORDER = [
-    ("K", 10),    # delays
-    ("BA", 20),   # bandpass amplitude
-    ("BP", 30),   # bandpass phase
-    ("GA", 40),   # gain amplitude
-    ("GP", 50),   # gain phase
-    ("2G", 60),   # short-timescale ap gains (optional)
-    ("FLUX", 70), # fluxscale table (optional)
+    ("K", 10),  # delays
+    ("BA", 20),  # bandpass amplitude
+    ("BP", 30),  # bandpass phase
+    ("GA", 40),  # gain amplitude
+    ("GP", 50),  # gain phase
+    ("2G", 60),  # short-timescale ap gains (optional)
+    ("FLUX", 70),  # fluxscale table (optional)
 ]
 
 
 @dataclass
 class CalTableRow:
     """Calibration table row for registration."""
+
     set_name: str
     path: str
     table_type: str
@@ -856,13 +818,13 @@ class CalTableRow:
 
 def ensure_db(path: Path) -> sqlite3.Connection:
     """Ensure calibration database exists with current schema.
-    
+
     This function creates the caltables table if it doesn't exist and
     handles schema migrations for backwards compatibility.
-    
+
     Args:
         path: Path to database file
-        
+
     Returns:
         sqlite3.Connection to the database
     """
@@ -968,7 +930,7 @@ def register_caltable_set(
     upsert: bool = True,
 ) -> None:
     """Register a set of calibration tables.
-    
+
     Args:
         db_path: Path to calibration registry database
         set_name: Logical name for this calibration set
@@ -976,7 +938,7 @@ def register_caltable_set(
         upsert: If True, replace existing entries; if False, ignore duplicates
     """
     import json
-    
+
     conn = ensure_db(db_path)
     now = time.time()
     with conn:
@@ -996,10 +958,22 @@ def register_caltable_set(
                     VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                     """,
                     (
-                        r.set_name, os.fspath(r.path), r.table_type, int(r.order_index),
-                        r.cal_field, r.refant, now, r.valid_start_mjd, r.valid_end_mjd,
-                        r.status, r.notes, r.source_ms_path, r.solver_command,
-                        r.solver_version, solver_params_json, quality_metrics_json,
+                        r.set_name,
+                        os.fspath(r.path),
+                        r.table_type,
+                        int(r.order_index),
+                        r.cal_field,
+                        r.refant,
+                        now,
+                        r.valid_start_mjd,
+                        r.valid_end_mjd,
+                        r.status,
+                        r.notes,
+                        r.source_ms_path,
+                        r.solver_command,
+                        r.solver_version,
+                        solver_params_json,
+                        quality_metrics_json,
                     ),
                 )
             else:
@@ -1014,10 +988,22 @@ def register_caltable_set(
                     VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
                     """,
                     (
-                        r.set_name, os.fspath(r.path), r.table_type, int(r.order_index),
-                        r.cal_field, r.refant, now, r.valid_start_mjd, r.valid_end_mjd,
-                        r.status, r.notes, r.source_ms_path, r.solver_command,
-                        r.solver_version, solver_params_json, quality_metrics_json,
+                        r.set_name,
+                        os.fspath(r.path),
+                        r.table_type,
+                        int(r.order_index),
+                        r.cal_field,
+                        r.refant,
+                        now,
+                        r.valid_start_mjd,
+                        r.valid_end_mjd,
+                        r.status,
+                        r.notes,
+                        r.source_ms_path,
+                        r.solver_command,
+                        r.solver_version,
+                        solver_params_json,
+                        quality_metrics_json,
                     ),
                 )
 
@@ -1038,7 +1024,7 @@ def register_caltable_set_from_prefix(
 
     Example: prefix="/data/ms/calpass_J1234+5678" will find files named
     calpass_J1234+5678_kcal, _bacal, _bpcal, _gacal, _gpcal, etc.
-    
+
     Args:
         db_path: Path to calibration registry database
         set_name: Logical name for this calibration set
@@ -1049,7 +1035,7 @@ def register_caltable_set_from_prefix(
         valid_end_mjd: End of validity window (MJD)
         status: Status for registered tables (default: "active")
         quality_metrics: Optional QA metrics dict (Issue #5)
-        
+
     Returns:
         List of CalTableRow objects that were registered
     """
@@ -1068,7 +1054,7 @@ def register_caltable_set_from_prefix(
     order_map = {t: oi for t, oi in DEFAULT_CALTABLE_ORDER}
     rows: List[CalTableRow] = []
     extras: List[Tuple[str, Path]] = []
-    
+
     for t, p in found:
         if t in order_map:
             oi = order_map[t]
@@ -1117,7 +1103,7 @@ def register_caltable_set_from_prefix(
 
 def retire_caltable_set(db_path: Path, set_name: str, *, reason: Optional[str] = None) -> None:
     """Retire a calibration set (mark as inactive).
-    
+
     Args:
         db_path: Path to calibration registry database
         set_name: Name of set to retire
@@ -1134,10 +1120,10 @@ def retire_caltable_set(db_path: Path, set_name: str, *, reason: Optional[str] =
 
 def list_caltable_sets(db_path: Path) -> List[tuple]:
     """List all calibration sets with summary info.
-    
+
     Args:
         db_path: Path to calibration registry database
-        
+
     Returns:
         List of (set_name, total_count, active_count, min_order) tuples
     """
@@ -1157,8 +1143,8 @@ def list_caltable_sets(db_path: Path) -> List[tuple]:
 
 
 def get_active_applylist(
-    db_path: Path, 
-    mjd: float, 
+    db_path: Path,
+    mjd: float,
     set_name: Optional[str] = None,
     *,
     bidirectional: bool = True,
@@ -1169,7 +1155,7 @@ def get_active_applylist(
     When set_name is provided, restrict to that group; otherwise choose among
     active sets whose validity window includes mjd. If multiple sets match,
     pick the most recently created set.
-    
+
     ISSUE #1 FIX: With bidirectional=True (default), also searches for
     calibrations AFTER the target MJD, not just before. This prevents
     the "calibration validity gap" where pre-calibrator observations
@@ -1181,15 +1167,16 @@ def get_active_applylist(
         set_name: Optional specific set name to query
         bidirectional: If True, search ±validity_hours (fixes Issue #1)
         validity_hours: Maximum time offset for calibration validity (default: 12h)
-        
+
     Returns:
         Ordered list of calibration table paths (by apply order)
     """
     import logging
+
     logger = logging.getLogger(__name__)
 
     conn = ensure_db(db_path)
-    
+
     if set_name:
         rows = conn.execute(
             """
@@ -1221,7 +1208,7 @@ def get_active_applylist(
         validity_days = validity_hours / 24.0
         search_min = mjd - validity_days
         search_max = mjd + validity_days
-        
+
         # Find nearest calibration set (before OR after target)
         nearby_sets = conn.execute(
             """
@@ -1242,28 +1229,28 @@ def get_active_applylist(
             """,
             (mjd, search_min, search_max),
         ).fetchall()
-        
+
         if nearby_sets:
             chosen_set = nearby_sets[0][0]
             distance_days = nearby_sets[0][2]
             distance_hours = distance_days * 24.0
-            
+
             # Determine if calibration is before or after target
             mid_mjd = nearby_sets[0][1]
             direction = "before" if mid_mjd < mjd else "after"
-            
+
             logger.info(
                 f"BIDIRECTIONAL SEARCH: No exact calibration match at MJD {mjd:.6f}. "
                 f"Using nearest set '{chosen_set}' ({distance_hours:.1f}h {direction} target)."
             )
-            
+
             if distance_hours > validity_hours / 2:
                 logger.warning(
                     f"Calibration '{chosen_set}' is {distance_hours:.1f}h from target "
                     f"(recommended max: {validity_hours / 2:.1f}h). "
                     f"Data quality may be degraded."
                 )
-            
+
             out = conn.execute(
                 "SELECT path FROM caltables WHERE set_name = ? AND status='active' ORDER BY order_index ASC",
                 (chosen_set,),
@@ -1295,16 +1282,22 @@ def get_active_applylist(
 
         for other_set in set_names[1:]:
             other_metadata = set_metadata.get(other_set, {})
-            if (newest_metadata.get("refant") and other_metadata.get("refant") and
-                newest_metadata["refant"] != other_metadata["refant"]):
+            if (
+                newest_metadata.get("refant")
+                and other_metadata.get("refant")
+                and newest_metadata["refant"] != other_metadata["refant"]
+            ):
                 logger.warning(
                     f"Overlapping calibration sets have different reference antennas: "
                     f"'{newest_set}' uses refant={newest_metadata['refant']}, "
                     f"'{other_set}' uses refant={other_metadata['refant']}. "
                     f"Selecting newest set '{newest_set}'."
                 )
-            if (newest_metadata.get("cal_field") and other_metadata.get("cal_field") and
-                newest_metadata["cal_field"] != other_metadata["cal_field"]):
+            if (
+                newest_metadata.get("cal_field")
+                and other_metadata.get("cal_field")
+                and newest_metadata["cal_field"] != other_metadata["cal_field"]
+            ):
                 logger.warning(
                     f"Overlapping calibration sets have different calibration fields: "
                     f"'{newest_set}' uses field={newest_metadata['cal_field']}, "
@@ -1361,6 +1354,7 @@ def register_and_verify_caltables(
         ValueError: If no tables found with prefix
     """
     import logging
+
     logger = logging.getLogger(__name__)
 
     # Ensure registry DB exists
@@ -1369,9 +1363,13 @@ def register_and_verify_caltables(
     # Register tables
     try:
         registered_rows = register_caltable_set_from_prefix(
-            registry_db, set_name, table_prefix,
-            cal_field=cal_field, refant=refant,
-            valid_start_mjd=valid_start_mjd, valid_end_mjd=valid_end_mjd,
+            registry_db,
+            set_name,
+            table_prefix,
+            cal_field=cal_field,
+            refant=refant,
+            valid_start_mjd=valid_start_mjd,
+            valid_end_mjd=valid_end_mjd,
             status=status,
         )
     except Exception as e:
@@ -1395,6 +1393,7 @@ def register_and_verify_caltables(
                     mid_mjd = (valid_start_mjd + valid_end_mjd) / 2.0
                 else:
                     from astropy.time import Time
+
                     mid_mjd = Time.now().mjd
                     logger.warning("Using current time (%.6f) for verification", mid_mjd)
 
@@ -1430,7 +1429,7 @@ def register_and_verify_caltables(
                 logger.warning("Retired set '%s' due to verification failure", set_name)
             except Exception as rollback_error:
                 logger.error(f"Failed to rollback: {rollback_error}", exc_info=True)
-            
+
             error_msg = f"Calibration tables registered but not discoverable: {e}"
             logger.error(error_msg, exc_info=True)
             raise RuntimeError(error_msg) from e

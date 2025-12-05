@@ -132,10 +132,7 @@ def ensure_products_db(path: Path) -> sqlite3.Connection:
         """
     )
     # Ensure new photometry columns exist for upgraded databases
-    photometry_cols = {
-        row[1]
-        for row in conn.execute("PRAGMA table_info(photometry)").fetchall()
-    }
+    photometry_cols = {row[1] for row in conn.execute("PRAGMA table_info(photometry)").fetchall()}
     for col_name, col_def in [
         ("flux_jy", "REAL"),
         ("flux_err_jy", "REAL"),
@@ -1157,12 +1154,8 @@ def photometry_insert(
     """Insert a forced photometry measurement."""
     flux_val = peak_jyb if flux_jy is None else flux_jy
     flux_err_val = peak_err_jyb if flux_err_jy is None else flux_err_jy
-    norm_flux_val = (
-        flux_val if normalized_flux_jy is None else normalized_flux_jy
-    )
-    norm_flux_err_val = (
-        flux_err_val if normalized_flux_err_jy is None else normalized_flux_err_jy
-    )
+    norm_flux_val = flux_val if normalized_flux_jy is None else normalized_flux_jy
+    norm_flux_err_val = flux_err_val if normalized_flux_err_jy is None else normalized_flux_err_jy
     mjd_val = mjd if mjd is not None else (measured_at / 86400.0 + 40587.0)
     conn.execute(
         "INSERT INTO photometry(source_id, image_path, ra_deg, dec_deg, nvss_flux_mjy, peak_jyb, peak_err_jyb, flux_jy, flux_err_jy, normalized_flux_jy, normalized_flux_err_jy, measured_at, mjd, mosaic_path) "

@@ -96,8 +96,7 @@ def track_calibration_provenance(
             )
         else:
             logger.info(
-                f"Updated provenance for calibration table {caltable_path} "
-                f"(source MS: {ms_path})"
+                f"Updated provenance for calibration table {caltable_path} (source MS: {ms_path})"
             )
 
     conn.close()

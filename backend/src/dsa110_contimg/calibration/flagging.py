@@ -23,6 +23,7 @@ except ImportError:
     def casa_log_environment():
         yield None
 
+
 ensure_casa_path()
 
 
@@ -852,6 +853,7 @@ def flag_problematic_channels(
     try:
         with casa_log_environment():
             from casatasks import flagdata
+
             flagdata(
                 vis=ms_path,
                 spw=spw_sel,

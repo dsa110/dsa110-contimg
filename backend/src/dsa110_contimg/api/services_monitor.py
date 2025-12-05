@@ -8,7 +8,6 @@ bypassing browser CORS/CSP restrictions.
 from __future__ import annotations
 
 import asyncio
-import socket
 import time
 from dataclasses import dataclass
 from datetime import datetime
@@ -20,6 +19,7 @@ import httpx
 
 class ServiceStatus(str, Enum):
     """Service health status."""
+
     RUNNING = "running"
     STOPPED = "stopped"
     DEGRADED = "degraded"
@@ -30,6 +30,7 @@ class ServiceStatus(str, Enum):
 @dataclass
 class ServiceDefinition:
     """Definition of a service to monitor."""
+
     name: str
     port: int
     description: str
@@ -40,6 +41,7 @@ class ServiceDefinition:
 @dataclass
 class ServiceHealthResult:
     """Result of a service health check."""
+
     name: str
     port: int
     description: str
@@ -48,7 +50,7 @@ class ServiceHealthResult:
     last_checked: datetime
     error: Optional[str] = None
     details: Optional[dict] = None
-    
+
     def to_dict(self) -> dict:
         return {
             "name": self.name,
@@ -115,17 +117,17 @@ async def check_http_service(
     """Check an HTTP service health."""
     start_time = time.perf_counter()
     url = f"http://127.0.0.1:{service.port}{service.health_endpoint or '/'}"
-    
+
     try:
         async with httpx.AsyncClient(timeout=timeout) as client:
             response = await client.get(url)
             elapsed = (time.perf_counter() - start_time) * 1000
-            
+
             # Most services return 200 for healthy
             # Grafana returns 200 with JSON
             # Prometheus /-/healthy returns 200 with "Prometheus Server is Healthy.\n"
             status = ServiceStatus.RUNNING if response.status_code < 400 else ServiceStatus.DEGRADED
-            
+
             details = None
             if service.port == 8000:
                 # Parse FastAPI health response
@@ -135,7 +137,7 @@ async def check_http_service(
                         status = ServiceStatus.DEGRADED
                 except ValueError:
                     pass
-            
+
             return ServiceHealthResult(
                 name=service.name,
                 port=service.port,
@@ -145,7 +147,7 @@ async def check_http_service(
                 last_checked=datetime.utcnow(),
                 details=details,
             )
-            
+
     except httpx.ConnectError:
         elapsed = (time.perf_counter() - start_time) * 1000
         return ServiceHealthResult(
@@ -187,25 +189,25 @@ async def check_redis_service(
 ) -> ServiceHealthResult:
     """Check Redis service using PING command."""
     start_time = time.perf_counter()
-    
+
     try:
         # Use raw socket for Redis PING/PONG
         reader, writer = await asyncio.wait_for(
             asyncio.open_connection("127.0.0.1", service.port),
             timeout=timeout,
         )
-        
+
         # Send PING command
         writer.write(b"PING\r\n")
         await writer.drain()
-        
+
         # Read response
         response = await asyncio.wait_for(reader.readline(), timeout=timeout)
         elapsed = (time.perf_counter() - start_time) * 1000
-        
+
         writer.close()
         await writer.wait_closed()
-        
+
         # Redis responds with +PONG\r\n
         if b"PONG" in response:
             return ServiceHealthResult(
@@ -227,7 +229,7 @@ async def check_redis_service(
                 last_checked=datetime.utcnow(),
                 error=f"Unexpected response: {response.decode()[:50]}",
             )
-            
+
     except asyncio.TimeoutError:
         elapsed = (time.perf_counter() - start_time) * 1000
         return ServiceHealthResult(
@@ -269,17 +271,17 @@ async def check_tcp_service(
 ) -> ServiceHealthResult:
     """Check a TCP service by attempting to connect."""
     start_time = time.perf_counter()
-    
+
     try:
         reader, writer = await asyncio.wait_for(
             asyncio.open_connection("127.0.0.1", service.port),
             timeout=timeout,
         )
         elapsed = (time.perf_counter() - start_time) * 1000
-        
+
         writer.close()
         await writer.wait_closed()
-        
+
         return ServiceHealthResult(
             name=service.name,
             port=service.port,
@@ -288,7 +290,7 @@ async def check_tcp_service(
             response_time_ms=elapsed,
             last_checked=datetime.utcnow(),
         )
-        
+
     except asyncio.TimeoutError:
         elapsed = (time.perf_counter() - start_time) * 1000
         return ServiceHealthResult(

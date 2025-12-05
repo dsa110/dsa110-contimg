@@ -36,26 +36,26 @@ import sys
 from pathlib import Path
 
 from dsa110_contimg.catalog.builders import (
-    # NVSS
-    build_nvss_full_db,
-    get_nvss_full_db_path,
-    nvss_full_db_exists,
-    # FIRST
-    build_first_full_db,
-    get_first_full_db_path,
-    first_full_db_exists,
-    # VLASS
-    build_vlass_full_db,
-    get_vlass_full_db_path,
-    vlass_full_db_exists,
-    # RAX
-    build_rax_full_db,
-    get_rax_full_db_path,
-    rax_full_db_exists,
+    atnf_full_db_exists,
     # ATNF
     build_atnf_full_db,
+    # FIRST
+    build_first_full_db,
+    # NVSS
+    build_nvss_full_db,
+    # RAX
+    build_rax_full_db,
+    # VLASS
+    build_vlass_full_db,
+    first_full_db_exists,
     get_atnf_full_db_path,
-    atnf_full_db_exists,
+    get_first_full_db_path,
+    get_nvss_full_db_path,
+    get_rax_full_db_path,
+    get_vlass_full_db_path,
+    nvss_full_db_exists,
+    rax_full_db_exists,
+    vlass_full_db_exists,
 )
 
 CATALOG_INFO = {
@@ -105,9 +105,7 @@ def get_db_stats(db_path: Path) -> dict:
 
             # Try to get build time
             try:
-                row = conn.execute(
-                    "SELECT value FROM meta WHERE key='build_time_iso'"
-                ).fetchone()
+                row = conn.execute("SELECT value FROM meta WHERE key='build_time_iso'").fetchone()
                 if row:
                     stats["build_time"] = row[0]
             except Exception:
@@ -157,7 +155,9 @@ def build_catalog(name: str, force: bool = False) -> bool:
         stats = get_db_stats(db_path)
         print(f"✅ {name.upper()} database already exists")
         print(f"   Path: {db_path}")
-        print(f"   Size: {stats.get('size_mb', 0):.2f} MB | Sources: {stats.get('n_sources', '?'):,}")
+        print(
+            f"   Size: {stats.get('size_mb', 0):.2f} MB | Sources: {stats.get('n_sources', '?'):,}"
+        )
         print("   Use --force to rebuild")
         return True
 
@@ -167,7 +167,9 @@ def build_catalog(name: str, force: bool = False) -> bool:
         stats = get_db_stats(result_path)
         print(f"✅ Built {name.upper()} database")
         print(f"   Path: {result_path}")
-        print(f"   Size: {stats.get('size_mb', 0):.2f} MB | Sources: {stats.get('n_sources', '?'):,}")
+        print(
+            f"   Size: {stats.get('size_mb', 0):.2f} MB | Sources: {stats.get('n_sources', '?'):,}"
+        )
         return True
     except FileNotFoundError as e:
         print(f"⚠️  Could not build {name.upper()}: {e}")

@@ -200,9 +200,7 @@ class EventEmitter:
             with self._handler_lock:
                 if event_type in self._handlers and handler in self._handlers[event_type]:
                     self._handlers[event_type].remove(handler)
-                    logger.debug(
-                        f"Unsubscribed handler {handler.__name__} from {event_type.value}"
-                    )
+                    logger.debug(f"Unsubscribed handler {handler.__name__} from {event_type.value}")
 
         return unsubscribe
 
@@ -273,10 +271,7 @@ class EventEmitter:
         if len(self._event_history) > self._history_limit:
             self._event_history.pop(0)
 
-        logger.info(
-            f"Event emitted: {event_type.value} "
-            f"(id={event.event_id}, source={source})"
-        )
+        logger.info(f"Event emitted: {event_type.value} (id={event.event_id}, source={source})")
 
         # Call synchronous handlers
         with self._handler_lock:
@@ -287,8 +282,7 @@ class EventEmitter:
                 handler(event)
             except Exception:
                 logger.exception(
-                    f"Error in event handler {handler.__name__} "
-                    f"for {event_type.value}"
+                    f"Error in event handler {handler.__name__} for {event_type.value}"
                 )
 
         # Schedule asynchronous handlers
@@ -331,8 +325,7 @@ class EventEmitter:
                 await result
         except Exception:
             logger.exception(
-                f"Error in async event handler {handler.__name__} "
-                f"for {event.event_type.value}"
+                f"Error in async event handler {handler.__name__} for {event.event_type.value}"
             )
 
     async def _call_all_async_handlers(

@@ -212,7 +212,7 @@ class TransientDetectionConfig(BaseModel):
     )
     baseline_catalog: str = Field(
         default="NVSS",
-        description=("Baseline catalog for transient detection: " "'NVSS', 'FIRST', 'RACS'"),
+        description=("Baseline catalog for transient detection: 'NVSS', 'FIRST', 'RACS'"),
     )
     alert_threshold_sigma: float = Field(
         default=7.0,
@@ -301,7 +301,9 @@ class PhotometryConfig(BaseModel):
         default="standard",
         description="Imaging quality tier: 'development', 'standard', or 'high_precision'",
     )
-    backend: str = Field(default="wsclean", description="Imaging backend: 'wsclean' (default) or 'tclean'")
+    backend: str = Field(
+        default="wsclean", description="Imaging backend: 'wsclean' (default) or 'tclean'"
+    )
 
 
 class MosaicConfig(BaseModel):
@@ -323,9 +325,7 @@ class MosaicConfig(BaseModel):
     enable_crossmatch: bool = Field(
         default=True, description="Run cross-matching after mosaic creation"
     )
-    output_format: str = Field(
-        default="fits", description="Output format: 'fits' or 'casa'"
-    )
+    output_format: str = Field(default="fits", description="Output format: 'fits' or 'casa'")
 
 
 class LightCurveConfig(BaseModel):
@@ -335,9 +335,7 @@ class LightCurveConfig(BaseModel):
     enabling automated detection of variable sources and ESE candidates.
     """
 
-    enabled: bool = Field(
-        default=True, description="Enable light curve computation stage"
-    )
+    enabled: bool = Field(default=True, description="Enable light curve computation stage")
     min_epochs: int = Field(
         default=3,
         ge=2,

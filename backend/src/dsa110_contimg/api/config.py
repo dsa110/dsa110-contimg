@@ -14,11 +14,12 @@ from dataclasses import dataclass, field
 from enum import Enum
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import List, Optional, Set
 
 
 class Environment(str, Enum):
     """Deployment environment."""
+
     DEVELOPMENT = "development"
     TESTING = "testing"
     STAGING = "staging"
@@ -27,6 +28,7 @@ class Environment(str, Enum):
 
 class ConfigError(Exception):
     """Raised when configuration validation fails."""
+
     pass
 
 
@@ -37,42 +39,45 @@ _DEFAULT_PIPELINE_DB = Path("/data/dsa110-contimg/state/db/pipeline.sqlite3")
 @dataclass
 class DatabaseConfig:
     """Database connection settings.
-    
+
     All domain databases have been consolidated into a single unified
     pipeline.sqlite3 database. Legacy path properties are maintained
     for backwards compatibility but all return the unified path.
     """
+
     # Unified pipeline database path
     unified_path: Path = field(default_factory=lambda: _DEFAULT_PIPELINE_DB)
     # Separate calibrators catalog (not part of unified DB)
-    calibrators_path: Path = field(default_factory=lambda: Path("/data/dsa110-contimg/state/catalogs/vla_calibrators.sqlite3"))
+    calibrators_path: Path = field(
+        default_factory=lambda: Path("/data/dsa110-contimg/state/catalogs/vla_calibrators.sqlite3")
+    )
     connection_timeout: float = 30.0
-    
+
     # Legacy properties - all return unified path for backwards compatibility
     @property
     def products_path(self) -> Path:
         return self.unified_path
-    
+
     @property
     def cal_registry_path(self) -> Path:
         return self.unified_path
-    
+
     @property
     def hdf5_path(self) -> Path:
         return self.unified_path
-    
+
     @property
     def ingest_path(self) -> Path:
         return self.unified_path
-    
+
     @property
     def data_registry_path(self) -> Path:
         return self.unified_path
-    
+
     @classmethod
     def from_env(cls) -> "DatabaseConfig":
         """Create config from environment variables.
-        
+
         Uses PIPELINE_DB for unified database, with fallback to legacy
         PIPELINE_PRODUCTS_DB for backwards compatibility.
         """
@@ -82,16 +87,18 @@ class DatabaseConfig:
             unified_db = os.getenv("PIPELINE_PRODUCTS_DB")
         if not unified_db:
             unified_db = str(_DEFAULT_PIPELINE_DB)
-        
+
         return cls(
             unified_path=Path(unified_db),
-            calibrators_path=Path(os.getenv(
-                "PIPELINE_CALIBRATORS_DB", 
-                "/data/dsa110-contimg/state/catalogs/vla_calibrators.sqlite3"
-            )),
+            calibrators_path=Path(
+                os.getenv(
+                    "PIPELINE_CALIBRATORS_DB",
+                    "/data/dsa110-contimg/state/catalogs/vla_calibrators.sqlite3",
+                )
+            ),
             connection_timeout=float(os.getenv("DB_CONNECTION_TIMEOUT", "30.0")),
         )
-    
+
     def validate(self) -> List[str]:
         """Validate database configuration. Returns list of errors."""
         errors = []
@@ -103,11 +110,12 @@ class DatabaseConfig:
 @dataclass
 class RedisConfig:
     """Redis connection settings."""
+
     url: str = "redis://localhost:6379"
     queue_name: str = "dsa110-pipeline"
     max_connections: int = 10
     socket_timeout: float = 5.0
-    
+
     @classmethod
     def from_env(cls) -> "RedisConfig":
         """Create config from environment variables."""
@@ -122,25 +130,26 @@ class RedisConfig:
 @dataclass
 class AuthConfig:
     """Authentication settings."""
+
     enabled: bool = True
     api_keys: Set[str] = field(default_factory=set)
     jwt_secret: str = ""
     jwt_algorithm: str = "HS256"
     jwt_expiry_hours: int = 24
-    
+
     @classmethod
     def from_env(cls) -> "AuthConfig":
         """Create config from environment variables."""
         # Parse API keys
         api_keys_str = os.getenv("DSA110_API_KEYS", "")
         api_keys = set(k.strip() for k in api_keys_str.split(",") if k.strip())
-        
+
         # Get or generate JWT secret
         jwt_secret = os.getenv("DSA110_JWT_SECRET", "")
         if not jwt_secret:
             # In production, this should fail
             jwt_secret = secrets.token_hex(32)
-        
+
         return cls(
             enabled=os.getenv("DSA110_AUTH_DISABLED", "").lower() != "true",
             api_keys=api_keys,
@@ -148,7 +157,7 @@ class AuthConfig:
             jwt_algorithm=os.getenv("DSA110_JWT_ALGORITHM", "HS256"),
             jwt_expiry_hours=int(os.getenv("DSA110_JWT_EXPIRY_HOURS", "24")),
         )
-    
+
     def validate(self, env: Environment) -> List[str]:
         """Validate auth configuration. Returns list of errors."""
         errors = []
@@ -165,11 +174,12 @@ class AuthConfig:
 @dataclass
 class RateLimitConfig:
     """Rate limiting settings."""
+
     enabled: bool = True
     requests_per_minute: int = 100
     requests_per_hour: int = 1000
     burst_size: int = 20
-    
+
     @classmethod
     def from_env(cls) -> "RateLimitConfig":
         """Create config from environment variables."""
@@ -184,10 +194,11 @@ class RateLimitConfig:
 @dataclass
 class PaginationConfig:
     """Pagination default settings."""
+
     default_limit: int = 100
     max_limit: int = 1000
     default_offset: int = 0
-    
+
     @classmethod
     def from_env(cls) -> "PaginationConfig":
         """Create config from environment variables."""
@@ -200,9 +211,10 @@ class PaginationConfig:
 @dataclass
 class CORSConfig:
     """CORS settings."""
+
     allowed_origins: List[str] = field(default_factory=list)
     allow_credentials: bool = True
-    
+
     @classmethod
     def from_env(cls) -> "CORSConfig":
         """Create config from environment variables."""
@@ -218,7 +230,7 @@ class CORSConfig:
             origins = [o.strip() for o in origins_str.split(",") if o.strip()]
         else:
             origins = default_origins
-        
+
         return cls(
             allowed_origins=origins,
             allow_credentials=os.getenv("DSA110_CORS_CREDENTIALS", "true").lower() == "true",
@@ -228,10 +240,11 @@ class CORSConfig:
 @dataclass
 class LoggingConfig:
     """Logging settings."""
+
     level: str = "INFO"
     json_format: bool = True
     include_request_id: bool = True
-    
+
     @classmethod
     def from_env(cls) -> "LoggingConfig":
         """Create config from environment variables."""
@@ -245,27 +258,28 @@ class LoggingConfig:
 @dataclass
 class TimeoutConfig:
     """Timeout settings for various operations.
-    
+
     Centralizes all timeout values to avoid magic numbers scattered
     throughout the codebase.
     """
+
     # Database connections
-    db_connection: float = 30.0      # Main database connection timeout
-    db_quick_check: float = 2.0      # Quick health check timeout
-    db_metrics_sync: float = 10.0    # Metrics sync timeout
-    
+    db_connection: float = 30.0  # Main database connection timeout
+    db_quick_check: float = 2.0  # Quick health check timeout
+    db_metrics_sync: float = 10.0  # Metrics sync timeout
+
     # WebSocket operations
-    websocket_ping: float = 30.0     # WebSocket ping interval
-    websocket_pong: float = 10.0     # WebSocket pong wait timeout
-    
+    websocket_ping: float = 30.0  # WebSocket ping interval
+    websocket_pong: float = 10.0  # WebSocket pong wait timeout
+
     # External service checks
     service_health_check: float = 5.0  # Health check for external services
-    http_request: float = 30.0         # Default HTTP request timeout
-    
+    http_request: float = 30.0  # Default HTTP request timeout
+
     # Background tasks
-    background_poll: float = 30.0    # Background task polling interval
+    background_poll: float = 30.0  # Background task polling interval
     startup_retry_base: float = 0.5  # Base delay for startup retries (exponential backoff)
-    
+
     @classmethod
     def from_env(cls) -> "TimeoutConfig":
         """Create config from environment variables."""
@@ -282,15 +296,16 @@ class TimeoutConfig:
         )
 
 
-@dataclass 
+@dataclass
 class APIConfig:
     """Main API configuration."""
+
     environment: Environment = Environment.DEVELOPMENT
     debug: bool = False
     host: str = "0.0.0.0"
     port: int = 8000
     workers: int = 1
-    
+
     # Component configs
     database: DatabaseConfig = field(default_factory=DatabaseConfig)
     redis: RedisConfig = field(default_factory=RedisConfig.from_env)
@@ -300,7 +315,7 @@ class APIConfig:
     cors: CORSConfig = field(default_factory=CORSConfig.from_env)
     logging: LoggingConfig = field(default_factory=LoggingConfig.from_env)
     timeouts: TimeoutConfig = field(default_factory=TimeoutConfig.from_env)
-    
+
     @classmethod
     def from_env(cls) -> "APIConfig":
         """Create complete configuration from environment."""
@@ -309,9 +324,9 @@ class APIConfig:
             environment = Environment(env_str)
         except ValueError:
             environment = Environment.DEVELOPMENT
-        
+
         is_production = environment == Environment.PRODUCTION
-        
+
         return cls(
             environment=environment,
             debug=os.getenv("DSA110_DEBUG", "false").lower() == "true" and not is_production,
@@ -326,29 +341,28 @@ class APIConfig:
             logging=LoggingConfig.from_env(),
             timeouts=TimeoutConfig.from_env(),
         )
-    
+
     def validate(self) -> List[str]:
         """Validate all configuration. Returns list of errors."""
         errors = []
-        
+
         # Validate component configs
         errors.extend(self.database.validate())
         errors.extend(self.auth.validate(self.environment))
-        
+
         # Production-specific checks
         if self.environment == Environment.PRODUCTION:
             if self.debug:
                 errors.append("Debug mode cannot be enabled in production")
-        
+
         return errors
-    
+
     def validate_or_raise(self) -> None:
         """Validate configuration and raise if errors found."""
         errors = self.validate()
         if errors:
             raise ConfigError(
-                f"Configuration validation failed:\n" + 
-                "\n".join(f"  - {e}" for e in errors)
+                "Configuration validation failed:\n" + "\n".join(f"  - {e}" for e in errors)
             )
 
 
@@ -356,7 +370,7 @@ class APIConfig:
 def get_config() -> APIConfig:
     """
     Get the application configuration.
-    
+
     Uses lru_cache for singleton behavior.
     """
     return APIConfig.from_env()
@@ -365,7 +379,7 @@ def get_config() -> APIConfig:
 def get_required_env(name: str, description: str = "") -> str:
     """
     Get a required environment variable.
-    
+
     Raises ConfigError if not set.
     """
     value = os.getenv(name)
@@ -404,31 +418,24 @@ ENV_VARS = {
     "DSA110_HOST": "API host address",
     "DSA110_PORT": "API port number",
     "DSA110_WORKERS": "Number of worker processes",
-    
     # Database
     "DSA110_DB_PATH": "Base path for database files",
-    
     # Redis
     "DSA110_REDIS_URL": "Redis connection URL",
     "DSA110_QUEUE_NAME": "RQ queue name",
-    
     # Auth
     "DSA110_API_KEYS": "Comma-separated list of valid API keys",
     "DSA110_JWT_SECRET": "Secret key for JWT signing",
     "DSA110_AUTH_DISABLED": "Disable authentication (development only)",
-    
     # Rate limiting
     "DSA110_RATE_LIMIT_DISABLED": "Disable rate limiting",
     "DSA110_RATE_LIMIT_MINUTE": "Requests allowed per minute",
     "DSA110_RATE_LIMIT_HOUR": "Requests allowed per hour",
-    
     # CORS
     "DSA110_CORS_ORIGINS": "Comma-separated list of allowed origins",
-    
     # Logging
     "DSA110_LOG_LEVEL": "Log level (DEBUG, INFO, WARNING, ERROR)",
     "DSA110_LOG_JSON": "Use JSON log format (true/false)",
-    
 }
 
 

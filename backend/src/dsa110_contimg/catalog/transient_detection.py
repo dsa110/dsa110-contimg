@@ -9,7 +9,6 @@ Implements Proposal #2: Transient Detection & Classification
 import logging
 import sqlite3
 import time
-from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np
@@ -443,8 +442,7 @@ def generate_transient_alerts(
             if significance >= 10.0 and detection_type == "new":
                 alert_level = "CRITICAL"
                 alert_message = (
-                    f"New source {source_name}: {flux_obs:.1f} mJy "
-                    f"({significance:.1f}σ detection)"
+                    f"New source {source_name}: {flux_obs:.1f} mJy ({significance:.1f}σ detection)"
                 )
             elif significance >= alert_threshold_sigma:
                 if detection_type in ["brightening", "fading"]:

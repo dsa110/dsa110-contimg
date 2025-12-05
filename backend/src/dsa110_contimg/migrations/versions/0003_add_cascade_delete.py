@@ -12,11 +12,12 @@ Revision ID: 0003_add_cascade_delete
 Revises: 0002_add_calibration_fk
 Create Date: 2025-01-XX
 """
+
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision = '0003_add_cascade_delete'
-down_revision = '0002_add_calibration_fk'
+revision = "0003_add_cascade_delete"
+down_revision = "0002_add_calibration_fk"
 branch_labels = None
 depends_on = None
 

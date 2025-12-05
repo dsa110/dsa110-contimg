@@ -19,18 +19,16 @@ from pathlib import Path
 from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from fastapi.staticfiles import StaticFiles
 from pydantic import ValidationError
-
 
 # Allowed IP addresses/networks for API access
 # Can be overridden with DSA110_ALLOWED_IPS environment variable (comma-separated)
 DEFAULT_ALLOWED_IPS = [
-    "127.0.0.1",        # localhost
-    "::1",              # localhost IPv6
-    "10.0.0.0/8",       # Private network
-    "172.16.0.0/12",    # Private network
-    "192.168.0.0/16",   # Private network
+    "127.0.0.1",  # localhost
+    "::1",  # localhost IPv6
+    "10.0.0.0/8",  # Private network
+    "172.16.0.0/12",  # Private network
+    "192.168.0.0/16",  # Private network
 ]
 
 
@@ -41,7 +39,7 @@ def _is_test_mode() -> bool:
 
 def get_allowed_networks():
     """Parse allowed IPs from environment or use defaults.
-    
+
     Also returns a set of special hostnames (like 'testclient') that should
     be allowed, which cannot be parsed as IP networks.
     """
@@ -50,7 +48,7 @@ def get_allowed_networks():
         ip_list = [ip.strip() for ip in env_ips.split(",")]
     else:
         ip_list = DEFAULT_ALLOWED_IPS
-    
+
     networks = []
     special_hosts = set()
     for ip in ip_list:
@@ -71,110 +69,114 @@ def is_ip_allowed(client_ip: str, allowed_networks: list, special_hosts: set = N
     """Check if client IP is in allowed networks or special hosts list."""
     if special_hosts is None:
         special_hosts = set()
-    
+
     # First check if it's a special host (like 'testclient')
     if client_ip.lower() in special_hosts:
         return True
-    
+
     try:
         ip = ipaddress.ip_address(client_ip)
         return any(ip in network for network in allowed_networks)
     except ValueError:
         return False
 
-from .auth import require_auth
-from .client_ip import get_client_ip
-from .config import get_config
-from .middleware import add_exception_handlers
-from .exceptions import ValidationError as DSA110ValidationError, ProcessingError
-from .routes import (
-    carta_router,
-    auth_router,
-    conversion_router,
-    images_router,
-    ms_router,
-    sources_router,
-    jobs_router,
-    queue_router,
-    qa_router,
-    cal_router,
-    logs_router,
-    stats_router,
-    cache_router,
-    services_router,
-    imaging_router,
-    absurd_router,
-    calibrator_imaging_router,
-    health_router,
-    metrics_dashboard_router,
-    alert_policies_router,
-    retention_router,
-    performance_router,
-    queries_router,
-    backup_router,
-    triggers_router,
-    jupyter_router,
-    vo_export_router,
-    pipeline_router,
-    ratings_router,
-    comments_router,
-    external_router,
-)
-from .rate_limit import limiter, rate_limit_exceeded_handler
-from .websocket import ws_router
-
-# Mosaic API router (ABSURD-governed pipeline)
-from dsa110_contimg.mosaic import mosaic_router, configure_mosaic_api
-from slowapi.errors import RateLimitExceeded
-
 
 # Lifespan context manager for startup/shutdown events
 from contextlib import asynccontextmanager
+
+from slowapi.errors import RateLimitExceeded
+
+# Mosaic API router (ABSURD-governed pipeline)
+from dsa110_contimg.mosaic import configure_mosaic_api, mosaic_router
+
+from .auth import require_auth
+from .client_ip import get_client_ip
+from .config import get_config
+from .exceptions import ProcessingError
+from .middleware import add_exception_handlers
+from .rate_limit import limiter, rate_limit_exceeded_handler
+from .routes import (
+    absurd_router,
+    alert_policies_router,
+    auth_router,
+    backup_router,
+    cache_router,
+    cal_router,
+    calibrator_imaging_router,
+    carta_router,
+    comments_router,
+    conversion_router,
+    external_router,
+    health_router,
+    images_router,
+    imaging_router,
+    jobs_router,
+    jupyter_router,
+    logs_router,
+    metrics_dashboard_router,
+    ms_router,
+    performance_router,
+    pipeline_router,
+    qa_router,
+    queries_router,
+    queue_router,
+    ratings_router,
+    retention_router,
+    services_router,
+    sources_router,
+    stats_router,
+    triggers_router,
+    vo_export_router,
+)
+from .websocket import ws_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
     Application lifespan context manager.
-    
+
     Handles:
     - Startup: Initialize GPU safety, Bokeh session manager, ABSURD client
     - Shutdown: Cleanup all active sessions and close ABSURD client
     """
     import logging
+
     logger = logging.getLogger(__name__)
     test_mode = _is_test_mode()
     session_manager_started = False
     shutdown_session_manager_fn = None
-    
+
     # Startup
     logger.info("Starting application lifespan")
-    
+
     # Initialize GPU safety module FIRST (before any GPU operations)
     # This sets up CuPy memory pool limits and system memory thresholds
     # to prevent OOM crashes that could cause disk disconnection
     try:
         from dsa110_contimg.utils.gpu_safety import initialize_gpu_safety
+
         initialize_gpu_safety()
         logger.info("GPU safety module initialized (memory limits enforced)")
     except ImportError as e:
         logger.warning(f"GPU safety module not available: {e}")
     except Exception as e:
         logger.warning(f"Could not initialize GPU safety module: {e}")
-    
+
     # Initialize Bokeh session manager (for InteractiveClean)
     if test_mode:
         logger.info("Test mode enabled; skipping Bokeh session manager initialization")
     else:
         try:
             from .services.bokeh_sessions import init_session_manager, shutdown_session_manager
+
             await init_session_manager()
             session_manager_started = True
             shutdown_session_manager_fn = shutdown_session_manager
             logger.info("Bokeh session manager initialized")
         except Exception as e:
             logger.warning(f"Could not initialize Bokeh session manager: {e}")
-    
+
     # Initialize ABSURD workflow manager client
     if test_mode:
         app.state.absurd_enabled = False
@@ -182,8 +184,9 @@ async def lifespan(app: FastAPI):
     else:
         try:
             from dsa110_contimg.absurd import AbsurdClient, AbsurdConfig
+
             from .routes.absurd import init_absurd_client, shutdown_absurd_client
-            
+
             config = AbsurdConfig.from_env()
             if config.enabled:
                 await init_absurd_client(config)
@@ -198,21 +201,22 @@ async def lifespan(app: FastAPI):
         except Exception as e:
             app.state.absurd_enabled = False
             logger.warning(f"Could not initialize ABSURD client: {e}")
-    
+
     yield
-    
+
     # Shutdown
     logger.info("Shutting down application")
-    
+
     # Shutdown ABSURD client
     try:
-        if getattr(app.state, 'absurd_enabled', False):
+        if getattr(app.state, "absurd_enabled", False):
             from .routes.absurd import shutdown_absurd_client
+
             await shutdown_absurd_client()
             logger.info("ABSURD client shutdown complete")
     except Exception as e:
         logger.warning(f"Error shutting down ABSURD client: {e}")
-    
+
     if session_manager_started and shutdown_session_manager_fn:
         try:
             await shutdown_session_manager_fn()
@@ -224,7 +228,7 @@ async def lifespan(app: FastAPI):
 def create_app() -> FastAPI:
     """
     Create and configure the FastAPI application.
-    
+
     Returns:
         Configured FastAPI app instance
     """
@@ -237,7 +241,7 @@ def create_app() -> FastAPI:
         openapi_url="/api/openapi.json",
         lifespan=lifespan,
     )
-    
+
     # Configure CORS for frontend development
     app.add_middleware(
         CORSMiddleware,
@@ -254,9 +258,10 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
-    
+
     # Add security headers middleware
-    from .security import SecurityHeadersMiddleware, CachingHeadersMiddleware
+    from .security import CachingHeadersMiddleware, SecurityHeadersMiddleware
+
     is_production = os.getenv("DSA110_ENV", "development").lower() == "production"
     app.add_middleware(
         SecurityHeadersMiddleware,
@@ -268,14 +273,14 @@ def create_app() -> FastAPI:
         default_max_age=0,
         private=True,
     )
-    
+
     # Configure rate limiting
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
-    
+
     # API version prefix - all routes use /api/v1
     api_prefix = "/api/v1"
-    
+
     # Define routers with their tags for cleaner registration
     api_routers = [
         (auth_router, "Authentication", False),  # Public auth endpoints
@@ -309,7 +314,7 @@ def create_app() -> FastAPI:
         (comments_router, "Comments", True),
         (external_router, "External Services", False),  # Sesame proxy, etc.
     ]
-    
+
     # Mosaic router is pre-prefixed with /api/mosaic, include directly
     # Configure the mosaic API with paths from config
     config = get_config()
@@ -327,8 +332,9 @@ def create_app() -> FastAPI:
         )
     except Exception as e:
         import logging
+
         logging.getLogger(__name__).warning(f"Failed to configure mosaic API: {e}")
-    
+
     # Register API routers with versioned prefix
     for router, tag, secured in api_routers:
         dependencies = [Depends(require_auth)] if secured else None
@@ -338,7 +344,7 @@ def create_app() -> FastAPI:
             tags=[tag],
             dependencies=dependencies,
         )
-    
+
     # ABSURD workflow manager - registered at /absurd (not versioned)
     # This is a separate subsystem with its own versioning
     app.include_router(
@@ -347,13 +353,13 @@ def create_app() -> FastAPI:
         tags=["ABSURD Workflows"],
         dependencies=[Depends(require_auth)],
     )
-    
+
     # WebSocket routes for real-time updates
     app.include_router(ws_router, prefix="/api/v1", tags=["WebSocket"])
-    
+
     # Register custom exception handlers for DSA110APIError hierarchy
     add_exception_handlers(app)
-    
+
     # Register exception handlers for Pydantic validation
     @app.exception_handler(ValidationError)
     async def validation_exception_handler(request: Request, exc: ValidationError):
@@ -364,45 +370,46 @@ def create_app() -> FastAPI:
         ]
         # Convert to our custom ValidationError
         error_msg = "; ".join(f"{e['field']}: {e['message']}" for e in errors)
-        custom_exc = ProcessingError(
-            message=error_msg,
-            details={"validation_errors": errors}
-        )
+        custom_exc = ProcessingError(message=error_msg, details={"validation_errors": errors})
         return JSONResponse(
             status_code=400,
             content=custom_exc.to_dict(),
         )
-    
+
     @app.exception_handler(Exception)
     async def generic_exception_handler(request: Request, exc: Exception):
         """Handle uncaught exceptions with logging and consistent response."""
         import logging
+
         logger = logging.getLogger(__name__)
         logger.exception("Unhandled exception in API request")
-        
+
         # Return generic error message (don't leak internal details in production)
         from .exceptions import ProcessingError
+
         error = ProcessingError(
             message="An unexpected error occurred" if not app.debug else str(exc),
-            details={"type": type(exc).__name__, "operation": "request_processing"} if app.debug else {},
+            details={"type": type(exc).__name__, "operation": "request_processing"}
+            if app.debug
+            else {},
         )
         return JSONResponse(
             status_code=500,
             content=error.to_dict(),
         )
-    
+
     # Health check endpoint (always allowed, before IP check)
     @app.get("/api/health")
     @app.get("/api/v1/health")
     async def health_check(detailed: bool = False):
         """Health check endpoint for monitoring.
-        
+
         Args:
             detailed: If True, include database, Redis, and disk space checks
         """
         import shutil
         from pathlib import Path
-        
+
         response = {
             "status": "healthy",
             "service": "dsa110-contimg-api",
@@ -410,19 +417,23 @@ def create_app() -> FastAPI:
             "api_version": "v1",
             "timestamp": datetime.utcnow().isoformat() + "Z",
         }
-        
+
         if detailed:
             # Check database connectivity
             config = get_config()
             db_status = {}
             try:
                 from dsa110_contimg.database.session import get_db_path
+
                 for db_name in ["products", "cal_registry", "hdf5", "ingest"]:
                     try:
                         db_path = Path(get_db_path(db_name))
                         if db_path.exists():
                             import sqlite3
-                            conn = sqlite3.connect(str(db_path), timeout=config.timeouts.db_quick_check)
+
+                            conn = sqlite3.connect(
+                                str(db_path), timeout=config.timeouts.db_quick_check
+                            )
                             conn.execute("SELECT 1")
                             conn.close()
                             db_status[db_name] = "ok"
@@ -433,11 +444,12 @@ def create_app() -> FastAPI:
             except (ImportError, AttributeError) as e:
                 db_status["error"] = f"Could not check databases: {str(e)[:50]}"
             response["databases"] = db_status
-            
+
             # Check Redis connectivity
             redis_status = {"status": "unknown"}
             try:
                 import redis as redis_module
+
                 redis_url = os.getenv("DSA110_REDIS_URL", "redis://localhost:6379")
                 r = redis_module.from_url(redis_url, socket_timeout=config.timeouts.db_quick_check)
                 if r.ping():
@@ -454,7 +466,7 @@ def create_app() -> FastAPI:
                 # Redis connection errors
                 redis_status = {"status": "unavailable", "message": str(e)[:50]}
             response["redis"] = redis_status
-            
+
             # Check disk space
             disk_status = {}
             for path_str in ["/data/dsa110-contimg/state", "/stage/dsa110-contimg"]:
@@ -462,42 +474,42 @@ def create_app() -> FastAPI:
                 if path.exists():
                     try:
                         usage = shutil.disk_usage(path)
-                        free_gb = usage.free / (1024 ** 3)
+                        free_gb = usage.free / (1024**3)
                         disk_status[path_str] = {
                             "free_gb": round(free_gb, 2),
-                            "status": "ok" if free_gb > 5 else ("warning" if free_gb > 1 else "critical"),
+                            "status": "ok"
+                            if free_gb > 5
+                            else ("warning" if free_gb > 1 else "critical"),
                         }
                     except OSError:
                         disk_status[path_str] = {"status": "error"}
             response["disk"] = disk_status
-            
+
             # Check if any component is unhealthy
-            has_db_errors = any(
-                v != "ok" for v in db_status.values() if isinstance(v, str)
-            )
+            has_db_errors = any(v != "ok" for v in db_status.values() if isinstance(v, str))
             has_disk_errors = any(
                 d.get("status") == "critical" for d in disk_status.values() if isinstance(d, dict)
             )
             redis_unavailable = redis_status.get("status") not in ["ok", "unavailable"]
-            
+
             if has_db_errors or has_disk_errors or redis_unavailable:
                 response["status"] = "degraded"
-        
+
         return response
-    
+
     # IP-based access control middleware
     allowed_networks, special_hosts = get_allowed_networks()
-    
+
     @app.middleware("http")
     async def ip_filter_middleware(request: Request, call_next):
         """Restrict API access to allowed IP addresses."""
         # Always allow health checks and metrics (for external monitoring)
         if request.url.path in ("/api/health", "/metrics"):
             return await call_next(request)
-        
+
         # Get client IP (handle proxies via trusted list)
         client_ip = get_client_ip(request)
-        
+
         if not is_ip_allowed(client_ip, allowed_networks, special_hosts):
             return JSONResponse(
                 status_code=403,
@@ -507,9 +519,9 @@ def create_app() -> FastAPI:
                     "hint": "Contact administrator to whitelist your IP",
                 },
             )
-        
+
         return await call_next(request)
-    
+
     return app
 
 
@@ -520,7 +532,7 @@ app = create_app()
 # Metrics available at /metrics
 try:
     from prometheus_fastapi_instrumentator import Instrumentator
-    
+
     Instrumentator(
         should_group_status_codes=True,
         should_ignore_untemplated=True,
@@ -532,29 +544,31 @@ except ImportError:
 # Import custom scientific metrics (registers them with Prometheus)
 try:
     from .metrics import sync_gauges_from_database
-    
+
     # Sync gauges on startup
     @app.on_event("startup")
     async def startup_sync_metrics():
         """Sync database gauges on startup."""
         import asyncio
         import logging
+
         logger = logging.getLogger(__name__)
-        
+
         # Initial sync
         sync_gauges_from_database()
         logger.info("Initial metrics sync completed")
-        
+
         # Background task to sync every 30 seconds
         async def periodic_sync():
             import sqlite3
+
             while True:
                 await asyncio.sleep(30)
                 try:
                     sync_gauges_from_database()
                 except sqlite3.Error as e:
                     logger.warning(f"Periodic metrics sync failed: {e}")
-        
+
         asyncio.create_task(periodic_sync())
         logger.info("Periodic metrics sync task started (30s interval)")
 
@@ -567,11 +581,10 @@ except ImportError:
 # app.mount("/ui", StaticFiles(directory="../frontend/dist", html=True), name="ui")
 
 
-
 def ensure_port_available(port: int = 8000) -> None:
     """
     Ensure the given port is available by killing any blocking processes.
-    
+
     Called automatically when running the app directly via `python -m ... app:app`.
     """
     import os
@@ -579,19 +592,16 @@ def ensure_port_available(port: int = 8000) -> None:
     import subprocess
     import sys
     import time
-    
+
     def get_pids_on_port(p: int) -> list[int]:
         try:
-            result = subprocess.run(
-                ["lsof", "-ti", f":{p}"],
-                capture_output=True, text=True
-            )
+            result = subprocess.run(["lsof", "-ti", f":{p}"], capture_output=True, text=True)
             if result.returncode == 0 and result.stdout.strip():
-                return [int(pid) for pid in result.stdout.strip().split('\n') if pid]
+                return [int(pid) for pid in result.stdout.strip().split("\n") if pid]
         except OSError:
             pass
         return []
-    
+
     max_attempts = 5
     for attempt in range(1, max_attempts + 1):
         pids = get_pids_on_port(port)
@@ -599,15 +609,15 @@ def ensure_port_available(port: int = 8000) -> None:
             if attempt > 1:
                 print(f"[ensure-port] OK Port {port} is now available")
             return
-        
+
         # Don't kill ourselves
         my_pid = os.getpid()
         pids = [p for p in pids if p != my_pid]
         if not pids:
             return
-        
+
         print(f"[ensure-port] Found {len(pids)} process(es) blocking port {port}: {pids}")
-        
+
         sig = signal.SIGKILL if attempt >= 3 else signal.SIGTERM
         for pid in pids:
             try:
@@ -615,9 +625,9 @@ def ensure_port_available(port: int = 8000) -> None:
                 print(f"[ensure-port] Sent {'SIGKILL' if attempt >= 3 else 'SIGTERM'} to PID {pid}")
             except (ProcessLookupError, PermissionError):
                 pass
-        
+
         time.sleep(0.5 * (2 ** (attempt - 1)))  # Exponential backoff
-    
+
     # Final check
     if get_pids_on_port(port):
         print(f"[ensure-port] WARNING: Could not free port {port}", file=sys.stderr)
@@ -625,6 +635,7 @@ def ensure_port_available(port: int = 8000) -> None:
 
 if __name__ == "__main__":
     import uvicorn
+
     port = int(os.getenv("API_PORT", "8000"))
     ensure_port_available(port)
     uvicorn.run(app, host="0.0.0.0", port=port)

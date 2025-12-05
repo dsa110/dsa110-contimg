@@ -18,7 +18,7 @@ import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -168,10 +168,7 @@ class Job(ABC):
         Returns:
             Dictionary of parameters suitable for ABSURD task
         """
-        return {
-            k: v for k, v in self.__dict__.items()
-            if not k.startswith('_') and k != 'config'
-        }
+        return {k: v for k, v in self.__dict__.items() if not k.startswith("_") and k != "config"}
 
     def validate(self) -> tuple[bool, str | None]:
         """Validate job parameters before execution.
@@ -324,14 +321,16 @@ class Pipeline(ABC):
                     f"Add dependencies before dependents."
                 )
 
-        self.jobs.append(JobConfig(
-            job_class=job_class,
-            job_id=job_id,
-            params=params or {},
-            dependencies=dep_list,
-            priority=priority,
-            timeout_seconds=timeout_seconds,
-        ))
+        self.jobs.append(
+            JobConfig(
+                job_class=job_class,
+                job_id=job_id,
+                params=params or {},
+                dependencies=dep_list,
+                priority=priority,
+                timeout_seconds=timeout_seconds,
+            )
+        )
 
     def set_retry_policy(
         self,
@@ -370,13 +369,15 @@ class Pipeline(ABC):
             recipients: List of recipients
             on_success: Also notify on success
         """
-        self._notifications.append(NotificationConfig(
-            job_id=on_failure,
-            channels=channels,
-            recipients=recipients,
-            on_failure=True,
-            on_success=on_success,
-        ))
+        self._notifications.append(
+            NotificationConfig(
+                job_id=on_failure,
+                channels=channels,
+                recipients=recipients,
+                on_failure=True,
+                on_success=on_success,
+            )
+        )
 
     @property
     def retry_policy(self) -> RetryPolicy:
@@ -428,9 +429,7 @@ class Pipeline(ABC):
         while queue:
             # Sort by priority (higher first) for tie-breaking
             queue.sort(
-                key=lambda jid: next(
-                    (j.priority for j in self.jobs if j.job_id == jid), 0
-                ),
+                key=lambda jid: next((j.priority for j in self.jobs if j.job_id == jid), 0),
                 reverse=True,
             )
             job_id = queue.pop(0)

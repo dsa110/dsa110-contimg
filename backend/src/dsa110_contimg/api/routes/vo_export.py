@@ -15,7 +15,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, Query, Depends, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 
@@ -94,11 +94,11 @@ def _row_to_job(row: sqlite3.Row) -> ExportJob:
             query_params = json.loads(row["query_params"])
         except json.JSONDecodeError:
             pass
-    
+
     download_url = None
     if row["status"] == "completed" and row["output_path"]:
         download_url = f"/api/vo-export/{row['id']}/download"
-    
+
     return ExportJob(
         id=row["id"],
         export_type=row["export_type"],
@@ -127,13 +127,14 @@ def _get_current_user() -> str:
 # ============================================================================
 
 
-def _run_export(job_id: str, export_type: str, target_type: str, query_params: Optional[Dict], db_path: Path):
+def _run_export(
+    job_id: str, export_type: str, target_type: str, query_params: Optional[Dict], db_path: Path
+):
     """Execute export job in background."""
-    import time
-    
+
     conn = sqlite3.connect(str(db_path))
     conn.row_factory = sqlite3.Row
-    
+
     try:
         # Update status to running
         now = datetime.utcnow().isoformat()
@@ -142,14 +143,14 @@ def _run_export(job_id: str, export_type: str, target_type: str, query_params: O
             (now, job_id),
         )
         conn.commit()
-        
+
         # Determine output path
         timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
         ext_map = {"votable": "xml", "csv": "csv", "fits": "fits", "tar": "tar.gz"}
         ext = ext_map.get(export_type, "dat")
         output_path = EXPORT_DIR / f"{target_type}_{timestamp}_{job_id[:8]}.{ext}"
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        
+
         # Get items to export
         if target_type == "sources":
             items = _export_sources(conn, query_params, export_type, output_path)
@@ -159,7 +160,7 @@ def _run_export(job_id: str, export_type: str, target_type: str, query_params: O
             items = _export_catalog(conn, query_params, export_type, output_path)
         else:
             items = 0
-        
+
         # Mark completed
         conn.execute(
             """
@@ -172,7 +173,7 @@ def _run_export(job_id: str, export_type: str, target_type: str, query_params: O
         )
         conn.commit()
         logger.info(f"Export job {job_id} completed: {items} items")
-        
+
     except Exception as e:
         logger.error(f"Export job {job_id} failed: {e}")
         conn.execute(
@@ -184,12 +185,14 @@ def _run_export(job_id: str, export_type: str, target_type: str, query_params: O
         conn.close()
 
 
-def _export_sources(conn: sqlite3.Connection, query_params: Optional[Dict], export_type: str, output_path: Path) -> int:
+def _export_sources(
+    conn: sqlite3.Connection, query_params: Optional[Dict], export_type: str, output_path: Path
+) -> int:
     """Export sources to specified format."""
     # Query sources
     sql = "SELECT * FROM sources"
     params = []
-    
+
     if query_params:
         conditions = []
         if "min_flux" in query_params:
@@ -206,26 +209,28 @@ def _export_sources(conn: sqlite3.Connection, query_params: Optional[Dict], expo
             params.append(query_params["dec_max"])
         if conditions:
             sql += " WHERE " + " AND ".join(conditions)
-    
+
     cursor = conn.execute(sql, params)
     cursor.row_factory = sqlite3.Row
     rows = cursor.fetchall()
-    
+
     if export_type == "votable":
         _write_votable(rows, output_path, "sources")
     elif export_type == "csv":
         _write_csv(rows, output_path)
     elif export_type == "fits":
         _write_fits_table(rows, output_path)
-    
+
     return len(rows)
 
 
-def _export_images(conn: sqlite3.Connection, query_params: Optional[Dict], export_type: str, output_path: Path) -> int:
+def _export_images(
+    conn: sqlite3.Connection, query_params: Optional[Dict], export_type: str, output_path: Path
+) -> int:
     """Export image metadata to specified format."""
     sql = "SELECT * FROM images"
     params = []
-    
+
     if query_params:
         conditions = []
         if "image_type" in query_params:
@@ -239,20 +244,22 @@ def _export_images(conn: sqlite3.Connection, query_params: Optional[Dict], expor
             params.append(query_params["date_end"])
         if conditions:
             sql += " WHERE " + " AND ".join(conditions)
-    
+
     cursor = conn.execute(sql, params)
     cursor.row_factory = sqlite3.Row
     rows = cursor.fetchall()
-    
+
     if export_type == "votable":
         _write_votable(rows, output_path, "images")
     elif export_type == "csv":
         _write_csv(rows, output_path)
-    
+
     return len(rows)
 
 
-def _export_catalog(conn: sqlite3.Connection, query_params: Optional[Dict], export_type: str, output_path: Path) -> int:
+def _export_catalog(
+    conn: sqlite3.Connection, query_params: Optional[Dict], export_type: str, output_path: Path
+) -> int:
     """Export full catalog with cross-matches."""
     # Join sources with photometry and cross-matches
     sql = """
@@ -260,18 +267,18 @@ def _export_catalog(conn: sqlite3.Connection, query_params: Optional[Dict], expo
         FROM sources s
         LEFT JOIN photometry_results p ON s.id = p.source_id
     """
-    
+
     cursor = conn.execute(sql)
     cursor.row_factory = sqlite3.Row
     rows = cursor.fetchall()
-    
+
     if export_type == "votable":
         _write_votable(rows, output_path, "dsa110_catalog")
     elif export_type == "csv":
         _write_csv(rows, output_path)
     elif export_type == "fits":
         _write_fits_table(rows, output_path)
-    
+
     return len(rows)
 
 
@@ -283,34 +290,34 @@ def _write_votable(rows: List[sqlite3.Row], output_path: Path, table_name: str):
         f.write('<VOTABLE version="1.4" xmlns="http://www.ivoa.net/xml/VOTable/v1.4">\n')
         f.write(f'  <RESOURCE name="{table_name}">\n')
         f.write(f'    <TABLE name="{table_name}">\n')
-        
+
         if rows:
             # Write fields
             keys = rows[0].keys()
             for key in keys:
                 f.write(f'      <FIELD name="{key}" datatype="char" arraysize="*"/>\n')
-            
+
             # Write data
-            f.write('      <DATA>\n')
-            f.write('        <TABLEDATA>\n')
+            f.write("      <DATA>\n")
+            f.write("        <TABLEDATA>\n")
             for row in rows:
-                f.write('          <TR>\n')
+                f.write("          <TR>\n")
                 for key in keys:
                     val = row[key] if row[key] is not None else ""
-                    f.write(f'            <TD>{val}</TD>\n')
-                f.write('          </TR>\n')
-            f.write('        </TABLEDATA>\n')
-            f.write('      </DATA>\n')
-        
-        f.write('    </TABLE>\n')
-        f.write('  </RESOURCE>\n')
-        f.write('</VOTABLE>\n')
+                    f.write(f"            <TD>{val}</TD>\n")
+                f.write("          </TR>\n")
+            f.write("        </TABLEDATA>\n")
+            f.write("      </DATA>\n")
+
+        f.write("    </TABLE>\n")
+        f.write("  </RESOURCE>\n")
+        f.write("</VOTABLE>\n")
 
 
 def _write_csv(rows: List[sqlite3.Row], output_path: Path):
     """Write rows to CSV format."""
     import csv
-    
+
     with open(output_path, "w", newline="") as f:
         if rows:
             writer = csv.DictWriter(f, fieldnames=rows[0].keys())
@@ -324,7 +331,7 @@ def _write_fits_table(rows: List[sqlite3.Row], output_path: Path):
     try:
         from astropy.io import fits
         from astropy.table import Table
-        
+
         if rows:
             data = {key: [row[key] for row in rows] for key in rows[0].keys()}
             table = Table(data)
@@ -346,6 +353,7 @@ def _write_fits_table(rows: List[sqlite3.Row], output_path: Path):
 
 class ExportJobList(BaseModel):
     """List of export jobs response."""
+
     jobs: List[ExportJob]
     total: int
 
@@ -369,13 +377,13 @@ async def list_exports(
         )
     cursor.row_factory = sqlite3.Row
     rows = cursor.fetchall()
-    
+
     jobs = [_row_to_job(row) for row in rows]
-    
+
     # Get total count
     count_cursor = db.execute("SELECT COUNT(*) FROM export_jobs")
     total = count_cursor.fetchone()[0]
-    
+
     return ExportJobList(jobs=jobs, total=total)
 
 
@@ -389,9 +397,9 @@ async def create_export(
     current_user = _get_current_user()
     job_id = str(uuid.uuid4())
     now = datetime.utcnow().isoformat()
-    
+
     query_params_json = json.dumps(request.query_params) if request.query_params else None
-    
+
     db.execute(
         """
         INSERT INTO export_jobs (id, export_type, target_type, query_params, status, created_at, created_by)
@@ -400,10 +408,10 @@ async def create_export(
         (job_id, request.export_type, request.target_type, query_params_json, now, current_user),
     )
     db.commit()
-    
+
     # Get DB path for background task
     db_path = Path(os.getenv("PIPELINE_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3"))
-    
+
     # Schedule background export
     background_tasks.add_task(
         _run_export,
@@ -413,7 +421,7 @@ async def create_export(
         request.query_params,
         db_path,
     )
-    
+
     return ExportJob(
         id=job_id,
         export_type=request.export_type,
@@ -433,10 +441,10 @@ async def get_export_status(
     cursor = db.execute("SELECT * FROM export_jobs WHERE id = ?", (job_id,))
     cursor.row_factory = sqlite3.Row
     row = cursor.fetchone()
-    
+
     if not row:
         raise HTTPException(status_code=404, detail=f"Export job {job_id} not found")
-    
+
     return _row_to_job(row)
 
 
@@ -452,10 +460,10 @@ async def get_export_progress(
     )
     cursor.row_factory = sqlite3.Row
     row = cursor.fetchone()
-    
+
     if not row:
         raise HTTPException(status_code=404, detail=f"Export job {job_id} not found")
-    
+
     return ExportProgress(
         id=row["id"],
         status=row["status"],
@@ -476,17 +484,17 @@ async def download_export(
         (job_id,),
     )
     row = cursor.fetchone()
-    
+
     if not row:
         raise HTTPException(status_code=404, detail=f"Export job {job_id} not found")
-    
+
     if row[1] != "completed":
         raise HTTPException(status_code=400, detail="Export not yet completed")
-    
+
     output_path = Path(row[0])
     if not output_path.exists():
         raise HTTPException(status_code=404, detail="Export file not found")
-    
+
     # Determine media type
     media_types = {
         "votable": "application/xml",
@@ -495,7 +503,7 @@ async def download_export(
         "tar": "application/gzip",
     }
     media_type = media_types.get(row[2], "application/octet-stream")
-    
+
     return FileResponse(
         path=output_path,
         filename=output_path.name,
@@ -513,18 +521,18 @@ async def list_export_jobs(
     """List export jobs."""
     conditions = []
     params = []
-    
+
     if status:
         conditions.append("status = ?")
         params.append(status)
-    
+
     if target_type:
         conditions.append("target_type = ?")
         params.append(target_type)
-    
+
     where_clause = " AND ".join(conditions) if conditions else "1=1"
     params.append(limit)
-    
+
     cursor = db.execute(
         f"""
         SELECT * FROM export_jobs
@@ -536,7 +544,7 @@ async def list_export_jobs(
     )
     cursor.row_factory = sqlite3.Row
     rows = cursor.fetchall()
-    
+
     jobs = [_row_to_job(row) for row in rows]
     return ExportJobListResponse(jobs=jobs, total=len(jobs))
 
@@ -549,23 +557,23 @@ async def cancel_export(
     """Cancel a pending or running export job."""
     cursor = db.execute("SELECT status FROM export_jobs WHERE id = ?", (job_id,))
     row = cursor.fetchone()
-    
+
     if not row:
         raise HTTPException(status_code=404, detail=f"Export job {job_id} not found")
-    
+
     if row[0] not in ("pending", "running"):
         raise HTTPException(status_code=400, detail=f"Cannot cancel job with status '{row[0]}'")
-    
+
     db.execute(
         "UPDATE export_jobs SET status = 'cancelled' WHERE id = ?",
         (job_id,),
     )
     db.commit()
-    
+
     cursor = db.execute("SELECT * FROM export_jobs WHERE id = ?", (job_id,))
     cursor.row_factory = sqlite3.Row
     row = cursor.fetchone()
-    
+
     return _row_to_job(row)
 
 
@@ -577,17 +585,17 @@ async def delete_export(
     """Delete an export job and its output file."""
     cursor = db.execute("SELECT output_path FROM export_jobs WHERE id = ?", (job_id,))
     row = cursor.fetchone()
-    
+
     if not row:
         raise HTTPException(status_code=404, detail=f"Export job {job_id} not found")
-    
+
     # Delete output file if exists
     if row[0]:
         output_path = Path(row[0])
         if output_path.exists():
             output_path.unlink()
-    
+
     db.execute("DELETE FROM export_jobs WHERE id = ?", (job_id,))
     db.commit()
-    
+
     return None

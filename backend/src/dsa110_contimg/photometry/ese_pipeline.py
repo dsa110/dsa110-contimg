@@ -256,6 +256,7 @@ def auto_detect_ese_after_photometry(
         if "variability_stats" not in tables:
             logger.debug("variability_stats table not found - initializing database")
             from dsa110_contimg.database import ensure_pipeline_db
+
             ensure_pipeline_db().close()  # Ensure schema is created
 
         # Update variability stats for sources

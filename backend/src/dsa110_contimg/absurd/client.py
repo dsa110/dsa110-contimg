@@ -6,10 +6,8 @@ Provides an async client for interacting with the Absurd task queue system.
 
 from __future__ import annotations
 
-import asyncio
 import json
 import logging
-from datetime import datetime
 from typing import Any, Dict, List, Optional
 from uuid import UUID
 
@@ -47,7 +45,7 @@ class AbsurdClient:
             return
 
         logger.info(
-            f"Connecting to Absurd database " f"(pool: {self.pool_min_size}-{self.pool_max_size})"
+            f"Connecting to Absurd database (pool: {self.pool_min_size}-{self.pool_max_size})"
         )
         self._pool = await asyncpg.create_pool(
             self.database_url,
@@ -100,9 +98,7 @@ class AbsurdClient:
         if self._pool is None:
             raise ValueError("Client not connected. Call connect() first.")
 
-        logger.info(
-            f"Spawning task '{task_name}' in queue '{queue_name}' " f"(priority={priority})"
-        )
+        logger.info(f"Spawning task '{task_name}' in queue '{queue_name}' (priority={priority})")
 
         async with self._pool.acquire() as conn:
             row = await conn.fetchrow(

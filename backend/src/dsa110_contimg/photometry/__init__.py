@@ -1,15 +1,19 @@
 """Photometry utilities for DSA-110 (forced photometry on FITS images)."""
 
+from dsa110_contimg.photometry.condon_errors import (
+    CondonErrors,
+    CondonFluxErrors,
+    CondonPositionErrors,
+    calc_condon_errors,
+    calc_condon_flux_errors,
+    calc_condon_position_errors,
+    simple_position_error,
+)
 from dsa110_contimg.photometry.forced import (
     ForcedPhotometryResult,
     inject_source,
     measure_forced_peak,
     measure_many,
-)
-from dsa110_contimg.photometry.manager import (
-    PhotometryConfig,
-    PhotometryManager,
-    PhotometryResult,
 )
 
 # Image and source QA metrics (VAST-style)
@@ -20,24 +24,10 @@ from dsa110_contimg.photometry.image_qa import (
     get_local_rms_at_position,
     get_rms_noise_image_values,
 )
-from dsa110_contimg.photometry.source_metrics import (
-    IslandMetrics,
-    SourceMorphologyMetrics,
-    SourceQAMetrics,
-    SpatialMetrics,
-    batch_compute_source_metrics,
-    calculate_compactness,
-    calculate_snr,
-    compute_source_qa_metrics,
-)
-from dsa110_contimg.photometry.condon_errors import (
-    CondonErrors,
-    CondonFluxErrors,
-    CondonPositionErrors,
-    calc_condon_errors,
-    calc_condon_flux_errors,
-    calc_condon_position_errors,
-    simple_position_error,
+from dsa110_contimg.photometry.manager import (
+    PhotometryConfig,
+    PhotometryManager,
+    PhotometryResult,
 )
 from dsa110_contimg.photometry.multi_epoch import (
     FluxAggregateStats,
@@ -50,6 +40,16 @@ from dsa110_contimg.photometry.multi_epoch import (
     calc_two_epoch_pair_metrics,
     compute_multi_epoch_stats,
     get_most_significant_pair,
+)
+from dsa110_contimg.photometry.source_metrics import (
+    IslandMetrics,
+    SourceMorphologyMetrics,
+    SourceQAMetrics,
+    SpatialMetrics,
+    batch_compute_source_metrics,
+    calculate_compactness,
+    calculate_snr,
+    compute_source_qa_metrics,
 )
 
 __all__: list[str] = [

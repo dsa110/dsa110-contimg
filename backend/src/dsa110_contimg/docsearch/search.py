@@ -5,9 +5,7 @@ Uses sqlite-vec for efficient similarity search without external services.
 """
 
 import hashlib
-import json
 import logging
-import os
 import sqlite3
 import struct
 from dataclasses import dataclass
@@ -16,8 +14,8 @@ from typing import Optional
 
 import sqlite_vec
 
-from .chunker import Chunk, chunk_document, iter_documents
-from .embedder import Embedder, EMBEDDING_DIM
+from .chunker import chunk_document, iter_documents
+from .embedder import EMBEDDING_DIM, Embedder
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +23,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SearchResult:
     """A search result with metadata."""
+
     content: str
     file_path: str
     start_line: int
@@ -159,8 +158,7 @@ class DocSearch:
         """Check if file needs to be re-indexed."""
         with self._get_conn() as conn:
             row = conn.execute(
-                "SELECT file_hash FROM indexed_files WHERE file_path = ?",
-                (str(path),)
+                "SELECT file_hash FROM indexed_files WHERE file_path = ?", (str(path),)
             ).fetchone()
 
             if row is None:
@@ -172,30 +170,21 @@ class DocSearch:
         with self._get_conn() as conn:
             # Get chunk IDs to remove from vector table
             chunk_ids = [
-                row[0] for row in conn.execute(
-                    "SELECT id FROM chunks WHERE file_path = ?",
-                    (str(path),)
+                row[0]
+                for row in conn.execute(
+                    "SELECT id FROM chunks WHERE file_path = ?", (str(path),)
                 ).fetchall()
             ]
 
             # Remove from vector table
             for chunk_id in chunk_ids:
-                conn.execute(
-                    "DELETE FROM chunk_embeddings WHERE chunk_id = ?",
-                    (chunk_id,)
-                )
+                conn.execute("DELETE FROM chunk_embeddings WHERE chunk_id = ?", (chunk_id,))
 
             # Remove from chunks table
-            conn.execute(
-                "DELETE FROM chunks WHERE file_path = ?",
-                (str(path),)
-            )
+            conn.execute("DELETE FROM chunks WHERE file_path = ?", (str(path),))
 
             # Remove from indexed files
-            conn.execute(
-                "DELETE FROM indexed_files WHERE file_path = ?",
-                (str(path),)
-            )
+            conn.execute("DELETE FROM indexed_files WHERE file_path = ?", (str(path),))
 
     def index_file(
         self,
@@ -248,15 +237,21 @@ class DocSearch:
                     INSERT INTO chunks (content, file_path, file_hash, start_line, end_line, heading)
                     VALUES (?, ?, ?, ?, ?, ?)
                     """,
-                    (chunk.content, chunk.file_path, file_hash,
-                     chunk.start_line, chunk.end_line, chunk.heading)
+                    (
+                        chunk.content,
+                        chunk.file_path,
+                        file_hash,
+                        chunk.start_line,
+                        chunk.end_line,
+                        chunk.heading,
+                    ),
                 )
                 chunk_id = cursor.lastrowid
 
                 # Insert embedding
                 conn.execute(
                     "INSERT INTO chunk_embeddings (chunk_id, embedding) VALUES (?, ?)",
-                    (chunk_id, serialize_embedding(embedding))
+                    (chunk_id, serialize_embedding(embedding)),
                 )
 
             # Update indexed files tracking
@@ -265,7 +260,7 @@ class DocSearch:
                 INSERT OR REPLACE INTO indexed_files (file_path, file_hash)
                 VALUES (?, ?)
                 """,
-                (str(path), file_hash)
+                (str(path), file_hash),
             )
 
         return len(chunks)
@@ -308,6 +303,7 @@ class DocSearch:
         if show_progress:
             try:
                 from tqdm import tqdm
+
                 iterator = tqdm(files, desc="Indexing")
             except ImportError:
                 iterator = files
@@ -372,7 +368,7 @@ class DocSearch:
                 ORDER BY similarity DESC
                 LIMIT ?
                 """,
-                (query_bytes, min_score, top_k)
+                (query_bytes, min_score, top_k),
             ).fetchall()
 
         return [

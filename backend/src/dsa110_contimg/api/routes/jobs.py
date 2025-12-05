@@ -4,11 +4,11 @@ Job routes.
 
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from ..auth import require_write_access, AuthContext
+from ..auth import AuthContext, require_write_access
 from ..dependencies import get_async_job_service
 from ..exceptions import RecordNotFoundError
 from ..schemas import JobListResponse, ProvenanceResponse
@@ -19,8 +19,9 @@ router = APIRouter(prefix="/jobs", tags=["jobs"])
 
 class BulkJobActionRequest(BaseModel):
     """Request model for bulk job actions."""
+
     run_ids: list[str] = Field(default_factory=list, alias="runIds")
-    
+
     class Config:
         allow_population_by_field_name = True
 
@@ -52,16 +53,16 @@ async def get_job_detail(
 ):
     """
     Get detailed information about a pipeline job.
-    
+
     Raises:
         RecordNotFoundError: If job is not found
     """
     job = await service.get_job(run_id)
     if not job:
         raise RecordNotFoundError("Job", run_id)
-    
+
     links = service.build_provenance_links(job)
-    
+
     return {
         "run_id": job.run_id,
         "status": service.get_job_status(job),
@@ -80,16 +81,16 @@ async def get_job_provenance(
 ):
     """
     Get provenance information for a pipeline job.
-    
+
     Raises:
         RecordNotFoundError: If job is not found
     """
     job = await service.get_job(run_id)
     if not job:
         raise RecordNotFoundError("Job", run_id)
-    
+
     links = service.build_provenance_links(job)
-    
+
     return ProvenanceResponse(
         run_id=job.run_id,
         ms_path=job.input_ms_path,
@@ -120,19 +121,23 @@ def _jobs_to_csv(rows: list[dict]) -> str:
     """Serialize job summaries to CSV."""
     import csv
     import io
-    
+
     buffer = io.StringIO()
     writer = csv.writer(buffer)
-    writer.writerow(["run_id", "status", "started_at", "finished_at", "input_ms", "output_image_id"])
+    writer.writerow(
+        ["run_id", "status", "started_at", "finished_at", "input_ms", "output_image_id"]
+    )
     for row in rows:
-        writer.writerow([
-            row.get("run_id"),
-            row.get("status"),
-            row.get("started_at"),
-            row.get("finished_at"),
-            row.get("input_ms"),
-            row.get("output_image_id") or "",
-        ])
+        writer.writerow(
+            [
+                row.get("run_id"),
+                row.get("status"),
+                row.get("started_at"),
+                row.get("finished_at"),
+                row.get("input_ms"),
+                row.get("output_image_id") or "",
+            ]
+        )
     buffer.seek(0)
     return buffer.getvalue()
 
@@ -146,24 +151,26 @@ async def export_jobs(
     run_ids = [run_id for run_id in ids.split(",") if run_id]
     if not run_ids:
         raise HTTPException(status_code=400, detail="No run IDs provided")
-    
+
     rows = []
     for run_id in run_ids:
         job = await service.get_job(run_id)
         if not job:
             continue
-        rows.append({
-            "run_id": job.run_id,
-            "status": service.get_job_status(job),
-            "started_at": getattr(job, "started_at", None),
-            "finished_at": getattr(job, "finished_at", None),
-            "input_ms": getattr(job, "input_ms_path", None),
-            "output_image_id": getattr(job, "output_image_id", None),
-        })
-    
+        rows.append(
+            {
+                "run_id": job.run_id,
+                "status": service.get_job_status(job),
+                "started_at": getattr(job, "started_at", None),
+                "finished_at": getattr(job, "finished_at", None),
+                "input_ms": getattr(job, "input_ms_path", None),
+                "output_image_id": getattr(job, "output_image_id", None),
+            }
+        )
+
     if not rows:
         raise RecordNotFoundError("Job", ids)
-    
+
     csv_data = _jobs_to_csv(rows)
     return StreamingResponse(
         iter([csv_data]),
@@ -181,9 +188,9 @@ async def bulk_rerun_jobs(
     """Queue reruns for multiple jobs."""
     if not request.run_ids:
         raise HTTPException(status_code=400, detail="No run IDs provided")
-    
+
     from ..job_queue import job_queue, rerun_pipeline_job
-    
+
     enqueued = []
     not_found = []
     for run_id in request.run_ids:
@@ -191,7 +198,7 @@ async def bulk_rerun_jobs(
         if not job:
             not_found.append(run_id)
             continue
-        
+
         job_id = job_queue.enqueue(
             rerun_pipeline_job,
             original_run_id=run_id,
@@ -203,7 +210,7 @@ async def bulk_rerun_jobs(
             },
         )
         enqueued.append({"run_id": run_id, "job_id": job_id})
-    
+
     return {
         "status": "queued",
         "enqueued": enqueued,
@@ -220,9 +227,9 @@ async def bulk_cancel_jobs(
     """Cancel queued jobs by run ID (best effort)."""
     if not request.run_ids:
         raise HTTPException(status_code=400, detail="No run IDs provided")
-    
+
     from ..job_queue import job_queue
-    
+
     canceled = []
     not_found = []
     for run_id in request.run_ids:
@@ -230,7 +237,7 @@ async def bulk_cancel_jobs(
             canceled.append(run_id)
         else:
             not_found.append(run_id)
-    
+
     return {"status": "ok", "canceled": canceled, "not_found": not_found}
 
 
@@ -242,18 +249,18 @@ async def rerun_job(
 ):
     """
     Re-run a pipeline job.
-    
+
     Requires authentication with write access.
-    
+
     Raises:
         RecordNotFoundError: If original job is not found
     """
     from ..job_queue import job_queue, rerun_pipeline_job
-    
+
     original_job = await service.get_job(run_id)
     if not original_job:
         raise RecordNotFoundError("Job", run_id)
-    
+
     job_id = job_queue.enqueue(
         rerun_pipeline_job,
         original_run_id=run_id,
@@ -264,7 +271,7 @@ async def rerun_job(
             "auth_method": auth.method,
         },
     )
-    
+
     return {
         "status": "queued",
         "job_id": job_id,

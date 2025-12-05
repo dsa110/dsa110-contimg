@@ -8,10 +8,10 @@ Uses Redis Queue (RQ) for managing background jobs like:
 
 Usage:
     from .job_queue import job_queue, enqueue_job, get_job_status
-    
+
     # Enqueue a job
     job_id = enqueue_job("pipeline.rerun", run_id="abc123", config={...})
-    
+
     # Check status
     status = get_job_status(job_id)
 
@@ -22,14 +22,13 @@ Environment Variables:
 
 from __future__ import annotations
 
-import json
 import logging
 import os
 import shlex
 import subprocess
 import time
 import uuid
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional
@@ -41,20 +40,24 @@ REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 QUEUE_NAME = os.getenv("DSA110_QUEUE_NAME", "dsa110-pipeline")
 PIPELINE_CMD_TEMPLATE = os.getenv("DSA110_PIPELINE_RUN_CMD", "")
 
-from .repositories import AsyncJobRepository as JobRepository, get_db_connection
 from dsa110_contimg.database import (
-    ensure_pipeline_db,  # Ensures jobs table exists
     create_job as db_create_job,
+)
+from dsa110_contimg.database import (
     update_job_status as db_update_job_status,
 )
+
+from .repositories import AsyncJobRepository as JobRepository
+from .repositories import get_db_connection
 
 # RQ imports (optional - graceful degradation if not available)
 try:
     from redis import Redis
     from redis.exceptions import RedisError
     from rq import Queue, Worker
-    from rq.job import Job
     from rq.exceptions import NoSuchJobError
+    from rq.job import Job
+
     RQ_AVAILABLE = True
 except ImportError:
     RQ_AVAILABLE = False
@@ -65,6 +68,7 @@ except ImportError:
 
 class JobStatus(str, Enum):
     """Status of a queued job."""
+
     QUEUED = "queued"
     STARTED = "started"
     FINISHED = "finished"
@@ -78,6 +82,7 @@ class JobStatus(str, Enum):
 @dataclass
 class JobInfo:
     """Information about a queued job."""
+
     job_id: str
     status: JobStatus
     created_at: Optional[datetime] = None
@@ -86,7 +91,7 @@ class JobInfo:
     result: Optional[Any] = None
     error: Optional[str] = None
     meta: Optional[Dict[str, Any]] = None
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         return {
@@ -104,18 +109,18 @@ class JobInfo:
 class JobQueue:
     """
     Job queue manager for background processing.
-    
+
     Provides a unified interface for job management, with fallback
     to in-memory queue when Redis/RQ is not available.
     """
-    
+
     def __init__(self, redis_url: str = REDIS_URL, queue_name: str = QUEUE_NAME):
         self.redis_url = redis_url
         self.queue_name = queue_name
         self._redis: Optional[Redis] = None
         self._queue: Optional[Queue] = None
         self._in_memory_jobs: Dict[str, JobInfo] = {}
-        
+
         if RQ_AVAILABLE:
             try:
                 self._redis = Redis.from_url(redis_url)
@@ -126,12 +131,12 @@ class JobQueue:
                 logger.warning(f"Failed to connect to Redis: {e} - using in-memory fallback")
                 self._redis = None
                 self._queue = None
-    
+
     @property
     def is_connected(self) -> bool:
         """Check if connected to Redis."""
         return self._queue is not None
-    
+
     def enqueue(
         self,
         func: Callable,
@@ -143,7 +148,7 @@ class JobQueue:
     ) -> str:
         """
         Enqueue a function for background execution.
-        
+
         Args:
             func: Function to execute
             *args: Positional arguments for the function
@@ -151,12 +156,12 @@ class JobQueue:
             timeout: Job timeout in seconds (default: 1 hour)
             meta: Optional metadata to attach to the job
             **kwargs: Keyword arguments for the function
-            
+
         Returns:
             Job ID
         """
         job_id = job_id or f"job_{uuid.uuid4().hex[:12]}"
-        
+
         if self._queue:
             try:
                 job = self._queue.enqueue(
@@ -172,7 +177,7 @@ class JobQueue:
             except RedisError as e:
                 logger.error(f"Failed to enqueue job to Redis: {e}")
                 # Fall through to in-memory fallback
-        
+
         # In-memory fallback (synchronous execution or just tracking)
         self._in_memory_jobs[job_id] = JobInfo(
             job_id=job_id,
@@ -182,7 +187,7 @@ class JobQueue:
         )
         logger.info(f"Job {job_id} added to in-memory queue (no worker available)")
         return job_id
-    
+
     def get_job(self, job_id: str) -> Optional[JobInfo]:
         """Get information about a job."""
         if self._queue:
@@ -191,17 +196,17 @@ class JobQueue:
                 return self._job_to_info(job)
             except NoSuchJobError:
                 pass  # Job not found in Redis
-        
+
         # Check in-memory jobs
         return self._in_memory_jobs.get(job_id)
-    
+
     def get_status(self, job_id: str) -> JobStatus:
         """Get the status of a job."""
         job_info = self.get_job(job_id)
         if job_info:
             return job_info.status
         return JobStatus.NOT_FOUND
-    
+
     def cancel(self, job_id: str) -> bool:
         """Cancel a queued job."""
         if self._queue:
@@ -214,18 +219,18 @@ class JobQueue:
                 logger.warning(f"Job {job_id} not found for cancellation")
             except RedisError as e:
                 logger.warning(f"Failed to cancel job {job_id}: {e}")
-        
+
         # In-memory fallback
         if job_id in self._in_memory_jobs:
             self._in_memory_jobs[job_id].status = JobStatus.CANCELED
             return True
-        
+
         return False
-    
+
     def list_jobs(self, status: Optional[JobStatus] = None, limit: int = 100) -> List[JobInfo]:
         """List jobs, optionally filtered by status."""
         jobs = []
-        
+
         if self._queue:
             try:
                 # Get jobs from different registries based on status
@@ -236,7 +241,7 @@ class JobQueue:
                             jobs.append(self._job_to_info(job))
                         except NoSuchJobError:
                             pass
-                
+
                 if status is None or status == JobStatus.STARTED:
                     started_registry = self._queue.started_job_registry
                     for job_id in started_registry.get_job_ids()[:limit]:
@@ -245,7 +250,7 @@ class JobQueue:
                             jobs.append(self._job_to_info(job))
                         except NoSuchJobError:
                             pass
-                
+
                 if status is None or status == JobStatus.FINISHED:
                     finished_registry = self._queue.finished_job_registry
                     for job_id in finished_registry.get_job_ids()[:limit]:
@@ -254,7 +259,7 @@ class JobQueue:
                             jobs.append(self._job_to_info(job))
                         except NoSuchJobError:
                             pass
-                
+
                 if status is None or status == JobStatus.FAILED:
                     failed_registry = self._queue.failed_job_registry
                     for job_id in failed_registry.get_job_ids()[:limit]:
@@ -265,14 +270,14 @@ class JobQueue:
                             pass
             except RedisError as e:
                 logger.error(f"Failed to list jobs from Redis: {e}")
-        
+
         # Add in-memory jobs
         for job_info in self._in_memory_jobs.values():
             if status is None or job_info.status == status:
                 jobs.append(job_info)
-        
+
         return jobs[:limit]
-    
+
     def get_queue_stats(self) -> Dict[str, Any]:
         """Get queue statistics."""
         stats = {
@@ -280,7 +285,7 @@ class JobQueue:
             "queue_name": self.queue_name,
             "redis_url": self.redis_url if self.is_connected else None,
         }
-        
+
         if self._queue:
             try:
                 stats["queued_count"] = len(self._queue)
@@ -291,9 +296,9 @@ class JobQueue:
                 stats["error"] = str(e)
         else:
             stats["in_memory_count"] = len(self._in_memory_jobs)
-        
+
         return stats
-    
+
     def _job_to_info(self, job: Job) -> JobInfo:
         """Convert RQ Job to JobInfo."""
         status_map = {
@@ -305,7 +310,7 @@ class JobQueue:
             "scheduled": JobStatus.SCHEDULED,
             "canceled": JobStatus.CANCELED,
         }
-        
+
         return JobInfo(
             job_id=job.id,
             status=status_map.get(job.get_status(), JobStatus.QUEUED),
@@ -346,40 +351,41 @@ def get_job_info(job_id: str) -> Optional[JobInfo]:
 # Pipeline Job Functions (to be executed by workers)
 # =============================================================================
 
+
 def rerun_pipeline_job(
     original_run_id: str,
     config: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
     """
     Re-run a pipeline job.
-    
+
     This function is executed by RQ workers. It:
     1. Loads the original job configuration from the database
     2. Applies any config overrides provided
     3. Submits the job to the pipeline executor (via subprocess or directly)
     4. Tracks the job status in the database
-    
+
     Args:
         original_run_id: The run ID of the job to rerun
         config: Optional configuration overrides
-        
+
     Returns:
         Result dictionary with new run ID and status
-        
+
     Raises:
         ValueError: If original job not found
         subprocess.CalledProcessError: If pipeline command fails
     """
     import asyncio
     from datetime import datetime
-    
+
     # Generate new run ID with timestamp
-    timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S')
-    base_id = original_run_id.rsplit('_', 1)[0] if '_' in original_run_id else original_run_id
+    timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    base_id = original_run_id.rsplit("_", 1)[0] if "_" in original_run_id else original_run_id
     new_run_id = f"{base_id}_rerun_{timestamp}"
-    
+
     logger.info(f"Starting pipeline rerun: {original_run_id} -> {new_run_id}")
-    
+
     # Load original job configuration from database
     original_job = None
     try:
@@ -392,10 +398,10 @@ def rerun_pipeline_job(
             loop.close()
     except Exception as e:
         logger.warning(f"Failed to load original job from async repo: {e}")
-    
+
     if original_job is None:
         raise ValueError(f"Original job not found: {original_run_id}")
-    
+
     # Build job configuration
     job_config: Dict[str, Any] = {
         "ms_path": original_job.input_ms_path,
@@ -403,11 +409,11 @@ def rerun_pipeline_job(
         "phase_center_ra": original_job.phase_center_ra,
         "phase_center_dec": original_job.phase_center_dec,
     }
-    
+
     # Apply any overrides from the config parameter
     if config:
         job_config.update(config)
-    
+
     # Create job record in database for tracking
     job_db_id = None
     try:
@@ -424,7 +430,7 @@ def rerun_pipeline_job(
         logger.info(f"Created job record {job_db_id} for rerun {new_run_id}")
     except Exception as e:
         logger.error(f"Failed to create job record: {e}")
-    
+
     # Execute the pipeline
     result: Dict[str, Any] = {
         "original_run_id": original_run_id,
@@ -432,7 +438,7 @@ def rerun_pipeline_job(
         "config": job_config,
         "job_db_id": job_db_id,
     }
-    
+
     try:
         if PIPELINE_CMD_TEMPLATE:
             # Execute via subprocess using the configured command template
@@ -444,7 +450,7 @@ def rerun_pipeline_job(
                 phase_center_ra=job_config.get("phase_center_ra", ""),
                 phase_center_dec=job_config.get("phase_center_dec", ""),
             )
-            
+
             logger.info(f"Executing pipeline command: {cmd}")
             proc = subprocess.run(
                 cmd,
@@ -453,20 +459,17 @@ def rerun_pipeline_job(
                 text=True,
                 timeout=3600,  # 1 hour timeout
             )
-            
+
             if proc.returncode != 0:
-                raise subprocess.CalledProcessError(
-                    proc.returncode, cmd, proc.stdout, proc.stderr
-                )
-            
+                raise subprocess.CalledProcessError(proc.returncode, cmd, proc.stdout, proc.stderr)
+
             result["status"] = "completed"
             result["message"] = "Pipeline rerun completed successfully"
             result["output"] = proc.stdout[:1000] if proc.stdout else None
-            
+
         else:
             # No command template configured - use the Python pipeline directly
-            from dsa110_contimg.pipeline.stages_impl import process_subband_groups
-            
+
             ms_path = job_config.get("ms_path")
             if ms_path:
                 output_dir = os.path.dirname(ms_path)
@@ -478,7 +481,7 @@ def rerun_pipeline_job(
             else:
                 result["status"] = "completed"
                 result["message"] = "Pipeline rerun completed (no MS path - dry run)"
-        
+
         # Update job status to completed
         if job_db_id:
             try:
@@ -487,14 +490,14 @@ def rerun_pipeline_job(
                 conn.close()
             except Exception as e:
                 logger.error(f"Failed to update job status: {e}")
-                
+
     except subprocess.TimeoutExpired as e:
         result["status"] = "failed"
         result["error"] = "Pipeline execution timed out"
         logger.error(f"Pipeline rerun timed out: {e}")
         if job_db_id:
             _update_job_failed(job_db_id, result["error"])
-            
+
     except subprocess.CalledProcessError as e:
         result["status"] = "failed"
         result["error"] = f"Pipeline command failed with code {e.returncode}"
@@ -502,14 +505,14 @@ def rerun_pipeline_job(
         logger.error(f"Pipeline rerun failed: {e}")
         if job_db_id:
             _update_job_failed(job_db_id, result["error"])
-            
+
     except Exception as e:
         result["status"] = "failed"
         result["error"] = str(e)[:500]
         logger.exception(f"Pipeline rerun error: {e}")
         if job_db_id:
             _update_job_failed(job_db_id, result["error"])
-    
+
     return result
 
 

@@ -3,13 +3,13 @@
 """
 DSA-110 Continuum Imaging Pipeline - Conversion Module.
 
-This module provides functionality for converting UVH5 subband files to 
-Measurement Sets (MS). 
+This module provides functionality for converting UVH5 subband files to
+Measurement Sets (MS).
 
 Entry Points:
     Batch conversion:
         from dsa110_contimg.conversion import convert_subband_groups_to_ms
-    
+
     ABSURD-based ingestion (replaces old streaming pipeline):
         from dsa110_contimg.absurd import setup_ingestion_schedule
         # See docs/guides/ingestion.md for details
@@ -25,8 +25,8 @@ from .hdf5_orchestrator import convert_subband_groups_to_ms
 
 # Writers
 from .writers import (
-    MSWriter,
     DirectSubbandWriter,
+    MSWriter,
     ParallelSubbandWriter,
     get_writer,
 )

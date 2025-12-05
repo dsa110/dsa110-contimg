@@ -19,14 +19,14 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass
-from typing import Optional, Tuple, Dict, Any
+from typing import Any, Dict, Optional, Tuple
 
 import numpy as np
 
 from dsa110_contimg.utils.gpu_safety import (
-    safe_gpu_context,
-    memory_safe,
     gpu_safe,
+    memory_safe,
+    safe_gpu_context,
 )
 
 logger = logging.getLogger(__name__)
@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 # Try to import CuPy - graceful fallback if unavailable
 try:
     import cupy as cp
+
     CUPY_AVAILABLE = True
 except ImportError:
     cp = None
@@ -53,6 +54,7 @@ class CalibrationConfig:
         n_polarizations: Number of polarizations (default 4 for full Stokes)
         interpolation: Gain interpolation method ('nearest', 'linear')
     """
+
     gpu_id: int = 0
     chunk_size: int = 5_000_000
     n_antennas: int = 110
@@ -75,6 +77,7 @@ class GainSolutionResult:
         gpu_id: GPU device used
         error: Error message if solving failed (None if successful)
     """
+
     gains: Optional[np.ndarray] = None
     weights: Optional[np.ndarray] = None
     n_iterations: int = 0
@@ -102,6 +105,7 @@ class ApplyCalResult:
         gpu_id: GPU device used
         error: Error message if application failed (None if successful)
     """
+
     n_vis_processed: int = 0
     n_vis_calibrated: int = 0
     n_vis_flagged: int = 0
@@ -316,9 +320,7 @@ def _get_kernel(name: str) -> Any:
         if name == "apply_gains":
             kernel = cp.RawKernel(_APPLY_GAINS_KERNEL_CODE, "apply_gains")
         elif name == "accumulate":
-            kernel = cp.RawKernel(
-                _SOLVE_GAINS_KERNEL_CODE, "accumulate_gain_numerator"
-            )
+            kernel = cp.RawKernel(_SOLVE_GAINS_KERNEL_CODE, "accumulate_gain_numerator")
         else:
             raise ValueError(f"Unknown kernel: {name}")
         _COMPILED_KERNELS[name] = kernel
@@ -440,8 +442,7 @@ def apply_gains_gpu(
     n_chan = gains.shape[1] if gains.ndim > 1 else 1
 
     logger.info(
-        "Applying gains: %d vis, %d antennas, %d channels, %d pols",
-        n_vis, n_ant, n_chan, n_pol
+        "Applying gains: %d vis, %d antennas, %d channels, %d pols", n_vis, n_ant, n_chan, n_pol
     )
 
     try:
@@ -549,7 +550,7 @@ def apply_gains_cpu(
     small_gain = gain_norm2 < 1e-10
 
     # Corrected = vis / (g1 * conj(g2))
-    with np.errstate(divide='ignore', invalid='ignore'):
+    with np.errstate(divide="ignore", invalid="ignore"):
         corrected = vis / gain_product.reshape(-1, 1)
 
     # Flag bad gains
@@ -694,14 +695,10 @@ def solve_per_antenna_gains_gpu(
 
     # For now, fall back to CPU implementation
     # GPU kernel is more complex and needs careful testing
-    logger.info(
-        "GPU gain solving: %d vis, %d antennas (using CPU fallback)",
-        len(vis), n_antennas
-    )
+    logger.info("GPU gain solving: %d vis, %d antennas (using CPU fallback)", len(vis), n_antennas)
 
     result = solve_per_antenna_gains_cpu(
-        vis, model, ant1, ant2, weights, n_antennas,
-        max_iter=max_iter, tol=tol, refant=refant
+        vis, model, ant1, ant2, weights, n_antennas, max_iter=max_iter, tol=tol, refant=refant
     )
 
     # Update timing to include overhead
@@ -782,11 +779,18 @@ def solve_per_antenna_gains(
     """
     if use_gpu and CUPY_AVAILABLE:
         return solve_per_antenna_gains_gpu(
-            vis, model, ant1, ant2, weights, n_antennas,
-            config=config, max_iter=max_iter, tol=tol, refant=refant
+            vis,
+            model,
+            ant1,
+            ant2,
+            weights,
+            n_antennas,
+            config=config,
+            max_iter=max_iter,
+            tol=tol,
+            refant=refant,
         )
 
     return solve_per_antenna_gains_cpu(
-        vis, model, ant1, ant2, weights, n_antennas,
-        max_iter=max_iter, tol=tol, refant=refant
+        vis, model, ant1, ant2, weights, n_antennas, max_iter=max_iter, tol=tol, refant=refant
     )

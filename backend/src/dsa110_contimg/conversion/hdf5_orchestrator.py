@@ -124,7 +124,7 @@ def convert_subband_groups_to_ms(
     output_path.mkdir(parents=True, exist_ok=True)
 
     # Query subband groups based on the provided time window
-    hdf5_db = os.path.join(input_dir, 'hdf5_file_index.sqlite3')
+    hdf5_db = os.path.join(input_dir, "hdf5_file_index.sqlite3")
 
     try:
         groups = query_subband_groups(hdf5_db, start_time, end_time, tolerance_s=tolerance_s)
@@ -143,7 +143,7 @@ def convert_subband_groups_to_ms(
                 "start_time": start_time,
                 "end_time": end_time,
                 "tolerance_s": tolerance_s,
-            }
+            },
         )
         return results
 
@@ -154,7 +154,7 @@ def convert_subband_groups_to_ms(
             "start_time": start_time,
             "end_time": end_time,
             "group_count": len(groups),
-        }
+        },
     )
 
     for group in groups:
@@ -186,12 +186,14 @@ def convert_subband_groups_to_ms(
             except (UVH5ReadError, MSWriteError, ConversionError) as e:
                 # Log error with full context
                 log_exception(logger, e, group_id=group_id)
-                results["failed"].append({
-                    "group_id": group_id,
-                    "error": str(e),
-                    "error_type": type(e).__name__,
-                    "recoverable": e.recoverable,
-                })
+                results["failed"].append(
+                    {
+                        "group_id": group_id,
+                        "error": str(e),
+                        "error_type": type(e).__name__,
+                        "recoverable": e.recoverable,
+                    }
+                )
 
                 # Re-raise if not recoverable
                 if not e.recoverable:
@@ -206,12 +208,14 @@ def convert_subband_groups_to_ms(
                     group_id=group_id,
                 )
                 log_exception(logger, wrapped, group_id=group_id)
-                results["failed"].append({
-                    "group_id": group_id,
-                    "error": str(e),
-                    "error_type": type(e).__name__,
-                    "recoverable": is_recoverable(e),
-                })
+                results["failed"].append(
+                    {
+                        "group_id": group_id,
+                        "error": str(e),
+                        "error_type": type(e).__name__,
+                        "recoverable": is_recoverable(e),
+                    }
+                )
 
     # Log summary
     logger.info(
@@ -221,7 +225,7 @@ def convert_subband_groups_to_ms(
             "converted_count": len(results["converted"]),
             "skipped_count": len(results["skipped"]),
             "failed_count": len(results["failed"]),
-        }
+        },
     )
 
     return results
@@ -263,17 +267,14 @@ def _convert_single_group(
                     "group_id": group_id,
                     "subband_count": len(group),
                     "expected_count": expected_subbands,
-                }
+                },
             )
 
     # Prepare output path
     output_path = os.path.join(output_dir, f"{group_id}.ms")
 
     if skip_existing and os.path.exists(output_path):
-        logger.info(
-            f"Skipping existing MS: {output_path}",
-            extra={"output_path": output_path}
-        )
+        logger.info(f"Skipping existing MS: {output_path}", extra={"output_path": output_path})
         return "skipped"
 
     logger.info(
@@ -282,7 +283,7 @@ def _convert_single_group(
             "subband_count": len(group),
             "output_path": output_path,
             "file_list": group,
-        }
+        },
     )
 
     # Combine subbands using pyuvdata (with parallel I/O from settings)
@@ -322,7 +323,7 @@ def _convert_single_group(
             extra={
                 "output_path": output_path,
                 "writer_type": actual_writer,
-            }
+            },
         )
     except Exception as e:
         raise MSWriteError(
@@ -360,7 +361,8 @@ def _load_single_subband(subband_file: str, group_id: str) -> pyuvdata.UVData:
         # run_check=False: Skip dtype validation (DSA-110 files use float32 for uvw_array)
         subband_data = pyuvdata.UVData()
         subband_data.read(
-            subband_file, file_type="uvh5",
+            subband_file,
+            file_type="uvh5",
             strict_uvw_antpos_check=False,
             run_check=False,
         )
@@ -432,7 +434,7 @@ def _load_and_combine_subbands(
             "group_id": group_id,
             "subband_count": n_files,
             "max_workers": max_workers,
-        }
+        },
     )
 
     # Use dict to preserve order: {file_index: UVData}
@@ -456,13 +458,13 @@ def _load_and_combine_subbands(
                 loaded_subbands[idx] = uvdata
                 logger.debug(
                     f"Loaded subband {idx + 1}/{n_files}: {file_path}",
-                    extra={"subband_index": idx, "subband_file": file_path}
+                    extra={"subband_index": idx, "subband_file": file_path},
                 )
             except UVH5ReadError as e:
                 errors.append((file_path, str(e)))
                 logger.error(
                     f"Failed to load subband {idx + 1}/{n_files}: {e}",
-                    extra={"subband_index": idx, "subband_file": file_path}
+                    extra={"subband_index": idx, "subband_file": file_path},
                 )
 
     # Check for load failures
@@ -482,8 +484,7 @@ def _load_and_combine_subbands(
 
     # Combine subbands in order (must be sequential for memory safety)
     logger.debug(
-        f"Combining {len(loaded_subbands)} subbands sequentially",
-        extra={"group_id": group_id}
+        f"Combining {len(loaded_subbands)} subbands sequentially", extra={"group_id": group_id}
     )
 
     uvdata = None
@@ -534,7 +535,7 @@ def _load_subbands_sequential(
             extra={
                 "subband_index": i,
                 "subband_file": subband_file,
-            }
+            },
         )
 
         subband_data = _load_single_subband(subband_file, group_id)

@@ -173,9 +173,9 @@ def create_beam_mask_kernel(
     Uses BMAJ, BMIN, BPA from header to generate a Gaussian kernel using Astropy.
     """
 
-    assert (
-        0.0 < minimum_response < 1.0
-    ), f"{minimum_response=}, should be between 0 to 1 (exclusive)"
+    assert 0.0 < minimum_response < 1.0, (
+        f"{minimum_response=}, should be between 0 to 1 (exclusive)"
+    )
 
     if not all(key in fits_header for key in ["BMAJ", "BMIN", "BPA"]):
         raise KeyError("BMAJ, BMIN, BPA must be present in FITS header")

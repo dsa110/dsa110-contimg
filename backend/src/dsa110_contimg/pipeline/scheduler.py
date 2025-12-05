@@ -77,9 +77,7 @@ class PipelineScheduler:
 
         name = pipeline_class.pipeline_name
         self.pipelines[name] = pipeline_class
-        logger.info(
-            f"Registered pipeline '{name}' with schedule: {pipeline_class.schedule}"
-        )
+        logger.info(f"Registered pipeline '{name}' with schedule: {pipeline_class.schedule}")
 
     def unregister(self, pipeline_name: str) -> None:
         """Unregister a pipeline.
@@ -212,6 +210,7 @@ class PipelineScheduler:
         """
         try:
             from croniter import croniter
+
             cron = croniter(schedule, datetime.now())
             return cron.get_next(datetime)
         except ImportError:
@@ -221,6 +220,7 @@ class PipelineScheduler:
                 "Install with: pip install croniter"
             )
             from datetime import timedelta
+
             return datetime.now() + timedelta(hours=24)
 
     def stop(self) -> None:
@@ -243,12 +243,14 @@ class PipelineScheduler:
         next_runs = self._compute_next_runs()
 
         for name, pipeline_class in self.pipelines.items():
-            result.append({
-                "name": name,
-                "class": pipeline_class.__name__,
-                "schedule": pipeline_class.schedule,
-                "next_run": next_runs.get(name),
-            })
+            result.append(
+                {
+                    "name": name,
+                    "class": pipeline_class.__name__,
+                    "schedule": pipeline_class.schedule,
+                    "next_run": next_runs.get(name),
+                }
+            )
 
         return result
 
@@ -274,7 +276,7 @@ async def run_scheduler(
     """
     scheduler = PipelineScheduler(db_path, config)
 
-    for pipeline_class in (pipelines or []):
+    for pipeline_class in pipelines or []:
         scheduler.register(pipeline_class)
 
     await scheduler.start()

@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ImageRMSMetrics:
     """RMS statistics from an image's noise map.
-    
+
     Attributes:
         rms_median: Median RMS value (Jy/beam)
         rms_min: Minimum RMS value (Jy/beam)
@@ -59,7 +59,7 @@ class ImageRMSMetrics:
 @dataclass
 class ImageQAMetrics:
     """Comprehensive image quality metrics.
-    
+
     Attributes:
         image_path: Path to the image FITS file
         rms: RMS statistics from noise map
@@ -117,22 +117,22 @@ def get_rms_noise_image_values(
     mask: Optional[np.ndarray] = None,
 ) -> ImageRMSMetrics:
     """Extract RMS statistics from a noise map.
-    
+
     Adopted from VAST Pipeline: image/utils.py::get_rms_noise_image_values()
-    
+
     Args:
         noise_map: 2D array of RMS values (noise map from BANE or similar)
         mask: Optional boolean mask (True = valid pixels to include)
-        
+
     Returns:
         ImageRMSMetrics with statistics
-        
+
     Raises:
         ValueError: If no valid pixels in noise map
     """
     # Squeeze to 2D if needed (handle FITS 4D arrays)
     data = np.asarray(noise_map).squeeze()
-    
+
     if mask is not None:
         mask = np.asarray(mask).squeeze()
         if mask.shape != data.shape:
@@ -140,15 +140,15 @@ def get_rms_noise_image_values(
         valid_mask = mask & np.isfinite(data) & (data > 0)
     else:
         valid_mask = np.isfinite(data) & (data > 0)
-    
+
     n_valid = int(np.sum(valid_mask))
     total_pixels = data.size
-    
+
     if n_valid == 0:
         raise ValueError("No valid pixels in noise map")
-    
+
     valid_data = data[valid_mask]
-    
+
     return ImageRMSMetrics(
         rms_median=float(np.median(valid_data)),
         rms_min=float(np.min(valid_data)),
@@ -166,27 +166,27 @@ def compute_image_qa_metrics(
     background_path: Optional[str] = None,
 ) -> ImageQAMetrics:
     """Compute comprehensive QA metrics for an image.
-    
+
     Args:
         image_path: Path to the science image FITS file
         noise_map_path: Optional path to noise/RMS map (_rms.fits from BANE)
         background_path: Optional path to background map (_bkg.fits from BANE)
-        
+
     Returns:
         ImageQAMetrics with all computed metrics
     """
     metrics = ImageQAMetrics(image_path=image_path)
-    
+
     image_file = Path(image_path)
     if not image_file.exists():
         metrics.warnings.append(f"Image file not found: {image_path}")
         return metrics
-    
+
     try:
         with fits.open(image_path) as hdul:
             header = hdul[0].header
             data = np.asarray(hdul[0].data).squeeze()
-            
+
             # Extract beam parameters
             if "BMAJ" in header:
                 metrics.beam_major_arcsec = header["BMAJ"] * 3600
@@ -194,22 +194,22 @@ def compute_image_qa_metrics(
                 metrics.beam_minor_arcsec = header["BMIN"] * 3600
             if "BPA" in header:
                 metrics.beam_pa_deg = header["BPA"]
-            
+
             # Extract frequency
             if "CRVAL3" in header:
                 metrics.freq_hz = header["CRVAL3"]
             elif "RESTFREQ" in header:
                 metrics.freq_hz = header["RESTFREQ"]
-            
+
             # Peak flux
             valid_data = data[np.isfinite(data)]
             if len(valid_data) > 0:
                 metrics.peak_flux = float(np.max(np.abs(valid_data)))
-                
+
     except (OSError, KeyError) as e:
         metrics.warnings.append(f"Error reading image: {e}")
         return metrics
-    
+
     # Process noise map if provided
     if noise_map_path:
         noise_file = Path(noise_map_path)
@@ -218,11 +218,11 @@ def compute_image_qa_metrics(
                 with fits.open(noise_map_path) as hdul:
                     noise_data = np.asarray(hdul[0].data).squeeze()
                     metrics.rms = get_rms_noise_image_values(noise_data)
-                    
+
                     # Calculate dynamic range
                     if metrics.peak_flux and metrics.rms.rms_median > 0:
                         metrics.dynamic_range = metrics.peak_flux / metrics.rms.rms_median
-                        
+
             except (OSError, ValueError) as e:
                 metrics.warnings.append(f"Error reading noise map: {e}")
         else:
@@ -235,7 +235,7 @@ def compute_image_qa_metrics(
                 with fits.open(auto_rms_path) as hdul:
                     noise_data = np.asarray(hdul[0].data).squeeze()
                     metrics.rms = get_rms_noise_image_values(noise_data)
-                    
+
                     if metrics.peak_flux and metrics.rms.rms_median > 0:
                         metrics.dynamic_range = metrics.peak_flux / metrics.rms.rms_median
             except (OSError, ValueError) as e:
@@ -244,9 +244,8 @@ def compute_image_qa_metrics(
             # Estimate RMS from image itself using sigma-clipping
             try:
                 from astropy.stats import sigma_clipped_stats
-                _, median_bg, std_bg = sigma_clipped_stats(
-                    valid_data, sigma=3.0, maxiters=5
-                )
+
+                _, median_bg, std_bg = sigma_clipped_stats(valid_data, sigma=3.0, maxiters=5)
                 metrics.rms = ImageRMSMetrics(
                     rms_median=float(std_bg),
                     rms_min=float(std_bg * 0.8),  # Estimate
@@ -257,13 +256,13 @@ def compute_image_qa_metrics(
                     coverage_fraction=len(valid_data) / data.size,
                 )
                 metrics.warnings.append("RMS estimated from sigma-clipping (no noise map)")
-                
+
                 if metrics.peak_flux and metrics.rms.rms_median > 0:
                     metrics.dynamic_range = metrics.peak_flux / metrics.rms.rms_median
-                    
+
             except ImportError:
                 metrics.warnings.append("Could not estimate RMS (astropy.stats unavailable)")
-    
+
     return metrics
 
 
@@ -275,19 +274,19 @@ def get_local_rms_at_position(
     aperture_pixels: int = 5,
 ) -> float:
     """Get local RMS at a specific sky position.
-    
+
     Adopted from VAST Pipeline methodology for source-level RMS.
-    
+
     Args:
         noise_map: 2D noise/RMS map array
         wcs: WCS object for coordinate transformation
         ra_deg: Right ascension (degrees)
         dec_deg: Declination (degrees)
         aperture_pixels: Size of aperture to average (default 5 pixels)
-        
+
     Returns:
         Local RMS value at position (same units as noise_map)
-        
+
     Raises:
         ValueError: If position is outside image or no valid pixels
     """
@@ -297,32 +296,32 @@ def get_local_rms_at_position(
         x_pix, y_pix = int(round(xy[0])), int(round(xy[1]))
     except Exception as e:
         raise ValueError(f"Could not convert coordinates: {e}")
-    
+
     # Squeeze noise map to 2D
     data = np.asarray(noise_map).squeeze()
     ny, nx = data.shape
-    
+
     # Check bounds
     if x_pix < 0 or x_pix >= nx or y_pix < 0 or y_pix >= ny:
         raise ValueError(f"Position ({ra_deg}, {dec_deg}) outside image bounds")
-    
+
     # Extract aperture
     half = aperture_pixels // 2
     x1 = max(0, x_pix - half)
     x2 = min(nx, x_pix + half + 1)
     y1 = max(0, y_pix - half)
     y2 = min(ny, y_pix + half + 1)
-    
+
     aperture = data[y1:y2, x1:x2]
     valid = aperture[np.isfinite(aperture) & (aperture > 0)]
-    
+
     if len(valid) == 0:
         # Fall back to single pixel
         val = data[y_pix, x_pix]
         if np.isfinite(val) and val > 0:
             return float(val)
         raise ValueError(f"No valid RMS data at position ({ra_deg}, {dec_deg})")
-    
+
     return float(np.median(valid))
 
 
@@ -335,9 +334,9 @@ def check_edge_proximity(
     n_beam_buffer: float = 3.0,
 ) -> Tuple[bool, float]:
     """Check if source is too close to image edge.
-    
+
     Adopted from VAST Pipeline new source validation.
-    
+
     Args:
         wcs: WCS object for coordinate transformation
         ra_deg: Right ascension (degrees)
@@ -345,7 +344,7 @@ def check_edge_proximity(
         image_shape: Shape of image (ny, nx)
         beam_major_deg: Beam major axis in degrees
         n_beam_buffer: Number of beams to use as edge buffer (default 3)
-        
+
     Returns:
         Tuple of (is_near_edge, distance_to_edge_beams)
     """
@@ -354,30 +353,30 @@ def check_edge_proximity(
         x_pix, y_pix = float(xy[0]), float(xy[1])
     except Exception:
         return True, 0.0
-    
+
     ny, nx = image_shape
-    
+
     # Calculate pixel scale (approximate)
     try:
         # Get pixel scale from WCS
-        pixel_scale_deg = abs(wcs.wcs.cdelt[0]) if hasattr(wcs.wcs, 'cdelt') else 0.001
+        pixel_scale_deg = abs(wcs.wcs.cdelt[0]) if hasattr(wcs.wcs, "cdelt") else 0.001
     except (AttributeError, IndexError):
         pixel_scale_deg = 0.001  # Default ~3.6 arcsec
-    
+
     # Buffer in pixels
     buffer_pix = n_beam_buffer * beam_major_deg / pixel_scale_deg
-    
+
     # Distance to nearest edge
     dist_left = x_pix
     dist_right = nx - x_pix
     dist_bottom = y_pix
     dist_top = ny - y_pix
-    
+
     min_dist_pix = min(dist_left, dist_right, dist_bottom, dist_top)
     min_dist_beams = min_dist_pix * pixel_scale_deg / beam_major_deg
-    
+
     is_near_edge = min_dist_pix < buffer_pix
-    
+
     return is_near_edge, min_dist_beams
 
 
@@ -389,17 +388,17 @@ def check_nan_proximity(
     check_radius_pix: int = 10,
 ) -> Tuple[bool, float]:
     """Check proximity to NaN/masked regions.
-    
+
     Important for validating new source detections near image edges
     or blanked regions.
-    
+
     Args:
         data: 2D image data array
         wcs: WCS object for coordinate transformation
         ra_deg: Right ascension (degrees)
         dec_deg: Declination (degrees)
         check_radius_pix: Radius to check for NaN pixels
-        
+
     Returns:
         Tuple of (has_nearby_nan, fraction_nan_in_radius)
     """
@@ -408,25 +407,25 @@ def check_nan_proximity(
         x_pix, y_pix = int(round(xy[0])), int(round(xy[1]))
     except Exception:
         return True, 1.0
-    
+
     # Squeeze data to 2D
     arr = np.asarray(data).squeeze()
     ny, nx = arr.shape
-    
+
     # Extract region
     x1 = max(0, x_pix - check_radius_pix)
     x2 = min(nx, x_pix + check_radius_pix + 1)
     y1 = max(0, y_pix - check_radius_pix)
     y2 = min(ny, y_pix + check_radius_pix + 1)
-    
+
     region = arr[y1:y2, x1:x2]
     n_total = region.size
     n_nan = np.sum(~np.isfinite(region))
-    
+
     if n_total == 0:
         return True, 1.0
-    
+
     nan_fraction = n_nan / n_total
     has_nearby_nan = nan_fraction > 0.1  # >10% NaN is concerning
-    
+
     return has_nearby_nan, nan_fraction

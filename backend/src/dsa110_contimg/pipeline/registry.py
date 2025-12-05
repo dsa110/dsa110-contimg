@@ -56,9 +56,7 @@ class JobRegistry:
         job_type = job_class.job_type
         if job_type in self._jobs:
             existing = self._jobs[job_type].__name__
-            raise ValueError(
-                f"Job type '{job_type}' already registered by {existing}"
-            )
+            raise ValueError(f"Job type '{job_type}' already registered by {existing}")
 
         self._jobs[job_type] = job_class
         logger.debug(f"Registered job type: {job_type} -> {job_class.__name__}")
@@ -98,10 +96,7 @@ class JobRegistry:
         job_class = self.get(job_type)
         if job_class is None:
             available = ", ".join(sorted(self._jobs.keys()))
-            raise ValueError(
-                f"Unknown job type: '{job_type}'. "
-                f"Available: {available or '(none)'}"
-            )
+            raise ValueError(f"Unknown job type: '{job_type}'. Available: {available or '(none)'}")
         return job_class
 
     def list_types(self) -> list[str]:
@@ -158,9 +153,7 @@ class PipelineRegistry:
         name = pipeline_class.pipeline_name
         if name in self._pipelines:
             existing = self._pipelines[name].__name__
-            raise ValueError(
-                f"Pipeline name '{name}' already registered by {existing}"
-            )
+            raise ValueError(f"Pipeline name '{name}' already registered by {existing}")
 
         self._pipelines[name] = pipeline_class
         logger.debug(f"Registered pipeline: {name} -> {pipeline_class.__name__}")
@@ -201,8 +194,7 @@ class PipelineRegistry:
         if pipeline_class is None:
             available = ", ".join(sorted(self._pipelines.keys()))
             raise ValueError(
-                f"Unknown pipeline: '{pipeline_name}'. "
-                f"Available: {available or '(none)'}"
+                f"Unknown pipeline: '{pipeline_name}'. Available: {available or '(none)'}"
             )
         return pipeline_class
 
@@ -212,10 +204,7 @@ class PipelineRegistry:
         Returns:
             List of pipeline classes that have schedule defined
         """
-        return [
-            p for p in self._pipelines.values()
-            if p.schedule is not None
-        ]
+        return [p for p in self._pipelines.values() if p.schedule is not None]
 
     def get_on_demand(self) -> list[Type[Pipeline]]:
         """Get all pipelines without schedules (on-demand only).
@@ -223,10 +212,7 @@ class PipelineRegistry:
         Returns:
             List of pipeline classes that don't have schedule
         """
-        return [
-            p for p in self._pipelines.values()
-            if p.schedule is None
-        ]
+        return [p for p in self._pipelines.values() if p.schedule is None]
 
     def list_names(self) -> list[str]:
         """List all registered pipeline names.

@@ -34,15 +34,15 @@ from typing import Any, Dict, Optional
 
 class DSA110APIError(Exception):
     """Base exception for all DSA-110 API errors.
-    
+
     Attributes:
         message: Human-readable error message
         code: Machine-readable error code
         details: Optional additional error details
     """
-    
+
     default_code = "API_ERROR"
-    
+
     def __init__(
         self,
         message: str,
@@ -53,7 +53,7 @@ class DSA110APIError(Exception):
         self.code = code or self.default_code
         self.details = details or {}
         super().__init__(message)
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert exception to dictionary for API responses."""
         return {
@@ -67,15 +67,18 @@ class DSA110APIError(Exception):
 # Database Exceptions
 # =============================================================================
 
+
 class DatabaseError(DSA110APIError):
     """Base class for database-related errors."""
+
     default_code = "DATABASE_ERROR"
 
 
 class DatabaseConnectionError(DatabaseError):
     """Raised when database connection fails."""
+
     default_code = "DATABASE_CONNECTION_ERROR"
-    
+
     def __init__(self, database: str, cause: Optional[str] = None):
         message = f"Failed to connect to database: {database}"
         if cause:
@@ -85,10 +88,11 @@ class DatabaseConnectionError(DatabaseError):
 
 class DatabaseQueryError(DatabaseError):
     """Raised when a database query fails."""
+
     default_code = "DATABASE_QUERY_ERROR"
-    
+
     def __init__(self, query: str, cause: Optional[str] = None):
-        message = f"Database query failed"
+        message = "Database query failed"
         if cause:
             message += f": {cause}"
         super().__init__(message, details={"query_type": query})
@@ -96,6 +100,7 @@ class DatabaseQueryError(DatabaseError):
 
 class DatabaseTransactionError(DatabaseError):
     """Raised when a database transaction fails."""
+
     default_code = "DATABASE_TRANSACTION_ERROR"
 
 
@@ -103,15 +108,18 @@ class DatabaseTransactionError(DatabaseError):
 # Repository Exceptions
 # =============================================================================
 
+
 class RepositoryError(DSA110APIError):
     """Base class for repository-related errors."""
+
     default_code = "REPOSITORY_ERROR"
 
 
 class RecordNotFoundError(RepositoryError):
     """Raised when a requested record is not found."""
+
     default_code = "RECORD_NOT_FOUND"
-    
+
     def __init__(self, entity_type: str, identifier: Any):
         message = f"{entity_type} not found: {identifier}"
         super().__init__(
@@ -122,8 +130,9 @@ class RecordNotFoundError(RepositoryError):
 
 class RecordAlreadyExistsError(RepositoryError):
     """Raised when trying to create a record that already exists."""
+
     default_code = "RECORD_ALREADY_EXISTS"
-    
+
     def __init__(self, entity_type: str, identifier: Any):
         message = f"{entity_type} already exists: {identifier}"
         super().__init__(
@@ -134,6 +143,7 @@ class RecordAlreadyExistsError(RepositoryError):
 
 class InvalidRecordError(RepositoryError):
     """Raised when a record fails validation."""
+
     default_code = "INVALID_RECORD"
 
 
@@ -141,15 +151,18 @@ class InvalidRecordError(RepositoryError):
 # Service Exceptions
 # =============================================================================
 
+
 class ServiceError(DSA110APIError):
     """Base class for service-layer errors."""
+
     default_code = "SERVICE_ERROR"
 
 
 class ValidationError(ServiceError):
     """Raised when input validation fails."""
+
     default_code = "VALIDATION_ERROR"
-    
+
     def __init__(self, field: str, message: str, value: Any = None):
         full_message = f"Validation failed for '{field}': {message}"
         details = {"field": field}
@@ -160,13 +173,15 @@ class ValidationError(ServiceError):
 
 class ProcessingError(ServiceError):
     """Raised when processing an operation fails."""
+
     default_code = "PROCESSING_ERROR"
 
 
 class ExternalServiceError(ServiceError):
     """Raised when an external service call fails."""
+
     default_code = "EXTERNAL_SERVICE_ERROR"
-    
+
     def __init__(self, service: str, message: str):
         super().__init__(
             f"External service error ({service}): {message}",
@@ -178,15 +193,18 @@ class ExternalServiceError(ServiceError):
 # File System Exceptions
 # =============================================================================
 
+
 class FileSystemError(DSA110APIError):
     """Base class for file system errors."""
+
     default_code = "FILE_SYSTEM_ERROR"
 
 
 class FileNotAccessibleError(FileSystemError):
     """Raised when a file cannot be accessed."""
+
     default_code = "FILE_NOT_ACCESSIBLE"
-    
+
     def __init__(self, path: str, operation: str = "access"):
         message = f"Cannot {operation} file: {path}"
         super().__init__(message, details={"path": path, "operation": operation})
@@ -194,8 +212,9 @@ class FileNotAccessibleError(FileSystemError):
 
 class InvalidPathError(FileSystemError):
     """Raised when a path is invalid or unsafe."""
+
     default_code = "INVALID_PATH"
-    
+
     def __init__(self, path: str, reason: str = "invalid"):
         message = f"Invalid path ({reason}): {path}"
         super().__init__(message, details={"path": path, "reason": reason})
@@ -203,8 +222,9 @@ class InvalidPathError(FileSystemError):
 
 class FITSParsingError(FileSystemError):
     """Raised when FITS file parsing fails."""
+
     default_code = "FITS_PARSING_ERROR"
-    
+
     def __init__(self, path: str, cause: Optional[str] = None):
         message = f"Failed to parse FITS file: {path}"
         if cause:
@@ -214,8 +234,9 @@ class FITSParsingError(FileSystemError):
 
 class MSParsingError(FileSystemError):
     """Raised when Measurement Set parsing fails."""
+
     default_code = "MS_PARSING_ERROR"
-    
+
     def __init__(self, path: str, cause: Optional[str] = None):
         message = f"Failed to parse Measurement Set: {path}"
         if cause:
@@ -227,15 +248,18 @@ class MSParsingError(FileSystemError):
 # QA Exceptions
 # =============================================================================
 
+
 class QAError(DSA110APIError):
     """Base class for QA-related errors."""
+
     default_code = "QA_ERROR"
 
 
 class QAExtractionError(QAError):
     """Raised when QA extraction fails."""
+
     default_code = "QA_EXTRACTION_ERROR"
-    
+
     def __init__(self, source: str, qa_type: str, cause: Optional[str] = None):
         message = f"Failed to extract {qa_type} QA from {source}"
         if cause:
@@ -245,6 +269,7 @@ class QAExtractionError(QAError):
 
 class QACalculationError(QAError):
     """Raised when QA calculation fails."""
+
     default_code = "QA_CALCULATION_ERROR"
 
 
@@ -252,15 +277,18 @@ class QACalculationError(QAError):
 # Batch Job Exceptions
 # =============================================================================
 
+
 class BatchJobError(DSA110APIError):
     """Base class for batch job errors."""
+
     default_code = "BATCH_JOB_ERROR"
 
 
 class BatchJobNotFoundError(BatchJobError):
     """Raised when a batch job is not found."""
+
     default_code = "BATCH_JOB_NOT_FOUND"
-    
+
     def __init__(self, job_id: int):
         super().__init__(
             f"Batch job not found: {job_id}",
@@ -270,12 +298,12 @@ class BatchJobNotFoundError(BatchJobError):
 
 class BatchJobInvalidStateError(BatchJobError):
     """Raised when a batch job is in an invalid state for the operation."""
+
     default_code = "BATCH_JOB_INVALID_STATE"
-    
+
     def __init__(self, job_id: int, current_state: str, expected_states: list):
         super().__init__(
-            f"Batch job {job_id} is in state '{current_state}', "
-            f"expected one of: {expected_states}",
+            f"Batch job {job_id} is in state '{current_state}', expected one of: {expected_states}",
             details={
                 "job_id": job_id,
                 "current_state": current_state,
@@ -288,12 +316,13 @@ class BatchJobInvalidStateError(BatchJobError):
 # Utility Functions
 # =============================================================================
 
+
 def map_exception_to_http_status(exc: DSA110APIError) -> int:
     """Map an exception to an appropriate HTTP status code.
-    
+
     Args:
         exc: The exception to map
-        
+
     Returns:
         HTTP status code
     """
@@ -309,9 +338,9 @@ def map_exception_to_http_status(exc: DSA110APIError) -> int:
         BatchJobNotFoundError: 404,
         BatchJobInvalidStateError: 409,
     }
-    
+
     for exc_type, status in status_map.items():
         if isinstance(exc, exc_type):
             return status
-    
+
     return 500  # Default to internal server error

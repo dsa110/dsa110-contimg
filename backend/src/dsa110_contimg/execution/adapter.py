@@ -13,14 +13,10 @@ import logging
 import os
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, Optional, Tuple
 
 from dsa110_contimg.execution import (
-    ErrorCode,
-    ExecutionResult,
     ExecutionTask,
-    InProcessExecutor,
-    SubprocessExecutor,
     get_executor,
 )
 from dsa110_contimg.execution.task import ExecutionMetrics, ResourceLimits
@@ -164,9 +160,7 @@ def execute_conversion(
         )
     else:
         # Map error code to return code
-        return_code = result.return_code or (
-            result.error_code.value if result.error_code else 1
-        )
+        return_code = result.return_code or (result.error_code.value if result.error_code else 1)
         logger.error(
             f"Conversion failed for {task.group_id}: {result.error_message}",
             extra={

@@ -17,16 +17,14 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
-import re
 import sqlite3
 import time
 import uuid
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from .base import Job, JobResult, Pipeline, RetryPolicy
+from .base import JobResult, Pipeline, RetryPolicy
 
 logger = logging.getLogger(__name__)
 
@@ -193,8 +191,7 @@ class PipelineExecutor:
                 for dep_job_id in job_config.dependencies:
                     if dep_job_id not in task_map:
                         raise ValueError(
-                            f"Job {job_id} depends on {dep_job_id} "
-                            f"which hasn't been spawned yet"
+                            f"Job {job_id} depends on {dep_job_id} which hasn't been spawned yet"
                         )
                     depends_on.append(task_map[dep_job_id])
 
@@ -266,7 +263,6 @@ class PipelineExecutor:
 
         Future: Replace with ABSURD task spawning.
         """
-        from .registry import get_job_registry
 
         execution_order = pipeline.get_execution_order()
         results: dict[str, JobResult] = {}
@@ -474,9 +470,7 @@ class PipelineExecutor:
                     if job_id in results and results[job_id].success:
                         resolved[key] = results[job_id].outputs.get(output_key)
                     else:
-                        raise ValueError(
-                            f"Cannot resolve '{value}': job '{job_id}' not completed"
-                        )
+                        raise ValueError(f"Cannot resolve '{value}': job '{job_id}' not completed")
                 else:
                     raise ValueError(f"Invalid reference format: '{value}'")
             elif isinstance(value, dict) and value.get("_deferred"):
@@ -505,7 +499,7 @@ class PipelineExecutor:
             event: Event type (failure, success)
             error: Error message if failure
         """
-        from .events import EventEmitter, EventType, emit_job_event
+        from .events import EventType, emit_job_event
 
         matching_notifications = []
         for notification in pipeline.notifications:
@@ -523,8 +517,7 @@ class PipelineExecutor:
             return
 
         logger.info(
-            f"[Notification:{event}] Job '{job_id}' {event} "
-            f"(count={len(matching_notifications)})"
+            f"[Notification:{event}] Job '{job_id}' {event} (count={len(matching_notifications)})"
         )
 
         # Emit pipeline event for event-driven listeners
@@ -636,9 +629,7 @@ class PipelineExecutor:
         """
         import os
 
-        return os.environ.get("SLACK_WEBHOOK_URL") or os.environ.get(
-            "DSA110_SLACK_WEBHOOK"
-        )
+        return os.environ.get("SLACK_WEBHOOK_URL") or os.environ.get("DSA110_SLACK_WEBHOOK")
 
     def _get_webhook_url(self) -> str | None:
         """Get generic webhook URL from environment or config.

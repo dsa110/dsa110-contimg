@@ -15,8 +15,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSock
 from pydantic import BaseModel, Field
 
 from ..services.bokeh_sessions import (
-    BokehSessionManager,
     DSA110_ICLEAN_DEFAULTS,
+    BokehSessionManager,
     get_session_manager,
 )
 
@@ -52,9 +52,7 @@ class InteractiveCleanRequest(BaseModel):
     robust: float = Field(
         default=0.5, ge=-2.0, le=2.0, description="Robust parameter for Briggs weighting"
     )
-    niter: int = Field(
-        default=10000, ge=0, le=1000000, description="Maximum iterations"
-    )
+    niter: int = Field(default=10000, ge=0, le=1000000, description="Maximum iterations")
     threshold: str = Field(default="0.5mJy", description="Stopping threshold")
 
     class Config:
@@ -160,9 +158,7 @@ async def start_interactive_clean(
     # Validate MS exists
     ms_path = Path(request.ms_path)
     if not ms_path.exists():
-        raise HTTPException(
-            status_code=404, detail=f"Measurement Set not found: {request.ms_path}"
-        )
+        raise HTTPException(status_code=404, detail=f"Measurement Set not found: {request.ms_path}")
 
     # Validate it looks like an MS (has MAIN table)
     if not (ms_path / "table.dat").exists():
@@ -204,9 +200,7 @@ async def start_interactive_clean(
 
     except Exception as e:
         logger.exception(f"Unexpected error starting interactive clean: {e}")
-        raise HTTPException(
-            status_code=500, detail=f"Failed to start session: {type(e).__name__}"
-        )
+        raise HTTPException(status_code=500, detail=f"Failed to start session: {type(e).__name__}")
 
 
 @router.get("/sessions", response_model=SessionListResponse)
@@ -240,9 +234,7 @@ async def get_session(
     """
     session = await manager.get_session(session_id)
     if not session:
-        raise HTTPException(
-            status_code=404, detail=f"Session not found: {session_id}"
-        )
+        raise HTTPException(status_code=404, detail=f"Session not found: {session_id}")
 
     return SessionInfo(**session.to_dict())
 
@@ -259,9 +251,7 @@ async def stop_session(
     """
     session = await manager.get_session(session_id)
     if not session:
-        raise HTTPException(
-            status_code=404, detail=f"Session not found: {session_id}"
-        )
+        raise HTTPException(status_code=404, detail=f"Session not found: {session_id}")
 
     success = await manager.cleanup_session(session_id)
 
@@ -352,18 +342,12 @@ async def session_progress_websocket(
     # Validate session exists
     session = await manager.get_session(session_id)
     if not session:
-        await websocket.send_json({
-            "type": "error",
-            "payload": f"Session not found: {session_id}"
-        })
+        await websocket.send_json({"type": "error", "payload": f"Session not found: {session_id}"})
         await websocket.close(code=4004)
         return
 
     # Send initial status
-    await websocket.send_json({
-        "type": "status",
-        "payload": "connected"
-    })
+    await websocket.send_json({"type": "status", "payload": "connected"})
 
     # Track this WebSocket in the session manager
     manager.register_websocket(session_id, websocket)
@@ -374,38 +358,33 @@ async def session_progress_websocket(
             # Check if session is still alive
             session = await manager.get_session(session_id)
             if not session or not session.is_alive:
-                await websocket.send_json({
-                    "type": "status",
-                    "payload": "stopped"
-                })
+                await websocket.send_json({"type": "status", "payload": "stopped"})
                 break
 
             # Send heartbeat and wait for client messages
             try:
                 # Wait for client messages (with timeout for heartbeat)
-                data = await asyncio.wait_for(
-                    websocket.receive_text(),
-                    timeout=30.0
-                )
+                data = await asyncio.wait_for(websocket.receive_text(), timeout=30.0)
 
                 # Handle client commands
                 if data == "ping":
                     await websocket.send_json({"type": "pong", "payload": None})
                 elif data == "status":
-                    await websocket.send_json({
-                        "type": "status",
-                        "payload": "alive" if session.is_alive else "dead"
-                    })
+                    await websocket.send_json(
+                        {"type": "status", "payload": "alive" if session.is_alive else "dead"}
+                    )
 
             except asyncio.TimeoutError:
                 # Send heartbeat on timeout
-                await websocket.send_json({
-                    "type": "heartbeat",
-                    "payload": {
-                        "session_id": session_id,
-                        "age_hours": session.age_hours if session else 0,
+                await websocket.send_json(
+                    {
+                        "type": "heartbeat",
+                        "payload": {
+                            "session_id": session_id,
+                            "age_hours": session.age_hours if session else 0,
+                        },
                     }
-                })
+                )
 
     except WebSocketDisconnect:
         logger.info(f"WebSocket disconnected for session {session_id}")
@@ -413,10 +392,7 @@ async def session_progress_websocket(
         # Handle connection-related errors and task cancellation
         logger.exception(f"WebSocket error for session {session_id}: {e}")
         try:
-            await websocket.send_json({
-                "type": "error",
-                "payload": str(e)
-            })
+            await websocket.send_json({"type": "error", "payload": str(e)})
         except (ConnectionError, RuntimeError):
             # Socket already closed, ignore send failure
             pass

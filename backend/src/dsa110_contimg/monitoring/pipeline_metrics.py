@@ -149,9 +149,7 @@ class MemoryMetrics:
         self.samples += 1
         alpha = 1.0 / self.samples
         self.average_ram_gb = (1 - alpha) * self.average_ram_gb + alpha * ram_gb
-        self.average_gpu_mem_gb = (
-            (1 - alpha) * self.average_gpu_mem_gb + alpha * gpu_mem_gb
-        )
+        self.average_gpu_mem_gb = (1 - alpha) * self.average_gpu_mem_gb + alpha * gpu_mem_gb
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
@@ -311,16 +309,12 @@ class JobMetrics:
             "ms_path": self.ms_path,
             "started_at": datetime.fromtimestamp(self.started_at).isoformat(),
             "ended_at": (
-                datetime.fromtimestamp(self.ended_at).isoformat()
-                if self.ended_at
-                else None
+                datetime.fromtimestamp(self.ended_at).isoformat() if self.ended_at else None
             ),
             "duration_s": round(self.duration_s, 3),
             "success": self.success,
             "error_message": self.error_message,
-            "stage_timings": {
-                k.value: v.to_dict() for k, v in self.stage_timings.items()
-            },
+            "stage_timings": {k.value: v.to_dict() for k, v in self.stage_timings.items()},
             "memory": self.memory.to_dict(),
         }
 
@@ -361,16 +355,12 @@ class StageContext:
         self.timing.total_time_s = time.time() - self._start_time
 
         # Calculate idle time as remainder
-        compute_time = (
-            self.timing.cpu_time_s + self.timing.gpu_time_s + self.timing.io_time_s
-        )
+        compute_time = self.timing.cpu_time_s + self.timing.gpu_time_s + self.timing.io_time_s
         self.timing.idle_time_s = max(0, self.timing.total_time_s - compute_time)
 
         # Record GPU samples
         if self._gpu_samples:
-            avg_util = sum(s.utilization_pct for s in self._gpu_samples) / len(
-                self._gpu_samples
-            )
+            avg_util = sum(s.utilization_pct for s in self._gpu_samples) / len(self._gpu_samples)
             self.collector._record_gpu_utilization(self.stage, avg_util)
 
     def record_cpu_time(self, seconds: float) -> None:
@@ -565,9 +555,7 @@ class PipelineMetricsCollector:
                     job.duration_s,
                     1 if job.success else 0,
                     job.error_message,
-                    json.dumps(
-                        {k.value: v.to_dict() for k, v in job.stage_timings.items()}
-                    ),
+                    json.dumps({k.value: v.to_dict() for k, v in job.stage_timings.items()}),
                     json.dumps(job.memory.to_dict()),
                 ),
             )
@@ -619,9 +607,7 @@ class PipelineMetricsCollector:
         with ctx:
             yield ctx
 
-    def _record_gpu_utilization(
-        self, stage: PipelineStage, utilization_pct: float
-    ) -> None:
+    def _record_gpu_utilization(self, stage: PipelineStage, utilization_pct: float) -> None:
         """Record GPU utilization sample for stage."""
         with self._lock:
             samples = self._stage_gpu_utilization[stage]
@@ -641,11 +627,7 @@ class PipelineMetricsCollector:
         """
         with self._lock:
             cutoff = time.time() - (hours * 3600)
-            recent = [
-                (ts, size)
-                for ts, size in self._throughput_timestamps
-                if ts >= cutoff
-            ]
+            recent = [(ts, size) for ts, size in self._throughput_timestamps if ts >= cutoff]
 
             ms_count = len(recent)
             total_bytes = sum(size for _, size in recent)
@@ -686,19 +668,13 @@ class PipelineMetricsCollector:
             cutoff = time.time() - (hours * 3600)
 
             # Count arrivals in window
-            recent_arrivals = [
-                (ts, gid)
-                for ts, gid in self._ingest_timestamps
-                if ts >= cutoff
-            ]
+            recent_arrivals = [(ts, gid) for ts, gid in self._ingest_timestamps if ts >= cutoff]
             groups_arrived = len(recent_arrivals)
             groups_per_hour = groups_arrived / hours if hours > 0 else 0.0
 
             # Count processed in window
             recent_processed = [
-                (ts, size)
-                for ts, size in self._throughput_timestamps
-                if ts >= cutoff
+                (ts, size) for ts, size in self._throughput_timestamps if ts >= cutoff
             ]
             groups_processed = len(recent_processed)
             processed_per_hour = groups_processed / hours if hours > 0 else 0.0
@@ -723,9 +699,7 @@ class PipelineMetricsCollector:
                 time_window_hours=hours,
             )
 
-    def get_stage_gpu_utilization(
-        self, stage: Optional[PipelineStage] = None
-    ) -> Dict[str, float]:
+    def get_stage_gpu_utilization(self, stage: Optional[PipelineStage] = None) -> Dict[str, float]:
         """Get average GPU utilization by stage.
 
         Args:
@@ -746,9 +720,7 @@ class PipelineMetricsCollector:
                 for s, samples in self._stage_gpu_utilization.items()
             }
 
-    def get_stage_timing_summary(
-        self, hours: float = 24.0
-    ) -> Dict[str, Dict[str, float]]:
+    def get_stage_timing_summary(self, hours: float = 24.0) -> Dict[str, Dict[str, float]]:
         """Get aggregated timing breakdown by stage.
 
         Args:
@@ -777,9 +749,7 @@ class PipelineMetricsCollector:
 
         return {s.value: t.to_dict() for s, t in stage_totals.items()}
 
-    def get_memory_high_water_marks(
-        self, hours: float = 24.0
-    ) -> Dict[str, float]:
+    def get_memory_high_water_marks(self, hours: float = 24.0) -> Dict[str, float]:
         """Get memory high-water marks.
 
         Args:
@@ -864,9 +834,7 @@ class PipelineMetricsCollector:
                 for job in self._active_jobs.values()
             ]
 
-    def get_recent_jobs(
-        self, limit: int = 50, success_only: bool = False
-    ) -> List[Dict[str, Any]]:
+    def get_recent_jobs(self, limit: int = 50, success_only: bool = False) -> List[Dict[str, Any]]:
         """Get recent completed jobs.
 
         Args:

@@ -4,15 +4,15 @@ Services package for DSA-110 Continuum Imaging Pipeline API.
 Contains business logic separated from route handlers and data access.
 """
 
-from .stats_service import StatsService
-from .qa_service import QAService
-from .fits_service import FITSParsingService, FITSMetadata
 from .async_services import (
     AsyncImageService,
+    AsyncJobService,
     AsyncMSService,
     AsyncSourceService,
-    AsyncJobService,
 )
+from .fits_service import FITSMetadata, FITSParsingService
+from .qa_service import QAService
+from .stats_service import StatsService
 
 # Aliases for backward compatibility - point sync names to async implementations
 ImageService = AsyncImageService

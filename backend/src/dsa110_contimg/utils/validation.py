@@ -15,6 +15,7 @@ from typing import List, Optional
 
 # IMPORTANT: Import casa_init BEFORE casacore to ensure CWD is set to logs directory
 from dsa110_contimg.utils.casa_init import ensure_casa_path
+
 ensure_casa_path()
 
 import casacore.tables as casatables  # type: ignore  # noqa: E402

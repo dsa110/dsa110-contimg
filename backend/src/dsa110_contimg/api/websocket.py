@@ -13,18 +13,16 @@ Features:
 """
 
 import asyncio
-import json
 import logging
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set
-from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional, Set
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
+from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 from fastapi.websockets import WebSocketState
 
 from .config import get_config
-
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +33,7 @@ ws_router = APIRouter(prefix="/ws", tags=["websocket"])
 
 class DisconnectReason(str, Enum):
     """Reasons for WebSocket disconnection."""
+
     NORMAL = "normal"
     CLIENT_DISCONNECT = "client_disconnect"
     HEARTBEAT_TIMEOUT = "heartbeat_timeout"
@@ -46,6 +45,7 @@ class DisconnectReason(str, Enum):
 
 class ConnectionState(str, Enum):
     """State of a WebSocket connection."""
+
     CONNECTING = "connecting"
     CONNECTED = "connected"
     DISCONNECTING = "disconnecting"
@@ -55,6 +55,7 @@ class ConnectionState(str, Enum):
 @dataclass
 class ConnectionInfo:
     """Information about a WebSocket connection."""
+
     websocket: WebSocket
     subscriptions: Set[str] = field(default_factory=set)
     connected_at: datetime = field(default_factory=datetime.utcnow)
@@ -68,25 +69,25 @@ class ConnectionInfo:
 class ConnectionManager:
     """
     Manages WebSocket connections and message broadcasting.
-    
+
     Supports subscription-based messaging where clients can subscribe
     to specific topics (e.g., "job:123", "pipeline:imaging").
-    
+
     Features:
     - Server-initiated heartbeat for connection health monitoring
     - Graceful disconnect with reason codes and reconnection hints
     - Topic-based pub/sub messaging
     """
-    
+
     # Heartbeat settings
     HEARTBEAT_INTERVAL = 30  # seconds
     MAX_MISSED_HEARTBEATS = 3  # disconnect after this many missed
-    
+
     def __init__(self):
         self.active_connections: Dict[str, ConnectionInfo] = {}
         self._lock = asyncio.Lock()
         self._heartbeat_task: Optional[asyncio.Task] = None
-    
+
     async def connect(
         self,
         websocket: WebSocket,
@@ -95,32 +96,33 @@ class ConnectionManager:
         reconnect_token: Optional[str] = None,
     ) -> str:
         """Accept a new WebSocket connection.
-        
+
         Args:
             websocket: The WebSocket instance
             client_id: Unique identifier for this connection
             user_id: Optional user identifier
             reconnect_token: Token from previous connection for session resumption
-            
+
         Returns:
             New reconnect token for future reconnections
         """
         import uuid
+
         await websocket.accept()
-        
+
         # Generate new reconnect token
         new_token = str(uuid.uuid4())
-        
+
         async with self._lock:
             self.active_connections[client_id] = ConnectionInfo(
                 websocket=websocket,
                 user_id=user_id,
                 reconnect_token=new_token,
             )
-        
+
         logger.info(f"WebSocket connected: {client_id}")
         return new_token
-    
+
     async def disconnect(
         self,
         client_id: str,
@@ -128,7 +130,7 @@ class ConnectionManager:
         send_close: bool = True,
     ) -> None:
         """Remove a WebSocket connection with reason.
-        
+
         Args:
             client_id: The client to disconnect
             reason: Reason for disconnection
@@ -141,75 +143,79 @@ class ConnectionManager:
                     try:
                         if info.websocket.client_state == WebSocketState.CONNECTED:
                             # Send disconnect message with reconnection info
-                            await info.websocket.send_json({
-                                "type": "disconnect",
-                                "reason": reason.value,
-                                "reconnect_token": info.reconnect_token,
-                                "can_reconnect": reason != DisconnectReason.ERROR,
-                                "timestamp": datetime.utcnow().isoformat() + "Z",
-                            })
+                            await info.websocket.send_json(
+                                {
+                                    "type": "disconnect",
+                                    "reason": reason.value,
+                                    "reconnect_token": info.reconnect_token,
+                                    "can_reconnect": reason != DisconnectReason.ERROR,
+                                    "timestamp": datetime.utcnow().isoformat() + "Z",
+                                }
+                            )
                     except (RuntimeError, ConnectionError):
                         pass  # Connection already closed
                 del self.active_connections[client_id]
-        
+
         logger.info(f"WebSocket disconnected: {client_id} (reason: {reason.value})")
-    
+
     async def handle_heartbeat_response(self, client_id: str) -> None:
         """Handle heartbeat response from client, resetting missed count."""
         async with self._lock:
             if client_id in self.active_connections:
                 self.active_connections[client_id].last_heartbeat = datetime.utcnow()
                 self.active_connections[client_id].missed_heartbeats = 0
-    
+
     async def send_heartbeat(self, client_id: str) -> bool:
         """Send heartbeat to a specific client.
-        
+
         Returns True if heartbeat was sent successfully.
         """
         async with self._lock:
             info = self.active_connections.get(client_id)
-        
+
         if not info:
             return False
-        
+
         try:
             if info.websocket.client_state == WebSocketState.CONNECTED:
-                await info.websocket.send_json({
-                    "type": "heartbeat",
-                    "timestamp": datetime.utcnow().isoformat() + "Z",
-                })
+                await info.websocket.send_json(
+                    {
+                        "type": "heartbeat",
+                        "timestamp": datetime.utcnow().isoformat() + "Z",
+                    }
+                )
                 async with self._lock:
                     if client_id in self.active_connections:
                         self.active_connections[client_id].missed_heartbeats += 1
                 return True
         except (RuntimeError, ConnectionError):
             await self.disconnect(client_id, DisconnectReason.CLIENT_GONE, send_close=False)
-        
+
         return False
-    
+
     async def check_connection_health(self) -> List[str]:
         """Check all connections and disconnect unhealthy ones.
-        
+
         Returns list of disconnected client IDs.
         """
         disconnected = []
-        
+
         async with self._lock:
             connections = list(self.active_connections.items())
-        
+
         for client_id, info in connections:
             if info.missed_heartbeats >= self.MAX_MISSED_HEARTBEATS:
                 await self.disconnect(client_id, DisconnectReason.TIMEOUT)
                 disconnected.append(client_id)
-        
+
         return disconnected
-    
+
     async def start_heartbeat_loop(self) -> None:
         """Start the background heartbeat task."""
         if self._heartbeat_task is None or self._heartbeat_task.done():
             self._heartbeat_task = asyncio.create_task(self._heartbeat_loop())
             logger.info("WebSocket heartbeat loop started")
-    
+
     async def stop_heartbeat_loop(self) -> None:
         """Stop the background heartbeat task."""
         if self._heartbeat_task and not self._heartbeat_task.done():
@@ -219,28 +225,28 @@ class ConnectionManager:
             except asyncio.CancelledError:
                 pass
             logger.info("WebSocket heartbeat loop stopped")
-    
+
     async def _heartbeat_loop(self) -> None:
         """Background task that sends heartbeats to all connections."""
         while True:
             try:
                 await asyncio.sleep(self.HEARTBEAT_INTERVAL)
-                
+
                 # Send heartbeats to all connections
                 async with self._lock:
                     client_ids = list(self.active_connections.keys())
-                
+
                 for client_id in client_ids:
                     await self.send_heartbeat(client_id)
-                
+
                 # Check for unhealthy connections
                 await self.check_connection_health()
-                
+
             except asyncio.CancelledError:
                 break
             except Exception as e:
                 logger.error(f"Error in heartbeat loop: {e}")
-    
+
     async def subscribe(self, client_id: str, topic: str) -> bool:
         """Subscribe a client to a topic."""
         async with self._lock:
@@ -248,7 +254,7 @@ class ConnectionManager:
                 self.active_connections[client_id].subscriptions.add(topic)
                 return True
         return False
-    
+
     async def unsubscribe(self, client_id: str, topic: str) -> bool:
         """Unsubscribe a client from a topic."""
         async with self._lock:
@@ -256,7 +262,7 @@ class ConnectionManager:
                 self.active_connections[client_id].subscriptions.discard(topic)
                 return True
         return False
-    
+
     async def send_to_client(
         self,
         client_id: str,
@@ -265,10 +271,10 @@ class ConnectionManager:
         """Send a message to a specific client."""
         async with self._lock:
             info = self.active_connections.get(client_id)
-        
+
         if not info:
             return False
-        
+
         try:
             if info.websocket.client_state == WebSocketState.CONNECTED:
                 await info.websocket.send_json(message)
@@ -276,9 +282,9 @@ class ConnectionManager:
         except (RuntimeError, ConnectionError) as e:
             logger.error(f"Error sending to {client_id}: {e}")
             await self.disconnect(client_id, DisconnectReason.ERROR)
-        
+
         return False
-    
+
     async def broadcast(
         self,
         message: Dict[str, Any],
@@ -286,20 +292,20 @@ class ConnectionManager:
     ) -> int:
         """
         Broadcast a message to all connected clients.
-        
+
         If topic is specified, only send to clients subscribed to that topic.
         Returns number of clients message was sent to.
         """
         sent_count = 0
-        
+
         async with self._lock:
             connections = list(self.active_connections.items())
-        
+
         for client_id, info in connections:
             # Check topic subscription if specified
             if topic and topic not in info.subscriptions:
                 continue
-            
+
             try:
                 if info.websocket.client_state == WebSocketState.CONNECTED:
                     await info.websocket.send_json(message)
@@ -307,63 +313,63 @@ class ConnectionManager:
             except (RuntimeError, ConnectionError) as e:
                 logger.error(f"Error broadcasting to {client_id}: {e}")
                 await self.disconnect(client_id, DisconnectReason.ERROR)
-        
+
         return sent_count
-    
+
     def get_connection_count(self) -> int:
         """Get number of active connections."""
         return len(self.active_connections)
-    
+
     @property
     def connections(self) -> Dict[str, ConnectionInfo]:
         """Access to active connections (for tests/monitoring)."""
         return self.active_connections
-    
+
     def record_heartbeat(self, client_id: str) -> None:
         """Record that a heartbeat was received from a client.
-        
+
         This is a synchronous method for use in endpoint handlers.
         """
         if client_id in self.active_connections:
             self.active_connections[client_id].last_heartbeat = datetime.utcnow()
             self.active_connections[client_id].missed_heartbeats = 0
-    
+
     def check_heartbeat(self, client_id: str, max_missed: int = 3) -> bool:
         """Check if a client's heartbeat is healthy.
-        
-        Increments the missed_heartbeats count and returns False if 
+
+        Increments the missed_heartbeats count and returns False if
         the client has missed too many heartbeats.
-        
+
         Args:
             client_id: The client to check
             max_missed: Maximum allowed missed heartbeats
-            
+
         Returns:
             True if connection is still healthy, False if should disconnect
         """
         if client_id not in self.active_connections:
             return False
-        
+
         info = self.active_connections[client_id]
         info.missed_heartbeats += 1
-        
+
         return info.missed_heartbeats <= max_missed
-    
+
     def generate_reconnect_token(self, client_id: str) -> Optional[str]:
         """Generate a reconnect token for a client.
-        
+
         Returns:
             The generated token, or None if client not found
         """
         import uuid
-        
+
         if client_id not in self.active_connections:
             return None
-        
+
         token = str(uuid.uuid4())
         self.active_connections[client_id].reconnect_token = token
         return token
-    
+
     def get_topic_subscribers(self, topic: str) -> int:
         """Get number of subscribers for a topic."""
         count = 0
@@ -386,7 +392,7 @@ async def websocket_job_updates(
 ):
     """
     WebSocket endpoint for job status updates.
-    
+
     Clients connect to receive real-time updates about a specific job.
     Messages are JSON objects with structure:
     {
@@ -395,12 +401,12 @@ async def websocket_job_updates(
         "data": {...},
         "timestamp": "..."
     }
-    
+
     Heartbeat:
     - Server sends "heartbeat" messages periodically
     - Client should respond with "heartbeat_ack" to confirm connection health
     - Connection is dropped after 3 missed heartbeats
-    
+
     Reconnection:
     - On disconnect, client receives a reconnect_token
     - Pass this token when reconnecting to resume subscriptions
@@ -408,21 +414,24 @@ async def websocket_job_updates(
     # Generate client ID if not provided
     if not client_id:
         import uuid
+
         client_id = str(uuid.uuid4())
-    
+
     new_token = await manager.connect(websocket, client_id, reconnect_token=reconnect_token)
     await manager.subscribe(client_id, f"job:{job_id}")
-    
+
     try:
         # Send initial connection confirmation with reconnect token
-        await websocket.send_json({
-            "type": "connected",
-            "job_id": job_id,
-            "client_id": client_id,
-            "reconnect_token": new_token,
-            "timestamp": datetime.utcnow().isoformat() + "Z",
-        })
-        
+        await websocket.send_json(
+            {
+                "type": "connected",
+                "job_id": job_id,
+                "client_id": client_id,
+                "reconnect_token": new_token,
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+            }
+        )
+
         # Keep connection alive and handle incoming messages
         while True:
             try:
@@ -432,48 +441,56 @@ async def websocket_job_updates(
                     websocket.receive_json(),
                     timeout=config.timeouts.websocket_ping,
                 )
-                
+
                 # Handle client messages
                 msg_type = data.get("type")
-                
+
                 if msg_type == "ping":
-                    await websocket.send_json({
-                        "type": "pong",
-                        "timestamp": datetime.utcnow().isoformat() + "Z",
-                    })
-                
+                    await websocket.send_json(
+                        {
+                            "type": "pong",
+                            "timestamp": datetime.utcnow().isoformat() + "Z",
+                        }
+                    )
+
                 elif msg_type == "heartbeat_ack":
                     # Client acknowledged heartbeat - reset missed count
                     await manager.handle_heartbeat_response(client_id)
-                
+
                 elif msg_type == "subscribe":
                     topic = data.get("topic")
                     if topic:
                         await manager.subscribe(client_id, topic)
-                        await websocket.send_json({
-                            "type": "subscribed",
-                            "topic": topic,
-                        })
-                
+                        await websocket.send_json(
+                            {
+                                "type": "subscribed",
+                                "topic": topic,
+                            }
+                        )
+
                 elif msg_type == "unsubscribe":
                     topic = data.get("topic")
                     if topic:
                         await manager.unsubscribe(client_id, topic)
-                        await websocket.send_json({
-                            "type": "unsubscribed",
-                            "topic": topic,
-                        })
-                        
+                        await websocket.send_json(
+                            {
+                                "type": "unsubscribed",
+                                "topic": topic,
+                            }
+                        )
+
             except asyncio.TimeoutError:
                 # Send ping to keep connection alive
                 try:
-                    await websocket.send_json({
-                        "type": "ping",
-                        "timestamp": datetime.utcnow().isoformat() + "Z",
-                    })
+                    await websocket.send_json(
+                        {
+                            "type": "ping",
+                            "timestamp": datetime.utcnow().isoformat() + "Z",
+                        }
+                    )
                 except (RuntimeError, ConnectionError):
                     break
-                    
+
     except WebSocketDisconnect:
         logger.info(f"WebSocket client disconnected: {client_id}")
         disconnect_reason = DisconnectReason.CLIENT_DISCONNECT
@@ -491,41 +508,44 @@ async def websocket_pipeline_updates(
 ):
     """
     WebSocket endpoint for general pipeline updates.
-    
+
     Receives updates about all pipeline activity:
     - New jobs started
     - Job completions
     - Error notifications
     - System status changes
-    
+
     Supports heartbeat monitoring for connection health.
     """
     if not client_id:
         import uuid
+
         client_id = str(uuid.uuid4())
-    
+
     disconnect_reason = DisconnectReason.NORMAL
-    
+
     await manager.connect(websocket, client_id)
     await manager.subscribe(client_id, "pipeline:all")
-    
+
     # Generate reconnect token
     reconnect_token = manager.generate_reconnect_token(client_id)
-    
+
     # Heartbeat configuration
     heartbeat_interval = 30.0  # seconds
     max_missed_heartbeats = 3
-    
+
     try:
-        await websocket.send_json({
-            "type": "connected",
-            "topic": "pipeline:all",
-            "client_id": client_id,
-            "reconnect_token": reconnect_token,
-            "heartbeat_interval": heartbeat_interval,
-            "timestamp": datetime.utcnow().isoformat() + "Z",
-        })
-        
+        await websocket.send_json(
+            {
+                "type": "connected",
+                "topic": "pipeline:all",
+                "client_id": client_id,
+                "reconnect_token": reconnect_token,
+                "heartbeat_interval": heartbeat_interval,
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+            }
+        )
+
         while True:
             try:
                 config = get_config()
@@ -533,39 +553,44 @@ async def websocket_pipeline_updates(
                     websocket.receive_json(),
                     timeout=config.timeouts.websocket_ping,
                 )
-                
+
                 msg_type = data.get("type")
-                
+
                 if msg_type == "ping":
                     # Record heartbeat and respond
                     manager.record_heartbeat(client_id)
                     conn_info = manager.connections.get(client_id)
-                    await websocket.send_json({
-                        "type": "pong",
-                        "timestamp": datetime.utcnow().isoformat() + "Z",
-                        "connection_age_seconds": (
-                            (datetime.utcnow() - conn_info.connected_at).total_seconds()
-                            if conn_info else 0
-                        ),
-                    })
-                    
+                    await websocket.send_json(
+                        {
+                            "type": "pong",
+                            "timestamp": datetime.utcnow().isoformat() + "Z",
+                            "connection_age_seconds": (
+                                (datetime.utcnow() - conn_info.connected_at).total_seconds()
+                                if conn_info
+                                else 0
+                            ),
+                        }
+                    )
+
             except asyncio.TimeoutError:
                 # Check heartbeat status
                 if not manager.check_heartbeat(client_id, max_missed_heartbeats):
                     logger.warning(f"Client {client_id} missed too many heartbeats, disconnecting")
                     disconnect_reason = DisconnectReason.HEARTBEAT_TIMEOUT
                     break
-                
+
                 # Send ping to keep connection alive
                 try:
-                    await websocket.send_json({
-                        "type": "ping",
-                        "timestamp": datetime.utcnow().isoformat() + "Z",
-                    })
+                    await websocket.send_json(
+                        {
+                            "type": "ping",
+                            "timestamp": datetime.utcnow().isoformat() + "Z",
+                        }
+                    )
                 except (RuntimeError, ConnectionError):
                     disconnect_reason = DisconnectReason.ERROR
                     break
-                    
+
     except WebSocketDisconnect:
         disconnect_reason = DisconnectReason.CLIENT_DISCONNECT
     except (RuntimeError, ConnectionError) as e:
@@ -577,6 +602,7 @@ async def websocket_pipeline_updates(
 
 # Helper functions for sending updates
 
+
 async def notify_job_status(
     job_id: str,
     status: str,
@@ -585,7 +611,7 @@ async def notify_job_status(
 ) -> int:
     """
     Send job status update to subscribed clients.
-    
+
     Returns number of clients notified.
     """
     update = {
@@ -598,13 +624,13 @@ async def notify_job_status(
         },
         "timestamp": datetime.utcnow().isoformat() + "Z",
     }
-    
+
     # Notify job-specific subscribers
     count = await manager.broadcast(update, topic=f"job:{job_id}")
-    
+
     # Also notify pipeline subscribers
     count += await manager.broadcast(update, topic="pipeline:all")
-    
+
     return count
 
 
@@ -625,7 +651,7 @@ async def notify_job_progress(
         },
         "timestamp": datetime.utcnow().isoformat() + "Z",
     }
-    
+
     return await manager.broadcast(update, topic=f"job:{job_id}")
 
 
@@ -644,7 +670,7 @@ async def notify_job_log(
         },
         "timestamp": datetime.utcnow().isoformat() + "Z",
     }
-    
+
     return await manager.broadcast(update, topic=f"job:{job_id}")
 
 
@@ -665,10 +691,10 @@ async def notify_job_complete(
         },
         "timestamp": datetime.utcnow().isoformat() + "Z",
     }
-    
+
     count = await manager.broadcast(update, topic=f"job:{job_id}")
     count += await manager.broadcast(update, topic="pipeline:all")
-    
+
     return count
 
 

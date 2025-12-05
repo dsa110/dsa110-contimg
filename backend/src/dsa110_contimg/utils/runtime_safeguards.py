@@ -208,7 +208,7 @@ def filter_non_finite(
 
     if n_finite < min_points:
         raise ValueError(
-            f"Insufficient finite values: {n_finite} < {min_points}. " f"Total points: {len(data)}"
+            f"Insufficient finite values: {n_finite} < {min_points}. Total points: {len(data)}"
         )
 
     if warn and n_finite < len(data):

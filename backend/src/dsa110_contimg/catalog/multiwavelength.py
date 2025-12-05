@@ -7,15 +7,11 @@ for source cross-matching and classification.
 """
 
 import logging
-import sys
-import urllib.parse
 import warnings
-from typing import TYPE_CHECKING, Dict, List, Optional, Union
+from typing import Dict, List
 
-import numpy as np
 from astropy import units as u
 from astropy.coordinates import EarthLocation, SkyCoord, get_body, solar_system_ephemeris
-from astropy.table import Column, Table
 from astropy.time import Time
 
 logger = logging.getLogger(__name__)
@@ -37,15 +33,15 @@ def _ensure_astroquery():
     global _astroquery_loaded, Casda, Gaia, Simbad, Vizier, psrqpy, vo, requests
     if _astroquery_loaded:
         return
-    
-    import requests as _requests
+
     import psrqpy as _psrqpy
     import pyvo as _vo
+    import requests as _requests
     from astroquery.casda import Casda as _Casda
     from astroquery.gaia import Gaia as _Gaia
     from astroquery.simbad import Simbad as _Simbad
     from astroquery.vizier import Vizier as _Vizier
-    
+
     requests = _requests
     psrqpy = _psrqpy
     vo = _vo
@@ -53,10 +49,10 @@ def _ensure_astroquery():
     Gaia = _Gaia
     Simbad = _Simbad
     Vizier = _Vizier
-    
+
     # Configure Gaia
     Gaia.MAIN_GAIA_TABLE = GAIA_MAIN_TABLE
-    
+
     # Configure Simbad (done below after constant definitions)
     _astroquery_loaded = True
 

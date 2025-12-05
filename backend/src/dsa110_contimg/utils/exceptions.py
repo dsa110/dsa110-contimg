@@ -21,7 +21,7 @@ Usage:
         ConversionError,
         DatabaseError,
     )
-    
+
     # Raise with context
     raise SubbandGroupingError(
         "Incomplete subband group",
@@ -30,7 +30,7 @@ Usage:
         actual_count=14,
         missing_subbands=["sb03", "sb07"],
     )
-    
+
     # Handle with logging
     try:
         convert_data(...)
@@ -46,16 +46,16 @@ Logging Integration:
 from __future__ import annotations
 
 import traceback
-from typing import Any, Optional
 from datetime import datetime
+from typing import Any, Optional
 
 
 class PipelineError(Exception):
     """
     Base exception for all DSA-110 pipeline errors.
-    
+
     Provides structured context for logging and error tracking.
-    
+
     Attributes:
         message: Human-readable error message
         context: Structured data for logging (file paths, IDs, etc.)
@@ -64,7 +64,7 @@ class PipelineError(Exception):
         recoverable: Whether the error allows continued processing
         original_exception: The underlying exception, if any
     """
-    
+
     def __init__(
         self,
         message: str,
@@ -80,7 +80,7 @@ class PipelineError(Exception):
         self.original_exception = original_exception
         self.timestamp = datetime.utcnow().isoformat()
         self._context = context
-        
+
         # Capture traceback if original exception provided
         if original_exception:
             self._traceback = traceback.format_exception(
@@ -90,7 +90,7 @@ class PipelineError(Exception):
             )
         else:
             self._traceback = None
-    
+
     @property
     def context(self) -> dict[str, Any]:
         """Get structured context for logging."""
@@ -101,31 +101,31 @@ class PipelineError(Exception):
             "recoverable": self.recoverable,
             "timestamp": self.timestamp,
         }
-        
+
         if self.original_exception:
             base_context["original_error"] = str(self.original_exception)
             base_context["original_type"] = type(self.original_exception).__name__
-        
+
         if self._traceback:
             base_context["traceback"] = "".join(self._traceback)
-        
+
         return {**base_context, **self._context}
-    
+
     def __str__(self) -> str:
         """Format error message with key context."""
         parts = [self.message]
-        
+
         if self.pipeline_stage != "unknown":
             parts.append(f"[stage={self.pipeline_stage}]")
-        
+
         # Include key context items in message
         key_items = ["group_id", "file_path", "ms_path", "db_name"]
         for key in key_items:
             if key in self._context:
                 parts.append(f"[{key}={self._context[key]}]")
-        
+
         return " ".join(parts)
-    
+
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.message!r}, context={self._context})"
 
@@ -134,16 +134,17 @@ class PipelineError(Exception):
 # Subband Grouping Errors
 # =============================================================================
 
+
 class SubbandGroupingError(PipelineError):
     """
     Error during subband file grouping.
-    
+
     Raised when:
     - Expected 16 subbands but found fewer (incomplete group)
     - Duplicate subband indices in a group
     - Time tolerance exceeded for group formation
     - Missing or corrupted subband files
-    
+
     Context keys:
         group_id: Observation group identifier (timestamp)
         expected_count: Expected number of subbands (usually 16)
@@ -151,7 +152,7 @@ class SubbandGroupingError(PipelineError):
         missing_subbands: List of missing subband identifiers
         file_list: List of files in the group
     """
-    
+
     def __init__(
         self,
         message: str,
@@ -178,7 +179,7 @@ class SubbandGroupingError(PipelineError):
 
 class IncompleteSubbandGroupError(SubbandGroupingError):
     """Specific error for groups with missing subbands."""
-    
+
     def __init__(
         self,
         group_id: str,
@@ -188,8 +189,7 @@ class IncompleteSubbandGroupError(SubbandGroupingError):
         **context: Any,
     ) -> None:
         message = (
-            f"Incomplete subband group: expected {expected_count} subbands, "
-            f"found {actual_count}"
+            f"Incomplete subband group: expected {expected_count} subbands, found {actual_count}"
         )
         super().__init__(
             message,
@@ -206,24 +206,25 @@ class IncompleteSubbandGroupError(SubbandGroupingError):
 # Conversion Errors
 # =============================================================================
 
+
 class ConversionError(PipelineError):
     """
     Error during UVH5 to Measurement Set conversion.
-    
+
     Raised when:
     - UVH5 file read fails
     - Subband combination fails
     - MS write fails
     - Antenna position update fails
     - Field configuration fails
-    
+
     Context keys:
         input_path: Path to input UVH5 file(s)
         output_path: Path to output MS
         group_id: Observation group identifier
         writer_type: Type of MS writer used
     """
-    
+
     def __init__(
         self,
         message: str,
@@ -250,7 +251,7 @@ class ConversionError(PipelineError):
 
 class UVH5ReadError(ConversionError):
     """Error reading UVH5 file."""
-    
+
     def __init__(
         self,
         file_path: str,
@@ -272,7 +273,7 @@ class UVH5ReadError(ConversionError):
 
 class MSWriteError(ConversionError):
     """Error writing Measurement Set."""
-    
+
     def __init__(
         self,
         output_path: str,
@@ -297,23 +298,24 @@ class MSWriteError(ConversionError):
 # Database Errors
 # =============================================================================
 
+
 class DatabaseError(PipelineError):
     """
     Error during database operations.
-    
+
     Raised when:
     - Database connection fails
     - Query execution fails
     - Transaction commit/rollback fails
     - Integrity constraints violated
-    
+
     Context keys:
         db_name: Name of the database (products, ingest, etc.)
         db_path: Path to the database file
         operation: What operation was attempted (insert, update, query)
         table_name: Which table was affected
     """
-    
+
     def __init__(
         self,
         message: str,
@@ -340,7 +342,7 @@ class DatabaseError(PipelineError):
 
 class DatabaseMigrationError(DatabaseError):
     """Error during database schema migration."""
-    
+
     def __init__(
         self,
         db_name: str,
@@ -368,7 +370,7 @@ class DatabaseMigrationError(DatabaseError):
 
 class DatabaseConnectionError(DatabaseError):
     """Error connecting to database."""
-    
+
     def __init__(
         self,
         db_name: str,
@@ -394,7 +396,7 @@ class DatabaseConnectionError(DatabaseError):
 
 class DatabaseLockError(DatabaseError):
     """Database lock timeout error."""
-    
+
     def __init__(
         self,
         db_name: str,
@@ -418,22 +420,23 @@ class DatabaseLockError(DatabaseError):
 # Queue Errors
 # =============================================================================
 
+
 class QueueError(PipelineError):
     """
     Error during streaming queue operations.
-    
+
     Raised when:
     - Queue state transition fails
     - Queue record insertion fails
     - Invalid queue state encountered
-    
+
     Context keys:
         group_id: Observation group identifier
         current_state: Current queue state
         target_state: Intended state transition
         queue_db: Path to queue database
     """
-    
+
     def __init__(
         self,
         message: str,
@@ -460,7 +463,7 @@ class QueueError(PipelineError):
 
 class QueueStateTransitionError(QueueError):
     """Invalid queue state transition."""
-    
+
     def __init__(
         self,
         group_id: str,
@@ -470,8 +473,7 @@ class QueueStateTransitionError(QueueError):
         **context: Any,
     ) -> None:
         message = (
-            f"Invalid queue state transition for {group_id}: "
-            f"{current_state} -> {target_state}"
+            f"Invalid queue state transition for {group_id}: {current_state} -> {target_state}"
         )
         if reason:
             message += f" ({reason})"
@@ -490,22 +492,23 @@ class QueueStateTransitionError(QueueError):
 # Calibration Errors
 # =============================================================================
 
+
 class CalibrationError(PipelineError):
     """
     Error during calibration operations.
-    
+
     Raised when:
     - Calibration table not found
     - Calibration apply fails
     - Calibrator not found in catalog
     - Solution quality is poor
-    
+
     Context keys:
         ms_path: Path to Measurement Set
         cal_table: Path to calibration table
         calibrator: Calibrator source name
     """
-    
+
     def __init__(
         self,
         message: str,
@@ -530,7 +533,7 @@ class CalibrationError(PipelineError):
 
 class CalibrationTableNotFoundError(CalibrationError):
     """Calibration table not found."""
-    
+
     def __init__(
         self,
         ms_path: str,
@@ -549,7 +552,7 @@ class CalibrationTableNotFoundError(CalibrationError):
 
 class CalibratorNotFoundError(CalibrationError):
     """Calibrator source not found in catalog."""
-    
+
     def __init__(
         self,
         calibrator: str,
@@ -574,21 +577,22 @@ class CalibratorNotFoundError(CalibrationError):
 # Imaging Errors
 # =============================================================================
 
+
 class ImagingError(PipelineError):
     """
     Error during imaging operations.
-    
+
     Raised when:
     - WSClean or tclean fails
     - Image file not found
     - Image quality check fails
-    
+
     Context keys:
         ms_path: Path to Measurement Set
         image_path: Path to output image
         imager: Imaging tool used (wsclean, tclean)
     """
-    
+
     def __init__(
         self,
         message: str,
@@ -613,7 +617,7 @@ class ImagingError(PipelineError):
 
 class ImageNotFoundError(ImagingError):
     """Image file not found."""
-    
+
     def __init__(
         self,
         image_path: str,
@@ -632,22 +636,23 @@ class ImageNotFoundError(ImagingError):
 # Validation Errors
 # =============================================================================
 
+
 class ValidationError(PipelineError):
     """
     Error during input validation.
-    
+
     Raised when:
     - Required parameters missing
     - Parameter values out of range
     - Invalid file formats
     - Inconsistent input data
-    
+
     Context keys:
         field: Name of the invalid field
         value: The invalid value (if safe to log)
         constraint: The validation constraint that failed
     """
-    
+
     def __init__(
         self,
         message: str,
@@ -672,7 +677,7 @@ class ValidationError(PipelineError):
 
 class MissingParameterError(ValidationError):
     """Required parameter is missing."""
-    
+
     def __init__(
         self,
         parameter: str,
@@ -689,7 +694,7 @@ class MissingParameterError(ValidationError):
 
 class InvalidPathError(ValidationError):
     """File or directory path is invalid or doesn't exist."""
-    
+
     def __init__(
         self,
         path: str,
@@ -714,6 +719,7 @@ class InvalidPathError(ValidationError):
 # Exception helpers
 # =============================================================================
 
+
 def wrap_exception(
     exc: BaseException,
     wrapper_class: type[PipelineError] = PipelineError,
@@ -722,18 +728,18 @@ def wrap_exception(
 ) -> PipelineError:
     """
     Wrap a standard exception in a pipeline-specific exception.
-    
+
     Preserves the original exception and its traceback.
-    
+
     Args:
         exc: The original exception to wrap
         wrapper_class: The pipeline exception class to use
         message: Optional override message (defaults to str(exc))
         **context: Additional context for the exception
-    
+
     Returns:
         A pipeline exception wrapping the original
-    
+
     Example:
         try:
             h5py.File(path, 'r')
@@ -759,20 +765,20 @@ def wrap_exception(
 def is_recoverable(exc: BaseException) -> bool:
     """
     Check if an exception indicates a recoverable error.
-    
+
     Args:
         exc: The exception to check
-    
+
     Returns:
         True if processing can continue, False if it should halt
     """
     if isinstance(exc, PipelineError):
         return exc.recoverable
-    
+
     # Standard exceptions that are typically recoverable
     recoverable_types = (
         FileNotFoundError,  # Can skip missing files
-        PermissionError,    # Can retry with different permissions
-        TimeoutError,       # Can retry
+        PermissionError,  # Can retry with different permissions
+        TimeoutError,  # Can retry
     )
     return isinstance(exc, recoverable_types)

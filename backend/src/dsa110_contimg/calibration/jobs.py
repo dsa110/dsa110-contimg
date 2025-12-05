@@ -18,12 +18,10 @@ import sqlite3
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
 
 from dsa110_contimg.pipeline import Job, JobResult, register_job
 from dsa110_contimg.pipeline.events import (
     EventType,
-    emit_job_event,
 )
 
 logger = logging.getLogger(__name__)
@@ -139,9 +137,9 @@ class CalibrationSolveJob(Job):
 
     def execute(self) -> JobResult:
         """Execute the calibration solve job."""
-        from dsa110_contimg.calibration.streaming import solve_calibration_for_ms
         from dsa110_contimg.calibration.caltables import discover_caltables
-        from dsa110_contimg.pipeline.events import EventEmitter, EventType
+        from dsa110_contimg.calibration.streaming import solve_calibration_for_ms
+        from dsa110_contimg.pipeline.events import EventEmitter
 
         # Validate first
         is_valid, error = self.validate()
@@ -412,9 +410,7 @@ class CalibrationApplyJob(Job):
             conn.commit()
             conn.close()
 
-            logger.info(
-                f"Calibration applied to {self.target_ms_path} (verified={self.verify})"
-            )
+            logger.info(f"Calibration applied to {self.target_ms_path} (verified={self.verify})")
             return JobResult.ok(
                 outputs={
                     "application_id": application_id,
@@ -543,9 +539,7 @@ class CalibrationValidateJob(Job):
 
                 # Calculate summary metrics
                 flag_fractions = [
-                    ant.get("flag_fraction", 0)
-                    for ant in antenna_health
-                    if "flag_fraction" in ant
+                    ant.get("flag_fraction", 0) for ant in antenna_health if "flag_fraction" in ant
                 ]
                 gain_scatters = [
                     ant.get("amplitude_scatter", 0)
@@ -554,16 +548,10 @@ class CalibrationValidateJob(Job):
                 ]
 
                 avg_flag_fraction = (
-                    sum(flag_fractions) / len(flag_fractions)
-                    if flag_fractions
-                    else 0
+                    sum(flag_fractions) / len(flag_fractions) if flag_fractions else 0
                 )
                 max_flag_fraction = max(flag_fractions) if flag_fractions else 0
-                avg_gain_scatter = (
-                    sum(gain_scatters) / len(gain_scatters)
-                    if gain_scatters
-                    else 0
-                )
+                avg_gain_scatter = sum(gain_scatters) / len(gain_scatters) if gain_scatters else 0
 
                 metrics = {
                     "n_antennas": len(antenna_health),
@@ -575,15 +563,11 @@ class CalibrationValidateJob(Job):
 
                 # Check thresholds
                 if avg_flag_fraction > self.flag_threshold:
-                    warnings.append(
-                        f"{cal_type}: High average flagging ({avg_flag_fraction:.1%})"
-                    )
+                    warnings.append(f"{cal_type}: High average flagging ({avg_flag_fraction:.1%})")
                     validation_passed = False
 
                 if avg_gain_scatter > self.gain_scatter_threshold:
-                    warnings.append(
-                        f"{cal_type}: High gain scatter ({avg_gain_scatter:.2f})"
-                    )
+                    warnings.append(f"{cal_type}: High gain scatter ({avg_gain_scatter:.2f})")
                     validation_passed = False
 
                 logger.info(
@@ -596,7 +580,7 @@ class CalibrationValidateJob(Job):
                 logger.warning(f"Failed to analyze {caltable_path}: {e}")
 
         # Emit QA event
-        from dsa110_contimg.pipeline.events import EventEmitter, EventType
+        from dsa110_contimg.pipeline.events import EventEmitter
 
         emitter = EventEmitter.get_instance()
         if not validation_passed:

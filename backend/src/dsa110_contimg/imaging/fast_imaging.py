@@ -21,13 +21,13 @@ import shutil
 import sqlite3
 import subprocess
 import time
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 
 # Ensure CASA environment is initialized before importing CASA modules
 from dsa110_contimg.utils.casa_init import ensure_casa_path
+
 ensure_casa_path()
 
 # Use casatools for metadata if available
@@ -41,7 +41,6 @@ except ImportError:
 # Fallback to astropy for FITS handling if needed
 from astropy.io import fits
 
-from dsa110_contimg.imaging.cli_utils import default_cell_arcsec
 from dsa110_contimg.utils.decorators import timed
 from dsa110_contimg.utils.gpu_safety import gpu_safe, initialize_gpu_safety
 
@@ -175,7 +174,7 @@ def run_wsclean_snapshots(
         )
 
     LOG.info(
-        f"Splitting {duration:.1f}s scan into {num_intervals} snapshots of ~{duration/num_intervals:.2f}s"
+        f"Splitting {duration:.1f}s scan into {num_intervals} snapshots of ~{duration / num_intervals:.2f}s"
     )
 
     # Find wsclean executable
@@ -267,7 +266,10 @@ def run_wsclean_snapshots(
             try:
                 # Find and kill containers running wsclean image
                 kill_cmd = [
-                    "docker", "ps", "-q", "--filter",
+                    "docker",
+                    "ps",
+                    "-q",
+                    "--filter",
                     "ancestor=wsclean-everybeam:0.7.4",
                 ]
                 result = subprocess.run(kill_cmd, capture_output=True, text=True, timeout=10)
@@ -439,7 +441,7 @@ def run_fast_imaging(
     work_dir: str = ".",
 ) -> List[Dict[str, Any]]:
     """Main entry point for fast transient imaging.
-    
+
     GPU Safety:
         Wrapped with @gpu_safe to check GPU VRAM and system RAM availability
         before processing. Rejects if GPU memory or RAM limits would be exceeded.

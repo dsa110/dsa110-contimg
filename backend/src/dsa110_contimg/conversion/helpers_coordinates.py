@@ -18,6 +18,8 @@ except (ImportError, AttributeError):  # pragma: no cover - fallback
 try:
     from pyuvdata.utils.phasing import (
         calc_app_coords as _calc_app_coords,
+    )
+    from pyuvdata.utils.phasing import (
         calc_frame_pos_angle as _calc_frame_pos_angle,
     )
 except (ImportError, AttributeError):  # pragma: no cover - fallback for older versions
@@ -32,9 +34,10 @@ from dsa110_contimg.conversion.helpers_antenna import (
 # OPTIMIZATION 3: Try to use numba-accelerated angular separation
 try:
     from dsa110_contimg.utils.numba_accel import (
-        angular_separation_jit,
         NUMBA_AVAILABLE,
+        angular_separation_jit,
     )
+
     _USE_NUMBA_ANGULAR_SEP = NUMBA_AVAILABLE
 except ImportError:
     _USE_NUMBA_ANGULAR_SEP = False
@@ -75,6 +78,7 @@ def _get_dsa110_lon_rad() -> float:
     global _DSA110_LON_RAD
     if _DSA110_LON_RAD is None:
         from dsa110_contimg.utils.constants import DSA110_LOCATION
+
         _DSA110_LON_RAD = float(DSA110_LOCATION.lon.to_value(u.rad))
     return _DSA110_LON_RAD
 
@@ -106,7 +110,8 @@ def get_meridian_coords(
         # OPTIMIZATION: Use numba-accelerated LST approximation
         # This is ~10x faster than astropy for simple meridian tracking
         try:
-            from dsa110_contimg.utils.numba_accel import approx_lst_jit, NUMBA_AVAILABLE
+            from dsa110_contimg.utils.numba_accel import NUMBA_AVAILABLE, approx_lst_jit
+
             if NUMBA_AVAILABLE:
                 lon_rad = _get_dsa110_lon_rad()
                 mjd_arr = np.array([time_mjd], dtype=np.float64)
@@ -203,8 +208,7 @@ def phase_to_meridian(uvdata, pt_dec: Optional[u.Quantity] = None) -> None:
     # Vectorized mapping: create array of phase center IDs indexed by time
     # OPTIMIZATION: Use numpy array operations instead of list comprehension
     pc_id_array = np.array(
-        [phase_center_ids[unique_times[i]] for i in range(n_unique)],
-        dtype=np.int32
+        [phase_center_ids[unique_times[i]] for i in range(n_unique)], dtype=np.int32
     )
     uvdata.phase_center_id_array[:] = pc_id_array[time_inverse]
 

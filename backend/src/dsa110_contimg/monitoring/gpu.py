@@ -219,9 +219,7 @@ class GPUMonitor:
                 util = pynvml.nvmlDeviceGetUtilizationRates(handle)
 
                 try:
-                    temp = pynvml.nvmlDeviceGetTemperature(
-                        handle, pynvml.NVML_TEMPERATURE_GPU
-                    )
+                    temp = pynvml.nvmlDeviceGetTemperature(handle, pynvml.NVML_TEMPERATURE_GPU)
                 except pynvml.NVMLError:
                     temp = None
 
@@ -231,9 +229,7 @@ class GPUMonitor:
                     power = None
 
                 try:
-                    power_limit = (
-                        pynvml.nvmlDeviceGetPowerManagementLimit(handle) / 1000
-                    )
+                    power_limit = pynvml.nvmlDeviceGetPowerManagementLimit(handle) / 1000
                 except pynvml.NVMLError:
                     power_limit = None
 
@@ -489,12 +485,8 @@ class GPUMonitor:
             "current_metrics": {
                 "timestamp": metrics.timestamp if metrics else None,
                 "memory_used_gb": metrics.memory_used_gb if metrics else None,
-                "memory_utilization_pct": (
-                    metrics.memory_utilization_pct if metrics else None
-                ),
-                "gpu_utilization_pct": (
-                    metrics.gpu_utilization_pct if metrics else None
-                ),
+                "memory_utilization_pct": (metrics.memory_utilization_pct if metrics else None),
+                "gpu_utilization_pct": (metrics.gpu_utilization_pct if metrics else None),
                 "temperature_c": metrics.temperature_c if metrics else None,
                 "power_draw_w": metrics.power_draw_w if metrics else None,
             }
@@ -512,9 +504,7 @@ class GPUMonitor:
             "available": bool(self.devices),
             "gpu_count": len(self.devices),
             "monitoring_backend": "pynvml" if self._use_pynvml else "cupy",
-            "devices": [
-                self.get_device_summary(gpu_id) for gpu_id in sorted(self.devices)
-            ],
+            "devices": [self.get_device_summary(gpu_id) for gpu_id in sorted(self.devices)],
             "thresholds": {
                 "memory_warning_pct": self.thresholds.memory_warning_pct,
                 "memory_critical_pct": self.thresholds.memory_critical_pct,
@@ -542,9 +532,7 @@ class GPUMonitor:
             for alert in reversed(alerts)
         ]
 
-    def get_history(
-        self, gpu_id: int, minutes: int = 60
-    ) -> List[Dict[str, Any]]:
+    def get_history(self, gpu_id: int, minutes: int = 60) -> List[Dict[str, Any]]:
         """Get historical metrics for a GPU."""
         device = self.devices.get(gpu_id)
         if not device:

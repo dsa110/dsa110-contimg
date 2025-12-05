@@ -49,7 +49,6 @@ from typing import (
     List,
     Optional,
     TypeVar,
-    Union,
 )
 
 logger = logging.getLogger(__name__)
@@ -395,9 +394,7 @@ class ErrorRecoveryManager:
 
         return retry_result
 
-    async def _send_failure_alert(
-        self, operation_name: str, result: RetryResult
-    ) -> None:
+    async def _send_failure_alert(self, operation_name: str, result: RetryResult) -> None:
         """Send alert for failed operation."""
         if not self.alert_callback:
             return
@@ -563,9 +560,7 @@ def with_retry(
             result = await manager.execute_with_retry(func, *args, **kwargs)
             if result.success:
                 return result.result
-            raise RuntimeError(
-                f"All {result.attempt_count} attempts failed: {result.final_error}"
-            )
+            raise RuntimeError(f"All {result.attempt_count} attempts failed: {result.final_error}")
 
         return wrapper
 
@@ -605,9 +600,7 @@ def with_retry_sync(
             result = execute_with_retry_sync(func, *args, policy=policy, **kwargs)
             if result.success:
                 return result.result
-            raise RuntimeError(
-                f"All {result.attempt_count} attempts failed: {result.final_error}"
-            )
+            raise RuntimeError(f"All {result.attempt_count} attempts failed: {result.final_error}")
 
         return wrapper
 
@@ -796,9 +789,7 @@ class DeadLetterQueue:
             conn.commit()
             entry_id = cursor.lastrowid
 
-        logger.warning(
-            "Added to DLQ: %s (reason=%s, id=%d)", ms_path, reason.value, entry_id
-        )
+        logger.warning("Added to DLQ: %s (reason=%s, id=%d)", ms_path, reason.value, entry_id)
 
         # Send alert
         if self.alert_callback:
@@ -1040,9 +1031,7 @@ class CheckpointManager:
             return
 
         try:
-            self._state_machine.save_checkpoint(
-                checkpoint.ms_path, checkpoint.to_dict()
-            )
+            self._state_machine.save_checkpoint(checkpoint.ms_path, checkpoint.to_dict())
             logger.debug(
                 "Saved checkpoint for %s at stage %s (%.0f%%)",
                 checkpoint.ms_path,
@@ -1089,9 +1078,7 @@ class CheckpointManager:
             logger.error("Failed to clear checkpoint: %s", e)
 
     @contextmanager
-    def checkpoint_context(
-        self, ms_path: str, stage: str
-    ) -> Generator[Checkpoint, None, None]:
+    def checkpoint_context(self, ms_path: str, stage: str) -> Generator[Checkpoint, None, None]:
         """Context manager for checkpoint tracking.
 
         Automatically saves checkpoint on exit and clears on success.
@@ -1226,9 +1213,7 @@ class IntegratedErrorRecovery:
         if self._manager is None:
             alert_callback = None
             if self.webhook_url or self.slack_webhook:
-                alert_callback = await create_alert_callback(
-                    self.webhook_url, self.slack_webhook
-                )
+                alert_callback = await create_alert_callback(self.webhook_url, self.slack_webhook)
 
             metrics_callback = create_metrics_callback() if self.enable_metrics else None
 

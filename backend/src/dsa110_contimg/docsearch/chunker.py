@@ -13,6 +13,7 @@ from typing import Iterator
 @dataclass
 class Chunk:
     """A chunk of text from a document."""
+
     content: str
     file_path: str
     start_line: int
@@ -61,11 +62,7 @@ def chunk_document(
         if heading_match:
             # Emit current chunk if it exists
             if current_chunk_lines and current_char_count >= min_chars:
-                chunks.append(_create_chunk(
-                    current_chunk_lines,
-                    file_path,
-                    current_heading
-                ))
+                chunks.append(_create_chunk(current_chunk_lines, file_path, current_heading))
             current_heading = heading_match.group(2).strip()
             current_chunk_lines = []
             current_char_count = 0
@@ -76,11 +73,7 @@ def chunk_document(
 
         # Check if chunk is full
         if current_char_count >= char_size:
-            chunks.append(_create_chunk(
-                current_chunk_lines,
-                file_path,
-                current_heading
-            ))
+            chunks.append(_create_chunk(current_chunk_lines, file_path, current_heading))
 
             # Keep overlap lines for next chunk
             overlap_chars = 0
@@ -96,20 +89,12 @@ def chunk_document(
 
     # Emit final chunk
     if current_chunk_lines and current_char_count >= min_chars:
-        chunks.append(_create_chunk(
-            current_chunk_lines,
-            file_path,
-            current_heading
-        ))
+        chunks.append(_create_chunk(current_chunk_lines, file_path, current_heading))
 
     return chunks
 
 
-def _create_chunk(
-    lines: list[tuple[int, str]],
-    file_path: str,
-    heading: str
-) -> Chunk:
+def _create_chunk(lines: list[tuple[int, str]], file_path: str, heading: str) -> Chunk:
     """Create a Chunk from accumulated lines."""
     content = "\n".join(line for _, line in lines)
     start_line = lines[0][0]

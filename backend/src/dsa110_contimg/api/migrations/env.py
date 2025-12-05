@@ -19,14 +19,12 @@ from sqlalchemy import engine_from_config, pool
 # this is the Alembic Config object
 config = context.config
 
+
 # Get database URL from environment or use default
 def get_database_url():
     """Get the database URL for migrations."""
     # Unified database path (Phase 2 consolidation)
-    db_path = os.environ.get(
-        "PIPELINE_DB",
-        "/data/dsa110-contimg/state/db/pipeline.sqlite3"
-    )
+    db_path = os.environ.get("PIPELINE_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3")
     return f"sqlite:///{db_path}"
 
 
@@ -74,10 +72,7 @@ def run_migrations_online():
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection,
-            target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

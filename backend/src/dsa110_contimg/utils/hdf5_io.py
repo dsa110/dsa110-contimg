@@ -249,14 +249,16 @@ def open_uvh5(
         ...     times = f['time_array'][:]
         ...     data = f['visdata'][:]
     """
-    import h5py
     from contextlib import nullcontext
+
+    import h5py
 
     # Acquire FUSE-aware read lock if requested (only for read modes)
     lock_context = nullcontext()
     if use_fuse_lock and mode in ("r", "r+"):
         try:
             from dsa110_contimg.utils.fuse_lock import get_fuse_lock_manager
+
             lock_mgr = get_fuse_lock_manager()
             lock_context = lock_mgr.read_lock(str(path), timeout=lock_timeout)
         except ImportError:
@@ -421,14 +423,16 @@ def open_uvh5_mmap(
         >>> with open_uvh5_mmap("/data/small_file.hdf5") as f:
         ...     data = f['visdata'][:]  # Very fast sequential read
     """
-    import h5py
     from contextlib import nullcontext
+
+    import h5py
 
     # Acquire FUSE-aware read lock if requested
     lock_context = nullcontext()
     if use_fuse_lock:
         try:
             from dsa110_contimg.utils.fuse_lock import get_fuse_lock_manager
+
             lock_mgr = get_fuse_lock_manager()
             lock_context = lock_mgr.read_lock(str(path), timeout=lock_timeout)
         except ImportError:

@@ -305,9 +305,9 @@ def create_beam_mask_kernel(
     from astropy.convolution import Gaussian2DKernel
     from astropy.stats import gaussian_fwhm_to_sigma
 
-    assert (
-        0.0 < minimum_response < 1.0
-    ), f"{minimum_response=}, should be between 0 to 1 (exclusive)"
+    assert 0.0 < minimum_response < 1.0, (
+        f"{minimum_response=}, should be between 0 to 1 (exclusive)"
+    )
 
     if not all(key in fits_header for key in ["BMAJ", "BMIN", "BPA"]):
         raise KeyError("BMAJ, BMIN, BPA must be present in FITS header")

@@ -21,8 +21,8 @@ import numpy as np
 
 from dsa110_contimg.utils.gpu_safety import (
     check_system_memory_available,
-    safe_gpu_context,
     initialize_gpu_safety,
+    safe_gpu_context,
 )
 
 logger = logging.getLogger(__name__)
@@ -30,6 +30,7 @@ logger = logging.getLogger(__name__)
 # Try to import CuPy - graceful fallback if unavailable
 try:
     import cupy as cp
+
     CUPY_AVAILABLE = True
 except ImportError:
     cp = None
@@ -50,6 +51,7 @@ class RFIDetectionConfig:
         time_window: Time window for temporal RFI detection in seconds (default None)
         freq_window: Frequency window for spectral RFI detection in channels (default None)
     """
+
     threshold: float = 5.0
     gpu_id: int = 0
     chunk_size: int = 10_000_000
@@ -75,6 +77,7 @@ class RFIDetectionResult:
         pre_existing_flags: Number of visibilities already flagged
         error: Error message if detection failed (None if successful)
     """
+
     ms_path: str
     total_vis: int = 0
     flagged_vis: int = 0
@@ -158,13 +161,14 @@ def _estimate_ms_shape(ms_path: str) -> Tuple[int, int, int, int]:
     """
     try:
         from casatools import table as tb
+
         t = tb()
         t.open(str(ms_path))
 
         n_rows = t.nrows()
 
         # Get shape from first row
-        data_shape = t.getcell('DATA', 0).shape
+        data_shape = t.getcell("DATA", 0).shape
         n_channels = data_shape[0]
         n_corr = data_shape[1]
 
@@ -287,30 +291,27 @@ def gpu_rfi_detection(
                 chunk_rows = end_row - start_row
 
                 # Read chunk
-                data = t.getcol('DATA', startrow=start_row, nrow=chunk_rows)
-                existing_flags = t.getcol('FLAG', startrow=start_row, nrow=chunk_rows)
+                data = t.getcol("DATA", startrow=start_row, nrow=chunk_rows)
+                existing_flags = t.getcol("FLAG", startrow=start_row, nrow=chunk_rows)
 
                 # Count pre-existing flags
                 pre_existing += int(np.sum(existing_flags))
 
                 # Detect RFI on GPU
-                new_flags, n_flagged = _detect_outliers_cupy(
-                    data, config.threshold
-                )
+                new_flags, n_flagged = _detect_outliers_cupy(data, config.threshold)
 
                 total_flagged += n_flagged
 
                 # Apply flags if requested
                 if config.apply_flags and not config.detect_only:
                     combined_flags = existing_flags | new_flags
-                    t.putcol('FLAG', combined_flags, startrow=start_row, nrow=chunk_rows)
+                    t.putcol("FLAG", combined_flags, startrow=start_row, nrow=chunk_rows)
 
                 chunks_processed += 1
 
                 if chunks_processed % 10 == 0:
                     logger.debug(
-                        f"Processed {chunks_processed} chunks, "
-                        f"{total_flagged:,} flagged so far"
+                        f"Processed {chunks_processed} chunks, {total_flagged:,} flagged so far"
                     )
 
         t.close()
@@ -387,7 +388,7 @@ def cpu_rfi_detection(
             end_row = min(start_row + rows_per_chunk, n_rows)
             chunk_rows = end_row - start_row
 
-            data = t.getcol('DATA', startrow=start_row, nrow=chunk_rows)
+            data = t.getcol("DATA", startrow=start_row, nrow=chunk_rows)
 
             # CPU MAD detection
             amplitude = np.abs(data.ravel())

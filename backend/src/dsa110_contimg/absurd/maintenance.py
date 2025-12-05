@@ -21,7 +21,7 @@ import subprocess
 import tarfile
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -56,8 +56,12 @@ async def execute_backup_database(params: Dict[str, Any]) -> Dict[str, Any]:
     try:
         inputs = params.get("inputs", {})
         backup_type = inputs.get("backup_type", "hourly")
-        backup_root = Path(inputs.get("backup_root", os.environ.get("BACKUP_DIR", DEFAULT_BACKUP_ROOT)))
-        pipeline_db = Path(inputs.get("pipeline_db", os.environ.get("PIPELINE_DB", DEFAULT_PIPELINE_DB)))
+        backup_root = Path(
+            inputs.get("backup_root", os.environ.get("BACKUP_DIR", DEFAULT_BACKUP_ROOT))
+        )
+        pipeline_db = Path(
+            inputs.get("pipeline_db", os.environ.get("PIPELINE_DB", DEFAULT_PIPELINE_DB))
+        )
 
         # Determine backup directory and retention
         if backup_type == "daily":
@@ -165,8 +169,12 @@ async def execute_backup_caltables(params: Dict[str, Any]) -> Dict[str, Any]:
 
     try:
         inputs = params.get("inputs", {})
-        backup_root = Path(inputs.get("backup_root", os.environ.get("BACKUP_DIR", DEFAULT_BACKUP_ROOT)))
-        caltables_dir = Path(inputs.get("caltables_dir", os.environ.get("CALTABLES_DIR", DEFAULT_CALTABLES_DIR)))
+        backup_root = Path(
+            inputs.get("backup_root", os.environ.get("BACKUP_DIR", DEFAULT_BACKUP_ROOT))
+        )
+        caltables_dir = Path(
+            inputs.get("caltables_dir", os.environ.get("CALTABLES_DIR", DEFAULT_CALTABLES_DIR))
+        )
 
         backup_dir = backup_root / "daily"
         backup_dir.mkdir(parents=True, exist_ok=True)
@@ -247,13 +255,15 @@ async def execute_storage_reconciliation(params: Dict[str, Any]) -> Dict[str, An
         do_reconcile = inputs.get("do_reconcile", False)
         sync_threshold = inputs.get("sync_threshold", 95.0)
         hdf5_db = Path(inputs.get("hdf5_db", os.environ.get("HDF5_DB", DEFAULT_HDF5_DB)))
-        incoming_dir = Path(inputs.get("incoming_dir", os.environ.get("INCOMING_DIR", DEFAULT_INCOMING_DIR)))
+        incoming_dir = Path(
+            inputs.get("incoming_dir", os.environ.get("INCOMING_DIR", DEFAULT_INCOMING_DIR))
+        )
 
         # Import storage validator
         try:
             from dsa110_contimg.database.storage_validator import (
-                get_storage_metrics,
                 full_reconciliation,
+                get_storage_metrics,
             )
         except ImportError:
             return {
@@ -335,8 +345,11 @@ async def execute_health_check(params: Dict[str, Any]) -> Dict[str, Any]:
         # Check API health
         try:
             import aiohttp
+
             async with aiohttp.ClientSession() as session:
-                async with session.get(f"{api_url}/health", timeout=aiohttp.ClientTimeout(total=10)) as resp:
+                async with session.get(
+                    f"{api_url}/health", timeout=aiohttp.ClientTimeout(total=10)
+                ) as resp:
                     health_results["api_healthy"] = resp.status == 200
                     if resp.status != 200:
                         health_results["issues"].append(f"API returned status {resp.status}")
@@ -389,7 +402,9 @@ async def execute_health_check(params: Dict[str, Any]) -> Dict[str, Any]:
 
         health_results["overall_healthy"] = overall_healthy
 
-        status = "healthy" if overall_healthy else f"unhealthy ({len(health_results['issues'])} issues)"
+        status = (
+            "healthy" if overall_healthy else f"unhealthy ({len(health_results['issues'])} issues)"
+        )
         logger.info(f"[Maintenance] Health check complete: {status}")
 
         return {
@@ -429,9 +444,7 @@ async def execute_session_cleanup(params: Dict[str, Any]) -> Dict[str, Any]:
         cursor = conn.cursor()
 
         # Check if sessions table exists
-        cursor.execute(
-            "SELECT name FROM sqlite_master WHERE type='table' AND name='sessions'"
-        )
+        cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='sessions'")
         if not cursor.fetchone():
             conn.close()
             return {

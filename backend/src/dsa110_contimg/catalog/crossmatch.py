@@ -13,7 +13,7 @@ Features:
 """
 
 import logging
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Dict, Optional, Tuple
 
 import astropy.units as u
 import numpy as np
@@ -156,9 +156,7 @@ def calc_de_ruiter_beamwidth(
     sigma_dec1 = bmin1 / (2.0 * np.maximum(snr1, 1.0))
     sigma_dec2 = bmin2 / (2.0 * np.maximum(snr2, 1.0))
 
-    return calc_de_ruiter(
-        ra1, ra2, dec1, dec2, sigma_ra1, sigma_ra2, sigma_dec1, sigma_dec2
-    )
+    return calc_de_ruiter(ra1, ra2, dec1, dec2, sigma_ra1, sigma_ra2, sigma_dec1, sigma_dec2)
 
 
 def join_match_coordinates_sky(
@@ -307,9 +305,7 @@ def cross_match_sources(
             }
         )
 
-        logger.info(
-            f"Cross-matched {n_matched} sources with de Ruiter radius < {de_ruiter_limit}"
-        )
+        logger.info(f"Cross-matched {n_matched} sources with de Ruiter radius < {de_ruiter_limit}")
 
     else:
         # Simple radius matching (original behavior)

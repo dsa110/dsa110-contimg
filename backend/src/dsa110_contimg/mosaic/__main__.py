@@ -92,8 +92,10 @@ def cmd_nightly(args: argparse.Namespace) -> int:
     logger.info("=" * 60)
     logger.info(f"Target date: {target_date.date()}")
     logger.info(f"Mosaic name: {pipeline.mosaic_name}")
-    logger.info(f"Time range: {datetime.fromtimestamp(pipeline.start_time, tz=timezone.utc)} "
-                f"to {datetime.fromtimestamp(pipeline.end_time, tz=timezone.utc)}")
+    logger.info(
+        f"Time range: {datetime.fromtimestamp(pipeline.start_time, tz=timezone.utc)} "
+        f"to {datetime.fromtimestamp(pipeline.end_time, tz=timezone.utc)}"
+    )
     logger.info(f"Database: {config.database_path}")
     logger.info(f"Output: {config.mosaic_dir}")
     logger.info("=" * 60)
@@ -137,8 +139,10 @@ def cmd_on_demand(args: argparse.Namespace) -> int:
     logger.info("On-Demand Mosaic Pipeline")
     logger.info("=" * 60)
     logger.info(f"Name: {args.name}")
-    logger.info(f"Time range: {datetime.fromtimestamp(args.start, tz=timezone.utc)} "
-                f"to {datetime.fromtimestamp(args.end, tz=timezone.utc)}")
+    logger.info(
+        f"Time range: {datetime.fromtimestamp(args.start, tz=timezone.utc)} "
+        f"to {datetime.fromtimestamp(args.end, tz=timezone.utc)}"
+    )
     logger.info(f"Tier: {args.tier or 'auto'}")
     logger.info(f"Database: {config.database_path}")
     logger.info(f"Output: {config.mosaic_dir}")

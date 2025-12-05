@@ -75,6 +75,7 @@ class DirectSubbandWriter(MSWriter):
 
         try:
             from dsa110_contimg.utils.tempdirs import casa_log_environment
+
             with casa_log_environment():
                 from casatasks import concat as casa_concat
         except ImportError:
@@ -137,9 +138,11 @@ class DirectSubbandWriter(MSWriter):
                 try:
                     # Use lightweight peek to get midpoint time without full read
                     from dsa110_contimg.utils.fast_meta import peek_uvh5_phase_and_midtime
+
                     # Use FUSE-aware read lock to avoid racing with moves
                     try:
                         from dsa110_contimg.utils.fuse_lock import get_fuse_lock_manager
+
                         lm = get_fuse_lock_manager()
                     except Exception:
                         lm = None
@@ -161,8 +164,10 @@ class DirectSubbandWriter(MSWriter):
                     if group_pt_dec is None:
                         try:
                             from pyuvdata import UVData
+
                             try:
                                 from dsa110_contimg.utils.fuse_lock import get_fuse_lock_manager
+
                                 lm2 = get_fuse_lock_manager()
                             except Exception:
                                 lm2 = None
@@ -275,12 +280,11 @@ class DirectSubbandWriter(MSWriter):
                         failed_subbands.append((orig_idx, sorted_files[orig_idx], str(e)))
                         logger.error(f"Subband {orig_idx} ({sorted_files[orig_idx]}) failed: {e}")
                         break
-        
+
         # Report all failures if any occurred
         if failed_subbands:
             failure_details = "; ".join(
-                f"sb{idx}({Path(f).name}): {err[:100]}" 
-                for idx, f, err in failed_subbands
+                f"sb{idx}({Path(f).name}): {err[:100]}" for idx, f, err in failed_subbands
             )
             raise RuntimeError(
                 f"{len(failed_subbands)}/{len(futures)} subband writer processes failed. "
@@ -399,10 +403,11 @@ class DirectSubbandWriter(MSWriter):
                 ms_final_path.parent.mkdir(parents=True, exist_ok=True)
                 src_path = str(ms_stage_path)
                 dst_path = str(ms_final_path)
-                
+
                 # Use fuse_safe_move for robust FUSE filesystem handling
                 try:
                     from dsa110_contimg.utils.fuse_lock import fuse_safe_move
+
                     fuse_safe_move(src_path, dst_path, timeout=60.0)
                     ms_stage_path = ms_final_path
                 except ImportError:
@@ -411,7 +416,9 @@ class DirectSubbandWriter(MSWriter):
                     ms_stage_path = ms_final_path
                 except Exception as move_err:
                     # Log error and fall back to plain move
-                    logger.warning(f"fuse_safe_move failed: {move_err}, falling back to shutil.move")
+                    logger.warning(
+                        f"fuse_safe_move failed: {move_err}, falling back to shutil.move"
+                    )
                     shutil.move(src_path, dst_path)
                     ms_stage_path = ms_final_path
 
@@ -452,15 +459,18 @@ class DirectSubbandWriter(MSWriter):
 
                     # Replace multi-SPW MS with single-SPW MS
                     shutil.rmtree(ms_multi_spw, ignore_errors=True)
-                    
+
                     # Use fuse_safe_move for robust FUSE filesystem handling
                     try:
                         from dsa110_contimg.utils.fuse_lock import fuse_safe_move
+
                         fuse_safe_move(ms_single_spw, ms_multi_spw, timeout=60.0)
                     except ImportError:
                         shutil.move(ms_single_spw, ms_multi_spw)
                     except Exception as move_err:
-                        logger.warning(f"fuse_safe_move failed: {move_err}, falling back to shutil.move")
+                        logger.warning(
+                            f"fuse_safe_move failed: {move_err}, falling back to shutil.move"
+                        )
                         shutil.move(ms_single_spw, ms_multi_spw)
 
                     n_spw_after = get_spw_count(str(ms_stage_path))
@@ -495,8 +505,7 @@ class DirectSubbandWriter(MSWriter):
                         continue
                     else:
                         logger.warning(
-                            f"Cleanup incomplete after {max_cleanup_attempts} attempts: "
-                            f"{part_base}"
+                            f"Cleanup incomplete after {max_cleanup_attempts} attempts: {part_base}"
                         )
                 break
             except Exception as cleanup_err:
@@ -535,6 +544,7 @@ def _write_ms_subband_part(
         Path to created MS file
     """
     from pyuvdata import UVData
+
     # Acquire a process-level shared lock on the input file to prevent it being
     # moved/deleted while this process is reading it (avoids .fuse_hidden* on FUSE).
     lock_fd = None
@@ -643,8 +653,10 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
         str: Writer type used
     """
     import numpy as np
+
     try:
         from dsa110_contimg.utils.tempdirs import casa_log_environment
+
         with casa_log_environment():
             from casatasks import concat as casa_concat
     except ImportError:
@@ -663,8 +675,10 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
         for sb_file in file_list:
             try:
                 from dsa110_contimg.utils.fast_meta import peek_uvh5_phase_and_midtime
+
                 try:
                     from dsa110_contimg.utils.fuse_lock import get_fuse_lock_manager
+
                     lm = get_fuse_lock_manager()
                 except Exception:
                     lm = None
@@ -683,8 +697,10 @@ def write_ms_from_subbands(file_list, ms_path, scratch_dir=None):
                 # Fallback: read file fully if peek fails
                 try:
                     from pyuvdata import UVData
+
                     try:
                         from dsa110_contimg.utils.fuse_lock import get_fuse_lock_manager
+
                         lm2 = get_fuse_lock_manager()
                     except Exception:
                         lm2 = None

@@ -10,8 +10,6 @@ Implements Proposal #8: Coverage-Aware Catalog Selection
 import logging
 from typing import Dict, List, Optional, Tuple
 
-import numpy as np
-
 logger = logging.getLogger(__name__)
 
 
@@ -226,7 +224,7 @@ def recommend_catalogs(
             # Prefer high-resolution catalogs
             if coverage["resolution_arcsec"] <= 10.0:
                 priority = 1
-                reason = f"High resolution ({coverage['resolution_arcsec']:.1f}\")"
+                reason = f'High resolution ({coverage["resolution_arcsec"]:.1f}")'
             else:
                 priority = 3
                 reason = "Lower resolution, less accurate astrometry"
@@ -238,7 +236,7 @@ def recommend_catalogs(
             # Prefer high resolution
             if coverage["resolution_arcsec"] <= 15.0:
                 priority = 1
-                reason = f"Good resolution ({coverage['resolution_arcsec']:.1f}\")"
+                reason = f'Good resolution ({coverage["resolution_arcsec"]:.1f}")'
             else:
                 priority = 3
                 reason = "Lower resolution"
@@ -387,7 +385,7 @@ def print_coverage_summary():
         print(f"\n{info['name']} ({cat_type.upper()})")
         print(f"  Frequency:   {info['frequency_ghz']} GHz")
         print(f"  Declination: {info['dec_min']:+.0f}° to {info['dec_max']:+.0f}°")
-        print(f"  Resolution:  {info['resolution_arcsec']:.1f}\"")
+        print(f'  Resolution:  {info["resolution_arcsec"]:.1f}"')
         print(f"  RMS:         {info['typical_rms_mjy']:.2f} mJy")
         print(f"  Limit:       {info['flux_limit_mjy']:.1f} mJy (5σ)")
         print(f"  Best for:    {', '.join(info['best_for'])}")

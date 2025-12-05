@@ -8,7 +8,7 @@ from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from ..auth import require_write_access, AuthContext
+from ..auth import AuthContext, require_write_access
 
 router = APIRouter(prefix="/queue", tags=["queue"])
 
@@ -19,6 +19,7 @@ async def get_queue_stats():
     Get job queue statistics.
     """
     from ..job_queue import job_queue
+
     return job_queue.get_queue_stats()
 
 
@@ -30,8 +31,8 @@ async def list_queued_jobs(
     """
     List jobs in the queue.
     """
-    from ..job_queue import job_queue, JobStatus
-    
+    from ..job_queue import JobStatus, job_queue
+
     status_filter = None
     if status:
         try:
@@ -44,7 +45,7 @@ async def list_queued_jobs(
                     f"Valid values: queued, started, finished, failed"
                 },
             )
-    
+
     jobs = job_queue.list_jobs(status=status_filter, limit=limit)
     return [job.to_dict() for job in jobs]
 
@@ -55,14 +56,14 @@ async def get_queued_job(job_id: str):
     Get status and details of a specific queued job.
     """
     from ..job_queue import job_queue
-    
+
     job_info = job_queue.get_job(job_id)
     if not job_info:
         raise HTTPException(
             status_code=404,
             detail={"error": f"Job {job_id} not found"},
         )
-    
+
     return job_info.to_dict()
 
 
@@ -73,16 +74,16 @@ async def cancel_queued_job(
 ):
     """
     Cancel a queued job.
-    
+
     Requires authentication with write access.
     """
     from ..job_queue import job_queue
-    
+
     success = job_queue.cancel(job_id)
     if not success:
         raise HTTPException(
             status_code=404,
             detail={"error": f"Job {job_id} not found or could not be canceled"},
         )
-    
+
     return {"status": "canceled", "job_id": job_id}

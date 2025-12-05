@@ -137,7 +137,7 @@ def build_time_arrays(config: TelescopeConfig, nbls: int, ntimes: int, start_tim
 
     Returns:
         Tuple of (unique_times_jd, time_array, integration_time)
-        
+
     Note:
         Times are returned in Julian Date (JD) format as required by pyuvdata.
         LST is not computed here - use UVData.set_lsts_from_time_array()
@@ -149,7 +149,7 @@ def build_time_arrays(config: TelescopeConfig, nbls: int, ntimes: int, start_tim
     unique_times = start_time.jd + dt_days * np.arange(ntimes)
     time_array = np.repeat(unique_times, nbls)
     integration_time = np.full(time_array.shape, config.integration_time_sec, dtype=float)
-    
+
     return unique_times, time_array, integration_time
 
 
@@ -174,7 +174,7 @@ def build_uvw(
     """
     nbls = len(ant1_array)
     ntimes = len(unique_times_jd)
-    
+
     # Convert JD to MJD for calc_uvw_blt (which expects MJD)
     unique_times_mjd = unique_times_jd - 2400000.5
 
@@ -331,9 +331,7 @@ def build_uvdata_from_scratch(
     ant2_list = [b[1] for b in baselines]
 
     # Build time arrays (LST computed later via set_lsts_from_time_array)
-    unique_times, time_array, integration_time = build_time_arrays(
-        config, nbls, ntimes, start_time
-    )
+    unique_times, time_array, integration_time = build_time_arrays(config, nbls, ntimes, start_time)
 
     # Build UVW array
     uvw_array = build_uvw(
@@ -418,6 +416,7 @@ def build_uvdata_from_scratch(
 
     # Set telescope metadata using the Telescope object (pyuvdata 3.x API)
     from pyuvdata import Telescope
+
     tel = Telescope()
     tel.name = "DSA-110"
     tel.instrument = "DSA-110"  # Required for pyuvdata 3.x UVH5 write
@@ -503,7 +502,7 @@ def write_subband_uvh5(
 
     Returns:
         Path to created UVH5 file
-        
+
     Note:
         LST is computed internally via set_lsts_from_time_array() for
         self-consistency with the telescope location.

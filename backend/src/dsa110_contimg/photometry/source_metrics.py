@@ -10,7 +10,7 @@ Reference: askap-vast/vast-pipeline models.py, pipeline/utils.py
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class SourceMorphologyMetrics:
     """Morphological metrics for a radio source.
-    
+
     Attributes:
         compactness: Ratio of integrated to peak flux (flux_int / flux_peak).
             Values close to 1 indicate point sources; >1 indicates extended.
@@ -52,11 +52,11 @@ class SourceMorphologyMetrics:
 @dataclass
 class IslandMetrics:
     """Island (connected component) metrics for a source.
-    
+
     In radio source finding, an "island" is a connected region of pixels
     above the detection threshold. A single island may contain multiple
     fitted components (sources).
-    
+
     Attributes:
         flux_int_isl_ratio: Ratio of component integrated flux to total island flux
         flux_peak_isl_ratio: Ratio of component peak flux to island peak flux
@@ -88,7 +88,7 @@ class IslandMetrics:
 @dataclass
 class SpatialMetrics:
     """Spatial relationship metrics for a source.
-    
+
     Attributes:
         n_neighbour_dist: Distance to nearest neighbor (degrees)
         n_neighbours_3arcmin: Number of neighbors within 3 arcmin
@@ -115,12 +115,12 @@ class SpatialMetrics:
         }
 
 
-@dataclass 
+@dataclass
 class SourceQAMetrics:
     """Complete source-level QA metrics.
-    
+
     Combines all source metrics into a single container.
-    
+
     Attributes:
         source_id: Source identifier
         ra_deg: Right ascension (degrees)
@@ -166,27 +166,27 @@ def calculate_compactness(
     flux_peak: float,
 ) -> float:
     """Calculate source compactness (integrated / peak flux).
-    
+
     Adopted from VAST Pipeline: pipeline/utils.py
-    
+
     Compactness indicates source morphology:
     - ~1.0: Point source (unresolved)
     - >1.0: Extended source (resolved)
     - <1.0: Indicates fitting issues (should be rare)
-    
+
     Args:
         flux_int: Integrated flux (Jy)
         flux_peak: Peak flux (Jy/beam)
-        
+
     Returns:
         Compactness ratio
-        
+
     Raises:
         ValueError: If peak flux is zero or negative
     """
     if flux_peak <= 0:
         raise ValueError("Peak flux must be positive")
-    
+
     return flux_int / flux_peak
 
 
@@ -195,20 +195,20 @@ def calculate_snr(
     local_rms: float,
 ) -> float:
     """Calculate signal-to-noise ratio.
-    
+
     Args:
         flux_peak: Peak flux (Jy/beam)
         local_rms: Local RMS noise (Jy/beam)
-        
+
     Returns:
         SNR value
-        
+
     Raises:
         ValueError: If local_rms is zero or negative
     """
     if local_rms <= 0:
         raise ValueError("Local RMS must be positive")
-    
+
     return flux_peak / local_rms
 
 
@@ -219,24 +219,24 @@ def calculate_island_flux_ratios(
     island_flux_peak: float,
 ) -> Tuple[float, float]:
     """Calculate island flux ratios for a component.
-    
+
     Adopted from VAST Pipeline: models.py Measurement model
-    
+
     These ratios indicate what fraction of island flux belongs to this component.
     Values significantly less than 1.0 indicate blended sources.
-    
+
     Args:
         component_flux_int: Component integrated flux
         component_flux_peak: Component peak flux
         island_flux_int: Total island integrated flux
         island_flux_peak: Total island peak flux
-        
+
     Returns:
         Tuple of (flux_int_isl_ratio, flux_peak_isl_ratio)
     """
     flux_int_ratio = component_flux_int / island_flux_int if island_flux_int > 0 else 1.0
     flux_peak_ratio = component_flux_peak / island_flux_peak if island_flux_peak > 0 else 1.0
-    
+
     return flux_int_ratio, flux_peak_ratio
 
 
@@ -251,7 +251,7 @@ def compute_morphology_metrics(
     dof: Optional[int] = None,
 ) -> SourceMorphologyMetrics:
     """Compute morphological metrics for a source.
-    
+
     Args:
         flux_peak: Peak flux (Jy/beam)
         flux_int: Integrated flux (Jy)
@@ -261,30 +261,30 @@ def compute_morphology_metrics(
         beam_minor_arcsec: Beam minor axis (arcsec)
         chi_squared: Chi-squared of Gaussian fit
         dof: Degrees of freedom
-        
+
     Returns:
         SourceMorphologyMetrics
     """
     compactness = calculate_compactness(flux_int, flux_peak)
-    
+
     # Determine if resolved
     is_resolved = compactness > 1.2  # 20% larger than point source
-    
+
     # Compute axis ratio if available
     a_over_b = None
     if major_arcsec is not None and minor_arcsec is not None and minor_arcsec > 0:
         a_over_b = major_arcsec / minor_arcsec
-    
+
     # Also check if deconvolved size > beam (indicates resolved)
     if major_arcsec and beam_major_arcsec:
         if major_arcsec > beam_major_arcsec * 1.1:  # 10% larger than beam
             is_resolved = True
-    
+
     # Reduced chi-squared
     reduced_chi2 = None
     if chi_squared is not None and dof is not None and dof > 0:
         reduced_chi2 = chi_squared / dof
-    
+
     return SourceMorphologyMetrics(
         compactness=compactness,
         is_resolved=is_resolved,
@@ -301,31 +301,30 @@ def compute_island_metrics(
     island_id: Optional[str] = None,
 ) -> IslandMetrics:
     """Compute island metrics for a source component.
-    
+
     Args:
         component_flux_int: This component's integrated flux
         component_flux_peak: This component's peak flux
         island_components: List of all components in island, each with
             'flux_int' and 'flux_peak' keys
         island_id: Optional island identifier
-        
+
     Returns:
         IslandMetrics
     """
     n_components = len(island_components)
     has_siblings = n_components > 1
     n_siblings = n_components - 1 if n_components > 1 else 0
-    
+
     # Calculate total island flux
     island_flux_int = sum(c.get("flux_int", 0) for c in island_components)
     island_flux_peak = max((c.get("flux_peak", 0) for c in island_components), default=0)
-    
+
     # Calculate ratios
     flux_int_ratio, flux_peak_ratio = calculate_island_flux_ratios(
-        component_flux_int, component_flux_peak,
-        island_flux_int, island_flux_peak
+        component_flux_int, component_flux_peak, island_flux_int, island_flux_peak
     )
-    
+
     return IslandMetrics(
         flux_int_isl_ratio=flux_int_ratio,
         flux_peak_isl_ratio=flux_peak_ratio,
@@ -343,50 +342,50 @@ def compute_nearest_neighbor_distance(
     all_dec_deg: np.ndarray,
 ) -> float:
     """Compute distance to nearest neighbor.
-    
+
     Adopted from VAST Pipeline: Source.n_neighbour_dist
-    
+
     Args:
         ra_deg: RA of target source
         dec_deg: Dec of target source
         all_ra_deg: RA of all sources (including target)
         all_dec_deg: Dec of all sources (including target)
-        
+
     Returns:
         Distance to nearest neighbor in degrees
     """
     if len(all_ra_deg) < 2:
         return float("inf")
-    
+
     # Convert to 3D Cartesian for spherical distance
     cos_dec = np.cos(np.radians(all_dec_deg))
     x = cos_dec * np.cos(np.radians(all_ra_deg))
     y = cos_dec * np.sin(np.radians(all_ra_deg))
     z = np.sin(np.radians(all_dec_deg))
-    
+
     coords_3d = np.column_stack([x, y, z])
-    
+
     # Build KD-tree
     tree = cKDTree(coords_3d)
-    
+
     # Query for this source
     target_cos_dec = np.cos(np.radians(dec_deg))
     target_x = target_cos_dec * np.cos(np.radians(ra_deg))
     target_y = target_cos_dec * np.sin(np.radians(ra_deg))
     target_z = np.sin(np.radians(dec_deg))
     target_coord = np.array([target_x, target_y, target_z])
-    
+
     # Get 2 nearest (first is self)
     distances, _ = tree.query(target_coord, k=min(2, len(all_ra_deg)))
-    
+
     if len(distances) < 2:
         return float("inf")
-    
+
     # Convert chord distance back to angular distance
     # chord = 2 * sin(theta/2), so theta = 2 * arcsin(chord/2)
     chord_distance = distances[1]  # Skip self
     angular_dist_rad = 2 * np.arcsin(min(chord_distance / 2, 1.0))
-    
+
     return float(np.degrees(angular_dist_rad))
 
 
@@ -398,40 +397,38 @@ def compute_spatial_metrics(
     isolation_threshold_arcmin: float = 1.0,
 ) -> SpatialMetrics:
     """Compute spatial relationship metrics.
-    
+
     Args:
         ra_deg: RA of target source
         dec_deg: Dec of target source
         all_ra_deg: RA of all sources
         all_dec_deg: Dec of all sources
         isolation_threshold_arcmin: Threshold for isolation (arcmin)
-        
+
     Returns:
         SpatialMetrics
     """
-    n_neighbour_dist = compute_nearest_neighbor_distance(
-        ra_deg, dec_deg, all_ra_deg, all_dec_deg
-    )
-    
+    n_neighbour_dist = compute_nearest_neighbor_distance(ra_deg, dec_deg, all_ra_deg, all_dec_deg)
+
     # Count neighbors within thresholds
     # Use simple angular separation for counting
     cos_dec = np.cos(np.radians(dec_deg))
     delta_ra = (all_ra_deg - ra_deg) * cos_dec
     delta_dec = all_dec_deg - dec_deg
     sep_deg = np.sqrt(delta_ra**2 + delta_dec**2)
-    
+
     # Exclude self (separation ~ 0)
     sep_deg = sep_deg[sep_deg > 1e-10]
-    
+
     n_neighbours_3arcmin = int(np.sum(sep_deg < 3.0 / 60))
     n_neighbours_1arcmin = int(np.sum(sep_deg < 1.0 / 60))
-    
+
     is_isolated = n_neighbour_dist > (isolation_threshold_arcmin / 60)
-    
+
     # Crowding parameter: sources per square arcmin within 3 arcmin
     area_3arcmin = np.pi * 3.0**2  # square arcmin
     crowding = n_neighbours_3arcmin / area_3arcmin if area_3arcmin > 0 else 0
-    
+
     return SpatialMetrics(
         n_neighbour_dist=n_neighbour_dist,
         n_neighbours_3arcmin=n_neighbours_3arcmin,
@@ -460,7 +457,7 @@ def compute_source_qa_metrics(
     all_source_coords: Optional[Tuple[np.ndarray, np.ndarray]] = None,
 ) -> SourceQAMetrics:
     """Compute complete source QA metrics.
-    
+
     Args:
         source_id: Source identifier
         ra_deg: Right ascension (degrees)
@@ -477,13 +474,13 @@ def compute_source_qa_metrics(
         island_components: List of components in same island
         island_id: Island identifier
         all_source_coords: Tuple of (all_ra, all_dec) for neighbor calculations
-        
+
     Returns:
         SourceQAMetrics with all computed metrics
     """
     # Calculate SNR
     snr = calculate_snr(flux_peak, local_rms)
-    
+
     # Morphology metrics
     morphology = compute_morphology_metrics(
         flux_peak=flux_peak,
@@ -495,7 +492,7 @@ def compute_source_qa_metrics(
         chi_squared=chi_squared,
         dof=dof,
     )
-    
+
     # Island metrics
     island = None
     if island_components is not None:
@@ -505,7 +502,7 @@ def compute_source_qa_metrics(
             island_components=island_components,
             island_id=island_id,
         )
-    
+
     # Spatial metrics
     spatial = None
     if all_source_coords is not None:
@@ -516,7 +513,7 @@ def compute_source_qa_metrics(
             all_ra_deg=all_ra,
             all_dec_deg=all_dec,
         )
-    
+
     return SourceQAMetrics(
         source_id=source_id,
         ra_deg=ra_deg,
@@ -537,10 +534,10 @@ def batch_compute_source_metrics(
     beam_minor_arcsec: Optional[float] = None,
 ) -> List[SourceQAMetrics]:
     """Batch compute metrics for multiple sources.
-    
+
     More efficient than computing one at a time because neighbor
     distances can be computed using a single KD-tree.
-    
+
     Args:
         sources: List of source dicts with keys:
             - source_id, ra_deg, dec_deg
@@ -548,18 +545,18 @@ def batch_compute_source_metrics(
             - Optional: major_arcsec, minor_arcsec, chi_squared, dof
         beam_major_arcsec: Beam major axis (arcsec)
         beam_minor_arcsec: Beam minor axis (arcsec)
-        
+
     Returns:
         List of SourceQAMetrics
     """
     if not sources:
         return []
-    
+
     # Extract all coordinates for neighbor calculation
     all_ra = np.array([s["ra_deg"] for s in sources])
     all_dec = np.array([s["dec_deg"] for s in sources])
     all_coords = (all_ra, all_dec)
-    
+
     results = []
     for src in sources:
         metrics = compute_source_qa_metrics(
@@ -578,5 +575,5 @@ def batch_compute_source_metrics(
             all_source_coords=all_coords,
         )
         results.append(metrics)
-    
+
     return results

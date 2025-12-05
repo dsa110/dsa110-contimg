@@ -11,7 +11,6 @@ Provides REST API endpoints for:
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -84,7 +83,10 @@ class FullPipelineRequest(BaseModel):
 class StageTaskRequest(BaseModel):
     """Request to run an individual pipeline stage."""
 
-    stage: str = Field(..., description="Stage name: conversion, calibration-solve, calibration-apply, imaging, validation, crossmatch, photometry")
+    stage: str = Field(
+        ...,
+        description="Stage name: conversion, calibration-solve, calibration-apply, imaging, validation, crossmatch, photometry",
+    )
     params: Dict[str, Any] = Field(..., description="Stage-specific parameters")
     priority: int = Field(default=0, description="Task priority")
 
@@ -176,9 +178,7 @@ async def run_registered_pipeline(
     # Get database path from environment or default
     import os
 
-    db_path = os.environ.get(
-        "PIPELINE_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3"
-    )
+    db_path = os.environ.get("PIPELINE_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3")
 
     # Spawn the pipeline-run task
     try:
@@ -342,8 +342,7 @@ async def list_available_stages():
 
     return {
         "stages": [
-            {"name": name, "description": stage_info.get(name, "")}
-            for name in SUPPORTED_STAGES
+            {"name": name, "description": stage_info.get(name, "")} for name in SUPPORTED_STAGES
         ],
         "total": len(SUPPORTED_STAGES),
     }
@@ -515,9 +514,7 @@ async def list_executions(
     import os
     import sqlite3
 
-    db_path = os.environ.get(
-        "PIPELINE_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3"
-    )
+    db_path = os.environ.get("PIPELINE_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3")
 
     if not Path(db_path).exists():
         return ExecutionListResponse(executions=[], total=0)
@@ -589,9 +586,7 @@ async def get_execution(execution_id: str):
     import os
     import sqlite3
 
-    db_path = os.environ.get(
-        "PIPELINE_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3"
-    )
+    db_path = os.environ.get("PIPELINE_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3")
 
     if not Path(db_path).exists():
         raise HTTPException(

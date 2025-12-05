@@ -166,8 +166,8 @@ async def execute_record_subband(params: Dict[str, Any]) -> Dict[str, Any]:
         # This requires database access - delegate to helper
         from dsa110_contimg.absurd.ingestion_db import (
             find_or_create_group,
-            record_subband,
             get_group_subband_count,
+            record_subband,
         )
 
         canonical_group_id = await find_or_create_group(
@@ -194,10 +194,12 @@ async def execute_record_subband(params: Dict[str, Any]) -> Dict[str, Any]:
 
         # If complete, spawn normalize-group task
         if group_complete:
-            logger.info(f"[Absurd/Ingestion] Group {canonical_group_id} complete, spawning normalize task")
+            logger.info(
+                f"[Absurd/Ingestion] Group {canonical_group_id} complete, spawning normalize task"
+            )
             from dsa110_contimg.absurd import AbsurdClient
             from dsa110_contimg.absurd.config import AbsurdConfig
-            
+
             config = AbsurdConfig.from_env()
             async with AbsurdClient(config.database_url) as client:
                 await client.spawn_task(
@@ -339,7 +341,7 @@ async def execute_normalize_group(params: Dict[str, Any]) -> Dict[str, Any]:
         # Spawn convert-group task
         from dsa110_contimg.absurd import AbsurdClient
         from dsa110_contimg.absurd.config import AbsurdConfig
-        
+
         config = AbsurdConfig.from_env()
         async with AbsurdClient(config.database_url) as client:
             await client.spawn_task(
@@ -626,8 +628,7 @@ async def setup_ingestion_schedule(client: "AbsurdClient") -> Dict[str, Any]:
 
 # Task chain for complete ingestion pipeline
 INGESTION_CHAIN = [
-    "ingest-subband",      # Record file arrival (triggered by scan)
-    "normalize-group",     # Normalize filenames when complete
-    "convert-group",       # Convert to MS
+    "ingest-subband",  # Record file arrival (triggered by scan)
+    "normalize-group",  # Normalize filenames when complete
+    "convert-group",  # Convert to MS
 ]
-

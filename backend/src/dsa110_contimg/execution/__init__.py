@@ -71,13 +71,15 @@ from dsa110_contimg.execution.task import (
 )
 from dsa110_contimg.execution.validate import (
     ValidationResult,
-    ValidationError,
     validate_execution_task,
 )
-from dsa110_contimg.execution.adapter import (
-    convert_group_unified,
+
+# Import adapter functions LAST to avoid circular imports
+# (adapter.py imports ExecutionTask and get_executor from this module)
+from dsa110_contimg.execution.adapter import (  # noqa: E402
     convert_group_inprocess,
     convert_group_subprocess,
+    convert_group_unified,
     create_task_from_group,
     execute_conversion,
 )

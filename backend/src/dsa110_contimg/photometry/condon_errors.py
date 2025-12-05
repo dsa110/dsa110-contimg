@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Optional, Tuple
+from typing import Tuple
 
 import numpy as np
 
@@ -26,14 +26,14 @@ logger = logging.getLogger(__name__)
 # These control how uncertainties scale with source size relative to beam
 DEFAULT_ALPHA_MAJ1 = 1.5  # For flux and size errors
 DEFAULT_ALPHA_MIN1 = 1.5
-DEFAULT_ALPHA_MAJ2 = 2.5  # For position errors  
+DEFAULT_ALPHA_MAJ2 = 2.5  # For position errors
 DEFAULT_ALPHA_MIN2 = 0.5
 
 
 @dataclass
 class CondonFluxErrors:
     """Flux and size errors calculated using Condon (1997) methodology.
-    
+
     Attributes:
         flux_peak_err: Peak flux error (Jy/beam)
         flux_int_err: Integrated flux error (Jy)
@@ -62,7 +62,7 @@ class CondonFluxErrors:
 @dataclass
 class CondonPositionErrors:
     """Positional errors calculated using Condon (1997) methodology.
-    
+
     Attributes:
         ra_err_arcsec: RA error (arcsec)
         dec_err_arcsec: Dec error (arcsec)
@@ -85,7 +85,7 @@ class CondonPositionErrors:
 @dataclass
 class CondonErrors:
     """Complete Condon (1997) errors for a source.
-    
+
     Attributes:
         flux: Flux and size errors
         position: Positional errors
@@ -124,15 +124,15 @@ def calc_condon_flux_errors(
     frac_flux_cal_error: float = 0.0,
 ) -> CondonFluxErrors:
     """Calculate flux and size errors using Condon (1997) equations.
-    
+
     Adapted from VAST Pipeline: image/utils.py::calc_condon_flux_errors()
-    
+
     The Condon (1997) formulas provide more accurate flux uncertainties
     by accounting for:
     - Source size relative to beam (resolved vs unresolved)
     - SNR of the detection
     - Correlation between fitted parameters
-    
+
     Args:
         flux_peak: Peak flux (Jy/beam)
         flux_int: Integrated flux (Jy)
@@ -146,10 +146,10 @@ def calc_condon_flux_errors(
         alpha_maj1: Exponent for major axis scaling (default 1.5)
         alpha_min1: Exponent for minor axis scaling (default 1.5)
         frac_flux_cal_error: Fractional flux calibration error (default 0)
-        
+
     Returns:
         CondonFluxErrors with all flux and size uncertainties
-        
+
     Raises:
         ValueError: If any inputs are invalid (non-positive where required)
     """
@@ -160,62 +160,62 @@ def calc_condon_flux_errors(
         raise ValueError("Local RMS must be positive")
     if beam_major_arcsec <= 0 or beam_minor_arcsec <= 0:
         raise ValueError("Beam dimensions must be positive")
-    
+
     # Convert to consistent units (arcsec -> degrees internally)
     major = major_arcsec / 3600.0
     minor = minor_arcsec / 3600.0
     theta_B = beam_major_arcsec / 3600.0
     theta_b = beam_minor_arcsec / 3600.0
-    
+
     # Handle degenerate cases
     if major <= 0 or minor <= 0:
         # Point source: use beam as proxy
         major = theta_B
         minor = theta_b
-    
+
     # Calculate rho_sq term (Eq. 21 in Condon 1997)
     # This is the SNR-weighted beam-to-source area ratio
     rho_sq = (
-        (major * minor / (4.0 * theta_B * theta_b)) 
+        (major * minor / (4.0 * theta_B * theta_b))
         * (1.0 + (theta_B / major) ** 2) ** alpha_maj1
         * (1.0 + (theta_b / minor) ** 2) ** alpha_min1
-        * snr ** 2
+        * snr**2
     )
-    
+
     # Ensure rho_sq is positive and finite
     if not (np.isfinite(rho_sq) and rho_sq > 0):
         # Fallback to simple noise-based errors
         return CondonFluxErrors(
             flux_peak_err=local_rms,
-            flux_int_err=local_rms * np.sqrt(major_arcsec * minor_arcsec / 
-                                             (beam_major_arcsec * beam_minor_arcsec)),
+            flux_int_err=local_rms
+            * np.sqrt(major_arcsec * minor_arcsec / (beam_major_arcsec * beam_minor_arcsec)),
             major_err_arcsec=beam_major_arcsec / snr,
             minor_err_arcsec=beam_minor_arcsec / snr,
             pa_err_deg=90.0 / snr,  # Rough estimate
         )
-    
+
     rho = np.sqrt(rho_sq)
-    
+
     # Peak flux error (Eq. 22)
     flux_peak_err = abs(flux_peak) / rho
-    
+
     # Add flux calibration error in quadrature
     if frac_flux_cal_error > 0:
         flux_cal_err = abs(flux_peak) * frac_flux_cal_error
         flux_peak_err = np.sqrt(flux_peak_err**2 + flux_cal_err**2)
-    
+
     # Integrated flux error
     # For a 2D Gaussian: S_int = S_peak * (a * b) / (beam_a * beam_b)
     # Error propagation gives larger errors for resolved sources
     beam_ratio = (major * minor) / (theta_B * theta_b)
     flux_int_err = flux_peak_err * np.sqrt(beam_ratio) if beam_ratio >= 1 else flux_peak_err
-    
+
     # Major axis error (Eq. 23-25)
     major_err = (2.0 * major) / rho
-    
+
     # Minor axis error
     minor_err = (2.0 * minor) / rho
-    
+
     # Position angle error (Eq. 26)
     # PA error depends on axis ratio; circular sources have undefined PA
     axis_ratio = major / minor if minor > 0 else 1.0
@@ -223,7 +223,7 @@ def calc_condon_flux_errors(
         pa_err = np.degrees(2.0 / (rho * (axis_ratio**2 - 1)))
     else:
         pa_err = 180.0  # Effectively undefined
-    
+
     return CondonFluxErrors(
         flux_peak_err=float(flux_peak_err),
         flux_int_err=float(flux_int_err),
@@ -247,12 +247,12 @@ def calc_condon_position_errors(
     systematic_dec_arcsec: float = 0.0,
 ) -> CondonPositionErrors:
     """Calculate positional errors using Condon (1997) equations.
-    
+
     Adapted from VAST Pipeline: image/utils.py::calc_condon_flux_errors()
-    
+
     Positional errors scale as ~beam / SNR for point sources, but more
     slowly for resolved sources due to the alpha exponents.
-    
+
     Args:
         snr: Signal-to-noise ratio
         major_arcsec: Fitted major axis (arcsec)
@@ -264,7 +264,7 @@ def calc_condon_position_errors(
         alpha_min2: Exponent for minor axis scaling (default 0.5)
         systematic_ra_arcsec: Systematic RA error to add in quadrature
         systematic_dec_arcsec: Systematic Dec error to add in quadrature
-        
+
     Returns:
         CondonPositionErrors with RA/Dec uncertainties
     """
@@ -272,27 +272,27 @@ def calc_condon_position_errors(
         raise ValueError("SNR must be positive")
     if beam_major_arcsec <= 0 or beam_minor_arcsec <= 0:
         raise ValueError("Beam dimensions must be positive")
-    
+
     # Convert to degrees
     major = major_arcsec / 3600.0
     minor = minor_arcsec / 3600.0
     theta_B = beam_major_arcsec / 3600.0
     theta_b = beam_minor_arcsec / 3600.0
     theta_rad = np.radians(pa_deg)
-    
+
     # Handle point sources
     if major <= 0 or minor <= 0:
         major = theta_B
         minor = theta_b
-    
+
     # Calculate rho_sq for positional errors (uses alpha_maj2, alpha_min2)
     rho_sq_pos = (
         (major * minor / (4.0 * theta_B * theta_b))
         * (1.0 + (theta_B / major) ** 2) ** alpha_maj2
         * (1.0 + (theta_b / minor) ** 2) ** alpha_min2
-        * snr ** 2
+        * snr**2
     )
-    
+
     if not (np.isfinite(rho_sq_pos) and rho_sq_pos > 0):
         # Fallback to simple estimate
         simple_err = beam_major_arcsec / (2.0 * snr)
@@ -301,36 +301,32 @@ def calc_condon_position_errors(
             dec_err_arcsec=float(np.sqrt(simple_err**2 + systematic_dec_arcsec**2)),
             error_radius_arcsec=float(np.sqrt(2) * simple_err),
         )
-    
+
     rho_pos = np.sqrt(rho_sq_pos)
-    
+
     # Position errors in major/minor axis directions (Eq. 27)
     err_major = major / rho_pos
     err_minor = minor / rho_pos
-    
+
     # Project onto RA/Dec axes
     # Note: RA error needs cos(dec) correction when applied to sky positions
     # Here we give the error in arcsec (on-sky distance)
     cos_pa = np.cos(theta_rad)
     sin_pa = np.sin(theta_rad)
-    
+
     # RA error (predominantly along minor axis for PA ~ 0)
-    ra_err_arcsec = np.sqrt(
-        (err_major * 3600 * sin_pa) ** 2 + (err_minor * 3600 * cos_pa) ** 2
-    )
-    
+    ra_err_arcsec = np.sqrt((err_major * 3600 * sin_pa) ** 2 + (err_minor * 3600 * cos_pa) ** 2)
+
     # Dec error (predominantly along major axis for PA ~ 0)
-    dec_err_arcsec = np.sqrt(
-        (err_major * 3600 * cos_pa) ** 2 + (err_minor * 3600 * sin_pa) ** 2
-    )
-    
+    dec_err_arcsec = np.sqrt((err_major * 3600 * cos_pa) ** 2 + (err_minor * 3600 * sin_pa) ** 2)
+
     # Add systematic errors in quadrature
     ra_err_total = np.sqrt(ra_err_arcsec**2 + systematic_ra_arcsec**2)
     dec_err_total = np.sqrt(dec_err_arcsec**2 + systematic_dec_arcsec**2)
-    
+
     # Combined error radius (for matching purposes)
     error_radius = np.sqrt(ra_err_total**2 + dec_err_total**2)
-    
+
     return CondonPositionErrors(
         ra_err_arcsec=float(ra_err_total),
         dec_err_arcsec=float(dec_err_total),
@@ -354,9 +350,9 @@ def calc_condon_errors(
     frac_flux_cal_error: float = 0.0,
 ) -> CondonErrors:
     """Calculate complete Condon (1997) errors for a source.
-    
+
     This is the main entry point combining flux and positional errors.
-    
+
     Args:
         flux_peak: Peak flux (Jy/beam)
         flux_int: Integrated flux (Jy)
@@ -370,7 +366,7 @@ def calc_condon_errors(
         systematic_ra_arcsec: Systematic RA error (arcsec)
         systematic_dec_arcsec: Systematic Dec error (arcsec)
         frac_flux_cal_error: Fractional flux calibration error
-        
+
     Returns:
         CondonErrors with complete uncertainty information
     """
@@ -386,7 +382,7 @@ def calc_condon_errors(
         beam_minor_arcsec=beam_minor_arcsec,
         frac_flux_cal_error=frac_flux_cal_error,
     )
-    
+
     position_errors = calc_condon_position_errors(
         snr=snr,
         major_arcsec=major_arcsec,
@@ -397,7 +393,7 @@ def calc_condon_errors(
         systematic_ra_arcsec=systematic_ra_arcsec,
         systematic_dec_arcsec=systematic_dec_arcsec,
     )
-    
+
     return CondonErrors(
         flux=flux_errors,
         position=position_errors,
@@ -412,21 +408,21 @@ def simple_position_error(
     systematic_arcsec: float = 0.0,
 ) -> float:
     """Simple positional error estimate: beam / (2 * SNR).
-    
+
     This is a commonly used approximation when detailed source
     parameters are not available.
-    
+
     Args:
         beam_arcsec: Beam size (arcsec) - typically geometric mean of axes
         snr: Signal-to-noise ratio
         systematic_arcsec: Systematic error to add in quadrature
-        
+
     Returns:
         Position error in arcsec
     """
     if snr <= 0:
         raise ValueError("SNR must be positive")
-    
+
     fit_error = beam_arcsec / (2.0 * snr)
     return float(np.sqrt(fit_error**2 + systematic_arcsec**2))
 
@@ -435,32 +431,32 @@ def estimate_systematic_errors(
     catalog_name: str,
 ) -> Tuple[float, float]:
     """Get typical systematic positional errors for common surveys.
-    
+
     These are empirically determined systematic errors that should
     be added in quadrature to fit-based uncertainties.
-    
+
     Args:
         catalog_name: Name of survey/catalog (case-insensitive)
-        
+
     Returns:
         Tuple of (ra_err_arcsec, dec_err_arcsec)
     """
     # Typical systematic errors from VAST and other radio surveys
     systematics = {
-        "nvss": (1.0, 1.0),        # NVSS: ~1 arcsec systematic
-        "first": (0.5, 0.5),       # FIRST: ~0.5 arcsec systematic
-        "vlass": (0.5, 0.5),       # VLASS: ~0.5 arcsec systematic
-        "sumss": (1.5, 1.5),       # SUMSS: ~1.5 arcsec systematic
-        "racs": (0.5, 0.5),        # RACS: ~0.5 arcsec systematic
-        "askap": (0.5, 0.5),       # Generic ASKAP: ~0.5 arcsec
-        "dsa-110": (1.0, 1.0),     # DSA-110: conservative ~1 arcsec
-        "default": (1.0, 1.0),     # Default: ~1 arcsec
+        "nvss": (1.0, 1.0),  # NVSS: ~1 arcsec systematic
+        "first": (0.5, 0.5),  # FIRST: ~0.5 arcsec systematic
+        "vlass": (0.5, 0.5),  # VLASS: ~0.5 arcsec systematic
+        "sumss": (1.5, 1.5),  # SUMSS: ~1.5 arcsec systematic
+        "racs": (0.5, 0.5),  # RACS: ~0.5 arcsec systematic
+        "askap": (0.5, 0.5),  # Generic ASKAP: ~0.5 arcsec
+        "dsa-110": (1.0, 1.0),  # DSA-110: conservative ~1 arcsec
+        "default": (1.0, 1.0),  # Default: ~1 arcsec
     }
-    
+
     key = catalog_name.lower().replace("-", "").replace("_", "")
-    
+
     for name, errors in systematics.items():
         if name.replace("-", "").replace("_", "") in key:
             return errors
-    
+
     return systematics["default"]

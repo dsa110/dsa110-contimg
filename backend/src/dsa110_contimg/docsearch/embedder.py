@@ -61,6 +61,7 @@ class Embedder:
         if self._client is None:
             try:
                 from openai import OpenAI
+
                 self._client = OpenAI(api_key=self.api_key)
             except ImportError:
                 raise ImportError("openai package required. Install with: pip install openai")
@@ -95,7 +96,7 @@ class Embedder:
         with sqlite3.connect(self.cache_db) as conn:
             row = conn.execute(
                 "SELECT embedding FROM embedding_cache WHERE text_hash = ? AND model = ?",
-                (text_hash, self.model)
+                (text_hash, self.model),
             ).fetchone()
 
             if row:
@@ -112,7 +113,7 @@ class Embedder:
                 INSERT OR REPLACE INTO embedding_cache (text_hash, model, embedding)
                 VALUES (?, ?, ?)
                 """,
-                (text_hash, self.model, json.dumps(embedding))
+                (text_hash, self.model, json.dumps(embedding)),
             )
 
     def embed(self, text: str) -> list[float]:
@@ -182,12 +183,15 @@ class Embedder:
         if not uncached_texts:
             return results  # type: ignore
 
-        logger.info(f"Generating {len(uncached_texts)} embeddings ({len(texts) - len(uncached_texts)} cached)")
+        logger.info(
+            f"Generating {len(uncached_texts)} embeddings ({len(texts) - len(uncached_texts)} cached)"
+        )
 
         # Process uncached texts in batches
         if show_progress:
             try:
                 from tqdm import tqdm
+
                 iterator = tqdm(range(0, len(uncached_texts), batch_size), desc="Embedding")
             except ImportError:
                 iterator = range(0, len(uncached_texts), batch_size)
@@ -195,8 +199,8 @@ class Embedder:
             iterator = range(0, len(uncached_texts), batch_size)
 
         for batch_start in iterator:
-            batch_texts = uncached_texts[batch_start:batch_start + batch_size]
-            batch_indices = uncached_indices[batch_start:batch_start + batch_size]
+            batch_texts = uncached_texts[batch_start : batch_start + batch_size]
+            batch_indices = uncached_indices[batch_start : batch_start + batch_size]
 
             try:
                 response = self.client.embeddings.create(
@@ -222,9 +226,11 @@ class Embedder:
         """Get cache statistics."""
         with sqlite3.connect(self.cache_db) as conn:
             total = conn.execute("SELECT COUNT(*) FROM embedding_cache").fetchone()[0]
-            by_model = dict(conn.execute(
-                "SELECT model, COUNT(*) FROM embedding_cache GROUP BY model"
-            ).fetchall())
+            by_model = dict(
+                conn.execute(
+                    "SELECT model, COUNT(*) FROM embedding_cache GROUP BY model"
+                ).fetchall()
+            )
 
         return {
             "total_cached": total,

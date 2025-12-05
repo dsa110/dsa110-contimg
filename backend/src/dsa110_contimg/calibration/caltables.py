@@ -141,17 +141,13 @@ def find_nearest_calibration(
 
     if Path(registry_db).exists():
         candidates.extend(
-            _search_registry(
-                target_mjd, registry_db, search_window_mjd, require_types
-            )
+            _search_registry(target_mjd, registry_db, search_window_mjd, require_types)
         )
 
     # Strategy 2: Search filesystem (if directory provided)
     if calibration_dir and Path(calibration_dir).exists():
         candidates.extend(
-            _search_filesystem(
-                target_mjd, Path(calibration_dir), search_window_mjd, require_types
-            )
+            _search_filesystem(target_mjd, Path(calibration_dir), search_window_mjd, require_types)
         )
 
     if not candidates:
@@ -536,13 +532,9 @@ def get_calibration_timeline(
                 "start_mjd": row["start_mjd"],
                 "end_mjd": row["end_mjd"],
                 "start_iso": (
-                    Time(row["start_mjd"], format="mjd").isot
-                    if row["start_mjd"]
-                    else None
+                    Time(row["start_mjd"], format="mjd").isot if row["start_mjd"] else None
                 ),
-                "end_iso": (
-                    Time(row["end_mjd"], format="mjd").isot if row["end_mjd"] else None
-                ),
+                "end_iso": (Time(row["end_mjd"], format="mjd").isot if row["end_mjd"] else None),
                 "table_types": row["types"].split(",") if row["types"] else [],
                 "table_count": row["table_count"],
             }
@@ -552,4 +544,3 @@ def get_calibration_timeline(
         logger.warning("Failed to get calibration timeline: %s", exc)
 
     return timeline
-

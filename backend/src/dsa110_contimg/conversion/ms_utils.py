@@ -199,15 +199,11 @@ def _ensure_imaging_columns_populated(ms_path: str) -> None:
 
                             # Create zero array for this chunk
                             # Shape is (nrow, nfreq, npol) for casacore putcol
-                            zeros = _np.zeros(
-                                (chunk_nrow,) + data_shape, dtype=data_dtype
-                            )
+                            zeros = _np.zeros((chunk_nrow,) + data_shape, dtype=data_dtype)
                             tb.putcol(col, zeros, startrow=start_row, nrow=chunk_nrow)
                             fixed += chunk_nrow
 
-                        logger.debug(
-                            f"Bulk-populated {fixed} rows in {col} column for {ms_path}"
-                        )
+                        logger.debug(f"Bulk-populated {fixed} rows in {col} column for {ms_path}")
 
                     except Exception as bulk_err:
                         # Fall back to row-by-row if bulk operation fails
@@ -267,8 +263,7 @@ def _populate_column_row_by_row(
 
     if errors > 0:
         error_summary = (
-            f"Failed to populate {errors} out of {nrow} rows in {col} "
-            f"column for {ms_path}"
+            f"Failed to populate {errors} out of {nrow} rows in {col} column for {ms_path}"
         )
         if error_examples:
             error_summary += f". Examples: {'; '.join(error_examples)}"
@@ -359,6 +354,7 @@ def _initialize_weights(ms_path: str) -> None:
     try:
         try:
             from dsa110_contimg.utils.tempdirs import casa_log_environment
+
             with casa_log_environment():
                 from casatasks import initweights as _initweights  # type: ignore
         except ImportError:
@@ -1078,7 +1074,9 @@ def configure_ms_for_imaging(
             if result:
                 cal_name, field_idx = result
                 operations_status["calibrator_renaming"] = "success"
-                logger.info(f":check_mark: Auto-renamed field {field_idx} to '{cal_name}_t{field_idx}'")
+                logger.info(
+                    f":check_mark: Auto-renamed field {field_idx} to '{cal_name}_t{field_idx}'"
+                )
             else:
                 operations_status["calibrator_renaming"] = "no calibrator found"
                 logger.debug("No calibrator found in MS for field renaming")

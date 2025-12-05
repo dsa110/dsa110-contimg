@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 
 class AlertSeverity(str, Enum):
     """Alert severity levels."""
+
     INFO = "info"
     WARNING = "warning"
     CRITICAL = "critical"
@@ -31,6 +32,7 @@ class AlertSeverity(str, Enum):
 
 class AlertState(str, Enum):
     """Alert states."""
+
     FIRING = "firing"
     RESOLVED = "resolved"
     PENDING = "pending"
@@ -39,6 +41,7 @@ class AlertState(str, Enum):
 @dataclass
 class AlertRule:
     """Definition of an alert rule."""
+
     name: str
     description: str
     severity: AlertSeverity
@@ -51,6 +54,7 @@ class AlertRule:
 @dataclass
 class Alert:
     """An alert instance."""
+
     rule_name: str
     severity: AlertSeverity
     state: AlertState
@@ -67,7 +71,9 @@ class Alert:
             "state": self.state.value,
             "message": self.message,
             "fired_at": datetime.fromtimestamp(self.fired_at).isoformat(),
-            "resolved_at": datetime.fromtimestamp(self.resolved_at).isoformat() if self.resolved_at else None,
+            "resolved_at": datetime.fromtimestamp(self.resolved_at).isoformat()
+            if self.resolved_at
+            else None,
             "labels": self.labels,
             "annotations": self.annotations,
         }
@@ -179,17 +185,20 @@ class AlertManager:
 
         try:
             conn = sqlite3.connect(self.db_path)
-            conn.execute("""
+            conn.execute(
+                """
                 INSERT INTO alert_history (rule_name, severity, state, message, fired_at, labels_json)
                 VALUES (?, ?, ?, ?, ?, ?)
-            """, (
-                alert.rule_name,
-                alert.severity.value,
-                alert.state.value,
-                alert.message,
-                alert.fired_at,
-                json.dumps(alert.labels),
-            ))
+            """,
+                (
+                    alert.rule_name,
+                    alert.severity.value,
+                    alert.state.value,
+                    alert.message,
+                    alert.fired_at,
+                    json.dumps(alert.labels),
+                ),
+            )
             conn.commit()
             conn.close()
         except Exception as e:
@@ -202,15 +211,18 @@ class AlertManager:
 
         try:
             conn = sqlite3.connect(self.db_path)
-            conn.execute("""
+            conn.execute(
+                """
                 UPDATE alert_history
                 SET state = ?, resolved_at = ?
                 WHERE rule_name = ? AND resolved_at IS NULL
-            """, (
-                AlertState.RESOLVED.value,
-                alert.resolved_at,
-                alert.rule_name,
-            ))
+            """,
+                (
+                    AlertState.RESOLVED.value,
+                    alert.resolved_at,
+                    alert.rule_name,
+                ),
+            )
             conn.commit()
             conn.close()
         except Exception as e:
@@ -245,16 +257,22 @@ class AlertManager:
                     state_emoji = "🔥" if alert.state == AlertState.FIRING else "✅"
 
                     payload = {
-                        "attachments": [{
-                            "color": color,
-                            "title": f"{state_emoji} {alert.rule_name}",
-                            "text": alert.message,
-                            "fields": [
-                                {"title": "Severity", "value": alert.severity.value, "short": True},
-                                {"title": "State", "value": alert.state.value, "short": True},
-                            ],
-                            "ts": int(alert.fired_at),
-                        }]
+                        "attachments": [
+                            {
+                                "color": color,
+                                "title": f"{state_emoji} {alert.rule_name}",
+                                "text": alert.message,
+                                "fields": [
+                                    {
+                                        "title": "Severity",
+                                        "value": alert.severity.value,
+                                        "short": True,
+                                    },
+                                    {"title": "State", "value": alert.state.value, "short": True},
+                                ],
+                                "ts": int(alert.fired_at),
+                            }
+                        ]
                     }
 
                     async with httpx.AsyncClient() as client:
@@ -283,20 +301,26 @@ class AlertManager:
             conn = sqlite3.connect(self.db_path)
 
             if rule_name:
-                cursor = conn.execute("""
+                cursor = conn.execute(
+                    """
                     SELECT rule_name, severity, state, message, fired_at, resolved_at, labels_json
                     FROM alert_history
                     WHERE rule_name = ?
                     ORDER BY fired_at DESC
                     LIMIT ?
-                """, (rule_name, limit))
+                """,
+                    (rule_name, limit),
+                )
             else:
-                cursor = conn.execute("""
+                cursor = conn.execute(
+                    """
                     SELECT rule_name, severity, state, message, fired_at, resolved_at, labels_json
                     FROM alert_history
                     ORDER BY fired_at DESC
                     LIMIT ?
-                """, (limit,))
+                """,
+                    (limit,),
+                )
 
             rows = cursor.fetchall()
             conn.close()
@@ -354,60 +378,68 @@ def create_default_alert_rules(
         except Exception:
             return False
 
-    rules.append(AlertRule(
-        name="storage_sync_low",
-        description="Storage synchronization percentage is below threshold",
-        severity=AlertSeverity.WARNING,
-        condition=check_storage_sync,
-        message_template=f"Storage sync percentage below {sync_threshold}%",
-        cooldown_seconds=3600,  # 1 hour cooldown
-        labels={"component": "storage"},
-    ))
+    rules.append(
+        AlertRule(
+            name="storage_sync_low",
+            description="Storage synchronization percentage is below threshold",
+            severity=AlertSeverity.WARNING,
+            condition=check_storage_sync,
+            message_template=f"Storage sync percentage below {sync_threshold}%",
+            cooldown_seconds=3600,  # 1 hour cooldown
+            labels={"component": "storage"},
+        )
+    )
 
     # API service alert
     def check_api_service():
         result = check_systemd_service("contimg-api")
         return result.status != ServiceStatus.RUNNING
 
-    rules.append(AlertRule(
-        name="api_service_down",
-        description="Contimg API service is not running",
-        severity=AlertSeverity.CRITICAL,
-        condition=check_api_service,
-        message_template="contimg-api systemd service is not running",
-        cooldown_seconds=60,
-        labels={"component": "api", "service": "contimg-api"},
-    ))
+    rules.append(
+        AlertRule(
+            name="api_service_down",
+            description="Contimg API service is not running",
+            severity=AlertSeverity.CRITICAL,
+            condition=check_api_service,
+            message_template="contimg-api systemd service is not running",
+            cooldown_seconds=60,
+            labels={"component": "api", "service": "contimg-api"},
+        )
+    )
 
     # Stream service alert
     def check_stream_service():
         result = check_systemd_service("contimg-stream")
         return result.status != ServiceStatus.RUNNING
 
-    rules.append(AlertRule(
-        name="stream_service_down",
-        description="Contimg streaming service is not running",
-        severity=AlertSeverity.CRITICAL,
-        condition=check_stream_service,
-        message_template="contimg-stream systemd service is not running",
-        cooldown_seconds=60,
-        labels={"component": "streaming", "service": "contimg-stream"},
-    ))
+    rules.append(
+        AlertRule(
+            name="stream_service_down",
+            description="Contimg streaming service is not running",
+            severity=AlertSeverity.CRITICAL,
+            condition=check_stream_service,
+            message_template="contimg-stream systemd service is not running",
+            cooldown_seconds=60,
+            labels={"component": "streaming", "service": "contimg-stream"},
+        )
+    )
 
     # RAGFlow container alert
     def check_ragflow_container():
         result = check_docker_container("ragflow-ragflow-1")
         return result.status != ServiceStatus.RUNNING and result.status != ServiceStatus.STOPPED
 
-    rules.append(AlertRule(
-        name="ragflow_container_error",
-        description="RAGFlow container is in error state",
-        severity=AlertSeverity.WARNING,
-        condition=check_ragflow_container,
-        message_template="RAGFlow container is not healthy",
-        cooldown_seconds=300,
-        labels={"component": "ragflow", "container": "ragflow-ragflow-1"},
-    ))
+    rules.append(
+        AlertRule(
+            name="ragflow_container_error",
+            description="RAGFlow container is in error state",
+            severity=AlertSeverity.WARNING,
+            condition=check_ragflow_container,
+            message_template="RAGFlow container is not healthy",
+            cooldown_seconds=300,
+            labels={"component": "ragflow", "container": "ragflow-ragflow-1"},
+        )
+    )
 
     return rules
 
@@ -442,36 +474,37 @@ def create_throughput_alert_rules(
         except Exception:
             return False
 
-    rules.append(AlertRule(
-        name="pipeline_backlog_growing",
-        description="Pipeline processing backlog is growing",
-        severity=AlertSeverity.WARNING,
-        condition=check_backlog_growing,
-        message_template=f"Pipeline backlog exceeds {backlog_threshold} groups and is growing",
-        cooldown_seconds=600,  # 10 minute cooldown
-        labels={"component": "pipeline", "metric": "backlog"},
-    ))
+    rules.append(
+        AlertRule(
+            name="pipeline_backlog_growing",
+            description="Pipeline processing backlog is growing",
+            severity=AlertSeverity.WARNING,
+            condition=check_backlog_growing,
+            message_template=f"Pipeline backlog exceeds {backlog_threshold} groups and is growing",
+            cooldown_seconds=600,  # 10 minute cooldown
+            labels={"component": "pipeline", "metric": "backlog"},
+        )
+    )
 
     # Processing rate too slow
     def check_processing_rate():
         try:
             metrics = metrics_collector.get_ingest_rate(hours=1.0)
-            return (
-                metrics.groups_arrived > 0
-                and metrics.rate_ratio < rate_threshold
-            )
+            return metrics.groups_arrived > 0 and metrics.rate_ratio < rate_threshold
         except Exception:
             return False
 
-    rules.append(AlertRule(
-        name="pipeline_processing_slow",
-        description="Pipeline processing rate is below arrival rate",
-        severity=AlertSeverity.WARNING,
-        condition=check_processing_rate,
-        message_template=f"Processing rate is below {rate_threshold*100:.0f}% of arrival rate",
-        cooldown_seconds=1800,  # 30 minute cooldown
-        labels={"component": "pipeline", "metric": "rate"},
-    ))
+    rules.append(
+        AlertRule(
+            name="pipeline_processing_slow",
+            description="Pipeline processing rate is below arrival rate",
+            severity=AlertSeverity.WARNING,
+            condition=check_processing_rate,
+            message_template=f"Processing rate is below {rate_threshold * 100:.0f}% of arrival rate",
+            cooldown_seconds=1800,  # 30 minute cooldown
+            labels={"component": "pipeline", "metric": "rate"},
+        )
+    )
 
     # Critical backlog (large backup)
     def check_critical_backlog():
@@ -481,14 +514,16 @@ def create_throughput_alert_rules(
         except Exception:
             return False
 
-    rules.append(AlertRule(
-        name="pipeline_backlog_critical",
-        description="Pipeline backlog has reached critical levels",
-        severity=AlertSeverity.CRITICAL,
-        condition=check_critical_backlog,
-        message_template=f"Pipeline backlog exceeds {backlog_threshold * 3} groups - intervention needed",
-        cooldown_seconds=300,  # 5 minute cooldown for critical
-        labels={"component": "pipeline", "metric": "backlog"},
-    ))
+    rules.append(
+        AlertRule(
+            name="pipeline_backlog_critical",
+            description="Pipeline backlog has reached critical levels",
+            severity=AlertSeverity.CRITICAL,
+            condition=check_critical_backlog,
+            message_template=f"Pipeline backlog exceeds {backlog_threshold * 3} groups - intervention needed",
+            cooldown_seconds=300,  # 5 minute cooldown for critical
+            labels={"component": "pipeline", "metric": "backlog"},
+        )
+    )
 
     return rules

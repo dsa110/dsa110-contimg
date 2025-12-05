@@ -55,7 +55,7 @@ def derive_casa_log_dir() -> Path:
     - ENV CONTIMG_CASA_LOGS_DIR (if set)
     - Default: /data/dsa110-contimg/state/logs/casa
     - Fallback: /tmp (if directory cannot be created)
-    
+
     CASA logs are written to persistent storage (HDD) rather than scratch
     (NVMe) because they are archival records that should be preserved.
     """

@@ -110,7 +110,7 @@ async def resolve_object_name(
         logger.warning(f"Sesame timeout resolving '{name}'")
         raise HTTPException(
             status_code=504,
-            detail=f"Timeout connecting to CDS Sesame service. Please try again.",
+            detail="Timeout connecting to CDS Sesame service. Please try again.",
         )
     except httpx.HTTPStatusError as e:
         logger.error(f"Sesame HTTP error: {e}")
@@ -191,7 +191,9 @@ async def check_aladin_status():
     try:
         async with httpx.AsyncClient(timeout=EXTERNAL_TIMEOUT) as client:
             # Check if Aladin Lite JS is accessible
-            response = await client.head("https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.min.js")
+            response = await client.head(
+                "https://aladin.cds.unistra.fr/AladinLite/api/v3/latest/aladin.min.js"
+            )
             if response.status_code == 200:
                 return {"status": "ok", "message": "Aladin Lite CDN is accessible"}
             return {"status": "degraded", "message": f"Aladin CDN returned {response.status_code}"}

@@ -18,7 +18,6 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import Any, AsyncIterator, Optional, Protocol, runtime_checkable
 
-
 # Default unified pipeline database path
 _DEFAULT_PIPELINE_DB = "/data/dsa110-contimg/state/db/pipeline.sqlite3"
 
@@ -26,22 +25,22 @@ _DEFAULT_PIPELINE_DB = "/data/dsa110-contimg/state/db/pipeline.sqlite3"
 @dataclass
 class DatabaseConfig:
     """Database configuration for SQLite.
-    
+
     Uses unified pipeline.sqlite3 database for all domain data.
-    
+
     Example:
         config = DatabaseConfig.from_env()
         sqlite_path = config.sqlite_path  # Returns unified DB path
     """
-    
+
     # SQLite settings
     sqlite_path: str = _DEFAULT_PIPELINE_DB
     sqlite_timeout: float = 30.0
-    
+
     @classmethod
     def from_env(cls, prefix: str = "DSA110_DB") -> "DatabaseConfig":
         """Create configuration from environment variables.
-        
+
         Environment variables (with default prefix DSA110_DB):
         - {prefix}_SQLITE_PATH: SQLite database path
         - PIPELINE_DB: Unified database path (fallback)
@@ -54,12 +53,12 @@ class DatabaseConfig:
             sqlite_path = os.getenv("PIPELINE_DB")
         if not sqlite_path:
             sqlite_path = os.getenv("PIPELINE_PRODUCTS_DB", _DEFAULT_PIPELINE_DB)
-        
+
         return cls(
             sqlite_path=sqlite_path,
             sqlite_timeout=float(os.getenv(f"{prefix}_SQLITE_TIMEOUT", "30.0")),
         )
-    
+
     @property
     def connection_string(self) -> str:
         """Get connection string for SQLite."""
@@ -69,23 +68,23 @@ class DatabaseConfig:
 @runtime_checkable
 class AsyncConnection(Protocol):
     """Protocol for async database connections.
-    
+
     This provides a common interface that both aiosqlite and asyncpg
     connections can satisfy.
     """
-    
+
     async def execute(self, query: str, *args: Any) -> Any:
         """Execute a query."""
         ...
-    
+
     async def fetchone(self) -> Optional[Any]:
         """Fetch one row from the last query."""
         ...
-    
+
     async def fetchall(self) -> list[Any]:
         """Fetch all rows from the last query."""
         ...
-    
+
     async def close(self) -> None:
         """Close the connection."""
         ...
@@ -93,30 +92,30 @@ class AsyncConnection(Protocol):
 
 class DatabaseAdapter(ABC):
     """Abstract base class for database adapters.
-    
+
     Each adapter provides a consistent async interface for database
     operations, hiding backend-specific differences.
     """
-    
+
     def __init__(self, config: DatabaseConfig):
         self.config = config
-    
+
     @abstractmethod
     async def connect(self) -> None:
         """Initialize the connection pool."""
         pass
-    
+
     @abstractmethod
     async def disconnect(self) -> None:
         """Close all connections."""
         pass
-    
+
     @abstractmethod
     @asynccontextmanager
     async def acquire(self) -> AsyncIterator[Any]:
         """Acquire a connection from the pool."""
         yield  # type: ignore
-    
+
     @abstractmethod
     async def execute(
         self,
@@ -125,7 +124,7 @@ class DatabaseAdapter(ABC):
     ) -> Any:
         """Execute a query and return the result."""
         pass
-    
+
     @abstractmethod
     async def fetch_one(
         self,
@@ -134,7 +133,7 @@ class DatabaseAdapter(ABC):
     ) -> Optional[dict]:
         """Execute a query and return one row as a dict."""
         pass
-    
+
     @abstractmethod
     async def fetch_all(
         self,
@@ -143,7 +142,7 @@ class DatabaseAdapter(ABC):
     ) -> list[dict]:
         """Execute a query and return all rows as dicts."""
         pass
-    
+
     @abstractmethod
     async def fetch_val(
         self,
@@ -152,16 +151,16 @@ class DatabaseAdapter(ABC):
     ) -> Any:
         """Execute a query and return a single value."""
         pass
-    
+
     @property
     @abstractmethod
     def placeholder(self) -> str:
         """Return the parameter placeholder for this backend.
-        
+
         SQLite uses '?', PostgreSQL uses '$1', '$2', etc.
         """
         pass
-    
+
     @property
     def backend(self) -> str:
         """Return the backend type (always 'sqlite')."""
@@ -170,15 +169,16 @@ class DatabaseAdapter(ABC):
 
 def create_adapter(config: Optional[DatabaseConfig] = None) -> DatabaseAdapter:
     """Factory function to create the SQLite database adapter.
-    
+
     Args:
         config: Database configuration. If None, loads from environment.
-        
+
     Returns:
         SQLiteAdapter instance.
     """
     if config is None:
         config = DatabaseConfig.from_env()
-    
+
     from .adapters.sqlite_adapter import SQLiteAdapter
+
     return SQLiteAdapter(config)

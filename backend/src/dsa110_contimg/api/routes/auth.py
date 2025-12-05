@@ -15,23 +15,20 @@ from __future__ import annotations
 
 import hashlib
 import logging
-import os
 import secrets
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Request, Response
-from pydantic import BaseModel, EmailStr, Field
+from fastapi import APIRouter, Depends, HTTPException, Request
+from pydantic import BaseModel, Field
 
 from ..auth import (
-    create_jwt,
-    decode_jwt,
-    get_auth_context,
     AuthContext,
-    require_auth,
-    get_jwt_secret,
+    create_jwt,
+    get_auth_context,
     is_auth_disabled,
+    require_auth,
 )
 
 logger = logging.getLogger(__name__)
@@ -96,6 +93,7 @@ class MessageResponse(BaseModel):
 # =============================================================================
 # User Storage (In-memory for now, can be migrated to database)
 # =============================================================================
+
 
 # Password hashing using hashlib (no external dependencies)
 def hash_password(password: str, salt: Optional[str] = None) -> tuple[str, str]:
@@ -258,9 +256,7 @@ async def login(request: LoginRequest) -> LoginResponse:
         )
 
     # Verify password
-    if not verify_password(
-        request.password, user["password_hash"], user["password_salt"]
-    ):
+    if not verify_password(request.password, user["password_hash"], user["password_salt"]):
         logger.warning(f"Invalid password for user: {request.username}")
         raise HTTPException(
             status_code=401,

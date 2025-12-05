@@ -47,8 +47,8 @@ def run_calibrator(
     """
     from dsa110_contimg.calibration.calibration import (
         solve_bandpass,
-        solve_gains,
         solve_delay,
+        solve_gains,
     )
     from dsa110_contimg.calibration.model import populate_model_from_catalog
 
@@ -59,15 +59,13 @@ def run_calibrator(
         ms_name = os.path.splitext(os.path.basename(ms_file))[0]
         table_prefix = f"{os.path.dirname(ms_file)}/{ms_name}_{cal_field}"
 
-    logger.info(
-        "Starting calibration for %s, field=%s, refant=%s",
-        ms_file, cal_field, refant
-    )
+    logger.info("Starting calibration for %s, field=%s, refant=%s", ms_file, cal_field, refant)
 
     # Step 0: Pre-calibration flagging (optional)
     if do_flagging:
         try:
             from casatasks import flagdata
+
             logger.info("Flagging autocorrelations...")
             flagdata(vis=ms_file, autocorr=True, flagbackup=False)
         except Exception as err:
@@ -138,8 +136,5 @@ def run_calibrator(
         logger.error("Gain calibration failed: %s", err)
         raise RuntimeError(f"Gain solve failed: {err}") from err
 
-    logger.info(
-        "Calibration complete for %s: produced %d table(s)",
-        ms_file, len(caltables)
-    )
+    logger.info("Calibration complete for %s: produced %d table(s)", ms_file, len(caltables))
     return caltables

@@ -94,15 +94,19 @@ async def execute_pipeline_task(task_name: str, params: Dict[str, Any]) -> Dict[
     # Ingestion tasks
     if task_name == "ingest-subband":
         from dsa110_contimg.absurd.ingestion import execute_record_subband
+
         return await execute_record_subband(params)
     elif task_name == "normalize-group":
         from dsa110_contimg.absurd.ingestion import execute_normalize_group
+
         return await execute_normalize_group(params)
     elif task_name == "convert-group":
         from dsa110_contimg.absurd.ingestion import execute_convert_group
+
         return await execute_convert_group(params)
     elif task_name == "scan-ingestion-directory":
         from dsa110_contimg.absurd.ingestion import execute_scan_directory
+
         return await execute_scan_directory(params)
     # Conversion tasks
     elif task_name == "convert-uvh5-to-ms":
@@ -138,21 +142,27 @@ async def execute_pipeline_task(task_name: str, params: Dict[str, Any]) -> Dict[
     # Maintenance tasks (consolidated from cron/systemd)
     elif task_name == "backup-database":
         from dsa110_contimg.absurd.maintenance import execute_backup_database
+
         return await execute_backup_database(params)
     elif task_name == "backup-caltables":
         from dsa110_contimg.absurd.maintenance import execute_backup_caltables
+
         return await execute_backup_caltables(params)
     elif task_name == "storage-reconciliation":
         from dsa110_contimg.absurd.maintenance import execute_storage_reconciliation
+
         return await execute_storage_reconciliation(params)
     elif task_name == "health-check":
         from dsa110_contimg.absurd.maintenance import execute_health_check
+
         return await execute_health_check(params)
     elif task_name == "session-cleanup":
         from dsa110_contimg.absurd.maintenance import execute_session_cleanup
+
         return await execute_session_cleanup(params)
     elif task_name == "data-retention-cleanup":
         from dsa110_contimg.absurd.maintenance import execute_data_retention_cleanup
+
         return await execute_data_retention_cleanup(params)
     else:
         raise ValueError(
@@ -306,7 +316,7 @@ async def execute_calibration_solve(params: Dict[str, Any]) -> Dict[str, Any]:
 
         cal_tables = result_context.outputs.get("caltables", {})
         table_names = list(cal_tables.keys())
-        logger.info(f"[Absurd] Calibration solve complete. " f"Generated tables: {table_names}")
+        logger.info(f"[Absurd] Calibration solve complete. Generated tables: {table_names}")
 
         msg = f"Calibration solved successfully ({len(cal_tables)} tables)"
         return {
@@ -394,7 +404,7 @@ async def execute_calibration_apply(params: Dict[str, Any]) -> Dict[str, Any]:
 
         # Execute in thread pool (CASA requires blocking I/O)
         table_names = list(cal_tables.keys())
-        logger.info(f"[Absurd] Applying calibration to: {ms_path} " f"(tables: {table_names})")
+        logger.info(f"[Absurd] Applying calibration to: {ms_path} (tables: {table_names})")
         result_context = await asyncio.to_thread(stage.execute, context)
 
         logger.info(f"[Absurd] Calibration applied successfully to: {ms_path}")
@@ -544,7 +554,7 @@ async def execute_validation(params: Dict[str, Any]) -> Dict[str, Any]:
 
         validation_results = result_context.outputs.get("validation_results", {})
         val_status = validation_results.get("status", "unknown")
-        logger.info(f"[Absurd] Validation complete: {image_path} " f"(status: {val_status})")
+        logger.info(f"[Absurd] Validation complete: {image_path} (status: {val_status})")
 
         msg = f"Validation completed with status: {val_status}"
         return {
@@ -597,8 +607,8 @@ async def execute_crossmatch(params: Dict[str, Any]) -> Dict[str, Any]:
         if not image_path and detected_sources is None:
             return {
                 "status": "error",
-                "message": ("Missing required output: " "image_path or detected_sources"),
-                "errors": ["Neither image_path nor detected_sources " "found in outputs"],
+                "message": ("Missing required output: image_path or detected_sources"),
+                "errors": ["Neither image_path nor detected_sources found in outputs"],
             }
 
         # Create pipeline context
@@ -1494,6 +1504,7 @@ def _create_mosaic_from_images(
         try:
             try:
                 from dsa110_contimg.utils.tempdirs import casa_log_environment
+
                 with casa_log_environment():
                     from casatasks import linearmosaic  # type: ignore[import-not-found]
             except ImportError:
@@ -1511,6 +1522,7 @@ def _create_mosaic_from_images(
                 try:
                     try:
                         from dsa110_contimg.utils.tempdirs import casa_log_environment
+
                         with casa_log_environment():
                             from casatasks import exportfits  # type: ignore[import-not-found]
                     except ImportError:
@@ -1721,8 +1733,7 @@ async def execute_mosaic_pipeline(params: Dict[str, Any]) -> Dict[str, Any]:
 
         if result.get("status") == "success":
             logger.info(
-                f"[Absurd] Mosaic pipeline complete: "
-                f"mosaic_id={result['outputs'].get('mosaic_id')}"
+                f"[Absurd] Mosaic pipeline complete: mosaic_id={result['outputs'].get('mosaic_id')}"
             )
         else:
             logger.warning(f"[Absurd] Mosaic pipeline failed: {result.get('message')}")
@@ -1840,8 +1851,7 @@ async def register_nightly_mosaic_schedule(
     )
 
     logger.info(
-        f"Registered nightly mosaic schedule: {schedule.schedule_id} "
-        f"(cron: {cron_expression})"
+        f"Registered nightly mosaic schedule: {schedule.schedule_id} (cron: {cron_expression})"
     )
 
     return schedule.schedule_id
@@ -1894,7 +1904,8 @@ async def execute_pipeline_job(params: Dict[str, Any]) -> Dict[str, Any]:
 
     # Extract job params (exclude meta params)
     job_params = {
-        k: v for k, v in params.items()
+        k: v
+        for k, v in params.items()
         if k not in ("job_type", "_execution_id", "_job_id", "_pipeline_name")
     }
 
@@ -1985,8 +1996,7 @@ async def execute_pipeline_run(params: Dict[str, Any]) -> Dict[str, Any]:
 
     # Extract pipeline constructor params
     pipeline_params = {
-        k: v for k, v in params.items()
-        if k not in ("pipeline_name", "database_path")
+        k: v for k, v in params.items() if k not in ("pipeline_name", "database_path")
     }
 
     try:

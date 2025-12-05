@@ -152,7 +152,7 @@ def load_pointing(path: str | Path, field_id: Optional[int] = None) -> Dict[str,
                 if fid not in [f["field_id"] for f in fields]:
                     available = [f["field_id"] for f in fields]
                     raise ValueError(
-                        f"Field {fid} not present in MS {path}. " f"Available fields: {available}"
+                        f"Field {fid} not present in MS {path}. Available fields: {available}"
                     )
 
             info["selected_field_id"] = int(fid)

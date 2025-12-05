@@ -72,17 +72,14 @@ def get_writer(writer_type: str) -> type:
         "direct-subband": DirectSubbandWriter,
         "auto": DirectSubbandWriter,  # Auto defaults to production writer
     }
-    
+
     if writer_type == "pyuvdata":
         raise ValueError(
             "PyuvdataWriter is for testing only. "
             "Import from backend/tests/fixtures/writers.py instead."
         )
-    
+
     if writer_type not in writers:
-        raise ValueError(
-            f"Unknown writer type: {writer_type}. "
-            f"Available: {list(writers.keys())}"
-        )
-    
+        raise ValueError(f"Unknown writer type: {writer_type}. Available: {list(writers.keys())}")
+
     return writers[writer_type]

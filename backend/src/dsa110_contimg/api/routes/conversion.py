@@ -20,7 +20,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from ..auth import require_write_access, AuthContext
+from ..auth import AuthContext, require_write_access
 
 logger = logging.getLogger(__name__)
 
@@ -119,12 +119,14 @@ class ConversionStatsResponse(BaseModel):
 async def _get_ingestion_pool():
     """Get the ABSURD ingestion PostgreSQL pool."""
     from dsa110_contimg.absurd.ingestion_db import get_ingestion_pool
+
     return await get_ingestion_pool()
 
 
 def _get_hdf5_index_db() -> str:
     """Get path to the HDF5 file index database."""
     from dsa110_contimg.config import settings
+
     # Default location in input_dir
     default_path = os.path.join(str(settings.paths.input_dir), "hdf5_file_index.sqlite3")
     if os.path.exists(default_path):
@@ -292,7 +294,7 @@ async def trigger_conversion(
 
         async with pool.acquire() as conn:
             # Validate group_ids exist and are pending
-            placeholders = ", ".join(f"${i+1}" for i in range(len(request.group_ids)))
+            placeholders = ", ".join(f"${i + 1}" for i in range(len(request.group_ids)))
             valid_rows = await conn.fetch(
                 f"""
                 SELECT DISTINCT group_id FROM absurd.ingestion_groups
@@ -469,12 +471,14 @@ async def list_hdf5_groups(
         groups = []
         for row in rows:
             subbands = [str(sb) for sb in row["subbands"]] if row["subbands"] else []
-            groups.append({
-                "group_id": row["group_id"],
-                "file_count": row["file_count"],
-                "subbands": subbands,
-                "is_complete": row["file_count"] >= 16,
-            })
+            groups.append(
+                {
+                    "group_id": row["group_id"],
+                    "file_count": row["file_count"],
+                    "subbands": subbands,
+                    "is_complete": row["file_count"] >= 16,
+                }
+            )
 
         return {"groups": groups, "total": len(groups)}
 
@@ -522,12 +526,14 @@ async def list_hdf5_groups(
 
         groups = []
         for row in rows:
-            groups.append({
-                "group_id": row[0],
-                "file_count": row[1],
-                "subbands": row[2].split(",") if row[2] else [],
-                "is_complete": row[1] >= 16,
-            })
+            groups.append(
+                {
+                    "group_id": row[0],
+                    "file_count": row[1],
+                    "subbands": row[2].split(",") if row[2] else [],
+                    "is_complete": row[1] >= 16,
+                }
+            )
 
         return {"groups": groups, "total": len(groups)}
 

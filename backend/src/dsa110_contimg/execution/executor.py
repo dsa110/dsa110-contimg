@@ -265,9 +265,7 @@ class SubprocessExecutor(Executor):
         env = self._build_environment(task)
 
         # Create result file for structured output
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
-        ) as result_file:
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as result_file:
             result_path = result_file.name
 
         cmd.extend(["--result-file", result_path])
@@ -313,7 +311,9 @@ class SubprocessExecutor(Executor):
                             load_time_s=result_metrics.get("load_time_s", 0),
                             phase_time_s=result_metrics.get("phase_time_s", 0),
                             write_time_s=result_metrics.get("write_time_s", 0),
-                            total_time_s=result_metrics.get("total_time_s", time.time() - started_at),
+                            total_time_s=result_metrics.get(
+                                "total_time_s", time.time() - started_at
+                            ),
                             memory_peak_mb=result_metrics.get("memory_peak_mb", 0),
                             files_processed=result_metrics.get("files_processed", 0),
                         )
@@ -444,4 +444,6 @@ def get_executor(mode: str = "auto", **kwargs: Any) -> Executor:
         # Could add heuristics based on task size
         return InProcessExecutor()
     else:
-        raise ValueError(f"Unknown execution mode: {mode}. Must be 'inprocess', 'subprocess', or 'auto'")
+        raise ValueError(
+            f"Unknown execution mode: {mode}. Must be 'inprocess', 'subprocess', or 'auto'"
+        )

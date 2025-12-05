@@ -212,7 +212,7 @@ def read_first_catalog(
                     coords = SkyCoord(df["RAJ2000"], df["DEJ2000"], unit=(u.hourangle, u.deg))
                     df["ra_deg"] = coords.ra.deg
                     df["dec_deg"] = coords.dec.deg
-                    print(f"Converted coordinates: RA/Dec now in decimal degrees")
+                    print("Converted coordinates: RA/Dec now in decimal degrees")
 
                 # Map flux columns: FIRST uses Fpeak (peak flux) and Fint (integrated flux)
                 # Both are in mJy. Use Fint (integrated flux) as primary flux measurement
@@ -418,8 +418,12 @@ def read_vlass_catalog(
     cache_path = Path(cache_dir) / "vlass_catalog"
 
     # Try common extensions (also check for vizier-cached version)
-    for filename in ["vlass_catalog_from_vizier.csv", "vlass_catalog.csv",
-                     "vlass_catalog.fits", "vlass_catalog.fits.gz"]:
+    for filename in [
+        "vlass_catalog_from_vizier.csv",
+        "vlass_catalog.csv",
+        "vlass_catalog.fits",
+        "vlass_catalog.fits.gz",
+    ]:
         cached_file = Path(cache_dir) / filename
         if cached_file.exists():
             print(f"Using cached VLASS catalog: {cached_file}")
@@ -547,6 +551,10 @@ def load_vla_catalog(
 def load_vla_catalog_from_sqlite(db_path: str) -> pd.DataFrame:
     """Load VLA calibrator catalog from SQLite database.
 
+    Loads ALL calibrators from the database, preferring 20cm flux when available
+    but falling back to a default flux (1.0 Jy) for calibrators without 20cm data.
+    This ensures calibrators like 1911+161 (which only has Q-band flux) are included.
+
     Args:
         db_path: Path to SQLite database
 
@@ -557,13 +565,23 @@ def load_vla_catalog_from_sqlite(db_path: str) -> pd.DataFrame:
 
     conn = sqlite3.connect(db_path)
     try:
-        # Load from calibrators table (or vla_20cm view if available)
+        # Load ALL calibrators with LEFT JOIN to fluxes - this ensures calibrators
+        # without 20cm flux (like 1911+161) are still included with default flux
         try:
-            df = pd.read_sql_query("SELECT name, ra_deg, dec_deg, flux_jy FROM vla_20cm", conn)
+            # First try with explicit LEFT JOIN to get all calibrators
+            df = pd.read_sql_query(
+                """
+                SELECT c.name, c.ra_deg, c.dec_deg,
+                       COALESCE(f.flux_jy, 1.0) as flux_jy
+                FROM calibrators c
+                LEFT JOIN fluxes f ON c.name = f.name AND f.band = '20cm'
+                """,
+                conn,
+            )
         except Exception:
-            # Fallback to calibrators table if view doesn't exist
+            # Fallback to calibrators table if query fails
             df = pd.read_sql_query("SELECT name, ra_deg, dec_deg FROM calibrators", conn)
-            df["flux_jy"] = None
+            df["flux_jy"] = 1.0
 
         # CRITICAL: Set index to calibrator name (required by _load_radec)
         # The DataFrame MUST be indexed by calibrator name, not by numeric index
@@ -1382,7 +1400,7 @@ def query_first_sources(
             if best_match:
                 db_path = best_match
                 logger.info(
-                    f"Using nearest FIRST database: {best_match.name} " f"(Δdec={best_diff:.1f}°)"
+                    f"Using nearest FIRST database: {best_match.name} (Δdec={best_diff:.1f}°)"
                 )
 
     # Query SQLite database if found
@@ -1591,9 +1609,9 @@ def query_merged_nvss_first_sources(
 
     logger.info(
         f"Merged catalog: {len(merged_df)} total sources "
-        f"({sum(merged_df['catalog']=='both')} matched, "
-        f"{sum(merged_df['catalog']=='first')} FIRST-only, "
-        f"{sum(merged_df['catalog']=='nvss')} NVSS-only)"
+        f"({sum(merged_df['catalog'] == 'both')} matched, "
+        f"{sum(merged_df['catalog'] == 'first')} FIRST-only, "
+        f"{sum(merged_df['catalog'] == 'nvss')} NVSS-only)"
     )
 
     return merged_df.reset_index(drop=True)
@@ -2202,5 +2220,5 @@ def query_catalog_sources(
         )
     else:
         raise ValueError(
-            f"Unsupported catalog_type: {catalog_type}. " f"Supported types: nvss, rax, vlass"
+            f"Unsupported catalog_type: {catalog_type}. Supported types: nvss, rax, vlass"
         )

@@ -83,7 +83,7 @@ async def get_client():
     Reuses a single connection pool across all operations.
     """
     global _global_client
-    
+
     if _global_client is None:
         from dsa110_contimg.absurd import AbsurdClient
         from dsa110_contimg.absurd.config import AbsurdConfig
@@ -92,7 +92,7 @@ async def get_client():
         _global_client = AbsurdClient(config.database_url)
         await _global_client.connect()
         logger.info("Created global ABSURD client connection pool")
-    
+
     return _global_client
 
 
@@ -109,15 +109,15 @@ async def find_or_create_group(
     tolerance_s: float = 60.0,
 ) -> str:
     """Find an existing group within tolerance or create a new one.
-    
+
     This implements time-based clustering: if a subband arrives with
     timestamp T, we look for existing groups within ±tolerance_s.
     If found, use that group; otherwise create a new one.
-    
+
     Args:
         group_id: Timestamp from the subband filename
         tolerance_s: Clustering tolerance in seconds
-        
+
     Returns:
         Canonical group_id to use (existing or new)
     """
@@ -137,11 +137,11 @@ async def find_or_create_group(
                 group_id,
             )
             return group_id
-        
+
         # Look for existing groups within tolerance
         min_time = incoming_dt - timedelta(seconds=tolerance_s)
         max_time = incoming_dt + timedelta(seconds=tolerance_s)
-        
+
         row = await conn.fetchrow(
             """
             SELECT group_id FROM absurd.ingestion_groups
@@ -154,11 +154,11 @@ async def find_or_create_group(
             min_time.strftime("%Y-%m-%dT%H:%M:%S"),
             max_time.strftime("%Y-%m-%dT%H:%M:%S"),
         )
-        
+
         if row:
             # Found existing group
             return row["group_id"]
-        
+
         # Create new group
         await conn.execute(
             """
@@ -178,7 +178,7 @@ async def record_subband(
     dec_deg: Optional[float] = None,
 ) -> None:
     """Record a subband file arrival.
-    
+
     Args:
         group_id: Canonical group ID
         subband_idx: Subband index (0-15)
@@ -199,7 +199,7 @@ async def record_subband(
                 subband_idx,
                 file_path,
             )
-            
+
             # Update group metadata and count
             await conn.execute(
                 """
@@ -259,7 +259,7 @@ async def update_group_after_normalize(
     new_paths: Dict[int, str],
 ) -> None:
     """Update group and subband paths after normalization.
-    
+
     Args:
         old_group_id: Original group ID
         new_group_id: Canonical group ID (from sb00)
@@ -274,7 +274,7 @@ async def update_group_after_normalize(
                     "SELECT group_id FROM absurd.ingestion_groups WHERE group_id = $1",
                     new_group_id,
                 )
-                
+
                 if existing:
                     # Merge into existing group
                     # Move subbands to new group
@@ -312,7 +312,7 @@ async def update_group_after_normalize(
                         new_group_id,
                         old_group_id,
                     )
-            
+
             # Update file paths
             for subband_idx, new_path in new_paths.items():
                 await conn.execute(
@@ -334,7 +334,7 @@ async def update_group_state(
     ms_path: Optional[str] = None,
 ) -> None:
     """Update group state.
-    
+
     Args:
         group_id: Group ID
         state: New state (collecting, pending, normalizing, converting, completed, failed)
@@ -407,7 +407,5 @@ async def get_recorded_files() -> List[str]:
     """
     client = await get_client()
     async with client._pool.acquire() as conn:  # type: ignore[union-attr]
-        rows = await conn.fetch(
-            "SELECT file_path FROM absurd.ingestion_subbands"
-        )
+        rows = await conn.fetch("SELECT file_path FROM absurd.ingestion_subbands")
         return [row["file_path"] for row in rows]

@@ -276,7 +276,7 @@ class BokehSessionManager:
             logger.info(f"Session {session_id} started successfully at {session.url}")
             return session
 
-        except Exception as e:
+        except Exception:
             # Clean up on failure
             await self.port_pool.release(session_id)
             raise
@@ -327,13 +327,13 @@ try:
         vis="{ms_path}",
         imagename="{imagename}",
         imsize={imsize},
-        cell="{params.get('cell', '2.5arcsec')}",
-        specmode="{params.get('specmode', 'mfs')}",
-        deconvolver="{params.get('deconvolver', 'mtmfs')}",
-        weighting="{params.get('weighting', 'briggs')}",
-        robust={params.get('robust', 0.5)},
-        niter={params.get('niter', 10000)},
-        threshold="{params.get('threshold', '0.5mJy')}",
+        cell="{params.get("cell", "2.5arcsec")}",
+        specmode="{params.get("specmode", "mfs")}",
+        deconvolver="{params.get("deconvolver", "mtmfs")}",
+        weighting="{params.get("weighting", "briggs")}",
+        robust={params.get("robust", 0.5)},
+        niter={params.get("niter", 10000)},
+        threshold="{params.get("threshold", "0.5mJy")}",
     )
     
     logger.info(f"Starting Bokeh server on port {port}")
@@ -422,9 +422,7 @@ except Exception as e:
         Returns:
             Number of sessions cleaned up
         """
-        dead_ids = [
-            sid for sid, session in self.sessions.items() if not session.is_alive()
-        ]
+        dead_ids = [sid for sid, session in self.sessions.items() if not session.is_alive()]
 
         for sid in dead_ids:
             await self.cleanup_session(sid)
@@ -569,9 +567,7 @@ except Exception as e:
                     logger.exception(f"Error in cleanup loop: {e}")
 
         self._cleanup_task = asyncio.create_task(cleanup_loop())
-        logger.info(
-            f"Started session cleanup loop (interval: {interval_seconds}s)"
-        )
+        logger.info(f"Started session cleanup loop (interval: {interval_seconds}s)")
 
 
 # Singleton instance

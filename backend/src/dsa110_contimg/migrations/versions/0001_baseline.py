@@ -8,14 +8,12 @@ To stamp an existing database with this baseline:
     DATABASE=products alembic stamp head
 
 Revision ID: 0001_baseline
-Revises: 
+Revises:
 Create Date: 2025-11-29
 """
-from alembic import op
-import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
-revision = '0001_baseline'
+revision = "0001_baseline"
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -23,10 +21,10 @@ depends_on = None
 
 def upgrade() -> None:
     """Baseline migration - no changes.
-    
+
     The database schema already exists. This migration exists solely
     to provide a known starting point for future migrations.
-    
+
     If you're running this on a new database, the tables should be
     created via:
         from dsa110_contimg.database.session import init_database

@@ -108,9 +108,9 @@ def query_prometheus(query: str) -> Optional[Dict[str, Any]]:
 
     Returns None if Prometheus is not available.
     """
-    import urllib.request
-    import urllib.parse
     import json
+    import urllib.parse
+    import urllib.request
 
     prometheus_url = get_prometheus_url()
     if not prometheus_url:
@@ -129,29 +129,29 @@ def query_prometheus(query: str) -> Optional[Dict[str, Any]]:
     return None
 
 
-def query_prometheus_range(
-    query: str, start: int, end: int, step: int
-) -> Optional[Dict[str, Any]]:
+def query_prometheus_range(query: str, start: int, end: int, step: int) -> Optional[Dict[str, Any]]:
     """
     Execute a Prometheus range query.
 
     Returns None if Prometheus is not available.
     """
-    import urllib.request
-    import urllib.parse
     import json
+    import urllib.parse
+    import urllib.request
 
     prometheus_url = get_prometheus_url()
     if not prometheus_url:
         return None
 
     try:
-        params = urllib.parse.urlencode({
-            "query": query,
-            "start": start,
-            "end": end,
-            "step": step,
-        })
+        params = urllib.parse.urlencode(
+            {
+                "query": query,
+                "start": start,
+                "end": end,
+                "step": step,
+            }
+        )
         url = f"{prometheus_url}/api/v1/query_range?{params}"
         with urllib.request.urlopen(url, timeout=10) as response:
             data = json.loads(response.read().decode())
@@ -203,9 +203,7 @@ def get_pipeline_metrics() -> Dict[str, Any]:
     import sqlite3
     from pathlib import Path
 
-    db_path = Path(
-        os.environ.get("PIPELINE_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3")
-    )
+    db_path = Path(os.environ.get("PIPELINE_DB", "/data/dsa110-contimg/state/db/pipeline.sqlite3"))
 
     metrics = {
         "jobs_per_hour": 0.0,
@@ -299,6 +297,7 @@ def get_pipeline_metrics() -> Dict[str, Any]:
             for worker_data in workers.values():
                 try:
                     import json
+
                     data = json.loads(worker_data)
                     if now - data.get("last_heartbeat", 0) < 60:
                         active += 1
@@ -424,7 +423,9 @@ async def get_metrics_dashboard() -> MetricsDashboard:
             trend="stable",
             trendPercent=0.0,
             status=get_metric_status(100 - pipe_metrics["success_rate_percent"], 5, 20),
-            history=[MetricDataPoint(timestamp=timestamp, value=pipe_metrics["success_rate_percent"])],
+            history=[
+                MetricDataPoint(timestamp=timestamp, value=pipe_metrics["success_rate_percent"])
+            ],
         ),
         SystemMetric(
             id="queue_depth",
@@ -435,7 +436,9 @@ async def get_metrics_dashboard() -> MetricsDashboard:
             trend="stable",
             trendPercent=0.0,
             status=get_metric_status(pipe_metrics["queue_depth"], 100, 500),
-            history=[MetricDataPoint(timestamp=timestamp, value=float(pipe_metrics["queue_depth"]))],
+            history=[
+                MetricDataPoint(timestamp=timestamp, value=float(pipe_metrics["queue_depth"]))
+            ],
         ),
     ]
 

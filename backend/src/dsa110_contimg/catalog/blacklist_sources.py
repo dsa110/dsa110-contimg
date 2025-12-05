@@ -7,8 +7,6 @@ WISE AGN catalog) and blacklist variable sources from the calibrator registry.
 import logging
 from typing import List, Tuple
 
-import numpy as np
-
 logger = logging.getLogger(__name__)
 
 
@@ -46,7 +44,7 @@ def blacklist_atnf_pulsars(
             dec_deg=dec,
             reason="pulsar",
             source_type="pulsar",
-            notes=f"ATNF pulsar catalog, variable",
+            notes="ATNF pulsar catalog, variable",
             db_path=db_path,
         )
 
@@ -193,7 +191,6 @@ def blacklist_extended_sources(
     Returns:
         Number of extended sources blacklisted
     """
-    from dsa110_contimg.catalog.calibrator_registry import blacklist_source
 
     # This would require querying catalog for source sizes
     # For now, just log a warning

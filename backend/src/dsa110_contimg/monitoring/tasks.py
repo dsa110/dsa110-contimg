@@ -10,7 +10,7 @@ This module defines ABSURD tasks for:
 
 import logging
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -101,26 +101,20 @@ async def _execute_health_check(params: Dict[str, Any]) -> Dict[str, Any]:
     include_systemd = params.get("include_systemd", True)
     include_http = params.get("include_http", True)
 
-    docker_containers = (
-        params.get("docker_containers") or [
-            "dsa110-api",
-            "dsa110-redis",
-            "contimg-stream",
-        ]
-    )
+    docker_containers = params.get("docker_containers") or [
+        "dsa110-api",
+        "dsa110-redis",
+        "contimg-stream",
+    ]
 
-    systemd_services = (
-        params.get("systemd_services") or [
-            "contimg-api.service",
-            "contimg-stream.service",
-        ]
-    )
+    systemd_services = params.get("systemd_services") or [
+        "contimg-api.service",
+        "contimg-stream.service",
+    ]
 
-    http_endpoints = (
-        params.get("http_endpoints") or {
-            "api": "http://localhost:8000/api/status",
-        }
-    )
+    http_endpoints = params.get("http_endpoints") or {
+        "api": "http://localhost:8000/api/status",
+    }
 
     logger.info("Running system health check")
 
@@ -153,9 +147,7 @@ async def _execute_validity_window_check(params: Dict[str, Any]) -> Dict[str, An
     from astropy.time import Time
 
     warning_hours = params.get("warning_hours", 2)
-    registry_db = params.get(
-        "registry_db", "/data/dsa110-contimg/state/db/pipeline.sqlite3"
-    )
+    registry_db = params.get("registry_db", "/data/dsa110-contimg/state/db/pipeline.sqlite3")
 
     logger.info(f"Checking validity windows (warning threshold: {warning_hours}h)")
 
@@ -286,9 +278,7 @@ async def _execute_send_alert(params: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-async def _send_webhook_alert(
-    url: str, severity: str, title: str, message: str
-) -> Dict[str, Any]:
+async def _send_webhook_alert(url: str, severity: str, title: str, message: str) -> Dict[str, Any]:
     """Send alert via webhook."""
     import httpx
 
@@ -311,9 +301,7 @@ async def _send_webhook_alert(
         return {"sent": False, "error": str(e)}
 
 
-async def _send_email_alert(
-    to: str, severity: str, title: str, message: str
-) -> Dict[str, Any]:
+async def _send_email_alert(to: str, severity: str, title: str, message: str) -> Dict[str, Any]:
     """Send alert via email (placeholder - requires SMTP config)."""
     # TODO: Implement email sending with smtplib
     logger.warning("Email alerting not implemented - skipping")

@@ -98,7 +98,9 @@ def _select_calibrator_from_catalog_slow(
 
     # Determine which catalog to use based on declination
     catalog_recommendations = recommend_catalogs(
-        ra=0.0, dec=dec_deg, purpose="calibration"  # Don't care about RA for calibrators
+        ra=0.0,
+        dec=dec_deg,
+        purpose="calibration",  # Don't care about RA for calibrators
     )
 
     if not catalog_recommendations:

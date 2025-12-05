@@ -112,8 +112,7 @@ class Source:
                     self.dec_deg = float(self.measurements.iloc[0]["dec_deg"])
                 else:
                     raise SourceError(
-                        f"No measurements found for source {source_id} and "
-                        "coordinates not provided"
+                        f"No measurements found for source {source_id} and coordinates not provided"
                     )
             else:
                 self.ra_deg = ra_deg

@@ -7,13 +7,13 @@ from __future__ import annotations
 from typing import Optional
 from urllib.parse import unquote
 
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 
-from ..dependencies import get_async_source_service, get_async_image_repository
+from ..dependencies import get_async_image_repository, get_async_source_service
 from ..exceptions import RecordNotFoundError, ValidationError
 from ..repositories import AsyncImageRepository
-from ..schemas import SourceDetailResponse, SourceListResponse, ContributingImage
+from ..schemas import ContributingImage, SourceDetailResponse, SourceListResponse
 from ..services.async_services import AsyncSourceService
 
 router = APIRouter(prefix="/sources", tags=["sources"])
@@ -49,19 +49,19 @@ async def get_source_detail(
 ):
     """
     Get detailed information about an astronomical source.
-    
+
     Raises:
         RecordNotFoundError: If source is not found
     """
     source = await service.get_source(source_id)
     if not source:
         raise RecordNotFoundError("Source", source_id)
-    
+
     contributing_images = []
     if source.contributing_images:
         for img_dict in source.contributing_images:
             contributing_images.append(ContributingImage(**img_dict))
-    
+
     return SourceDetailResponse(
         id=source.id,
         name=source.name,
@@ -81,7 +81,7 @@ async def get_source_lightcurve(
 ):
     """Get lightcurve data for a source."""
     from astropy.time import Time
-    
+
     # Convert ISO dates to MJD if provided
     start_mjd = None
     end_mjd = None
@@ -103,10 +103,10 @@ async def get_source_lightcurve(
                 message="Use ISO format (YYYY-MM-DD)",
                 value=end_date,
             ) from e
-    
+
     decoded_source_id = unquote(source_id)
     data_points = await service.get_lightcurve(decoded_source_id, start_mjd, end_mjd)
-    
+
     return {
         "source_id": decoded_source_id,
         "data_points": data_points,
@@ -120,17 +120,17 @@ async def get_source_variability(
 ):
     """
     Get variability analysis for a source.
-    
+
     Raises:
         RecordNotFoundError: If source is not found
     """
     source = await service.get_source(source_id)
     if not source:
         raise RecordNotFoundError("Source", source_id)
-    
+
     # Get lightcurve data
     epochs = await service.get_lightcurve(source_id)
-    
+
     return service.calculate_variability(source, epochs)
 
 
@@ -142,24 +142,21 @@ async def get_source_qa(
 ):
     """
     Get QA report for a source.
-    
+
     Raises:
         RecordNotFoundError: If source is not found
     """
     source = await service.get_source(source_id)
     if not source:
         raise RecordNotFoundError("Source", source_id)
-    
+
     # Get associated images for QA summary
     images = []
-    if hasattr(image_repo, 'get_for_source'):
+    if hasattr(image_repo, "get_for_source"):
         images = image_repo.get_for_source(source_id)
-    
-    qa_grades = [
-        img.qa_grade for img in images 
-        if hasattr(img, 'qa_grade') and img.qa_grade
-    ]
-    
+
+    qa_grades = [img.qa_grade for img in images if hasattr(img, "qa_grade") and img.qa_grade]
+
     return {
         "source_id": source_id,
         "source_name": source.name,
@@ -183,19 +180,21 @@ def _sources_to_csv(rows: list[dict]) -> str:
     """Serialize source rows to CSV."""
     import csv
     import io
-    
+
     buffer = io.StringIO()
     writer = csv.writer(buffer)
     writer.writerow(["id", "name", "ra_deg", "dec_deg", "num_images", "latest_image_id"])
     for row in rows:
-        writer.writerow([
-            row.get("id"),
-            row.get("name") or "",
-            row.get("ra_deg"),
-            row.get("dec_deg"),
-            row.get("num_images", 0),
-            row.get("latest_image_id") or "",
-        ])
+        writer.writerow(
+            [
+                row.get("id"),
+                row.get("name") or "",
+                row.get("ra_deg"),
+                row.get("dec_deg"),
+                row.get("num_images", 0),
+                row.get("latest_image_id") or "",
+            ]
+        )
     buffer.seek(0)
     return buffer.getvalue()
 
@@ -209,7 +208,7 @@ async def list_contributing_images(
     source = await service.get_source(source_id)
     if not source:
         raise RecordNotFoundError("Source", source_id)
-    
+
     images = []
     if source.contributing_images:
         images = [ContributingImage(**img) for img in source.contributing_images]
@@ -225,7 +224,7 @@ async def export_single_source(
     source = await service.get_source(source_id)
     if not source:
         raise RecordNotFoundError("Source", source_id)
-    
+
     row = {
         "id": source.id,
         "name": source.name,
@@ -251,24 +250,26 @@ async def export_sources(
     source_ids = [unquote(part) for part in ids.split(",") if part]
     if not source_ids:
         raise HTTPException(status_code=400, detail="No source IDs provided")
-    
+
     rows = []
     for source_id in source_ids:
         source = await service.get_source(source_id)
         if not source:
             continue
-        rows.append({
-            "id": source.id,
-            "name": source.name,
-            "ra_deg": source.ra_deg,
-            "dec_deg": source.dec_deg,
-            "num_images": len(source.contributing_images or []),
-            "latest_image_id": source.latest_image_id,
-        })
-    
+        rows.append(
+            {
+                "id": source.id,
+                "name": source.name,
+                "ra_deg": source.ra_deg,
+                "dec_deg": source.dec_deg,
+                "num_images": len(source.contributing_images or []),
+                "latest_image_id": source.latest_image_id,
+            }
+        )
+
     if not rows:
         raise RecordNotFoundError("Source", ids)
-    
+
     csv_data = _sources_to_csv(rows)
     return StreamingResponse(
         iter([csv_data]),

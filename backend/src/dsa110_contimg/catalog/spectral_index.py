@@ -15,7 +15,6 @@ Implements Proposal #1: Spectral Index Mapping
 import logging
 import sqlite3
 import time
-from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
 import numpy as np

@@ -66,8 +66,7 @@ class SimpleCircuitBreaker:
                 self.success_count = 0
             else:
                 raise CircuitBreakerOpenError(
-                    f"Circuit breaker is OPEN. "
-                    f"Will retry after {self.recovery_timeout} seconds."
+                    f"Circuit breaker is OPEN. Will retry after {self.recovery_timeout} seconds."
                 )
 
         try:

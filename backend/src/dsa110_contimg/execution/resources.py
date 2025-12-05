@@ -121,9 +121,7 @@ class ResourceManager:
 
             # CPU time limit
             if self.cpu_seconds is not None:
-                resource.setrlimit(
-                    resource.RLIMIT_CPU, (self.cpu_seconds, self.cpu_seconds)
-                )
+                resource.setrlimit(resource.RLIMIT_CPU, (self.cpu_seconds, self.cpu_seconds))
                 logger.debug(f"Set RLIMIT_CPU to {self.cpu_seconds} seconds")
 
         except (ValueError, OSError) as e:
@@ -174,10 +172,7 @@ class ResourceManager:
 
         current = ResourceSnapshot.current()
         if current.max_rss_mb > self.memory_mb:
-            return (
-                f"Memory limit exceeded: {current.max_rss_mb:.1f} MB > "
-                f"{self.memory_mb} MB limit"
-            )
+            return f"Memory limit exceeded: {current.max_rss_mb:.1f} MB > {self.memory_mb} MB limit"
 
         return None
 

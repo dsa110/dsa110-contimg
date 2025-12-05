@@ -10,12 +10,12 @@ from fastapi import APIRouter, Depends
 
 from ..dependencies import (
     get_async_image_service,
-    get_async_ms_service,
     get_async_job_service,
+    get_async_ms_service,
     get_qa_service,
 )
 from ..exceptions import RecordNotFoundError
-from ..services.async_services import AsyncImageService, AsyncMSService, AsyncJobService
+from ..services.async_services import AsyncImageService, AsyncJobService, AsyncMSService
 from ..services.qa_service import QAService
 
 router = APIRouter(prefix="/qa", tags=["qa"])
@@ -29,14 +29,14 @@ async def get_image_qa(
 ):
     """
     Get QA report for an image.
-    
+
     Raises:
         RecordNotFoundError: If image is not found
     """
     image = await image_service.get_image(image_id)
     if not image:
         raise RecordNotFoundError("Image", image_id)
-    
+
     return qa_service.build_image_qa(image)
 
 
@@ -48,16 +48,16 @@ async def get_ms_qa(
 ):
     """
     Get QA report for a Measurement Set.
-    
+
     Raises:
         RecordNotFoundError: If MS is not found
     """
     ms_path = unquote(encoded_path)
-    
+
     ms_meta = await ms_service.get_ms_metadata(ms_path)
     if not ms_meta:
         raise RecordNotFoundError("MeasurementSet", ms_path)
-    
+
     return qa_service.build_ms_qa(ms_meta)
 
 
@@ -69,12 +69,12 @@ async def get_job_qa(
 ):
     """
     Get QA summary for a pipeline job.
-    
+
     Raises:
         RecordNotFoundError: If job is not found
     """
     job = await job_service.get_job(run_id)
     if not job:
         raise RecordNotFoundError("Job", run_id)
-    
+
     return qa_service.build_job_qa(job)

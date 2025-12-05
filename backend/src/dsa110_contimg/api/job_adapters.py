@@ -6,11 +6,10 @@ direct calls to the new pipeline framework stages.
 
 from __future__ import annotations
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
 import json
 import os
-import sqlite3
 import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import List
 

@@ -561,9 +561,7 @@ class MSStateMachine:
         if validate:
             valid_targets = self.TRANSITIONS.get(current, [])
             if new_state not in valid_targets:
-                raise StateTransitionError(
-                    ms_path, current, new_state, valid_targets
-                )
+                raise StateTransitionError(ms_path, current, new_state, valid_targets)
 
         # Serialize checkpoint
         checkpoint_json = json.dumps(checkpoint) if checkpoint else None

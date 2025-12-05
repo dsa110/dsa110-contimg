@@ -32,6 +32,7 @@ def export_fits(
     try:
         try:
             from dsa110_contimg.utils.tempdirs import casa_log_environment
+
             with casa_log_environment():
                 from casatasks import exportfits as _exportfits  # type: ignore
         except ImportError:

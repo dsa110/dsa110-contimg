@@ -15,7 +15,7 @@ import uuid
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, Query, Depends
+from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from ..dependencies import get_pipeline_db
@@ -32,7 +32,7 @@ router = APIRouter(prefix="/queries", tags=["queries"])
 
 class QueryParameter(BaseModel):
     """Parameter definition for parameterized queries."""
-    
+
     name: str
     type: str = "string"  # string, number, date, boolean
     default_value: Optional[str] = None
@@ -83,7 +83,7 @@ class SavedQueryListResponse(BaseModel):
 
 class QueryResult(BaseModel):
     """Result from running a query."""
-    
+
     columns: List[str]
     rows: List[Dict[str, Any]]
     row_count: int
@@ -93,7 +93,7 @@ class QueryResult(BaseModel):
 
 class RunQueryRequest(BaseModel):
     """Request to run a query."""
-    
+
     query_id: Optional[str] = None
     query_string: Optional[str] = None
     parameters: Optional[Dict[str, str]] = None
@@ -102,7 +102,7 @@ class RunQueryRequest(BaseModel):
 
 class QueryStats(BaseModel):
     """Statistics about saved queries."""
-    
+
     total_queries: int
     public_queries: int
     team_queries: int
@@ -168,21 +168,21 @@ def _row_to_query(row: sqlite3.Row, is_favorite: bool = False) -> SavedQuery:
     """Convert database row to SavedQuery model."""
     tags = []
     parameters = []
-    
+
     try:
         tags_val = row["tags"] if "tags" in row.keys() else None
         if tags_val:
             tags = json.loads(tags_val)
     except (json.JSONDecodeError, TypeError):
         pass
-    
+
     try:
         params_val = row["parameters"] if "parameters" in row.keys() else None
         if params_val:
             parameters = [QueryParameter(**p) for p in json.loads(params_val)]
     except (json.JSONDecodeError, TypeError):
         pass
-    
+
     # Handle both old (created_by) and new (owner_id) column names
     owner_id = row["owner_id"] if "owner_id" in row.keys() else row.get("created_by", "unknown")
     owner_name = row["owner_name"] if "owner_name" in row.keys() else "Default User"
@@ -190,7 +190,7 @@ def _row_to_query(row: sqlite3.Row, is_favorite: bool = False) -> SavedQuery:
     run_count = row["run_count"] if "run_count" in row.keys() else 0
     last_run = row["last_run_at"] if "last_run_at" in row.keys() else None
     query_string = row["query_string"] if "query_string" in row.keys() else None
-    
+
     return SavedQuery(
         id=row["id"],
         name=row["name"],
@@ -230,10 +230,10 @@ async def list_saved_queries(
 ):
     """List saved queries visible to the current user."""
     current_user = _get_current_user()
-    
+
     conditions = []
     params = []
-    
+
     # Visibility filter: own queries + public (optionally)
     if include_public:
         conditions.append("(created_by = ? OR visibility = 'public' OR visibility = 'team')")
@@ -241,17 +241,17 @@ async def list_saved_queries(
     else:
         conditions.append("created_by = ?")
         params.append(current_user)
-    
+
     if target_type:
         conditions.append("target_type = ?")
         params.append(target_type)
-    
+
     if visibility:
         conditions.append("visibility = ?")
         params.append(visibility)
-    
+
     where_clause = " AND ".join(conditions) if conditions else "1=1"
-    
+
     cursor = db.execute(
         f"""
         SELECT * FROM saved_queries
@@ -262,7 +262,7 @@ async def list_saved_queries(
     )
     cursor.row_factory = sqlite3.Row
     rows = cursor.fetchall()
-    
+
     queries = [_row_to_query(row) for row in rows]
     return SavedQueryListResponse(queries=queries, total=len(queries))
 
@@ -274,7 +274,7 @@ async def get_saved_query(
 ):
     """Get a single saved query by ID."""
     current_user = _get_current_user()
-    
+
     cursor = db.execute(
         """
         SELECT * FROM saved_queries
@@ -284,10 +284,10 @@ async def get_saved_query(
     )
     cursor.row_factory = sqlite3.Row
     row = cursor.fetchone()
-    
+
     if not row:
         raise HTTPException(status_code=404, detail=f"Query {query_id} not found")
-    
+
     return _row_to_query(row)
 
 
@@ -300,7 +300,7 @@ async def create_saved_query(
     current_user = _get_current_user()
     query_id = str(uuid.uuid4())
     now = datetime.utcnow().isoformat()
-    
+
     try:
         db.execute(
             """
@@ -322,7 +322,7 @@ async def create_saved_query(
         db.commit()
     except sqlite3.IntegrityError as e:
         raise HTTPException(status_code=400, detail=f"Failed to create query: {e}")
-    
+
     return SavedQuery(
         id=query_id,
         name=data.name,
@@ -344,20 +344,20 @@ async def update_saved_query(
 ):
     """Update an existing saved query. Only owner can update."""
     current_user = _get_current_user()
-    
+
     # Check ownership
     cursor = db.execute(
         "SELECT created_by FROM saved_queries WHERE id = ?",
         (query_id,),
     )
     row = cursor.fetchone()
-    
+
     if not row:
         raise HTTPException(status_code=404, detail=f"Query {query_id} not found")
-    
+
     if row[0] != current_user:
         raise HTTPException(status_code=403, detail="Cannot update another user's query")
-    
+
     db.execute(
         """
         UPDATE saved_queries
@@ -367,12 +367,12 @@ async def update_saved_query(
         (data.name, data.description, data.filters, data.target_type, data.visibility, query_id),
     )
     db.commit()
-    
+
     # Fetch updated record
     cursor = db.execute("SELECT * FROM saved_queries WHERE id = ?", (query_id,))
     cursor.row_factory = sqlite3.Row
     row = cursor.fetchone()
-    
+
     return _row_to_query(row)
 
 
@@ -383,23 +383,23 @@ async def delete_saved_query(
 ):
     """Delete a saved query. Only owner can delete."""
     current_user = _get_current_user()
-    
+
     # Check ownership
     cursor = db.execute(
         "SELECT created_by FROM saved_queries WHERE id = ?",
         (query_id,),
     )
     row = cursor.fetchone()
-    
+
     if not row:
         raise HTTPException(status_code=404, detail=f"Query {query_id} not found")
-    
+
     if row[0] != current_user:
         raise HTTPException(status_code=403, detail="Cannot delete another user's query")
-    
+
     db.execute("DELETE FROM saved_queries WHERE id = ?", (query_id,))
     db.commit()
-    
+
     return None
 
 
@@ -411,7 +411,7 @@ async def fork_saved_query(
 ):
     """Fork a public/team query to create a personal copy."""
     user_id, user_name = _get_current_user()
-    
+
     # Get original query (must be accessible)
     cursor = db.execute(
         """
@@ -422,15 +422,15 @@ async def fork_saved_query(
     )
     cursor.row_factory = sqlite3.Row
     original = cursor.fetchone()
-    
+
     if not original:
         raise HTTPException(status_code=404, detail=f"Query {query_id} not found or not accessible")
-    
+
     # Create fork
     fork_id = str(uuid.uuid4())
     now = datetime.utcnow().isoformat()
     fork_name = name or f"{original['name']} (copy)"
-    
+
     db.execute(
         """
         INSERT INTO saved_queries (id, name, description, filters, target_type, visibility, created_by, created_at, updated_at)
@@ -448,12 +448,12 @@ async def fork_saved_query(
         ),
     )
     db.commit()
-    
+
     # Fetch and return
     cursor = db.execute("SELECT * FROM saved_queries WHERE id = ?", (fork_id,))
     cursor.row_factory = sqlite3.Row
     row = cursor.fetchone()
-    
+
     return _row_to_query(row)
 
 
@@ -474,20 +474,20 @@ async def favorite_query(
 ):
     """Mark a query as favorite."""
     _ensure_schema(db)
-    
+
     db.execute(
         "UPDATE saved_queries SET is_favorite = 1 WHERE id = ?",
         (query_id,),
     )
     db.commit()
-    
+
     cursor = db.execute("SELECT * FROM saved_queries WHERE id = ?", (query_id,))
     cursor.row_factory = sqlite3.Row
     row = cursor.fetchone()
-    
+
     if not row:
         raise HTTPException(status_code=404, detail=f"Query {query_id} not found")
-    
+
     return _row_to_query(row, is_favorite=True)
 
 
@@ -498,20 +498,20 @@ async def unfavorite_query(
 ):
     """Remove a query from favorites."""
     _ensure_schema(db)
-    
+
     db.execute(
         "UPDATE saved_queries SET is_favorite = 0 WHERE id = ?",
         (query_id,),
     )
     db.commit()
-    
+
     cursor = db.execute("SELECT * FROM saved_queries WHERE id = ?", (query_id,))
     cursor.row_factory = sqlite3.Row
     row = cursor.fetchone()
-    
+
     if not row:
         raise HTTPException(status_code=404, detail=f"Query {query_id} not found")
-    
+
     return _row_to_query(row)
 
 
@@ -522,7 +522,7 @@ async def get_favorite_queries(
     """Get all favorite queries for the current user."""
     _ensure_schema(db)
     user_id, _ = _get_current_user()
-    
+
     cursor = db.execute(
         """
         SELECT * FROM saved_queries
@@ -533,7 +533,7 @@ async def get_favorite_queries(
     )
     cursor.row_factory = sqlite3.Row
     rows = cursor.fetchall()
-    
+
     return [_row_to_query(row) for row in rows]
 
 
@@ -543,33 +543,37 @@ async def get_query_stats(
 ):
     """Get query statistics."""
     _ensure_schema(db)
-    
+
     total = db.execute("SELECT COUNT(*) FROM saved_queries").fetchone()[0]
-    public = db.execute("SELECT COUNT(*) FROM saved_queries WHERE visibility = 'public'").fetchone()[0]
+    public = db.execute(
+        "SELECT COUNT(*) FROM saved_queries WHERE visibility = 'public'"
+    ).fetchone()[0]
     team = db.execute("SELECT COUNT(*) FROM saved_queries WHERE visibility = 'team'").fetchone()[0]
-    private = db.execute("SELECT COUNT(*) FROM saved_queries WHERE visibility = 'private'").fetchone()[0]
-    
+    private = db.execute(
+        "SELECT COUNT(*) FROM saved_queries WHERE visibility = 'private'"
+    ).fetchone()[0]
+
     # Queries run today/week
     today = datetime.utcnow().date().isoformat()
     week_ago = (datetime.utcnow() - timedelta(days=7)).isoformat()
-    
+
     try:
         today_count = db.execute(
-            "SELECT COUNT(*) FROM query_history WHERE run_at >= ?",
-            (today,)
+            "SELECT COUNT(*) FROM query_history WHERE run_at >= ?", (today,)
         ).fetchone()[0]
-        
+
         week_count = db.execute(
-            "SELECT COUNT(*) FROM query_history WHERE run_at >= ?",
-            (week_ago,)
+            "SELECT COUNT(*) FROM query_history WHERE run_at >= ?", (week_ago,)
         ).fetchone()[0]
     except sqlite3.OperationalError:
         today_count = 0
         week_count = 0
-    
+
     # Popular tags
     try:
-        cursor = db.execute("SELECT tags FROM saved_queries WHERE tags IS NOT NULL AND tags != '[]'")
+        cursor = db.execute(
+            "SELECT tags FROM saved_queries WHERE tags IS NOT NULL AND tags != '[]'"
+        )
         tag_counts: Dict[str, int] = {}
         for row in cursor.fetchall():
             try:
@@ -580,11 +584,11 @@ async def get_query_stats(
         popular_tags = sorted(
             [{"tag": k, "count": v} for k, v in tag_counts.items()],
             key=lambda x: x["count"],
-            reverse=True
+            reverse=True,
         )[:10]
     except sqlite3.OperationalError:
         popular_tags = []
-    
+
     # Top queries by run count
     try:
         cursor = db.execute(
@@ -602,7 +606,7 @@ async def get_query_stats(
         ]
     except sqlite3.OperationalError:
         top_queries = []
-    
+
     return QueryStats(
         total_queries=total,
         public_queries=public,
@@ -623,7 +627,7 @@ async def get_query_history(
     """Get recent query execution history."""
     _ensure_schema(db)
     user_id, _ = _get_current_user()
-    
+
     try:
         cursor = db.execute(
             """
@@ -652,10 +656,10 @@ async def run_query(
     """Execute a saved or ad-hoc query."""
     _ensure_schema(db)
     user_id, _ = _get_current_user()
-    
+
     query_string = data.query_string
     query_id = data.query_id
-    
+
     # If query_id provided, fetch the query
     if query_id and not query_string:
         cursor = db.execute(
@@ -666,31 +670,31 @@ async def run_query(
         if not row:
             raise HTTPException(status_code=404, detail=f"Query {query_id} not found")
         query_string = row[0] or row[1]  # Use query_string or filters
-    
+
     if not query_string:
         raise HTTPException(status_code=400, detail="No query string provided")
-    
+
     # For safety, only allow SELECT queries
     query_lower = query_string.strip().lower()
     if not query_lower.startswith("select"):
         raise HTTPException(status_code=400, detail="Only SELECT queries are allowed")
-    
+
     # Add limit if not present
     if "limit" not in query_lower:
         query_string = f"{query_string} LIMIT {data.limit}"
-    
+
     start_time = time.time()
-    
+
     try:
         cursor = db.execute(query_string)
         columns = [desc[0] for desc in cursor.description] if cursor.description else []
         rows = []
         for row in cursor.fetchall():
             rows.append(dict(zip(columns, row)))
-        
+
         execution_time = (time.time() - start_time) * 1000
         truncated = len(rows) >= data.limit
-        
+
         # Record in history if saved query
         if query_id:
             history_id = str(uuid.uuid4())
@@ -706,7 +710,7 @@ async def run_query(
                 db.commit()
             except sqlite3.OperationalError:
                 pass  # History table may not exist
-        
+
         return QueryResult(
             columns=columns,
             rows=rows,
@@ -714,6 +718,6 @@ async def run_query(
             execution_time_ms=round(execution_time, 2),
             truncated=truncated,
         )
-        
+
     except sqlite3.Error as e:
         raise HTTPException(status_code=400, detail=f"Query error: {e}")

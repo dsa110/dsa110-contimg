@@ -32,9 +32,7 @@ from dsa110_contimg.catalog.builders import (
 
 
 def main(argv: list[str] | None = None) -> int:
-    ap = argparse.ArgumentParser(
-        description="Build full NVSS SQLite database from HEASARC catalog"
-    )
+    ap = argparse.ArgumentParser(description="Build full NVSS SQLite database from HEASARC catalog")
     ap.add_argument(
         "--force",
         action="store_true",
@@ -57,6 +55,7 @@ def main(argv: list[str] | None = None) -> int:
         exists = nvss_full_db_exists()
         if exists:
             import sqlite3
+
             with sqlite3.connect(str(db_path)) as conn:
                 count = conn.execute("SELECT COUNT(*) FROM sources").fetchone()[0]
                 meta = dict(conn.execute("SELECT key, value FROM meta").fetchall())
@@ -75,18 +74,20 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         from pathlib import Path
+
         output_path = Path(args.output) if args.output else None
-        
+
         db_path = build_nvss_full_db(
             output_path=output_path,
             force_rebuild=args.force,
         )
-        
+
         # Print summary
         import sqlite3
+
         with sqlite3.connect(str(db_path)) as conn:
             count = conn.execute("SELECT COUNT(*) FROM sources").fetchone()[0]
-        
+
         print()
         print(f"✓ Full NVSS database ready: {db_path}")
         print(f"  Sources: {count:,}")
@@ -97,6 +98,7 @@ def main(argv: list[str] | None = None) -> int:
     except Exception as e:
         print(f"\n✗ Error building database: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
 

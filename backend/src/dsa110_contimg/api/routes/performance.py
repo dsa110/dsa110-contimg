@@ -142,9 +142,7 @@ def load_latest_benchmark() -> Optional[Dict[str, Any]]:
     return None
 
 
-def extract_timing(
-    data: Dict[str, Any], suite: str, cls: str, method: str
-) -> Optional[float]:
+def extract_timing(data: Dict[str, Any], suite: str, cls: str, method: str) -> Optional[float]:
     """Extract a specific timing from benchmark data."""
     try:
         return data["benchmarks"][suite][cls][method]["mean"]
@@ -157,7 +155,6 @@ def extract_timing(
 # ============================================================================
 
 import os
-
 
 # ============================================================================
 # Routes
@@ -267,7 +264,7 @@ async def get_gpu_status():
         import pynvml
 
         pynvml.nvmlInit()
-    except (ImportError, Exception) as e:
+    except (ImportError, Exception):
         # Try CuPy as fallback for basic info
         try:
             import cupy as cp
@@ -309,9 +306,7 @@ async def get_gpu_status():
 
             mem = pynvml.nvmlDeviceGetMemoryInfo(handle)
             util = pynvml.nvmlDeviceGetUtilizationRates(handle)
-            temp = pynvml.nvmlDeviceGetTemperature(
-                handle, pynvml.NVML_TEMPERATURE_GPU
-            )
+            temp = pynvml.nvmlDeviceGetTemperature(handle, pynvml.NVML_TEMPERATURE_GPU)
 
             try:
                 power = pynvml.nvmlDeviceGetPowerUsage(handle) / 1000  # mW to W

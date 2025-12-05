@@ -13,7 +13,7 @@ from enum import Enum
 
 class MosaicTier(Enum):
     """The three mosaic quality tiers."""
-    
+
     QUICKLOOK = "quicklook"
     SCIENCE = "science"
     DEEP = "deep"
@@ -22,7 +22,7 @@ class MosaicTier(Enum):
 @dataclass(frozen=True)
 class TierConfig:
     """Immutable tier configuration.
-    
+
     Attributes:
         tier: The tier this config applies to
         max_images: Maximum number of images to include
@@ -31,7 +31,7 @@ class TierConfig:
         require_astrometry: Whether astrometric QA is required
         timeout_minutes: Maximum execution time
     """
-    
+
     tier: MosaicTier
     max_images: int
     rms_threshold_jy: float
@@ -74,26 +74,26 @@ def select_tier_for_request(
     target_quality: str | None = None,
 ) -> MosaicTier:
     """Automatic tier selection based on request parameters.
-    
+
     Simple, clear logic:
     - Recent data (< 1 hour) → Quicklook
     - Daily range + quality → Science
     - Multi-day + "deep" requested → Deep
-    
+
     Args:
         time_range_hours: Time span of data to mosaic in hours
         target_quality: Optional quality hint ("quicklook", "science", "deep")
-        
+
     Returns:
         Selected MosaicTier
-        
+
     Examples:
         >>> select_tier_for_request(0.5)
         MosaicTier.QUICKLOOK
-        
+
         >>> select_tier_for_request(24.0)
         MosaicTier.SCIENCE
-        
+
         >>> select_tier_for_request(72.0, "deep")
         MosaicTier.DEEP
     """
@@ -106,7 +106,7 @@ def select_tier_for_request(
             return MosaicTier.DEEP
         elif quality_lower == "science":
             return MosaicTier.SCIENCE
-    
+
     # Automatic selection based on time range
     if time_range_hours < 1:
         return MosaicTier.QUICKLOOK
@@ -118,13 +118,13 @@ def select_tier_for_request(
 
 def get_tier_config(tier: MosaicTier | str) -> TierConfig:
     """Get configuration for a tier.
-    
+
     Args:
         tier: MosaicTier enum or string name
-        
+
     Returns:
         TierConfig for the tier
-        
+
     Raises:
         ValueError: If tier is not recognized
     """
@@ -132,8 +132,6 @@ def get_tier_config(tier: MosaicTier | str) -> TierConfig:
         try:
             tier = MosaicTier(tier.lower())
         except ValueError:
-            raise ValueError(
-                f"Unknown tier: '{tier}'. Valid tiers: quicklook, science, deep"
-            )
-    
+            raise ValueError(f"Unknown tier: '{tier}'. Valid tiers: quicklook, science, deep")
+
     return TIER_CONFIGS[tier]

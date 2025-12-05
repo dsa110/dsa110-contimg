@@ -46,7 +46,9 @@ async def main() -> int:
     logger.info("=" * 60)
     logger.info("ABSURD Scheduler Starting")
     logger.info("=" * 60)
-    logger.info(f"Database: {config.database_url.split('@')[1] if '@' in config.database_url else config.database_url}")
+    logger.info(
+        f"Database: {config.database_url.split('@')[1] if '@' in config.database_url else config.database_url}"
+    )
     logger.info(f"Queue: {config.queue_name}")
     logger.info("=" * 60)
 

@@ -237,15 +237,17 @@ def build_nvss_full_db(
                 pa = pd.to_numeric(row.get("position_angle"), errors="coerce")
 
                 if np.isfinite(ra) and np.isfinite(dec):
-                    insert_data.append((
-                        float(ra),
-                        float(dec),
-                        float(flux) if np.isfinite(flux) else None,
-                        float(flux_err) if np.isfinite(flux_err) else None,
-                        float(major) if np.isfinite(major) else None,
-                        float(minor) if np.isfinite(minor) else None,
-                        float(pa) if np.isfinite(pa) else None,
-                    ))
+                    insert_data.append(
+                        (
+                            float(ra),
+                            float(dec),
+                            float(flux) if np.isfinite(flux) else None,
+                            float(flux_err) if np.isfinite(flux_err) else None,
+                            float(major) if np.isfinite(major) else None,
+                            float(minor) if np.isfinite(minor) else None,
+                            float(pa) if np.isfinite(pa) else None,
+                        )
+                    )
 
             # Batch insert
             conn.executemany(
@@ -319,8 +321,7 @@ def build_nvss_strip_from_full(
 
     if not full_db_path.exists():
         raise FileNotFoundError(
-            f"Full NVSS database not found: {full_db_path}. "
-            f"Run build_nvss_full_db() first."
+            f"Full NVSS database not found: {full_db_path}. Run build_nvss_full_db() first."
         )
 
     # Resolve output path
@@ -496,7 +497,16 @@ def build_first_full_db(
     FIRST_CANDIDATES = {
         "ra": ["ra", "ra_deg", "raj2000"],
         "dec": ["dec", "dec_deg", "dej2000"],
-        "flux": ["peak_flux", "peak_mjy_per_beam", "flux_peak", "flux", "total_flux", "fpeak", "fint", "flux_mjy"],
+        "flux": [
+            "peak_flux",
+            "peak_mjy_per_beam",
+            "flux_peak",
+            "flux",
+            "total_flux",
+            "fpeak",
+            "fint",
+            "flux_mjy",
+        ],
         "maj": ["deconv_maj", "maj", "fwhm_maj", "deconvolved_major", "maj_deconv"],
         "min": ["deconv_min", "min", "fwhm_min", "deconvolved_minor", "min_deconv"],
     }
@@ -584,9 +594,16 @@ def build_first_full_db(
             """)
 
             build_time = datetime.now(timezone.utc).isoformat()
-            conn.execute("INSERT INTO meta (key, value) VALUES (?, ?)", ("build_time_iso", build_time))
-            conn.execute("INSERT INTO meta (key, value) VALUES (?, ?)", ("n_sources", str(len(insert_data))))
-            conn.execute("INSERT INTO meta (key, value) VALUES (?, ?)", ("source", "FIRST catalog (Vizier/cached)"))
+            conn.execute(
+                "INSERT INTO meta (key, value) VALUES (?, ?)", ("build_time_iso", build_time)
+            )
+            conn.execute(
+                "INSERT INTO meta (key, value) VALUES (?, ?)", ("n_sources", str(len(insert_data)))
+            )
+            conn.execute(
+                "INSERT INTO meta (key, value) VALUES (?, ?)",
+                ("source", "FIRST catalog (Vizier/cached)"),
+            )
             conn.commit()
 
         logger.info(f"Created full FIRST database with {len(insert_data)} sources")
@@ -621,7 +638,9 @@ def build_first_strip_from_full(
         full_db_path = get_first_full_db_path()
 
     if not full_db_path.exists():
-        raise FileNotFoundError(f"Full FIRST database not found: {full_db_path}. Run build_first_full_db() first.")
+        raise FileNotFoundError(
+            f"Full FIRST database not found: {full_db_path}. Run build_first_full_db() first."
+        )
 
     if output_path is None:
         dec_rounded = round(dec_center, 1)
@@ -647,7 +666,9 @@ def build_first_strip_from_full(
         if output_path.exists():
             return output_path
 
-        logger.info(f"Building FIRST dec strip from full database: {dec_min:.2f}° to {dec_max:.2f}°")
+        logger.info(
+            f"Building FIRST dec strip from full database: {dec_min:.2f}° to {dec_max:.2f}°"
+        )
 
         with sqlite3.connect(str(full_db_path)) as src_conn:
             query = "SELECT ra_deg, dec_deg, flux_mjy, maj_arcsec, min_arcsec FROM sources WHERE dec_deg >= ? AND dec_deg <= ?"
@@ -776,7 +797,16 @@ def build_vlass_full_db(
     VLASS_CANDIDATES = {
         "ra": ["ra", "ra_deg", "raj2000"],
         "dec": ["dec", "dec_deg", "dej2000"],
-        "flux": ["flux_mjy", "fpeak", "ftot", "peak_flux", "peak_mjy_per_beam", "flux_peak", "flux", "total_flux"],
+        "flux": [
+            "flux_mjy",
+            "fpeak",
+            "ftot",
+            "peak_flux",
+            "peak_mjy_per_beam",
+            "flux_peak",
+            "flux",
+            "total_flux",
+        ],
     }
     col_map = _normalize_columns(df_full, VLASS_CANDIDATES)
     ra_col = col_map.get("ra", "ra")
@@ -845,9 +875,15 @@ def build_vlass_full_db(
             """)
 
             build_time = datetime.now(timezone.utc).isoformat()
-            conn.execute("INSERT INTO meta (key, value) VALUES (?, ?)", ("build_time_iso", build_time))
-            conn.execute("INSERT INTO meta (key, value) VALUES (?, ?)", ("n_sources", str(len(insert_data))))
-            conn.execute("INSERT INTO meta (key, value) VALUES (?, ?)", ("source", "VLASS catalog (cached)"))
+            conn.execute(
+                "INSERT INTO meta (key, value) VALUES (?, ?)", ("build_time_iso", build_time)
+            )
+            conn.execute(
+                "INSERT INTO meta (key, value) VALUES (?, ?)", ("n_sources", str(len(insert_data)))
+            )
+            conn.execute(
+                "INSERT INTO meta (key, value) VALUES (?, ?)", ("source", "VLASS catalog (cached)")
+            )
             conn.commit()
 
         logger.info(f"Created full VLASS database with {len(insert_data)} sources")
@@ -871,7 +907,9 @@ def build_vlass_strip_from_full(
         full_db_path = get_vlass_full_db_path()
 
     if not full_db_path.exists():
-        raise FileNotFoundError(f"Full VLASS database not found: {full_db_path}. Run build_vlass_full_db() first.")
+        raise FileNotFoundError(
+            f"Full VLASS database not found: {full_db_path}. Run build_vlass_full_db() first."
+        )
 
     if output_path is None:
         dec_rounded = round(dec_center, 1)
@@ -897,10 +935,14 @@ def build_vlass_strip_from_full(
         if output_path.exists():
             return output_path
 
-        logger.info(f"Building VLASS dec strip from full database: {dec_min:.2f}° to {dec_max:.2f}°")
+        logger.info(
+            f"Building VLASS dec strip from full database: {dec_min:.2f}° to {dec_max:.2f}°"
+        )
 
         with sqlite3.connect(str(full_db_path)) as src_conn:
-            query = "SELECT ra_deg, dec_deg, flux_mjy FROM sources WHERE dec_deg >= ? AND dec_deg <= ?"
+            query = (
+                "SELECT ra_deg, dec_deg, flux_mjy FROM sources WHERE dec_deg >= ? AND dec_deg <= ?"
+            )
             params = [dec_min, dec_max]
 
             if min_flux_mjy is not None:
@@ -1091,9 +1133,15 @@ def build_rax_full_db(
             """)
 
             build_time = datetime.now(timezone.utc).isoformat()
-            conn.execute("INSERT INTO meta (key, value) VALUES (?, ?)", ("build_time_iso", build_time))
-            conn.execute("INSERT INTO meta (key, value) VALUES (?, ?)", ("n_sources", str(len(insert_data))))
-            conn.execute("INSERT INTO meta (key, value) VALUES (?, ?)", ("source", "RAX catalog (cached)"))
+            conn.execute(
+                "INSERT INTO meta (key, value) VALUES (?, ?)", ("build_time_iso", build_time)
+            )
+            conn.execute(
+                "INSERT INTO meta (key, value) VALUES (?, ?)", ("n_sources", str(len(insert_data)))
+            )
+            conn.execute(
+                "INSERT INTO meta (key, value) VALUES (?, ?)", ("source", "RAX catalog (cached)")
+            )
             conn.commit()
 
         logger.info(f"Created full RAX database with {len(insert_data)} sources")
@@ -1117,7 +1165,9 @@ def build_rax_strip_from_full(
         full_db_path = get_rax_full_db_path()
 
     if not full_db_path.exists():
-        raise FileNotFoundError(f"Full RAX database not found: {full_db_path}. Run build_rax_full_db() first.")
+        raise FileNotFoundError(
+            f"Full RAX database not found: {full_db_path}. Run build_rax_full_db() first."
+        )
 
     if output_path is None:
         dec_rounded = round(dec_center, 1)
@@ -1146,7 +1196,9 @@ def build_rax_strip_from_full(
         logger.info(f"Building RAX dec strip from full database: {dec_min:.2f}° to {dec_max:.2f}°")
 
         with sqlite3.connect(str(full_db_path)) as src_conn:
-            query = "SELECT ra_deg, dec_deg, flux_mjy FROM sources WHERE dec_deg >= ? AND dec_deg <= ?"
+            query = (
+                "SELECT ra_deg, dec_deg, flux_mjy FROM sources WHERE dec_deg >= ? AND dec_deg <= ?"
+            )
             params = [dec_min, dec_max]
 
             if min_flux_mjy is not None:
@@ -1308,7 +1360,11 @@ def build_atnf_full_db(
                 if not (np.isfinite(ra) and np.isfinite(dec)):
                     continue
 
-                flux = float(row["flux_1400mhz_mjy"]) if pd.notna(row.get("flux_1400mhz_mjy")) else None
+                flux = (
+                    float(row["flux_1400mhz_mjy"])
+                    if pd.notna(row.get("flux_1400mhz_mjy"))
+                    else None
+                )
                 name = str(row.get("pulsar_name", "")) if pd.notna(row.get("pulsar_name")) else None
                 period = float(row.get("period_s")) if pd.notna(row.get("period_s")) else None
                 dm = float(row.get("dm_pc_cm3")) if pd.notna(row.get("dm_pc_cm3")) else None
@@ -1328,9 +1384,16 @@ def build_atnf_full_db(
             """)
 
             build_time = datetime.now(timezone.utc).isoformat()
-            conn.execute("INSERT INTO meta (key, value) VALUES (?, ?)", ("build_time_iso", build_time))
-            conn.execute("INSERT INTO meta (key, value) VALUES (?, ?)", ("n_sources", str(len(insert_data))))
-            conn.execute("INSERT INTO meta (key, value) VALUES (?, ?)", ("source", "ATNF Pulsar Catalogue (psrqpy)"))
+            conn.execute(
+                "INSERT INTO meta (key, value) VALUES (?, ?)", ("build_time_iso", build_time)
+            )
+            conn.execute(
+                "INSERT INTO meta (key, value) VALUES (?, ?)", ("n_sources", str(len(insert_data)))
+            )
+            conn.execute(
+                "INSERT INTO meta (key, value) VALUES (?, ?)",
+                ("source", "ATNF Pulsar Catalogue (psrqpy)"),
+            )
             conn.commit()
 
         logger.info(f"Created full ATNF database with {len(insert_data)} sources")
@@ -1354,7 +1417,9 @@ def build_atnf_strip_from_full(
         full_db_path = get_atnf_full_db_path()
 
     if not full_db_path.exists():
-        raise FileNotFoundError(f"Full ATNF database not found: {full_db_path}. Run build_atnf_full_db() first.")
+        raise FileNotFoundError(
+            f"Full ATNF database not found: {full_db_path}. Run build_atnf_full_db() first."
+        )
 
     if output_path is None:
         dec_rounded = round(dec_center, 1)
@@ -1383,7 +1448,9 @@ def build_atnf_strip_from_full(
         logger.info(f"Building ATNF dec strip from full database: {dec_min:.2f}° to {dec_max:.2f}°")
 
         with sqlite3.connect(str(full_db_path)) as src_conn:
-            query = "SELECT ra_deg, dec_deg, flux_mjy FROM sources WHERE dec_deg >= ? AND dec_deg <= ?"
+            query = (
+                "SELECT ra_deg, dec_deg, flux_mjy FROM sources WHERE dec_deg >= ? AND dec_deg <= ?"
+            )
             params = [dec_min, dec_max]
 
             if min_flux_mjy is not None:

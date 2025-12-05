@@ -71,6 +71,7 @@ def detect_ese_candidates(
         if "ese_candidates" not in tables:
             logger.warning("ese_candidates table not found - initializing database")
             from dsa110_contimg.database import ensure_pipeline_db
+
             ensure_pipeline_db().close()  # Ensure schema is created
 
         # If recompute requested, update variability stats first
@@ -176,8 +177,7 @@ def detect_ese_candidates(
                         (significance, flagged_at, existing["id"]),
                     )
                     logger.debug(
-                        f"Updated ESE candidate {source_id_val} "
-                        f"(significance: {significance:.2f})"
+                        f"Updated ESE candidate {source_id_val} (significance: {significance:.2f})"
                     )
                 else:
                     logger.debug(f"Skipping {source_id_val} - already flagged as active candidate")
@@ -193,7 +193,7 @@ def detect_ese_candidates(
                     (source_id_val, flagged_at, significance),
                 )
                 logger.info(
-                    f"Flagged ESE candidate {source_id_val} " f"(significance: {significance:.2f})"
+                    f"Flagged ESE candidate {source_id_val} (significance: {significance:.2f})"
                 )
 
             candidate_dict = {

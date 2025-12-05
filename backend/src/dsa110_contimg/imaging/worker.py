@@ -30,17 +30,17 @@ import numpy as np
 
 from dsa110_contimg.database import (
     ensure_pipeline_db,
+    get_active_applylist,
     images_insert,
     ms_index_upsert,
-    get_active_applylist,
 )
 from dsa110_contimg.imaging.fast_imaging import run_fast_imaging
 from dsa110_contimg.utils.gpu_safety import (
-    memory_safe,
+    check_gpu_memory_available,
     gpu_safe,
     initialize_gpu_safety,
-    check_gpu_memory_available,
     is_gpu_available,
+    memory_safe,
 )
 
 logger = logging.getLogger("imaging_worker")
@@ -51,10 +51,11 @@ initialize_gpu_safety()
 # Check if GPU gridding is available
 try:
     from dsa110_contimg.imaging.gpu_gridding import (
-        gpu_grid_visibilities,
-        cpu_grid_visibilities,
         GriddingConfig,
+        cpu_grid_visibilities,
+        gpu_grid_visibilities,
     )
+
     GPU_GRIDDING_AVAILABLE = True
 except ImportError:
     GPU_GRIDDING_AVAILABLE = False
@@ -80,6 +81,7 @@ def setup_logging(level: str) -> None:
 def _get_wavelength_from_ms(ms_path: str) -> float:
     """Get wavelength from MS SPECTRAL_WINDOW table."""
     from dsa110_contimg.utils.casa_init import ensure_casa_path
+
     ensure_casa_path()
     import casacore.tables as casatables
 
@@ -100,15 +102,15 @@ def _get_weights_from_table(tb, data_shape: Tuple[int, ...]) -> np.ndarray:
     if "WEIGHT" in colnames:
         weights = tb.getcol("WEIGHT")
         if weights.ndim == 2:  # (n_rows, n_pol)
-            return np.broadcast_to(
-                weights[:, np.newaxis, :], data_shape
-            ).copy()
+            return np.broadcast_to(weights[:, np.newaxis, :], data_shape).copy()
         return weights
     return np.ones(data_shape, dtype=np.float32)
 
 
 def _average_polarizations(
-    data: np.ndarray, flags: np.ndarray, weights: np.ndarray,
+    data: np.ndarray,
+    flags: np.ndarray,
+    weights: np.ndarray,
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """Average data over polarizations (Stokes I from XX+YY)."""
     n_pol = data.shape[2]
@@ -124,10 +126,12 @@ def _average_polarizations(
 
 
 def _read_ms_visibilities(
-    ms_path: str, datacolumn: str = "CORRECTED_DATA",
+    ms_path: str,
+    datacolumn: str = "CORRECTED_DATA",
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Read visibilities from MS for GPU gridding."""
     from dsa110_contimg.utils.casa_init import ensure_casa_path
+
     ensure_casa_path()
     import casacore.tables as casatables
 
@@ -149,8 +153,12 @@ def _read_ms_visibilities(
 
 
 def _run_gridding(
-    uvw: np.ndarray, vis: np.ndarray, weights: np.ndarray,
-    flags: np.ndarray, config, gpu_id: int,
+    uvw: np.ndarray,
+    vis: np.ndarray,
+    weights: np.ndarray,
+    flags: np.ndarray,
+    config,
+    gpu_id: int,
 ) -> Tuple:
     """Run gridding on GPU or CPU based on availability."""
     gpu_ok, gpu_reason = check_gpu_memory_available(2.0)
@@ -171,8 +179,12 @@ def _run_gridding(
 
 
 def _save_dirty_fits(
-    result, output_path: str, image_size: int,
-    cell_size_arcsec: float, use_gpu: bool, gpu_id: int,
+    result,
+    output_path: str,
+    image_size: int,
+    cell_size_arcsec: float,
+    use_gpu: bool,
+    gpu_id: int,
 ) -> str:
     """Save gridding result to FITS file."""
     from astropy.io import fits as pyfits
@@ -198,8 +210,12 @@ def _save_dirty_fits(
 
 @gpu_safe(max_gpu_gb=9.0, max_system_gb=6.0)
 def gpu_dirty_image(
-    ms_path: str, output_path: str, *, image_size: int = 512,
-    cell_size_arcsec: float = 12.0, gpu_id: int = 0,
+    ms_path: str,
+    output_path: str,
+    *,
+    image_size: int = 512,
+    cell_size_arcsec: float = 12.0,
+    gpu_id: int = 0,
     datacolumn: str = "CORRECTED_DATA",
 ) -> Optional[str]:
     """Create dirty image using GPU gridding."""
@@ -213,8 +229,9 @@ def gpu_dirty_image(
     try:
         uvw, vis, weights, flags = _read_ms_visibilities(ms_path, datacolumn)
         n_vis, n_flag = len(vis), int(np.sum(flags))
-        logger.info("Read %d visibilities, %d flagged (%.1f%%)",
-                    n_vis, n_flag, 100.0 * n_flag / n_vis)
+        logger.info(
+            "Read %d visibilities, %d flagged (%.1f%%)", n_vis, n_flag, 100.0 * n_flag / n_vis
+        )
 
         config = GriddingConfig(
             image_size=image_size,
@@ -233,8 +250,9 @@ def gpu_dirty_image(
         )
 
         elapsed = time.time() - start_time
-        logger.info("GPU dirty image complete in %.2fs (gridding: %.2fs)",
-                    elapsed, result.processing_time_s)
+        logger.info(
+            "GPU dirty image complete in %.2fs (gridding: %.2fs)", elapsed, result.processing_time_s
+        )
         return fits_path
 
     except (OSError, RuntimeError, ValueError) as exc:
@@ -259,21 +277,31 @@ def _submit_imaging_tasks(executor, ms_path: str, imgroot: Path, out_dir: Path, 
     from dsa110_contimg.imaging.cli import image_ms
 
     future_deep = executor.submit(
-        image_ms, ms_path, imagename=str(imgroot), field="",
-        quality_tier="standard", skip_fits=True,
+        image_ms,
+        ms_path,
+        imagename=str(imgroot),
+        field="",
+        quality_tier="standard",
+        skip_fits=True,
     )
 
     future_fast = executor.submit(
-        run_fast_imaging, ms_path, interval_seconds=None,
-        threshold_sigma=6.0, datacolumn="CORRECTED_DATA",
+        run_fast_imaging,
+        ms_path,
+        interval_seconds=None,
+        threshold_sigma=6.0,
+        datacolumn="CORRECTED_DATA",
         work_dir=str(out_dir),
     )
 
     future_gpu = None
     if use_gpu and GPU_GRIDDING_AVAILABLE:
         future_gpu = executor.submit(
-            gpu_dirty_image, ms_path, str(imgroot),
-            image_size=512, cell_size_arcsec=12.0,
+            gpu_dirty_image,
+            ms_path,
+            str(imgroot),
+            image_size=512,
+            cell_size_arcsec=12.0,
         )
 
     return future_deep, future_fast, future_gpu
@@ -307,7 +335,11 @@ def _wait_for_imaging_results(future_deep, future_fast, future_gpu, artifacts: L
 
 @memory_safe(max_system_gb=6.0)
 def _apply_and_image(
-    ms_path: str, out_dir: Path, gaintables: List[str], *, use_gpu: bool = True,
+    ms_path: str,
+    out_dir: Path,
+    gaintables: List[str],
+    *,
+    use_gpu: bool = True,
 ) -> List[str]:
     """Apply calibration and produce images; returns artifact paths."""
     artifacts: List[str] = []
@@ -344,6 +376,7 @@ def _get_ms_time_info(ms: Path) -> Tuple[Optional[float], Optional[float], float
     start_mjd, end_mjd, mid_mjd = extract_ms_time_range(os.fspath(ms))
     if mid_mjd is None:
         from astropy.time import Time
+
         mid_mjd = Time.now().mjd
     return start_mjd, end_mjd, mid_mjd
 
@@ -351,9 +384,13 @@ def _get_ms_time_info(ms: Path) -> Tuple[Optional[float], Optional[float], float
 def _record_ms_status(conn, ms: Path, start_mjd, end_mjd, mid_mjd: float, status: str) -> None:
     """Record MS processing status in database."""
     ms_index_upsert(
-        conn, os.fspath(ms),
-        start_mjd=start_mjd, end_mjd=end_mjd, mid_mjd=mid_mjd,
-        processed_at=time.time(), status=status,
+        conn,
+        os.fspath(ms),
+        start_mjd=start_mjd,
+        end_mjd=end_mjd,
+        mid_mjd=mid_mjd,
+        processed_at=time.time(),
+        status=status,
     )
     conn.commit()
 
@@ -405,8 +442,10 @@ def cmd_scan(args: argparse.Namespace) -> int:
     """Run one-shot scan of MS directory."""
     setup_logging(args.log_level)
     n = process_once(
-        Path(args.ms_dir), Path(args.out_dir),
-        Path(args.registry_db), Path(args.products_db),
+        Path(args.ms_dir),
+        Path(args.out_dir),
+        Path(args.registry_db),
+        Path(args.products_db),
     )
     logger.info("Scan complete: %d MS processed", n)
     return 0 if n >= 0 else 1

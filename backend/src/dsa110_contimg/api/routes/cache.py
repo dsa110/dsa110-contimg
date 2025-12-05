@@ -8,7 +8,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends
 
-from ..auth import require_write_access, AuthContext
+from ..auth import AuthContext, require_write_access
 from ..cache import cache_manager
 
 router = APIRouter(prefix="/cache", tags=["cache"])
@@ -29,12 +29,12 @@ async def invalidate_cache(
 ):
     """
     Invalidate cache keys matching pattern.
-    
+
     Use glob patterns like:
     - `sources:*` - All source-related cache entries
     - `images:list:*` - All image list cache entries
     - `stats` - Stats cache entry
-    
+
     Requires authentication with write access.
     """
     deleted = cache_manager.invalidate(pattern)
@@ -50,7 +50,7 @@ async def clear_cache(
 ):
     """
     Clear all cache entries.
-    
+
     Requires authentication with write access.
     """
     deleted = cache_manager.invalidate("*")

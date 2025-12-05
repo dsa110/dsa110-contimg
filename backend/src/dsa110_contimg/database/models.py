@@ -30,12 +30,15 @@ Note:
 
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Optional, List
-
 from sqlalchemy import (
-    Column, Integer, Float, String, Text, Boolean,
-    ForeignKey, Index, UniqueConstraint, event
+    Column,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import declarative_base, relationship
 
@@ -51,15 +54,17 @@ DataRegistryBase = declarative_base()
 # Products Domain Models (ms_index, images, photometry tables)
 # =============================================================================
 
+
 class MSIndex(ProductsBase):
     """
     Measurement Set index tracking processing state and metadata.
-    
+
     This table tracks all MS files in the pipeline, their processing stage,
     and associated metadata like pointing coordinates and field names.
     """
+
     __tablename__ = "ms_index"
-    
+
     path = Column(String, primary_key=True, doc="Full path to the MS file")
     start_mjd = Column(Float, doc="Start time of observation in MJD")
     end_mjd = Column(Float, doc="End time of observation in MJD")
@@ -75,15 +80,15 @@ class MSIndex(ProductsBase):
     field_name = Column(String, doc="CASA field name")
     pointing_ra_deg = Column(Float, doc="Pointing RA in degrees")
     pointing_dec_deg = Column(Float, doc="Pointing Dec in degrees")
-    
+
     # Note: relationship to Image removed - no FK constraint in actual database
     # Use manual queries to join if needed
-    
+
     __table_args__ = (
         Index("idx_ms_index_stage_path", "stage", "path"),
         Index("idx_ms_index_status", "status"),
     )
-    
+
     def __repr__(self):
         return f"<MSIndex(path='{self.path}', stage='{self.stage}')>"
 
@@ -91,15 +96,16 @@ class MSIndex(ProductsBase):
 class Image(ProductsBase):
     """
     Image metadata and quality metrics.
-    
+
     Stores information about generated FITS images including beam properties,
     noise measurements, and coordinate information.
-    
+
     Note: ms_path references ms_index.path but the database does not enforce
     a foreign key constraint for backward compatibility with existing data.
     """
+
     __tablename__ = "images"
-    
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     path = Column(String, nullable=False, doc="Full path to image file")
     # No FK constraint - matches actual database schema for backward compatibility
@@ -122,16 +128,14 @@ class Image(ProductsBase):
     freq_ghz = Column(Float, doc="Center frequency in GHz")
     bandwidth_mhz = Column(Float, doc="Bandwidth in MHz")
     integration_sec = Column(Float, doc="Total integration time in seconds")
-    
+
     # Relationships - note: ms_path is just a string column without FK constraint
     # Use primaryjoin to define the relationship explicitly
     # Note: relationship removed for backward compatibility with existing data
     # that may have images without corresponding MS records
-    
-    __table_args__ = (
-        Index("idx_images_ms_path", "ms_path"),
-    )
-    
+
+    __table_args__ = (Index("idx_images_ms_path", "ms_path"),)
+
     def __repr__(self):
         return f"<Image(id={self.id}, path='{self.path}', type='{self.type}')>"
 
@@ -139,15 +143,16 @@ class Image(ProductsBase):
 class Photometry(ProductsBase):
     """
     Source photometry measurements from images.
-    
+
     Records flux measurements for detected sources, supporting lightcurve
     analysis and variability studies.
-    
+
     Note: image_path references images.path but the database does not enforce
     a foreign key constraint for backward compatibility with existing data.
     """
+
     __tablename__ = "photometry"
-    
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     source_id = Column(String, doc="Unique source identifier")
     # No FK constraint - matches actual database schema for backward compatibility
@@ -167,15 +172,15 @@ class Photometry(ProductsBase):
     mosaic_path = Column(String, doc="Associated mosaic path")
     sep_from_center_deg = Column(Float, doc="Separation from image center in degrees")
     flags = Column(Integer, default=0, doc="Quality flags bitmask")
-    
+
     # Note: No relationship defined here - image_path is just a string column
     # matching images.path. Use manual queries to join if needed.
-    
+
     __table_args__ = (
         Index("idx_photometry_image", "image_path"),
         Index("idx_photometry_source_id", "source_id"),
     )
-    
+
     def __repr__(self):
         return f"<Photometry(id={self.id}, source_id='{self.source_id}', peak={self.peak_jyb})>"
 
@@ -183,12 +188,13 @@ class Photometry(ProductsBase):
 class HDF5FileIndexProducts(ProductsBase):
     """
     HDF5 file index in products domain.
-    
+
     Tracks raw UVH5 subband files for quick lookup and grouping.
     Used by the streaming converter to find complete observation groups.
     """
+
     __tablename__ = "hdf5_file_index"
-    
+
     path = Column(String, primary_key=True, doc="Full path to HDF5 file")
     filename = Column(String, nullable=False, doc="Filename without directory")
     group_id = Column(String, nullable=False, doc="Observation group identifier")
@@ -199,7 +205,7 @@ class HDF5FileIndexProducts(ProductsBase):
     modified_time = Column(Float, doc="File modification time")
     indexed_at = Column(Float, nullable=False, doc="When file was indexed")
     stored = Column(Integer, default=1, doc="Whether file is on disk (0/1)")
-    
+
     __table_args__ = (
         Index("idx_hdf5_group_id", "group_id"),
         Index("idx_hdf5_timestamp_mjd", "timestamp_mjd"),
@@ -212,16 +218,19 @@ class StorageLocation(ProductsBase):
     """
     Registered storage locations for data files.
     """
+
     __tablename__ = "storage_locations"
-    
+
     id = Column(Integer, primary_key=True, autoincrement=True)
-    location_type = Column(String, nullable=False, doc="Location type (e.g., 'incoming', 'staging')")
+    location_type = Column(
+        String, nullable=False, doc="Location type (e.g., 'incoming', 'staging')"
+    )
     base_path = Column(String, nullable=False, doc="Base path for this location")
     description = Column(String, doc="Human-readable description")
     registered_at = Column(Float, nullable=False, doc="Registration timestamp")
     status = Column(String, default="active", doc="Status (active/inactive)")
     notes = Column(String, doc="Additional notes")
-    
+
     __table_args__ = (
         UniqueConstraint("location_type", "base_path"),
         Index("idx_storage_locations_type", "location_type", "status"),
@@ -232,8 +241,9 @@ class BatchJob(ProductsBase):
     """
     Batch processing job tracking.
     """
+
     __tablename__ = "batch_jobs"
-    
+
     id = Column(Integer, primary_key=True)
     type = Column(String, nullable=False, doc="Job type (e.g., 'imaging', 'calibration')")
     created_at = Column(Float, nullable=False, doc="Job creation timestamp")
@@ -242,7 +252,7 @@ class BatchJob(ProductsBase):
     completed_items = Column(Integer, default=0, doc="Completed items count")
     failed_items = Column(Integer, default=0, doc="Failed items count")
     params = Column(Text, doc="Job parameters as JSON")
-    
+
     # Relationships
     items = relationship("BatchJobItem", back_populates="batch_job")
 
@@ -251,8 +261,9 @@ class BatchJobItem(ProductsBase):
     """
     Individual items within a batch job.
     """
+
     __tablename__ = "batch_job_items"
-    
+
     id = Column(Integer, primary_key=True)
     batch_id = Column(Integer, ForeignKey("batch_jobs.id"), nullable=False)
     ms_path = Column(String, nullable=False, doc="MS path for this item")
@@ -260,7 +271,7 @@ class BatchJobItem(ProductsBase):
     status = Column(String, nullable=False, doc="Item status")
     error = Column(Text, doc="Error message if failed")
     started_at = Column(Float, doc="Processing start time")
-    
+
     # Relationships
     batch_job = relationship("BatchJob", back_populates="items")
 
@@ -269,8 +280,9 @@ class TransientCandidate(ProductsBase):
     """
     Transient source candidate tracking.
     """
+
     __tablename__ = "transient_candidates"
-    
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     source_id = Column(String, doc="Associated source ID")
     ra_deg = Column(Float, nullable=False, doc="RA in degrees")
@@ -291,7 +303,7 @@ class TransientCandidate(ProductsBase):
     last_detected_at = Column(Float, doc="Last detection timestamp")
     last_updated = Column(Float, doc="Last update timestamp")
     notes = Column(Text, doc="Additional notes")
-    
+
     __table_args__ = (
         Index("idx_transients_type", "detection_type", "significance_sigma"),
         Index("idx_transients_coords", "ra_deg", "dec_deg"),
@@ -303,8 +315,9 @@ class CalibratorTransit(ProductsBase):
     """
     Calibrator transit times and data availability.
     """
+
     __tablename__ = "calibrator_transits"
-    
+
     calibrator_name = Column(String, primary_key=True, doc="Calibrator name")
     transit_mjd = Column(Float, primary_key=True, doc="Transit time in MJD")
     transit_iso = Column(String, nullable=False, doc="Transit time ISO string")
@@ -316,7 +329,7 @@ class CalibratorTransit(ProductsBase):
     dec_match = Column(Integer, nullable=False, default=0, doc="Declination match flag")
     calculated_at = Column(Float, nullable=False, doc="Calculation timestamp")
     updated_at = Column(Float, nullable=False, doc="Last update timestamp")
-    
+
     __table_args__ = (
         Index("idx_calibrator_transits_calibrator", "calibrator_name", "updated_at"),
         Index("idx_calibrator_transits_has_data", "calibrator_name", "has_data", "transit_mjd"),
@@ -328,8 +341,9 @@ class DeadLetterQueue(ProductsBase):
     """
     Dead letter queue for failed operations requiring manual intervention.
     """
+
     __tablename__ = "dead_letter_queue"
-    
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     component = Column(String, nullable=False, doc="Component that failed")
     operation = Column(String, nullable=False, doc="Failed operation")
@@ -347,8 +361,9 @@ class MonitoringSource(ProductsBase):
     """
     Sources being monitored for variability.
     """
+
     __tablename__ = "monitoring_sources"
-    
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     source_id = Column(String, unique=True, nullable=False, doc="Unique source ID")
     ra_deg = Column(Float, nullable=False, doc="RA in degrees")
@@ -362,7 +377,7 @@ class MonitoringSource(ProductsBase):
     ese_candidate = Column(Integer, default=0, doc="ESE candidate flag")
     first_detected_at = Column(Float, doc="First detection")
     last_detected_at = Column(Float, doc="Last detection")
-    
+
     __table_args__ = (
         Index("idx_monitoring_coords", "ra_deg", "dec_deg"),
         Index("idx_monitoring_variable", "is_variable", "eta"),
@@ -374,15 +389,17 @@ class MonitoringSource(ProductsBase):
 # Calibration Domain Models (caltables table)
 # =============================================================================
 
+
 class Caltable(CalRegistryBase):
     """
     Calibration table metadata and validity windows.
-    
+
     Tracks all calibration tables produced by the pipeline, their types,
     and the time ranges over which they are valid.
     """
+
     __tablename__ = "caltables"
-    
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     set_name = Column(String, nullable=False, doc="Calibration set name")
     path = Column(String, unique=True, nullable=False, doc="Full path to cal table")
@@ -400,16 +417,16 @@ class Caltable(CalRegistryBase):
     solver_version = Column(String, doc="CASA version")
     solver_params = Column(Text, doc="Solver parameters as JSON")
     quality_metrics = Column(Text, doc="Quality metrics as JSON")
-    
+
     __table_args__ = (
         Index("idx_caltables_source", "source_ms_path"),
         Index("idx_caltables_set", "set_name"),
         Index("idx_caltables_valid", "valid_start_mjd", "valid_end_mjd"),
     )
-    
+
     def __repr__(self):
         return f"<Caltable(id={self.id}, path='{self.path}', type='{self.table_type}')>"
-    
+
     def is_valid_at(self, mjd: float) -> bool:
         """Check if this calibration table is valid at a given MJD."""
         if self.valid_start_mjd is not None and mjd < self.valid_start_mjd:
@@ -423,15 +440,17 @@ class Caltable(CalRegistryBase):
 # HDF5 Domain Models (hdf5_file_index table)
 # =============================================================================
 
+
 class HDF5FileIndex(HDF5Base):
     """
     HDF5 file index for fast subband group queries.
-    
+
     This is the primary index for UVH5 files, supporting fast lookup
     by timestamp, group ID, and subband number.
     """
+
     __tablename__ = "hdf5_file_index"
-    
+
     path = Column(String, primary_key=True, doc="Full path to HDF5 file")
     filename = Column(String, nullable=False, doc="Filename only")
     group_id = Column(String, nullable=False, doc="Observation group ID")
@@ -447,7 +466,7 @@ class HDF5FileIndex(HDF5Base):
     dec_deg = Column(Float, doc="Dec in degrees")
     obs_date = Column(String, doc="Observation date (YYYY-MM-DD)")
     obs_time = Column(String, doc="Observation time (HH:MM:SS)")
-    
+
     __table_args__ = (
         Index("idx_hdf5_group_id", "group_id"),
         Index("idx_hdf5_timestamp_mjd", "timestamp_mjd"),
@@ -458,7 +477,7 @@ class HDF5FileIndex(HDF5Base):
         Index("idx_hdf5_subband_num", "subband_num"),
         Index("idx_hdf5_group_subband_num", "group_id", "subband_num"),
     )
-    
+
     def __repr__(self):
         return f"<HDF5FileIndex(path='{self.path}', group_id='{self.group_id}', sb={self.subband_num})>"
 
@@ -467,8 +486,9 @@ class HDF5StorageLocation(HDF5Base):
     """
     Storage location registry for HDF5 files.
     """
+
     __tablename__ = "storage_locations"
-    
+
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True, nullable=False, doc="Location name")
     path = Column(String, nullable=False, doc="Base path")
@@ -479,34 +499,33 @@ class PointingHistory(HDF5Base):
     """
     Telescope pointing history tracking.
     """
+
     __tablename__ = "pointing_history"
-    
+
     timestamp = Column(Float, primary_key=True, doc="Unix timestamp")
     ra_deg = Column(Float, doc="RA in degrees")
     dec_deg = Column(Float, doc="Dec in degrees")
-    
-    __table_args__ = (
-        Index("idx_pointing_timestamp", "timestamp"),
-    )
+
+    __table_args__ = (Index("idx_pointing_timestamp", "timestamp"),)
 
 
 # =============================================================================
 # Ingest Queue Domain Models (ABSURD PostgreSQL)
 # =============================================================================
 
+
 class PointingHistoryIngest(IngestBase):
     """
     Pointing history in ingest database.
     """
+
     __tablename__ = "pointing_history"
-    
+
     timestamp = Column(Float, primary_key=True, doc="Unix timestamp")
     ra_deg = Column(Float, doc="RA in degrees")
     dec_deg = Column(Float, doc="Dec in degrees")
-    
-    __table_args__ = (
-        Index("idx_pointing_timestamp", "timestamp"),
-    )
+
+    __table_args__ = (Index("idx_pointing_timestamp", "timestamp"),)
 
 
 # Note: Ingestion queue is now managed by ABSURD PostgreSQL tables:
@@ -519,14 +538,16 @@ class PointingHistoryIngest(IngestBase):
 # Data Registry Domain Models (data_registry table)
 # =============================================================================
 
+
 class DataRegistry(DataRegistryBase):
     """
     Data product staging and publishing registry.
-    
+
     Tracks data products through staging, validation, and publishing workflow.
     """
+
     __tablename__ = "data_registry"
-    
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     data_type = Column(String, nullable=False, doc="Data type (e.g., 'ms', 'image')")
     data_id = Column(String, unique=True, nullable=False, doc="Unique data ID")
@@ -547,10 +568,10 @@ class DataRegistry(DataRegistryBase):
     publish_error = Column(Text, doc="Last publish error")
     photometry_status = Column(String, doc="Photometry status")
     photometry_job_id = Column(String, doc="Photometry job ID")
-    
+
     # Relationships
     tags = relationship("DataTag", back_populates="data_entry")
-    
+
     __table_args__ = (
         UniqueConstraint("data_type", "data_id"),
         Index("idx_data_registry_type_status", "data_type", "status"),
@@ -558,7 +579,7 @@ class DataRegistry(DataRegistryBase):
         Index("idx_data_registry_published_at", "published_at"),
         Index("idx_data_registry_finalization", "finalization_status"),
     )
-    
+
     def __repr__(self):
         return f"<DataRegistry(id={self.id}, data_id='{self.data_id}', status='{self.status}')>"
 
@@ -567,13 +588,14 @@ class DataRelationship(DataRegistryBase):
     """
     Relationships between data products (e.g., MS -> Image).
     """
+
     __tablename__ = "data_relationships"
-    
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     parent_data_id = Column(String, ForeignKey("data_registry.data_id"), nullable=False)
     child_data_id = Column(String, ForeignKey("data_registry.data_id"), nullable=False)
     relationship_type = Column(String, nullable=False, doc="Relationship type")
-    
+
     __table_args__ = (
         UniqueConstraint("parent_data_id", "child_data_id", "relationship_type"),
         Index("idx_data_relationships_parent", "parent_data_id"),
@@ -585,15 +607,16 @@ class DataTag(DataRegistryBase):
     """
     Tags associated with data products.
     """
+
     __tablename__ = "data_tags"
-    
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     data_id = Column(String, ForeignKey("data_registry.data_id"), nullable=False)
     tag = Column(String, nullable=False, doc="Tag value")
-    
+
     # Relationships
     data_entry = relationship("DataRegistry", back_populates="tags")
-    
+
     __table_args__ = (
         UniqueConstraint("data_id", "tag"),
         Index("idx_data_tags_data_id", "data_id"),
@@ -604,18 +627,25 @@ class DataTag(DataRegistryBase):
 # Utility functions for model introspection
 # =============================================================================
 
+
 def get_all_models_for_base(base) -> list:
     """Get all model classes registered with a declarative base."""
-    return [
-        mapper.class_ for mapper in base.registry.mappers
-    ]
+    return [mapper.class_ for mapper in base.registry.mappers]
 
 
 # Model registry for easy access
 PRODUCTS_MODELS = [
-    MSIndex, Image, Photometry, HDF5FileIndexProducts, StorageLocation,
-    BatchJob, BatchJobItem, TransientCandidate, CalibratorTransit,
-    DeadLetterQueue, MonitoringSource
+    MSIndex,
+    Image,
+    Photometry,
+    HDF5FileIndexProducts,
+    StorageLocation,
+    BatchJob,
+    BatchJobItem,
+    TransientCandidate,
+    CalibratorTransit,
+    DeadLetterQueue,
+    MonitoringSource,
 ]
 
 CAL_REGISTRY_MODELS = [Caltable]

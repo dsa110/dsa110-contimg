@@ -74,7 +74,7 @@ class CatalogConfig:
 CATALOG_REGISTRY: dict[CatalogName, CatalogConfig] = {
     CatalogName.NVSS: CatalogConfig(
         name=CatalogName.NVSS,
-        description="NRAO VLA Sky Survey (1.4 GHz, 45\" beam)",
+        description='NRAO VLA Sky Survey (1.4 GHz, 45" beam)',
         db_pattern="nvss_dec{dec:+.1f}.sqlite3",
         full_db_name="nvss_full.sqlite3",
         flux_column="flux_mjy",
@@ -83,7 +83,7 @@ CATALOG_REGISTRY: dict[CatalogName, CatalogConfig] = {
     ),
     CatalogName.FIRST: CatalogConfig(
         name=CatalogName.FIRST,
-        description="Faint Images of the Radio Sky at Twenty-cm (1.4 GHz, 5\" beam)",
+        description='Faint Images of the Radio Sky at Twenty-cm (1.4 GHz, 5" beam)',
         db_pattern="first_dec{dec:+.1f}.sqlite3",
         full_db_name="first_full.sqlite3",
         flux_column="flux_mjy",
@@ -92,7 +92,7 @@ CATALOG_REGISTRY: dict[CatalogName, CatalogConfig] = {
     ),
     CatalogName.VLASS: CatalogConfig(
         name=CatalogName.VLASS,
-        description="VLA Sky Survey (3 GHz, 2.5\" beam)",
+        description='VLA Sky Survey (3 GHz, 2.5" beam)',
         db_pattern="vlass_dec{dec:+.1f}.sqlite3",
         full_db_name="vlass_full.sqlite3",
         flux_column="flux_mjy",
@@ -155,7 +155,9 @@ def _resolve_catalog_path(
     # Also try relative to this file
     try:
         current_file = Path(__file__).resolve()
-        repo_root = current_file.parents[4]  # calibration -> dsa110_contimg -> src -> backend -> repo
+        repo_root = current_file.parents[
+            4
+        ]  # calibration -> dsa110_contimg -> src -> backend -> repo
         catalog_dirs.insert(0, repo_root / "state" / "catalogs")
     except Exception:
         pass
@@ -280,7 +282,7 @@ def query_catalog(
         flux_param = min_flux_mjy
 
     query = f"""
-    SELECT {', '.join(select_cols)}
+    SELECT {", ".join(select_cols)}
     FROM sources
     WHERE {config.ra_column} BETWEEN ? AND ?
       AND {config.dec_column} BETWEEN ? AND ?
@@ -312,7 +314,7 @@ def query_catalog(
             # Retry with just core columns
             select_cols = [config.ra_column, config.dec_column, config.flux_column]
             query = f"""
-            SELECT {', '.join(select_cols)}
+            SELECT {", ".join(select_cols)}
             FROM sources
             WHERE {config.ra_column} BETWEEN ? AND ?
               AND {config.dec_column} BETWEEN ? AND ?

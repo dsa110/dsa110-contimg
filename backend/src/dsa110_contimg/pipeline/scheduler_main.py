@@ -20,14 +20,12 @@ import asyncio
 import logging
 import signal
 import sys
-from pathlib import Path
 
 from dsa110_contimg.config import settings
-from dsa110_contimg.pipeline.scheduler import PipelineScheduler
 
 # Import pipeline classes to register them
 from dsa110_contimg.mosaic.pipeline import NightlyMosaicPipeline
-from dsa110_contimg.calibration.pipeline import CalibrationPipeline
+from dsa110_contimg.pipeline.scheduler import PipelineScheduler
 
 # Configure logging
 logging.basicConfig(
@@ -55,7 +53,9 @@ async def main() -> int:
     # Register scheduled pipelines
     try:
         scheduler.register(NightlyMosaicPipeline)
-        logger.info(f"Registered: NightlyMosaicPipeline (schedule: {NightlyMosaicPipeline.schedule})")
+        logger.info(
+            f"Registered: NightlyMosaicPipeline (schedule: {NightlyMosaicPipeline.schedule})"
+        )
     except ValueError as e:
         logger.warning(f"Skipping NightlyMosaicPipeline: {e}")
 
@@ -64,7 +64,7 @@ async def main() -> int:
 
     # Setup signal handlers
     loop = asyncio.get_event_loop()
-    
+
     def signal_handler():
         logger.info("Received shutdown signal")
         scheduler.stop()

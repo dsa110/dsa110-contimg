@@ -70,7 +70,7 @@ def rename_calibrator_field(
 
             if field_idx < 0 or field_idx >= len(field_names):
                 logger.warning(
-                    f"Field index {field_idx} out of range [0, {len(field_names)-1}] "
+                    f"Field index {field_idx} out of range [0, {len(field_names) - 1}] "
                     f"for MS {ms_path}"
                 )
                 return

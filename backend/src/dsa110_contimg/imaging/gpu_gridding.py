@@ -30,8 +30,8 @@ import numpy as np
 
 from dsa110_contimg.utils.gpu_safety import (
     check_system_memory_available,
-    safe_gpu_context,
     gpu_safe,
+    safe_gpu_context,
 )
 
 logger = logging.getLogger(__name__)
@@ -40,6 +40,7 @@ logger = logging.getLogger(__name__)
 try:
     import cupy as cp
     from cupy import RawKernel
+
     CUPY_AVAILABLE = True
 except ImportError:
     cp = None
@@ -67,6 +68,7 @@ class GriddingConfig:
         use_w_projection: Enable W-projection for wide-field imaging (default False)
         normalize: Normalize output by weight sum (default True)
     """
+
     image_size: int = 512
     cell_size_arcsec: float = 12.0
     gpu_id: int = 0
@@ -96,6 +98,7 @@ class GriddingResult:
         gpu_id: GPU device used
         error: Error message if gridding failed (None if successful)
     """
+
     image: Optional[np.ndarray] = None
     grid: Optional[np.ndarray] = None
     weight_sum: float = 0.0
@@ -444,15 +447,9 @@ def _grid_visibilities_cupy(
             flags_gpu = cp.asarray(flags)
 
             # Allocate grids
-            grid_real_gpu = cp.zeros(
-                (image_size, image_size), dtype=cp.float32
-            )
-            grid_imag_gpu = cp.zeros(
-                (image_size, image_size), dtype=cp.float32
-            )
-            weight_grid_gpu = cp.zeros(
-                (image_size, image_size), dtype=cp.float32
-            )
+            grid_real_gpu = cp.zeros((image_size, image_size), dtype=cp.float32)
+            grid_imag_gpu = cp.zeros((image_size, image_size), dtype=cp.float32)
+            weight_grid_gpu = cp.zeros((image_size, image_size), dtype=cp.float32)
 
             # Select kernel based on configuration
             if config.support > 0:
@@ -597,10 +594,7 @@ def _grid_visibilities_cpu(
     v_pix = (v / cell_size + image_size / 2).astype(int)
 
     # Filter out-of-bounds
-    in_bounds = (
-        (u_pix >= 0) & (u_pix < image_size) &
-        (v_pix >= 0) & (v_pix < image_size)
-    )
+    in_bounds = (u_pix >= 0) & (u_pix < image_size) & (v_pix >= 0) & (v_pix < image_size)
 
     u_pix = u_pix[in_bounds]
     v_pix = v_pix[in_bounds]
@@ -716,7 +710,10 @@ def gpu_grid_visibilities(
         if CUPY_AVAILABLE:
             logger.info(
                 "GPU gridding %s visibilities to %dx%d image on GPU %d",
-                f"{n_vis:,}", config.image_size, config.image_size, config.gpu_id
+                f"{n_vis:,}",
+                config.image_size,
+                config.image_size,
+                config.gpu_id,
             )
             image, grid, weight_sum, n_flagged = _grid_visibilities_cupy(
                 uvw, vis, weights, flags, config
@@ -731,7 +728,9 @@ def gpu_grid_visibilities(
 
         logger.info(
             "Gridding complete: %s visibilities gridded (%s flagged) in %.2fs",
-            f"{n_vis - n_flagged:,}", f"{n_flagged:,}", processing_time
+            f"{n_vis - n_flagged:,}",
+            f"{n_flagged:,}",
+            processing_time,
         )
 
         return GriddingResult(
@@ -814,7 +813,9 @@ def cpu_grid_visibilities(
     try:
         logger.info(
             "CPU gridding %s visibilities to %dx%d image",
-            f"{n_vis:,}", config.image_size, config.image_size
+            f"{n_vis:,}",
+            config.image_size,
+            config.image_size,
         )
 
         image, grid, weight_sum, n_flagged = _grid_visibilities_cpu(
@@ -825,7 +826,8 @@ def cpu_grid_visibilities(
 
         logger.info(
             "CPU gridding complete: %s visibilities in %.2fs",
-            f"{n_vis - n_flagged:,}", processing_time
+            f"{n_vis - n_flagged:,}",
+            processing_time,
         )
 
         return GriddingResult(

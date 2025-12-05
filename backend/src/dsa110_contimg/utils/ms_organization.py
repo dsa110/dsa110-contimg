@@ -168,7 +168,9 @@ def organize_ms_file(
                             # Remove old path entry
                             conn.execute("DELETE FROM ms_index WHERE path = ?", (str(ms_path),))
                             conn.commit()
-                            logger.debug(f"Updated database path: {ms_path} :arrow_right: {organized_path}")
+                            logger.debug(
+                                f"Updated database path: {ms_path} :arrow_right: {organized_path}"
+                            )
                         else:
                             # No existing entry, just register new path
                             ms_index_upsert(conn, str(organized_path))

@@ -507,7 +507,7 @@ async def update_schedule(
         row = await conn.fetchrow(
             f"""
             UPDATE absurd.scheduled_tasks
-            SET {', '.join(updates)}
+            SET {", ".join(updates)}
             WHERE name = ${len(values)}
             RETURNING *
         """,

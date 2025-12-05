@@ -242,7 +242,9 @@ def compute_calibration_metrics(
             # Calculate solution statistics
             metrics.n_solutions = int(gains.size)
             metrics.n_flagged = int(np.sum(flags))
-            metrics.flag_fraction = float(metrics.n_flagged / metrics.n_solutions) if metrics.n_solutions > 0 else 0.0
+            metrics.flag_fraction = (
+                float(metrics.n_flagged / metrics.n_solutions) if metrics.n_solutions > 0 else 0.0
+            )
 
             # Get unflagged data for statistics
             valid_mask = ~flags
@@ -479,7 +481,9 @@ def assess_calibration_quality(
     result.severity = "error" if n_errors > 0 else ("warning" if n_warnings > 0 else "success")
 
     # Calculate overall grade based on average flagging
-    avg_flag_fraction = total_flag_fraction / n_tables_with_flags if n_tables_with_flags > 0 else 1.0
+    avg_flag_fraction = (
+        total_flag_fraction / n_tables_with_flags if n_tables_with_flags > 0 else 1.0
+    )
     if not result.passed:
         result.overall_grade = "failed"
     elif avg_flag_fraction < 0.1:

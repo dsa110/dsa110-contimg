@@ -20,7 +20,7 @@ API_KEY_HEADER_NAME = os.getenv("DSA110_API_KEY_HEADER", "X-API-Key")
 def get_client_identifier(request: Request) -> str:
     """
     Get client identifier for rate limiting.
-    
+
     Priority:
     1. API key (when provided)
     2. Hardened client IP (honors XFF only for trusted proxies)
@@ -28,7 +28,7 @@ def get_client_identifier(request: Request) -> str:
     api_key = request.headers.get(API_KEY_HEADER_NAME)
     if api_key:
         return f"apikey:{api_key[:8]}"
-    
+
     return get_client_ip(request)
 
 
@@ -39,7 +39,7 @@ def create_limiter(
 ) -> Limiter:
     """
     Create and configure a rate limiter.
-    
+
     Args:
         storage_uri: Redis URI for rate limit storage.
             Defaults to DSA110_REDIS_URL or memory storage.
@@ -47,25 +47,25 @@ def create_limiter(
             Defaults to ["1000 per hour", "100 per minute"].
         key_func: Function to extract client identifier.
             Defaults to get_client_identifier.
-    
+
     Returns:
         Configured Limiter instance.
     """
     # Get Redis URI from environment or parameter
     if storage_uri is None:
         storage_uri = os.getenv("DSA110_REDIS_URL", "memory://")
-    
+
     # Default rate limits
     if default_limits is None:
         default_limits = [
             os.getenv("DSA110_RATE_LIMIT_HOUR", "1000 per hour"),
             os.getenv("DSA110_RATE_LIMIT_MINUTE", "100 per minute"),
         ]
-    
+
     # Use custom key function or default
     if key_func is None:
         key_func = get_client_identifier
-    
+
     return Limiter(
         key_func=key_func,
         default_limits=default_limits,
@@ -82,22 +82,22 @@ limiter = create_limiter()
 # Rate limit presets for different endpoint types
 class RateLimits:
     """Predefined rate limits for different endpoint types."""
-    
+
     # High-frequency endpoints (health checks, status)
     HIGH = "1000 per minute"
-    
+
     # Standard read endpoints
     STANDARD = "100 per minute"
-    
+
     # Write operations (require more resources)
     WRITE = "30 per minute"
-    
+
     # Heavy operations (image generation, etc.)
     HEAVY = "10 per minute"
-    
+
     # Authentication operations
     AUTH = "20 per minute"
-    
+
     # Batch operations
     BATCH = "5 per minute"
 
@@ -105,34 +105,34 @@ class RateLimits:
 def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> Response:
     """
     Custom handler for rate limit exceeded errors.
-    
+
     Returns a JSON response with rate limit information.
     """
     from fastapi.responses import JSONResponse
-    
+
     # Extract limit details
-    limit_value = str(exc.detail) if hasattr(exc, 'detail') else "Rate limit exceeded"
-    
+    limit_value = str(exc.detail) if hasattr(exc, "detail") else "Rate limit exceeded"
+
     response = JSONResponse(
         status_code=429,
         content={
             "error": "rate_limit_exceeded",
             "message": f"Too many requests. {limit_value}",
-            "retry_after": getattr(exc, 'retry_after', 60),
-        }
+            "retry_after": getattr(exc, "retry_after", 60),
+        },
     )
-    
+
     # Add Retry-After header
-    if hasattr(exc, 'retry_after'):
+    if hasattr(exc, "retry_after"):
         response.headers["Retry-After"] = str(exc.retry_after)
-    
+
     return response
 
 
 def get_rate_limit_info(request: Request) -> dict:
     """
     Get current rate limit status for a client.
-    
+
     Returns dict with:
         - limit: Maximum requests allowed
         - remaining: Requests remaining
@@ -151,7 +151,7 @@ def get_rate_limit_info(request: Request) -> dict:
 def should_skip_rate_limit(request: Request) -> bool:
     """
     Check if request should bypass rate limiting.
-    
+
     Returns True to skip rate limiting for:
     - Internal/localhost requests in development
     - Requests with special bypass header (if configured)
@@ -159,13 +159,13 @@ def should_skip_rate_limit(request: Request) -> bool:
     # Check for bypass in development
     if os.getenv("DSA110_RATE_LIMIT_DISABLED", "").lower() == "true":
         return True
-    
+
     # Check for internal requests
     client_ip = get_client_ip(request)
     if client_ip in ["127.0.0.1", "::1", "localhost"]:
         if os.getenv("DSA110_ENV", "development") == "development":
             return True
-    
+
     return False
 
 

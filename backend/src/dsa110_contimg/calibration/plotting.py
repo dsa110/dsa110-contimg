@@ -30,15 +30,19 @@ def generate_bandpass_plots(
     Raises:
         RuntimeError: If plot generation fails
     """
+
     # Helper to call plotbandpass with CASA log environment protection
     def _call_plotbandpass(**kwargs):
         try:
             from dsa110_contimg.utils.tempdirs import casa_log_environment
+
             with casa_log_environment():
                 from casatasks import plotbandpass
+
                 return plotbandpass(**kwargs)
         except ImportError:
             from casatasks import plotbandpass
+
             return plotbandpass(**kwargs)
 
     if output_dir is None:
@@ -88,7 +92,9 @@ def generate_bandpass_plots(
             generated_plots.extend(phase_files)
             logger.info(f"Generated {len(phase_files)} phase plot(s)")
 
-        logger.info(f":check: Bandpass plots generated: {len(generated_plots)} file(s) in {output_dir}")
+        logger.info(
+            f":check: Bandpass plots generated: {len(generated_plots)} file(s) in {output_dir}"
+        )
         return generated_plots
 
     except Exception as e:
@@ -142,15 +148,19 @@ def generate_gain_plots(
     Raises:
         RuntimeError: If plot generation fails
     """
+
     # Helper to call plotcal with CASA log environment protection
     def _call_plotcal(**kwargs):
         try:
             from dsa110_contimg.utils.tempdirs import casa_log_environment
+
             with casa_log_environment():
                 from casatasks import plotcal  # pylint: disable=no-name-in-module
+
                 return plotcal(**kwargs)
         except ImportError:
             from casatasks import plotcal  # pylint: disable=no-name-in-module
+
             return plotcal(**kwargs)
 
     if output_dir is None:

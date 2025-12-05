@@ -53,7 +53,7 @@ from .forced import measure_forced_peak, measure_many
 
 def _get_pipeline_db_path(cli_arg: str | None = None) -> Path:
     """Get pipeline database path from centralized settings or CLI argument.
-    
+
     Priority order:
     1. CLI argument (if provided and not default)
     2. Centralized settings (DatabaseSettings.path)
@@ -63,20 +63,21 @@ def _get_pipeline_db_path(cli_arg: str | None = None) -> Path:
     # Default values
     default_path = "state/db/pipeline.sqlite3"  # CLI default (unified DB)
     unified_default = "/data/dsa110-contimg/state/db/pipeline.sqlite3"
-    
+
     # If CLI arg provided and not the default, use it
     if cli_arg and cli_arg != default_path:
         return Path(cli_arg)
-    
+
     # Try centralized settings
     try:
         from dsa110_contimg.config import get_settings
+
         settings = get_settings()
-        if hasattr(settings, 'database') and hasattr(settings.database, 'path'):
+        if hasattr(settings, "database") and hasattr(settings.database, "path"):
             return settings.database.path
     except (ImportError, Exception):
         pass
-    
+
     # Fall back to env var or new default
     return Path(os.getenv("PIPELINE_DB", os.getenv("PIPELINE_PRODUCTS_DB", unified_default)))
 
@@ -160,7 +161,9 @@ def cmd_batch(args: argparse.Namespace) -> int:
     image_paths: list[str] = []
     if args.image_dir:
         # Recursively search for FITS files
-        image_paths = sorted(glob.glob(os.path.join(args.image_dir, "**", "*.fits"), recursive=True))
+        image_paths = sorted(
+            glob.glob(os.path.join(args.image_dir, "**", "*.fits"), recursive=True)
+        )
     elif args.image_list:
         # Read paths from file
         with open(args.image_list, "r") as f:
@@ -174,7 +177,7 @@ def cmd_batch(args: argparse.Namespace) -> int:
         return 1
 
     # Setup database connection - always store results
-    pdb_path = _get_pipeline_db_path(getattr(args, 'products_db', None))
+    pdb_path = _get_pipeline_db_path(getattr(args, "products_db", None))
     conn = ensure_pipeline_db()
 
     results = []
@@ -232,7 +235,10 @@ def cmd_batch(args: argparse.Namespace) -> int:
             except Exception as e:
                 total_skipped += 1
                 if args.verbose:
-                    print(f"Warning: Failed to measure {src['name']} in {img_path}: {e}", file=sys.stderr)
+                    print(
+                        f"Warning: Failed to measure {src['name']} in {img_path}: {e}",
+                        file=sys.stderr,
+                    )
 
     if conn is not None:
         conn.commit()
@@ -241,6 +247,7 @@ def cmd_batch(args: argparse.Namespace) -> int:
     # Write output CSV if requested
     if args.output:
         import csv as csv_module
+
         with open(args.output, "w", newline="") as f:
             if results:
                 writer = csv_module.DictWriter(f, fieldnames=results[0].keys())
@@ -307,6 +314,7 @@ def cmd_export(args: argparse.Namespace) -> int:
         output = json.dumps(data, indent=2)
     elif args.format == "csv":
         import io
+
         buf = io.StringIO()
         writer = csv_module.DictWriter(buf, fieldnames=data[0].keys())
         writer.writeheader()
@@ -492,7 +500,7 @@ def cmd_ese_detect(args: argparse.Namespace) -> int:
     """Detect ESE candidates from variability statistics."""
     from dsa110_contimg.photometry.thresholds import get_threshold_preset
 
-    products_db = _get_pipeline_db_path(getattr(args, 'products_db', None))
+    products_db = _get_pipeline_db_path(getattr(args, "products_db", None))
 
     if not products_db.exists():
         print(json.dumps({"error": f"Products database not found: {products_db}"}, indent=2))
@@ -699,7 +707,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     sp = sub.add_parser("nvss", help="Forced photometry for NVSS sources within the image FoV")
     sp.add_argument("--fits", required=True, help="Input FITS image (PB-corrected)")
-    sp.add_argument("--products-db", default="state/db/pipeline.sqlite3", help="Pipeline database (default: unified DB)")
+    sp.add_argument(
+        "--products-db",
+        default="state/db/pipeline.sqlite3",
+        help="Pipeline database (default: unified DB)",
+    )
     sp.add_argument("--min-mjy", type=float, default=10.0)
     sp.add_argument("--radius-deg", type=float, default=None, help="Override FoV radius (deg)")
     sp.add_argument(
@@ -720,7 +732,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     sp = sub.add_parser("plot", help="Visualize photometry results overlaid on FITS image")
     sp.add_argument("--fits", required=True, help="Input FITS image (PB-corrected)")
-    sp.add_argument("--products-db", default="state/db/pipeline.sqlite3", help="Pipeline database (default: unified DB)")
+    sp.add_argument(
+        "--products-db",
+        default="state/db/pipeline.sqlite3",
+        help="Pipeline database (default: unified DB)",
+    )
     sp.add_argument("--out", default=None, help="Output PNG path")
     sp.add_argument("--cmap", default="viridis")
     sp.add_argument("--vmin", type=float, default=None)
@@ -829,9 +845,7 @@ def build_parser() -> argparse.ArgumentParser:
     sp.set_defaults(func=cmd_ese_detect)
 
     # Batch photometry command
-    sp = sub.add_parser(
-        "batch", help="Batch photometry on multiple sources across multiple images"
-    )
+    sp = sub.add_parser("batch", help="Batch photometry on multiple sources across multiple images")
     sp.add_argument(
         "--source-list",
         type=str,

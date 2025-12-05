@@ -169,10 +169,7 @@ def get_active_applylist_bidirectional(
 
         if rows:
             # Calculate time offset from set's validity window
-            mid_mjds = [
-                (r[1] + r[2]) / 2 if r[1] and r[2] else target_mjd
-                for r in rows
-            ]
+            mid_mjds = [(r[1] + r[2]) / 2 if r[1] and r[2] else target_mjd for r in rows]
             avg_mid = sum(mid_mjds) / len(mid_mjds) if mid_mjds else target_mjd
             offset_hours = abs(target_mjd - avg_mid) * 24.0
 
@@ -180,7 +177,7 @@ def get_active_applylist_bidirectional(
                 set_name=set_name,
                 paths=[r[0] for r in rows],
                 mid_mjd=avg_mid,
-                selection_method='exact',
+                selection_method="exact",
                 time_offset_hours=offset_hours,
                 quality_score=_calculate_quality_score(rows, offset_hours),
             )
@@ -215,7 +212,7 @@ def get_active_applylist_bidirectional(
             set_name=chosen_set,
             paths=paths,
             mid_mjd=mid_mjd,
-            selection_method='exact',
+            selection_method="exact",
             time_offset_hours=offset_hours,
             quality_score=1.0 - (offset_hours / (validity_hours * 2)),
         )
@@ -257,9 +254,9 @@ def get_active_applylist_bidirectional(
 
             # Determine selection method
             if mid_mjd < target_mjd:
-                method = 'nearest_before'
+                method = "nearest_before"
             else:
-                method = 'nearest_after'
+                method = "nearest_after"
 
             paths = _get_set_paths(conn, chosen_set)
 
@@ -280,14 +277,13 @@ def get_active_applylist_bidirectional(
                 warnings=warnings,
             )
 
-    raise ValueError(
-        f"No calibration found within ±{validity_hours:.1f}h of MJD {target_mjd:.6f}"
-    )
+    raise ValueError(f"No calibration found within ±{validity_hours:.1f}h of MJD {target_mjd:.6f}")
 
 
 # =============================================================================
 # Issue #2: Calibration Interpolation Between Sets
 # =============================================================================
+
 
 @dataclass
 class InterpolatedCalibration:
@@ -462,17 +458,17 @@ def get_interpolated_calibration(
             # Gap too small - just use nearest
             if hours_from_before <= hours_from_after:  # type: ignore
                 weight_before = 1.0
-                selection_method = 'single'
+                selection_method = "single"
             else:
                 weight_before = 0.0
-                selection_method = 'single'
+                selection_method = "single"
         else:
             # True interpolation
             # Weight inversely proportional to distance
             # If target is at mid_mjd_before, weight_before=1.0
             # If target is at mid_mjd_after, weight_before=0.0
             weight_before = hours_from_after / total_gap_hours  # type: ignore
-            selection_method = 'interpolated'
+            selection_method = "interpolated"
 
             # Warn if gap is large
             if total_gap_hours > 24.0:
@@ -484,7 +480,7 @@ def get_interpolated_calibration(
     elif set_before:
         # Only before found - extrapolation forward
         weight_before = 1.0
-        selection_method = 'extrapolated'
+        selection_method = "extrapolated"
         if hours_from_before is not None and hours_from_before > validity_hours / 2:
             warnings.append(
                 f"Extrapolating {hours_from_before:.1f}h forward from calibration. "
@@ -494,7 +490,7 @@ def get_interpolated_calibration(
     elif set_after:
         # Only after found - extrapolation backward
         weight_before = 0.0
-        selection_method = 'extrapolated'
+        selection_method = "extrapolated"
         if hours_from_after is not None and hours_from_after > validity_hours / 2:
             warnings.append(
                 f"Extrapolating {hours_from_after:.1f}h backward from calibration. "
@@ -543,13 +539,13 @@ def _calculate_quality_score(rows: List[tuple], offset_hours: float) -> float:
         if metrics_json:
             try:
                 metrics = json.loads(metrics_json)
-                if 'snr_median' in metrics:
+                if "snr_median" in metrics:
                     # SNR > 50 is excellent, < 10 is poor
-                    snr_score = min(metrics['snr_median'] / 50.0, 1.0)
+                    snr_score = min(metrics["snr_median"] / 50.0, 1.0)
                     quality_scores.append(snr_score)
-                if 'flagged_fraction' in metrics:
+                if "flagged_fraction" in metrics:
                     # Lower flagged fraction is better
-                    flag_score = 1.0 - metrics['flagged_fraction']
+                    flag_score = 1.0 - metrics["flagged_fraction"]
                     quality_scores.append(flag_score)
             except (json.JSONDecodeError, TypeError):
                 pass
@@ -564,6 +560,7 @@ def _calculate_quality_score(rows: List[tuple], offset_hours: float) -> float:
 # =============================================================================
 # Issue #4: Race Condition Fix - Calibration Fence
 # =============================================================================
+
 
 class CalibrationFence:
     """
@@ -598,9 +595,7 @@ class CalibrationFence:
                 set_name TEXT
             )
         """)
-        conn.execute(
-            "CREATE INDEX IF NOT EXISTS idx_fence_status ON calibration_fence(status)"
-        )
+        conn.execute("CREATE INDEX IF NOT EXISTS idx_fence_status ON calibration_fence(status)")
         conn.commit()
         conn.close()
 
@@ -687,20 +682,17 @@ class CalibrationFence:
             if row[0] == 0:
                 return True
 
-            logger.debug(
-                f"Waiting for {row[0]} in-progress calibration(s)..."
-            )
+            logger.debug(f"Waiting for {row[0]} in-progress calibration(s)...")
             time.sleep(self.POLL_INTERVAL_SECONDS)
 
-        logger.warning(
-            f"Timeout waiting for calibrations after {timeout}s"
-        )
+        logger.warning(f"Timeout waiting for calibrations after {timeout}s")
         return False
 
 
 # =============================================================================
 # Issue #5: Calibration Quality Assessment
 # =============================================================================
+
 
 @dataclass
 class CalibrationQAResult:
@@ -781,9 +773,7 @@ def assess_calibration_quality(
                         f"(max: {flagged_max:.1%})"
                     )
                 elif result.flagged_fraction > flagged_warn:
-                    warnings.append(
-                        f"High flagged fraction: {result.flagged_fraction:.1%}"
-                    )
+                    warnings.append(f"High flagged fraction: {result.flagged_fraction:.1%}")
 
             # Check SNR
             if "SNR" in tb.colnames():
@@ -797,13 +787,10 @@ def assess_calibration_quality(
                     if result.snr_mean < snr_min:
                         result.passed = False
                         issues.append(
-                            f"Mean SNR too low: {result.snr_mean:.1f} "
-                            f"(min: {snr_min:.1f})"
+                            f"Mean SNR too low: {result.snr_mean:.1f} (min: {snr_min:.1f})"
                         )
                     elif result.snr_mean < snr_warn:
-                        warnings.append(
-                            f"Low mean SNR: {result.snr_mean:.1f}"
-                        )
+                        warnings.append(f"Low mean SNR: {result.snr_mean:.1f}")
 
             # Check antenna count
             if "ANTENNA1" in tb.colnames():
@@ -812,10 +799,7 @@ def assess_calibration_quality(
 
                 if result.n_antennas < min_antennas:
                     result.passed = False
-                    issues.append(
-                        f"Too few antennas: {result.n_antennas} "
-                        f"(min: {min_antennas})"
-                    )
+                    issues.append(f"Too few antennas: {result.n_antennas} (min: {min_antennas})")
 
     except Exception as e:
         result.passed = False
@@ -857,33 +841,45 @@ def get_calibration_quality_metrics(caltable_path: str) -> Dict[str, Any]:
 # Issue #7: Transactional Safety - State Machine
 # =============================================================================
 
+
 class ProcessingState(Enum):
     """Processing pipeline states with allowed transitions."""
 
-    RECEIVED = auto()      # Files received, not yet processed
-    CONVERTING = auto()    # UVH5 -> MS conversion in progress
-    CONVERTED = auto()     # Conversion complete, ready for calibration
-    CALIBRATING = auto()   # Calibration in progress
-    CALIBRATED = auto()    # Calibration complete, ready for imaging
-    IMAGING = auto()       # Imaging in progress
-    IMAGED = auto()        # Imaging complete, ready for photometry
-    PHOTOMETRY = auto()    # Photometry in progress
-    COMPLETED = auto()     # All processing complete
-    FAILED = auto()        # Processing failed (recoverable)
-    DEAD_LETTER = auto()   # Failed too many times (manual intervention)
+    RECEIVED = auto()  # Files received, not yet processed
+    CONVERTING = auto()  # UVH5 -> MS conversion in progress
+    CONVERTED = auto()  # Conversion complete, ready for calibration
+    CALIBRATING = auto()  # Calibration in progress
+    CALIBRATED = auto()  # Calibration complete, ready for imaging
+    IMAGING = auto()  # Imaging in progress
+    IMAGED = auto()  # Imaging complete, ready for photometry
+    PHOTOMETRY = auto()  # Photometry in progress
+    COMPLETED = auto()  # All processing complete
+    FAILED = auto()  # Processing failed (recoverable)
+    DEAD_LETTER = auto()  # Failed too many times (manual intervention)
 
 
 # Valid state transitions
 VALID_TRANSITIONS = {
     ProcessingState.RECEIVED: {ProcessingState.CONVERTING, ProcessingState.FAILED},
     ProcessingState.CONVERTING: {ProcessingState.CONVERTED, ProcessingState.FAILED},
-    ProcessingState.CONVERTED: {ProcessingState.CALIBRATING, ProcessingState.IMAGING, ProcessingState.FAILED},
+    ProcessingState.CONVERTED: {
+        ProcessingState.CALIBRATING,
+        ProcessingState.IMAGING,
+        ProcessingState.FAILED,
+    },
     ProcessingState.CALIBRATING: {ProcessingState.CALIBRATED, ProcessingState.FAILED},
     ProcessingState.CALIBRATED: {ProcessingState.IMAGING, ProcessingState.FAILED},
     ProcessingState.IMAGING: {ProcessingState.IMAGED, ProcessingState.FAILED},
-    ProcessingState.IMAGED: {ProcessingState.PHOTOMETRY, ProcessingState.COMPLETED, ProcessingState.FAILED},
+    ProcessingState.IMAGED: {
+        ProcessingState.PHOTOMETRY,
+        ProcessingState.COMPLETED,
+        ProcessingState.FAILED,
+    },
     ProcessingState.PHOTOMETRY: {ProcessingState.COMPLETED, ProcessingState.FAILED},
-    ProcessingState.FAILED: {ProcessingState.RECEIVED, ProcessingState.DEAD_LETTER},  # Retry or give up
+    ProcessingState.FAILED: {
+        ProcessingState.RECEIVED,
+        ProcessingState.DEAD_LETTER,
+    },  # Retry or give up
 }
 
 
@@ -1017,9 +1013,7 @@ class ProcessingStateMachine:
         # Validate transition
         if to_state not in VALID_TRANSITIONS.get(from_state, set()):
             conn.rollback()
-            raise ValueError(
-                f"Invalid transition: {from_state.name} -> {to_state.name}"
-            )
+            raise ValueError(f"Invalid transition: {from_state.name} -> {to_state.name}")
 
         now = time.time()
         checkpoint_json = json.dumps(checkpoint_data) if checkpoint_data else None
@@ -1078,9 +1072,7 @@ class ProcessingStateMachine:
                     """,
                     (ProcessingState.DEAD_LETTER.name, str(e), new_retry, time.time(), group_id),
                 )
-                logger.error(
-                    f"Group {group_id} moved to dead letter after {new_retry} retries"
-                )
+                logger.error(f"Group {group_id} moved to dead letter after {new_retry} retries")
             else:
                 # Stay in FAILED state for retry
                 conn2.execute(
@@ -1168,7 +1160,7 @@ def ProcessingTransaction(
     conn = sqlite3.connect(str(db_path), timeout=30.0)
     now = time.time()
     transaction_id = None
-    context: Dict[str, Any] = {'started_at': now, 'operation': operation}
+    context: Dict[str, Any] = {"started_at": now, "operation": operation}
 
     try:
         # Record transaction start
@@ -1221,9 +1213,7 @@ def ProcessingTransaction(
             try:
                 cleanup_callback()
             except Exception as cleanup_error:
-                logger.warning(
-                    f"Cleanup callback failed for {group_id}: {cleanup_error}"
-                )
+                logger.warning(f"Cleanup callback failed for {group_id}: {cleanup_error}")
 
         raise
     finally:
@@ -1233,6 +1223,7 @@ def ProcessingTransaction(
 # =============================================================================
 # Issue #10: Disk Space Monitoring
 # =============================================================================
+
 
 @dataclass
 class DiskQuota:
@@ -1269,12 +1260,12 @@ def check_disk_space(path: Path, quota: Optional[DiskQuota] = None) -> DiskStatu
     used_gb = total_gb - free_gb
     usage_percent = (used_gb / total_gb) * 100 if total_gb > 0 else 0
 
-    status = 'ok'
+    status = "ok"
     if quota:
         if free_gb < quota.critical_threshold_gb:
-            status = 'critical'
+            status = "critical"
         elif free_gb < quota.warning_threshold_gb:
-            status = 'warning'
+            status = "warning"
 
     return DiskStatus(
         path=path,
@@ -1320,7 +1311,7 @@ class DiskSpaceMonitor:
         for path, quota in self.quotas.items():
             try:
                 status = check_disk_space(path, quota)
-                if status.status == 'critical':
+                if status.status == "critical":
                     logger.error(
                         f"CRITICAL: Disk space low on {path}: "
                         f"{status.free_gb:.1f}GB free "
@@ -1346,14 +1337,12 @@ class DiskSpaceMonitor:
             for path, quota in self.quotas.items():
                 try:
                     status = check_disk_space(path, quota)
-                    if status.status in ('warning', 'critical'):
+                    if status.status in ("warning", "critical"):
                         target = quota.cleanup_target_gb - status.free_gb
                         if target > 0:
                             bytes_freed = self.cleanup_callback(path, target)
                             freed[path] = bytes_freed
-                            logger.info(
-                                f"Cleanup freed {bytes_freed / (1024**3):.2f}GB on {path}"
-                            )
+                            logger.info(f"Cleanup freed {bytes_freed / (1024**3):.2f}GB on {path}")
                 except Exception as e:
                     logger.error(f"Cleanup failed for {path}: {e}")
 
@@ -1369,15 +1358,14 @@ def default_cleanup_callback(path: Path, target_gb: float) -> int:
     """
     # This is a placeholder - actual implementation would query
     # the database for completed MS files and remove oldest
-    logger.warning(
-        f"Default cleanup not implemented. Need to free {target_gb:.1f}GB on {path}"
-    )
+    logger.warning(f"Default cleanup not implemented. Need to free {target_gb:.1f}GB on {path}")
     return 0
 
 
 # =============================================================================
 # Issue #6: Overlapping Calibration Handling
 # =============================================================================
+
 
 def check_calibration_overlap(
     db_path: Path,
@@ -1446,13 +1434,9 @@ def check_calibration_overlap(
 
         # Check for incompatibilities
         if refant and row[2] and refant != row[2]:
-            conflict["issues"].append(
-                f"Different reference antenna: {refant} vs {row[2]}"
-            )
+            conflict["issues"].append(f"Different reference antenna: {refant} vs {row[2]}")
         if cal_field and row[1] and cal_field != row[1]:
-            conflict["issues"].append(
-                f"Different calibrator field: {cal_field} vs {row[1]}"
-            )
+            conflict["issues"].append(f"Different calibrator field: {cal_field} vs {row[1]}")
 
         conflicts.append(conflict)
 
@@ -1475,9 +1459,7 @@ def resolve_calibration_overlap(
     - retire: Retire overlapping sets entirely
     - error: Raise error if overlap exists
     """
-    conflicts = check_calibration_overlap(
-        db_path, new_set_name, valid_start_mjd, valid_end_mjd
-    )
+    conflicts = check_calibration_overlap(db_path, new_set_name, valid_start_mjd, valid_end_mjd)
 
     if not conflicts:
         return
@@ -1523,6 +1505,7 @@ def resolve_calibration_overlap(
 # =============================================================================
 # Issue #8: RFI Mitigation - Pre-flagging
 # =============================================================================
+
 
 @dataclass
 class RFIStats:
@@ -1575,6 +1558,7 @@ def preflag_rfi(
         # Use AOFlagger (preferred, faster)
         try:
             from dsa110_contimg.calibration.flagging import flag_rfi
+
             flag_rfi(
                 ms_path,
                 backend="aoflagger",
@@ -1584,19 +1568,19 @@ def preflag_rfi(
         except Exception as e:
             logger.warning(f"AOFlagger pre-flagging failed: {e}, falling back to CASA")
             backend = "casa"  # Fall through to CASA
-    
+
     if backend == "gpu":
         # Use GPU-accelerated RFI detection
         try:
-            from dsa110_contimg.rfi import gpu_rfi_detection, RFIDetectionConfig
-            
+            from dsa110_contimg.rfi import RFIDetectionConfig, gpu_rfi_detection
+
             threshold = 4.0 if aggressive else 5.0
             config = RFIDetectionConfig(
                 threshold=threshold,
                 apply_flags=True,
             )
             result = gpu_rfi_detection(ms_path, config=config)
-            
+
             if result.success:
                 logger.info(f"GPU pre-flagging complete: {result.flag_percent:.2f}% flagged")
             else:
@@ -1608,12 +1592,13 @@ def preflag_rfi(
         except Exception as e:
             logger.warning(f"GPU pre-flagging failed: {e}, falling back to CASA")
             backend = "casa"
-    
+
     if backend == "casa":
         # Use CASA flagdata modes
         # Import flagdata with CASA log environment protection
         try:
             from dsa110_contimg.utils.tempdirs import casa_log_environment
+
             with casa_log_environment():
                 from casatasks import flagdata
         except ImportError:
@@ -1623,6 +1608,7 @@ def preflag_rfi(
             """Call flagdata with CASA log environment protection."""
             try:
                 from dsa110_contimg.utils.tempdirs import casa_log_environment
+
                 with casa_log_environment():
                     return flagdata(**kwargs)
             except ImportError:
@@ -1674,6 +1660,7 @@ def preflag_rfi(
 # Issue #13: Observability - Metrics Registry
 # =============================================================================
 
+
 class MetricsRegistry:
     """
     Central registry for pipeline metrics.
@@ -1693,7 +1680,9 @@ class MetricsRegistry:
         self._labels: Dict[str, Dict[str, str]] = {}
         self._lock = threading.Lock()
 
-    def inc_counter(self, name: str, value: float = 1.0, labels: Optional[Dict[str, str]] = None) -> None:
+    def inc_counter(
+        self, name: str, value: float = 1.0, labels: Optional[Dict[str, str]] = None
+    ) -> None:
         """Increment a counter."""
         key = self._make_key(name, labels)
         with self._lock:
@@ -1709,7 +1698,9 @@ class MetricsRegistry:
             if labels:
                 self._labels[key] = labels
 
-    def observe_histogram(self, name: str, value: float, labels: Optional[Dict[str, str]] = None) -> None:
+    def observe_histogram(
+        self, name: str, value: float, labels: Optional[Dict[str, str]] = None
+    ) -> None:
         """Record a histogram observation."""
         key = self._make_key(name, labels)
         with self._lock:
@@ -1732,7 +1723,9 @@ class MetricsRegistry:
             return {
                 "counters": dict(self._counters),
                 "gauges": dict(self._gauges),
-                "histograms": {k: {"values": v, "count": len(v)} for k, v in self._histograms.items()},
+                "histograms": {
+                    k: {"values": v, "count": len(v)} for k, v in self._histograms.items()
+                },
             }
 
     def export_prometheus(self) -> str:
@@ -1749,7 +1742,7 @@ class MetricsRegistry:
                 lines.append(f"{key} {value}")
 
             for key, values in self._histograms.items():
-                base_name = key.split('{')[0]
+                base_name = key.split("{")[0]
                 lines.append(f"# TYPE {base_name} histogram")
                 lines.append(f"{key}_count {len(values)}")
                 if values:
@@ -1819,9 +1812,7 @@ def record_execution_metrics(
     registry = get_metrics_registry()
 
     # Record execution time histogram by mode
-    registry.observe_histogram(
-        f"contimg_execution_{execution_mode}_seconds", seconds
-    )
+    registry.observe_histogram(f"contimg_execution_{execution_mode}_seconds", seconds)
 
     # Record memory usage
     registry.set_gauge(
@@ -1843,6 +1834,7 @@ def record_execution_metrics(
 # =============================================================================
 # Issue #3: Calibrator Redundancy
 # =============================================================================
+
 
 @dataclass
 class CalibratorCandidate:
@@ -1907,8 +1899,8 @@ def find_backup_calibrators(
         from dsa110_contimg.utils.constants import DSA110_LOCATION
 
         # Find next transit after target_mjd
-        t = Time(target_mjd, format='mjd')
-        lst = t.sidereal_time('apparent', DSA110_LOCATION).deg
+        t = Time(target_mjd, format="mjd")
+        lst = t.sidereal_time("apparent", DSA110_LOCATION).deg
 
         # Hours until RA transits
         ra_diff = (ra - lst) % 360
@@ -1922,15 +1914,17 @@ def find_backup_calibrators(
         # Quality score: prefer bright, well-centered calibrators
         quality = (flux / 10.0) * beam_response
 
-        candidates.append(CalibratorCandidate(
-            name=name,
-            ra_deg=ra,
-            dec_deg=dec,
-            flux_jy=flux,
-            transit_mjd=transit_mjd,
-            beam_response=beam_response,
-            quality_score=quality,
-        ))
+        candidates.append(
+            CalibratorCandidate(
+                name=name,
+                ra_deg=ra,
+                dec_deg=dec,
+                flux_jy=flux,
+                transit_mjd=transit_mjd,
+                beam_response=beam_response,
+                quality_score=quality,
+            )
+        )
 
     # Sort by quality score
     candidates.sort(key=lambda c: c.quality_score, reverse=True)
@@ -1941,6 +1935,7 @@ def find_backup_calibrators(
 # =============================================================================
 # Issue #15: Mosaic Trigger Logic Fixes
 # =============================================================================
+
 
 @dataclass
 class MosaicGroup:
@@ -1995,7 +1990,7 @@ def find_mosaic_groups(
     # Group by declination band
     dec_bands: Dict[float, List[Dict]] = {}
     for row in rows:
-        dec = row['dec_deg']
+        dec = row["dec_deg"]
         band_center = round(dec / dec_tolerance_deg) * dec_tolerance_deg
         if band_center not in dec_bands:
             dec_bands[band_center] = []
@@ -2007,7 +2002,7 @@ def find_mosaic_groups(
 
     for dec_center, observations in dec_bands.items():
         # Sort by time
-        observations.sort(key=lambda x: x['mid_mjd'])
+        observations.sort(key=lambda x: x["mid_mjd"])
 
         current_group: List[Dict] = []
 
@@ -2015,7 +2010,7 @@ def find_mosaic_groups(
             if not current_group:
                 current_group.append(obs)
             else:
-                time_gap = obs['mid_mjd'] - current_group[-1]['mid_mjd']
+                time_gap = obs["mid_mjd"] - current_group[-1]["mid_mjd"]
 
                 if time_gap <= time_window_days and len(current_group) < max_observations:
                     current_group.append(obs)
@@ -2034,10 +2029,10 @@ def find_mosaic_groups(
 
 def _make_mosaic_group(observations: List[Dict], dec_center: float) -> MosaicGroup:
     """Create MosaicGroup from list of observations."""
-    ms_paths = [o['path'] for o in observations]
-    ras = [o['ra_deg'] for o in observations]
-    decs = [o['dec_deg'] for o in observations]
-    mjds = [o['mid_mjd'] for o in observations]
+    ms_paths = [o["path"] for o in observations]
+    ras = [o["ra_deg"] for o in observations]
+    decs = [o["dec_deg"] for o in observations]
+    mjds = [o["mid_mjd"] for o in observations]
 
     # Estimate integration time (5 minutes per observation)
     integration_s = len(observations) * 309.0

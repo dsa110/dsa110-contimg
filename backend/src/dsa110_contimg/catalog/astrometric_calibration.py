@@ -10,8 +10,7 @@ Target: <1" accuracy (from current ~2-3")
 import logging
 import sqlite3
 import time
-from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Optional
 
 import numpy as np
 import pandas as pd
@@ -19,7 +18,9 @@ import pandas as pd
 logger = logging.getLogger(__name__)
 
 
-def create_astrometry_tables(db_path: str = "/data/dsa110-contimg/state/db/pipeline.sqlite3") -> bool:
+def create_astrometry_tables(
+    db_path: str = "/data/dsa110-contimg/state/db/pipeline.sqlite3",
+) -> bool:
     """Create database tables for astrometric calibration tracking.
 
     Tables created:
@@ -180,7 +181,7 @@ def calculate_astrometric_offsets(
 
     if len(matches) < min_matches:
         logger.warning(
-            f"Insufficient matches for astrometric calibration: " f"{len(matches)} < {min_matches}"
+            f"Insufficient matches for astrometric calibration: {len(matches)} < {min_matches}"
         )
         return None
 

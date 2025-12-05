@@ -35,6 +35,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Environment(str, Enum):
     """Deployment environment."""
+
     DEVELOPMENT = "development"
     TESTING = "testing"
     STAGING = "staging"
@@ -47,6 +48,7 @@ class PathSettings(BaseSettings):
     All paths are validated to ensure parent directories exist.
     Uses Path type for type safety (CASA wrappers handle string conversion).
     """
+
     model_config = SettingsConfigDict(
         env_prefix="CONTIMG_",
         extra="ignore",
@@ -55,56 +57,36 @@ class PathSettings(BaseSettings):
     # Base directories
     input_dir: Path = Field(
         default=Path("/data/incoming"),
-        description="Raw HDF5 input directory (watched by streaming converter)"
+        description="Raw HDF5 input directory (watched by streaming converter)",
     )
     output_dir: Path = Field(
         default=Path("/stage/dsa110-contimg/ms"),
-        description="Default output directory for measurement sets"
+        description="Default output directory for measurement sets",
     )
     scratch_dir: Path = Field(
-        default=Path("/stage/dsa110-contimg"),
-        description="Base scratch directory (NVMe SSD)"
+        default=Path("/stage/dsa110-contimg"), description="Base scratch directory (NVMe SSD)"
     )
     state_dir: Path = Field(
         default=Path("/data/dsa110-contimg/state/db"),
-        description="Pipeline state directory (SQLite databases)"
+        description="Pipeline state directory (SQLite databases)",
     )
 
     # Scratch subdirectories (derived from scratch_dir by default)
-    ms_dir: Optional[Path] = Field(
-        default=None,
-        description="Measurement set output directory"
-    )
-    caltables_dir: Optional[Path] = Field(
-        default=None,
-        description="Calibration tables directory"
-    )
-    images_dir: Optional[Path] = Field(
-        default=None,
-        description="Images output directory"
-    )
-    mosaics_dir: Optional[Path] = Field(
-        default=None,
-        description="Mosaics output directory"
-    )
+    ms_dir: Optional[Path] = Field(default=None, description="Measurement set output directory")
+    caltables_dir: Optional[Path] = Field(default=None, description="Calibration tables directory")
+    images_dir: Optional[Path] = Field(default=None, description="Images output directory")
+    mosaics_dir: Optional[Path] = Field(default=None, description="Mosaics output directory")
     logs_dir: Optional[Path] = Field(
-        default=None,
-        description="Log files directory (scratch, for transient logs)"
+        default=None, description="Log files directory (scratch, for transient logs)"
     )
     casa_logs_dir: Path = Field(
         default=Path("/data/dsa110-contimg/state/logs/casa"),
-        description="CASA log files directory (persistent storage)"
+        description="CASA log files directory (persistent storage)",
     )
 
     # tmpfs staging
-    stage_to_tmpfs: bool = Field(
-        default=True,
-        description="Enable tmpfs staging for 3-5x speedup"
-    )
-    tmpfs_path: Path = Field(
-        default=Path("/dev/shm"),
-        description="tmpfs mount point"
-    )
+    stage_to_tmpfs: bool = Field(default=True, description="Enable tmpfs staging for 3-5x speedup")
+    tmpfs_path: Path = Field(default=Path("/dev/shm"), description="tmpfs mount point")
 
     @model_validator(mode="after")
     def set_scratch_subdirs(self) -> "PathSettings":
@@ -128,6 +110,7 @@ class DatabaseSettings(BaseSettings):
     All pipeline data is stored in a single unified database (pipeline.sqlite3).
     Legacy per-domain databases have been migrated and deprecated.
     """
+
     model_config = SettingsConfigDict(
         extra="ignore",
     )
@@ -136,19 +119,16 @@ class DatabaseSettings(BaseSettings):
     path: Path = Field(
         default=Path("/data/dsa110-contimg/state/db/pipeline.sqlite3"),
         validation_alias="PIPELINE_DB",
-        description="Unified pipeline database path"
+        description="Unified pipeline database path",
     )
 
     # Connection settings
     timeout: float = Field(
         default=30.0,
         validation_alias="DB_CONNECTION_TIMEOUT",
-        description="Database connection timeout in seconds"
+        description="Database connection timeout in seconds",
     )
-    wal_mode: bool = Field(
-        default=True,
-        description="Enable WAL mode for concurrent access"
-    )
+    wal_mode: bool = Field(default=True, description="Enable WAL mode for concurrent access")
 
 
 class ConversionSettings(BaseSettings):
@@ -166,6 +146,7 @@ class ConversionSettings(BaseSettings):
         timeout = settings.conversion.timeout_s
         workers = settings.conversion.max_workers
     """
+
     model_config = SettingsConfigDict(
         env_prefix="CONTIMG_",
         extra="ignore",
@@ -173,77 +154,56 @@ class ConversionSettings(BaseSettings):
 
     # Subband configuration
     expected_subbands: int = Field(
-        default=16,
-        description="Expected number of subbands per observation"
+        default=16, description="Expected number of subbands per observation"
     )
-    chunk_minutes: float = Field(
-        default=5.0,
-        description="Observation chunk duration in minutes"
-    )
+    chunk_minutes: float = Field(default=5.0, description="Observation chunk duration in minutes")
 
     # Time windowing for grouping
     cluster_tolerance_s: float = Field(
-        default=60.0,
-        description="Time window for grouping subbands (seconds)"
+        default=60.0, description="Time window for grouping subbands (seconds)"
     )
 
     # Parallelization
     max_workers: int = Field(
         default=4,
         validation_alias="max_workers",
-        description="Maximum parallel workers for conversion"
+        description="Maximum parallel workers for conversion",
     )
     omp_threads: int = Field(
-        default=4,
-        validation_alias="OMP_NUM_THREADS",
-        description="OpenMP threads per worker"
+        default=4, validation_alias="OMP_NUM_THREADS", description="OpenMP threads per worker"
     )
     parallel_loading: bool = Field(
-        default=True,
-        description="Enable parallel I/O for subband loading"
+        default=True, description="Enable parallel I/O for subband loading"
     )
     io_max_workers: int = Field(
-        default=4,
-        description="Maximum I/O threads for parallel subband loading"
+        default=4, description="Maximum I/O threads for parallel subband loading"
     )
 
     # Behavior flags (rarely changed - moved from function args)
     skip_incomplete: bool = Field(
-        default=True,
-        description="Skip groups with fewer than expected_subbands"
+        default=True, description="Skip groups with fewer than expected_subbands"
     )
     skip_existing: bool = Field(
-        default=False,
-        description="Skip groups that already have output MS files"
+        default=False, description="Skip groups that already have output MS files"
     )
     rename_calibrator_fields: bool = Field(
-        default=True,
-        description="Auto-detect and rename calibrator fields"
+        default=True, description="Auto-detect and rename calibrator fields"
     )
 
     # Timeout and retry
-    timeout_s: float = Field(
-        default=3600.0,
-        description="Conversion timeout in seconds"
-    )
-    retry_count: int = Field(
-        default=2,
-        description="Number of retries on failure"
-    )
+    timeout_s: float = Field(default=3600.0, description="Conversion timeout in seconds")
+    retry_count: int = Field(default=2, description="Number of retries on failure")
 
     # Writer configuration
     writer_type: str = Field(
-        default="parallel-subband",
-        description="MS writer type: parallel-subband, direct-subband"
+        default="parallel-subband", description="MS writer type: parallel-subband, direct-subband"
     )
-    batch_size: int = Field(
-        default=4,
-        description="Subbands to load per batch"
-    )
+    batch_size: int = Field(default=4, description="Subbands to load per batch")
 
 
 class CalibrationSettings(BaseSettings):
     """Configuration for calibration operations."""
+
     model_config = SettingsConfigDict(
         env_prefix="CONTIMG_CAL_",
         extra="ignore",
@@ -252,89 +212,64 @@ class CalibrationSettings(BaseSettings):
     bandpass_interval_hours: float = Field(
         default=24.0,
         validation_alias="bandpass_interval_hours",
-        description="Bandpass calibration interval"
+        description="Bandpass calibration interval",
     )
     gain_interval_hours: float = Field(
-        default=1.0,
-        validation_alias="gain_interval_hours",
-        description="Gain calibration interval"
+        default=1.0, validation_alias="gain_interval_hours", description="Gain calibration interval"
     )
     use_nvss_skymodel: bool = Field(
         default=True,
         validation_alias="use_nvss_skymodel",
-        description="Use NVSS sky model for calibration"
+        description="Use NVSS sky model for calibration",
     )
     bp_minsnr: float = Field(
         default=3.0,
         validation_alias="bp_minsnr",
-        description="Minimum SNR for bandpass calibration"
+        description="Minimum SNR for bandpass calibration",
     )
     gain_minsnr: float = Field(
-        default=3.0,
-        validation_alias="gain_minsnr",
-        description="Minimum SNR for gain calibration"
+        default=3.0, validation_alias="gain_minsnr", description="Minimum SNR for gain calibration"
     )
     gain_solint: str = Field(
-        default="int",
-        validation_alias="gain_solint",
-        description="Gain solution interval"
+        default="int", validation_alias="gain_solint", description="Gain solution interval"
     )
 
 
 class ImagingSettings(BaseSettings):
     """Configuration for imaging operations."""
+
     model_config = SettingsConfigDict(
         env_prefix="IMG_",
         extra="ignore",
     )
 
-    imsize: int = Field(
-        default=2048,
-        description="Image size in pixels"
-    )
-    robust: float = Field(
-        default=0.0,
-        description="Briggs robust parameter"
-    )
-    niter: int = Field(
-        default=10000,
-        description="Maximum clean iterations"
-    )
+    imsize: int = Field(default=2048, description="Image size in pixels")
+    robust: float = Field(default=0.0, description="Briggs robust parameter")
+    niter: int = Field(default=10000, description="Maximum clean iterations")
 
 
 class GPUSettings(BaseSettings):
     """GPU acceleration configuration."""
+
     model_config = SettingsConfigDict(
         env_prefix="PIPELINE_GPU_",
         extra="ignore",
     )
 
-    enabled: bool = Field(
-        default=True,
-        description="Enable GPU acceleration"
-    )
-    devices: str = Field(
-        default="",
-        description="Comma-separated GPU device IDs (empty = all)"
-    )
+    enabled: bool = Field(default=True, description="Enable GPU acceleration")
+    devices: str = Field(default="", description="Comma-separated GPU device IDs (empty = all)")
     gridder: str = Field(
-        default="idg",
-        description="WSClean gridder: idg (GPU), wgridder (CPU), wstacking (CPU)"
+        default="idg", description="WSClean gridder: idg (GPU), wgridder (CPU), wstacking (CPU)"
     )
-    idg_mode: str = Field(
-        default="hybrid",
-        description="IDG mode: cpu, gpu, or hybrid"
-    )
+    idg_mode: str = Field(default="hybrid", description="IDG mode: cpu, gpu, or hybrid")
     memory_fraction: float = Field(
-        default=0.9,
-        ge=0.0,
-        le=1.0,
-        description="Max fraction of GPU memory to use"
+        default=0.9, ge=0.0, le=1.0, description="Max fraction of GPU memory to use"
     )
 
 
 class QASettings(BaseSettings):
     """Quality assurance thresholds."""
+
     model_config = SettingsConfigDict(
         env_prefix="CONTIMG_QA_",
         extra="ignore",
@@ -359,32 +294,24 @@ class QASettings(BaseSettings):
 
 class LoggingSettings(BaseSettings):
     """Logging configuration."""
+
     model_config = SettingsConfigDict(
         extra="ignore",
     )
 
     level: str = Field(
-        default="INFO",
-        validation_alias="CONTIMG_LOG_LEVEL",
-        description="Log level"
+        default="INFO", validation_alias="CONTIMG_LOG_LEVEL", description="Log level"
     )
     json_format: bool = Field(
-        default=False,
-        validation_alias="PIPELINE_LOG_FORMAT",
-        description="Use JSON log format"
+        default=False, validation_alias="PIPELINE_LOG_FORMAT", description="Use JSON log format"
     )
-    max_size_mb: int = Field(
-        default=100,
-        description="Max log file size in MB"
-    )
-    backup_count: int = Field(
-        default=5,
-        description="Number of backup log files"
-    )
+    max_size_mb: int = Field(default=100, description="Max log file size in MB")
+    backup_count: int = Field(default=5, description="Number of backup log files")
 
 
 class APISettings(BaseSettings):
     """API server configuration."""
+
     model_config = SettingsConfigDict(
         env_prefix="DSA110_",
         extra="ignore",
@@ -393,52 +320,24 @@ class APISettings(BaseSettings):
     environment: Environment = Field(
         default=Environment.DEVELOPMENT,
         validation_alias="env",
-        description="Deployment environment"
+        description="Deployment environment",
     )
-    debug: bool = Field(
-        default=False,
-        description="Enable debug mode"
-    )
-    host: str = Field(
-        default="0.0.0.0",
-        description="API host"
-    )
-    port: int = Field(
-        default=8000,
-        description="API port"
-    )
-    workers: int = Field(
-        default=1,
-        description="Number of workers"
-    )
+    debug: bool = Field(default=False, description="Enable debug mode")
+    host: str = Field(default="0.0.0.0", description="API host")
+    port: int = Field(default=8000, description="API port")
+    workers: int = Field(default=1, description="Number of workers")
 
     # Auth settings
-    auth_disabled: bool = Field(
-        default=False,
-        description="Disable authentication (dev only)"
-    )
+    auth_disabled: bool = Field(default=False, description="Disable authentication (dev only)")
     api_keys_csv: str = Field(
-        default="",
-        description="Comma-separated API keys (env: DSA110_API_KEYS_CSV)"
+        default="", description="Comma-separated API keys (env: DSA110_API_KEYS_CSV)"
     )
-    jwt_secret: str = Field(
-        default="",
-        description="JWT signing secret"
-    )
+    jwt_secret: str = Field(default="", description="JWT signing secret")
 
     # Rate limiting
-    rate_limit_disabled: bool = Field(
-        default=False,
-        description="Disable rate limiting"
-    )
-    rate_limit_minute: int = Field(
-        default=100,
-        description="Requests per minute"
-    )
-    rate_limit_hour: int = Field(
-        default=1000,
-        description="Requests per hour"
-    )
+    rate_limit_disabled: bool = Field(default=False, description="Disable rate limiting")
+    rate_limit_minute: int = Field(default=100, description="Requests per minute")
+    rate_limit_hour: int = Field(default=1000, description="Requests per hour")
 
     @property
     def api_keys(self) -> Set[str]:
@@ -450,6 +349,7 @@ class APISettings(BaseSettings):
 
 class RedisSettings(BaseSettings):
     """Redis configuration."""
+
     model_config = SettingsConfigDict(
         extra="ignore",
     )
@@ -457,48 +357,35 @@ class RedisSettings(BaseSettings):
     url: str = Field(
         default="redis://localhost:6379",
         validation_alias="DSA110_REDIS_URL",
-        description="Redis connection URL"
+        description="Redis connection URL",
     )
     queue_name: str = Field(
-        default="dsa110-pipeline",
-        validation_alias="DSA110_QUEUE_NAME",
-        description="RQ queue name"
+        default="dsa110-pipeline", validation_alias="DSA110_QUEUE_NAME", description="RQ queue name"
     )
-    max_connections: int = Field(
-        default=10,
-        description="Max Redis connections"
-    )
-    socket_timeout: float = Field(
-        default=5.0,
-        description="Redis socket timeout"
-    )
+    max_connections: int = Field(default=10, description="Max Redis connections")
+    socket_timeout: float = Field(default=5.0, description="Redis socket timeout")
     cache_enabled: bool = Field(
-        default=True,
-        validation_alias="REDIS_CACHE_ENABLED",
-        description="Enable Redis caching"
+        default=True, validation_alias="REDIS_CACHE_ENABLED", description="Enable Redis caching"
     )
     default_ttl: int = Field(
         default=300,
         validation_alias="REDIS_DEFAULT_TTL",
-        description="Default cache TTL in seconds"
+        description="Default cache TTL in seconds",
     )
 
 
 class AlertingSettings(BaseSettings):
     """Alerting and notification configuration."""
+
     model_config = SettingsConfigDict(
         env_prefix="CONTIMG_",
         extra="ignore",
     )
 
     # Slack
-    slack_webhook_url: Optional[str] = Field(
-        default=None,
-        description="Slack webhook URL"
-    )
+    slack_webhook_url: Optional[str] = Field(default=None, description="Slack webhook URL")
     slack_min_severity: str = Field(
-        default="WARNING",
-        description="Minimum severity for Slack alerts"
+        default="WARNING", description="Minimum severity for Slack alerts"
     )
 
     # Email
@@ -507,46 +394,31 @@ class AlertingSettings(BaseSettings):
     smtp_user: Optional[str] = Field(default=None, description="SMTP username")
     smtp_password: Optional[str] = Field(default=None, description="SMTP password")
     alert_from_email: str = Field(
-        default="dsa110-pipeline@example.com",
-        description="Alert sender email"
+        default="dsa110-pipeline@example.com", description="Alert sender email"
     )
-    alert_to_emails: str = Field(
-        default="",
-        description="Comma-separated alert recipients"
-    )
+    alert_to_emails: str = Field(default="", description="Comma-separated alert recipients")
 
 
 class DiskSettings(BaseSettings):
     """Disk monitoring configuration."""
+
     model_config = SettingsConfigDict(
         env_prefix="CONTIMG_",
         extra="ignore",
     )
 
-    disk_warn_gb: int = Field(
-        default=200,
-        description="Warning threshold for disk space (GB)"
-    )
-    disk_critical_gb: int = Field(
-        default=100,
-        description="Critical threshold for disk space (GB)"
-    )
-    tmpfs_warn_percent: int = Field(
-        default=90,
-        description="Warning threshold for tmpfs usage (%)"
-    )
+    disk_warn_gb: int = Field(default=200, description="Warning threshold for disk space (GB)")
+    disk_critical_gb: int = Field(default=100, description="Critical threshold for disk space (GB)")
+    tmpfs_warn_percent: int = Field(default=90, description="Warning threshold for tmpfs usage (%)")
     tmpfs_critical_percent: int = Field(
-        default=95,
-        description="Critical threshold for tmpfs usage (%)"
+        default=95, description="Critical threshold for tmpfs usage (%)"
     )
-    auto_cleanup_enabled: bool = Field(
-        default=False,
-        description="Enable automatic cleanup"
-    )
+    auto_cleanup_enabled: bool = Field(default=False, description="Enable automatic cleanup")
 
 
 class TLSSettings(BaseSettings):
     """TLS/SSL configuration."""
+
     model_config = SettingsConfigDict(
         env_prefix="DSA110_TLS_",
         extra="ignore",
@@ -565,6 +437,7 @@ class Settings(BaseSettings):
     All configuration is loaded and validated at import time.
     Access via the global `settings` singleton.
     """
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -589,21 +462,17 @@ class Settings(BaseSettings):
 
     # Threading
     omp_num_threads: int = Field(
-        default=4,
-        validation_alias="OMP_NUM_THREADS",
-        description="OpenMP thread count"
+        default=4, validation_alias="OMP_NUM_THREADS", description="OpenMP thread count"
     )
     mkl_num_threads: int = Field(
-        default=4,
-        validation_alias="MKL_NUM_THREADS",
-        description="MKL thread count"
+        default=4, validation_alias="MKL_NUM_THREADS", description="MKL thread count"
     )
 
     # Telescope identity
     telescope_name: str = Field(
         default="DSA_110",
         validation_alias="PIPELINE_TELESCOPE_NAME",
-        description="Telescope name (use DSA_110 for EveryBeam)"
+        description="Telescope name (use DSA_110 for EveryBeam)",
     )
 
     def validate_production(self) -> list[str]:
@@ -627,8 +496,7 @@ class Settings(BaseSettings):
         errors = self.validate_production()
         if errors:
             raise ValueError(
-                "Configuration validation failed:\n" +
-                "\n".join(f"  - {e}" for e in errors)
+                "Configuration validation failed:\n" + "\n".join(f"  - {e}" for e in errors)
             )
 
 

@@ -187,15 +187,23 @@ class ExecutionTask:
             This uses the modern execution CLI (not the deprecated conversion.cli).
         """
         args = [
-            "--input-dir", str(self.input_dir.resolve()),
-            "--output-dir", str(self.output_dir.resolve()),
-            "--start-time", self.start_time,
-            "--end-time", self.end_time,
-            "--scratch-dir", str(self.scratch_dir.resolve()),
-            "--writer", self.writer,
-            "--group-id", self.group_id,
+            "--input-dir",
+            str(self.input_dir.resolve()),
+            "--output-dir",
+            str(self.output_dir.resolve()),
+            "--start-time",
+            self.start_time,
+            "--end-time",
+            self.end_time,
+            "--scratch-dir",
+            str(self.scratch_dir.resolve()),
+            "--writer",
+            self.writer,
+            "--group-id",
+            self.group_id,
             # Force inprocess mode in subprocess - the subprocess itself runs in-process
-            "--execution-mode", "inprocess",
+            "--execution-mode",
+            "inprocess",
         ]
 
         # Resource limits
