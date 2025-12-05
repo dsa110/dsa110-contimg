@@ -251,6 +251,9 @@ def convert_to_ms(
 ) -> Optional[Path]:
     """Convert UVH5 subband group to Measurement Set.
 
+    Uses pyuvdata directly instead of the orchestrator for simplicity
+    with synthetic data.
+
     Args:
         input_dir: Directory containing UVH5 files
         output_dir: Directory for output MS
@@ -261,7 +264,7 @@ def convert_to_ms(
     Returns:
         Path to converted MS, or None on failure
     """
-    from dsa110_contimg.conversion.hdf5_orchestrator import convert_subband_groups_to_ms
+    from pyuvdata import UVData
 
     logger.info("\n" + "=" * 70)
     logger.info("STEP 2: Converting UVH5 to Measurement Set")
@@ -269,33 +272,52 @@ def convert_to_ms(
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    # First, create HDF5 index database for the synthetic files
-    logger.info("  Creating HDF5 file index...")
-    db_path = create_hdf5_index(input_dir, uvh5_files)
-    logger.info(f"  ✓ Created index: {db_path.name}")
-
     try:
-        results = convert_subband_groups_to_ms(
-            str(input_dir),
-            str(output_dir),
-            start_time,
-            end_time,
-        )
+        # Sort files by subband number
+        sorted_files = sorted(uvh5_files, key=lambda p: int(p.stem.split("_sb")[1].split(".")[0]))
+        logger.info(f"  Loading {len(sorted_files)} subband files...")
 
-        logger.info(f"  Conversion results: {results}")
+        # Read and combine all subbands
+        combined_uv = None
+        for i, uvh5_path in enumerate(sorted_files):
+            logger.info(f"  Reading subband {i:02d}: {uvh5_path.name}")
+            uv = UVData()
+            uv.read(
+                str(uvh5_path),
+                file_type="uvh5",
+                run_check=False,
+                check_extra=False,
+                run_check_acceptability=False,
+                strict_uvw_antpos_check=False,
+            )
 
-        # Find the generated MS
-        ms_files = list(output_dir.glob("*.ms"))
-        if not ms_files:
-            # Also check subdirectories (organized output)
-            ms_files = list(output_dir.rglob("*.ms"))
+            if combined_uv is None:
+                combined_uv = uv
+            else:
+                # Combine subbands (pyuvdata handles frequency concatenation)
+                combined_uv += uv
 
-        if ms_files:
-            ms_path = ms_files[0]
-            logger.info(f"  ✓ Created MS: {ms_path.name}")
+        if combined_uv is None:
+            logger.error("  ✗ No UVH5 files could be read")
+            return None
+
+        logger.info(f"  Combined data shape: {combined_uv.data_array.shape}")
+        logger.info(f"  Frequency range: {combined_uv.freq_array.min()/1e9:.4f} - {combined_uv.freq_array.max()/1e9:.4f} GHz")
+
+        # Write to MS
+        ms_name = f"{start_time.replace(':', '-')}.ms"
+        ms_path = output_dir / ms_name
+
+        logger.info(f"  Writing MS: {ms_path.name}")
+        combined_uv.write_ms(str(ms_path), clobber=True, run_check=False)
+
+        if ms_path.exists():
+            # Get MS size
+            ms_size = sum(f.stat().st_size for f in ms_path.rglob("*") if f.is_file())
+            logger.info(f"  ✓ Created MS: {ms_path.name} ({ms_size / 1e6:.1f} MB)")
             return ms_path
         else:
-            logger.error("  ✗ No MS files found after conversion")
+            logger.error("  ✗ MS was not created")
             return None
 
     except Exception as e:
