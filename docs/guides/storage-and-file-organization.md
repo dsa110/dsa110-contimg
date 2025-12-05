@@ -268,8 +268,7 @@ The `group_id` is the **canonical timestamp** that uniquely identifies an observ
 
 ```sql
 -- All products trace back to group_id:
-processing_queue.group_id  -- Ingest queue entry
-subband_files.group_id     -- Individual HDF5 files
+hdf5_files.group_id        -- Raw HDF5 files (pipeline.sqlite3)
 ms_index.group_id          -- Converted Measurement Set
 images.ms_path → ms_index  -- FITS images (via MS)
 ```
@@ -277,20 +276,17 @@ images.ms_path → ms_index  -- FITS images (via MS)
 ### Example Query: Full Observation Chain
 
 ```sql
--- Find all products for an observation
+-- Find all products for an observation group
 SELECT
-    q.group_id,
-    q.state AS queue_state,
-    COUNT(sf.subband_idx) AS subbands,
+    m.group_id,
     m.path AS ms_path,
     m.status AS ms_status,
-    i.path AS image_path
-FROM processing_queue q
-LEFT JOIN subband_files sf ON sf.group_id = q.group_id
-LEFT JOIN ms_index m ON m.group_id = q.group_id
+    m.stage,
+    i.path AS image_path,
+    i.type AS image_type
+FROM ms_index m
 LEFT JOIN images i ON i.ms_path = m.path
-WHERE q.group_id = '2025-01-15T12:00:00'
-GROUP BY q.group_id;
+WHERE m.group_id = '2025-01-15T12:00:00';
 ```
 
 ---
@@ -305,88 +301,90 @@ This is the **single source of truth** for all pipeline state. It uses SQLite wi
 
 #### Core Tables
 
-| Table                | Purpose                               | Primary Key               |
-| -------------------- | ------------------------------------- | ------------------------- |
-| `processing_queue`   | Ingest queue (collecting → completed) | `group_id`                |
-| `subband_files`      | Individual HDF5 file paths            | `(group_id, subband_idx)` |
-| `ms_index`           | Measurement Set registry              | `path`                    |
-| `images`             | FITS image registry                   | `id` (auto)               |
-| `calibration_tables` | Calibration table registry            | `path`                    |
-| `photometry`         | Source measurements                   | `id` (auto)               |
-| `mosaics`            | Combined mosaic images                | `id` (auto)               |
+| Table                 | Purpose                      | Primary Key |
+| --------------------- | ---------------------------- | ----------- |
+| `ms_index`            | Measurement Set registry     | `path`      |
+| `images`              | FITS image registry          | `id` (auto) |
+| `caltables`           | Calibration table registry   | `id` (auto) |
+| `photometry`          | Source measurements          | `id` (auto) |
+| `mosaics`             | Combined mosaic images       | `id` (auto) |
+| `hdf5_files`          | Raw HDF5 file tracking       | `path`      |
+| `jobs`                | Job execution history        | `id` (auto) |
+| `calibrator_transits` | Pre-calculated transit times | `id` (auto) |
 
-#### Queue States
-
-```
-collecting → pending → in_progress → completed
-                  ↘                 ↗
-                    → failed (retry up to 3x)
-```
-
-| State         | Meaning                                |
-| ------------- | -------------------------------------- |
-| `collecting`  | Waiting for all 16 subbands            |
-| `pending`     | Complete, queued for conversion        |
-| `in_progress` | Currently being converted              |
-| `completed`   | Successfully converted to MS           |
-| `failed`      | Conversion failed (see `error` column) |
-
-#### Schema: `processing_queue`
-
-```sql
-CREATE TABLE processing_queue (
-    group_id TEXT PRIMARY KEY,
-    state TEXT NOT NULL,              -- collecting/pending/in_progress/completed/failed
-    received_at REAL NOT NULL,        -- Unix timestamp of first subband
-    last_update REAL NOT NULL,        -- Unix timestamp of last update
-    expected_subbands INTEGER,        -- Usually 16
-    retry_count INTEGER DEFAULT 0,    -- Retry attempts (max 3)
-    error TEXT,                       -- Error type if failed
-    error_message TEXT,               -- Full error message
-    processing_stage TEXT,            -- Current pipeline stage
-    has_calibrator INTEGER,           -- 1 if calibrator detected
-    calibrators TEXT                  -- JSON list of calibrator names
-);
-```
-
-#### Schema: `subband_files`
-
-```sql
-CREATE TABLE subband_files (
-    group_id TEXT NOT NULL,
-    subband_idx INTEGER NOT NULL,     -- 0-15
-    path TEXT NOT NULL UNIQUE,        -- Full path to HDF5 file
-    PRIMARY KEY (group_id, subband_idx),
-    FOREIGN KEY (group_id) REFERENCES processing_queue(group_id)
-);
-```
+> **Note**: The `hdf5_file_index` table in `/data/incoming/hdf5_file_index.sqlite3`
+> is the production HDF5 file index with 83K+ records, used by batch conversion.
+> The `hdf5_files` table in `pipeline.sqlite3` exists in the schema but is
+> primarily for ABSURD ingestion tracking.
 
 #### Schema: `ms_index`
 
 ```sql
-CREATE TABLE ms_index (
-    path TEXT PRIMARY KEY,            -- Full path to .ms directory
-    group_id TEXT,                    -- Links to processing_queue
-    start_mjd REAL,                   -- Observation start (MJD)
-    end_mjd REAL,                     -- Observation end (MJD)
-    mid_mjd REAL,                     -- Midpoint (MJD)
-    status TEXT,                      -- Processing status
-    stage TEXT,                       -- Pipeline stage
-    cal_applied INTEGER DEFAULT 0,    -- Calibration applied flag
-    field_name TEXT,                  -- Primary field (may be calibrator)
-    pointing_ra_deg REAL,             -- Pointing center RA
-    pointing_dec_deg REAL,            -- Pointing center Dec
-    created_at REAL                   -- Registration timestamp
+CREATE TABLE IF NOT EXISTS ms_index (
+    path TEXT PRIMARY KEY,
+    start_mjd REAL,
+    end_mjd REAL,
+    mid_mjd REAL,
+    processed_at REAL,
+    status TEXT,
+    stage TEXT,
+    stage_updated_at REAL,
+    cal_applied INTEGER DEFAULT 0,
+    imagename TEXT,
+    field_name TEXT,
+    pointing_ra_deg REAL,
+    pointing_dec_deg REAL,
+    ra_deg REAL,
+    dec_deg REAL,
+    group_id TEXT,
+    created_at REAL NOT NULL DEFAULT (strftime('%s', 'now'))
 );
 ```
+
+#### Schema: `hdf5_files`
+
+```sql
+CREATE TABLE IF NOT EXISTS hdf5_files (
+    path TEXT PRIMARY KEY,
+    filename TEXT NOT NULL,
+    group_id TEXT NOT NULL,
+    subband_code TEXT NOT NULL,
+    subband_num INTEGER,
+    timestamp_iso TEXT,
+    timestamp_mjd REAL,
+    file_size_bytes INTEGER,
+    modified_time REAL,
+    indexed_at REAL NOT NULL,
+    stored INTEGER DEFAULT 1,
+    ra_deg REAL,
+    dec_deg REAL
+);
+```
+
+### HDF5 File Index (Production)
+
+The production HDF5 file tracking is in `/data/incoming/hdf5_file_index.sqlite3`:
+
+```sql
+CREATE TABLE hdf5_file_index (
+    path TEXT PRIMARY KEY,
+    timestamp TEXT NOT NULL,
+    subband INTEGER NOT NULL,
+    size_bytes INTEGER,
+    mtime REAL,
+    indexed_at REAL
+);
+```
+
+Use `query_subband_groups()` to query this with 60-second clustering tolerance.
 
 ### Other Databases
 
 | Database                  | Location    | Purpose                    |
 | ------------------------- | ----------- | -------------------------- |
-| `hdf5.sqlite3`            | `state/db/` | Fast HDF5 metadata cache   |
 | `docsearch.sqlite3`       | `state/db/` | Documentation search index |
 | `embedding_cache.sqlite3` | `state/db/` | OpenAI embedding cache     |
+| `ragflow_sync.sqlite3`    | `state/db/` | RAGFlow synchronization    |
 
 ### Catalog Databases
 
