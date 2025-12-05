@@ -100,6 +100,6 @@ sudo systemctl status dsa110-contimg-dashboard
 
 ## Related Documentation
 
-- [Streaming Pipeline Operations](../../backend/docs/ops/streaming-pipeline.md) - Service management
+- Streaming Pipeline Operations (`backend/docs/ops/streaming-pipeline.md`) - Service management
 - [Visualization Guide](visualization.md) - CARTA integration for FITS viewing
 - [Troubleshooting](../TROUBLESHOOTING.md) - Common issues
