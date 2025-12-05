@@ -76,6 +76,9 @@ export const absurdQueryKeys = {
   metrics: () => ["absurd", "metrics"] as const,
   health: () => ["absurd", "health"] as const,
 
+  // Pipeline status (aggregated stage counts)
+  status: () => ["absurd", "status"] as const,
+
   // Workflows
   workflows: ["absurd", "workflows"] as const,
   workflowList: (params?: { status?: string }) =>

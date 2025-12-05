@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { ROUTES } from "../../constants/routes";
 import apiClient from "../../api/client";
+import { absurdQueryKeys } from "../../hooks/useAbsurdQueries";
 
 // =============================================================================
 // Types
@@ -244,7 +245,7 @@ async function fetchPipelineStatus(): Promise<PipelineStatusResponse> {
  */
 export function usePipelineStatus(pollInterval = 30000) {
   return useQuery({
-    queryKey: ["absurd", "status"],
+    queryKey: absurdQueryKeys.status(),
     queryFn: fetchPipelineStatus,
     refetchInterval: pollInterval,
     staleTime: 10000,

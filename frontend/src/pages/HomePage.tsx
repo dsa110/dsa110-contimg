@@ -45,12 +45,16 @@ const formatRelativeTime = (value?: string) => {
 const HomePage: React.FC = () => {
   const { data: images, dataUpdatedAt: imagesUpdatedAt } = useImages();
   const { data: sources } = useSources();
-  const { data: jobs, isLoading: jobsLoading, dataUpdatedAt: jobsUpdatedAt } = useJobs();
+  const {
+    data: jobs,
+    isLoading: jobsLoading,
+    dataUpdatedAt: jobsUpdatedAt,
+  } = useJobs();
   const pipelineStatusQuery = usePipelineStatus(30000);
 
   // Capture current time when data updates to avoid impure Date.now() in render
   const [currentTime, setCurrentTime] = useState(() => Date.now());
-  
+
   useEffect(() => {
     // Update current time when data changes
     setCurrentTime(Date.now());

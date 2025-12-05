@@ -10,6 +10,8 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { config } from "../config";
+import { pipelineKeys } from "../lib/queryKeys";
+import { absurdQueryKeys } from "./useAbsurdQueries";
 
 // API base URL for pipeline endpoints
 const API_BASE = config.api.baseUrl;
@@ -274,7 +276,7 @@ async function fetchExecution(executionId: string): Promise<ExecutionStatus> {
  */
 export function useRegisteredPipelines() {
   return useQuery({
-    queryKey: ["pipeline", "registered"],
+    queryKey: pipelineKeys.registered(),
     queryFn: fetchRegisteredPipelines,
     staleTime: 60000, // 1 minute
   });
@@ -285,7 +287,7 @@ export function useRegisteredPipelines() {
  */
 export function useAvailableStages() {
   return useQuery({
-    queryKey: ["pipeline", "stages"],
+    queryKey: pipelineKeys.stages(),
     queryFn: fetchAvailableStages,
     staleTime: 300000, // 5 minutes (stages don't change often)
   });
@@ -307,9 +309,9 @@ export function useRunPipeline() {
     }) => runPipeline(pipelineName, params),
     onSuccess: () => {
       // Invalidate executions list
-      queryClient.invalidateQueries({ queryKey: ["pipeline", "executions"] });
+      queryClient.invalidateQueries({ queryKey: pipelineKeys.executions() });
       // Invalidate ABSURD tasks
-      queryClient.invalidateQueries({ queryKey: ["absurd", "tasks"] });
+      queryClient.invalidateQueries({ queryKey: absurdQueryKeys.tasks });
     },
   });
 }
@@ -323,8 +325,8 @@ export function useRunFullPipeline() {
   return useMutation({
     mutationFn: runFullPipeline,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["pipeline", "executions"] });
-      queryClient.invalidateQueries({ queryKey: ["absurd", "tasks"] });
+      queryClient.invalidateQueries({ queryKey: pipelineKeys.executions() });
+      queryClient.invalidateQueries({ queryKey: absurdQueryKeys.tasks });
     },
   });
 }
@@ -338,7 +340,7 @@ export function useRunStage() {
   return useMutation({
     mutationFn: runStage,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["absurd", "tasks"] });
+      queryClient.invalidateQueries({ queryKey: absurdQueryKeys.tasks });
     },
   });
 }
@@ -358,7 +360,7 @@ export function useCalibrateMS() {
       applyOnly?: boolean;
     }) => calibrateMS(msPath, applyOnly),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["absurd", "tasks"] });
+      queryClient.invalidateQueries({ queryKey: absurdQueryKeys.tasks });
     },
   });
 }
@@ -385,7 +387,7 @@ export function useImageMS() {
       };
     }) => imageMS(msPath, options),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["absurd", "tasks"] });
+      queryClient.invalidateQueries({ queryKey: absurdQueryKeys.tasks });
     },
   });
 }
@@ -395,7 +397,7 @@ export function useImageMS() {
  */
 export function useExecutions(limit: number = 50, statusFilter?: string) {
   return useQuery({
-    queryKey: ["pipeline", "executions", { limit, statusFilter }],
+    queryKey: pipelineKeys.executionList({ limit, statusFilter }),
     queryFn: () => fetchExecutions(limit, statusFilter),
     refetchInterval: 10000, // Refresh every 10 seconds
   });
@@ -406,7 +408,7 @@ export function useExecutions(limit: number = 50, statusFilter?: string) {
  */
 export function useExecution(executionId: string | null) {
   return useQuery({
-    queryKey: ["pipeline", "executions", executionId],
+    queryKey: pipelineKeys.execution(executionId!),
     queryFn: () => fetchExecution(executionId!),
     enabled: !!executionId,
     refetchInterval: 5000, // Refresh every 5 seconds while viewing

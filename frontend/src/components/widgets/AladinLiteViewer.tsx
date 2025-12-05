@@ -4,7 +4,10 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 // The global 'A' object is available after the script loads
 declare const A: {
   init: Promise<void>;
-  aladin: (container: HTMLElement | string, options?: AladinOptions) => AladinInstance;
+  aladin: (
+    container: HTMLElement | string,
+    options?: AladinOptions
+  ) => AladinInstance;
   catalog: (options?: CatalogOptions) => Catalog;
   source: (ra: number, dec: number, data?: Record<string, unknown>) => Source;
 };
