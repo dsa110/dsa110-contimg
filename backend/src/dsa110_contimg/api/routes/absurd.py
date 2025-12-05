@@ -586,18 +586,6 @@ async def get_pipeline_status(client: AbsurdClient = Depends(get_absurd_client))
                 """
             )
 
-            # Get worker stats
-            worker_row = await conn.fetchrow(
-                """
-                SELECT 
-                    COUNT(*) as total,
-                    COUNT(*) FILTER (WHERE state = 'active') as active,
-                    COUNT(*) FILTER (WHERE state = 'idle') as idle
-                FROM absurd.workers
-                WHERE last_seen > NOW() - INTERVAL '5 minutes'
-                """
-            )
-
         # Build per-stage response
         stages = {}
         for row in stage_rows:
@@ -618,10 +606,20 @@ async def get_pipeline_status(client: AbsurdClient = Depends(get_absurd_client))
             failed=total_row["failed"] or 0 if total_row else 0,
         )
 
-        # Worker counts
-        worker_count = worker_row["total"] or 0 if worker_row else 0
-        active_workers = worker_row["active"] or 0 if worker_row else 0
-        idle_workers = worker_row["idle"] or 0 if worker_row else 0
+        # Get worker counts from monitor if available
+        worker_count = 0
+        active_workers = 0
+        idle_workers = 0
+
+        if _monitor is not None:
+            try:
+                worker_metrics = await _monitor.collect_worker_metrics()
+                worker_states = worker_metrics.worker_states or {}
+                worker_count = len(worker_states)
+                active_workers = sum(1 for s in worker_states.values() if s == "active")
+                idle_workers = sum(1 for s in worker_states.values() if s == "idle")
+            except Exception:
+                pass  # Ignore worker metric errors
 
         # Determine health status
         is_healthy = worker_count > 0 or (total.pending == 0 and total.running == 0)

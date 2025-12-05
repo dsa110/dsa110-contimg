@@ -156,19 +156,21 @@ const MSDetailPage: React.FC = () => {
                 </svg>
                 Interactive Clean
               </Link>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={() =>
-                  window.open(
-                    `/viewer/carta?ms=${encodeURIComponent(msPath ?? "")}`,
-                    "_blank",
-                    "noopener,noreferrer"
-                  )
-                }
-              >
-                Open in CARTA
-              </button>
+              {FEATURES.enableCARTA && (
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() =>
+                    window.open(
+                      `/viewer/carta?ms=${encodeURIComponent(msPath ?? "")}`,
+                      "_blank",
+                      "noopener,noreferrer"
+                    )
+                  }
+                >
+                  Open in CARTA
+                </button>
+              )}
               {ms.qa_grade && (
                 <Link
                   to={`/qa/ms/${encodeURIComponent(msPath ?? "")}`}

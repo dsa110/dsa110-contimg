@@ -11,6 +11,17 @@ vi.mock("../hooks/useQueries", () => ({
   useMS: vi.fn(),
 }));
 
+// Mock config with mutable features for testing
+const mockFeatures = {
+  enableCARTA: true,
+  enableCalibrationComparison: true,
+};
+
+vi.mock("../config", () => ({
+  config: {},
+  FEATURES: mockFeatures,
+}));
+
 import { useMS } from "../hooks/useQueries";
 
 const mockUseMS = vi.mocked(useMS);
@@ -252,6 +263,10 @@ describe("MSDetailPage", () => {
 
   describe("action buttons", () => {
     beforeEach(() => {
+      // Reset feature flags to defaults
+      mockFeatures.enableCARTA = true;
+      mockFeatures.enableCalibrationComparison = true;
+
       mockUseMS.mockReturnValue({
         data: mockMS,
         isLoading: false,
@@ -267,11 +282,20 @@ describe("MSDetailPage", () => {
       ).toBeInTheDocument();
     });
 
-    it("renders Open in CARTA button", () => {
+    it("renders Open in CARTA button when feature enabled", () => {
+      mockFeatures.enableCARTA = true;
       renderPage();
       expect(
         screen.getByRole("button", { name: /open in carta/i })
       ).toBeInTheDocument();
+    });
+
+    it("hides Open in CARTA button when feature disabled", () => {
+      mockFeatures.enableCARTA = false;
+      renderPage();
+      expect(
+        screen.queryByRole("button", { name: /open in carta/i })
+      ).not.toBeInTheDocument();
     });
 
     it("renders View QA Report link when qa_grade present", () => {

@@ -129,6 +129,7 @@ export type {
   ValidityWindowInfo,
   ActiveSetInfo,
   ActiveValidityWindows,
+  AlertSeverity,
 } from "./health";
 
 // Retention policy types
@@ -188,8 +189,14 @@ export type {
 
 // Alert policy types
 export type {
-  AlertSeverity,
-  AlertCondition,
+  AlertComparisonOperator,
+  AlertPolicyRule,
   AlertPolicy,
-  AlertPolicyFormData,
+  AlertPolicyInput,
+  AlertPolicyListResponse,
+  AlertSilence,
+  CreateSilenceInput,
+  DryRunAlert,
+  AlertPolicyDryRunRequest,
+  AlertPolicyDryRunResponse,
 } from "./alerts";
