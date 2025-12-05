@@ -596,33 +596,137 @@ EOF
 
 ---
 
-## Phase 4: Bandpass Calibration (Next Steps)
+## Phase 4: Bandpass Calibration
 
-With both MS files ready:
+### Session 2: Dec +54° Observations with 0834+555 (2025-12-05)
 
-- **Science MS**: `/stage/dsa110-contimg/ms/2025-11-18T23:50:25.ms`
-- **Calibrator MS**: `/stage/dsa110-contimg/ms/2025-11-18T23:09:11.ms`
+Switched to a brighter calibrator for better SNR:
 
-The next steps are:
+| Parameter           | Value                                             |
+| ------------------- | ------------------------------------------------- |
+| **Calibrator**      | 0834+555                                          |
+| **Flux (1.4 GHz)**  | 8.8 Jy                                            |
+| **RA**              | 128.729°                                          |
+| **Dec**             | 55.573°                                           |
+| **MS Path**         | `/stage/dsa110-contimg/ms/2025-10-17T14:40:09.ms` |
+| **Observation Dec** | 54.66°                                            |
+| **Best Fields**     | 11~13 (RA closest to calibrator transit)          |
 
-1. **Populate MODEL_DATA** in calibrator MS from VLA flux model
-2. **Phaseshift** calibrator MS to 1911+161 position (field 19)
-3. **Solve pre-bandpass phase** (`combine_fields=True`, `combine_spw=True`)
-4. **Solve bandpass** (`combine_fields=True`, `combine_spw=False`)
-5. **Apply solutions** to science MS
+### Bug Fixes Applied
 
-### Key Parameters
+#### 1. Silent 2.5 Jy Default Removed
 
-| Parameter                  | Recommended Value | Reason                              |
-| -------------------------- | ----------------- | ----------------------------------- |
-| `combine_fields`           | `True`            | Improve SNR from 6.8 to 33          |
-| `combine_spw`              | `False`           | SPWs have different bandpass shapes |
-| `minsnr`                   | 5.0               | Standard threshold                  |
-| `prebandpass_phase`        | Required          | Corrects decorrelation              |
-| `require_coherent_phasing` | `True`            | Validates phaseshift was applied    |
+**Problem:** `populate_model_from_catalog()` was silently defaulting to 2.5 Jy
+when no flux was provided, instead of using the actual catalog flux (8.8 Jy).
+
+**Fix in `calibration/model.py`:**
+
+- Added `_get_calibrator_flux_from_catalog()` helper to query VLA catalog
+- Removed silent 2.5 Jy default - now requires explicit flux OR uses catalog
+- Raises `ValueError` if flux cannot be determined
+
+#### 2. MODEL_DATA Validation Added
+
+**Problem:** Bandpass was failing silently when MODEL_DATA was all zeros.
+
+**Fix in `calibration/cli.py`:**
+
+- Added `_validate_model_data_populated()` before bandpass solve
+- Validates max amplitude > 0 for selected field
+- Provides clear error message if MODEL_DATA is empty
+
+#### 3. Phaseshift Before Bandpass (Critical!)
+
+**Problem:** DATA was phased to each field's meridian (Dec=54.66°) but the
+calibrator is at Dec=55.57° - a 54 arcminute offset! This caused:
+
+- ~100° phase scatter across baselines (geometric delay from offset)
+- Bandpass solver couldn't find coherent solutions (73% flagged)
+
+**Fix in `calibration/cli.py`:**
+
+- Added `phaseshift_to_calibrator()` function
+- Creates a new MS with calibrator field(s) phaseshifted to calibrator position
+- Now calibrator is at phase center → MODEL_DATA = constant amplitude, zero phase
+
+```python
+# New workflow in run_calibrator():
+# Step 1: Phaseshift calibrator field to calibrator position
+cal_ms, phasecenter = phaseshift_to_calibrator(ms_path, cal_field, calibrator_name)
+
+# Step 2: Set MODEL_DATA (now simple: constant 8.8 Jy, zero phase)
+populate_model_from_catalog(cal_ms, field=field, calibrator_name=calibrator_name)
+```
+
+**Verification of phaseshift working:**
+
+```
+Before phaseshift:
+  Phase center Dec: 54.66° (meridian)
+  MODEL_DATA phase std: 10.7° (varying with geometric offset)
+
+After phaseshift:
+  Phase center Dec: 55.57° (calibrator position)
+  MODEL_DATA phase std: 0.0° ✓ (constant - calibrator at phase center!)
+```
+
+#### 4. AOFlagger RFI Flagging Added
+
+**Problem:** `run_calibrator()` only flagged autocorrelations, not RFI.
+The streaming path (`streaming.py`) called `preflag_rfi()` but direct calls
+to `run_calibrator()` skipped this critical step.
+
+**Fix in `calibration/cli.py`:**
+
+- Added AOFlagger call in Step 0 (pre-calibration flagging)
+- Falls back to CASA tfcrop+rflag if AOFlagger fails
+
+```python
+# Step 0 now includes:
+flagdata(vis=ms_file, autocorr=True)  # Flag autocorrelations
+flag_rfi(ms_file, backend="aoflagger")  # Flag RFI with AOFlagger
+```
+
+**Result:** Additional 2.48% data flagged by AOFlagger (generic strategy).
+
+### Current Calibration Progress
+
+| Step                | Status | Notes                                             |
+| ------------------- | ------ | ------------------------------------------------- |
+| Select observation  | ✅     | 2025-10-17T14:40:09, Dec +54.66°                  |
+| Identify calibrator | ✅     | 0834+555, 8.8 Jy, Dec +55.57°                     |
+| Find best field     | ✅     | Field 12 (RA=128.71°, closest to transit)         |
+| Flag RFI            | ✅     | AOFlagger: 2.06% → 4.55% flagged                  |
+| Phaseshift          | ✅     | Created `_cal.ms` with calibrator at phase center |
+| Set MODEL_DATA      | ✅     | 8.8 Jy, 0° phase (verified)                       |
+| Bandpass solve      | 🔄     | In progress - flagging improved from 73% → 53%    |
+
+### Key Lessons Learned
+
+1. **Amplitude doesn't matter for uncalibrated data** - the DATA/MODEL amplitude
+   ratio is the bandpass gain we're solving for
+
+2. **Phase coherence is critical** - ~100° phase std means incoherent signal,
+   which is expected for uncalibrated data (that's what we're solving for!)
+
+3. **Phaseshift is REQUIRED** - DSA-110 data is phased to meridian, not to
+   calibrator. Without phaseshift, there's a huge geometric phase gradient
+
+4. **K calibration is NOT needed** - K (delay) calibration is for VLBI with
+   very long baselines. DSA-110's ~km baselines don't need it
+
+5. **AOFlagger before bandpass** - RFI must be flagged before solving or it
+   corrupts the bandpass solutions
+
+### Next Steps
+
+1. Run bandpass with correct field selection (`field="12"` not `"0"`)
+2. Evaluate solutions quality (target: <30% flagged)
+3. If still high flagging, investigate reference antenna selection
+4. Apply solutions to full MS and verify improvement
 
 ---
 
-_Document generated: 2025-12-05_
-_Science observation: 2025-11-18T23:50:25.ms (Dec +16.2°)_
-_Calibrator observation: 2025-11-18T23:09:11.ms (1911+161)_
+_Updated: 2025-12-05_
+_Calibrator: 0834+555 (8.8 Jy at Dec +55.6°)_
+_Observation: 2025-10-17T14:40:09.ms (Dec +54.7°)_
