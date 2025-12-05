@@ -1,1 +1,9 @@
-config/linting/.prettierignore
+node_modules/
+dist/
+build/
+.git/
+*.min.js
+*.min.css
+vendor/
+.local/
+site/
