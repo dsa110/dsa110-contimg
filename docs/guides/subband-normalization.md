@@ -175,5 +175,6 @@ After normalization, queries that previously required fuzzy matching will work w
 
 ## Related Documentation
 
-- [Streaming Pipeline Operations](../backend/docs/ops/streaming-pipeline.md)
-- [Subband Grouping](../backend/src/dsa110_contimg/conversion/SEMI_COMPLETE_SUBBAND_GROUPS.md)
+- [Storage Architecture and File Organization](storage-and-file-organization.md) - Consolidated storage guide
+- [Streaming Pipeline Operations](../../backend/docs/ops/streaming-pipeline.md) - Streaming converter operations
+- [Subband Grouping](../../backend/src/dsa110_contimg/conversion/SEMI_COMPLETE_SUBBAND_GROUPS.md) - Technical details
