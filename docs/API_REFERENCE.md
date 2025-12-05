@@ -3,7 +3,10 @@
 **Complete API documentation for the DSA-110 Continuum Imaging Pipeline.**
 
 !!! note "Version"
-Last updated: Phase 4 completion (complexity reduction)
+Last updated: December 4, 2025
+
+!!! tip "Interactive Documentation"
+For the most up-to-date API documentation, use the auto-generated OpenAPI docs at http://localhost:8000/docs when the API server is running. This reference covers the most commonly used endpoints.
 
 ---
 

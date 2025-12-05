@@ -3,7 +3,7 @@
 **System architecture and design patterns for the DSA-110 Continuum Imaging Pipeline.**
 
 !!! note "Version"
-Last updated: Phase 4 completion (complexity reduction)
+Last updated: December 4, 2025
 
 ---
 

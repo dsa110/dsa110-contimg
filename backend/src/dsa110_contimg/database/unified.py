@@ -1434,11 +1434,3 @@ def register_and_verify_caltables(
             raise RuntimeError(error_msg) from e
 
     return registered_paths
-
-
-# Legacy aliases for backward compatibility with registry.py imports
-register_set = register_caltable_set
-register_set_from_prefix = register_caltable_set_from_prefix
-retire_set = retire_caltable_set
-list_sets = list_caltable_sets
-DEFAULT_ORDER = DEFAULT_CALTABLE_ORDER

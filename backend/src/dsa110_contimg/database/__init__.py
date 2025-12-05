@@ -78,16 +78,11 @@ from .unified import (
     # Calibration registry (migrated from registry.py)
     CalTableRow,
     DEFAULT_CALTABLE_ORDER,
-    DEFAULT_ORDER,  # Legacy alias
     ensure_db,
     register_caltable_set,
-    register_set,  # Legacy alias
     register_caltable_set_from_prefix,
-    register_set_from_prefix,  # Legacy alias
     retire_caltable_set,
-    retire_set,  # Legacy alias
     list_caltable_sets,
-    list_sets,  # Legacy alias
     get_active_applylist,
     register_and_verify_caltables,
 )

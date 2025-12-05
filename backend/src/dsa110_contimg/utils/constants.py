@@ -21,10 +21,6 @@ DSA110_LOCATION = EarthLocation(
     lat=DSA110_LAT * u.rad, lon=DSA110_LON * u.rad, height=DSA110_ALT * u.m
 )
 
-# Legacy alias (deprecated - use DSA110_LOCATION instead)
-# Note: Previously used slightly different OVRO coordinates, now unified to DSA110_LOCATION
-OVRO_LOCATION = DSA110_LOCATION
-
 # Observatory coordinates for external use
 DSA110_LATITUDE = 37.2314
 DSA110_LONGITUDE = -118.2817

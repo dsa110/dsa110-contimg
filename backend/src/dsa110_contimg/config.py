@@ -150,43 +150,6 @@ class DatabaseSettings(BaseSettings):
         description="Enable WAL mode for concurrent access"
     )
 
-    # Deprecated aliases for backwards compatibility during transition
-    # These all point to the unified database now
-    @property
-    def unified_db(self) -> Path:
-        """Deprecated: Use 'path' instead."""
-        return self.path
-
-    @property
-    def products_db(self) -> Path:
-        """Deprecated: Use unified 'path' instead."""
-        return self.path
-
-    @property
-    def ingest_db(self) -> Path:
-        """Deprecated: Use unified 'path' instead."""
-        return self.path
-
-    @property
-    def cal_registry_db(self) -> Path:
-        """Deprecated: Use unified 'path' instead."""
-        return self.path
-
-    @property
-    def hdf5_db(self) -> Path:
-        """Deprecated: Use unified 'path' instead."""
-        return self.path
-
-    @property
-    def calibrators_db(self) -> Path:
-        """Deprecated: Use unified 'path' instead."""
-        return self.path
-
-    @property
-    def data_registry_db(self) -> Path:
-        """Deprecated: Use unified 'path' instead."""
-        return self.path
-
 
 class ConversionSettings(BaseSettings):
     """Configuration for UVH5 -> MS conversion.

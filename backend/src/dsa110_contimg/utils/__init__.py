@@ -62,7 +62,6 @@ from dsa110_contimg.utils.constants import (
     DSA110_LAT,
     DSA110_LON,
     DSA110_ALT,
-    OVRO_LOCATION,  # Legacy, use DSA110_LOCATION
 )
 
 # Import fast metadata utilities
@@ -119,7 +118,6 @@ __all__ = [
     "DSA110_LAT",
     "DSA110_LON",
     "DSA110_ALT",
-    "OVRO_LOCATION",
     # Fast metadata
     "FastMeta",
     "get_uvh5_times",
