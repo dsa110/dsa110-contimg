@@ -694,13 +694,26 @@ class CalibrationSolveStage(PipelineStage):
     for a calibrator Measurement Set. This wraps the calibration CLI
     functions directly without subprocess overhead.
 
+    **CRITICAL for DSA-110**: This stage supports automatic phaseshift to
+    the calibrator position. DSA-110 data is phased to RA=LST (meridian),
+    so for bandpass calibration to work, we MUST shift the calibrator
+    field to its true position. Otherwise there's a geometric phase gradient
+    across baselines from the offset between meridian and calibrator → garbage.
+
+    Set `do_phaseshift=True` (default) and provide `calibrator_name` to enable.
+
     Example:
         >>> config = PipelineConfig(paths=PathsConfig(...))
         >>> stage = CalibrationSolveStage(config)
         >>> # Context should have ms_path from conversion stage
         >>> context = PipelineContext(
         ...     config=config,
-        ...     outputs={"ms_path": "/data/converted.ms"}
+        ...     outputs={"ms_path": "/data/converted.ms"},
+        ...     inputs={"calibration_params": {
+        ...         "do_phaseshift": True,
+        ...         "calibrator_name": "0834+555",
+        ...         "field": "12",  # Field containing calibrator
+        ...     }}
         ... )
         >>> # Validate prerequisites
         >>> is_valid, error = stage.validate(context)
@@ -714,10 +727,17 @@ class CalibrationSolveStage(PipelineStage):
 
     Inputs:
         - `ms_path` (str): Path to Measurement Set (from context.outputs)
+        - `calibration_params` (dict): Calibration parameters including:
+            - `do_phaseshift` (bool): Whether to phaseshift to calibrator position
+              (default: True for DSA-110 compatibility)
+            - `calibrator_name` (str): Calibrator name for phaseshift (e.g., "0834+555")
+              REQUIRED if do_phaseshift=True
+            - `field` (str): Field containing calibrator (default: "0")
 
     Outputs:
         - `caltables` (dict): Dictionary of calibration table paths
           Keys: "K", "BA", "BP", "GA", "GP", "2G" (depending on config)
+        - `phaseshifted_ms` (str): Path to phaseshifted MS (if do_phaseshift=True)
     """
 
     def __init__(self, config: PipelineConfig):
@@ -819,6 +839,56 @@ class CalibrationSolveStage(PipelineStage):
         # NEW: Enable GPU RFI detection (optional, requires CuPy)
         use_gpu_rfi = params.get("use_gpu_rfi", False)
 
+        # ======================================================================
+        # PHASESHIFT SUPPORT (CRITICAL for DSA-110!)
+        # ======================================================================
+        # DSA-110 data is phased to RA=LST (meridian). For bandpass calibration
+        # to work, we MUST shift the calibrator field to its true position.
+        # Otherwise there's a geometric phase gradient across baselines.
+        do_phaseshift = params.get("do_phaseshift", True)  # Default: enabled for DSA-110
+        calibrator_name = params.get("calibrator_name")
+        phaseshifted_ms = None
+        cal_ms_path = ms_path  # MS to use for calibration (may be phaseshifted)
+        cal_field = field  # Field to solve in calibration MS
+
+        if do_phaseshift:
+            if not calibrator_name:
+                raise ValueError(
+                    "calibrator_name is required when do_phaseshift=True. "
+                    "Provide the calibrator name (e.g., '0834+555') to look up its position."
+                )
+
+            from dsa110_contimg.calibration.cli import phaseshift_to_calibrator
+
+            logger.info(
+                "Phaseshifting field '%s' to calibrator %s position (REQUIRED for DSA-110)",
+                field, calibrator_name
+            )
+
+            try:
+                phaseshifted_ms, phasecenter = phaseshift_to_calibrator(
+                    ms_path, field, calibrator_name
+                )
+                # After phaseshift, the output MS has only one field (index 0)
+                cal_ms_path = phaseshifted_ms
+                cal_field = "0"
+                logger.info(
+                    "✓ Phaseshift complete: %s (field %s → field 0, phase center: %s)",
+                    phaseshifted_ms, field, phasecenter
+                )
+            except Exception as e:
+                error_msg = (
+                    f"Phaseshift to calibrator {calibrator_name} failed: {e}. "
+                    "This is CRITICAL for DSA-110 - bandpass calibration will fail without it."
+                )
+                logger.error(error_msg)
+                raise RuntimeError(error_msg) from e
+        else:
+            logger.warning(
+                "Phaseshift DISABLED. This is only safe if data is already phased "
+                "to calibrator position. DSA-110 data typically requires phaseshift."
+            )
+
         # Handle existing table discovery
         use_existing = params.get("use_existing_tables", "auto")
         existing_k = params.get("existing_k_table")
@@ -862,6 +932,7 @@ class CalibrationSolveStage(PipelineStage):
         # Determine table prefix
         table_prefix = params.get("table_prefix")
         if not table_prefix:
+            # Use original ms_path for table naming (not phaseshifted)
             table_prefix = f"{os.path.splitext(ms_path)[0]}_{field}"
 
         # Define internal calibration function for adaptive flagging
@@ -873,6 +944,9 @@ class CalibrationSolveStage(PipelineStage):
 
             This is called by flag_rfi_adaptive to test if calibration succeeds.
             Raises CalibrationFailure if calibration fails.
+
+            NOTE: Uses cal_field from outer scope (field in phaseshifted MS, which is "0"
+            if phaseshift was applied, otherwise the original field).
             """
             nonlocal cal_tables_result
 
@@ -886,7 +960,7 @@ class CalibrationSolveStage(PipelineStage):
                 try:
                     ktabs_inner = solve_delay(
                         ms_path_inner,
-                        field,
+                        cal_field,  # Use cal_field (may be "0" after phaseshift)
                         refant_inner,
                         table_prefix=table_prefix,
                         combine_spw=params.get("k_combine_spw", False),
@@ -910,7 +984,7 @@ class CalibrationSolveStage(PipelineStage):
                 try:
                     prebp_table_inner = solve_prebandpass_phase(
                         ms_path_inner,
-                        field,
+                        cal_field,  # Use cal_field (may be "0" after phaseshift)
                         refant_inner,
                         table_prefix=table_prefix,
                         uvrange=params.get("prebp_uvrange", ""),
@@ -927,7 +1001,7 @@ class CalibrationSolveStage(PipelineStage):
                 try:
                     bptabs_inner = solve_bandpass(
                         ms_path_inner,
-                        field,
+                        cal_field,  # Use cal_field (may be "0" after phaseshift)
                         refant_inner,
                         ktable=ktabs_inner[0] if ktabs_inner else None,
                         table_prefix=table_prefix,
@@ -956,7 +1030,7 @@ class CalibrationSolveStage(PipelineStage):
                     phase_only = (gain_calmode == "p") or bool(params.get("fast"))
                     gtabs_inner = solve_gains(
                         ms_path_inner,
-                        field,
+                        cal_field,  # Use cal_field (may be "0" after phaseshift)
                         refant_inner,
                         ktable=ktabs_inner[0] if ktabs_inner else None,
                         bptables=bptabs_inner,
@@ -984,11 +1058,12 @@ class CalibrationSolveStage(PipelineStage):
             logger.info(":check_mark: Calibration solve completed successfully")
 
         # Step 1: Flagging (if requested)
+        # NOTE: Flagging is done on the calibration MS (phaseshifted if applicable)
         adaptive_result = None
         if params.get("do_flagging", True):
-            logger.info("Resetting flags...")
-            reset_flags(ms_path)
-            flag_zeros(ms_path)
+            logger.info("Resetting flags on calibration MS: %s", cal_ms_path)
+            reset_flags(cal_ms_path)
+            flag_zeros(cal_ms_path)
 
             # Apply adaptive flagging (default → aggressive if calibration fails)
             if use_adaptive_flagging:
@@ -998,14 +1073,15 @@ class CalibrationSolveStage(PipelineStage):
 
                 # Step 2: Model population (required for calibration)
                 # This must be done BEFORE adaptive flagging since calibration needs the model
+                # NOTE: Model is populated on the calibration MS with cal_field
                 if model_source == "catalog":
                     from dsa110_contimg.calibration.model import populate_model_from_catalog
 
-                    logger.info("Populating MODEL_DATA from catalog...")
+                    logger.info("Populating MODEL_DATA from catalog on %s...", cal_ms_path)
                     populate_model_from_catalog(
-                        ms_path,
-                        field=field,
-                        calibrator_name=params.get("calibrator_name"),
+                        cal_ms_path,
+                        field=cal_field,
+                        calibrator_name=calibrator_name or params.get("calibrator_name"),
                         cal_ra_deg=params.get("cal_ra_deg"),
                         cal_dec_deg=params.get("cal_dec_deg"),
                         cal_flux_jy=params.get("cal_flux_jy"),
@@ -1017,7 +1093,7 @@ class CalibrationSolveStage(PipelineStage):
                     if not model_image:
                         raise ValueError("model_image required when model_source='image'")
                     logger.info(f"Populating MODEL_DATA from image: {model_image}")
-                    populate_model_from_image(ms_path, field=field, model_image=model_image)
+                    populate_model_from_image(cal_ms_path, field=cal_field, model_image=model_image)
 
                 # Run adaptive flagging with calibration testing
                 aggressive_strategy = params.get(
@@ -1026,7 +1102,7 @@ class CalibrationSolveStage(PipelineStage):
                 backend = params.get("flagging_backend", "aoflagger")
 
                 adaptive_result = flag_rfi_adaptive(
-                    ms_path=ms_path,
+                    ms_path=cal_ms_path,
                     refant=refant,
                     calibrate_fn=_perform_calibration_solve,
                     calibrate_kwargs={},
@@ -1052,15 +1128,15 @@ class CalibrationSolveStage(PipelineStage):
                 # Legacy non-adaptive flagging
                 from dsa110_contimg.calibration.flagging import flag_rfi
 
-                logger.info("Using legacy non-adaptive flagging")
-                flag_rfi(ms_path)
+                logger.info("Using legacy non-adaptive flagging on %s", cal_ms_path)
+                flag_rfi(cal_ms_path)
 
                 # TEMPORAL TRACKING: Capture flag snapshot after Phase 1 (pre-calibration flagging)
                 try:
                     from dsa110_contimg.calibration.flagging_temporal import capture_flag_snapshot
 
                     phase1_snapshot = capture_flag_snapshot(
-                        ms_path=str(ms_path),
+                        ms_path=str(cal_ms_path),
                         phase="phase1_post_rfi",
                         refant=refant,
                     )
@@ -1080,14 +1156,15 @@ class CalibrationSolveStage(PipelineStage):
                     )
 
                 # Step 2: Model population (required for calibration)
+                # NOTE: Model is populated on the calibration MS with cal_field
                 if model_source == "catalog":
                     from dsa110_contimg.calibration.model import populate_model_from_catalog
 
-                    logger.info("Populating MODEL_DATA from catalog...")
+                    logger.info("Populating MODEL_DATA from catalog on %s...", cal_ms_path)
                     populate_model_from_catalog(
-                        ms_path,
-                        field=field,
-                        calibrator_name=params.get("calibrator_name"),
+                        cal_ms_path,
+                        field=cal_field,
+                        calibrator_name=calibrator_name or params.get("calibrator_name"),
                         cal_ra_deg=params.get("cal_ra_deg"),
                         cal_dec_deg=params.get("cal_dec_deg"),
                         cal_flux_jy=params.get("cal_flux_jy"),
@@ -1099,10 +1176,10 @@ class CalibrationSolveStage(PipelineStage):
                     if not model_image:
                         raise ValueError("model_image required when model_source='image'")
                     logger.info(f"Populating MODEL_DATA from image: {model_image}")
-                    populate_model_from_image(ms_path, field=field, model_image=model_image)
+                    populate_model_from_image(cal_ms_path, field=cal_field, model_image=model_image)
 
                 # Perform calibration solve
-                _perform_calibration_solve(ms_path, refant)
+                _perform_calibration_solve(cal_ms_path, refant)
 
                 # Extract results
                 ktabs = cal_tables_result.get("ktabs", [])
@@ -1119,12 +1196,12 @@ class CalibrationSolveStage(PipelineStage):
                         from casatasks import flagdata
 
                         logger.info("Flagging autocorrelations...")
-                        flagdata(vis=str(ms_path), autocorr=True, flagbackup=False)
+                        flagdata(vis=str(cal_ms_path), autocorr=True, flagbackup=False)
                 except ImportError:
                     from casatasks import flagdata
 
                     logger.info("Flagging autocorrelations...")
-                    flagdata(vis=str(ms_path), autocorr=True, flagbackup=False)
+                    flagdata(vis=str(cal_ms_path), autocorr=True, flagbackup=False)
                 logger.info(":check_mark: Autocorrelations flagged")
 
         else:
@@ -1134,14 +1211,15 @@ class CalibrationSolveStage(PipelineStage):
             )
 
             # Step 2: Model population (required for calibration)
+            # NOTE: Model is populated on the calibration MS with cal_field
             if model_source == "catalog":
                 from dsa110_contimg.calibration.model import populate_model_from_catalog
 
-                logger.info("Populating MODEL_DATA from catalog...")
+                logger.info("Populating MODEL_DATA from catalog on %s...", cal_ms_path)
                 populate_model_from_catalog(
-                    ms_path,
-                    field=field,
-                    calibrator_name=params.get("calibrator_name"),
+                    cal_ms_path,
+                    field=cal_field,
+                    calibrator_name=calibrator_name or params.get("calibrator_name"),
                     cal_ra_deg=params.get("cal_ra_deg"),
                     cal_dec_deg=params.get("cal_dec_deg"),
                     cal_flux_jy=params.get("cal_flux_jy"),
@@ -1153,10 +1231,10 @@ class CalibrationSolveStage(PipelineStage):
                 if not model_image:
                     raise ValueError("model_image required when model_source='image'")
                 logger.info(f"Populating MODEL_DATA from image: {model_image}")
-                populate_model_from_image(ms_path, field=field, model_image=model_image)
+                populate_model_from_image(cal_ms_path, field=cal_field, model_image=model_image)
 
             # Perform calibration solve
-            _perform_calibration_solve(ms_path, refant)
+            _perform_calibration_solve(cal_ms_path, refant)
 
             # Extract results
             ktabs = cal_tables_result.get("ktabs", [])
@@ -1184,7 +1262,7 @@ class CalibrationSolveStage(PipelineStage):
                 cal_table_paths["G"] = gtabs[0]
 
             phase2_snapshot = capture_flag_snapshot(
-                ms_path=str(ms_path),
+                ms_path=str(cal_ms_path),
                 phase="phase2_post_solve",
                 refant=refant,
                 cal_table_paths=cal_table_paths,
@@ -1345,7 +1423,16 @@ class CalibrationSolveStage(PipelineStage):
             f"Completed calibration solve stage. Generated {len(all_tables)} calibration table(s).",
             start_time_sec,
         )
-        return context.with_output("caltables", all_tables)
+
+        # Build output context
+        result_context = context.with_output("caltables", all_tables)
+
+        # Include phaseshifted MS path if phaseshift was applied
+        if phaseshifted_ms:
+            result_context = result_context.with_output("phaseshifted_ms", phaseshifted_ms)
+            logger.info(f"Phaseshifted MS available at: {phaseshifted_ms}")
+
+        return result_context
 
     def validate_outputs(self, context: PipelineContext) -> Tuple[bool, Optional[str]]:
         """Validate calibration solve outputs."""

@@ -1,20 +1,4 @@
 # Codacy configuration for suppressing false positive security warnings
 
-# Suppress subprocess warning in streaming_converter.py
-# This is a false positive because:
-# - We use list form (not shell=True), preventing shell injection
-# - All user inputs are validated and resolved to absolute paths
-# - max_workers is bounded to 1-128
-# - We use subprocess.run() (modern recommended API)
-#
-# Suppress SQL injection warnings in streaming_converter.py
-# These are false positives because:
-# - Column names are strictly whitelisted against ALLOWED_METRIC_COLUMNS
-# - Values are properly parameterized using ? placeholders
-# - SQLite doesn't support parameterized column names, only values
-exclude:
-  - pattern: "**/streaming_converter.py"
-    rules:
-      - codacy.tools-configs.python.lang.security.audit.dangerous-subprocess-use-audit.dangerous-subprocess-use-audit
-      - codacy.tools-configs.python.sqlalchemy.security.sqlalchemy-execute-raw-query.sqlalchemy-execute-raw-query
-      - codacy.tools-configs.python_sql_rule-hardcoded-sql-expression
+# Note: streaming_converter.py has been removed from codebase
+# This file is kept for future exclusion patterns if needed

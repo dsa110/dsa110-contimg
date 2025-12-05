@@ -1,10 +1,10 @@
 """DEPRECATED: Command-line interface for DSA-110 conversion.
 
-This CLI is deprecated. Please use the ABSURD pipeline instead:
-    - For batch conversion: Use pipeline scheduler with ConversionJob
-    - For streaming: Use the AbsurdStreamingBridge
+This CLI is deprecated. Please use:
+    - For batch conversion: dsa110_contimg.conversion.hdf5_orchestrator.convert_subband_groups_to_ms()
+    - For real-time ingestion: ABSURD pipeline (backend/src/dsa110_contimg/absurd/ingestion.py)
 
-See docs/ARCHITECTURE.md for migration guide.
+See docs/NEWCOMER_GUIDE.md for current usage patterns.
 """
 
 import argparse
@@ -12,33 +12,14 @@ import warnings
 
 # Flattened imports - use top-level module
 from dsa110_contimg.conversion import convert_subband_groups_to_ms
-from dsa110_contimg.conversion.streaming_converter import main as streaming_main
 
 
 def start_streaming_conversion(input_dir, output_dir, queue_db, registry_db, scratch_dir):
-    """Wrapper to start streaming conversion (deprecated)."""
-    warnings.warn(
-        "start_streaming_conversion is deprecated. Use AbsurdStreamingBridge instead.",
-        DeprecationWarning,
-        stacklevel=2,
+    """Wrapper to start streaming conversion (deprecated and non-functional)."""
+    raise NotImplementedError(
+        "start_streaming_conversion has been removed. "
+        "Use ABSURD ingestion instead: dsa110_contimg.absurd.ingestion"
     )
-    # Fall back to streaming module's main entry point
-    import sys
-
-    sys.argv = [
-        "streaming",
-        "--input-dir",
-        input_dir,
-        "--output-dir",
-        output_dir,
-        "--queue-db",
-        queue_db,
-        "--registry-db",
-        registry_db,
-    ]
-    if scratch_dir:
-        sys.argv.extend(["--scratch-dir", scratch_dir])
-    streaming_main()
 
 
 def main():

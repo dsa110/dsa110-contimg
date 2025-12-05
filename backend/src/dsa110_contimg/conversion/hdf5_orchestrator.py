@@ -261,12 +261,15 @@ def _convert_single_group(
                 missing_subbands=_find_missing_subbands(group),
             )
         else:
+            missing_sbs = _find_missing_subbands(group)
             logger.warning(
-                f"Processing incomplete group: {len(group)}/{expected_subbands} subbands",
+                f"Processing incomplete group: {len(group)}/{expected_subbands} subbands "
+                f"(missing: {', '.join(missing_sbs)})",
                 extra={
                     "group_id": group_id,
                     "subband_count": len(group),
                     "expected_count": expected_subbands,
+                    "missing_subbands": missing_sbs,
                 },
             )
 

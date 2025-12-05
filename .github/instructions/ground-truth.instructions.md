@@ -5,53 +5,53 @@ applyTo: '**'
 
 # Ground Truth Hierarchy
 
-When working on this codebase, follow this hierarchy of truth:
+1. Code beats docs. Treat docs as intent; design docs (e.g., `COMPLEXITY_REDUCTION.md`) describe the future. Trust the source files.
+2. Data beats assumptions. Check production SQLite before acting:
+   - `sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 ".tables"`
+   - `sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 ".schema <table>"`
+   - `sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 "SELECT COUNT(*) FROM <table>"`
+3. One before many. Prove it on one file/record before scaling.
+4. Know system status. `pipeline.sqlite3`, `hdf5_file_index`, batch conversion = **PRODUCTION**; ABSURD ingestion = **EXPERIMENTAL**. If unsure, check `ops/systemd/`, production configs in `ops/`, and whether data exists in production paths.
+5. Question design claims. Only believe what's implemented; if no code does it, it's a plan.
 
-## 1. Running Code > Documentation
+## Before Documenting Infrastructure/Services
 
-- **Code is truth, docs are intent**
-- If docs say X but code does Y, the code is correct (docs may be outdated or aspirational)
-- Design docs like `COMPLEXITY_REDUCTION.md` describe the FUTURE, not the present
-- Always verify claims by reading actual source files
+Always verify against live system first:
 
-## 2. Existing Data > Assumptions
+- [ ] **Filesystem check**: Does the file/service actually exist?
+  ```bash
+  find . -name "*pattern*" -type f
+  ls -la /path/to/thing
+  ```
+- [ ] **Recognize systemd templates**: If filename has `@` (e.g., `service@.service`), it's a template that requires an instance parameter
 
-Before any operation:
+  ```bash
+  systemctl list-units --state=running | grep <keyword>
+  # Document the actual running instance (e.g., service@1), not the template
+  ```
+
+- [ ] **Test the command**: Run what you're about to document
+
+  ```bash
+  systemctl status dsa110-absurd-worker@1  # Actually works?
+  curl http://localhost:8000/api/status    # Response valid?
+  ```
+
+- [ ] **Cross-reference live state**: Compare docs claim vs actual running system
+  ```bash
+  ps aux | grep <process>
+  netstat -tlnp | grep <port>
+  systemctl show <service> --no-pager
+  ```
+
+Example pattern that catches errors:
 
 ```bash
-# What's actually in the database?
-sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 ".tables"
-sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 ".schema <table>"
-
-# How much data exists?
-sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 "SELECT COUNT(*) FROM <table>"
+# Before documenting a service, run this checklist:
+find ops/systemd -name "*absurd*"           # See actual filenames
+systemctl list-units --all | grep absurd    # See actual running instances
+systemctl status dsa110-absurd-worker@1     # Verify the command works
+# Only then document: dsa110-absurd-worker@1 (not just dsa110-absurd-worker)
 ```
 
-## 3. One Before Many
-
-- Test with 1 file before processing 1000
-- Test with 1 record before migrating a table
-- Get one working example before generalizing
-
-## 4. System Status Awareness
-
-| System           | Status           | Database                      |
-| ---------------- | ---------------- | ----------------------------- |
-| pipeline.sqlite3 | **PRODUCTION**   | SQLite                        |
-| hdf5_file_index  | **PRODUCTION**   | SQLite (/data/incoming/)      |
-| batch conversion | **PRODUCTION**   | Uses hdf5_file_index          |
-| ABSURD ingestion | **EXPERIMENTAL** | PostgreSQL + pipeline.sqlite3 |
-
-When in doubt about a subsystem's status, check:
-
-1. Is there a systemd service for it in `ops/systemd/`?
-2. Is it referenced in production configs in `ops/`?
-3. Does it have data in production paths?
-
-## 5. Question Design Doc Claims
-
-When `COMPLEXITY_REDUCTION.md` or other design docs say something:
-
-- Check if it's implemented yet
-- Look for actual code that does what the doc describes
-- If no code exists, it's a plan, not reality
+**Why this matters**: The filesystem and running system are ground truth. A `@` symbol in a filename is literal syntax, not decoration.

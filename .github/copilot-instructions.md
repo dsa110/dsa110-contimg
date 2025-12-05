@@ -273,7 +273,7 @@ update antenna positions :arrow_right: auto-rename calibrator fields
 
 ### Pointing Change Detection & Precomputation
 
-The streaming converter automatically detects pointing changes (when the
+The ABSURD ingestion pipeline automatically detects pointing changes (when the
 telescope declination changes significantly) and proactively prepares resources:
 
 **How it works**:
@@ -530,23 +530,36 @@ convert_subband_groups_to_ms(
 )
 ```
 
-### Starting Streaming Daemon
+### Starting Real-Time Ingestion
+
+**For real-time/automated processing, use ABSURD ingestion:**
 
 ```bash
 conda activate casa6
 
-# Via systemd (recommended for production)
-sudo systemctl start contimg-stream.service
-sudo systemctl status contimg-stream.service
+# Check ABSURD worker status (instance 1)
+sudo systemctl status dsa110-absurd-worker@1
 
-# Or manually for testing (uses PIPELINE_DB env var by default)
-PIPELINE_DB=/data/dsa110-contimg/state/db/pipeline.sqlite3 \
-python -m dsa110_contimg.conversion.streaming.streaming_converter \
-    --input-dir /data/incoming \
-    --output-dir /stage/dsa110-contimg/ms \
-    --scratch-dir /stage/dsa110-contimg/scratch \
-    --monitoring \
-    --monitor-interval 60
+# Submit conversion jobs via API or Python
+from dsa110_contimg.absurd.ingestion import submit_conversion_job
+
+submit_conversion_job(
+    input_files=subband_file_list,
+    output_path="/stage/dsa110-contimg/ms/observation.ms"
+)
+```
+
+**For batch processing historical data:**
+
+```bash
+conda activate casa6
+
+# Use batch converter CLI
+python -m dsa110_contimg.conversion.cli groups \
+    /data/incoming \
+    /stage/dsa110-contimg/ms \
+    "2025-10-21T00:00:00" \
+    "2025-10-21T23:59:59"
 ```
 
 ### Queue Inspection

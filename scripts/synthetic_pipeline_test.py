@@ -343,15 +343,11 @@ def run_calibration(ms_path: Path, caltable_dir: Path) -> Optional[Path]:
 
     try:
         # For synthetic data with known flux, we can run gaincal
-        from casatasks import gaincal, applycal, listobs
-
-        # First, list the MS to see its structure
-        logger.info(f"  Inspecting MS: {ms_path.name}")
-        listobs(vis=str(ms_path))
+        from casatasks import gaincal, applycal
 
         # Run gain calibration
         caltable_path = caltable_dir / f"{ms_path.stem}.G"
-        logger.info(f"  Running gaincal...")
+        logger.info(f"  Running gaincal on {ms_path.name}...")
 
         gaincal(
             vis=str(ms_path),
@@ -391,7 +387,7 @@ def run_imaging(
     output_dir: Path,
     niter: int = 1000,
     size: int = 512,
-    scale: str = "10asec",
+    scale: str = "10arcsec",
 ) -> Optional[Path]:
     """Run imaging with WSClean or CASA tclean.
 
@@ -410,49 +406,72 @@ def run_imaging(
     logger.info("=" * 70)
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    image_prefix = output_dir / ms_path.stem
 
-    # Try WSClean first
+    # Try WSClean via Docker first
     try:
         import subprocess
 
-        wsclean_cmd = [
+        # Use Docker container for WSClean
+        # Mount the MS directory and output directory
+        ms_parent = ms_path.parent.resolve()
+        output_parent = output_dir.resolve()
+        
+        # For Docker, we need to use paths relative to the mount points
+        ms_mount = "/data/ms"
+        output_mount = "/data/output"
+        
+        docker_cmd = [
+            "docker", "run", "--rm",
+            "-v", f"{ms_parent}:{ms_mount}:ro",
+            "-v", f"{output_parent}:{output_mount}",
+            "-w", output_mount,
+            "wsclean-everybeam:0.7.4",
             "wsclean",
-            "-name", str(image_prefix),
+            "-name", f"{output_mount}/{ms_path.stem}",
             "-size", str(size), str(size),
             "-scale", scale,
             "-niter", str(niter),
-            "-auto-threshold", "3",
-            "-auto-mask", "5",
-            "-mgain", "0.8",
             "-weight", "briggs", "0",
             "-data-column", "DATA",
             "-pol", "I",
-            "-channels-out", "1",
-            str(ms_path),
+            f"{ms_mount}/{ms_path.name}",
         ]
 
-        logger.info(f"  Running WSClean...")
+        logger.info("  Running WSClean via Docker...")
+        logger.info(f"  MS: {ms_path.name}")
         result = subprocess.run(
-            wsclean_cmd,
+            docker_cmd,
             capture_output=True,
             text=True,
             timeout=600,  # 10 minute timeout
         )
+        
+        # Log output for debugging
+        if result.stdout:
+            for line in result.stdout.strip().split('\n')[-10:]:
+                logger.info(f"  [wsclean] {line}")
 
         if result.returncode == 0:
-            fits_path = Path(str(image_prefix) + "-image.fits")
+            fits_path = output_dir / f"{ms_path.stem}-image.fits"
             if fits_path.exists():
                 logger.info(f"  ✓ Created image: {fits_path.name}")
                 return fits_path
             else:
-                logger.error("  ✗ FITS file not created by WSClean")
+                # List what files were created
+                created = list(output_dir.glob(f"{ms_path.stem}*"))
+                logger.error(f"  ✗ Expected FITS not found. Created: {[f.name for f in created]}")
 
         else:
-            logger.warning(f"  WSClean failed: {result.stderr[:500]}")
+            logger.warning(f"  WSClean failed (exit {result.returncode})")
+            if result.stderr:
+                logger.warning(f"  stderr: {result.stderr[:500]}")
+            if result.stdout:
+                # Show last few lines of stdout for debugging
+                stdout_lines = result.stdout.strip().split('\n')
+                logger.info(f"  Last output: {stdout_lines[-3:] if len(stdout_lines) > 3 else stdout_lines}")
 
     except FileNotFoundError:
-        logger.info("  WSClean not found, trying CASA tclean...")
+        logger.info("  Docker/WSClean not found, trying CASA tclean...")
     except Exception as e:
         logger.warning(f"  WSClean error: {e}")
 
@@ -460,9 +479,9 @@ def run_imaging(
     try:
         from casatasks import tclean
 
-        image_name = str(image_prefix) + "_casa"
+        image_name = str(output_dir / ms_path.stem) + "_casa"
 
-        logger.info(f"  Running CASA tclean...")
+        logger.info("  Running CASA tclean...")
         tclean(
             vis=str(ms_path),
             imagename=image_name,

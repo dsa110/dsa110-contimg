@@ -69,9 +69,10 @@ imaging.
 
 ## Data Paths
 
-- **Incoming UVH5 files:** `/data/incoming/` (watched by streaming converter)
-  - The streaming worker monitors this directory for new `*_sb??.hdf5` files
-  - Files are grouped by time windows and converted to Measurement Sets
+- **Incoming UVH5 files:** `/data/incoming/`
+  - Raw HDF5 subband files from correlator (`*_sb00.hdf5` through `*_sb15.hdf5`)
+  - Indexed in `/data/incoming/hdf5_file_index.sqlite3`
+  - Processed via batch converter or ABSURD ingestion (see `docs/NEWCOMER_GUIDE.md`)
 
 ## Directory Layout
 
@@ -290,9 +291,12 @@ Image:
 
 ## CLI Reference
 
-- Streaming worker (manual):
-  - `python -m dsa110_contimg.conversion.streaming.streaming_converter --input-dir /data/incoming --output-dir /stage/dsa110-contimg/ms --scratch-dir /stage/dsa110-contimg --log-level INFO --use-subprocess --expected-subbands 16 --chunk-duration 5 --monitoring`
-  - Uses `PIPELINE_DB` environment variable (default: `state/db/pipeline.sqlite3`)
+- **Batch Conversion (historical data):**
+  - `python -m dsa110_contimg.conversion.cli groups /data/incoming /stage/dsa110-contimg/ms "2025-10-21T00:00:00" "2025-10-21T23:59:59"`
+  - Converts complete 16-subband groups in specified time window
+- **ABSURD Ingestion (real-time):**
+  - Worker: `sudo systemctl status dsa110-absurd-worker@1`
+  - Submit jobs via Python API (see `backend/src/dsa110_contimg/absurd/ingestion.py`)
 - Backfill imaging worker:
   - Scan:
     `python -m dsa110_contimg.imaging.worker scan --ms-dir /data/ms --out-dir /data/ms --log-level INFO`
