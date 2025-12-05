@@ -67,19 +67,19 @@ def create_transient_detection_tables(
 
         cur.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_transients_type 
+            CREATE INDEX IF NOT EXISTS idx_transients_type
             ON transient_candidates(detection_type, significance_sigma DESC)
         """
         )
         cur.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_transients_coords 
+            CREATE INDEX IF NOT EXISTS idx_transients_coords
             ON transient_candidates(ra_deg, dec_deg)
         """
         )
         cur.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_transients_detected 
+            CREATE INDEX IF NOT EXISTS idx_transients_detected
             ON transient_candidates(detected_at DESC)
         """
         )
@@ -105,13 +105,13 @@ def create_transient_detection_tables(
 
         cur.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_alerts_level 
+            CREATE INDEX IF NOT EXISTS idx_alerts_level
             ON transient_alerts(alert_level, created_at DESC)
         """
         )
         cur.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_alerts_status 
+            CREATE INDEX IF NOT EXISTS idx_alerts_status
             ON transient_alerts(acknowledged, created_at DESC)
         """
         )
@@ -136,7 +136,7 @@ def create_transient_detection_tables(
 
         cur.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_lightcurves_candidate 
+            CREATE INDEX IF NOT EXISTS idx_lightcurves_candidate
             ON transient_lightcurves(candidate_id, mjd)
         """
         )
@@ -602,11 +602,11 @@ def acknowledge_alert(
         acknowledged_at = time.time()
         cur.execute(
             """
-            UPDATE transient_alerts 
+            UPDATE transient_alerts
             SET acknowledged = 1,
                 acknowledged_by = ?,
                 acknowledged_at = ?,
-                notes = CASE 
+                notes = CASE
                     WHEN notes IS NULL THEN ?
                     WHEN ? IS NULL THEN notes
                     ELSE notes || char(10) || '[' || datetime(?, 'unixepoch') || '] ' || ?
@@ -685,12 +685,12 @@ def classify_candidate(
 
         cur.execute(
             """
-            UPDATE transient_candidates 
+            UPDATE transient_candidates
             SET classification = ?,
                 classified_by = ?,
                 classified_at = ?,
                 last_updated = ?,
-                notes = CASE 
+                notes = CASE
                     WHEN notes IS NULL THEN ?
                     ELSE notes || char(10) || '[' || datetime(?, 'unixepoch') || '] ' || ?
                 END
@@ -776,7 +776,7 @@ def update_follow_up_status(
             UPDATE {table_name}
             SET follow_up_status = ?,
                 {timestamp_field} = ?,
-                notes = CASE 
+                notes = CASE
                     WHEN notes IS NULL THEN ?
                     ELSE notes || char(10) || '[' || datetime(?, 'unixepoch') || '] ' || ?
                 END
@@ -850,7 +850,7 @@ def add_notes(
                 f"""
                 UPDATE {table_name}
                 SET {timestamp_field} = ?,
-                    notes = CASE 
+                    notes = CASE
                         WHEN notes IS NULL THEN ?
                         ELSE notes || char(10) || '[' || datetime(?, 'unixepoch') || '] ' || ?
                     END

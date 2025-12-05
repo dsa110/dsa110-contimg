@@ -63,13 +63,13 @@ def create_astrometry_tables(
 
         cur.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_astrometry_mosaic 
+            CREATE INDEX IF NOT EXISTS idx_astrometry_mosaic
             ON astrometric_solutions(mosaic_id, computed_at DESC)
         """
         )
         cur.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_astrometry_applied 
+            CREATE INDEX IF NOT EXISTS idx_astrometry_applied
             ON astrometric_solutions(applied, computed_at DESC)
         """
         )
@@ -97,7 +97,7 @@ def create_astrometry_tables(
 
         cur.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_residuals_solution 
+            CREATE INDEX IF NOT EXISTS idx_residuals_solution
             ON astrometric_residuals(solution_id)
         """
         )

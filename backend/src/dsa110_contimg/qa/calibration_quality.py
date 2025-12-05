@@ -400,7 +400,6 @@ def validate_caltable_quality(caltable_path: str) -> CalibrationQualityMetrics:
 
                     # NEW: Compute per-antenna temporal phase scatter (more meaningful metric)
                     # This measures phase stability over time for each antenna, not cross-antenna offsets
-                    per_antenna_phase_scatter = None
                     median_antenna_phase_scatter = None
 
                     try:
@@ -426,7 +425,6 @@ def validate_caltable_quality(caltable_path: str) -> CalibrationQualityMetrics:
                                     ant_scatters.append(ant_scatter)
 
                             if len(ant_scatters) > 0:
-                                per_antenna_phase_scatter = ant_scatters
                                 median_antenna_phase_scatter = float(np.median(ant_scatters))
                     except Exception:
                         # If per-antenna analysis fails, continue with original metrics

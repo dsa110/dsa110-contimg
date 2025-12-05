@@ -391,7 +391,6 @@ def _get_antenna_info(ms_path: str) -> AntennaLayoutResponse:
     # DSA-110 array center (approximate)
 
     # Earth radius approximation
-    R_EARTH = 6370000.0  # meters
 
     # Array center in ITRF (mean of all antenna positions)
     center_xyz = np.mean(positions, axis=0)

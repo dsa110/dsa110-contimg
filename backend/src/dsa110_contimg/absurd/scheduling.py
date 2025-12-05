@@ -237,7 +237,7 @@ class TaskScheduler:
             # Find all active schedules where next_run_at <= now
             due_schedules = await conn.fetch(
                 """
-                SELECT 
+                SELECT
                     schedule_id, name, queue_name, task_name,
                     cron_expression, params, priority, timeout_sec,
                     max_retries, timezone
@@ -307,7 +307,7 @@ CREATE TABLE IF NOT EXISTS absurd.scheduled_tasks (
     schedule_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name TEXT NOT NULL UNIQUE,
     description TEXT,
-    
+
     -- Task definition
     queue_name TEXT NOT NULL,
     task_name TEXT NOT NULL,
@@ -315,13 +315,13 @@ CREATE TABLE IF NOT EXISTS absurd.scheduled_tasks (
     priority INTEGER NOT NULL DEFAULT 0,
     timeout_sec INTEGER,
     max_retries INTEGER NOT NULL DEFAULT 3,
-    
+
     -- Schedule configuration
     cron_expression TEXT NOT NULL,
     timezone TEXT NOT NULL DEFAULT 'UTC',
     state TEXT NOT NULL DEFAULT 'active'
         CHECK (state IN ('active', 'paused', 'disabled')),
-    
+
     -- Tracking
     last_run_at TIMESTAMP WITH TIME ZONE,
     next_run_at TIMESTAMP WITH TIME ZONE,
@@ -330,11 +330,11 @@ CREATE TABLE IF NOT EXISTS absurd.scheduled_tasks (
 );
 
 -- Indexes for scheduled tasks
-CREATE INDEX IF NOT EXISTS idx_scheduled_tasks_state 
+CREATE INDEX IF NOT EXISTS idx_scheduled_tasks_state
     ON absurd.scheduled_tasks(state);
-CREATE INDEX IF NOT EXISTS idx_scheduled_tasks_next_run 
+CREATE INDEX IF NOT EXISTS idx_scheduled_tasks_next_run
     ON absurd.scheduled_tasks(next_run_at) WHERE state = 'active';
-CREATE INDEX IF NOT EXISTS idx_scheduled_tasks_queue 
+CREATE INDEX IF NOT EXISTS idx_scheduled_tasks_queue
     ON absurd.scheduled_tasks(queue_name);
 
 -- Grant permissions

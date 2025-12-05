@@ -143,7 +143,6 @@ def _resolve_catalog_path(
         Path to database file, or None if not found
     """
     config = CATALOG_REGISTRY[catalog]
-    candidates: list[Path] = []
 
     # Standard catalog locations
     catalog_dirs = [

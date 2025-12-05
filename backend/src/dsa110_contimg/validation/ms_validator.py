@@ -372,7 +372,7 @@ class MSValidator:
         try:
             with table(str(self.ms_path / "FIELD"), readonly=True, ack=False) as tb:
                 phase_dirs = tb.getcol("PHASE_DIR")
-                ref_dirs = tb.getcol("REFERENCE_DIR")
+                tb.getcol("REFERENCE_DIR")
                 names = tb.getcol("NAME")
 
                 centers = []

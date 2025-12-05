@@ -28,7 +28,7 @@ class StatsService:
         async with self.db_pool.products_db() as conn:
             # MS counts by stage
             cursor = await conn.execute("""
-                SELECT 
+                SELECT
                     COUNT(*) as total,
                     SUM(CASE WHEN stage = 'imaged' THEN 1 ELSE 0 END) as imaged,
                     SUM(CASE WHEN stage = 'calibrated' THEN 1 ELSE 0 END) as calibrated,
@@ -54,7 +54,7 @@ class StatsService:
 
             # Photometry and source counts
             cursor = await conn.execute("""
-                SELECT 
+                SELECT
                     COUNT(*) as total_photometry,
                     COUNT(DISTINCT source_id) as unique_sources
                 FROM photometry
@@ -65,7 +65,7 @@ class StatsService:
 
             # Job counts by status
             cursor = await conn.execute("""
-                SELECT 
+                SELECT
                     COUNT(*) as total,
                     SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END) as completed,
                     SUM(CASE WHEN status = 'running' THEN 1 ELSE 0 END) as running,
@@ -86,9 +86,9 @@ class StatsService:
 
             # Recent activity
             cursor = await conn.execute("""
-                SELECT path, created_at, type 
-                FROM images 
-                ORDER BY created_at DESC 
+                SELECT path, created_at, type
+                FROM images
+                ORDER BY created_at DESC
                 LIMIT 10
             """)
             rows = await cursor.fetchall()

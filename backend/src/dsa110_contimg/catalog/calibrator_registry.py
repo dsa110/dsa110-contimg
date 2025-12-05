@@ -62,19 +62,19 @@ def create_calibrator_registry(
 
         cur.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_calibrators_dec_strip 
+            CREATE INDEX IF NOT EXISTS idx_calibrators_dec_strip
             ON calibrator_sources(dec_strip, quality_score DESC)
         """
         )
         cur.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_calibrators_coords 
+            CREATE INDEX IF NOT EXISTS idx_calibrators_coords
             ON calibrator_sources(ra_deg, dec_deg)
         """
         )
         cur.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_calibrators_flux 
+            CREATE INDEX IF NOT EXISTS idx_calibrators_flux
             ON calibrator_sources(flux_1400mhz_jy DESC)
         """
         )
@@ -97,13 +97,13 @@ def create_calibrator_registry(
 
         cur.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_blacklist_name 
+            CREATE INDEX IF NOT EXISTS idx_blacklist_name
             ON calibrator_blacklist(source_name)
         """
         )
         cur.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_blacklist_coords 
+            CREATE INDEX IF NOT EXISTS idx_blacklist_coords
             ON calibrator_blacklist(ra_deg, dec_deg)
         """
         )
@@ -126,7 +126,7 @@ def create_calibrator_registry(
 
         cur.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_pb_cache_dec 
+            CREATE INDEX IF NOT EXISTS idx_pb_cache_dec
             ON pb_weights_cache(dec_strip, source_dec)
         """
         )
@@ -228,7 +228,7 @@ def is_source_blacklisted(
         if source_name:
             cur.execute(
                 """
-                SELECT reason FROM calibrator_blacklist 
+                SELECT reason FROM calibrator_blacklist
                 WHERE source_name = ?
             """,
                 (source_name,),
@@ -529,9 +529,9 @@ def get_registry_statistics(
         # By declination strip
         cur.execute(
             """
-            SELECT dec_strip, COUNT(*) 
-            FROM calibrator_sources 
-            GROUP BY dec_strip 
+            SELECT dec_strip, COUNT(*)
+            FROM calibrator_sources
+            GROUP BY dec_strip
             ORDER BY dec_strip
         """
         )
@@ -540,7 +540,7 @@ def get_registry_statistics(
         # Quality distribution
         cur.execute(
             """
-            SELECT 
+            SELECT
                 COUNT(CASE WHEN quality_score >= 80 THEN 1 END) as excellent,
                 COUNT(CASE WHEN quality_score >= 60 AND quality_score < 80 THEN 1 END) as good,
                 COUNT(CASE WHEN quality_score >= 40 AND quality_score < 60 THEN 1 END) as fair,

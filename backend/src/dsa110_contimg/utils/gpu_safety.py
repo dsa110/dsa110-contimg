@@ -1023,7 +1023,7 @@ def register_with_monitor(
         monitor = get_gpu_monitor()
 
         # Configure monitor to use same thresholds
-        config = get_config()
+        get_config()
 
         # The monitoring thresholds should trigger BEFORE safety limits
         # so we get warnings before operations fail

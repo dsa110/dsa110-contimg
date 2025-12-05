@@ -135,36 +135,36 @@ void grid_nearest_neighbor(
     const float cell_size       // Cell size in radians
 ) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    
+
     if (idx >= n_vis) return;
-    
+
     // Skip flagged data
     if (flags[idx] != 0) return;
-    
+
     // Get UV coordinates (ignore W for now)
     float u = uvw[idx * 3 + 0];
     float v = uvw[idx * 3 + 1];
-    
+
     // Convert to pixel coordinates
     // UV are in wavelengths, need to convert to pixel indices
     // u_pix = u / cell_size_rad + grid_size/2
     float u_pix_f = u * cell_size + grid_size / 2.0f;
     float v_pix_f = v * cell_size + grid_size / 2.0f;
-    
+
     int u_pix = (int)(u_pix_f + 0.5f);  // Round to nearest
     int v_pix = (int)(v_pix_f + 0.5f);
-    
+
     // Bounds check
     if (u_pix < 0 || u_pix >= grid_size || v_pix < 0 || v_pix >= grid_size) return;
-    
+
     // Grid index
     int grid_idx = v_pix * grid_size + u_pix;
-    
+
     // Weighted visibility
     float w = weights[idx];
     float vr = vis_real[idx] * w;
     float vi = vis_imag[idx] * w;
-    
+
     // Atomic add to grid (handles race conditions)
     atomicAdd(&grid_real[grid_idx], vr);
     atomicAdd(&grid_imag[grid_idx], vi);
@@ -192,52 +192,52 @@ void grid_convolutional(
     const int oversampling
 ) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    
+
     if (idx >= n_vis) return;
     if (flags[idx] != 0) return;
-    
+
     float u = uvw[idx * 3 + 0];
     float v = uvw[idx * 3 + 1];
-    
+
     // Convert to pixel coordinates
     float u_pix_f = u * cell_size + grid_size / 2.0f;
     float v_pix_f = v * cell_size + grid_size / 2.0f;
-    
+
     int u_pix = (int)floorf(u_pix_f);
     int v_pix = (int)floorf(v_pix_f);
-    
+
     // Fractional part for oversampling
     float u_frac = u_pix_f - u_pix;
     float v_frac = v_pix_f - v_pix;
-    
+
     int u_off = (int)(u_frac * oversampling);
     int v_off = (int)(v_frac * oversampling);
-    
+
     float w = weights[idx];
     float vr = vis_real[idx];
     float vi = vis_imag[idx];
-    
+
     int gcf_width = 2 * support + 1;
-    
+
     // Convolve onto grid
     for (int dv = -support; dv <= support; dv++) {
         int vv = v_pix + dv;
         if (vv < 0 || vv >= grid_size) continue;
-        
+
         int gcf_v_idx = (dv + support) + v_off * gcf_width;
         float gcf_v = gcf[gcf_v_idx];
-        
+
         for (int du = -support; du <= support; du++) {
             int uu = u_pix + du;
             if (uu < 0 || uu >= grid_size) continue;
-            
+
             int gcf_u_idx = (du + support) + u_off * gcf_width;
             float gcf_u = gcf[gcf_u_idx];
-            
+
             float conv_weight = gcf_u * gcf_v * w;
-            
+
             int grid_idx = vv * grid_size + uu;
-            
+
             atomicAdd(&grid_real[grid_idx], vr * conv_weight);
             atomicAdd(&grid_imag[grid_idx], vi * conv_weight);
             atomicAdd(&weight_grid[grid_idx], conv_weight);
@@ -257,9 +257,9 @@ void normalize_grid(
     const float epsilon
 ) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    
+
     if (idx >= size * size) return;
-    
+
     float w = weight_grid[idx];
     if (w > epsilon) {
         grid_real[idx] /= w;

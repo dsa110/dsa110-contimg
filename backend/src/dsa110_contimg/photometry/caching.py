@@ -72,7 +72,7 @@ def get_cached_variability_stats(
         # Query variability_stats table
         cursor.execute(
             """
-            SELECT source_id, ra_deg, dec_deg, n_obs, mean_flux_mjy, 
+            SELECT source_id, ra_deg, dec_deg, n_obs, mean_flux_mjy,
                    std_flux_mjy, sigma_deviation, updated_at
             FROM variability_stats
             WHERE source_id = ?

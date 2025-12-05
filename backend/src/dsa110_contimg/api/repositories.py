@@ -883,9 +883,9 @@ class AsyncJobRepository(AsyncJobRepositoryProtocol):
         async with get_async_connection(self.db_path) as conn:
             cursor = await conn.execute(
                 """
-                SELECT DISTINCT path, processed_at, stage, status, 
+                SELECT DISTINCT path, processed_at, stage, status,
                        pointing_ra_deg, pointing_dec_deg, ra_deg, dec_deg
-                FROM ms_index 
+                FROM ms_index
                 WHERE processed_at IS NOT NULL
                 ORDER BY processed_at DESC
                 LIMIT ? OFFSET ?
@@ -954,7 +954,6 @@ class AsyncJobRepository(AsyncJobRepositoryProtocol):
             return []
 
         records = []
-        run_id_map = {}  # Map path to run_id
 
         async with get_async_connection(self.db_path) as conn:
             # Batch fetch by patterns

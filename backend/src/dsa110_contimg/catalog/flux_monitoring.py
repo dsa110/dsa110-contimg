@@ -69,19 +69,19 @@ def create_flux_monitoring_tables(db_path: str = "/data/dsa110-contimg/state/db/
         # Create indices for efficient queries
         cur.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_cal_mon_calibrator 
+            CREATE INDEX IF NOT EXISTS idx_cal_mon_calibrator
             ON calibration_monitoring(calibrator_name, mjd DESC)
         """
         )
         cur.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_cal_mon_mjd 
+            CREATE INDEX IF NOT EXISTS idx_cal_mon_mjd
             ON calibration_monitoring(mjd DESC)
         """
         )
         cur.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_cal_mon_ms_path 
+            CREATE INDEX IF NOT EXISTS idx_cal_mon_ms_path
             ON calibration_monitoring(ms_path)
         """
         )
@@ -109,13 +109,13 @@ def create_flux_monitoring_tables(db_path: str = "/data/dsa110-contimg/state/db/
 
         cur.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_flux_alerts_triggered 
+            CREATE INDEX IF NOT EXISTS idx_flux_alerts_triggered
             ON flux_monitoring_alerts(triggered_at DESC)
         """
         )
         cur.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_flux_alerts_severity 
+            CREATE INDEX IF NOT EXISTS idx_flux_alerts_severity
             ON flux_monitoring_alerts(severity, triggered_at DESC)
         """
         )
@@ -172,9 +172,9 @@ def record_calibration_measurement(
     try:
         cur.execute(
             """
-            INSERT INTO calibration_monitoring 
-            (calibrator_name, ms_path, observed_flux_jy, catalog_flux_jy, 
-             flux_ratio, frequency_ghz, mjd, timestamp_iso, 
+            INSERT INTO calibration_monitoring
+            (calibrator_name, ms_path, observed_flux_jy, catalog_flux_jy,
+             flux_ratio, frequency_ghz, mjd, timestamp_iso,
              phase_rms_deg, amp_rms, flagged_fraction, created_at, notes)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
@@ -469,7 +469,7 @@ def get_recent_flux_alerts(
     cutoff_time = time.time() - (days * 86400.0)
 
     query = """
-        SELECT id, alert_type, severity, calibrator_name, 
+        SELECT id, alert_type, severity, calibrator_name,
                time_window_days, flux_drift_percent, n_measurements,
                message, triggered_at, acknowledged_at, resolved_at
         FROM flux_monitoring_alerts

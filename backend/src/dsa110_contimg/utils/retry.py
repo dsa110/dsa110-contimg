@@ -173,7 +173,8 @@ def retry(
             ...
     """
     if backoff is None:
-        backoff = lambda a: exponential_backoff(a, base=30.0, max_delay=300.0)
+        def backoff(a):
+            return exponential_backoff(a, base=30.0, max_delay=300.0)
 
     if retry_on is None:
         retry_on = RETRYABLE_EXCEPTIONS
@@ -235,7 +236,8 @@ def async_retry(
     import asyncio
 
     if backoff is None:
-        backoff = lambda a: exponential_backoff(a, base=30.0, max_delay=300.0)
+        def backoff(a):
+            return exponential_backoff(a, base=30.0, max_delay=300.0)
 
     if retry_on is None:
         retry_on = RETRYABLE_EXCEPTIONS

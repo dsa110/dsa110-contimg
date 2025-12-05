@@ -52,7 +52,7 @@ async def check_schema_status(pool: asyncpg.Pool) -> dict:
         # Check if schema exists
         schema_exists = await conn.fetchval("""
             SELECT EXISTS(
-                SELECT 1 FROM information_schema.schemata 
+                SELECT 1 FROM information_schema.schemata
                 WHERE schema_name = 'absurd'
             )
         """)
@@ -61,8 +61,8 @@ async def check_schema_status(pool: asyncpg.Pool) -> dict:
         if schema_exists:
             # List tables
             tables = await conn.fetch("""
-                SELECT table_name 
-                FROM information_schema.tables 
+                SELECT table_name
+                FROM information_schema.tables
                 WHERE table_schema = 'absurd'
                 ORDER BY table_name
             """)
@@ -70,8 +70,8 @@ async def check_schema_status(pool: asyncpg.Pool) -> dict:
 
             # List functions
             functions = await conn.fetch("""
-                SELECT routine_name 
-                FROM information_schema.routines 
+                SELECT routine_name
+                FROM information_schema.routines
                 WHERE routine_schema = 'absurd'
                 ORDER BY routine_name
             """)

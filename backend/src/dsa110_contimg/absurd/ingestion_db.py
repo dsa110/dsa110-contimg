@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS absurd.ingestion_groups (
     completed_at TIMESTAMPTZ,
     ms_path TEXT,
     error_message TEXT,
-    
+
     CONSTRAINT valid_state CHECK (state IN (
         'collecting', 'pending', 'normalizing', 'converting', 'completed', 'failed'
     ))

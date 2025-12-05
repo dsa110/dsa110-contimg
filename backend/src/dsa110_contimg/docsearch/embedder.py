@@ -81,7 +81,7 @@ class Embedder:
                 )
             """)
             conn.execute("""
-                CREATE INDEX IF NOT EXISTS idx_cache_model 
+                CREATE INDEX IF NOT EXISTS idx_cache_model
                 ON embedding_cache(model)
             """)
 

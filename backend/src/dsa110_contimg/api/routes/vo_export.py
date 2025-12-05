@@ -164,7 +164,7 @@ def _run_export(
         # Mark completed
         conn.execute(
             """
-            UPDATE export_jobs 
+            UPDATE export_jobs
             SET status = 'completed', completed_at = ?, output_path = ?,
                 progress_pct = 100, processed_items = ?, total_items = ?
             WHERE id = ?

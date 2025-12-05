@@ -525,7 +525,7 @@ def execute_stage_with_tracking(
                 ms_path,
                 enable=config.enable_metrics,
                 record_gpu=config.record_gpu_metrics,
-            ) as metrics_helper:
+            ):
                 # Execute the stage
                 result_context = stage.execute(context)
 
@@ -702,8 +702,7 @@ def tracked_stage_execute(
             ms_path = _get_ms_path_from_context(context)
 
             # Track execution
-            start_time = time.time()
-            retry_count = 0
+            time.time()
 
             def _execute_once():
                 with state_machine_context(stage_name, ms_path, enable=enable_state_machine):

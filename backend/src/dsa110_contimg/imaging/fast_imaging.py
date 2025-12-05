@@ -344,7 +344,7 @@ def analyze_snapshots(image_paths: List[str], threshold_sigma: float = 6.0) -> L
                 rms = 1.4826 * mad
 
                 peak_val = np.nanmax(valid_data)
-                min_val = np.nanmin(valid_data)
+                np.nanmin(valid_data)
 
                 # Check for significant positive peak
                 if peak_val > (median + threshold_sigma * rms):
@@ -405,7 +405,7 @@ def save_candidates_to_db(
             cursor.execute(
                 """
                 INSERT INTO transient_candidates (
-                    image_path, ms_path, ra_deg, dec_deg, snr, 
+                    image_path, ms_path, ra_deg, dec_deg, snr,
                     peak_flux_mjy, local_rms_mjy, frame_index, created_at, status
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'new')
             """,

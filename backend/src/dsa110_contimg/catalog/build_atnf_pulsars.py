@@ -366,7 +366,7 @@ Examples:
         logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
     try:
-        output_path = build_atnf_pulsar_db(
+        build_atnf_pulsar_db(
             output_path=args.output,
             min_flux_mjy=args.min_flux_mjy,
             force_rebuild=args.force,

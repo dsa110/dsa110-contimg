@@ -292,7 +292,6 @@ class SubprocessExecutor(Executor):
                 preexec_fn=resource_manager.apply_subprocess_limits,
             )
 
-            stdout = process.stdout or ""
             stderr = process.stderr or ""
 
             # Try to read structured result

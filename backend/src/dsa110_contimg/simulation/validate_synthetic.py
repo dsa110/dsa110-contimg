@@ -167,10 +167,10 @@ def main():
 Examples:
   # Validate single file
   %(prog)s file.hdf5
-  
+
   # Validate entire observation group
   %(prog)s --group /path/to/subbands --timestamp "2025-10-06T12:00:00"
-  
+
   # Print summary of all files in directory
   %(prog)s --summary /path/to/subbands/*.hdf5
         """,

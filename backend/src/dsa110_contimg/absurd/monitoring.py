@@ -948,7 +948,6 @@ class PrometheusExporter:
 
         # Add comments for metric types
         counter_suffixes = ["_total", "_count"]
-        gauge_suffixes = ["", "_seconds", "_milliseconds", "_bytes", "_ratio"]
 
         for name, value in sorted(metrics.items()):
             # Determine metric type

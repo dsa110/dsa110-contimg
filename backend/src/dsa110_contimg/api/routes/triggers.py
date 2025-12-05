@@ -279,7 +279,7 @@ async def create_trigger(
 
     db.execute(
         """
-        INSERT INTO pipeline_triggers 
+        INSERT INTO pipeline_triggers
         (id, name, description, trigger_type, schedule, event_pattern, action, action_params, enabled, created_at, next_run_at)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
@@ -339,7 +339,7 @@ async def update_trigger(
     db.execute(
         """
         UPDATE pipeline_triggers
-        SET name = ?, description = ?, trigger_type = ?, schedule = ?, 
+        SET name = ?, description = ?, trigger_type = ?, schedule = ?,
             event_pattern = ?, action = ?, action_params = ?, enabled = ?, next_run_at = ?
         WHERE id = ?
         """,

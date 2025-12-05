@@ -144,7 +144,7 @@ class MosaicPlanningJob(Job):
                 """
                 INSERT INTO mosaic_plans
                     (name, tier, start_time, end_time, image_ids, n_images,
-                     ra_min_deg, ra_max_deg, dec_min_deg, dec_max_deg, 
+                     ra_min_deg, ra_max_deg, dec_min_deg, dec_max_deg,
                      created_at, status)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
                 """,
@@ -279,7 +279,7 @@ class MosaicBuildJob(Job):
             cursor = conn.execute(
                 """
                 INSERT INTO mosaics
-                    (plan_id, path, tier, n_images, median_rms_jy, 
+                    (plan_id, path, tier, n_images, median_rms_jy,
                      coverage_sq_deg, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?)
                 """,
@@ -385,7 +385,7 @@ class MosaicQAJob(Job):
                 """
                 INSERT INTO mosaic_qa
                     (mosaic_id, astrometry_rms_arcsec, n_reference_stars,
-                     median_noise_jy, dynamic_range, has_artifacts, 
+                     median_noise_jy, dynamic_range, has_artifacts,
                      artifact_score, passed, warnings, created_at)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,

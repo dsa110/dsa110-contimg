@@ -175,8 +175,8 @@ def sync_gauges_from_database(db_path: str = DEFAULT_DB_PATH) -> dict:
         # MS counts by stage
         try:
             cursor = conn.execute("""
-                SELECT stage, COUNT(*) as cnt 
-                FROM ms_index 
+                SELECT stage, COUNT(*) as cnt
+                FROM ms_index
                 GROUP BY stage
             """)
             for row in cursor.fetchall():
@@ -189,8 +189,8 @@ def sync_gauges_from_database(db_path: str = DEFAULT_DB_PATH) -> dict:
         # Image counts by type
         try:
             cursor = conn.execute("""
-                SELECT type, COUNT(*) as cnt 
-                FROM images 
+                SELECT type, COUNT(*) as cnt
+                FROM images
                 GROUP BY type
             """)
             for row in cursor.fetchall():
@@ -223,7 +223,7 @@ def sync_gauges_from_database(db_path: str = DEFAULT_DB_PATH) -> dict:
         # Job counts
         try:
             cursor = conn.execute("""
-                SELECT 
+                SELECT
                     SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
                     SUM(CASE WHEN status = 'running' THEN 1 ELSE 0 END) as running
                 FROM batch_jobs
@@ -339,7 +339,7 @@ def sync_calibrator_metrics_from_database(db_path: str = DEFAULT_DB_PATH) -> dic
 
         # Check if calibration_monitoring table exists
         table_exists = conn.execute("""
-            SELECT name FROM sqlite_master 
+            SELECT name FROM sqlite_master
             WHERE type='table' AND name='calibration_monitoring'
         """).fetchone()
 
@@ -349,7 +349,7 @@ def sync_calibrator_metrics_from_database(db_path: str = DEFAULT_DB_PATH) -> dic
 
         # Get latest flux ratios per calibrator
         cursor = conn.execute("""
-            SELECT calibrator_name, 
+            SELECT calibrator_name,
                    AVG(flux_ratio) as mean_ratio,
                    AVG(phase_rms_deg) as mean_phase_rms,
                    COUNT(*) as n_measurements,

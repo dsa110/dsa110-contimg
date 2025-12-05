@@ -1161,7 +1161,7 @@ def create_metrics_callback() -> Callable[[str, RetryResult], None]:
 
     def metrics_callback(operation_name: str, result: RetryResult) -> None:
         """Record retry metrics."""
-        collector = get_metrics_collector()
+        get_metrics_collector()
 
         # Log retry statistics
         if result.attempt_count > 1:

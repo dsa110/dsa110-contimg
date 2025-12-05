@@ -335,10 +335,10 @@ try:
         niter={params.get("niter", 10000)},
         threshold="{params.get("threshold", "0.5mJy")}",
     )
-    
+
     logger.info(f"Starting Bokeh server on port {port}")
     ic.serve(port={port})
-    
+
 except Exception as e:
     logger.exception(f"InteractiveClean failed: {{e}}")
     sys.exit(1)

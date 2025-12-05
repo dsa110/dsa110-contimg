@@ -837,7 +837,7 @@ async def get_data_coverage():
         cursor = conn.cursor()
 
         cursor.execute("""
-            SELECT 
+            SELECT
                 MIN(timestamp_iso) as earliest_iso,
                 MAX(timestamp_iso) as latest_iso,
                 MIN(timestamp_mjd) as earliest_mjd,

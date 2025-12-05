@@ -179,7 +179,7 @@ def create_synthetic_catalog_db(
             # FIRST includes source size (assume point source for synthetic)
             cursor.execute(
                 """
-                INSERT OR REPLACE INTO sources 
+                INSERT OR REPLACE INTO sources
                 (ra_deg, dec_deg, flux_mjy, maj_arcsec, min_arcsec, pa_deg)
                 VALUES (?, ?, ?, ?, ?, ?)
             """,

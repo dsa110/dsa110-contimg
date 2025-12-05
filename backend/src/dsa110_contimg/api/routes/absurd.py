@@ -473,7 +473,7 @@ async def get_all_queue_stats(client: AbsurdClient = Depends(get_absurd_client))
             # Get stats for all queues in one query
             rows = await conn.fetch(
                 """
-                SELECT 
+                SELECT
                     queue_name,
                     COUNT(*) FILTER (WHERE status = 'pending') as pending,
                     COUNT(*) FILTER (WHERE status = 'claimed') as claimed,
@@ -562,7 +562,7 @@ async def get_pipeline_status(client: AbsurdClient = Depends(get_absurd_client))
             # Get per-stage stats grouped by task_name and status
             stage_rows = await conn.fetch(
                 """
-                SELECT 
+                SELECT
                     task_name,
                     COUNT(*) FILTER (WHERE status = 'pending') as pending,
                     COUNT(*) FILTER (WHERE status = 'claimed') as running,
@@ -577,7 +577,7 @@ async def get_pipeline_status(client: AbsurdClient = Depends(get_absurd_client))
             # Get total counts
             total_row = await conn.fetchrow(
                 """
-                SELECT 
+                SELECT
                     COUNT(*) FILTER (WHERE status = 'pending') as pending,
                     COUNT(*) FILTER (WHERE status = 'claimed') as running,
                     COUNT(*) FILTER (WHERE status = 'completed') as completed,
@@ -747,7 +747,7 @@ async def list_workers():
         worker_metrics = await _monitor.collect_worker_metrics()
 
         workers = []
-        now = time.time()
+        time.time()
 
         for worker_id, state in (worker_metrics.worker_states or {}).items():
             last_seen_ts = (worker_metrics.last_heartbeat_times or {}).get(worker_id, 0)
@@ -1832,16 +1832,16 @@ async def get_metrics_history(
             rows = await conn.fetch(
                 """
                 WITH time_buckets AS (
-                    SELECT 
+                    SELECT
                         date_trunc($1::TEXT, completed_at) as bucket,
                         COUNT(*) as task_count,
                         COUNT(*) FILTER (WHERE status = 'completed') as completed,
                         COUNT(*) FILTER (WHERE status = 'failed') as failed,
                         AVG(wait_time_sec) FILTER (WHERE wait_time_sec IS NOT NULL) as avg_wait,
                         AVG(execution_time_sec) FILTER (WHERE execution_time_sec IS NOT NULL) as avg_exec,
-                        PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY wait_time_sec) 
+                        PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY wait_time_sec)
                             FILTER (WHERE wait_time_sec IS NOT NULL) as p95_wait,
-                        PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY execution_time_sec) 
+                        PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY execution_time_sec)
                             FILTER (WHERE execution_time_sec IS NOT NULL) as p95_exec
                     FROM absurd.tasks
                     WHERE queue_name = $2

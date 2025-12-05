@@ -97,7 +97,7 @@ class DeadLetterQueue:
         conn = sqlite3.connect(str(self.db_path))
         cursor = conn.execute(
             """
-            INSERT INTO dead_letter_queue 
+            INSERT INTO dead_letter_queue
             (component, operation, error_type, error_message, context_json, created_at, status)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         """,
@@ -300,7 +300,7 @@ class DeadLetterQueue:
 
         cursor = conn.execute(
             """
-            SELECT 
+            SELECT
                 COUNT(*) as total,
                 SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
                 SUM(CASE WHEN status = 'retrying' THEN 1 ELSE 0 END) as retrying,

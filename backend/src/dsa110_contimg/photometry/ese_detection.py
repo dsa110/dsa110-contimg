@@ -83,7 +83,7 @@ def detect_ese_candidates(
         # Include eta_metric if available for composite scoring
         if source_id:
             query = """
-                SELECT 
+                SELECT
                     source_id,
                     ra_deg,
                     dec_deg,
@@ -101,7 +101,7 @@ def detect_ese_candidates(
             params = (source_id, min_sigma)
         else:
             query = """
-                SELECT 
+                SELECT
                     source_id,
                     ra_deg,
                     dec_deg,
@@ -159,7 +159,7 @@ def detect_ese_candidates(
             # Check if already flagged
             existing = conn.execute(
                 """
-                SELECT id, status FROM ese_candidates 
+                SELECT id, status FROM ese_candidates
                 WHERE source_id = ? AND status = 'active'
                 """,
                 (source_id_val,),
@@ -186,7 +186,7 @@ def detect_ese_candidates(
                 # Insert new candidate
                 conn.execute(
                     """
-                    INSERT INTO ese_candidates 
+                    INSERT INTO ese_candidates
                     (source_id, flagged_at, flagged_by, significance, flag_type, status)
                     VALUES (?, ?, 'auto', ?, 'auto', 'active')
                     """,
@@ -260,8 +260,8 @@ def _recompute_variability_stats(conn: sqlite3.Connection) -> None:
     # Get all unique sources from photometry
     sources = conn.execute(
         """
-        SELECT DISTINCT source_id 
-        FROM photometry 
+        SELECT DISTINCT source_id
+        FROM photometry
         WHERE source_id IS NOT NULL
         """
     ).fetchall()
@@ -272,7 +272,7 @@ def _recompute_variability_stats(conn: sqlite3.Connection) -> None:
         # Get photometry history for this source
         rows = conn.execute(
             """
-            SELECT 
+            SELECT
                 ra_deg,
                 dec_deg,
                 nvss_flux_mjy,
@@ -343,8 +343,8 @@ def _recompute_variability_stats(conn: sqlite3.Connection) -> None:
         # Upsert variability stats
         conn.execute(
             """
-            INSERT INTO variability_stats 
-            (source_id, ra_deg, dec_deg, nvss_flux_mjy, n_obs, mean_flux_mjy, 
+            INSERT INTO variability_stats
+            (source_id, ra_deg, dec_deg, nvss_flux_mjy, n_obs, mean_flux_mjy,
              std_flux_mjy, min_flux_mjy, max_flux_mjy, chi2_nu, sigma_deviation,
              last_measured_at, last_mjd, updated_at)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)

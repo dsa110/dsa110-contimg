@@ -64,7 +64,7 @@ def update_variability_stats_for_source(
     # Get photometry history for this source
     rows = conn.execute(
         """
-        SELECT 
+        SELECT
             ra_deg,
             dec_deg,
             nvss_flux_mjy,
@@ -165,7 +165,7 @@ def update_variability_stats_for_source(
     # Insert or update variability_stats
     conn.execute(
         """
-        INSERT INTO variability_stats 
+        INSERT INTO variability_stats
         (source_id, ra_deg, dec_deg, nvss_flux_mjy, n_obs, mean_flux_mjy,
          std_flux_mjy, min_flux_mjy, max_flux_mjy, chi2_nu, sigma_deviation,
          eta_metric, last_measured_at, last_mjd, updated_at)
@@ -274,8 +274,8 @@ def auto_detect_ese_after_photometry(
                 # Update all sources with photometry data
                 source_rows = conn.execute(
                     """
-                    SELECT DISTINCT source_id 
-                    FROM photometry 
+                    SELECT DISTINCT source_id
+                    FROM photometry
                     WHERE source_id IS NOT NULL
                     """
                 ).fetchall()
@@ -342,8 +342,8 @@ def auto_detect_ese_for_new_measurements(
         # Check if this source qualifies as ESE candidate
         row = conn.execute(
             """
-            SELECT sigma_deviation 
-            FROM variability_stats 
+            SELECT sigma_deviation
+            FROM variability_stats
             WHERE source_id = ?
             """,
             (source_id,),

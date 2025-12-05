@@ -72,7 +72,6 @@ def detect_cycles(dependencies: Dict[str, List[str]]) -> Optional[List[str]]:
     # Use DFS with coloring
     WHITE, GRAY, BLACK = 0, 1, 2
     color = defaultdict(lambda: WHITE)
-    parent = {}
 
     def dfs(node: str, path: List[str]) -> Optional[List[str]]:
         color[node] = GRAY
@@ -193,25 +192,25 @@ BEGIN
         AND table_name = 'tasks'
         AND column_name = 'depends_on'
     ) THEN
-        ALTER TABLE absurd.tasks 
+        ALTER TABLE absurd.tasks
         ADD COLUMN depends_on UUID[] DEFAULT '{}';
     END IF;
-    
+
     IF NOT EXISTS (
         SELECT 1 FROM information_schema.columns
         WHERE table_schema = 'absurd'
         AND table_name = 'tasks'
         AND column_name = 'workflow_id'
     ) THEN
-        ALTER TABLE absurd.tasks 
+        ALTER TABLE absurd.tasks
         ADD COLUMN workflow_id UUID;
     END IF;
 END $$;
 
 -- Index for dependency lookups
-CREATE INDEX IF NOT EXISTS idx_tasks_depends_on 
+CREATE INDEX IF NOT EXISTS idx_tasks_depends_on
     ON absurd.tasks USING GIN (depends_on);
-CREATE INDEX IF NOT EXISTS idx_tasks_workflow_id 
+CREATE INDEX IF NOT EXISTS idx_tasks_workflow_id
     ON absurd.tasks(workflow_id) WHERE workflow_id IS NOT NULL;
 
 -- Workflows table for grouping related tasks
@@ -230,9 +229,9 @@ CREATE TABLE IF NOT EXISTS absurd.workflows (
     metadata JSONB DEFAULT '{}'
 );
 
-CREATE INDEX IF NOT EXISTS idx_workflows_status 
+CREATE INDEX IF NOT EXISTS idx_workflows_status
     ON absurd.workflows(status);
-CREATE INDEX IF NOT EXISTS idx_workflows_created_at 
+CREATE INDEX IF NOT EXISTS idx_workflows_created_at
     ON absurd.workflows(created_at DESC);
 
 -- Grant permissions
@@ -260,18 +259,18 @@ BEGIN
     WHERE NOT EXISTS (
         SELECT 1 FROM absurd.tasks WHERE task_id = dep_id
     );
-    
+
     IF v_pending_deps > 0 THEN
         RAISE EXCEPTION 'One or more dependency tasks do not exist';
     END IF;
-    
+
     -- Check for unsatisfied dependencies
     SELECT COUNT(*)
     INTO v_pending_deps
     FROM absurd.tasks
     WHERE task_id = ANY(p_depends_on)
       AND status NOT IN ('completed');
-    
+
     -- Insert task with appropriate status
     INSERT INTO absurd.tasks (
         queue_name,
@@ -294,7 +293,7 @@ BEGIN
         p_workflow_id,
         CASE WHEN v_pending_deps > 0 THEN 'pending' ELSE 'pending' END
     ) RETURNING task_id INTO v_task_id;
-    
+
     RETURN v_task_id;
 END;
 $$ LANGUAGE plpgsql;
@@ -319,7 +318,7 @@ BEGIN
             SELECT 1
             FROM unnest(v_task.depends_on) AS dep_id
             WHERE NOT EXISTS (
-                SELECT 1 FROM absurd.tasks 
+                SELECT 1 FROM absurd.tasks
                 WHERE task_id = dep_id AND status = 'completed'
             )
         ) THEN
@@ -327,7 +326,7 @@ BEGIN
             v_released := v_released + 1;
         END IF;
     END LOOP;
-    
+
     RETURN v_released;
 END;
 $$ LANGUAGE plpgsql;
@@ -347,23 +346,23 @@ DECLARE
 BEGIN
     -- Complete the task normally
     SELECT absurd.complete_task(p_task_id, p_result) INTO v_success;
-    
+
     IF v_success THEN
         -- Check for blocked tasks that can now proceed
         SELECT absurd.check_blocked_tasks(p_task_id) INTO v_released;
-        
+
         -- Update workflow progress if applicable
         SELECT workflow_id INTO v_workflow_id
         FROM absurd.tasks WHERE task_id = p_task_id;
-        
+
         IF v_workflow_id IS NOT NULL THEN
             UPDATE absurd.workflows
             SET completed_tasks = completed_tasks + 1,
-                status = CASE 
+                status = CASE
                     WHEN completed_tasks + 1 >= total_tasks THEN 'completed'
                     ELSE status
                 END,
-                completed_at = CASE 
+                completed_at = CASE
                     WHEN completed_tasks + 1 >= total_tasks THEN NOW()
                     ELSE completed_at
                 END
@@ -372,16 +371,16 @@ BEGIN
     ELSE
         v_released := 0;
     END IF;
-    
+
     RETURN QUERY SELECT v_success, v_released;
 END;
 $$ LANGUAGE plpgsql;
 
-COMMENT ON FUNCTION absurd.spawn_task_with_deps IS 
+COMMENT ON FUNCTION absurd.spawn_task_with_deps IS
     'Create a task with dependencies on other tasks';
-COMMENT ON FUNCTION absurd.check_blocked_tasks IS 
+COMMENT ON FUNCTION absurd.check_blocked_tasks IS
     'Check and count tasks that can proceed after a task completes';
-COMMENT ON FUNCTION absurd.complete_task_with_deps IS 
+COMMENT ON FUNCTION absurd.complete_task_with_deps IS
     'Complete a task and check for blocked dependent tasks';
 """
 
@@ -603,7 +602,7 @@ async def get_ready_workflow_tasks(
                   SELECT 1
                   FROM unnest(t.depends_on) AS dep_id
                   WHERE NOT EXISTS (
-                      SELECT 1 FROM absurd.tasks 
+                      SELECT 1 FROM absurd.tasks
                       WHERE task_id = dep_id AND status = 'completed'
                   )
               )
@@ -641,7 +640,7 @@ async def get_workflow_status(
         # Get task status breakdown
         task_stats = await conn.fetchrow(
             """
-            SELECT 
+            SELECT
                 COUNT(*) as total,
                 COUNT(*) FILTER (WHERE status = 'pending') as pending,
                 COUNT(*) FILTER (WHERE status = 'claimed') as running,
@@ -665,7 +664,7 @@ async def get_workflow_status(
                   SELECT 1
                   FROM unnest(t.depends_on) AS dep_id
                   WHERE EXISTS (
-                      SELECT 1 FROM absurd.tasks 
+                      SELECT 1 FROM absurd.tasks
                       WHERE task_id = dep_id AND status NOT IN ('completed')
                   )
               )

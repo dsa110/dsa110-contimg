@@ -215,12 +215,12 @@ def cmd_status(args: argparse.Namespace) -> int:
 
         # Check for mosaic_groups table
         cursor.execute("""
-            SELECT name FROM sqlite_master 
+            SELECT name FROM sqlite_master
             WHERE type='table' AND name='mosaic_groups'
         """)
         if cursor.fetchone():
             cursor.execute("""
-                SELECT COUNT(*), 
+                SELECT COUNT(*),
                        SUM(CASE WHEN status = 'completed' THEN 1 ELSE 0 END),
                        SUM(CASE WHEN status = 'failed' THEN 1 ELSE 0 END)
                 FROM mosaic_groups

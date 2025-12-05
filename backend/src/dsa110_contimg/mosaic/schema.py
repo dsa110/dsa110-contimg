@@ -18,24 +18,24 @@ MOSAIC_TABLES: dict[str, str] = {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT UNIQUE NOT NULL,
             tier TEXT NOT NULL CHECK(tier IN ('quicklook', 'science', 'deep')),
-            
+
             -- Time range
             start_time INTEGER NOT NULL,
             end_time INTEGER NOT NULL,
-            
+
             -- Image selection
             image_ids TEXT NOT NULL,  -- JSON array
             n_images INTEGER NOT NULL,
-            
+
             -- Coverage statistics
             ra_min_deg REAL,
             ra_max_deg REAL,
             dec_min_deg REAL,
             dec_max_deg REAL,
-            
+
             -- Metadata
             created_at INTEGER NOT NULL,
-            status TEXT DEFAULT 'pending' 
+            status TEXT DEFAULT 'pending'
                 CHECK(status IN ('pending', 'building', 'completed', 'failed'))
         )
     """,
@@ -43,21 +43,21 @@ MOSAIC_TABLES: dict[str, str] = {
         CREATE TABLE IF NOT EXISTS mosaics (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             plan_id INTEGER NOT NULL REFERENCES mosaic_plans(id),
-            
+
             -- File location
             path TEXT UNIQUE NOT NULL,
-            
+
             -- Product metadata
             tier TEXT NOT NULL,
             n_images INTEGER NOT NULL,
             median_rms_jy REAL,
             effective_noise_jy REAL,  -- Propagated noise from inverse-variance weighting
             coverage_sq_deg REAL,
-            
+
             -- Quality assessment
             qa_status TEXT CHECK(qa_status IN ('PASS', 'WARN', 'FAIL')),
             qa_details TEXT,  -- JSON
-            
+
             -- Timestamps
             created_at INTEGER NOT NULL
         )
@@ -66,23 +66,23 @@ MOSAIC_TABLES: dict[str, str] = {
         CREATE TABLE IF NOT EXISTS mosaic_qa (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             mosaic_id INTEGER NOT NULL REFERENCES mosaics(id),
-            
+
             -- Astrometric quality
             astrometry_rms_arcsec REAL,
             n_reference_stars INTEGER,
-            
+
             -- Photometric quality
             median_noise_jy REAL,
             dynamic_range REAL,
-            
+
             -- Artifacts
             has_artifacts INTEGER,
             artifact_score REAL,
-            
+
             -- Overall
             passed INTEGER NOT NULL,
             warnings TEXT,  -- JSON array
-            
+
             created_at INTEGER NOT NULL
         )
     """,

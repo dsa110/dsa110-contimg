@@ -268,8 +268,8 @@ def build_vla_calibrator_db(
         # Insert calibrators
         for cal in calibrators:
             conn.execute(
-                """INSERT OR REPLACE INTO calibrators 
-                   (name, ra_deg, dec_deg, position_code, alt_name) 
+                """INSERT OR REPLACE INTO calibrators
+                   (name, ra_deg, dec_deg, position_code, alt_name)
                    VALUES (?, ?, ?, ?, ?)""",
                 (cal["name"], cal["ra_deg"], cal["dec_deg"], cal["position_code"], cal["alt_name"]),
             )
@@ -280,8 +280,8 @@ def build_vla_calibrator_db(
                 # Get frequency from band mapping
                 freq_hz = BAND_MAPPING.get(flux["band"], (None, None))[1]
                 conn.execute(
-                    """INSERT OR REPLACE INTO fluxes 
-                       (name, band, band_code, flux_jy, freq_hz, quality_codes) 
+                    """INSERT OR REPLACE INTO fluxes
+                       (name, band, band_code, flux_jy, freq_hz, quality_codes)
                        VALUES (?, ?, ?, ?, ?, ?)""",
                     (
                         flux["name"],
@@ -304,7 +304,7 @@ def build_vla_calibrator_db(
             CREATE VIEW vla_20cm AS
             SELECT c.name, c.ra_deg, c.dec_deg, c.position_code, c.alt_name,
                    f.flux_jy, f.quality_codes
-            FROM calibrators c 
+            FROM calibrators c
             JOIN fluxes f ON c.name = f.name
             WHERE f.band = '20cm'
         """)

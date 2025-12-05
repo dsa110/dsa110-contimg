@@ -161,7 +161,7 @@ class Source:
             # Try photometry_timeseries first (preferred)
             if "photometry_timeseries" in tables:
                 query = """
-                    SELECT 
+                    SELECT
                         mjd, normalized_flux_jy, normalized_flux_err_jy,
                         flux_jy, flux_err_jy, image_path, measured_at,
                         ra_deg, dec_deg
@@ -184,7 +184,7 @@ class Source:
 
                 if "source_id" in columns:
                     query = """
-                        SELECT 
+                        SELECT
                             ra_deg, dec_deg, nvss_flux_mjy,
                             peak_jyb, peak_err_jyb, measured_at, mjd, image_path
                         FROM photometry

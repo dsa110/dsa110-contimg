@@ -711,7 +711,7 @@ def get_bandpass_calibrators(
     if dec_range:
         cursor = conn.execute(
             """
-            SELECT * FROM bandpass_calibrators 
+            SELECT * FROM bandpass_calibrators
             WHERE status = ? AND dec_range_min <= ? AND dec_range_max >= ?
             ORDER BY dec_deg
             """,

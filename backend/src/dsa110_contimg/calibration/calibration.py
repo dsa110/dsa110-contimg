@@ -1240,15 +1240,10 @@ def solve_bandpass(
             field_mask = field_ids == check_field
             field_rows = np.where(field_mask)[0]
             if len(field_rows) == 0:
-                raise ValueError(
-                    f"No data found for field {check_field}. "
-                    "Check field selection."
-                )
+                raise ValueError(f"No data found for field {check_field}. Check field selection.")
             # Sample up to 100 rows from the field
             sample_rows = field_rows[: min(100, len(field_rows))]
-            model_sample = np.array(
-                [tb.getcell("MODEL_DATA", int(r)) for r in sample_rows]
-            )
+            model_sample = np.array([tb.getcell("MODEL_DATA", int(r)) for r in sample_rows])
         else:
             # Fallback: check first 100 rows
             model_sample = tb.getcol("MODEL_DATA", startrow=0, nrow=min(100, tb.nrows()))

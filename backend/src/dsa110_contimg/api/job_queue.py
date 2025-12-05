@@ -472,7 +472,7 @@ def rerun_pipeline_job(
 
             ms_path = job_config.get("ms_path")
             if ms_path:
-                output_dir = os.path.dirname(ms_path)
+                os.path.dirname(ms_path)
                 # Note: This is a simplified call - full implementation would
                 # extract time range from the MS and process accordingly
                 logger.info(f"Direct pipeline execution for {ms_path}")

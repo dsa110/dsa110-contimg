@@ -511,8 +511,8 @@ def index_orphaned_files(
         cursor = conn.cursor()
 
         insert_sql = """
-            INSERT OR REPLACE INTO hdf5_file_index 
-            (path, filename, group_id, subband_code, subband_num, 
+            INSERT OR REPLACE INTO hdf5_file_index
+            (path, filename, group_id, subband_code, subband_num,
              timestamp_iso, timestamp_mjd, file_size_bytes, modified_time,
              indexed_at, stored, ra_deg, dec_deg, obs_date, obs_time)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)

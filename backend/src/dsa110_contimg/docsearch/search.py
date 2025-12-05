@@ -123,17 +123,17 @@ class DocSearch:
 
             # Indexes for efficient lookup
             conn.execute("""
-                CREATE INDEX IF NOT EXISTS idx_chunks_file 
+                CREATE INDEX IF NOT EXISTS idx_chunks_file
                 ON chunks(file_path)
             """)
             conn.execute("""
-                CREATE INDEX IF NOT EXISTS idx_chunks_hash 
+                CREATE INDEX IF NOT EXISTS idx_chunks_hash
                 ON chunks(file_hash)
             """)
 
             # Vector table for embeddings (using sqlite-vec)
             conn.execute(f"""
-                CREATE VIRTUAL TABLE IF NOT EXISTS chunk_embeddings 
+                CREATE VIRTUAL TABLE IF NOT EXISTS chunk_embeddings
                 USING vec0(
                     chunk_id INTEGER PRIMARY KEY,
                     embedding FLOAT[{EMBEDDING_DIM}]
@@ -355,7 +355,7 @@ class DocSearch:
             # vec_distance_cosine returns distance (0 = identical), convert to similarity
             results = conn.execute(
                 """
-                SELECT 
+                SELECT
                     c.content,
                     c.file_path,
                     c.start_line,

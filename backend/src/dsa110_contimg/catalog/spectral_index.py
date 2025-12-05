@@ -87,25 +87,25 @@ def create_spectral_indices_table(db_path: str = "/data/dsa110-contimg/state/db/
         # Create indices for efficient queries
         cur.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_spec_idx_source 
+            CREATE INDEX IF NOT EXISTS idx_spec_idx_source
             ON spectral_indices(source_id)
         """
         )
         cur.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_spec_idx_coords 
+            CREATE INDEX IF NOT EXISTS idx_spec_idx_coords
             ON spectral_indices(ra_deg, dec_deg)
         """
         )
         cur.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_spec_idx_alpha 
+            CREATE INDEX IF NOT EXISTS idx_spec_idx_alpha
             ON spectral_indices(spectral_index)
         """
         )
         cur.execute(
             """
-            CREATE INDEX IF NOT EXISTS idx_spec_idx_quality 
+            CREATE INDEX IF NOT EXISTS idx_spec_idx_quality
             ON spectral_indices(fit_quality, spectral_index)
         """
         )
@@ -318,7 +318,7 @@ def store_spectral_index(
             """
             INSERT OR REPLACE INTO spectral_indices
             (source_id, ra_deg, dec_deg, spectral_index, spectral_index_err,
-             freq1_ghz, freq2_ghz, flux1_mjy, flux2_mjy, 
+             freq1_ghz, freq2_ghz, flux1_mjy, flux2_mjy,
              flux1_err_mjy, flux2_err_mjy,
              catalog1, catalog2, match_separation_arcsec,
              n_frequencies, fit_quality, calculated_at, notes)
@@ -398,7 +398,7 @@ def query_spectral_indices(
     if ra_deg is not None and dec_deg is not None:
         query += """
             AND (
-                (ra_deg - ?)*(ra_deg - ?) + (dec_deg - ?)*(dec_deg - ?) 
+                (ra_deg - ?)*(ra_deg - ?) + (dec_deg - ?)*(dec_deg - ?)
                 <= ?*?
             )
         """
@@ -459,7 +459,7 @@ def get_spectral_index_for_source(
         """
         SELECT * FROM spectral_indices
         WHERE source_id = ?
-        ORDER BY 
+        ORDER BY
             CASE fit_quality
                 WHEN 'good' THEN 1
                 WHEN 'fair' THEN 2
@@ -592,8 +592,8 @@ def get_spectral_index_statistics(
         # By quality
         cur.execute(
             """
-            SELECT fit_quality, COUNT(*) 
-            FROM spectral_indices 
+            SELECT fit_quality, COUNT(*)
+            FROM spectral_indices
             GROUP BY fit_quality
         """
         )

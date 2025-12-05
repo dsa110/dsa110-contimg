@@ -536,7 +536,7 @@ async def execute_retention_policy(
         conn.close()
         raise HTTPException(status_code=404, detail=f"Policy {policy_id} not found")
 
-    policy = policy_from_row(row)
+    policy_from_row(row)
 
     # Create execution record
     execution_id = str(uuid.uuid4())
