@@ -56,6 +56,16 @@ from dsa110_contimg.calibration.selfcal import (
     selfcal_ms,
 )
 
+# Catalog registry (unified catalog query interface)
+from dsa110_contimg.calibration.catalog_registry import (
+    CatalogName,
+    CatalogConfig,
+    CATALOG_REGISTRY,
+    query_catalog,
+    query_multiple_catalogs,
+    list_available_catalogs,
+)
+
 __all__ = [
     # Transit utilities
     "next_transit_time",
@@ -98,4 +108,11 @@ __all__ = [
     "SelfCalResult",
     "selfcal_iteration",
     "selfcal_ms",
+    # Catalog registry
+    "CatalogName",
+    "CatalogConfig",
+    "CATALOG_REGISTRY",
+    "query_catalog",
+    "query_multiple_catalogs",
+    "list_available_catalogs",
 ]

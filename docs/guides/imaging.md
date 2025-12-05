@@ -101,6 +101,52 @@ Images are stored in `/stage/dsa110-contimg/images/` with FITS format:
 | `*.img-residual.fits` | Residual image        |
 | `*.img-psf.fits`      | Point spread function |
 
+## Creating Catalog Masks
+
+Create a FITS mask from any supported catalog for use with WSClean:
+
+```bash
+# Create mask from UNICAT (unified catalog - recommended)
+python -m dsa110_contimg.imaging.cli create-mask \
+    --image /path/to/reference.fits \
+    --catalog unicat \
+    --min-mjy 5.0 \
+    --radius-arcsec 30.0
+
+# Create mask from NVSS
+python -m dsa110_contimg.imaging.cli create-mask \
+    --image /path/to/reference.fits \
+    --catalog nvss \
+    --min-mjy 10.0
+
+# Create mask from VLASS
+python -m dsa110_contimg.imaging.cli create-mask \
+    --image /path/to/reference.fits \
+    --catalog vlass \
+    --min-mjy 3.0
+```
+
+Supported catalogs: `unicat`, `nvss`, `first`, `vlass`, `atnf`, `rax`
+
+## Creating Source Overlays
+
+Generate a PNG overlay showing catalog sources on your image:
+
+```bash
+# Overlay UNICAT sources
+python -m dsa110_contimg.imaging.cli create-overlay \
+    --image /path/to/image.fits \
+    --out /path/to/overlay.png \
+    --catalog unicat \
+    --radius-arcsec 30.0
+
+# Overlay NVSS sources
+python -m dsa110_contimg.imaging.cli create-overlay \
+    --image /path/to/image.fits \
+    --out /path/to/overlay.png \
+    --catalog nvss
+```
+
 ## CLI Reference
 
 ```bash
@@ -110,6 +156,8 @@ python -m dsa110_contimg.imaging.cli --help
 # Subcommands
 python -m dsa110_contimg.imaging.cli image --help
 python -m dsa110_contimg.imaging.cli export --help
+python -m dsa110_contimg.imaging.cli create-mask --help
+python -m dsa110_contimg.imaging.cli create-overlay --help
 ```
 
 ## Source Extraction (Photometry)
