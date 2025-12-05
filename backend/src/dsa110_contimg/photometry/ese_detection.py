@@ -69,10 +69,9 @@ def detect_ese_candidates(
             return []
 
         if "ese_candidates" not in tables:
-            logger.warning("ese_candidates table not found - creating it")
-            from dsa110_contimg.database.schema_evolution import evolve_schema
-
-            evolve_schema(products_db, verbose=False)
+            logger.warning("ese_candidates table not found - initializing database")
+            from dsa110_contimg.database import ensure_pipeline_db
+            ensure_pipeline_db().close()  # Ensure schema is created
 
         # If recompute requested, update variability stats first
         if recompute:

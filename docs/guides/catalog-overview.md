@@ -642,7 +642,7 @@ config.crossmatch.catalog_types = ["nvss", "rax", "first"]
 # Stage executes automatically after imaging/photometry
 ```
 
-**Database Storage** (`database/schema_evolution.py`):
+**Database Storage** (`database/schema.sql`):
 
 ```sql
 CREATE TABLE cross_matches (

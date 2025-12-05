@@ -6,30 +6,26 @@ set -e
 echo "=== End-to-End Data Registry Test ==="
 echo ""
 
-# 1. Test database migration
-echo "1. Testing database migration..."
-PYTHONPATH=/data/dsa110-contimg/src /opt/miniforge/envs/casa6/bin/python -W ignore::DeprecationWarning -c "
-from dsa110_contimg.database.schema_evolution import evolve_products_schema
-from pathlib import Path
-import tempfile
+# 1. Test database initialization
+echo "1. Testing database initialization..."
+PYTHONPATH=/data/dsa110-contimg/backend/src /opt/miniforge/envs/casa6/bin/python -W ignore::DeprecationWarning -c "
+from dsa110_contimg.database import ensure_pipeline_db
 
-db_path = Path('/data/dsa110-contimg/state/db/products.sqlite3')
-if db_path.exists():
-    result = evolve_products_schema(db_path, verbose=False)
-    print(f'   Migration: {\":check:\" if result else \":cross:\"}')
-else:
-    print('   :warning: Database does not exist, skipping migration')
+conn = ensure_pipeline_db()
+tables = [row[0] for row in conn.execute(\"SELECT name FROM sqlite_master WHERE type='table'\").fetchall()]
+conn.close()
+print(f'   Database initialized: ✓ ({len(tables)} tables)')
 "
 echo ""
 
 # 2. Test data registration
 echo "2. Testing data registration..."
-PYTHONPATH=/data/dsa110-contimg/src /opt/miniforge/envs/casa6/bin/python -W ignore::DeprecationWarning scripts/test_data_registry.py
+PYTHONPATH=/data/dsa110-contimg/backend/src /opt/miniforge/envs/casa6/bin/python -W ignore::DeprecationWarning scripts/test_data_registry.py
 echo ""
 
 # 3. Test API endpoints
 echo "3. Testing API endpoints..."
-PYTHONPATH=/data/dsa110-contimg/src /opt/miniforge/envs/casa6/bin/python -W ignore::DeprecationWarning -c "
+PYTHONPATH=/data/dsa110-contimg/backend/src /opt/miniforge/envs/casa6/bin/python -W ignore::DeprecationWarning -c "
 from dsa110_contimg.api.routes import create_app
 from fastapi.testclient import TestClient
 

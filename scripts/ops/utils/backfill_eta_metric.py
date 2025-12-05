@@ -66,8 +66,8 @@ def backfill_eta_metric(
         }
         
         if 'eta_metric' not in columns:
-            print("Error: eta_metric column not found. Run schema evolution first.")
-            print("  python -m dsa110_contimg.database.schema_evolution")
+            print("Error: eta_metric column not found. Reinitialize the database.")
+            print("  python -c 'from dsa110_contimg.database import ensure_pipeline_db; ensure_pipeline_db()'")
             return 0
         
         # Get all sources from variability_stats

@@ -194,21 +194,13 @@ def read_first_catalog(
             # FIRST catalog name in Vizier: "VIII/92/first14"
             first_catalog_id = "VIII/92/first14"
 
-            # FIRST catalog covers Dec > -40°. Query needed declination strip.
-            # Use a wide RA range at target Dec to get all sources in the strip
-            print(f"Querying FIRST catalog via Vizier for Dec strip...")
+            # FIRST catalog covers Dec > -40° with ~946k sources
+            print("Querying FIRST catalog via Vizier...")
+            print("  Note: This downloads the full FIRST catalog (~946k sources)")
+            print("  This may take several minutes...")
 
-            # Query a region spanning full RA (24h) at target declination
-            # Use SkyCoord to define center, then query with large radius
-            target_dec = 54.6  # Target declination for DSA-110
-            coord = SkyCoord(ra=180 * u.deg, dec=target_dec * u.deg)
-
-            # Query with ±6° dec range (~12° total), full RA coverage
-            catalog_list = Vizier.query_region(
-                coord,
-                radius=12 * u.deg,  # Large radius to cover declination strip
-                catalog=first_catalog_id,
-            )
+            # Query the entire catalog (no coordinate constraint)
+            catalog_list = Vizier.get_catalogs(first_catalog_id)
 
             if catalog_list and len(catalog_list) > 0:
                 # Convert first catalog to DataFrame
@@ -394,8 +386,12 @@ def read_vlass_catalog(
                     print("Coordinates converted from internal format")
 
                 # Map flux columns
-                # VLASS uses 'Flux' for peak flux and 'Total_flux' for integrated
-                if "Flux" in df.columns:
+                # VLASS Vizier columns: Fpeak (peak flux mJy/beam), Ftot (total flux mJy)
+                if "Fpeak" in df.columns:
+                    df["flux_mjy"] = df["Fpeak"]
+                elif "Ftot" in df.columns:
+                    df["flux_mjy"] = df["Ftot"]
+                elif "Flux" in df.columns:
                     df["flux_mjy"] = df["Flux"]
                 elif "Total_flux" in df.columns:
                     df["flux_mjy"] = df["Total_flux"]
