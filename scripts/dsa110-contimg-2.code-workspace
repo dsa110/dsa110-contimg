@@ -1,0 +1,164 @@
+{
+  "folders": [
+	{
+		"name": "dsa110-contimg",
+		"path": ".."
+	}
+],
+  "settings": {
+    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.diagnosticSeverityOverrides": {
+      "reportAttributeAccessIssue": "none",
+      "reportOptionalCall": "none",
+      "reportArgumentType": "none",
+      "reportOperatorIssue": "none",
+      "reportOptionalOperand": "none",
+      "reportMissingImports": "warning",
+      "reportReturnType": "none",
+      "reportUndefinedVariable": "warning",
+      "reportGeneralTypeIssues": "none"
+    },
+    "pylint.args": ["--rcfile=${workspaceFolder}/.pylintrc"],
+    "flake8.args": ["--config=${workspaceFolder}/.flake8"],
+    "chat.tools.terminal.ignoreDefaultAutoApproveRules": true,
+    "chat.tools.terminal.autoApprove": {
+      "/.*/": true,
+      "ps": true,
+      "/^git\\b.*/": true,
+      "2>/dev/null": true,
+      "/dev/null": true,
+      "bash": true,
+      "rmdir": false,
+      "dd": false,
+      "/^git branch\\b.*-(d|D|m|M|-delete|-force)\\b/": false,
+      "/^find\\b.*-(delete|exec|execdir|fprint|fprintf|fls|ok|okdir)\\b/": false,
+      "/^rm\\b.*-(r|f|rf|fr)/": false,
+      "/^mv\\b.*\\s+/dev/null$/": false,
+      "rm": false,
+      "del": false,
+      "Remove-Item": false,
+      "ri": false,
+      "rd": false,
+      "erase": false,
+      "/^del\\b.*\\*\\.\\*$/": false,
+      "/^Remove-Item\\b.*-Recurse/": false,
+      "/^mv\\b.*\\s+\\/dev\\/null$/": false
+    },
+    "chat.mcp.assisted.nuget.enabled": true,
+    "chat.mcp.gallery.enabled": true,
+    "chat.mcp.serverSampling": {},
+    "inlineChat.notebookAgent": true,
+    "inlineChat.finishOnType": true,
+    "inlineChat.enableV2": true,
+    "chat.useNestedAgentsMdFiles": true,
+    "chat.tools.terminal.blockDetectedFileWrites": "never",
+    "projectManager.git.baseFolders": ["/data/dsa110-contimg"],
+    "chat.agent.maxRequests": 300,
+    "github.copilot.nextEditSuggestions.enabled": true,
+    "[markdown]": {
+      "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[jsonc]": {
+      "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "makefile.configureOnOpen": true,
+    "chat.instructionsFilesLocations": {
+      ".github/instructions": true,
+      "/home/ubuntu/.aitk/instructions/": true,
+      "/Users/jakobfaber/.aitk/instructions/": true
+    },
+    "gitlens.ai.model": "vscode",
+    "gitlens.ai.vscode.model": "copilot:gpt-4.1",
+    "mssql.connectionGroups": [
+      {
+        "name": "ROOT",
+        "id": "5050CDA7-00DF-45FC-909D-DA8D7808F486"
+      }
+    ],
+    "totalTypeScript.hideAllTips": true,
+    "totalTypeScript.hideBasicTips": true,
+    "C_Cpp.intelliSenseEngine": "disabled",
+    "github.copilot.enable": {
+      "*": true,
+      "plaintext": false,
+      "markdown": true,
+      "scminput": false
+    },
+    "azureResourceGroups.selectedSubscriptions": [
+      "fd5be9d9-7b72-4df9-830e-b1f9cc5b44bd/fb75a12e-a6ce-446f-bb01-c0ade270c9af"
+    ],
+    "workbench.iconTheme": "material-icon-theme",
+    "github-actions.remote-name": "https://github.com/dsa110/dsa110-contimg.git",
+    "claudeCode.preferredLocation": "panel",
+    "claudeCode.selectedModel": "default",
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "editor.linkedEditing": true,
+    "conventionalCommits.lineBreak": "\\n",
+    "files.autoSave": "afterDelay",
+    "window.zoomLevel": 1,
+    "editor.wordWrap": "on",
+    "workbench.editor.labelFormat": "short",
+    "explorer.compactFolders": false,
+    "editor.guides.bracketPairs": true,
+    "editor.mouseWheelZoom": true,
+    "projectManager.openInNewWindowWhenClickingInStatusBar": true,
+    "errorLens.gutterIconsEnabled": false,
+    "errorLens.statusBarColorsEnabled": true,
+    "errorLens.statusBarMessageEnabled": true,
+    "errorLens.statusBarMessageType": "closestSeverity",
+    "errorLens.followCursor": "closestProblem",
+    "errorLens.scrollbarHackEnabled": true,
+    "errorLens.fontStyleItalic": true,
+    "errorLens.messageBackgroundMode": "message",
+    "workbench.colorCustomizations": {
+      "editorInfo.foreground": "#0080ff6a"
+    },
+    "editor.fontFamily": "Fira Code",
+    "editor.fontLigatures": true,
+    "eslint.lintTask.enable": true,
+    "eslint.codeAction.showDocumentation": {
+      "enable": true
+    },
+    "codemetrics.nodeconfiguration.ReturnStatement": 0.1,
+    "codemetrics.nodeconfiguration.SwitchStatement": 0.1,
+    "codemetrics.nodeconfiguration.JsxSelfClosingElement": 0.1,
+    "codemetrics.nodeconfiguration.JsxElement": 0.2,
+    "codemetrics.basics.CodeLensHiddenUnder": 4,
+    "workbench.colorTheme": "Default Dark Modern",
+    "@azure.argTenant": "fd5be9d9-7b72-4df9-830e-b1f9cc5b44bd",
+    "cmake.sourceDirectory": "/data/dsa110-contimg/vendor/everybeam_py",
+    "cSpell.words": [
+      "pybind",
+      "PYBIND",
+      "MSVC",
+      "flto",
+      "bigobj",
+      "LTCG",
+      "fvisibility",
+      "endfunction",
+      "endmacro",
+      "ARGN",
+      "TOUPPER",
+      "MINSIZEREL",
+      "RELWITHDEBINFO",
+      "casacore",
+      "everybeam",
+      "aocommon",
+      "cfitsio",
+      "fftw"
+    ],
+    "repomix.output.filePath": "repomix-output.md",
+    "repomix.output.style": "markdown",
+    "repomix.runner.useTargetAsOutput": true,
+    "repomix.output.parsableStyle": true,
+    "repomix.output.removeEmptyLines": true,
+    "repomix.output.includeEmptyDirectories": true,
+    "repomix.output.compress": true,
+    "repomix.output.showLineNumbers": true,
+    "repomix.output.topFilesLength": 10,
+    "chat.agent.thinking.collapsedTools": "all",
+    "chat.customAgentInSubagent.enabled": true,
+    "chat.edits2.enabled": false
+  }
+}
