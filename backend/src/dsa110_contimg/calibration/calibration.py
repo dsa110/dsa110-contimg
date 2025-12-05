@@ -815,8 +815,8 @@ def solve_prebandpass_phase(
     cal_field: str,
     refant: str,
     table_prefix: Optional[str] = None,
-    combine_fields: bool = False,
-    combine_spw: bool = False,
+    combine_fields: bool = True,
+    combine_spw: bool = True,
     uvrange: str = "",
     # Default to 'inf' to match test expectation and allow long integration when appropriate
     solint: str = "inf",

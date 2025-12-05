@@ -823,7 +823,7 @@ class CalibrationSolveStage(PipelineStage):
 
         # Get calibration parameters from context inputs or config
         params = context.inputs.get("calibration_params", {})
-        field = params.get("field", "0")
+        field = params.get("field", "0~23")  # FIX: Combine all 24 fields by default
         refant = params.get("refant", "103")
         solve_delay_flag = params.get("solve_delay", False)
         solve_bandpass_flag = params.get("solve_bandpass", True)
@@ -831,7 +831,7 @@ class CalibrationSolveStage(PipelineStage):
         model_source = params.get("model_source", "catalog")
         gain_solint = params.get("gain_solint", "inf")
         gain_calmode = params.get("gain_calmode", "ap")
-        bp_combine_field = params.get("bp_combine_field", False)
+        bp_combine_field = params.get("bp_combine_field", True)  # FIX: Combine all 24 fields by default
         prebp_phase = params.get("prebp_phase", False)
         flag_autocorr = params.get("flag_autocorr", True)
         # NEW: Enable adaptive flagging by default
@@ -1008,7 +1008,7 @@ class CalibrationSolveStage(PipelineStage):
                         set_model=True,
                         model_standard=params.get("bp_model_standard", "Perley-Butler 2017"),
                         combine_fields=bp_combine_field,
-                        combine_spw=params.get("bp_combine_spw", False),
+                        combine_spw=params.get("bp_combine_spw", True),  # Also recommended: combine SPWs
                         minsnr=params.get("bp_minsnr", 5.0),
                         uvrange=params.get("bp_uvrange", ""),
                         prebandpass_phase_table=prebp_table_inner,
