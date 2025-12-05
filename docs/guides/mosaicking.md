@@ -120,7 +120,8 @@ the DSA-110 Airy disk model:
 
 - **Dish diameter**: 4.7 m
 - **Frequency**: 1.405 GHz (L-band center)
-- **Model**: `PB(θ) = (2·J₁(x)/x)²` where `x = π·D·θ/λ`
+- **Model**: `PB(θ) = (2·J₁(x)/x)²` where `x = π·D·sin(θ)/λ`
+- **Implementation**: Uses `scipy.special.j1` for accurate Bessel function
 - **Cutoff**: Pixels with PB < 0.1 are masked to avoid edge noise amplification
 
 ```python

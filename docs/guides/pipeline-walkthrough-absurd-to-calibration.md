@@ -408,19 +408,208 @@ EOF
 
 ---
 
-## Phase 3: Production Bandpass Calibration Workflow
+## Phase 3: Calibrator MS Creation
 
-This MS (`2025-11-18T23:50:25.ms`) is a **science observation** at Dec +16.2°.
-To calibrate it:
+The science MS (`2025-11-18T23:50:25.ms`) is at Dec +16.2°. To calibrate it,
+we need a separate MS containing a calibrator transit at the same declination,
+within the validity window (~6 hours).
 
-1. **Find calibrator MS** at same declination within validity window (~6 hours)
-2. **On calibrator MS:**
-   - Populate MODEL_DATA from VLA catalog
-   - Phaseshift to calibrator position
-   - Solve pre-bandpass phase (`combine_fields=True`, `combine_spw=True`)
-   - Solve bandpass (`combine_fields=True`, `combine_spw=False`)
-3. **Apply to science MS:**
-   - `apply_to_target(science_ms, bptables=[cal_bptable])`
+### 3.1 Find Best Calibrator for Declination
+
+Use the precompute module to find the best calibrator for the observation's declination:
+
+**Command:**
+
+```python
+conda activate casa6 && python3 << 'EOF'
+import sys
+sys.path.insert(0, "/data/dsa110-contimg/backend/src")
+from dsa110_contimg.pipeline.precompute import get_pointing_tracker
+
+tracker = get_pointing_tracker()
+best = tracker.get_best_calibrator(dec_deg=16.2)
+print(f"Best calibrator: {best.name}")
+print(f"RA: {best.ra_deg:.4f}° ({best.ra_deg/15:.4f}h)")
+print(f"Dec: {best.dec_deg:.4f}°")
+EOF
+```
+
+**Result:**
+
+| Parameter | Value |
+|-----------|-------|
+| Calibrator | 1911+161 |
+| RA | 287.993° (19.1995h) |
+| Dec | +16.196° |
+
+---
+
+### 3.2 Calculate Calibrator Transit Time
+
+Find when the calibrator transited the meridian:
+
+**Command:**
+
+```python
+conda activate casa6 && python3 << 'EOF'
+import sys
+sys.path.insert(0, "/data/dsa110-contimg/backend/src")
+from dsa110_contimg.calibration.transit import predict_calibrator_transit_by_coords
+from datetime import datetime
+
+# 1911+161 coordinates
+ra_deg = 287.993
+dec_deg = 16.196
+
+# Find transit before our science observation
+transit = predict_calibrator_transit_by_coords(
+    ra_deg=ra_deg,
+    dec_deg=dec_deg,
+    from_time=datetime(2025, 11, 18, 23, 50, 0)
+)
+print(f"Transit UTC: {transit}")
+EOF
+```
+
+**Result:** Transit at **2025-11-18T23:12:06 UTC**
+
+---
+
+### 3.3 Find Matching HDF5 Subband Group
+
+Query the HDF5 file index to find a complete 16-subband group near the transit time:
+
+**Command:**
+
+```python
+conda activate casa6 && python3 << 'EOF'
+import sys
+sys.path.insert(0, "/data/dsa110-contimg/backend/src")
+from dsa110_contimg.database.hdf5_index import query_subband_groups
+
+groups = query_subband_groups(
+    db_path="/data/incoming/hdf5_file_index.sqlite3",
+    start_time="2025-11-18T23:00:00",
+    end_time="2025-11-18T23:30:00",
+    cluster_tolerance_s=60.0,
+)
+
+complete = [g for g in groups if len(g) == 16]
+print(f"Found {len(complete)} complete groups")
+for g in complete:
+    print(f"  {g[0].timestamp}")
+EOF
+```
+
+**Result:** Found group at **2025-11-18T23:09:11** (3 minutes before transit, ideal)
+
+---
+
+### 3.4 Convert Calibrator HDF5 to MS
+
+**Command:**
+
+```python
+conda activate casa6 && python3 << 'EOF'
+import sys
+sys.path.insert(0, "/data/dsa110-contimg/backend/src")
+from dsa110_contimg.conversion.strategies.hdf5_orchestrator import convert_subband_groups_to_ms
+
+convert_subband_groups_to_ms(
+    input_dir="/data/incoming",
+    output_dir="/stage/dsa110-contimg/ms",
+    start_time="2025-11-18T23:09:00",
+    end_time="2025-11-18T23:10:00",
+)
+EOF
+```
+
+**Result:** Created `/stage/dsa110-contimg/ms/2025-11-18T23:09:11.ms` (2.1 GB)
+
+---
+
+### 3.5 Verify Calibrator is in MS
+
+Confirm that 1911+161 is in one of the fields:
+
+**Command:**
+
+```python
+conda activate casa6 && python3 << 'EOF'
+import sys
+sys.path.insert(0, "/data/dsa110-contimg/backend/src")
+from dsa110_contimg.calibration.selection import select_bandpass_from_catalog
+import numpy as np
+
+ms_path = "/stage/dsa110-contimg/ms/2025-11-18T23:09:11.ms"
+
+result = select_bandpass_from_catalog(ms_path, search_radius_deg=0.5)
+sel_str, indices, wflux, cal_info, peak_idx = result
+name, ra_deg, dec_deg, flux_jy = cal_info
+
+print(f"Calibrator: {name}")
+print(f"Peak field: {peak_idx}")
+print(f"Field selection: {sel_str}")
+print(f"Peak weighted flux: {np.max(wflux):.4f}")
+EOF
+```
+
+**Result:**
+
+| Parameter | Value |
+|-----------|-------|
+| Calibrator | 1911+161 |
+| Peak field | **19** |
+| Beam response | 0.9996 (nearly on-axis) |
+| Separation | 0.03° |
+
+---
+
+### 3.6 Field Position Verification
+
+Confirm the calibrator position matches field 19:
+
+**Command:**
+
+```python
+conda activate casa6 && python3 << 'EOF'
+import numpy as np
+from casacore.tables import table
+
+ms_path = "/stage/dsa110-contimg/ms/2025-11-18T23:09:11.ms"
+
+with table(f"{ms_path}/FIELD", readonly=True) as tf:
+    phase_dirs = tf.getcol("PHASE_DIR")
+    names = tf.getcol("NAME")
+
+# Field 19 position
+ra_h = np.rad2deg(phase_dirs[19, 0, 0]) / 15
+dec_deg = np.rad2deg(phase_dirs[19, 0, 1])
+
+print(f"Field 19: RA={ra_h:.4f}h, Dec={dec_deg:+.4f}°")
+print(f"1911+161: RA=19.1995h, Dec=+16.196°")
+print(f"Separation: {abs(ra_h - 19.1995) * 15 * np.cos(np.deg2rad(16.2)) * 60:.2f} arcmin")
+EOF
+```
+
+**Result:** Field 19 at RA=19.1999h, Dec=+16.228° (0.03° from calibrator)
+
+---
+
+## Phase 4: Bandpass Calibration (Next Steps)
+
+With both MS files ready:
+
+- **Science MS**: `/stage/dsa110-contimg/ms/2025-11-18T23:50:25.ms`
+- **Calibrator MS**: `/stage/dsa110-contimg/ms/2025-11-18T23:09:11.ms`
+
+The next steps are:
+
+1. **Populate MODEL_DATA** in calibrator MS from VLA flux model
+2. **Phaseshift** calibrator MS to 1911+161 position (field 19)
+3. **Solve pre-bandpass phase** (`combine_fields=True`, `combine_spw=True`)
+4. **Solve bandpass** (`combine_fields=True`, `combine_spw=False`)
+5. **Apply solutions** to science MS
 
 ### Key Parameters
 
@@ -435,4 +624,5 @@ To calibrate it:
 ---
 
 _Document generated: 2025-12-05_
-_Analysis performed on: 2025-11-18T23:50:25.ms_
+_Science observation: 2025-11-18T23:50:25.ms (Dec +16.2°)_
+_Calibrator observation: 2025-11-18T23:09:11.ms (1911+161)_

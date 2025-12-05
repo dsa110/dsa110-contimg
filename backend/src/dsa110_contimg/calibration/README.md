@@ -45,8 +45,35 @@ from dsa110_contimg.calibration.catalogs import load_vla_catalog
 
 # Load all VLA calibrators as DataFrame
 df = load_vla_catalog()
-print(df.columns)  # ['name', 'ra_deg', 'dec_deg', 'flux_1400', ...]
+print(df.columns)  # ['ra_deg', 'dec_deg', 'flux_jy']
+# Note: Index is the calibrator name
 ```
+
+**Important**: The catalog includes ALL calibrators from the VLA database, not just
+those with 20cm flux measurements. Calibrators without L-band flux data (e.g., those
+only measured at Q-band like 1911+161) are assigned a default flux of 1.0 Jy.
+
+## Primary Beam Model
+
+The calibrator selection uses an Airy disk primary beam model:
+
+```python
+from dsa110_contimg.calibration.beam_model import primary_beam_response
+
+# Calculate beam response for source offset from field center
+resp = primary_beam_response(
+    ant_ra=field_center_ra,    # radians
+    ant_dec=field_center_dec,  # radians
+    src_ra=source_ra,          # radians
+    src_dec=source_dec,        # radians
+    freq_GHz=1.4,
+    dish_dia_m=4.7,            # DSA-110 dish size
+)
+# Returns: 0.0-1.0 (1.0 = at phase center)
+```
+
+The Airy pattern uses scipy's Bessel function: `PB(θ) = (2·J₁(x)/x)²`
+where `x = π·D·sin(θ)/λ`.
 
 ## Bandpass Field Selection
 
@@ -55,8 +82,12 @@ Select optimal fields for bandpass calibration using primary-beam-weighted flux:
 ```python
 from dsa110_contimg.calibration.selection import select_bandpass_from_catalog
 
-field_sel, indices, wflux, cal_info, peak_idx = select_bandpass_from_catalog("observation.ms")
-print(f"Best field: {peak_idx}, calibrator: {cal_info}")
+field_sel, indices, wflux, cal_info, peak_idx = select_bandpass_from_catalog(
+    "observation.ms",
+    search_radius_deg=1.0,  # Default; increase for sparse catalogs
+)
+name, ra_deg, dec_deg, flux_jy = cal_info
+print(f"Best field: {peak_idx}, calibrator: {name}")
 ```
 
 ## Usage in Pipeline
