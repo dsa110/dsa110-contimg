@@ -171,73 +171,111 @@ function getAccessToken(): string | null {
  * Fetch pipeline status from ABSURD endpoint.
  */
 async function fetchPipelineStatus(): Promise<PipelineStatusResponse> {
-  // The backend exposes ABSURD management endpoints at
-  // `/absurd/*` (not under `/api/v1`). The frontend's apiClient
-  // has a default baseURL of `/api`, so we use browser `fetch`
-  // with the Authorization header to call ABSURD endpoints.
-
-  // We'll query the detailed health and workers endpoints and
-  // synthesize a PipelineStatusResponse. Per-stage task counts
-  // are optional and may not be available from ABSURD; in that
-  // case we fall back to empty counts so the UI still renders.
-  const now = new Date().toISOString();
-
   // Get auth token for the requests
   const token = getAccessToken();
   const headers: HeadersInit = token
     ? { Authorization: `Bearer ${token}` }
     : {};
 
-  // Helper to fetch with auth
-  const fetchWithAuth = (url: string) =>
-    fetch(url, { credentials: "same-origin", headers });
+  try {
+    // Try the new comprehensive pipeline status endpoint first
+    const response = await fetch("/absurd/pipeline/status", {
+      credentials: "same-origin",
+      headers,
+    });
 
-  // Call endpoints concurrently
-  const [healthRes, workersRes, queuesStatsRes] = await Promise.all([
-    fetchWithAuth("/absurd/health/detailed").then((r) => {
-      if (!r.ok) throw new Error("ABSURD health not available");
-      return r.json();
-    }),
-    fetchWithAuth("/absurd/workers")
-      .then((r) => (r.ok ? r.json() : []))
-      .catch(() => []),
-    fetchWithAuth("/absurd/queues/stats")
-      .then((r) => (r.ok ? r.json() : null))
-      .catch(() => null),
-  ]);
+    if (response.ok) {
+      const data = await response.json();
 
-  // Determine health: prefer explicit status, otherwise derive from worker pool
-  const isHealthy =
-    (healthRes &&
-      (healthRes.status === "healthy" ||
-        healthRes.worker_pool_healthy === true)) ||
-    false;
+      // Map the backend response to our frontend types
+      const stages = Object.fromEntries(
+        PIPELINE_STAGES.map((s) => {
+          const backendStage = data.stages?.[s.id];
+          return [
+            s.id,
+            backendStage
+              ? {
+                  pending: backendStage.pending || 0,
+                  running: backendStage.running || 0,
+                  completed: backendStage.completed || 0,
+                  failed: backendStage.failed || 0,
+                }
+              : { ...EMPTY_COUNTS },
+          ];
+        })
+      ) as Record<PipelineStage, StageStatusCounts>;
 
-  // Worker count from workers endpoint - response is {workers: [], total: N}
-  const workerCount =
-    workersRes?.total ??
-    (Array.isArray(workersRes?.workers) ? workersRes.workers.length : 0);
+      return {
+        stages,
+        total: {
+          pending: data.total?.pending || 0,
+          running: data.total?.running || 0,
+          completed: data.total?.completed || 0,
+          failed: data.total?.failed || 0,
+        },
+        worker_count: data.worker_count || 0,
+        last_updated: data.last_updated || new Date().toISOString(),
+        is_healthy: data.is_healthy ?? false,
+      };
+    }
 
-  // Queue stats may include total counts; we synthesize a simple total structure
-  const total: StageStatusCounts = {
-    pending: queuesStatsRes?.queue_depth ?? healthRes?.queue_depth ?? 0,
-    running: 0,
-    completed: 0,
-    failed: 0,
-  };
+    // Fall back to legacy endpoints if new endpoint not available
+    throw new Error("Pipeline status endpoint not available");
+  } catch {
+    // Fallback: synthesize from legacy endpoints
+    const now = new Date().toISOString();
 
-  // Build a minimal stages map with empty counts so component can render
-  const stages = Object.fromEntries(
-    PIPELINE_STAGES.map((s) => [s.id, { ...EMPTY_COUNTS }])
-  ) as Record<PipelineStage, StageStatusCounts>;
+    // Helper to fetch with auth
+    const fetchWithAuth = (url: string) =>
+      fetch(url, { credentials: "same-origin", headers });
 
-  return {
-    stages,
-    total,
-    worker_count: workerCount,
-    last_updated: now,
-    is_healthy: Boolean(isHealthy),
-  };
+    // Call legacy endpoints concurrently
+    const [healthRes, workersRes, queuesStatsRes] = await Promise.all([
+      fetchWithAuth("/absurd/health/detailed").then((r) => {
+        if (!r.ok) throw new Error("ABSURD health not available");
+        return r.json();
+      }),
+      fetchWithAuth("/absurd/workers")
+        .then((r) => (r.ok ? r.json() : []))
+        .catch(() => []),
+      fetchWithAuth("/absurd/queues/stats")
+        .then((r) => (r.ok ? r.json() : null))
+        .catch(() => null),
+    ]);
+
+    // Determine health
+    const isHealthy =
+      (healthRes &&
+        (healthRes.status === "healthy" ||
+          healthRes.worker_pool_healthy === true)) ||
+      false;
+
+    // Worker count
+    const workerCount =
+      workersRes?.total ??
+      (Array.isArray(workersRes?.workers) ? workersRes.workers.length : 0);
+
+    // Queue stats
+    const total: StageStatusCounts = {
+      pending: queuesStatsRes?.queue_depth ?? healthRes?.queue_depth ?? 0,
+      running: 0,
+      completed: 0,
+      failed: 0,
+    };
+
+    // Empty stages for fallback
+    const stages = Object.fromEntries(
+      PIPELINE_STAGES.map((s) => [s.id, { ...EMPTY_COUNTS }])
+    ) as Record<PipelineStage, StageStatusCounts>;
+
+    return {
+      stages,
+      total,
+      worker_count: workerCount,
+      last_updated: now,
+      is_healthy: Boolean(isHealthy),
+    };
+  }
 }
 
 /**

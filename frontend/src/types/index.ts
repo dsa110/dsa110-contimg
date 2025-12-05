@@ -105,3 +105,91 @@ export type {
   LogSearchResponse,
   LogTimeRange,
 } from "./logs";
+
+// =============================================================================
+// Additional domain types (newly consolidated)
+// =============================================================================
+
+// Authentication types
+export type {
+  UserRole,
+  User,
+  LoginCredentials,
+  AuthTokens,
+  AuthState,
+  Permission,
+} from "./auth";
+
+// Health monitoring types
+export type {
+  ServiceStatusType,
+  ServiceHealthStatus,
+  HealthSummary,
+  SystemHealthReport,
+  ValidityWindowInfo,
+  ActiveSetInfo,
+  ActiveValidityWindows,
+} from "./health";
+
+// Retention policy types
+export type {
+  RetentionDataType,
+  RetentionTriggerType,
+  RetentionAction,
+  RetentionPriority,
+  RetentionPolicyStatus,
+  RetentionRule,
+  RetentionPolicy,
+  RetentionPolicyWithStats,
+  RetentionExecutionStatus,
+  RetentionSimulationResult,
+  RetentionStats,
+} from "./retention";
+export { formatBytes, ACTION_LABELS, PRIORITY_COLORS } from "./retention";
+
+// Notification types
+export type {
+  NotificationSeverity,
+  NotificationCategory,
+  NotificationChannel,
+  Notification,
+  NotificationPreferences,
+} from "./notifications";
+export { DEFAULT_NOTIFICATION_PREFERENCES } from "./notifications";
+
+// Batch operation types
+export type {
+  BatchOperationType,
+  BatchJobStatus,
+  BatchJobPriority,
+  BatchItem,
+  CreateBatchJobRequest,
+  BatchJob,
+  BatchProgress,
+} from "./batch";
+
+// Region types (for FITS tools)
+export type { RegionShape, RegionFormat, Region } from "./regions";
+
+// VO (Virtual Observatory) types
+export type {
+  VOTableDataType,
+  VOTablePrimitiveValue,
+  VOTableField,
+  VOTableRow,
+  VOTableResource,
+  VOTable,
+  SAMPConnection,
+  SAMPMessage,
+  SAMPClient,
+  ExportFormat,
+  ExportOptions,
+} from "./vo";
+
+// Alert policy types
+export type {
+  AlertSeverity,
+  AlertCondition,
+  AlertPolicy,
+  AlertPolicyFormData,
+} from "./alerts";
