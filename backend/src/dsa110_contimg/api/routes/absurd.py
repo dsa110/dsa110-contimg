@@ -91,6 +91,29 @@ class QueueStatsResponse(BaseModel):
     total: int
 
 
+class StageStatsResponse(BaseModel):
+    """Per-stage task statistics response."""
+
+    stage: str
+    pending: int
+    running: int  # claimed tasks
+    completed: int
+    failed: int
+
+
+class PipelineStatusResponse(BaseModel):
+    """Comprehensive pipeline status response for dashboard."""
+
+    stages: Dict[str, StageStatsResponse]
+    total: StageStatsResponse
+    worker_count: int
+    active_workers: int
+    idle_workers: int
+    is_healthy: bool
+    last_updated: str
+    queue_depth: int  # pending + running
+
+
 class MetricsResponse(BaseModel):
     """Absurd metrics response."""
 
@@ -514,6 +537,114 @@ async def get_queue_stats(queue_name: str, client: AbsurdClient = Depends(get_ab
                 detail="ABSURD client not connected to database",
             )
         raise
+
+
+@router.get("/pipeline/status", response_model=PipelineStatusResponse)
+async def get_pipeline_status(client: AbsurdClient = Depends(get_absurd_client)):
+    """Get comprehensive pipeline status with per-stage task counts.
+
+    Returns task counts grouped by pipeline stage (task_name) for dashboard display.
+    This endpoint provides real-time visibility into the pipeline processing state.
+
+    Returns:
+        PipelineStatusResponse with per-stage and total counts
+    """
+    from datetime import datetime
+
+    try:
+        if client._pool is None:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Database connection not available",
+            )
+
+        async with client._pool.acquire() as conn:
+            # Get per-stage stats grouped by task_name and status
+            stage_rows = await conn.fetch(
+                """
+                SELECT 
+                    task_name,
+                    COUNT(*) FILTER (WHERE status = 'pending') as pending,
+                    COUNT(*) FILTER (WHERE status = 'claimed') as running,
+                    COUNT(*) FILTER (WHERE status = 'completed') as completed,
+                    COUNT(*) FILTER (WHERE status = 'failed') as failed
+                FROM absurd.tasks
+                GROUP BY task_name
+                ORDER BY task_name
+                """
+            )
+
+            # Get total counts
+            total_row = await conn.fetchrow(
+                """
+                SELECT 
+                    COUNT(*) FILTER (WHERE status = 'pending') as pending,
+                    COUNT(*) FILTER (WHERE status = 'claimed') as running,
+                    COUNT(*) FILTER (WHERE status = 'completed') as completed,
+                    COUNT(*) FILTER (WHERE status = 'failed') as failed
+                FROM absurd.tasks
+                """
+            )
+
+            # Get worker stats
+            worker_row = await conn.fetchrow(
+                """
+                SELECT 
+                    COUNT(*) as total,
+                    COUNT(*) FILTER (WHERE state = 'active') as active,
+                    COUNT(*) FILTER (WHERE state = 'idle') as idle
+                FROM absurd.workers
+                WHERE last_seen > NOW() - INTERVAL '5 minutes'
+                """
+            )
+
+        # Build per-stage response
+        stages = {}
+        for row in stage_rows:
+            stages[row["task_name"]] = StageStatsResponse(
+                stage=row["task_name"],
+                pending=row["pending"] or 0,
+                running=row["running"] or 0,
+                completed=row["completed"] or 0,
+                failed=row["failed"] or 0,
+            )
+
+        # Build total stats
+        total = StageStatsResponse(
+            stage="total",
+            pending=total_row["pending"] or 0 if total_row else 0,
+            running=total_row["running"] or 0 if total_row else 0,
+            completed=total_row["completed"] or 0 if total_row else 0,
+            failed=total_row["failed"] or 0 if total_row else 0,
+        )
+
+        # Worker counts
+        worker_count = worker_row["total"] or 0 if worker_row else 0
+        active_workers = worker_row["active"] or 0 if worker_row else 0
+        idle_workers = worker_row["idle"] or 0 if worker_row else 0
+
+        # Determine health status
+        is_healthy = worker_count > 0 or (total.pending == 0 and total.running == 0)
+
+        return PipelineStatusResponse(
+            stages=stages,
+            total=total,
+            worker_count=worker_count,
+            active_workers=active_workers,
+            idle_workers=idle_workers,
+            is_healthy=is_healthy,
+            last_updated=datetime.utcnow().isoformat() + "Z",
+            queue_depth=total.pending + total.running,
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception(f"Failed to get pipeline status: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get pipeline status: {str(e)}",
+        )
 
 
 @router.get("/health")
