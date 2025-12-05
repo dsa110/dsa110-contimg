@@ -129,6 +129,7 @@ export function GrafanaEmbed({
   }, [theme]);
 
   // Build the dashboard URL
+  // Note: retryKey is intentionally used in the key prop of iframe, not in URL generation
   const dashboardUrl = useMemo(() => {
     const baseUrl = GRAFANA_CONFIG.baseUrl;
     const params = new URLSearchParams({
@@ -163,7 +164,6 @@ export function GrafanaEmbed({
     kioskMode,
     refresh,
     variables,
-    retryKey,
   ]);
 
   const handleLoad = useCallback(() => {

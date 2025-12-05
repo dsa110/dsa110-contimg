@@ -8,10 +8,25 @@
 
     <!-- JS9 FITS Viewer - jQuery is required first -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <link rel="stylesheet" href="https://js9.si.edu/js9/js9.css" />
+    <link rel="stylesheet" href="/vendor/js9/js9.css" />
     <script src="/vendor/fabric-4.6.0.min.js"></script>
-    <script src="https://js9.si.edu/js9/js9prefs.js"></script>
-    <script src="https://js9.si.edu/js9/js9.min.js"></script>
+    <!-- Configure JS9 to use local paths for worker files -->
+    <script>
+      var JS9Prefs = {
+        globalOpts: {
+          helperType: "none",
+          installDir: "/vendor/js9/",
+          debug: 0,
+        },
+        imageOpts: {
+          colormap: "grey",
+          scale: "log",
+        },
+      };
+    </script>
+    <!-- js9support.min.js provides in-browser FITS parsing (required when no helper is available) -->
+    <script src="/vendor/js9/js9support.min.js"></script>
+    <script src="/vendor/js9/js9.min.js"></script>
 
     <!-- Aladin Lite v3 - self-hosted to avoid cross-origin WASM fetch issues -->
     <script

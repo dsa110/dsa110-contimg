@@ -126,6 +126,7 @@ export const ROUTES = {
 export const NAV_ITEMS = [
   { path: ROUTES.HOME, label: "Home" },
   { path: ROUTES.HEALTH, label: "Health" },
+  { path: ROUTES.GRAFANA, label: "Grafana" },
   { path: ROUTES.IMAGES.LIST, label: "Images" },
   { path: ROUTES.SOURCES.LIST, label: "Sources" },
   { path: ROUTES.JOBS.LIST, label: "Jobs" },

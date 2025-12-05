@@ -153,6 +153,7 @@ export function GrafanaPanel({
   }, [theme]);
 
   // Build the panel URL with all parameters
+  // Note: retryKey is intentionally used in the key prop of iframe, not in URL generation
   const panelUrl = useMemo(() => {
     const baseUrl = GRAFANA_CONFIG.baseUrl;
     const params = new URLSearchParams({
@@ -183,7 +184,6 @@ export function GrafanaPanel({
     orgId,
     refreshInterval,
     variables,
-    retryKey, // Force URL regeneration on retry
   ]);
 
   const handleLoad = useCallback(() => {
