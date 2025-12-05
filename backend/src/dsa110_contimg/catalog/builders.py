@@ -595,8 +595,13 @@ def build_nvss_strip_db(
     output_path: Optional[str | os.PathLike[str]] = None,
     nvss_csv_path: Optional[str] = None,
     min_flux_mjy: Optional[float] = None,
+    prefer_full_db: bool = True,
 ) -> Path:
     """Build SQLite database for NVSS sources in a declination strip.
+
+    If a full NVSS database (nvss_full.sqlite3) exists and prefer_full_db=True,
+    the strip will be built from that database (faster). Otherwise, falls back
+    to parsing the raw HEASARC text file.
 
     Args:
         dec_center: Center declination in degrees
@@ -604,6 +609,7 @@ def build_nvss_strip_db(
         output_path: Output SQLite database path (auto-generated if None)
         nvss_csv_path: Path to full NVSS CSV catalog (downloaded if None)
         min_flux_mjy: Minimum flux threshold in mJy (None = no threshold)
+        prefer_full_db: If True, use nvss_full.sqlite3 if available (default: True)
 
     Returns:
         Path to created SQLite database
@@ -617,7 +623,26 @@ def build_nvss_strip_db(
         output_path = Path("state/catalogs") / db_name
 
     output_path = Path(output_path)
+
+    # Check if already exists
+    if output_path.exists():
+        logger.info(f"NVSS dec strip database already exists: {output_path}")
+        return output_path
+
     output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Try to use full database if available and preferred
+    if prefer_full_db and nvss_full_db_exists():
+        logger.info("Using full NVSS database for faster strip extraction")
+        return build_nvss_strip_from_full(
+            dec_center=dec_center,
+            dec_range=dec_range,
+            output_path=output_path,
+            min_flux_mjy=min_flux_mjy,
+        )
+
+    # Fall back to raw HEASARC file
+    logger.info("Building from raw HEASARC file (full DB not available)")
 
     # Load NVSS catalog
     if nvss_csv_path is None:
