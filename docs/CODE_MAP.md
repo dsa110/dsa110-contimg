@@ -3,7 +3,7 @@
 **Purpose:** This document links the active source code directories to their
 corresponding documentation and status. Use this to navigate the codebase.
 
-**Last Updated:** November 26, 2025
+**Last Updated:** December 4, 2025
 
 ---
 
@@ -14,61 +14,57 @@ corresponding documentation and status. Use this to navigate the codebase.
 **Code Location:** `backend/src/dsa110_contimg/pipeline/` **Status:** :green_circle:
 **Production**
 
-| Component         | Code File        | Documentation                                                              |
-| :---------------- | :--------------- | :------------------------------------------------------------------------- |
-| **Health Checks** | `health.py`      | [Pipeline Features](architecture/pipeline/pipeline_production_features.md) |
-| **Timeouts**      | `timeout.py`     | [Pipeline Features](architecture/pipeline/pipeline_production_features.md) |
-| **Stage Logic**   | `stages_impl.py` | [Stage Architecture](architecture/pipeline/pipeline_stage_architecture.md) |
-| **Context**       | `context.py`     | [Stage Architecture](architecture/pipeline/pipeline_stage_architecture.md) |
+| Component         | Code File        | Documentation                         |
+| :---------------- | :--------------- | :------------------------------------ |
+| **Health Checks** | `health.py`      | [Architecture](ARCHITECTURE.md)       |
+| **Timeouts**      | `timeout.py`     | [Architecture](ARCHITECTURE.md)       |
+| **Stage Logic**   | `stages_impl.py` | [Architecture](ARCHITECTURE.md)       |
+| **Context**       | `context.py`     | [Developer Guide](DEVELOPER_GUIDE.md) |
 
-### 2. Workflow Management ("Absurd")
+### 2. Workflow Management ("ABSURD")
 
 **Code Location:** `backend/src/dsa110_contimg/absurd/` & `ops/scripts/absurd/`
 **Status:** :green_circle: **Active Integration**
 
-| Component        | Code File                               | Documentation                                    |
-| :--------------- | :-------------------------------------- | :----------------------------------------------- |
-| **Overview**     | `README.md`                             | [ABSURD Quickstart](guides/ABSURD_QUICKSTART.md) |
-| **Setup Script** | `ops/scripts/absurd/setup_absurd_db.sh` | [Workflow Guides](guides/workflow/)              |
+| Component        | Code File                               | Documentation                                   |
+| :--------------- | :-------------------------------------- | :---------------------------------------------- |
+| **Overview**     | `README.md`                             | `backend/docs/ops/absurd-service-activation.md` |
+| **Setup Script** | `ops/scripts/absurd/setup_absurd_db.sh` | `backend/docs/ops/absurd-service-activation.md` |
 
 ### 3. Quality Assurance (QA)
 
 **Code Location:** `backend/src/dsa110_contimg/qa/` **Status:** :yellow_circle: **In
 Development**
 
-| Component              | Code File               | Documentation                               |
-| :--------------------- | :---------------------- | :------------------------------------------ |
-| **Catalog Validation** | `catalog_validation.py` | [API Reference](reference/api_reference.md) |
-| **Visualization**      | `visualization/`        | [Dashboard](guides/dashboard/)              |
+| Component              | Code File               | Documentation                                  |
+| :--------------------- | :---------------------- | :--------------------------------------------- |
+| **Catalog Validation** | `catalog_validation.py` | [API Reference](API_REFERENCE.md)              |
+| **Visualization**      | `visualization/`        | [Visualization Guide](guides/visualization.md) |
 
 ### 4. Imaging & Calibration
 
 **Code Location:** `backend/src/dsa110_contimg/imaging/` &
 `backend/src/dsa110_contimg/calibration/` **Status:** :green_circle: **Production**
 
-| Component           | Code File                | Documentation                                             |
-| :------------------ | :----------------------- | :-------------------------------------------------------- |
-| **WSClean Wrapper** | `imaging/cli_imaging.py` | [Troubleshooting](TROUBLESHOOTING.md#docker-wsclean-hang) |
-| **Self-Cal**        | `calibration/selfcal.py` | [Architecture](architecture/architecture/architecture.md) |
+| Component           | Code File                | Documentation                              |
+| :------------------ | :----------------------- | :----------------------------------------- |
+| **WSClean Wrapper** | `imaging/cli_imaging.py` | [Troubleshooting](TROUBLESHOOTING.md)      |
+| **Imaging CLI**     | `imaging/cli.py`         | [Imaging Guide](guides/imaging.md)         |
+| **Calibration**     | `calibration/cli.py`     | [Calibration Guide](guides/calibration.md) |
 
 ### 5. Frontend Dashboard
 
-**Code Location:** `frontend/src/` **Status:** :green_circle: **Production (Phase 3)**
+**Code Location:** `frontend/src/` **Status:** :green_circle: **Production**
 
-| Component           | Code File                  | Documentation                                                              |
-| :------------------ | :------------------------- | :------------------------------------------------------------------------- |
-| **Main App**        | `App.tsx`                  | [Dashboard Guide](guides/dashboard/dashboard-quickstart.md)                |
-| **Operations Page** | `pages/OperationsPage.tsx` | [Dashboard Guide](guides/dashboard/)                                       |
-| **API Client**      | `api/client.ts`            | [Dashboard Architecture](architecture/dashboard/dashboard_architecture.md) |
+| Component           | Code File                  | Documentation                          |
+| :------------------ | :------------------------- | :------------------------------------- |
+| **Main App**        | `App.tsx`                  | [Dashboard Guide](guides/dashboard.md) |
+| **Operations Page** | `pages/OperationsPage.tsx` | [Dashboard Guide](guides/dashboard.md) |
+| **API Client**      | `api/client.ts`            | [API Reference](API_REFERENCE.md)      |
 
 ---
 
-## :warning: Deprecation Warnings
+## :warning: Note
 
-The following documentation may be out of sync with the codebase:
-
-1. **`docs/testing/CURRENT_STATUS.md`**: May contain outdated testing status.
-   Check `docs/testing/` for current test documentation.
-
-2. **`docs/architecture/architecture/DIRECTORY_ARCHITECTURE.md`**: The "Proposed
-   Structure" section is now the **Actual Structure**.
+For detailed architecture documentation, see [ARCHITECTURE.md](ARCHITECTURE.md).
+For operational guides, see the [Guides](guides/index.md) section.

@@ -609,55 +609,6 @@ def export_model_as_fits(
         raise
 
 
-def write_setjy_model(
-    ms_path: str,
-    field: str,
-    *,
-    standard: str = "Perley-Butler 2017",
-    spw: str = "",
-    usescratch: bool = True,
-) -> None:
-    """Populate MODEL_DATA via casatasks.setjy for standard calibrators.
-
-    .. deprecated:: 2025-11-05
-        This function has known phase center bugs when used with rephased MS.
-        Use :func:`write_point_model_with_ft` with ``use_manual=True`` instead.
-
-        Known Issues:
-        - Uses setjy() which internally calls ft() with phase center bugs
-        - Causes 100°+ phase scatter when MS is rephased
-        - Does not use PHASE_DIR correctly after rephasing
-
-        The CLI now prevents problematic usage, but this function is deprecated
-        for new code.
-
-    Args:
-        ms_path: Path to Measurement Set
-        field: Field selection
-        standard: Flux standard name (default: "Perley-Butler 2017")
-        spw: SPW selection
-        usescratch: Whether to use scratch column
-    """
-    import warnings
-
-    warnings.warn(
-        "write_setjy_model() is deprecated. Use write_point_model_with_ft(use_manual=True) instead. "
-        "This function has known phase center bugs. See docs/reports/FT_PHASE_CENTER_FIX.md",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    try:
-        from dsa110_contimg.utils.tempdirs import casa_log_environment
-        with casa_log_environment():
-            from casatasks import setjy
-    except ImportError:
-        from casatasks import setjy
-
-    _ensure_imaging_columns(ms_path)
-    setjy(vis=ms_path, field=str(field), spw=spw, standard=standard, usescratch=usescratch)
-    _initialize_corrected_from_data(ms_path)
-
-
 def populate_model_from_catalog(
     ms_path: str,
     *,

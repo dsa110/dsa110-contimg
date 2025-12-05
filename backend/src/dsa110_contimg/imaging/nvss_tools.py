@@ -198,19 +198,6 @@ def create_unicat_fits_mask(
     return out_path
 
 
-# Backwards compatibility alias
-def create_nvss_fits_mask(*args, **kwargs):
-    """Deprecated: Use create_unicat_fits_mask instead."""
-    import warnings
-
-    warnings.warn(
-        "create_nvss_fits_mask is deprecated, use create_unicat_fits_mask instead",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return create_unicat_fits_mask(*args, **kwargs)
-
-
 def create_nvss_overlay(
     image_path: str,
     out_path: str,
