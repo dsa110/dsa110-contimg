@@ -26,12 +26,11 @@ import asyncio
 import logging
 import os
 import re
-from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Optional, Tuple
 
-import h5py
-import numpy as np
+import h5py  # type: ignore[import-unresolved]
+import numpy as np  # type: ignore[import-unresolved]
 
 logger = logging.getLogger(__name__)
 

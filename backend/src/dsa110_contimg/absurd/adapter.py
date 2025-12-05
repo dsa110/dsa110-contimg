@@ -21,7 +21,10 @@ import shutil
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, List, Optional
+
+if TYPE_CHECKING:
+    import asyncpg
 
 from dsa110_contimg.absurd.client import AbsurdClient
 from dsa110_contimg.absurd.config import AbsurdConfig
@@ -88,7 +91,18 @@ async def execute_pipeline_task(task_name: str, params: Dict[str, Any]) -> Dict[
     logger.info(f"Executing Absurd task: {task_name}")
 
     # Route to appropriate executor
-    if task_name == "convert-uvh5-to-ms":
+    # Ingestion tasks
+    if task_name == "record-subband":
+        from dsa110_contimg.absurd.ingestion import execute_record_subband
+        return await execute_record_subband(params)
+    elif task_name == "normalize-group":
+        from dsa110_contimg.absurd.ingestion import execute_normalize_group
+        return await execute_normalize_group(params)
+    elif task_name == "convert-group":
+        from dsa110_contimg.absurd.ingestion import execute_convert_group
+        return await execute_convert_group(params)
+    # Conversion tasks
+    elif task_name == "convert-uvh5-to-ms":
         return await execute_conversion(params)
     elif task_name == "calibration-solve":
         return await execute_calibration_solve(params)
@@ -140,6 +154,7 @@ async def execute_pipeline_task(task_name: str, params: Dict[str, Any]) -> Dict[
     else:
         raise ValueError(
             f"Unknown task name: '{task_name}'. Supported tasks: "
+            f"record-subband, normalize-group, convert-group, "
             f"convert-uvh5-to-ms, calibration-solve, calibration-apply, "
             f"imaging, validation, crossmatch, photometry, catalog-setup, "
             f"organize-files, housekeeping, create-mosaic, mosaic-pipeline, "
@@ -1226,7 +1241,7 @@ async def _recover_stuck_groups(config: PipelineConfig, max_stale_hours: float) 
             conn.execute(
                 """
                 UPDATE processing_queue
-                SET state = 'pending', 
+                SET state = 'pending',
                     last_update = ?,
                     error = 'Recovered by housekeeping (was stuck)'
                 WHERE group_id = ?

@@ -63,6 +63,22 @@ from .maintenance import (
     setup_default_schedules,
 )
 
+# Ingestion tasks (file watcher and subband tracking)
+from .ingestion import (
+    IngestionWatcher,
+    execute_convert_group,
+    execute_record_subband,
+    execute_scan_directory,
+)
+from .ingestion_db import (
+    ensure_subband_schema,
+    get_group_subbands,
+    get_pending_groups,
+    get_sb00_timestamp,
+    normalize_group_filenames,
+    record_subband,
+)
+
 __all__ = [
     # Core client and worker
     "AbsurdClient",
@@ -114,4 +130,15 @@ __all__ = [
     "get_ready_workflow_tasks",
     "list_workflows",
     "ensure_dependencies_schema",
+    # Ingestion tasks
+    "IngestionWatcher",
+    "execute_record_subband",
+    "execute_convert_group",
+    "execute_scan_directory",
+    "record_subband",
+    "get_group_subbands",
+    "get_pending_groups",
+    "normalize_group_filenames",
+    "get_sb00_timestamp",
+    "ensure_subband_schema",
 ]

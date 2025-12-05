@@ -1309,9 +1309,9 @@ def build_atnf_full_db(
                     continue
 
                 flux = float(row["flux_1400mhz_mjy"]) if pd.notna(row.get("flux_1400mhz_mjy")) else None
-                name = str(row.get("name", "")) if pd.notna(row.get("name")) else None
+                name = str(row.get("pulsar_name", "")) if pd.notna(row.get("pulsar_name")) else None
                 period = float(row.get("period_s")) if pd.notna(row.get("period_s")) else None
-                dm = float(row.get("dm")) if pd.notna(row.get("dm")) else None
+                dm = float(row.get("dm_pc_cm3")) if pd.notna(row.get("dm_pc_cm3")) else None
 
                 insert_data.append((ra, dec, flux, name, period, dm))
 
