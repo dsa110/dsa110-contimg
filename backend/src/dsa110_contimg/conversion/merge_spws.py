@@ -231,7 +231,7 @@ def get_spw_count(ms_path: str) -> Optional[int]:
         Number of SPWs, or None if unable to read
     """
     try:
-        with table(f"{ms_path}::SPECTRAL_WINDOW", nomodify=True) as spw:
+        with table(f"{ms_path}::SPECTRAL_WINDOW", readonly=True, ack=False) as spw:
             return spw.nrows()
     except (RuntimeError, OSError):
         # RuntimeError: CASA table errors, OSError: file access issues
