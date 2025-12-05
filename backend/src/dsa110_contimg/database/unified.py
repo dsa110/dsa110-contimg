@@ -4,14 +4,6 @@ Unified database layer for DSA-110 Continuum Imaging Pipeline.
 This module provides a simplified database interface as outlined in the
 complexity reduction guide. It replaces the multi-database architecture
 with a single unified database (pipeline.sqlite3).
-"""
-
-import logging
-
-logger = logging.getLogger(__name__)
-
-"""
-Database design goals:
 
 Design Goals:
 - Single SQLite database instead of 5+ separate databases
@@ -67,6 +59,7 @@ Migration:
 
 from __future__ import annotations
 
+import logging
 import os
 import sqlite3
 import time
@@ -74,6 +67,8 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Dict, Iterator, List, Optional, Sequence, Tuple, Union
+
+logger = logging.getLogger(__name__)
 
 # Default database path
 DEFAULT_PIPELINE_DB = "/data/dsa110-contimg/state/db/pipeline.sqlite3"
