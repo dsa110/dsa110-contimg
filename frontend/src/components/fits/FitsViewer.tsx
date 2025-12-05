@@ -135,10 +135,12 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
     }
 
     // JS9 uses a different approach for dynamic displays
-    // We need to call JS9.AddDivs() which scans for new JS9 divs
-    // or manually set up the display structure
+    // We need to set the data-width and data-height attributes before calling AddDivs
+    displayElement.setAttribute("data-width", String(width));
+    displayElement.setAttribute("data-height", String(height));
+
     try {
-      // First try AddDivs which is the proper way
+      // AddDivs scans for new JS9 divs and initializes them
       if (typeof window.JS9.AddDivs === "function") {
         window.JS9.AddDivs();
         displayInitializedRef.current = true;
@@ -149,8 +151,6 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
         displayInitializedRef.current = true;
         logger.debug("JS9.init called for display", { displayId });
       } else {
-        // Last resort: manually trigger initialization
-        // by forcing JS9 to rescan
         logger.debug("JS9 AddDivs/init not available, display may not work", {
           displayId,
         });
@@ -158,46 +158,60 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
     } catch (err) {
       logger.debug("JS9 initialization error", { error: err, displayId });
     }
-  }, [isJS9Ready, displayId]);
+  }, [isJS9Ready, displayId, width, height]);
 
   // Load FITS image
   useEffect(() => {
     if (!isJS9Ready || !fitsUrl) return;
 
-    setIsLoading(true);
-    setError(null);
+    // Wait a short time for JS9 to initialize the display
+    const loadTimeout = setTimeout(() => {
+      setIsLoading(true);
+      setError(null);
 
-    try {
-      window.JS9.Load(fitsUrl, {
-        display: displayId,
-        onload: (_im: JS9Image) => {
-          setIsLoading(false);
-
-          // Apply initial settings
-          if (initialCenter) {
-            window.JS9.SetPan(initialCenter.ra, initialCenter.dec, {
-              display: displayId,
-            });
+      try {
+        // Check if the display was created successfully
+        const displayElement = document.getElementById(displayId);
+        const hasCanvas = displayElement?.querySelector("canvas");
+        if (!hasCanvas) {
+          logger.warn("JS9 display not initialized, retrying AddDivs", {
+            displayId,
+          });
+          if (typeof window.JS9.AddDivs === "function") {
+            window.JS9.AddDivs();
           }
-          if (initialFov) {
-            window.JS9.SetZoom("tofit", { display: displayId });
-          }
+        }
 
-          // Apply initial controls (from ref, not state to avoid dependency)
-          const initControls = initialControlsRef.current;
-          if (initControls) {
-            window.JS9.SetColormap(initControls.colorMap, {
-              display: displayId,
-            });
-            window.JS9.SetScale(initControls.scale, { display: displayId });
-          }
+        window.JS9.Load(fitsUrl, {
+          display: displayId,
+          onload: (_im: JS9Image) => {
+            setIsLoading(false);
 
-          onLoad?.();
-        },
-        onerror: (msg: string) => {
-          setError(msg || "Failed to load FITS file");
-          setIsLoading(false);
-          onError?.(msg);
+            // Apply initial settings
+            if (initialCenter) {
+              window.JS9.SetPan(initialCenter.ra, initialCenter.dec, {
+                display: displayId,
+              });
+            }
+            if (initialFov) {
+              window.JS9.SetZoom("tofit", { display: displayId });
+            }
+
+            // Apply initial controls (from ref, not state to avoid dependency)
+            const initControls = initialControlsRef.current;
+            if (initControls) {
+              window.JS9.SetColormap(initControls.colorMap, {
+                display: displayId,
+              });
+              window.JS9.SetScale(initControls.scale, { display: displayId });
+            }
+
+            onLoad?.();
+          },
+          onerror: (msg: string) => {
+            setError(msg || "Failed to load FITS file");
+            setIsLoading(false);
+            onError?.(msg);
         },
       });
 

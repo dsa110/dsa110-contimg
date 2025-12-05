@@ -8,12 +8,17 @@
  * - Embedded CARTA viewer via iframe
  * - Status checking and error handling
  * - File path parameter support (?ms= or ?file=)
+ * - File browser when no file specified
  * - Fallback UI when CARTA is unavailable
  */
 
 import React, { useMemo } from "react";
-import { useSearchParams, Link } from "react-router-dom";
-import { useCARTAStatus, getCARTAViewerUrl } from "../api/carta";
+import { useSearchParams, Link, useNavigate } from "react-router-dom";
+import {
+  useCARTAStatus,
+  useCARTASessions,
+  getCARTAViewerUrl,
+} from "../api/carta";
 import { config } from "../config";
 
 // ============================================================================
@@ -62,34 +67,131 @@ function UnavailableState({ message }: { message?: string }) {
   );
 }
 
-function NoFileState() {
+interface FileBrowserStateProps {
+  sessions: Array<{
+    id: string;
+    file_path: string;
+    file_type: string;
+    created_at: string;
+  }>;
+  onSelectFile: (path: string) => void;
+}
+
+function FileBrowserState({ sessions, onSelectFile }: FileBrowserStateProps) {
   return (
-    <div className="flex items-center justify-center h-full min-h-[400px]">
-      <div className="text-center max-w-md">
-        <div className="text-6xl mb-4">📂</div>
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
-          No File Specified
-        </h2>
-        <p className="text-gray-600 dark:text-gray-400 mb-4">
-          Please specify a file to open in CARTA. You can access CARTA from:
+    <div className="max-w-4xl mx-auto py-8 px-4">
+      <div className="text-center mb-8">
+        <div className="text-6xl mb-4">🔭</div>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+          CARTA Viewer
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400">
+          Advanced visualization for FITS images and measurement sets
         </p>
-        <ul className="text-left text-gray-600 dark:text-gray-400 mb-4 space-y-2">
-          <li className="flex items-center gap-2">
-            <span className="text-blue-500">→</span>
-            The &ldquo;Open in CARTA&rdquo; button on measurement set detail
-            pages
-          </li>
-          <li className="flex items-center gap-2">
-            <span className="text-blue-500">→</span>
-            Image gallery actions for FITS files
-          </li>
-        </ul>
+      </div>
+
+      {/* Quick access cards */}
+      <div className="grid md:grid-cols-2 gap-6 mb-8">
         <Link
           to="/images"
-          className="inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          className="block p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 transition-colors"
         >
-          Browse Images
+          <div className="flex items-center gap-4">
+            <div className="text-4xl">🖼️</div>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Browse Images
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                View FITS images and open in CARTA
+              </p>
+            </div>
+          </div>
         </Link>
+
+        <Link
+          to="/sources"
+          className="block p-6 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-500 dark:hover:border-blue-400 transition-colors"
+        >
+          <div className="flex items-center gap-4">
+            <div className="text-4xl">📡</div>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Browse Sources
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Find sources and view their measurement sets
+              </p>
+            </div>
+          </div>
+        </Link>
+      </div>
+
+      {/* Recent sessions */}
+      {sessions.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+            <h2 className="font-semibold text-gray-900 dark:text-gray-100">
+              Recent CARTA Sessions
+            </h2>
+          </div>
+          <ul className="divide-y divide-gray-200 dark:divide-gray-700">
+            {sessions.map((session) => (
+              <li key={session.id}>
+                <button
+                  onClick={() => onSelectFile(session.file_path)}
+                  className="w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <span className="text-lg">
+                        {session.file_type === "ms" ? "📊" : "🖼️"}
+                      </span>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate max-w-md">
+                          {session.file_path.split("/").pop()}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-md">
+                          {session.file_path}
+                        </p>
+                      </div>
+                    </div>
+                    <span className="text-xs text-gray-400">
+                      {new Date(session.created_at).toLocaleString()}
+                    </span>
+                  </div>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Empty state for no sessions */}
+      {sessions.length === 0 && (
+        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+          <p>No recent CARTA sessions.</p>
+          <p className="text-sm mt-2">
+            Open a file from the Images or Sources pages to get started.
+          </p>
+        </div>
+      )}
+
+      {/* Help text */}
+      <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+        <h3 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
+          💡 How to use CARTA
+        </h3>
+        <ul className="text-sm text-blue-800 dark:text-blue-200 space-y-1">
+          <li>
+            • Navigate to an <strong>Image</strong> or{" "}
+            <strong>Measurement Set</strong> detail page
+          </li>
+          <li>
+            • Click the <strong>&ldquo;Open in CARTA&rdquo;</strong> button
+          </li>
+          <li>• Or select a file from your recent sessions above</li>
+        </ul>
       </div>
     </div>
   );
@@ -100,11 +202,20 @@ function NoFileState() {
 // ============================================================================
 
 export default function CARTAViewerPage() {
-  const [searchParams] = useSearchParams();
-  const { data: status, isLoading } = useCARTAStatus();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const { data: status, isLoading: statusLoading } = useCARTAStatus();
+  const { data: sessions = [] } = useCARTASessions();
 
   // Support both ?ms= (from MSDetailPage) and ?file= parameters
   const filePath = searchParams.get("ms") || searchParams.get("file");
+
+  // Handle file selection from browser
+  const handleSelectFile = (path: string) => {
+    // Determine file type from extension
+    const isMs = path.endsWith(".ms") || path.includes(".ms/");
+    setSearchParams({ [isMs ? "ms" : "file"]: path });
+  };
 
   // Construct the CARTA iframe URL
   const cartaUrl = useMemo(() => {
@@ -116,19 +227,10 @@ export default function CARTAViewerPage() {
   }, [filePath, status?.url]);
 
   // Loading state
-  if (isLoading) {
+  if (statusLoading) {
     return (
       <div className="h-full">
         <LoadingState />
-      </div>
-    );
-  }
-
-  // No file specified
-  if (!filePath) {
-    return (
-      <div className="h-full">
-        <NoFileState />
       </div>
     );
   }
@@ -142,12 +244,29 @@ export default function CARTAViewerPage() {
     );
   }
 
+  // No file specified - show file browser
+  if (!filePath) {
+    return (
+      <div className="h-full">
+        <FileBrowserState sessions={sessions} onSelectFile={handleSelectFile} />
+      </div>
+    );
+  }
+
   // CARTA available - render iframe
   return (
     <div className="h-full flex flex-col">
       {/* Header bar with file info */}
       <div className="bg-gray-100 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-2 flex items-center justify-between">
         <div className="flex items-center gap-3">
+          <button
+            onClick={() => setSearchParams({})}
+            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+            title="Back to file browser"
+          >
+            ←
+          </button>
+          <span className="text-lg">🔭</span>
           <span className="text-lg">🔭</span>
           <div>
             <h1 className="text-sm font-medium text-gray-900 dark:text-gray-100">

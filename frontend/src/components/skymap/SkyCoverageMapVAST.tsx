@@ -761,9 +761,9 @@ const SkyCoverageMapVAST: React.FC<SkyCoverageMapVASTProps> = ({
     svg.selectAll("*").remove();
 
     // Create projection (Feature #2 - zoom support)
-    // Use divisor of 7 to leave margin at top/bottom edges
+    // Use divisor of 9 to leave margin at top/bottom edges
     const proj = geoMollweide()
-      .scale((innerWidth / 7) * zoomLevel)
+      .scale((innerWidth / 9) * zoomLevel)
       .translate([
         margin.left + innerWidth / 2,
         legendHeight + margin.top + innerHeight / 2,
