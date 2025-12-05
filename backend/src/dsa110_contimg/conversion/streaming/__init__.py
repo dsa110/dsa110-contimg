@@ -72,6 +72,14 @@ from .stages import (
 # CLI module
 from .cli import main as run_streaming_pipeline, StreamingPipeline
 
+# Normalization utilities
+from .normalize import (
+    normalize_subband_path,
+    normalize_subband_on_ingest,
+    normalize_directory,
+    build_subband_filename,
+)
+
 __all__ = [
     # Data models
     "SubbandGroup",
@@ -93,4 +101,9 @@ __all__ = [
     # CLI
     "run_streaming_pipeline",
     "StreamingPipeline",
+    # Normalization
+    "normalize_subband_path",
+    "normalize_subband_on_ingest",
+    "normalize_directory",
+    "build_subband_filename",
 ]

@@ -643,6 +643,25 @@ class QueueDB:
 
         return best_match
 
+    def find_target_group(self, group_id: str) -> str:
+        """Find the canonical group_id for a subband.
+        
+        If an existing group exists within cluster_tolerance_s, returns that group.
+        Otherwise returns the normalized input group_id.
+        
+        This is the public interface for determining where a subband belongs,
+        used by the file normalizer before recording.
+        
+        Args:
+            group_id: The group_id extracted from the filename
+            
+        Returns:
+            The canonical group_id to use (either existing cluster or normalized input)
+        """
+        normalized = self._normalize_group_id_datetime(group_id)
+        clustered = self._find_cluster_group(normalized)
+        return clustered if clustered else normalized
+
     def record_subband(self, group_id: str, subband_idx: int, file_path: Path) -> None:
         """Record a subband file arrival.
 
@@ -1134,8 +1153,32 @@ class _FSHandler(FileSystemEventHandler):
             log.debug(f"Skipping validation for {path}: lock unavailable ({lock_err})")
             return
 
-        # File passed all checks, record in queue
+        # File passed all checks - normalize filename and record in queue
         try:
+            # Find canonical group for this subband (cluster with existing or use as-is)
+            target_group = self.queue.find_target_group(gid)
+            
+            # Normalize filename if it doesn't match canonical group
+            if target_group != gid:
+                try:
+                    from dsa110_contimg.conversion.streaming.normalize import (
+                        normalize_subband_on_ingest,
+                    )
+                    p = normalize_subband_on_ingest(
+                        path=p,
+                        target_group_id=target_group,
+                        source_group_id=gid,
+                        lock_manager=self._lock_manager,
+                    )
+                    gid = target_group
+                    log.debug(f"Normalized subband to group {target_group}")
+                except ImportError:
+                    # Normalization module not available - continue without renaming
+                    log.debug("Normalization module not available")
+                except Exception as norm_err:
+                    # Log but continue - file can still be processed with original name
+                    log.warning(f"Failed to normalize {p.name}: {norm_err}")
+            
             self.queue.record_subband(gid, sb, p)
         except sqlite3.Error:
             logging.getLogger("stream").debug("record_subband failed for %s", p, exc_info=True)
