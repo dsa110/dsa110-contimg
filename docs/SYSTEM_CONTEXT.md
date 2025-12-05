@@ -41,19 +41,20 @@ simplicity. As of Phase 2 consolidation, all pipeline state is stored in a
     - `path`: Path to the FITS file.
     - `type`: 'continuum', 'dirty', 'residual', etc.
     - `noise_jy`: Quality metric.
-  - `ingest_queue`: Tracks file groups (16 subbands) and their state.
-  - `performance_metrics`: Tracks writer performance.
-  - `calibration_tables`: Calibration tables and validity windows.
-  - `hdf5_file_index`: Maps subbands to files.
+  - `hdf5_files`: UVH5 subband file tracking.
+    - `path` (PK): Absolute path to the HDF5 file.
+    - `group_id`: Observation group identifier (timestamp).
+    - `subband_num`: Subband index (0-15).
+  - `caltables`: Calibration tables and validity windows.
   - `calibrator_transits`: Pre-calculated transit times for calibrators.
-  - `transient_candidates`: Detected transient sources.
+  - `photometry`: Source flux measurements over time.
   - `jobs` & `batch_jobs`: Execution history.
 
 ### **External Catalogs** (read-only reference data)
 
 - **`state/catalogs/master_sources.sqlite3`**: Large catalog of sources (1.6M+).
-- **`state/db/calibrators.sqlite3`**: Registry of known calibrators.
 - **`state/catalogs/vla_calibrators.sqlite3`**: VLA calibrator catalog.
+- **`state/catalogs/nvss_dec+XX.X.sqlite3`**: NVSS sources by declination strip.
 
 ### **Concurrency Strategy**
 

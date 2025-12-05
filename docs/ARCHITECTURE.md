@@ -212,24 +212,24 @@ All pipeline state in `state/db/pipeline.sqlite3`:
 ├─────────────────────────────────────────────────────────────────┤
 │  ms_index           │ Measurement Set registry                  │
 │  images             │ Image products                            │
-│  calibration_tables │ Calibration table registry                │
-│  ingest_queue       │ Streaming queue state                     │
-│  performance_metrics│ Processing timing data                    │
-│  hdf5_file_index    │ UVH5 file tracking                        │
+│  caltables          │ Calibration table registry                │
+│  hdf5_files         │ UVH5 file tracking                        │
 │  calibrator_transits│ Pre-calculated transit times              │
 │  jobs               │ Job execution history                     │
+│  photometry         │ Source flux measurements                  │
+│  mosaics            │ Mosaic image products                     │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
 ### Key Tables
 
-| Table                 | Purpose                                     |
-| --------------------- | ------------------------------------------- |
-| `ms_index`            | Tracks MS lifecycle (path, status, stage)   |
-| `images`              | Registry of FITS images (path, type, noise) |
-| `ingest_queue`        | File group processing state                 |
-| `calibration_tables`  | Caltable validity windows                   |
-| `performance_metrics` | Writer performance tracking                 |
+| Table                 | Purpose                                      |
+| --------------------- | -------------------------------------------- |
+| `ms_index`            | Tracks MS lifecycle (path, status, stage)    |
+| `images`              | Registry of FITS images (path, type, noise)  |
+| `hdf5_files`          | UVH5 subband file index (group_id, coords)   |
+| `caltables`           | Calibration tables and validity windows      |
+| `calibrator_transits` | Pre-calculated transit times for calibrators |
 
 ### Concurrency Strategy
 
@@ -299,7 +299,7 @@ Read-only reference data in `state/catalogs/`:
 
 ### Subband Grouping
 
-DSA-110 produces **16 subband files per observation**:
+DSA-110 produces **16 subband files per observation** (`sb00`-`sb15`):
 
 ```
 2025-10-05T12:30:00_sb00.hdf5
@@ -308,7 +308,27 @@ DSA-110 produces **16 subband files per observation**:
 2025-10-05T12:30:00_sb15.hdf5
 ```
 
-**Critical**: Subbands may have slightly different timestamps (±60s) due to write timing. The pipeline uses time-windowing to group files.
+**Critical**: Subbands may have slightly different timestamps (up to ±60s) due to correlator write timing jitter.
+
+#### Two Grouping Mechanisms
+
+| Method                        | When Used           | How It Works                                    |
+| ----------------------------- | ------------------- | ----------------------------------------------- |
+| **Normalization** (Preferred) | Streaming converter | Renames files to canonical `group_id` on ingest |
+| **Time-Windowing** (Legacy)   | Batch processing    | Clusters files within 60s tolerance             |
+
+**Normalization**: Files are renamed on arrival so all 16 subbands share the same timestamp:
+
+```text
+2025-01-15T12:00:01_sb01.hdf5 → 2025-01-15T12:00:00_sb01.hdf5
+```
+
+**Time-Windowing**: Uses `query_subband_groups()` with `cluster_tolerance_s=60.0`:
+
+```python
+from dsa110_contimg.database.hdf5_index import query_subband_groups
+groups = query_subband_groups(db_path, start, end, cluster_tolerance_s=60.0)
+```
 
 ### Writer Selection
 

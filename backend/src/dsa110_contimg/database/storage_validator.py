@@ -298,7 +298,8 @@ _HDF5_FILENAME_PATTERN = re.compile(
 
 # Tolerance for grouping files into the same observation (in seconds).
 # Files written within this window are considered part of the same observation.
-GROUP_TIMESTAMP_TOLERANCE_SECONDS = 10
+# Must match settings.conversion.cluster_tolerance_s (60 seconds).
+GROUP_TIMESTAMP_TOLERANCE_SECONDS = 60
 
 
 def normalize_group_timestamp(timestamp_iso: str, tolerance_seconds: int = GROUP_TIMESTAMP_TOLERANCE_SECONDS) -> str:
@@ -308,15 +309,15 @@ def normalize_group_timestamp(timestamp_iso: str, tolerance_seconds: int = GROUP
     This rounds the timestamp down to the nearest tolerance_seconds boundary,
     ensuring that files written within the tolerance window get the same group_id.
     
-    For example, with tolerance_seconds=10:
+    For example, with tolerance_seconds=60:
     - '2025-01-15T12:30:01' -> '2025-01-15T12:30:00'
-    - '2025-01-15T12:30:09' -> '2025-01-15T12:30:00'
-    - '2025-01-15T12:30:10' -> '2025-01-15T12:30:10'
-    - '2025-01-15T12:30:15' -> '2025-01-15T12:30:10'
+    - '2025-01-15T12:30:59' -> '2025-01-15T12:30:00'
+    - '2025-01-15T12:31:00' -> '2025-01-15T12:31:00'
+    - '2025-01-15T12:31:30' -> '2025-01-15T12:31:00'
     
     Args:
         timestamp_iso: ISO format timestamp like '2025-01-15T12:30:05'
-        tolerance_seconds: Time window for grouping (default: 10 seconds)
+        tolerance_seconds: Time window for grouping (default: 60 seconds)
     
     Returns:
         Normalized ISO timestamp string.

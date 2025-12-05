@@ -7,10 +7,12 @@ Converts UVH5 (HDF5) visibility data to CASA Measurement Sets.
 The DSA-110 telescope produces **16 subband files per observation** that must be
 grouped by timestamp and combined before creating a single Measurement Set.
 
-```
+```text
 16 UVH5 files (*_sb00.hdf5 ... *_sb15.hdf5)
     ↓
-Group by timestamp (±60s tolerance)
+Group by timestamp:
+  • Streaming: normalize filenames on ingest (preferred)
+  • Batch: cluster within 60s tolerance (legacy)
     ↓
 Combine subbands (pyuvdata +=)
     ↓
@@ -75,11 +77,20 @@ python -m dsa110_contimg.conversion.cli groups --help
 
 ## Critical Implementation Details
 
-1. **Time-windowing**: Files within ±60s are grouped together
+1. **Subband grouping**: Two mechanisms (see below)
 2. **Subband combining**: Use `pyuvdata.UVData()` with `+=` operator
 3. **Antenna positions**: Always update from `utils/antpos_local/`
 4. **Phase center**: Visibilities phased to meridian
 5. **Calibrator detection**: Auto-renames field containing calibrator
+
+### Subband Grouping Mechanisms
+
+| Method             | Code Location                       | Tolerance | Use Case               |
+| ------------------ | ----------------------------------- | --------- | ---------------------- |
+| **Normalization**  | `streaming/`                        | 60s       | Rename files on ingest |
+| **Time-Windowing** | `hdf5_index.query_subband_groups()` | 60s       | Query-time clustering  |
+
+Both use 60-second tolerance (configured in `settings.conversion.cluster_tolerance_s`).
 
 ## Testing
 

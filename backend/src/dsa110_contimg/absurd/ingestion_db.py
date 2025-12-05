@@ -127,31 +127,7 @@ async def find_or_create_group(
         try:
             incoming_dt = datetime.strptime(group_id, "%Y-%m-%dT%H:%M:%S")
         except ValueError:
-            # Invalid format - use as-is
-            return group_id
-            
-            # Look for existing groups within tolerance
-            min_time = incoming_dt - timedelta(seconds=tolerance_s)
-            max_time = incoming_dt + timedelta(seconds=tolerance_s)
-            
-            row = await conn.fetchrow(
-                """
-                SELECT group_id FROM absurd.ingestion_groups
-                WHERE state IN ('collecting', 'pending')
-                  AND group_id >= $1
-                  AND group_id <= $2
-                ORDER BY created_at ASC
-                LIMIT 1
-                """,
-                min_time.strftime("%Y-%m-%dT%H:%M:%S"),
-                max_time.strftime("%Y-%m-%dT%H:%M:%S"),
-            )
-            
-            if row:
-                # Found existing group
-                return row["group_id"]
-            
-            # Create new group
+            # Invalid format - use as-is and create group
             await conn.execute(
                 """
                 INSERT INTO absurd.ingestion_groups (group_id, state)
@@ -161,6 +137,38 @@ async def find_or_create_group(
                 group_id,
             )
             return group_id
+        
+        # Look for existing groups within tolerance
+        min_time = incoming_dt - timedelta(seconds=tolerance_s)
+        max_time = incoming_dt + timedelta(seconds=tolerance_s)
+        
+        row = await conn.fetchrow(
+            """
+            SELECT group_id FROM absurd.ingestion_groups
+            WHERE state IN ('collecting', 'pending')
+              AND group_id >= $1
+              AND group_id <= $2
+            ORDER BY created_at ASC
+            LIMIT 1
+            """,
+            min_time.strftime("%Y-%m-%dT%H:%M:%S"),
+            max_time.strftime("%Y-%m-%dT%H:%M:%S"),
+        )
+        
+        if row:
+            # Found existing group
+            return row["group_id"]
+        
+        # Create new group
+        await conn.execute(
+            """
+            INSERT INTO absurd.ingestion_groups (group_id, state)
+            VALUES ($1, 'collecting')
+            ON CONFLICT (group_id) DO NOTHING
+            """,
+            group_id,
+        )
+        return group_id
 
 
 async def record_subband(
@@ -180,49 +188,49 @@ async def record_subband(
     client = await get_client()
     async with client._pool.acquire() as conn:  # type: ignore[union-attr]
         async with conn.transaction():
-                # Insert subband (ignore if already exists)
-                await conn.execute(
-                    """
-                    INSERT INTO absurd.ingestion_subbands (group_id, subband_idx, file_path)
-                    VALUES ($1, $2, $3)
-                    ON CONFLICT (file_path) DO NOTHING
-                    """,
-                    group_id,
-                    subband_idx,
-                    file_path,
-                )
-                
-                # Update group metadata and count
-                await conn.execute(
-                    """
-                    UPDATE absurd.ingestion_groups
-                    SET subband_count = (
-                            SELECT COUNT(*) FROM absurd.ingestion_subbands
-                            WHERE group_id = $1
-                        ),
-                        dec_deg = COALESCE($2, dec_deg),
-                        updated_at = NOW(),
-                        state = CASE
-                            WHEN (SELECT COUNT(*) FROM absurd.ingestion_subbands WHERE group_id = $1) >= expected_subbands
-                            THEN 'pending'
-                            ELSE state
-                        END
-                    WHERE group_id = $1
-                    """,
-                    group_id,
-                    dec_deg,
-                )
+            # Insert subband (ignore if already exists)
+            await conn.execute(
+                """
+                INSERT INTO absurd.ingestion_subbands (group_id, subband_idx, file_path)
+                VALUES ($1, $2, $3)
+                ON CONFLICT (file_path) DO NOTHING
+                """,
+                group_id,
+                subband_idx,
+                file_path,
+            )
+            
+            # Update group metadata and count
+            await conn.execute(
+                """
+                UPDATE absurd.ingestion_groups
+                SET subband_count = (
+                        SELECT COUNT(*) FROM absurd.ingestion_subbands
+                        WHERE group_id = $1
+                    ),
+                    dec_deg = COALESCE($2, dec_deg),
+                    updated_at = NOW(),
+                    state = CASE
+                        WHEN (SELECT COUNT(*) FROM absurd.ingestion_subbands WHERE group_id = $1) >= expected_subbands
+                        THEN 'pending'
+                        ELSE state
+                    END
+                WHERE group_id = $1
+                """,
+                group_id,
+                dec_deg,
+            )
 
 
 async def get_group_subband_count(group_id: str) -> int:
     """Get the current subband count for a group."""
     client = await get_client()
     async with client._pool.acquire() as conn:  # type: ignore[union-attr]
-            row = await conn.fetchrow(
-                "SELECT subband_count FROM absurd.ingestion_groups WHERE group_id = $1",
-                group_id,
-            )
-            return row["subband_count"] if row else 0
+        row = await conn.fetchrow(
+            "SELECT subband_count FROM absurd.ingestion_groups WHERE group_id = $1",
+            group_id,
+        )
+        return row["subband_count"] if row else 0
 
 
 async def get_group_files(group_id: str) -> Dict[int, str]:
@@ -233,16 +241,16 @@ async def get_group_files(group_id: str) -> Dict[int, str]:
     """
     client = await get_client()
     async with client._pool.acquire() as conn:  # type: ignore[union-attr]
-            rows = await conn.fetch(
-                """
-                SELECT subband_idx, file_path
-                FROM absurd.ingestion_subbands
-                WHERE group_id = $1
-                ORDER BY subband_idx
-                """,
-                group_id,
-            )
-            return {row["subband_idx"]: row["file_path"] for row in rows}
+        rows = await conn.fetch(
+            """
+            SELECT subband_idx, file_path
+            FROM absurd.ingestion_subbands
+            WHERE group_id = $1
+            ORDER BY subband_idx
+            """,
+            group_id,
+        )
+        return {row["subband_idx"]: row["file_path"] for row in rows}
 
 
 async def update_group_after_normalize(
@@ -259,64 +267,64 @@ async def update_group_after_normalize(
     """
     client = await get_client()
     async with client._pool.acquire() as conn:  # type: ignore[union-attr]
-            async with conn.transaction():
-                if old_group_id != new_group_id:
-                    # Check if new group already exists
-                    existing = await conn.fetchrow(
-                        "SELECT group_id FROM absurd.ingestion_groups WHERE group_id = $1",
-                        new_group_id,
-                    )
-                    
-                    if existing:
-                        # Merge into existing group
-                        # Move subbands to new group
-                        await conn.execute(
-                            """
-                            UPDATE absurd.ingestion_subbands
-                            SET group_id = $1
-                            WHERE group_id = $2
-                            """,
-                            new_group_id,
-                            old_group_id,
-                        )
-                        # Delete old group
-                        await conn.execute(
-                            "DELETE FROM absurd.ingestion_groups WHERE group_id = $1",
-                            old_group_id,
-                        )
-                    else:
-                        # Rename group
-                        await conn.execute(
-                            """
-                            UPDATE absurd.ingestion_groups
-                            SET group_id = $1, updated_at = NOW()
-                            WHERE group_id = $2
-                            """,
-                            new_group_id,
-                            old_group_id,
-                        )
-                        await conn.execute(
-                            """
-                            UPDATE absurd.ingestion_subbands
-                            SET group_id = $1
-                            WHERE group_id = $2
-                            """,
-                            new_group_id,
-                            old_group_id,
-                        )
+        async with conn.transaction():
+            if old_group_id != new_group_id:
+                # Check if new group already exists
+                existing = await conn.fetchrow(
+                    "SELECT group_id FROM absurd.ingestion_groups WHERE group_id = $1",
+                    new_group_id,
+                )
                 
-                # Update file paths
-                for subband_idx, new_path in new_paths.items():
+                if existing:
+                    # Merge into existing group
+                    # Move subbands to new group
                     await conn.execute(
                         """
                         UPDATE absurd.ingestion_subbands
-                        SET file_path = $1
-                        WHERE group_id = $2 AND subband_idx = $3
+                        SET group_id = $1
+                        WHERE group_id = $2
                         """,
-                        new_path,
                         new_group_id,
-                        subband_idx,
+                        old_group_id,
                     )
+                    # Delete old group
+                    await conn.execute(
+                        "DELETE FROM absurd.ingestion_groups WHERE group_id = $1",
+                        old_group_id,
+                    )
+                else:
+                    # Rename group
+                    await conn.execute(
+                        """
+                        UPDATE absurd.ingestion_groups
+                        SET group_id = $1, updated_at = NOW()
+                        WHERE group_id = $2
+                        """,
+                        new_group_id,
+                        old_group_id,
+                    )
+                    await conn.execute(
+                        """
+                        UPDATE absurd.ingestion_subbands
+                        SET group_id = $1
+                        WHERE group_id = $2
+                        """,
+                        new_group_id,
+                        old_group_id,
+                    )
+            
+            # Update file paths
+            for subband_idx, new_path in new_paths.items():
+                await conn.execute(
+                    """
+                    UPDATE absurd.ingestion_subbands
+                    SET file_path = $1
+                    WHERE group_id = $2 AND subband_idx = $3
+                    """,
+                    new_path,
+                    new_group_id,
+                    subband_idx,
+                )
 
 
 async def update_group_state(
@@ -335,58 +343,58 @@ async def update_group_state(
     """
     client = await get_client()
     async with client._pool.acquire() as conn:  # type: ignore[union-attr]
-            await conn.execute(
-                """
-                UPDATE absurd.ingestion_groups
-                SET state = $2,
-                    updated_at = NOW(),
-                    completed_at = CASE WHEN $2 IN ('completed', 'failed') THEN NOW() ELSE completed_at END,
-                    error = $3,
-                    ms_path = $4
-                WHERE group_id = $1
-                """,
-                group_id,
-                state,
-                error,
-                ms_path,
-            )
+        await conn.execute(
+            """
+            UPDATE absurd.ingestion_groups
+            SET state = $2,
+                updated_at = NOW(),
+                completed_at = CASE WHEN $2 IN ('completed', 'failed') THEN NOW() ELSE completed_at END,
+                error = $3,
+                ms_path = $4
+            WHERE group_id = $1
+            """,
+            group_id,
+            state,
+            error,
+            ms_path,
+        )
 
 
 async def get_pending_groups(limit: int = 100) -> List[Dict[str, Any]]:
     """Get groups that are ready for processing (pending state)."""
     client = await get_client()
     async with client._pool.acquire() as conn:  # type: ignore[union-attr]
-            rows = await conn.fetch(
-                """
-                SELECT group_id, subband_count, dec_deg, created_at
-                FROM absurd.ingestion_groups
-                WHERE state = 'pending'
-                ORDER BY created_at ASC
-                LIMIT $1
-                """,
-                limit,
-            )
-            return [dict(row) for row in rows]
+        rows = await conn.fetch(
+            """
+            SELECT group_id, subband_count, dec_deg, created_at
+            FROM absurd.ingestion_groups
+            WHERE state = 'pending'
+            ORDER BY created_at ASC
+            LIMIT $1
+            """,
+            limit,
+        )
+        return [dict(row) for row in rows]
 
 
 async def get_ingestion_stats() -> Dict[str, Any]:
     """Get ingestion queue statistics for monitoring."""
     client = await get_client()
     async with client._pool.acquire() as conn:  # type: ignore[union-attr]
-            row = await conn.fetchrow(
-                """
-                SELECT
-                    COUNT(*) FILTER (WHERE state = 'collecting') as collecting,
-                    COUNT(*) FILTER (WHERE state = 'pending') as pending,
-                    COUNT(*) FILTER (WHERE state = 'normalizing') as normalizing,
-                    COUNT(*) FILTER (WHERE state = 'converting') as converting,
-                    COUNT(*) FILTER (WHERE state = 'completed') as completed,
-                    COUNT(*) FILTER (WHERE state = 'failed') as failed,
-                    COUNT(*) as total
-                FROM absurd.ingestion_groups
-                """
-            )
-            return dict(row) if row else {}
+        row = await conn.fetchrow(
+            """
+            SELECT
+                COUNT(*) FILTER (WHERE state = 'collecting') as collecting,
+                COUNT(*) FILTER (WHERE state = 'pending') as pending,
+                COUNT(*) FILTER (WHERE state = 'normalizing') as normalizing,
+                COUNT(*) FILTER (WHERE state = 'converting') as converting,
+                COUNT(*) FILTER (WHERE state = 'completed') as completed,
+                COUNT(*) FILTER (WHERE state = 'failed') as failed,
+                COUNT(*) as total
+            FROM absurd.ingestion_groups
+            """
+        )
+        return dict(row) if row else {}
 
 
 async def get_recorded_files() -> List[str]:
@@ -399,7 +407,7 @@ async def get_recorded_files() -> List[str]:
     """
     client = await get_client()
     async with client._pool.acquire() as conn:  # type: ignore[union-attr]
-            rows = await conn.fetch(
-                "SELECT file_path FROM absurd.ingestion_subbands"
-            )
-            return [row["file_path"] for row in rows]
+        rows = await conn.fetch(
+            "SELECT file_path FROM absurd.ingestion_subbands"
+        )
+        return [row["file_path"] for row in rows]

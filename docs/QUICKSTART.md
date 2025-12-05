@@ -264,8 +264,11 @@ UVH5 files → Group by timestamp → Combine 16 subbands →
 ### Subband Grouping
 
 Each observation produces **16 subband files** (`_sb00.hdf5` through `_sb15.hdf5`).
-These are automatically grouped by timestamp (within 60-second tolerance) and
-combined before processing.
+
+- **Streaming mode**: Files are **normalized on ingest** (renamed to canonical timestamp)
+- **Batch mode**: Files are **clustered by timestamp** (60-second tolerance)
+
+Both ensure all 16 subbands are combined into a single Measurement Set.
 
 ---
 

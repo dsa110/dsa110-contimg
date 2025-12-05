@@ -38,8 +38,13 @@ that belong together.
 > **ALWAYS use `find_subband_groups()` with tolerance:**
 >
 > ```python
-> from dsa110_contimg.conversion.hdf5_orchestrator import find_subband_groups
-> groups = find_subband_groups("/data/incoming", tolerance_s=60.0)
+> from dsa110_contimg.database.hdf5_index import query_subband_groups
+> groups = query_subband_groups(
+>     db_path="/data/incoming/hdf5_file_index.sqlite3",
+>     start_time="2025-01-15T00:00:00",
+>     end_time="2025-01-15T23:59:59",
+>     cluster_tolerance_s=60.0,
+> )
 > complete = [g for g in groups if len(g) == 16]
 > ```
 
@@ -552,17 +557,17 @@ python -m dsa110_contimg.conversion.streaming.streaming_converter \
 ### Queue Inspection
 
 ```bash
-# Check streaming queue status
-sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
-  "SELECT group_id, state, processing_stage, retry_count FROM ingest_queue ORDER BY received_at DESC LIMIT 10;"
+# Check HDF5 file index (in /data/incoming/)
+sqlite3 /data/incoming/hdf5_file_index.sqlite3 \
+  "SELECT timestamp, COUNT(*) as subband_count FROM hdf5_file_index GROUP BY timestamp HAVING subband_count = 16 LIMIT 10;"
 
-# Check performance metrics
+# Check job history
 sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
-  "SELECT group_id, total_time, load_time, phase_time, write_time FROM performance_metrics ORDER BY recorded_at DESC LIMIT 10;"
+  "SELECT id, job_type, status, started_at FROM jobs ORDER BY started_at DESC LIMIT 10;"
 
-# Check HDF5 file index
+# Check MS registry
 sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
-  "SELECT timestamp, COUNT(*) as subband_count FROM hdf5_file_index GROUP BY group_id HAVING subband_count = 16 LIMIT 10;"
+  "SELECT path, status, stage FROM ms_index ORDER BY created_at DESC LIMIT 10;"
 ```
 
 ### Creating Synthetic Test Data
@@ -666,16 +671,23 @@ insufficient resources.
 
 ## Database Locations
 
-SQLite databases are organized in `/data/dsa110-contimg/state/`:
+SQLite databases are organized across two locations:
+
+**HDF5 File Index** (`/data/incoming/`):
+
+- `hdf5_file_index.sqlite3` - **Production HDF5 file tracking** (83K+ records):
+  - Table: `hdf5_file_index` - maps HDF5 files to timestamps and subbands
+  - Used by conversion API endpoints and storage validator
+  - Located alongside raw HDF5 files for colocality
 
 **Unified Pipeline Database** (`state/db/`):
 
-- `pipeline.sqlite3` - **Primary unified database** containing all pipeline state:
-  - Product registry (MS, images, photometry) - `ms_index`, `images`, `photometry_results`
-  - Streaming queue management - `ingest_queue`, `performance_metrics`
-  - HDF5 file index - `hdf5_file_index`
-  - Calibration table registry - `calibration_tables`, `calibration_source_catalog`
-  - Mosaic groups - `mosaic_groups`, `mosaic_members`
+- `pipeline.sqlite3` - **Primary unified database** for pipeline state:
+  - Product registry - `ms_index`, `images`, `photometry`
+  - Calibration - `caltables`, `calibrator_transits`
+  - Jobs - `jobs`, `batch_jobs`, `operation_metrics`
+  - Mosaics - `mosaics`, `mosaic_tiles`
+  - HDF5 files - `hdf5_files` (schema exists, for future unified tracking)
 
 **Other runtime databases** (`state/db/`):
 

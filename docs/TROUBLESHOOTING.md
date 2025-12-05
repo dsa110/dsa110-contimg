@@ -324,9 +324,13 @@ npm run dev:unsafe
 **Diagnosis:**
 
 ```bash
-# Check queue state
+# Check HDF5 file index for incomplete groups
+sqlite3 /data/incoming/hdf5_file_index.sqlite3 \
+  "SELECT timestamp, COUNT(*) as cnt FROM hdf5_file_index GROUP BY timestamp HAVING cnt < 16;"
+
+# Check job status
 sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
-  "SELECT group_id, state, subband_count FROM ingest_queue WHERE state='collecting';"
+  "SELECT id, job_type, status FROM jobs WHERE status='failed' ORDER BY started_at DESC LIMIT 5;"
 ```
 
 **Fix:**
