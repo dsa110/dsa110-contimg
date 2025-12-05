@@ -1214,48 +1214,44 @@ async def _clean_scratch_directories(
 
 
 async def _recover_stuck_groups(config: PipelineConfig, max_stale_hours: float) -> int:
-    """Recover stuck queue groups back to pending state."""
-    import sqlite3
+    """Recover stuck ingestion groups back to pending state.
 
-    # Unified database path (Phase 2 consolidation)
-    queue_db = Path(os.environ.get("PIPELINE_DB", "state/db/pipeline.sqlite3"))
-    if not queue_db.exists():
-        return 0
+    NOTE: As of the ABSURD migration, stuck task recovery is handled by
+    ABSURD's built-in mechanisms. This function now queries the PostgreSQL
+    ingestion tables instead of the legacy SQLite processing_queue.
+    """
+    from .ingestion_db import get_ingestion_pool
 
     recovered = 0
     cutoff_time = time.time() - (max_stale_hours * 3600)
 
     try:
-        conn = sqlite3.connect(str(queue_db), timeout=30.0)
-        conn.execute("PRAGMA journal_mode=WAL")
-
-        # Find stuck in_progress groups
-        cursor = conn.execute(
-            """
-            SELECT group_id FROM processing_queue
-            WHERE state = 'in_progress' AND last_update < ?
-            """,
-            (cutoff_time,),
-        )
-        stuck_groups = [row[0] for row in cursor.fetchall()]
-
-        # Reset them to pending
-        for group_id in stuck_groups:
-            conn.execute(
+        pool = await get_ingestion_pool()
+        async with pool.acquire() as conn:
+            # Find stuck in_progress groups in ABSURD ingestion tables
+            stuck_groups = await conn.fetch(
                 """
-                UPDATE processing_queue
-                SET state = 'pending',
-                    last_update = ?,
-                    error = 'Recovered by housekeeping (was stuck)'
-                WHERE group_id = ?
+                SELECT group_id FROM absurd.ingestion_groups
+                WHERE state = 'in_progress' AND updated_at < to_timestamp($1)
                 """,
-                (time.time(), group_id),
+                cutoff_time,
             )
-            recovered += 1
-            logger.info(f"[Housekeeping] Recovered stuck group: {group_id}")
 
-        conn.commit()
-        conn.close()
+            # Reset them to pending
+            for row in stuck_groups:
+                group_id = row["group_id"]
+                await conn.execute(
+                    """
+                    UPDATE absurd.ingestion_groups
+                    SET state = 'pending',
+                        updated_at = NOW(),
+                        error_message = 'Recovered by housekeeping (was stuck)'
+                    WHERE group_id = $1
+                    """,
+                    group_id,
+                )
+                recovered += 1
+                logger.info(f"[Housekeeping] Recovered stuck group: {group_id}")
 
     except Exception as e:
         logger.warning(f"[Housekeeping] Failed to recover stuck groups: {e}")

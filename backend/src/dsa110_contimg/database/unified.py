@@ -12,7 +12,7 @@ Design Goals:
 - Context manager for safe connection handling
 - WAL mode for concurrent access
 
-Target Schema (unified from products, cal_registry, ingest, calibrators, hdf5):
+Target Schema (unified from products, cal_registry, calibrators, hdf5):
 - ms_index: Measurement Set products with stage tracking
 - images: Image products linked to MS
 - photometry: Photometric measurements
@@ -20,8 +20,12 @@ Target Schema (unified from products, cal_registry, ingest, calibrators, hdf5):
 - calibration_applied: Record of calibration applications
 - calibrator_catalog: VLA and bandpass calibrators
 - hdf5_files: Raw HDF5 file index
-- processing_queue: Ingest/processing queue with retry logic
 - calibrator_transits: Transit time calculations
+
+Note: Ingestion queue is now managed by ABSURD PostgreSQL:
+- absurd.ingestion_groups: Group state tracking
+- absurd.ingestion_subbands: Subband file records
+See absurd/ingestion_db.py for schema.
 
 Usage:
     from dsa110_contimg.database.unified import Database

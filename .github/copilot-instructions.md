@@ -731,28 +731,23 @@ is optional for advanced use cases.
 
 ### RAGFlow (Alternative)
 
-**Note:** RAGFlow reference code and examples are located in `docs/ragflow/`.
-This code is **not part of the Python package** and must be run as standalone
-scripts.
+RAGFlow provides full-featured RAG with chat capabilities via Docker.
 
 To use RAGFlow:
 
-1. Deploy RAGFlow containers (see `docs/ops/ragflow/README.md`)
+1. Ensure RAGFlow container is running: `docker ps --filter "name=ragflow"`
 2. Access via REST API at `localhost:9380` or web UI at `localhost:9080`
-3. Use the standalone scripts in `docs/ragflow/`:
+3. Sync documentation using the sync script:
 
 ```bash
-# Navigate to the ragflow directory
-cd /data/dsa110-contimg/docs/ragflow
+# Check sync status
+python scripts/ragflow_sync.py status
 
-# Example: Query documentation
-python cli.py query "your question"
+# Sync documentation (incremental)
+python scripts/ragflow_sync.py sync
 
-# Example: Upload documents
-python cli.py upload --docs-dir /path/to/docs
-
-# Example: Start MCP server
-python mcp_server.py --sse --port 9400
+# Full re-index
+python scripts/ragflow_sync.py sync --full
 ```
 
-For detailed documentation and examples, see `docs/ragflow/README.md`.
+For detailed documentation, see `docs/ragflow/README.md`.

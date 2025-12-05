@@ -100,6 +100,7 @@ nav:
 
   - Tools:
       - DocSearch: docsearch/README.md
+      - RAGFlow: ragflow/README.md
 
   - Changelog:
       - 2025-12-03 Visualization: changelog/2025-12-03-visualization-and-nightly-mosaics.md

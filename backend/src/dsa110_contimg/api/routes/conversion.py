@@ -7,23 +7,20 @@ Provides endpoints for:
 - Checking conversion status
 - Managing the conversion queue
 
-This enables dashboard-driven conversion alongside calibration, imaging, etc.
+Uses ABSURD PostgreSQL for ingestion queue management.
 """
 
 from __future__ import annotations
 
 import logging
 import os
-import sqlite3
 from datetime import datetime, timedelta
-from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
 from ..auth import require_write_access, AuthContext
-from ..dependencies import get_pipeline_db
 
 logger = logging.getLogger(__name__)
 
@@ -119,10 +116,10 @@ class ConversionStatsResponse(BaseModel):
 # =============================================================================
 
 
-def _get_processing_queue_db() -> str:
-    """Get path to the processing queue database."""
-    from dsa110_contimg.config import settings
-    return str(settings.database.unified_db)
+async def _get_ingestion_pool():
+    """Get the ABSURD ingestion PostgreSQL pool."""
+    from dsa110_contimg.absurd.ingestion_db import get_ingestion_pool
+    return await get_ingestion_pool()
 
 
 def _get_hdf5_index_db() -> str:
@@ -155,41 +152,30 @@ async def list_pending_groups(
     Groups are identified by timestamp and may have 1-16 subbands.
     Complete groups (16 subbands) are ready for conversion.
     """
-    db_path = _get_processing_queue_db()
-
-    if not os.path.exists(db_path):
-        return PendingGroupsResponse(
-            groups=[], total=0, complete_count=0, incomplete_count=0
-        )
-
     try:
-        conn = sqlite3.connect(db_path, timeout=10)
-        conn.row_factory = sqlite3.Row
+        pool = await _get_ingestion_pool()
+        since_time = datetime.utcnow() - timedelta(hours=since_hours)
 
-        # Query pending groups from processing_queue
-        # Note: received_at is Unix timestamp, convert since_hours to seconds
-        since_ts = (datetime.utcnow() - timedelta(hours=since_hours)).timestamp()
-
-        cursor = conn.execute(
-            """
-            SELECT
-                pq.group_id,
-                COUNT(sf.path) as file_count,
-                pq.received_at as first_seen,
-                GROUP_CONCAT(sf.path) as file_paths
-            FROM processing_queue pq
-            LEFT JOIN subband_files sf ON pq.group_id = sf.group_id
-            WHERE pq.state = 'pending'
-              AND pq.received_at >= ?
-            GROUP BY pq.group_id
-            ORDER BY pq.received_at DESC
-            LIMIT ?
-            """,
-            (since_ts, limit),
-        )
-
-        rows = cursor.fetchall()
-        conn.close()
+        async with pool.acquire() as conn:
+            # Query pending groups from ABSURD ingestion tables
+            rows = await conn.fetch(
+                """
+                SELECT
+                    g.group_id,
+                    COUNT(s.subband_idx) as file_count,
+                    g.created_at as first_seen,
+                    ARRAY_AGG(s.file_path) as file_paths
+                FROM absurd.ingestion_groups g
+                LEFT JOIN absurd.ingestion_subbands s ON g.group_id = s.group_id
+                WHERE g.state = 'pending'
+                  AND g.created_at >= $1
+                GROUP BY g.group_id, g.created_at
+                ORDER BY g.created_at DESC
+                LIMIT $2
+                """,
+                since_time,
+                limit,
+            )
 
         groups = []
         complete_count = 0
@@ -205,10 +191,8 @@ async def list_pending_groups(
             else:
                 incomplete_count += 1
 
-            # Convert Unix timestamp to ISO format
-            first_seen_str = None
-            if row["first_seen"]:
-                first_seen_str = datetime.fromtimestamp(row["first_seen"]).isoformat()
+            first_seen_str = row["first_seen"].isoformat() if row["first_seen"] else None
+            file_list = list(row["file_paths"]) if include_files and row["file_paths"] else None
 
             group = SubbandGroup(
                 group_id=row["group_id"],
@@ -216,7 +200,7 @@ async def list_pending_groups(
                 expected_subbands=16,
                 is_complete=is_complete,
                 first_seen=first_seen_str,
-                files=row["file_paths"].split(",") if include_files and row["file_paths"] else None,
+                files=file_list,
             )
             groups.append(group)
 
@@ -227,7 +211,7 @@ async def list_pending_groups(
             incomplete_count=incomplete_count,
         )
 
-    except sqlite3.Error as e:
+    except Exception as e:
         logger.error(f"Database error listing pending groups: {e}")
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
 
@@ -239,65 +223,53 @@ async def get_conversion_stats():
 
     Returns counts of pending, converting, converted, and failed groups.
     """
-    db_path = _get_processing_queue_db()
-
-    if not os.path.exists(db_path):
-        return ConversionStatsResponse(
-            total_pending=0,
-            total_converting=0,
-            total_converted_today=0,
-            total_failed_today=0,
-        )
-
     try:
-        conn = sqlite3.connect(db_path, timeout=10)
+        pool = await _get_ingestion_pool()
 
-        # Count by state
-        cursor = conn.execute(
-            """
-            SELECT state, COUNT(*) as count
-            FROM processing_queue
-            GROUP BY state
-            """
-        )
-        state_counts = {row[0]: row[1] for row in cursor.fetchall()}
+        async with pool.acquire() as conn:
+            # Count by state
+            state_rows = await conn.fetch(
+                """
+                SELECT state, COUNT(*) as count
+                FROM absurd.ingestion_groups
+                GROUP BY state
+                """
+            )
+            state_counts = {row["state"]: row["count"] for row in state_rows}
 
-        # Count completed/failed today (last_update within today)
-        today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
-        cursor = conn.execute(
-            """
-            SELECT state, COUNT(*) as count
-            FROM processing_queue
-            WHERE last_update >= ?
-              AND state IN ('completed', 'failed')
-            GROUP BY state
-            """,
-            (today_start,),
-        )
-        today_counts = {row[0]: row[1] for row in cursor.fetchall()}
+            # Count completed/failed today
+            today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
+            today_rows = await conn.fetch(
+                """
+                SELECT state, COUNT(*) as count
+                FROM absurd.ingestion_groups
+                WHERE updated_at >= $1
+                  AND state IN ('completed', 'failed')
+                GROUP BY state
+                """,
+                today_start,
+            )
+            today_counts = {row["state"]: row["count"] for row in today_rows}
 
-        # Get oldest pending group
-        cursor = conn.execute(
-            """
-            SELECT group_id FROM processing_queue
-            WHERE state = 'pending'
-            ORDER BY received_at ASC
-            LIMIT 1
-            """
-        )
-        oldest = cursor.fetchone()
-
-        conn.close()
+            # Get oldest pending group
+            oldest = await conn.fetchrow(
+                """
+                SELECT group_id FROM absurd.ingestion_groups
+                WHERE state = 'pending'
+                ORDER BY created_at ASC
+                LIMIT 1
+                """
+            )
 
         return ConversionStatsResponse(
             total_pending=state_counts.get("pending", 0),
-            total_converting=state_counts.get("converting", 0),
-            total_converted_today=today_counts.get("converted", 0),
+            total_converting=state_counts.get("in_progress", 0),
+            total_converted_today=today_counts.get("completed", 0),
             total_failed_today=today_counts.get("failed", 0),
-            oldest_pending_group=oldest[0] if oldest else None,
+            oldest_pending_group=oldest["group_id"] if oldest else None,
         )
 
-    except sqlite3.Error as e:
+    except Exception as e:
         logger.error(f"Database error getting stats: {e}")
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
 
@@ -310,28 +282,26 @@ async def trigger_conversion(
     """
     Trigger conversion of specified subband groups.
 
-    Queues a background job to convert HDF5 files to Measurement Sets.
+    Queues an ABSURD task to convert HDF5 files to Measurement Sets.
     Requires write access.
     """
-    from ..job_queue import job_queue
-
-    # Validate group_ids exist
-    db_path = _get_processing_queue_db()
-    if not os.path.exists(db_path):
-        raise HTTPException(status_code=404, detail="Processing queue database not found")
+    from dsa110_contimg.absurd.client import get_absurd_client
 
     try:
-        conn = sqlite3.connect(db_path, timeout=10)
-        cursor = conn.execute(
-            """
-            SELECT DISTINCT group_id FROM processing_queue
-            WHERE group_id IN ({})
-              AND state = 'pending'
-            """.format(",".join("?" * len(request.group_ids))),
-            request.group_ids,
-        )
-        valid_groups = [row[0] for row in cursor.fetchall()]
-        conn.close()
+        pool = await _get_ingestion_pool()
+
+        async with pool.acquire() as conn:
+            # Validate group_ids exist and are pending
+            placeholders = ", ".join(f"${i+1}" for i in range(len(request.group_ids)))
+            valid_rows = await conn.fetch(
+                f"""
+                SELECT DISTINCT group_id FROM absurd.ingestion_groups
+                WHERE group_id IN ({placeholders})
+                  AND state = 'pending'
+                """,
+                *request.group_ids,
+            )
+            valid_groups = [row["group_id"] for row in valid_rows]
 
         if not valid_groups:
             raise HTTPException(
@@ -339,27 +309,26 @@ async def trigger_conversion(
                 detail=f"No valid pending groups found: {request.group_ids}",
             )
 
-        # Enqueue conversion job
-        job_id = job_queue.enqueue(
-            _execute_conversion_job,
-            group_ids=valid_groups,
-            output_dir=request.output_dir,
-            priority=request.priority,
-            meta={
-                "type": "conversion",
-                "group_count": len(valid_groups),
-                "requested_by": auth.user_id if hasattr(auth, "user_id") else "api",
-            },
-        )
+        # Enqueue ABSURD convert-group tasks
+        client = get_absurd_client()
+        task_ids = []
+        for group_id in valid_groups:
+            task_id = await client.enqueue(
+                "convert-group",
+                {"group_id": group_id, "output_dir": request.output_dir},
+            )
+            task_ids.append(task_id)
 
         return ConversionJobResponse(
-            job_id=job_id,
+            job_id=task_ids[0] if len(task_ids) == 1 else f"batch:{len(task_ids)}",
             group_ids=valid_groups,
             status="queued",
             message=f"Conversion queued for {len(valid_groups)} group(s)",
         )
 
-    except sqlite3.Error as e:
+    except HTTPException:
+        raise
+    except Exception as e:
         logger.error(f"Database error triggering conversion: {e}")
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
 
@@ -369,48 +338,43 @@ async def get_group_status(group_id: str):
     """
     Get the conversion status of a specific group.
     """
-    db_path = _get_processing_queue_db()
-
-    if not os.path.exists(db_path):
-        raise HTTPException(status_code=404, detail="Processing queue database not found")
-
     try:
-        conn = sqlite3.connect(db_path, timeout=10)
-        conn.row_factory = sqlite3.Row
+        pool = await _get_ingestion_pool()
 
-        cursor = conn.execute(
-            """
-            SELECT
+        async with pool.acquire() as conn:
+            row = await conn.fetchrow(
+                """
+                SELECT
+                    group_id,
+                    state,
+                    error_message,
+                    created_at,
+                    updated_at,
+                    ms_path
+                FROM absurd.ingestion_groups
+                WHERE group_id = $1
+                """,
                 group_id,
-                state,
-                error,
-                received_at,
-                last_update
-            FROM processing_queue
-            WHERE group_id = ?
-            """,
-            (group_id,),
-        )
-        row = cursor.fetchone()
-        conn.close()
+            )
 
         if not row:
             raise HTTPException(status_code=404, detail=f"Group not found: {group_id}")
 
-        # Convert timestamps
-        started_at = datetime.fromtimestamp(row["received_at"]).isoformat() if row["received_at"] else None
-        completed_at = datetime.fromtimestamp(row["last_update"]).isoformat() if row["last_update"] else None
+        started_at = row["created_at"].isoformat() if row["created_at"] else None
+        completed_at = row["updated_at"].isoformat() if row["updated_at"] else None
 
         return ConversionStatus(
             group_id=row["group_id"],
             status=row["state"],
-            ms_path=None,  # MS path not stored in processing_queue
-            error_message=row["error"],
+            ms_path=row["ms_path"],
+            error_message=row["error_message"],
             started_at=started_at,
             completed_at=completed_at,
         )
 
-    except sqlite3.Error as e:
+    except HTTPException:
+        raise
+    except Exception as e:
         logger.error(f"Database error getting group status: {e}")
         raise HTTPException(status_code=500, detail=f"Database error: {e}")
 
@@ -424,18 +388,108 @@ async def list_hdf5_groups(
     """
     List subband groups from the HDF5 file index.
 
-    This queries the raw HDF5 file index, not the processing queue.
-    Useful for discovering files that haven't been queued yet.
+    This queries the ABSURD ingestion tables for recorded subbands.
     """
-    db_path = _get_hdf5_index_db()
+    import sqlite3
 
+    # First try ABSURD PostgreSQL
+    try:
+        pool = await _get_ingestion_pool()
+
+        async with pool.acquire() as conn:
+            # Build query for ABSURD ingestion tables
+            if start_time and end_time:
+                rows = await conn.fetch(
+                    """
+                    SELECT
+                        g.group_id,
+                        COUNT(s.subband_idx) as file_count,
+                        ARRAY_AGG(s.subband_idx ORDER BY s.subband_idx) as subbands
+                    FROM absurd.ingestion_groups g
+                    LEFT JOIN absurd.ingestion_subbands s ON g.group_id = s.group_id
+                    WHERE g.group_id >= $1 AND g.group_id <= $2
+                    GROUP BY g.group_id
+                    ORDER BY g.group_id DESC
+                    LIMIT $3
+                    """,
+                    start_time,
+                    end_time,
+                    limit,
+                )
+            elif start_time:
+                rows = await conn.fetch(
+                    """
+                    SELECT
+                        g.group_id,
+                        COUNT(s.subband_idx) as file_count,
+                        ARRAY_AGG(s.subband_idx ORDER BY s.subband_idx) as subbands
+                    FROM absurd.ingestion_groups g
+                    LEFT JOIN absurd.ingestion_subbands s ON g.group_id = s.group_id
+                    WHERE g.group_id >= $1
+                    GROUP BY g.group_id
+                    ORDER BY g.group_id DESC
+                    LIMIT $2
+                    """,
+                    start_time,
+                    limit,
+                )
+            elif end_time:
+                rows = await conn.fetch(
+                    """
+                    SELECT
+                        g.group_id,
+                        COUNT(s.subband_idx) as file_count,
+                        ARRAY_AGG(s.subband_idx ORDER BY s.subband_idx) as subbands
+                    FROM absurd.ingestion_groups g
+                    LEFT JOIN absurd.ingestion_subbands s ON g.group_id = s.group_id
+                    WHERE g.group_id <= $1
+                    GROUP BY g.group_id
+                    ORDER BY g.group_id DESC
+                    LIMIT $2
+                    """,
+                    end_time,
+                    limit,
+                )
+            else:
+                rows = await conn.fetch(
+                    """
+                    SELECT
+                        g.group_id,
+                        COUNT(s.subband_idx) as file_count,
+                        ARRAY_AGG(s.subband_idx ORDER BY s.subband_idx) as subbands
+                    FROM absurd.ingestion_groups g
+                    LEFT JOIN absurd.ingestion_subbands s ON g.group_id = s.group_id
+                    GROUP BY g.group_id
+                    ORDER BY g.group_id DESC
+                    LIMIT $1
+                    """,
+                    limit,
+                )
+
+        groups = []
+        for row in rows:
+            subbands = [str(sb) for sb in row["subbands"]] if row["subbands"] else []
+            groups.append({
+                "group_id": row["group_id"],
+                "file_count": row["file_count"],
+                "subbands": subbands,
+                "is_complete": row["file_count"] >= 16,
+            })
+
+        return {"groups": groups, "total": len(groups)}
+
+    except Exception as e:
+        # Fall back to SQLite HDF5 index if ABSURD not available
+        logger.warning(f"ABSURD query failed, trying SQLite fallback: {e}")
+
+    # Fallback to SQLite HDF5 index
+    db_path = _get_hdf5_index_db()
     if not os.path.exists(db_path):
         raise HTTPException(status_code=404, detail="HDF5 index database not found")
 
     try:
         conn = sqlite3.connect(db_path, timeout=10)
 
-        # Build query
         query = """
             SELECT
                 timestamp,
@@ -483,7 +537,7 @@ async def list_hdf5_groups(
 
 
 # =============================================================================
-# Background Job Function
+# Background Job Function (deprecated - use ABSURD tasks)
 # =============================================================================
 
 
@@ -495,93 +549,14 @@ def _execute_conversion_job(
     """
     Execute conversion for the specified groups.
 
-    This runs in the background via the job queue.
+    DEPRECATED: Use ABSURD convert-group tasks instead.
+    This function is no longer functional since the streaming converter
+    was migrated to ABSURD. Use the /convert endpoint which enqueues
+    ABSURD tasks instead.
     """
-    import time
-    from pathlib import Path
-
-    from dsa110_contimg.config import settings
-    from dsa110_contimg.conversion.streaming.stages.conversion import (
-        ConversionConfig,
-        ConversionStage,
-    )
-    from dsa110_contimg.conversion.streaming.queue import SubbandQueue
-
-    results = {
+    return {
+        "error": "DEPRECATED: Use ABSURD convert-group tasks via /convert endpoint",
         "converted": [],
-        "failed": [],
+        "failed": [{"group_id": gid, "error": "Migration to ABSURD required"} for gid in group_ids],
         "skipped": [],
     }
-
-    # Get output directory
-    if output_dir:
-        out_path = Path(output_dir)
-    else:
-        out_path = Path(settings.paths.ms_dir)
-
-    out_path.mkdir(parents=True, exist_ok=True)
-
-    # Initialize queue and stage
-    queue = SubbandQueue(str(settings.database.pipeline_db))
-
-    config = ConversionConfig(
-        input_dir=Path(settings.paths.incoming_dir),
-        output_dir=out_path,
-        scratch_dir=Path(settings.paths.scratch_dir),
-        expected_subbands=16,
-    )
-    stage = ConversionStage(config)
-
-    for group_id in group_ids:
-        try:
-            # Get file paths for this group
-            group_info = queue.get_group_info(group_id)
-            if not group_info:
-                results["skipped"].append({"group_id": group_id, "reason": "Not found"})
-                continue
-
-            file_paths = group_info.get("file_paths", [])
-            if not file_paths:
-                results["skipped"].append({"group_id": group_id, "reason": "No files"})
-                continue
-
-            # Mark as converting (in_progress)
-            queue.update_state(group_id, "in_progress")
-
-            # Execute conversion
-            t0 = time.time()
-            result = stage.execute(group_id=group_id, file_paths=file_paths)
-            elapsed = time.time() - t0
-
-            if result.success:
-                queue.update_state(group_id, "completed")
-                # Record metrics if available
-                queue.record_metrics(
-                    group_id,
-                    total_time=elapsed,
-                    writer_type=result.writer_type or "fallback",
-                )
-                results["converted"].append({
-                    "group_id": group_id,
-                    "ms_path": result.ms_path,
-                    "elapsed_s": round(elapsed, 1),
-                })
-            else:
-                queue.update_state(group_id, "failed", error=result.error_message)
-                results["failed"].append({
-                    "group_id": group_id,
-                    "error": result.error_message,
-                })
-
-        except Exception as e:
-            logger.exception(f"Conversion failed for {group_id}: {e}")
-            try:
-                queue.update_state(group_id, "failed", error=str(e)[:500])
-            except Exception:
-                pass
-            results["failed"].append({
-                "group_id": group_id,
-                "error": str(e)[:200],
-            })
-
-    return results

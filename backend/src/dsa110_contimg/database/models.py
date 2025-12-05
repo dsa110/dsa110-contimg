@@ -491,7 +491,7 @@ class PointingHistory(HDF5Base):
 
 
 # =============================================================================
-# Ingest Queue Domain Models (processing_queue, performance_metrics tables)
+# Ingest Queue Domain Models (ABSURD PostgreSQL)
 # =============================================================================
 
 class PointingHistoryIngest(IngestBase):
@@ -509,8 +509,10 @@ class PointingHistoryIngest(IngestBase):
     )
 
 
-# Note: processing_queue table is managed by dsa110_contimg.conversion.streaming.SubbandQueue
-# which uses direct SQL for performance. See streaming/queue.py for schema.
+# Note: Ingestion queue is now managed by ABSURD PostgreSQL tables:
+#   - absurd.ingestion_groups: Group state tracking
+#   - absurd.ingestion_subbands: Subband file records
+# See absurd/ingestion_db.py for schema.
 
 
 # =============================================================================
