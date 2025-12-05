@@ -86,10 +86,14 @@ simplicity. As of Phase 2 consolidation, all pipeline state is stored in a
 ### **Science Logic (Deep Dive)**
 
 - **Self-Calibration (`calibration/selfcal.py`):**
-  - Implements an iterative loop: `Initial Imaging` -> `Phase-only Self-cal` ->
+  - Implements an iterative loop: `Initial Imaging` → `Phase-only Self-cal` →
     `Amplitude+Phase Self-cal`.
-  - Uses `casatasks` (gaincal, applycal) if available.
-  - Key heuristic: Solint (solution interval) decreases as the model improves.
+  - Uses `casatasks` (gaincal, applycal) for calibration.
+  - Solution intervals start LONG (5 min) for stable bootstrap, then shorten
+    progressively (5 min → 2 min → 1 min) as the model improves.
+  - Per-antenna SNR thresholds ensure reliable solutions (phase ≥3, amp ≥10).
+  - Visibility chi-squared monitoring for robust convergence detection.
+  - Drift-scan mode limits amplitude self-cal to high beam response regions.
 - **Imaging Wrapper (`imaging/cli_imaging.py`):**
   - Wraps `wsclean` via `subprocess`.
   - Enforces a fixed image extent of **3.5° x 3.5°** (`FIXED_IMAGE_EXTENT_DEG`).

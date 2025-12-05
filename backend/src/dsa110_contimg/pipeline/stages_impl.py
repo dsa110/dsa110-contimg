@@ -1889,11 +1889,14 @@ class SelfCalibrationStage(PipelineStage):
             return context.with_output("selfcal_skipped", True)
 
         # Build configuration from params
+        # Import default constants to ensure consistency
+        from dsa110_contimg.calibration.selfcal import DEFAULT_PHASE_SOLINTS
+
         selfcal_config = SelfCalConfig(
             max_iterations=params.get("max_iterations", 5),
             min_snr_improvement=params.get("min_snr_improvement", 1.05),
             stop_on_divergence=params.get("stop_on_divergence", True),
-            phase_solints=params.get("phase_solints", ["60s", "30s", "inf"]),
+            phase_solints=params.get("phase_solints", DEFAULT_PHASE_SOLINTS.copy()),
             phase_minsnr=params.get("phase_minsnr", 3.0),
             do_amplitude=params.get("do_amplitude", True),
             amp_solint=params.get("amp_solint", "inf"),

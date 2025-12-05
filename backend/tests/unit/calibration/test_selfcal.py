@@ -623,7 +623,7 @@ class TestSelfcalMs:
             ]
 
             config = SelfCalConfig(
-                phase_solints=["60s", "30s", "inf"],
+                phase_solints=["300s", "120s", "60s"],  # New defaults: start long
                 do_amplitude=True,
             )
 
@@ -709,7 +709,7 @@ class TestSelfcalMs:
                 SelfCalIterationResult(
                     iteration=0,
                     mode=SelfCalMode.PHASE,
-                    solint="60s",
+                    solint="300s",  # Start with long solint
                     success=True,
                     snr=120.0,
                     gaintable=f"{tmpdir}/iter0.cal",
@@ -718,7 +718,7 @@ class TestSelfcalMs:
                 SelfCalIterationResult(
                     iteration=1,
                     mode=SelfCalMode.PHASE,
-                    solint="30s",
+                    solint="120s",  # Shorten progressively
                     success=True,
                     snr=80.0,  # SNR decreased!
                     gaintable=f"{tmpdir}/iter1.cal",
@@ -728,7 +728,7 @@ class TestSelfcalMs:
                 SelfCalIterationResult(
                     iteration=2,
                     mode=SelfCalMode.PHASE,
-                    solint="inf",
+                    solint="60s",  # Final short solint
                     success=True,
                     snr=90.0,
                     gaintable=f"{tmpdir}/iter2.cal",
@@ -746,7 +746,7 @@ class TestSelfcalMs:
             ]
 
             config = SelfCalConfig(
-                phase_solints=["60s", "30s", "inf"],
+                phase_solints=["300s", "120s", "60s"],  # New defaults: start long
                 stop_on_divergence=True,
                 do_amplitude=False,  # Disable amplitude to avoid extra iterations
             )
