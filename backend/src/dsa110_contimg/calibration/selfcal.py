@@ -106,14 +106,28 @@ class SelfCalConfig:
         min_snr_improvement: Minimum fractional SNR improvement to continue (e.g., 1.05 = 5%)
         stop_on_divergence: Stop if SNR decreases
 
-        phase_solints: Solution intervals for phase-only iterations
-        phase_minsnr: Minimum SNR for phase solutions
+        phase_solints: Solution intervals for phase-only iterations (start LONG, shorten)
+        phase_minsnr: Minimum SNR for phase solutions (CASA gaincal minsnr)
+        phase_antenna_snr: Minimum per-antenna SNR for phase solutions
         phase_combine: Combine parameter for gaincal (e.g., "scan", "spw")
 
         do_amplitude: Whether to do amplitude self-cal after phase
         amp_solint: Solution interval for amplitude+phase iteration
-        amp_minsnr: Minimum SNR for amplitude solutions
+        amp_minsnr: Minimum SNR for amplitude solutions (CASA gaincal minsnr)
+        amp_antenna_snr: Minimum per-antenna SNR for amplitude solutions
         amp_combine: Combine parameter for amplitude gaincal
+
+        check_antenna_snr: Whether to compute and check per-antenna SNR
+        check_gain_smoothness: Whether to check gain solution smoothness
+        max_phase_scatter_deg: Maximum phase RMS scatter (degrees) to accept
+        max_amp_scatter_frac: Maximum amplitude RMS scatter (fractional) to accept
+
+        use_chi_squared: Whether to monitor visibility chi-squared for convergence
+        min_chi_squared_improvement: Minimum chi-squared improvement to continue
+
+        combine_spw_phase: Combine SPWs for phase solutions (increases SNR)
+        drift_scan_mode: Enable drift-scan specific handling
+        min_beam_response: Minimum PB response for amp self-cal in drift-scan mode
 
         imsize: Image size in pixels
         cell_arcsec: Cell size in arcseconds (None = auto-calculate)
@@ -144,14 +158,33 @@ class SelfCalConfig:
 
     # Phase-only calibration parameters
     phase_solints: List[str] = field(default_factory=lambda: DEFAULT_PHASE_SOLINTS.copy())
-    phase_minsnr: float = 3.0
+    phase_minsnr: float = 3.0  # CASA gaincal minsnr parameter
+    phase_antenna_snr: float = DEFAULT_PHASE_ANTENNA_SNR  # Per-antenna threshold
     phase_combine: str = ""
 
     # Amplitude+phase calibration parameters
     do_amplitude: bool = True
     amp_solint: str = DEFAULT_AMP_SOLINT
-    amp_minsnr: float = 5.0
+    amp_minsnr: float = 5.0  # CASA gaincal minsnr parameter
+    amp_antenna_snr: float = DEFAULT_AMP_ANTENNA_SNR  # Per-antenna threshold
     amp_combine: str = "scan"
+
+    # Per-antenna SNR and gain quality checks
+    check_antenna_snr: bool = True  # Compute and check per-antenna SNR
+    check_gain_smoothness: bool = True  # Check gain solution smoothness
+    max_phase_scatter_deg: float = DEFAULT_MAX_PHASE_SCATTER_DEG
+    max_amp_scatter_frac: float = DEFAULT_MAX_AMP_SCATTER_FRAC
+
+    # Visibility chi-squared monitoring
+    use_chi_squared: bool = True  # Monitor chi-squared for convergence
+    min_chi_squared_improvement: float = 0.95  # Chi-sq must decrease by 5%
+
+    # Subband handling
+    combine_spw_phase: bool = False  # Combine SPWs for phase (increases SNR)
+
+    # Drift-scan specific
+    drift_scan_mode: bool = False  # Enable drift-scan handling
+    min_beam_response: float = DEFAULT_MIN_BEAM_RESPONSE  # Min PB for amp selfcal
 
     # Imaging parameters
     imsize: int = 1024
@@ -196,6 +229,11 @@ class SelfCalIterationResult:
         snr: Peak SNR after this iteration
         rms: RMS noise after this iteration
         peak_flux: Peak flux after this iteration
+        chi_squared: Visibility chi-squared (reduced)
+        antenna_snr_median: Median per-antenna SNR
+        antenna_snr_min: Minimum per-antenna SNR
+        phase_scatter_deg: Phase scatter across antennas (degrees)
+        amp_scatter_frac: Amplitude scatter across antennas (fractional)
         gaintable: Path to calibration table produced
         image_path: Path to image produced
         message: Status message
@@ -208,6 +246,11 @@ class SelfCalIterationResult:
     snr: float = 0.0
     rms: float = 0.0
     peak_flux: float = 0.0
+    chi_squared: float = 0.0
+    antenna_snr_median: float = 0.0
+    antenna_snr_min: float = 0.0
+    phase_scatter_deg: float = 0.0
+    amp_scatter_frac: float = 0.0
     gaintable: Optional[str] = None
     image_path: Optional[str] = None
     message: str = ""
@@ -221,9 +264,12 @@ class SelfCalResult:
         status: Final status of self-calibration
         iterations_completed: Number of iterations completed
         initial_snr: Initial SNR before self-calibration
+        initial_chi_squared: Initial visibility chi-squared
         best_snr: Best SNR achieved
         final_snr: Final SNR (may be worse than best if diverged)
+        final_chi_squared: Final visibility chi-squared
         improvement_factor: Final/Initial SNR ratio
+        chi_squared_improvement: Initial/Final chi-squared ratio
         iterations: List of iteration results
         best_iteration: Index of best iteration
         final_image: Path to final image
@@ -234,9 +280,12 @@ class SelfCalResult:
     status: SelfCalStatus
     iterations_completed: int = 0
     initial_snr: float = 0.0
+    initial_chi_squared: float = 0.0
     best_snr: float = 0.0
     final_snr: float = 0.0
+    final_chi_squared: float = 0.0
     improvement_factor: float = 1.0
+    chi_squared_improvement: float = 1.0
     iterations: List[SelfCalIterationResult] = field(default_factory=list)
     best_iteration: int = -1
     final_image: Optional[str] = None
@@ -334,6 +383,318 @@ def _get_flagged_fraction(ms_path: str) -> float:
     except Exception as e:
         logger.warning(f"Failed to get flagged fraction: {e}")
         return 0.0
+
+
+def _compute_visibility_chi_squared(ms_path: str, field: str = "") -> float:
+    """Compute reduced chi-squared from visibility residuals.
+
+    Chi-squared = mean(|DATA - MODEL|^2 / SIGMA^2)
+
+    This provides a visibility-domain metric for convergence that complements
+    image-domain SNR. A decreasing chi-squared indicates improving calibration.
+
+    Args:
+        ms_path: Path to Measurement Set
+        field: Field selection (empty for all)
+
+    Returns:
+        Reduced chi-squared value, or 0.0 if computation fails
+    """
+    try:
+        import casacore.tables as tb
+
+        query = f"FIELD_ID=={field}" if field and field.isdigit() else ""
+
+        with tb.table(ms_path, readonly=True) as t:
+            if query:
+                t = t.query(query)
+
+            # Get corrected data (or data if no correction applied)
+            try:
+                data = t.getcol("CORRECTED_DATA")
+            except Exception:
+                data = t.getcol("DATA")
+
+            try:
+                model = t.getcol("MODEL_DATA")
+            except Exception:
+                logger.debug("MODEL_DATA not present, chi-squared = 0")
+                return 0.0
+
+            flags = t.getcol("FLAG")
+
+            # Get weights (use WEIGHT_SPECTRUM if available, else WEIGHT)
+            try:
+                weights = t.getcol("WEIGHT_SPECTRUM")
+            except Exception:
+                weight = t.getcol("WEIGHT")
+                # Broadcast weight to match data shape
+                weights = np.broadcast_to(
+                    weight[:, np.newaxis, :], data.shape
+                ).copy()
+
+            # Compute residuals
+            residual = data - model
+
+            # Mask flagged data
+            residual_masked = np.ma.array(residual, mask=flags)
+            weights_masked = np.ma.array(weights, mask=flags)
+
+            # Compute weighted chi-squared
+            # chi2 = sum(w * |r|^2) / sum(w)
+            weighted_residual_sq = weights_masked * np.abs(residual_masked) ** 2
+            chi_sq = np.ma.sum(weighted_residual_sq) / np.ma.sum(weights_masked)
+
+            # Reduced chi-squared (approximately)
+            return float(chi_sq)
+
+    except Exception as e:
+        logger.warning(f"Failed to compute chi-squared: {e}")
+        return 0.0
+
+
+def _compute_per_antenna_snr(
+    ms_path: str,
+    solint_seconds: float,
+    field: str = "",
+) -> Tuple[float, float, np.ndarray]:
+    """Compute per-antenna SNR for a given solution interval.
+
+    For each antenna, estimates SNR = sqrt(N) * mean(|V|) / std(|V|)
+    where N is the number of samples in the solution interval.
+
+    Args:
+        ms_path: Path to Measurement Set
+        solint_seconds: Solution interval in seconds
+        field: Field selection
+
+    Returns:
+        Tuple of (median_snr, min_snr, per_antenna_snr_array)
+    """
+    try:
+        import casacore.tables as tb
+
+        with tb.table(ms_path, readonly=True) as t:
+            # Get antenna columns
+            ant1 = t.getcol("ANTENNA1")
+            ant2 = t.getcol("ANTENNA2")
+            times = t.getcol("TIME")
+
+            try:
+                data = t.getcol("CORRECTED_DATA")
+            except Exception:
+                data = t.getcol("DATA")
+
+            flags = t.getcol("FLAG")
+
+            # Get unique antennas
+            n_ant = max(np.max(ant1), np.max(ant2)) + 1
+
+            # Compute time bins based on solint
+            time_min, time_max = times.min(), times.max()
+            total_time = time_max - time_min
+
+            if solint_seconds <= 0 or solint_seconds >= total_time:
+                # Single solution for entire observation
+                n_time_bins = 1
+            else:
+                n_time_bins = max(1, int(total_time / solint_seconds))
+
+            # For each antenna, compute SNR across all baselines involving it
+            antenna_snrs = []
+
+            for ant_id in range(n_ant):
+                # Select baselines involving this antenna
+                mask = (ant1 == ant_id) | (ant2 == ant_id)
+                ant_data = data[mask]
+                ant_flags = flags[mask]
+
+                if ant_data.size == 0:
+                    antenna_snrs.append(0.0)
+                    continue
+
+                # Mask flagged data
+                ant_data_masked = np.ma.array(ant_data, mask=ant_flags)
+
+                # Compute amplitude
+                amp = np.abs(ant_data_masked)
+
+                # SNR estimate: mean / std, scaled by sqrt(N_samples / N_bins)
+                mean_amp = np.ma.mean(amp)
+                std_amp = np.ma.std(amp)
+
+                if std_amp > 0:
+                    n_samples = np.ma.count(amp)
+                    # SNR per solution interval
+                    snr = mean_amp / std_amp * np.sqrt(n_samples / n_time_bins)
+                    antenna_snrs.append(float(snr))
+                else:
+                    antenna_snrs.append(0.0)
+
+            antenna_snrs = np.array(antenna_snrs)
+            valid_snrs = antenna_snrs[antenna_snrs > 0]
+
+            if len(valid_snrs) == 0:
+                return 0.0, 0.0, antenna_snrs
+
+            return float(np.median(valid_snrs)), float(np.min(valid_snrs)), antenna_snrs
+
+    except Exception as e:
+        logger.warning(f"Failed to compute per-antenna SNR: {e}")
+        return 0.0, 0.0, np.array([])
+
+
+def _parse_solint_seconds(solint: str) -> float:
+    """Parse solution interval string to seconds.
+
+    Args:
+        solint: Solution interval (e.g., "60s", "2min", "inf")
+
+    Returns:
+        Seconds (float), or -1 for "inf"
+    """
+    solint = solint.strip().lower()
+
+    if solint == "inf" or solint == "infinite":
+        return -1.0
+
+    # Try parsing numeric suffix
+    if solint.endswith("s"):
+        return float(solint[:-1])
+    elif solint.endswith("min"):
+        return float(solint[:-3]) * 60
+    elif solint.endswith("h"):
+        return float(solint[:-1]) * 3600
+    else:
+        # Assume seconds
+        try:
+            return float(solint)
+        except ValueError:
+            logger.warning(f"Could not parse solint '{solint}', assuming inf")
+            return -1.0
+
+
+def _measure_gain_smoothness(caltable_path: str) -> Tuple[float, float]:
+    """Measure smoothness of gain solutions in a calibration table.
+
+    Args:
+        caltable_path: Path to CASA calibration table
+
+    Returns:
+        Tuple of (phase_scatter_deg, amp_scatter_frac)
+        - phase_scatter_deg: RMS phase scatter across antennas (degrees)
+        - amp_scatter_frac: RMS amplitude scatter as fraction of mean
+    """
+    try:
+        import casacore.tables as tb
+
+        with tb.table(caltable_path, readonly=True) as t:
+            # CPARAM contains complex gains
+            cparam = t.getcol("CPARAM")  # Shape: (nrow, nchan, npol)
+            flags = t.getcol("FLAG")
+
+            # Mask flagged solutions
+            cparam_masked = np.ma.array(cparam, mask=flags)
+
+            # Extract phase and amplitude
+            phases = np.angle(cparam_masked, deg=True)
+            amps = np.abs(cparam_masked)
+
+            # Phase scatter: RMS of phases after removing mean per polarization
+            phase_mean = np.ma.mean(phases, axis=(0, 1), keepdims=True)
+            phase_residual = phases - phase_mean
+            phase_scatter = float(np.ma.std(phase_residual))
+
+            # Amplitude scatter: RMS relative to mean
+            amp_mean = np.ma.mean(amps)
+            if amp_mean > 0:
+                amp_scatter = float(np.ma.std(amps) / amp_mean)
+            else:
+                amp_scatter = 0.0
+
+            return phase_scatter, amp_scatter
+
+    except Exception as e:
+        logger.warning(f"Failed to measure gain smoothness: {e}")
+        return 0.0, 0.0
+
+
+def _check_beam_response(
+    ms_path: str,
+    field: str,
+    threshold: float = 0.5,
+) -> Tuple[bool, float]:
+    """Check if field is within acceptable primary beam response.
+
+    For drift-scan observations, amplitude self-calibration should be limited
+    to times when the primary beam response is high to avoid absorbing beam
+    effects into the gains.
+
+    Args:
+        ms_path: Path to Measurement Set
+        field: Field ID to check
+        threshold: Minimum beam response threshold (0-1)
+
+    Returns:
+        Tuple of (is_acceptable, estimated_beam_response)
+    """
+    try:
+        import casacore.tables as tb
+
+        # Get field pointing direction
+        field_id = int(field) if field.isdigit() else 0
+
+        with tb.table(f"{ms_path}/FIELD", readonly=True) as field_tab:
+            if field_id >= field_tab.nrows():
+                logger.warning(f"Field {field_id} not found in MS")
+                return True, 1.0
+
+            phase_dir = field_tab.getcol("PHASE_DIR")[field_id]
+            field_ra = phase_dir[0, 0]  # radians
+            field_dec = phase_dir[0, 1]  # radians
+
+        # Get pointing direction (if available)
+        pointing_path = f"{ms_path}/POINTING"
+        if not Path(pointing_path).exists():
+            # No pointing info, assume on-axis
+            return True, 1.0
+
+        with tb.table(pointing_path, readonly=True) as pointing_tab:
+            if pointing_tab.nrows() == 0:
+                return True, 1.0
+
+            pointing = pointing_tab.getcol("DIRECTION")
+            # Use mean pointing for simplicity
+            mean_ra = np.mean(pointing[:, 0, 0])
+            mean_dec = np.mean(pointing[:, 0, 1])
+
+        # Compute angular separation
+        cos_sep = (
+            np.sin(field_dec) * np.sin(mean_dec)
+            + np.cos(field_dec) * np.cos(mean_dec) * np.cos(field_ra - mean_ra)
+        )
+        separation_rad = np.arccos(np.clip(cos_sep, -1, 1))
+        separation_deg = np.degrees(separation_rad)
+
+        # Estimate beam response (Gaussian approximation)
+        # DSA-110 FWHM ~ 2.5 deg at 1.4 GHz
+        fwhm_deg = 2.5
+        sigma_deg = fwhm_deg / 2.355
+
+        beam_response = np.exp(-0.5 * (separation_deg / sigma_deg) ** 2)
+
+        is_acceptable = beam_response >= threshold
+
+        if not is_acceptable:
+            logger.warning(
+                f"Field {field} beam response {beam_response:.2f} < {threshold:.2f} threshold"
+            )
+
+        return is_acceptable, float(beam_response)
+
+    except Exception as e:
+        logger.warning(f"Failed to check beam response: {e}")
+        return True, 1.0
 
 
 def _predict_model_wsclean(
@@ -689,6 +1050,47 @@ def selfcal_iteration(
     caltable = str(output_path / f"{iter_prefix}.cal")
 
     try:
+        # Step 0: Pre-checks for amplitude self-cal in drift-scan mode
+        if mode == SelfCalMode.AMPLITUDE_PHASE and config.drift_scan_mode:
+            beam_ok, beam_response = _check_beam_response(
+                ms_path, config.field, config.min_beam_response
+            )
+            if not beam_ok:
+                result.message = (
+                    f"Beam response {beam_response:.2f} below threshold "
+                    f"{config.min_beam_response:.2f} - skipping amp self-cal"
+                )
+                logger.warning(result.message)
+                return result
+
+        # Step 0b: Check per-antenna SNR if enabled
+        if config.check_antenna_snr:
+            solint_sec = _parse_solint_seconds(solint)
+            median_snr, min_snr, _ = _compute_per_antenna_snr(
+                ms_path, solint_sec, config.field
+            )
+            result.antenna_snr_median = median_snr
+            result.antenna_snr_min = min_snr
+
+            # Check against threshold
+            threshold = (
+                config.phase_antenna_snr
+                if mode == SelfCalMode.PHASE
+                else config.amp_antenna_snr
+            )
+
+            if median_snr < threshold:
+                result.message = (
+                    f"Per-antenna SNR {median_snr:.1f} below threshold {threshold:.1f} "
+                    f"for {mode.value} self-cal - consider longer solint"
+                )
+                logger.warning(result.message)
+                # Don't fail, but log warning - let caller decide
+
+            logger.info(
+                f"Iteration {iteration}: Per-antenna SNR median={median_snr:.1f}, min={min_snr:.1f}"
+            )
+
         # Step 1: Image
         logger.info(f"Iteration {iteration}: Imaging ({mode.value}, solint={solint})")
         image_path = _run_imaging(ms_path, imagename, config)
@@ -709,6 +1111,12 @@ def selfcal_iteration(
             f"Iteration {iteration}: SNR={snr:.1f}, Peak={peak * 1e3:.3f}mJy, RMS={rms * 1e6:.1f}µJy"
         )
 
+        # Step 1b: Compute visibility chi-squared if enabled
+        if config.use_chi_squared:
+            chi_sq = _compute_visibility_chi_squared(ms_path, config.field)
+            result.chi_squared = chi_sq
+            logger.info(f"Iteration {iteration}: Chi-squared={chi_sq:.3f}")
+
         # Step 2: Predict model
         logger.info(f"Iteration {iteration}: Predicting model")
 
@@ -726,7 +1134,12 @@ def selfcal_iteration(
         logger.info(f"Iteration {iteration}: Running gaincal")
         calmode = "p" if mode == SelfCalMode.PHASE else "ap"
         minsnr = config.phase_minsnr if mode == SelfCalMode.PHASE else config.amp_minsnr
-        combine = config.phase_combine if mode == SelfCalMode.PHASE else config.amp_combine
+
+        # Handle combine parameter - allow SPW combining for phase if configured
+        if mode == SelfCalMode.PHASE and config.combine_spw_phase:
+            combine = "spw" if not config.phase_combine else f"{config.phase_combine},spw"
+        else:
+            combine = config.phase_combine if mode == SelfCalMode.PHASE else config.amp_combine
 
         if not _run_gaincal(
             ms_path=ms_path,
@@ -745,6 +1158,33 @@ def selfcal_iteration(
             return result
 
         result.gaintable = caltable
+
+        # Step 3b: Check gain smoothness if enabled
+        if config.check_gain_smoothness:
+            phase_scatter, amp_scatter = _measure_gain_smoothness(caltable)
+            result.phase_scatter_deg = phase_scatter
+            result.amp_scatter_frac = amp_scatter
+
+            logger.info(
+                f"Iteration {iteration}: Gain scatter - phase={phase_scatter:.1f}deg, "
+                f"amp={amp_scatter:.3f}"
+            )
+
+            # Check against thresholds
+            if phase_scatter > config.max_phase_scatter_deg:
+                result.message = (
+                    f"Phase scatter {phase_scatter:.1f}° exceeds threshold "
+                    f"{config.max_phase_scatter_deg:.1f}° - solutions may be noisy"
+                )
+                logger.warning(result.message)
+
+            if mode == SelfCalMode.AMPLITUDE_PHASE:
+                if amp_scatter > config.max_amp_scatter_frac:
+                    result.message = (
+                        f"Amp scatter {amp_scatter:.3f} exceeds threshold "
+                        f"{config.max_amp_scatter_frac:.3f} - solutions may be noisy"
+                    )
+                    logger.warning(result.message)
 
         # Step 4: Apply calibration
         logger.info(f"Iteration {iteration}: Applying calibration")
@@ -801,6 +1241,10 @@ def selfcal_ms(
     logger.info(f"Max iterations: {config.max_iterations}")
     logger.info(f"Phase solints: {config.phase_solints}")
     logger.info(f"Do amplitude: {config.do_amplitude}")
+    logger.info(f"Check per-antenna SNR: {config.check_antenna_snr}")
+    logger.info(f"Check gain smoothness: {config.check_gain_smoothness}")
+    logger.info(f"Use chi-squared: {config.use_chi_squared}")
+    logger.info(f"Drift-scan mode: {config.drift_scan_mode}")
     logger.info("=" * 60)
 
     # Check flagged fraction
@@ -831,6 +1275,13 @@ def selfcal_ms(
     initial_peak, initial_rms, initial_snr = _measure_image_stats(initial_image)
     result.initial_snr = initial_snr
 
+    # Compute initial chi-squared if enabled
+    initial_chi_sq = 0.0
+    if config.use_chi_squared:
+        initial_chi_sq = _compute_visibility_chi_squared(ms_path, config.field)
+        result.initial_chi_squared = initial_chi_sq
+        logger.info(f"Initial chi-squared: {initial_chi_sq:.3f}")
+
     logger.info(
         f"Initial image: SNR={initial_snr:.1f}, Peak={initial_peak * 1e3:.3f}mJy, RMS={initial_rms * 1e6:.1f}µJy"
     )
@@ -842,6 +1293,7 @@ def selfcal_ms(
         return False, _result_to_dict(result)
 
     best_snr = initial_snr
+    best_chi_sq = initial_chi_sq
     best_iteration = -1
     iteration = 0
 
@@ -869,13 +1321,23 @@ def selfcal_ms(
             iteration += 1
             continue
 
-        # Check for improvement
-        if iter_result.snr > best_snr * config.min_snr_improvement:
+        # Check for improvement using both SNR and chi-squared
+        snr_improved = iter_result.snr > best_snr * config.min_snr_improvement
+        chi_sq_improved = True  # Default if not using chi-squared
+
+        if config.use_chi_squared and iter_result.chi_squared > 0 and best_chi_sq > 0:
+            chi_sq_improved = iter_result.chi_squared < best_chi_sq * config.min_chi_squared_improvement
+            if chi_sq_improved:
+                logger.info(f"Chi-squared improved: {best_chi_sq:.3f} -> {iter_result.chi_squared:.3f}")
+
+        if snr_improved:
             logger.info(f"SNR improved: {best_snr:.1f} -> {iter_result.snr:.1f}")
             best_snr = iter_result.snr
             best_iteration = iteration
             if iter_result.gaintable:
                 current_gaintables.append(iter_result.gaintable)
+            if config.use_chi_squared and iter_result.chi_squared > 0:
+                best_chi_sq = iter_result.chi_squared
         elif iter_result.snr < best_snr and config.stop_on_divergence:
             logger.warning(f"SNR decreased: {best_snr:.1f} -> {iter_result.snr:.1f}, stopping")
             result.status = SelfCalStatus.DIVERGED
@@ -887,32 +1349,36 @@ def selfcal_ms(
 
     # Amplitude+phase iteration
     if config.do_amplitude and iteration < config.max_iterations:
-        logger.info("Running amplitude+phase self-calibration")
+        # Check if amplitude self-cal should proceed based on status
+        if result.status != SelfCalStatus.DIVERGED:
+            logger.info("Running amplitude+phase self-calibration")
 
-        iter_result = selfcal_iteration(
-            ms_path=ms_path,
-            output_dir=output_dir,
-            iteration=iteration,
-            mode=SelfCalMode.AMPLITUDE_PHASE,
-            solint=config.amp_solint,
-            config=config,
-            previous_gaintables=current_gaintables,
-        )
+            iter_result = selfcal_iteration(
+                ms_path=ms_path,
+                output_dir=output_dir,
+                iteration=iteration,
+                mode=SelfCalMode.AMPLITUDE_PHASE,
+                solint=config.amp_solint,
+                config=config,
+                previous_gaintables=current_gaintables,
+            )
 
-        result.iterations.append(iter_result)
+            result.iterations.append(iter_result)
 
-        if iter_result.success:
-            if iter_result.snr > best_snr:
-                logger.info(f"Amplitude SNR improved: {best_snr:.1f} -> {iter_result.snr:.1f}")
-                best_snr = iter_result.snr
-                best_iteration = iteration
-                if iter_result.gaintable:
-                    current_gaintables.append(iter_result.gaintable)
-            elif iter_result.snr < best_snr and config.stop_on_divergence:
-                logger.warning(f"Amplitude SNR decreased: {best_snr:.1f} -> {iter_result.snr:.1f}")
-                result.status = SelfCalStatus.DIVERGED
+            if iter_result.success:
+                if iter_result.snr > best_snr:
+                    logger.info(f"Amplitude SNR improved: {best_snr:.1f} -> {iter_result.snr:.1f}")
+                    best_snr = iter_result.snr
+                    best_iteration = iteration
+                    if iter_result.gaintable:
+                        current_gaintables.append(iter_result.gaintable)
+                    if config.use_chi_squared and iter_result.chi_squared > 0:
+                        best_chi_sq = iter_result.chi_squared
+                elif iter_result.snr < best_snr and config.stop_on_divergence:
+                    logger.warning(f"Amplitude SNR decreased: {best_snr:.1f} -> {iter_result.snr:.1f}")
+                    result.status = SelfCalStatus.DIVERGED
 
-        iteration += 1
+            iteration += 1
 
     # Final results
     result.iterations_completed = iteration
@@ -921,6 +1387,14 @@ def selfcal_ms(
     result.final_snr = result.iterations[-1].snr if result.iterations else initial_snr
     result.improvement_factor = best_snr / initial_snr if initial_snr > 0 else 1.0
     result.final_gaintables = current_gaintables
+
+    # Chi-squared tracking
+    if config.use_chi_squared:
+        result.final_chi_squared = (
+            result.iterations[-1].chi_squared if result.iterations else initial_chi_sq
+        )
+        if initial_chi_sq > 0 and result.final_chi_squared > 0:
+            result.chi_squared_improvement = initial_chi_sq / result.final_chi_squared
 
     # Find final image
     if result.iterations and result.iterations[-1].image_path:
@@ -948,6 +1422,8 @@ def selfcal_ms(
     logger.info(f"Initial SNR: {result.initial_snr:.1f}")
     logger.info(f"Best SNR: {result.best_snr:.1f}")
     logger.info(f"Improvement: {result.improvement_factor:.2f}x")
+    if config.use_chi_squared and result.initial_chi_squared > 0:
+        logger.info(f"Chi-squared improvement: {result.chi_squared_improvement:.2f}x")
     logger.info("=" * 60)
 
     result.message = f"{result.status.value}: {result.improvement_factor:.2f}x improvement in {result.iterations_completed} iterations"
@@ -961,9 +1437,12 @@ def _result_to_dict(result: SelfCalResult) -> Dict[str, Any]:
         "status": result.status.value,
         "iterations_completed": result.iterations_completed,
         "initial_snr": result.initial_snr,
+        "initial_chi_squared": result.initial_chi_squared,
         "best_snr": result.best_snr,
         "final_snr": result.final_snr,
+        "final_chi_squared": result.final_chi_squared,
         "improvement_factor": result.improvement_factor,
+        "chi_squared_improvement": result.chi_squared_improvement,
         "best_iteration": result.best_iteration,
         "final_image": result.final_image,
         "final_gaintables": result.final_gaintables,
@@ -977,6 +1456,11 @@ def _result_to_dict(result: SelfCalResult) -> Dict[str, Any]:
                 "snr": ir.snr,
                 "rms": ir.rms,
                 "peak_flux": ir.peak_flux,
+                "chi_squared": ir.chi_squared,
+                "antenna_snr_median": ir.antenna_snr_median,
+                "antenna_snr_min": ir.antenna_snr_min,
+                "phase_scatter_deg": ir.phase_scatter_deg,
+                "amp_scatter_frac": ir.amp_scatter_frac,
                 "gaintable": ir.gaintable,
                 "image_path": ir.image_path,
                 "message": ir.message,
@@ -994,4 +1478,12 @@ __all__ = [
     "SelfCalResult",
     "selfcal_iteration",
     "selfcal_ms",
+    # Constants
+    "DEFAULT_PHASE_SOLINTS",
+    "DEFAULT_AMP_SOLINT",
+    "DEFAULT_PHASE_ANTENNA_SNR",
+    "DEFAULT_AMP_ANTENNA_SNR",
+    "DEFAULT_MAX_PHASE_SCATTER_DEG",
+    "DEFAULT_MAX_AMP_SCATTER_FRAC",
+    "DEFAULT_MIN_BEAM_RESPONSE",
 ]

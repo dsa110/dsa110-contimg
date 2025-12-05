@@ -7,6 +7,7 @@ Tests cover:
 - Image statistics measurement
 - Individual selfcal iteration logic
 - Full selfcal_ms workflow (mocked)
+- New features: per-antenna SNR, chi-squared, gain smoothness, drift-scan mode
 """
 
 from __future__ import annotations
@@ -26,11 +27,17 @@ from dsa110_contimg.calibration.selfcal import (
     SelfCalResult,
     _measure_image_stats,
     _get_flagged_fraction,
+    _parse_solint_seconds,
     _result_to_dict,
     selfcal_iteration,
     selfcal_ms,
     DEFAULT_PHASE_SOLINTS,
     DEFAULT_AMP_SOLINT,
+    DEFAULT_PHASE_ANTENNA_SNR,
+    DEFAULT_AMP_ANTENNA_SNR,
+    DEFAULT_MAX_PHASE_SCATTER_DEG,
+    DEFAULT_MAX_AMP_SCATTER_FRAC,
+    DEFAULT_MIN_BEAM_RESPONSE,
 )
 
 
@@ -58,6 +65,35 @@ class TestSelfCalConfig:
         assert config.backend == "wsclean"
         assert config.min_initial_snr == 5.0
 
+    def test_default_solints_start_long(self):
+        """Default phase solution intervals should start long (5min) for L-band."""
+        # Perplexity recommendation: start LONG for stable bootstrap
+        assert DEFAULT_PHASE_SOLINTS[0] == "300s"  # 5 minutes
+        assert DEFAULT_PHASE_SOLINTS[1] == "120s"  # 2 minutes
+        assert DEFAULT_PHASE_SOLINTS[2] == "60s"  # 1 minute
+
+    def test_new_config_fields_defaults(self):
+        """New configuration fields should have correct defaults."""
+        config = SelfCalConfig()
+
+        # Per-antenna SNR thresholds
+        assert config.phase_antenna_snr == DEFAULT_PHASE_ANTENNA_SNR
+        assert config.amp_antenna_snr == DEFAULT_AMP_ANTENNA_SNR
+
+        # Quality checks enabled by default
+        assert config.check_antenna_snr is True
+        assert config.check_gain_smoothness is True
+        assert config.use_chi_squared is True
+
+        # Gain smoothness thresholds
+        assert config.max_phase_scatter_deg == DEFAULT_MAX_PHASE_SCATTER_DEG
+        assert config.max_amp_scatter_frac == DEFAULT_MAX_AMP_SCATTER_FRAC
+
+        # Subband and drift-scan
+        assert config.combine_spw_phase is False
+        assert config.drift_scan_mode is False
+        assert config.min_beam_response == DEFAULT_MIN_BEAM_RESPONSE
+
     def test_custom_values(self):
         """Custom configuration values should be stored correctly."""
         config = SelfCalConfig(
@@ -79,6 +115,18 @@ class TestSelfCalConfig:
         assert config.backend == "tclean"
         assert config.refant == "103"
         assert config.field == "1"
+
+    def test_drift_scan_config(self):
+        """Drift-scan specific config should be stored correctly."""
+        config = SelfCalConfig(
+            drift_scan_mode=True,
+            min_beam_response=0.7,
+            combine_spw_phase=True,
+        )
+
+        assert config.drift_scan_mode is True
+        assert config.min_beam_response == 0.7
+        assert config.combine_spw_phase is True
 
     def test_phase_solints_independence(self):
         """Default phase_solints should be independent between instances."""
@@ -111,6 +159,9 @@ class TestSelfCalEnums:
         assert SelfCalStatus.DIVERGED.value == "diverged"
         assert SelfCalStatus.FAILED.value == "failed"
         assert SelfCalStatus.NO_IMPROVEMENT.value == "no_improvement"
+        # New status values
+        assert SelfCalStatus.LOW_ANTENNA_SNR.value == "low_antenna_snr"
+        assert SelfCalStatus.NOISY_GAINS.value == "noisy_gains"
 
 
 # =============================================================================
@@ -137,9 +188,43 @@ class TestSelfCalIterationResult:
         assert result.snr == 0.0
         assert result.rms == 0.0
         assert result.peak_flux == 0.0
+        # New fields should default to 0.0
+        assert result.chi_squared == 0.0
+        assert result.antenna_snr_median == 0.0
+        assert result.antenna_snr_min == 0.0
+        assert result.phase_scatter_deg == 0.0
+        assert result.amp_scatter_frac == 0.0
         assert result.gaintable is None
         assert result.image_path is None
         assert result.message == ""
+
+    def test_successful_iteration_with_new_metrics(self):
+        """Successful iteration should store all metrics including new ones."""
+        result = SelfCalIterationResult(
+            iteration=2,
+            mode=SelfCalMode.AMPLITUDE_PHASE,
+            solint="inf",
+            success=True,
+            snr=150.0,
+            rms=1e-5,
+            peak_flux=1.5e-3,
+            chi_squared=0.95,
+            antenna_snr_median=12.5,
+            antenna_snr_min=5.2,
+            phase_scatter_deg=8.5,
+            amp_scatter_frac=0.12,
+            gaintable="/data/iter2.cal",
+            image_path="/data/iter2.image",
+            message="Completed: SNR=150.0",
+        )
+
+        assert result.success is True
+        assert result.snr == 150.0
+        assert result.chi_squared == 0.95
+        assert result.antenna_snr_median == 12.5
+        assert result.antenna_snr_min == 5.2
+        assert result.phase_scatter_deg == 8.5
+        assert result.amp_scatter_frac == 0.12
 
     def test_successful_iteration(self):
         """Successful iteration should store all metrics."""
@@ -177,8 +262,11 @@ class TestSelfCalResult:
         assert result.status == SelfCalStatus.FAILED
         assert result.iterations_completed == 0
         assert result.initial_snr == 0.0
+        assert result.initial_chi_squared == 0.0
         assert result.best_snr == 0.0
+        assert result.final_chi_squared == 0.0
         assert result.improvement_factor == 1.0
+        assert result.chi_squared_improvement == 1.0
         assert result.iterations == []
         assert result.final_gaintables == []
 
@@ -188,9 +276,12 @@ class TestSelfCalResult:
             status=SelfCalStatus.SUCCESS,
             iterations_completed=3,
             initial_snr=50.0,
+            initial_chi_squared=1.5,
             best_snr=150.0,
             final_snr=150.0,
+            final_chi_squared=0.5,
             improvement_factor=3.0,
+            chi_squared_improvement=3.0,
             best_iteration=2,
             final_image="/data/final.image",
             final_gaintables=["/data/iter0.cal", "/data/iter1.cal", "/data/iter2.cal"],
@@ -271,6 +362,39 @@ class TestGetFlaggedFraction:
         assert frac == 0.0
 
 
+class TestParseSolintSeconds:
+    """Tests for _parse_solint_seconds function."""
+
+    def test_seconds_suffix(self):
+        """Should parse seconds with 's' suffix."""
+        assert _parse_solint_seconds("60s") == 60.0
+        assert _parse_solint_seconds("30s") == 30.0
+        assert _parse_solint_seconds("300s") == 300.0
+
+    def test_minutes_suffix(self):
+        """Should parse minutes with 'min' suffix."""
+        assert _parse_solint_seconds("5min") == 300.0
+        assert _parse_solint_seconds("2min") == 120.0
+
+    def test_hours_suffix(self):
+        """Should parse hours with 'h' suffix."""
+        assert _parse_solint_seconds("1h") == 3600.0
+
+    def test_inf_values(self):
+        """Should return -1 for infinite solution intervals."""
+        assert _parse_solint_seconds("inf") == -1.0
+        assert _parse_solint_seconds("INF") == -1.0
+        assert _parse_solint_seconds("infinite") == -1.0
+
+    def test_bare_number(self):
+        """Should parse bare number as seconds."""
+        assert _parse_solint_seconds("120") == 120.0
+
+    def test_whitespace(self):
+        """Should handle whitespace."""
+        assert _parse_solint_seconds(" 60s ") == 60.0
+
+
 class TestResultToDict:
     """Tests for _result_to_dict function."""
 
@@ -282,6 +406,10 @@ class TestResultToDict:
         assert d["status"] == "failed"
         assert d["iterations_completed"] == 0
         assert d["iterations"] == []
+        # New fields should be present
+        assert d["initial_chi_squared"] == 0.0
+        assert d["final_chi_squared"] == 0.0
+        assert d["chi_squared_improvement"] == 1.0
 
     def test_full_result(self):
         """Should serialize complete result."""
@@ -291,13 +419,21 @@ class TestResultToDict:
             solint="60s",
             success=True,
             snr=100.0,
+            chi_squared=0.8,
+            antenna_snr_median=8.5,
+            antenna_snr_min=4.2,
+            phase_scatter_deg=12.0,
+            amp_scatter_frac=0.15,
         )
 
         result = SelfCalResult(
             status=SelfCalStatus.SUCCESS,
             iterations_completed=1,
             initial_snr=50.0,
+            initial_chi_squared=1.2,
             best_snr=100.0,
+            final_chi_squared=0.8,
+            chi_squared_improvement=1.5,
             iterations=[iter_result],
         )
 
@@ -305,9 +441,17 @@ class TestResultToDict:
 
         assert d["status"] == "success"
         assert d["initial_snr"] == 50.0
+        assert d["initial_chi_squared"] == 1.2
+        assert d["chi_squared_improvement"] == 1.5
         assert len(d["iterations"]) == 1
         assert d["iterations"][0]["mode"] == "phase"
         assert d["iterations"][0]["snr"] == 100.0
+        # New iteration fields
+        assert d["iterations"][0]["chi_squared"] == 0.8
+        assert d["iterations"][0]["antenna_snr_median"] == 8.5
+        assert d["iterations"][0]["antenna_snr_min"] == 4.2
+        assert d["iterations"][0]["phase_scatter_deg"] == 12.0
+        assert d["iterations"][0]["amp_scatter_frac"] == 0.15
 
 
 # =============================================================================
