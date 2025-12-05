@@ -111,6 +111,9 @@ export const ROUTES = {
 
   /** Pipeline Control */
   PIPELINE: "/pipeline",
+
+  /** CARTA Viewer */
+  CARTA: "/viewer/carta",
 } as const;
 
 /**
@@ -127,6 +130,7 @@ export const NAV_ITEMS = [
   { path: ROUTES.WORKFLOWS.LIST, label: "Workflows" },
   { path: ROUTES.PIPELINE, label: "Pipeline" },
   { path: ROUTES.CONVERSION, label: "Conversion" },
+  { path: ROUTES.CARTA, label: "CARTA" },
 ] as const;
 
 /**

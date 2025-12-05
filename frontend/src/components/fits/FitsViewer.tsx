@@ -109,10 +109,14 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
     };
   }, [isJS9Ready]);
 
+  // Track whether we've initialized the display
+  const displayInitializedRef = useRef(false);
+
   // Register JS9 display when container is ready
   // JS9 needs to be explicitly initialized for dynamically created displays
   useEffect(() => {
-    if (!isJS9Ready || !containerRef.current) return;
+    if (!isJS9Ready || !containerRef.current || displayInitializedRef.current)
+      return;
 
     // For dynamically created JS9 displays, we need to initialize them
     // The div with class "JS9" and id="${displayId}" must exist first
@@ -126,18 +130,33 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
     const existingCanvas = displayElement.querySelector("canvas");
     if (existingCanvas) {
       logger.debug("JS9 display already initialized", { displayId });
+      displayInitializedRef.current = true;
       return;
     }
 
-    // Use JS9.init() to initialize dynamically created displays
-    // This is the proper way to handle React-managed DOM elements
-    if (window.JS9.init) {
-      try {
+    // JS9 uses a different approach for dynamic displays
+    // We need to call JS9.AddDivs() which scans for new JS9 divs
+    // or manually set up the display structure
+    try {
+      // First try AddDivs which is the proper way
+      if (typeof window.JS9.AddDivs === "function") {
+        window.JS9.AddDivs();
+        displayInitializedRef.current = true;
+        logger.debug("JS9.AddDivs called for display", { displayId });
+      } else if (typeof window.JS9.init === "function") {
+        // Fallback to init()
         window.JS9.init();
-        logger.debug("JS9 initialized for display", { displayId });
-      } catch (err) {
-        logger.debug("JS9 init error", { error: err, displayId });
+        displayInitializedRef.current = true;
+        logger.debug("JS9.init called for display", { displayId });
+      } else {
+        // Last resort: manually trigger initialization
+        // by forcing JS9 to rescan
+        logger.debug("JS9 AddDivs/init not available, display may not work", {
+          displayId,
+        });
       }
+    } catch (err) {
+      logger.debug("JS9 initialization error", { error: err, displayId });
     }
   }, [isJS9Ready, displayId]);
 

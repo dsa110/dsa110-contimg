@@ -374,30 +374,50 @@ const HomePage: React.FC = () => {
                 style={{ borderColor: "var(--color-border)" }}
               >
                 <div className="aspect-square bg-slate-100 dark:bg-slate-800 flex items-center justify-center relative">
-                  {img.thumbnail_url ? (
-                    <img
-                      src={img.thumbnail_url}
-                      alt={img.path?.split("/").pop() || "Image"}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="text-slate-400 text-xs text-center p-2">
-                      <svg
-                        className="w-8 h-8 mx-auto mb-1 opacity-50"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={1.5}
-                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        />
-                      </svg>
-                      No preview
-                    </div>
-                  )}
+                  <div className="text-slate-400 text-xs text-center p-2">
+                    {img.pointing_ra_deg != null &&
+                    img.pointing_dec_deg != null ? (
+                      <>
+                        <svg
+                          className="w-6 h-6 mx-auto mb-1 opacity-60"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"
+                          />
+                        </svg>
+                        <span className="block text-[10px] tabular-nums">
+                          RA {img.pointing_ra_deg.toFixed(1)}°
+                        </span>
+                        <span className="block text-[10px] tabular-nums">
+                          Dec {img.pointing_dec_deg > 0 ? "+" : ""}
+                          {img.pointing_dec_deg.toFixed(1)}°
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <svg
+                          className="w-6 h-6 mx-auto mb-1 opacity-50"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={1.5}
+                            d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                        <span className="text-[10px]">FITS</span>
+                      </>
+                    )}
+                  </div>
                   {img.qa_grade && (
                     <span
                       className={`absolute top-1 right-1 text-[10px] px-1.5 py-0.5 rounded font-medium ${

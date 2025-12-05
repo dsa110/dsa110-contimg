@@ -36,7 +36,15 @@ export type JS9ColorMap =
 /**
  * Scale options available in JS9.
  */
-export type JS9Scale = "linear" | "log" | "pow" | "sqrt" | "squared" | "asinh" | "sinh" | "histeq";
+export type JS9Scale =
+  | "linear"
+  | "log"
+  | "pow"
+  | "sqrt"
+  | "squared"
+  | "asinh"
+  | "sinh"
+  | "histeq";
 
 /**
  * Display options passed to most JS9 methods.
@@ -195,7 +203,10 @@ export interface JS9Static {
    * @param colormap Color map name
    * @param options Display options
    */
-  SetColormap: (colormap: JS9ColorMap | string, options?: JS9DisplayOptions) => void;
+  SetColormap: (
+    colormap: JS9ColorMap | string,
+    options?: JS9DisplayOptions
+  ) => void;
 
   /**
    * Set the scale/stretch.
@@ -210,7 +221,11 @@ export interface JS9Static {
    * @param value Parameter value
    * @param options Display options
    */
-  SetParam: (param: string, value: unknown, options?: JS9DisplayOptions) => void;
+  SetParam: (
+    param: string,
+    value: unknown,
+    options?: JS9DisplayOptions
+  ) => void;
 
   /**
    * Get a display parameter.
@@ -232,7 +247,10 @@ export interface JS9Static {
    * @param zoom Zoom factor or "tofit"
    * @param options Display options
    */
-  SetZoom: (zoom: number | "tofit" | "in" | "out", options?: JS9DisplayOptions) => void;
+  SetZoom: (
+    zoom: number | "tofit" | "in" | "out",
+    options?: JS9DisplayOptions
+  ) => void;
 
   /**
    * Get the current zoom level.
@@ -246,7 +264,11 @@ export interface JS9Static {
    * @param y Y pixel coordinate
    * @param options Display options
    */
-  PixToWCS: (x: number, y: number, options?: JS9DisplayOptions) => JS9WCSResult | null;
+  PixToWCS: (
+    x: number,
+    y: number,
+    options?: JS9DisplayOptions
+  ) => JS9WCSResult | null;
 
   /**
    * Convert WCS coordinates to pixel.
@@ -265,7 +287,10 @@ export interface JS9Static {
    * @param which Which regions ("all" or region ID)
    * @param options Display options
    */
-  GetRegions: (which?: string | "all", options?: JS9DisplayOptions) => JS9Region[];
+  GetRegions: (
+    which?: string | "all",
+    options?: JS9DisplayOptions
+  ) => JS9Region[];
 
   /**
    * Add a region.
@@ -310,14 +335,20 @@ export interface JS9Static {
    * @param filenameOrOptions Optional filename or display options
    * @param options Display options (if first param is filename)
    */
-  SavePNG: (filenameOrOptions?: string | JS9DisplayOptions, options?: JS9DisplayOptions) => void;
+  SavePNG: (
+    filenameOrOptions?: string | JS9DisplayOptions,
+    options?: JS9DisplayOptions
+  ) => void;
 
   /**
    * Save the current image as FITS.
    * @param filenameOrOptions Optional filename or display options
    * @param options Display options (if first param is filename)
    */
-  SaveFITS: (filenameOrOptions?: string | JS9DisplayOptions, options?: JS9DisplayOptions) => void;
+  SaveFITS: (
+    filenameOrOptions?: string | JS9DisplayOptions,
+    options?: JS9DisplayOptions
+  ) => void;
 
   /**
    * Get image data as a 2D array.
@@ -349,7 +380,11 @@ export interface JS9Static {
    * @param callback Callback function
    * @param options Display options
    */
-  SetCallback: (event: JS9CallbackType, callback: JS9Callback, options?: JS9DisplayOptions) => void;
+  SetCallback: (
+    event: JS9CallbackType,
+    callback: JS9Callback,
+    options?: JS9DisplayOptions
+  ) => void;
 
   /**
    * Remove an event callback.
@@ -357,6 +392,25 @@ export interface JS9Static {
    * @param options Display options
    */
   RemoveCallback: (event: JS9CallbackType, options?: JS9DisplayOptions) => void;
+
+  /**
+   * Initialize JS9 displays.
+   * Call this after dynamically adding JS9 divs to the DOM.
+   */
+  init?: () => void;
+
+  /**
+   * Add dynamically created JS9 divs.
+   * Scans the DOM for new divs with class "JS9" and initializes them.
+   */
+  AddDivs?: () => void;
+
+  /**
+   * Look up a display by ID.
+   * @param displayId The display ID to look up
+   * @returns The display object or null if not found
+   */
+  LookupDisplay?: (displayId: string) => unknown;
 }
 
 // =============================================================================
