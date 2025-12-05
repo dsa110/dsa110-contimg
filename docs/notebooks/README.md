@@ -13,11 +13,10 @@
 
 ## Where to Find Notebooks
 
-**Active Simulations**: :arrow_right: `simulations/notebooks/`
+**Active Simulations**: See `docs/simulations/` if it exists, or check `backend/tests/` for simulation code.
 
 - Organized testing and validation notebooks
 - Use pipeline code for consistency checks
-- See [simulations/README.md](../simulations/README.md)
 
 **QA/Monitoring Examples**: :arrow_right: Coming soon (expand
 `simulations/notebooks/03_qa_demo.ipynb`)

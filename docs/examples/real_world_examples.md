@@ -462,7 +462,6 @@ stages = [
 
 ## Related Documentation
 
-- [Pipeline Stage Architecture](../architecture/pipeline/pipeline_stage_architecture.md)
-- [Creating Pipeline Stages](../architecture/pipeline/pipeline_patterns.md)
-- Testing Guide
-- [Troubleshooting Guide](../../troubleshooting/)
+- [Architecture](../ARCHITECTURE.md) - System design and pipeline architecture
+- [Developer Guide](../DEVELOPER_GUIDE.md) - Development patterns
+- [Troubleshooting](../TROUBLESHOOTING.md) - Common issues and solutions
