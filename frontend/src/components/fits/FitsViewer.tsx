@@ -109,6 +109,26 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
     };
   }, [isJS9Ready]);
 
+  // Register JS9 display when container is ready
+  useEffect(() => {
+    if (!isJS9Ready || !containerRef.current) return;
+
+    // Check if JS9.AddDisplay is available (it may not be in all versions)
+    // If not available, JS9 should auto-detect the div with class "JS9"
+    if (window.JS9.AddDisplay) {
+      try {
+        // Check if display already exists
+        const existingDisplay = window.JS9.LookupDisplay(displayId);
+        if (!existingDisplay) {
+          window.JS9.AddDisplay(displayId);
+          logger.debug("JS9 display registered", { displayId });
+        }
+      } catch (err) {
+        logger.debug("JS9 AddDisplay error (may be normal)", { error: err, displayId });
+      }
+    }
+  }, [isJS9Ready, displayId]);
+
   // Load FITS image
   useEffect(() => {
     if (!isJS9Ready || !fitsUrl) return;

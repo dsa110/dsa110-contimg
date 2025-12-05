@@ -614,6 +614,119 @@ export function PipelineStatusPanel({
     );
   }
 
+  // Compact mode: Show a simple, meaningful summary
+  if (compact) {
+    const hasActivity =
+      data &&
+      (data.total.pending > 0 ||
+        data.total.running > 0 ||
+        data.total.failed > 0);
+
+    return (
+      <div className={className}>
+        {/* Loading state */}
+        {isLoading && (
+          <div className="flex items-center justify-center py-6">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600" />
+          </div>
+        )}
+
+        {/* Compact content */}
+        {!isLoading && data && (
+          <div className="space-y-3">
+            {/* Status grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {/* Workers */}
+              <div className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+                <div
+                  className={`w-2.5 h-2.5 rounded-full ${
+                    data.worker_count > 0
+                      ? "bg-green-500"
+                      : "bg-gray-400"
+                  }`}
+                />
+                <div>
+                  <div className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>
+                    {data.worker_count}
+                  </div>
+                  <div className="text-[10px] text-gray-500">Workers</div>
+                </div>
+              </div>
+
+              {/* Queue Depth */}
+              <div className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+                <div
+                  className={`w-2.5 h-2.5 rounded-full ${
+                    data.total.running > 0
+                      ? "bg-blue-500 animate-pulse"
+                      : data.total.pending > 0
+                      ? "bg-yellow-500"
+                      : "bg-gray-400"
+                  }`}
+                />
+                <div>
+                  <div className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>
+                    {data.total.pending + data.total.running}
+                  </div>
+                  <div className="text-[10px] text-gray-500">Queued</div>
+                </div>
+              </div>
+
+              {/* Completed */}
+              <div className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+                <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
+                <div>
+                  <div className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>
+                    {data.total.completed}
+                  </div>
+                  <div className="text-[10px] text-gray-500">Completed</div>
+                </div>
+              </div>
+
+              {/* Failed */}
+              <div className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-800/50">
+                <div
+                  className={`w-2.5 h-2.5 rounded-full ${
+                    data.total.failed > 0 ? "bg-red-500" : "bg-gray-400"
+                  }`}
+                />
+                <div>
+                  <div className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>
+                    {data.total.failed}
+                  </div>
+                  <div className="text-[10px] text-gray-500">Failed</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Status message */}
+            <div className="flex items-center justify-between text-xs">
+              <span style={{ color: "var(--color-text-secondary)" }}>
+                {data.total.running > 0 ? (
+                  <span className="text-blue-600 dark:text-blue-400">
+                    ● {data.total.running} task{data.total.running !== 1 ? "s" : ""} running
+                  </span>
+                ) : data.total.pending > 0 ? (
+                  <span className="text-yellow-600 dark:text-yellow-400">
+                    ○ {data.total.pending} task{data.total.pending !== 1 ? "s" : ""} pending
+                  </span>
+                ) : (
+                  <span>Pipeline idle</span>
+                )}
+              </span>
+              <Link
+                to={ROUTES.PIPELINE?.INDEX || "/pipeline"}
+                className="text-blue-600 hover:text-blue-800 dark:text-blue-400 hover:underline"
+              >
+                View details →
+              </Link>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className={`card p-4 ${className}`}>
       {/* Header */}

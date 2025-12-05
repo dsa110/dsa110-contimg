@@ -88,6 +88,7 @@ from .config import get_config
 from .middleware import add_exception_handlers
 from .exceptions import ValidationError as DSA110ValidationError, ProcessingError
 from .routes import (
+    carta_router,
     auth_router,
     conversion_router,
     images_router,
@@ -286,6 +287,7 @@ def create_app() -> FastAPI:
         (queue_router, "Queue", True),
         (qa_router, "Quality Assurance", True),
         (cal_router, "Calibration", True),
+        (carta_router, "CARTA Viewer", True),
         (logs_router, "Logs", True),
         (stats_router, "Statistics", True),
         (cache_router, "Cache", True),

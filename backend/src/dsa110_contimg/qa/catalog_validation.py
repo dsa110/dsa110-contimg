@@ -174,7 +174,7 @@ def extract_sources_from_image(
         logger.warning("No finite pixels in image")
         return pd.DataFrame(columns=["ra_deg", "dec_deg", "flux_jy", "snr", "x_pix", "y_pix"])
 
-    _, median_val, rms = sigma_clipped_stats(finite_data, sigma=3.0)
+    _, _, rms = sigma_clipped_stats(finite_data, sigma=3.0)
     if rms <= 0:
         rms = mad_std(finite_data)
 
@@ -621,7 +621,7 @@ def _validate_source_counts(
     )
 
     # Match catalog → detected (for completeness)
-    idx_cat, sep_cat, _ = match_coordinates_sky(catalog_coords, detected_coords)
+    _, sep_cat, _ = match_coordinates_sky(catalog_coords, detected_coords)
     match_radius = match_radius_arcsec * u.arcsec
     catalog_matched = sep_cat < match_radius
 
@@ -629,7 +629,7 @@ def _validate_source_counts(
     result.completeness = result.n_matched / result.n_expected if result.n_expected > 0 else 0.0
 
     # Match detected → catalog (for false positives)
-    idx_det, sep_det, _ = match_coordinates_sky(detected_coords, catalog_coords)
+    _, sep_det, _ = match_coordinates_sky(detected_coords, catalog_coords)
     detected_matched = sep_det < match_radius
     n_false_positives = int(np.sum(~detected_matched))
     result.false_positive_rate = (
@@ -991,5 +991,5 @@ def _generate_html_report(
 
     # Write HTML file
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-    with open(output_path, "w") as f:
-        f.write("\n".join(html_parts))
+    with open(output_path, "w", encoding="utf-8") as html_file:
+        html_file.write("\n".join(html_parts))
