@@ -375,7 +375,7 @@ const HomePage: React.FC = () => {
               >
                 <div className="aspect-square bg-slate-100 dark:bg-slate-800 flex items-center justify-center relative overflow-hidden">
                   <img
-                    src={`/api/images/${img.id}/thumbnail?size=256`}
+                    src={`/api/v1/images/${img.id}/thumbnail?size=256`}
                     alt={img.path?.split("/").pop() || "Image"}
                     className="w-full h-full object-cover"
                     loading="lazy"
