@@ -64,8 +64,9 @@ CALIBRATOR_RA_DEG = 128.7287  # 08h34m54.9s
 CALIBRATOR_DEC_DEG = 55.5725  # +55°34'21"
 
 # Paths
-HDF5_INDEX_DB = Path("/data/incoming/hdf5_file_index.sqlite3")
+# HDF5 index is now in unified pipeline.sqlite3
 PIPELINE_DB = Path("/data/dsa110-contimg/state/db/pipeline.sqlite3")
+HDF5_INDEX_DB = PIPELINE_DB  # Legacy name for backwards compatibility
 INPUT_DIR = Path("/data/incoming")
 OUTPUT_DIR = Path("/stage/dsa110-contimg")
 SCRATCH_DIR = Path("/stage/dsa110-contimg/scratch")

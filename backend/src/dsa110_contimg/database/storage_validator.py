@@ -123,16 +123,16 @@ def validate_hdf5_storage(
         cursor = conn.cursor()
 
         # Count totals
-        cursor.execute("SELECT COUNT(*) FROM hdf5_file_index WHERE stored=1")
+        cursor.execute("SELECT COUNT(*) FROM hdf5_files WHERE stored=1")
         result.files_in_db_stored = cursor.fetchone()[0]
 
-        cursor.execute("SELECT COUNT(*) FROM hdf5_file_index WHERE stored=0")
+        cursor.execute("SELECT COUNT(*) FROM hdf5_files WHERE stored=0")
         result.files_in_db_removed = cursor.fetchone()[0]
 
         result.files_in_db_total = result.files_in_db_stored + result.files_in_db_removed
 
         # Get paths for comparison
-        cursor.execute("SELECT path, stored FROM hdf5_file_index")
+        cursor.execute("SELECT path, stored FROM hdf5_files")
         for path, stored in cursor.fetchall():
             if stored == 1:
                 db_files_stored.add(path)
@@ -214,7 +214,7 @@ def reconcile_storage(
 
         for path in validation.in_db_not_on_disk:
             try:
-                cursor.execute("UPDATE hdf5_file_index SET stored=0 WHERE path=?", (path,))
+                cursor.execute("UPDATE hdf5_files SET stored=0 WHERE path=?", (path,))
                 results["stale_records_marked"] += 1
             except sqlite3.Error as e:
                 results["errors"].append(f"Failed to update {path}: {e}")
@@ -404,7 +404,7 @@ def index_orphaned_files(
     Index orphaned files (files on disk not in database) into the HDF5 index.
 
     This function parses HDF5 filenames to extract metadata and inserts
-    records into the hdf5_file_index table.
+    records into the hdf5_files table.
 
     Args:
         db_path: Path to HDF5 index SQLite database.
@@ -511,7 +511,7 @@ def index_orphaned_files(
         cursor = conn.cursor()
 
         insert_sql = """
-            INSERT OR REPLACE INTO hdf5_file_index
+            INSERT OR REPLACE INTO hdf5_files
             (path, filename, group_id, subband_code, subband_num,
              timestamp_iso, timestamp_mjd, file_size_bytes, modified_time,
              indexed_at, stored, ra_deg, dec_deg, obs_date, obs_time)

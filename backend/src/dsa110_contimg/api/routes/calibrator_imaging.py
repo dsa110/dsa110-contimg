@@ -844,7 +844,7 @@ async def get_data_coverage():
                 MAX(timestamp_mjd) as latest_mjd,
                 COUNT(*) as total_files,
                 COUNT(DISTINCT group_id) as total_groups
-            FROM hdf5_file_index
+            FROM hdf5_files
         """)
         row = cursor.fetchone()
         conn.close()
@@ -982,7 +982,7 @@ async def index_orphaned_files_endpoint(
     Index orphaned files - files on disk but not in database.
 
     Parses HDF5 filenames to extract metadata (timestamp, subband, group_id)
-    and inserts records into the hdf5_file_index table.
+    and inserts records into the hdf5_files table.
 
     Args:
         dry_run: If True, only report what would be indexed (default: True for safety)

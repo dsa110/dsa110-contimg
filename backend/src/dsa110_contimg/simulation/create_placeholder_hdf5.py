@@ -144,7 +144,7 @@ def find_reference_file_for_group(
         result = conn.execute(
             """
             SELECT path
-            FROM hdf5_file_index
+            FROM hdf5_files
             WHERE group_id = ? AND subband_code = 'sb00'
             LIMIT 1
         """,
@@ -159,7 +159,7 @@ def find_reference_file_for_group(
     result = conn.execute(
         """
         SELECT path
-        FROM hdf5_file_index
+        FROM hdf5_files
         WHERE group_id = ?
         LIMIT 1
     """,
@@ -209,7 +209,7 @@ def generate_placeholders_for_incomplete_groups(
     files = conn.execute(
         """
         SELECT subband_code, timestamp_mjd, group_id, path
-        FROM hdf5_file_index
+        FROM hdf5_files
         ORDER BY timestamp_mjd
     """
     ).fetchall()

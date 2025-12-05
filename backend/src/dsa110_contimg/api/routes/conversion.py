@@ -494,7 +494,7 @@ async def list_hdf5_groups(
                 timestamp,
                 COUNT(*) as file_count,
                 GROUP_CONCAT(subband) as subbands
-            FROM hdf5_file_index
+            FROM hdf5_files
         """
         params: List[Any] = []
 
