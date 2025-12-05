@@ -533,7 +533,7 @@ du -sh /stage/dsa110-contimg/images/
 
 ## Related Documentation
 
-- [Streaming Pipeline Operations](../../backend/docs/ops/streaming-pipeline.md) - Streaming converter guide
+- Streaming Pipeline Operations (`backend/docs/ops/streaming-pipeline.md`) - Streaming converter guide
 - [Dashboard Guide](dashboard.md) - Web dashboard documentation
 - [Calibration Guide](calibration.md) - Calibration workflows
 - [Imaging Guide](imaging.md) - Image creation

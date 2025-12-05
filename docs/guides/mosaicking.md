@@ -498,6 +498,5 @@ python -c "from dsa110_contimg.mosaic.pipeline import get_config; c = get_config
 
 ## See Also
 
-- [Module README](../backend/src/dsa110_contimg/mosaic/README.md) - Technical details
-- [API Reference](API_REFERENCE.md) - Complete API documentation
-- [Design Document](mature-mosaicking-code.md) - Architecture decisions
+- Module README (`backend/src/dsa110_contimg/mosaic/README.md`) - Technical implementation details
+- [API Reference](../API_REFERENCE.md) - Complete API documentation
