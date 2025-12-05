@@ -20,7 +20,7 @@ with FastMeta("/data/incoming/2025-01-15T12:00:00_sb00.hdf5") as meta:
 from dsa110_contimg.database.hdf5_index import query_subband_groups
 
 groups = query_subband_groups(
-    hdf5_db="/data/dsa110-contimg/state/db/pipeline.sqlite3",
+    db_path="/data/dsa110-contimg/state/db/pipeline.sqlite3",
     start_time="2025-10-05T00:00:00",
     end_time="2025-10-05T01:00:00",
     tolerance_s=1.0,
@@ -67,15 +67,17 @@ logger.info(
 ## Fast API test pattern
 ```python
 import pytest
-from httpx import AsyncClient
+from fastapi.testclient import TestClient
 from dsa110_contimg.api.app import app
 
-@pytest.mark.asyncio
-async def test_get_image(api_client: AsyncClient):
-    resp = await api_client.get("/api/v1/images/123")
+@pytest.fixture(scope="module")
+def api_client():
+    return TestClient(app)
+
+def test_get_image(api_client: TestClient):
+    resp = api_client.get("/api/v1/images/123")
     assert resp.status_code == 200
-    data = resp.json()
-    assert "id" in data
+    assert "id" in resp.json()
 ```
 
 ## Frontend fetch hook pattern
@@ -90,4 +92,3 @@ export function useImages() {
   });
 }
 ```
-
