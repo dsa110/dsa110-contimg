@@ -418,6 +418,1037 @@ def build_nvss_strip_from_full(
         _release_db_lock(lock_fd, lock_path)
 
 
+# --------------------------------------------------------------------------
+# FIRST catalog full database builders
+# --------------------------------------------------------------------------
+
+# Default path for full FIRST database
+FIRST_FULL_DB_PATH = Path("/data/dsa110-contimg/state/catalogs/first_full.sqlite3")
+
+
+def get_first_full_db_path() -> Path:
+    """Get the path to the full FIRST database.
+
+    Returns:
+        Path to first_full.sqlite3
+    """
+    return FIRST_FULL_DB_PATH
+
+
+def first_full_db_exists() -> bool:
+    """Check if the full FIRST database exists.
+
+    Returns:
+        True if first_full.sqlite3 exists and has data
+    """
+    db_path = get_first_full_db_path()
+    if not db_path.exists():
+        return False
+
+    try:
+        with sqlite3.connect(str(db_path)) as conn:
+            count = conn.execute("SELECT COUNT(*) FROM sources").fetchone()[0]
+            return count > 0
+    except Exception:
+        return False
+
+
+def build_first_full_db(
+    output_path: Optional[Path] = None,
+    force_rebuild: bool = False,
+    cache_dir: str = ".cache/catalogs",
+) -> Path:
+    """Build a full FIRST SQLite database from Vizier/cached data.
+
+    Creates a comprehensive database with all FIRST sources,
+    indexed for fast spatial queries.
+
+    Args:
+        output_path: Output database path (default: state/catalogs/first_full.sqlite3)
+        force_rebuild: If True, rebuild even if database exists
+        cache_dir: Directory for cached catalog files
+
+    Returns:
+        Path to created/existing database
+    """
+    from dsa110_contimg.calibration.catalogs import read_first_catalog
+    from dsa110_contimg.catalog.build_master import _normalize_columns
+
+    if output_path is None:
+        output_path = get_first_full_db_path()
+
+    output_path = Path(output_path)
+
+    if output_path.exists() and not force_rebuild:
+        logger.info(f"Full FIRST database already exists: {output_path}")
+        return output_path
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    logger.info("Loading FIRST catalog...")
+    df_full = read_first_catalog(cache_dir=cache_dir)
+    logger.info(f"Loaded {len(df_full)} FIRST sources")
+
+    # Normalize columns
+    FIRST_CANDIDATES = {
+        "ra": ["ra", "ra_deg", "raj2000"],
+        "dec": ["dec", "dec_deg", "dej2000"],
+        "flux": ["peak_flux", "peak_mjy_per_beam", "flux_peak", "flux", "total_flux", "fpeak", "fint", "flux_mjy"],
+        "maj": ["deconv_maj", "maj", "fwhm_maj", "deconvolved_major", "maj_deconv"],
+        "min": ["deconv_min", "min", "fwhm_min", "deconvolved_minor", "min_deconv"],
+    }
+    col_map = _normalize_columns(df_full, FIRST_CANDIDATES)
+    ra_col = col_map.get("ra", "ra")
+    dec_col = col_map.get("dec", "dec")
+    flux_col = col_map.get("flux", None)
+    maj_col = col_map.get("maj", None)
+    min_col = col_map.get("min", None)
+
+    # Acquire lock
+    lock_path = output_path.with_suffix(".lock")
+    lock_fd = _acquire_db_lock(lock_path, timeout_sec=600.0)
+
+    if lock_fd is None:
+        if output_path.exists():
+            return output_path
+        raise RuntimeError(f"Could not acquire lock for {output_path}")
+
+    try:
+        if output_path.exists() and not force_rebuild:
+            return output_path
+
+        if output_path.exists() and force_rebuild:
+            output_path.unlink()
+
+        logger.info(f"Creating full FIRST database: {output_path}")
+
+        with sqlite3.connect(str(output_path)) as conn:
+            conn.execute("PRAGMA journal_mode=WAL")
+
+            conn.execute("""
+                CREATE TABLE sources (
+                    source_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ra_deg REAL NOT NULL,
+                    dec_deg REAL NOT NULL,
+                    flux_mjy REAL,
+                    maj_arcsec REAL,
+                    min_arcsec REAL
+                )
+            """)
+
+            conn.execute("CREATE INDEX idx_dec ON sources(dec_deg)")
+            conn.execute("CREATE INDEX idx_radec ON sources(ra_deg, dec_deg)")
+            conn.execute("CREATE INDEX idx_flux ON sources(flux_mjy)")
+
+            insert_data = []
+            for _, row in df_full.iterrows():
+                ra = pd.to_numeric(row.get(ra_col), errors="coerce")
+                dec = pd.to_numeric(row.get(dec_col), errors="coerce")
+
+                if not (np.isfinite(ra) and np.isfinite(dec)):
+                    continue
+
+                flux = None
+                if flux_col and flux_col in row.index:
+                    flux_val = pd.to_numeric(row.get(flux_col), errors="coerce")
+                    if np.isfinite(flux_val):
+                        flux = float(flux_val)
+
+                maj = None
+                if maj_col and maj_col in row.index:
+                    maj_val = pd.to_numeric(row.get(maj_col), errors="coerce")
+                    if np.isfinite(maj_val):
+                        maj = float(maj_val)
+
+                min_val = None
+                if min_col and min_col in row.index:
+                    min_v = pd.to_numeric(row.get(min_col), errors="coerce")
+                    if np.isfinite(min_v):
+                        min_val = float(min_v)
+
+                insert_data.append((float(ra), float(dec), flux, maj, min_val))
+
+            conn.executemany(
+                "INSERT INTO sources (ra_deg, dec_deg, flux_mjy, maj_arcsec, min_arcsec) VALUES (?, ?, ?, ?, ?)",
+                insert_data,
+            )
+
+            conn.execute("""
+                CREATE TABLE meta (
+                    key TEXT PRIMARY KEY,
+                    value TEXT
+                )
+            """)
+
+            build_time = datetime.now(timezone.utc).isoformat()
+            conn.execute("INSERT INTO meta (key, value) VALUES (?, ?)", ("build_time_iso", build_time))
+            conn.execute("INSERT INTO meta (key, value) VALUES (?, ?)", ("n_sources", str(len(insert_data))))
+            conn.execute("INSERT INTO meta (key, value) VALUES (?, ?)", ("source", "FIRST catalog (Vizier/cached)"))
+            conn.commit()
+
+        logger.info(f"Created full FIRST database with {len(insert_data)} sources")
+        return output_path
+
+    finally:
+        _release_db_lock(lock_fd, lock_path)
+
+
+def build_first_strip_from_full(
+    dec_center: float,
+    dec_range: tuple[float, float],
+    output_path: Optional[Path] = None,
+    min_flux_mjy: Optional[float] = None,
+    full_db_path: Optional[Path] = None,
+) -> Path:
+    """Build FIRST dec strip database from the full FIRST database.
+
+    Args:
+        dec_center: Center declination in degrees
+        dec_range: Tuple of (dec_min, dec_max) in degrees
+        output_path: Output SQLite database path (auto-generated if None)
+        min_flux_mjy: Minimum flux threshold in mJy
+        full_db_path: Path to full FIRST database (default: auto-detect)
+
+    Returns:
+        Path to created SQLite database
+    """
+    dec_min, dec_max = dec_range
+
+    if full_db_path is None:
+        full_db_path = get_first_full_db_path()
+
+    if not full_db_path.exists():
+        raise FileNotFoundError(f"Full FIRST database not found: {full_db_path}. Run build_first_full_db() first.")
+
+    if output_path is None:
+        dec_rounded = round(dec_center, 1)
+        db_name = f"first_dec{dec_rounded:+.1f}.sqlite3"
+        output_path = Path("/data/dsa110-contimg/state/catalogs") / db_name
+
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    if output_path.exists():
+        logger.info(f"Dec strip database already exists: {output_path}")
+        return output_path
+
+    lock_path = output_path.with_suffix(".lock")
+    lock_fd = _acquire_db_lock(lock_path, timeout_sec=300.0)
+
+    if lock_fd is None:
+        if output_path.exists():
+            return output_path
+        raise RuntimeError(f"Could not acquire lock for {output_path}")
+
+    try:
+        if output_path.exists():
+            return output_path
+
+        logger.info(f"Building FIRST dec strip from full database: {dec_min:.2f}° to {dec_max:.2f}°")
+
+        with sqlite3.connect(str(full_db_path)) as src_conn:
+            query = "SELECT ra_deg, dec_deg, flux_mjy, maj_arcsec, min_arcsec FROM sources WHERE dec_deg >= ? AND dec_deg <= ?"
+            params = [dec_min, dec_max]
+
+            if min_flux_mjy is not None:
+                query += " AND flux_mjy >= ?"
+                params.append(min_flux_mjy)
+
+            rows = src_conn.execute(query, params).fetchall()
+
+        logger.info(f"Found {len(rows)} sources in dec range")
+
+        with sqlite3.connect(str(output_path)) as conn:
+            conn.execute("PRAGMA journal_mode=WAL")
+
+            conn.execute("""
+                CREATE TABLE sources (
+                    source_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ra_deg REAL NOT NULL,
+                    dec_deg REAL NOT NULL,
+                    flux_mjy REAL,
+                    maj_arcsec REAL,
+                    min_arcsec REAL,
+                    UNIQUE(ra_deg, dec_deg)
+                )
+            """)
+
+            conn.execute("CREATE INDEX idx_radec ON sources(ra_deg, dec_deg)")
+            conn.execute("CREATE INDEX idx_dec ON sources(dec_deg)")
+            conn.execute("CREATE INDEX idx_flux ON sources(flux_mjy)")
+
+            conn.executemany(
+                "INSERT OR IGNORE INTO sources(ra_deg, dec_deg, flux_mjy, maj_arcsec, min_arcsec) VALUES(?, ?, ?, ?, ?)",
+                rows,
+            )
+
+            conn.execute("""
+                CREATE TABLE meta (
+                    key TEXT PRIMARY KEY,
+                    value TEXT
+                )
+            """)
+
+            build_time = datetime.now(timezone.utc).isoformat()
+            meta = [
+                ("dec_center", str(dec_center)),
+                ("dec_min", str(dec_min)),
+                ("dec_max", str(dec_max)),
+                ("build_time_iso", build_time),
+                ("n_sources", str(len(rows))),
+                ("source", "first_full.sqlite3"),
+            ]
+            conn.executemany("INSERT INTO meta (key, value) VALUES (?, ?)", meta)
+            conn.commit()
+
+        logger.info(f"Created dec strip database: {output_path} ({len(rows)} sources)")
+        return output_path
+
+    finally:
+        _release_db_lock(lock_fd, lock_path)
+
+
+# --------------------------------------------------------------------------
+# VLASS catalog full database builders
+# --------------------------------------------------------------------------
+
+VLASS_FULL_DB_PATH = Path("/data/dsa110-contimg/state/catalogs/vlass_full.sqlite3")
+
+
+def get_vlass_full_db_path() -> Path:
+    """Get the path to the full VLASS database."""
+    return VLASS_FULL_DB_PATH
+
+
+def vlass_full_db_exists() -> bool:
+    """Check if the full VLASS database exists."""
+    db_path = get_vlass_full_db_path()
+    if not db_path.exists():
+        return False
+    try:
+        with sqlite3.connect(str(db_path)) as conn:
+            count = conn.execute("SELECT COUNT(*) FROM sources").fetchone()[0]
+            return count > 0
+    except Exception:
+        return False
+
+
+def build_vlass_full_db(
+    output_path: Optional[Path] = None,
+    force_rebuild: bool = False,
+    cache_dir: str = ".cache/catalogs",
+    vlass_catalog_path: Optional[str] = None,
+) -> Path:
+    """Build a full VLASS SQLite database from cached data.
+
+    Args:
+        output_path: Output database path (default: state/catalogs/vlass_full.sqlite3)
+        force_rebuild: If True, rebuild even if database exists
+        cache_dir: Directory for cached catalog files
+        vlass_catalog_path: Explicit path to VLASS catalog file
+
+    Returns:
+        Path to created/existing database
+    """
+    from dsa110_contimg.catalog.build_master import _normalize_columns, _read_table
+
+    if output_path is None:
+        output_path = get_vlass_full_db_path()
+
+    output_path = Path(output_path)
+
+    if output_path.exists() and not force_rebuild:
+        logger.info(f"Full VLASS database already exists: {output_path}")
+        return output_path
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Load VLASS catalog
+    if vlass_catalog_path:
+        df_full = _read_table(vlass_catalog_path)
+    else:
+        cache_path = Path(cache_dir) / "vlass_catalog"
+        for ext in [".csv", ".fits", ".fits.gz", ".csv.gz"]:
+            candidate = cache_path.with_suffix(ext)
+            if candidate.exists():
+                df_full = _read_table(str(candidate))
+                break
+        else:
+            raise FileNotFoundError(
+                f"VLASS catalog not found. Provide vlass_catalog_path or place catalog in {cache_dir}/vlass_catalog.csv"
+            )
+
+    logger.info(f"Loaded {len(df_full)} VLASS sources")
+
+    VLASS_CANDIDATES = {
+        "ra": ["ra", "ra_deg", "raj2000"],
+        "dec": ["dec", "dec_deg", "dej2000"],
+        "flux": ["peak_flux", "peak_mjy_per_beam", "flux_peak", "flux", "total_flux"],
+    }
+    col_map = _normalize_columns(df_full, VLASS_CANDIDATES)
+    ra_col = col_map.get("ra", "ra")
+    dec_col = col_map.get("dec", "dec")
+    flux_col = col_map.get("flux", None)
+
+    lock_path = output_path.with_suffix(".lock")
+    lock_fd = _acquire_db_lock(lock_path, timeout_sec=600.0)
+
+    if lock_fd is None:
+        if output_path.exists():
+            return output_path
+        raise RuntimeError(f"Could not acquire lock for {output_path}")
+
+    try:
+        if output_path.exists() and not force_rebuild:
+            return output_path
+
+        if output_path.exists() and force_rebuild:
+            output_path.unlink()
+
+        logger.info(f"Creating full VLASS database: {output_path}")
+
+        with sqlite3.connect(str(output_path)) as conn:
+            conn.execute("PRAGMA journal_mode=WAL")
+
+            conn.execute("""
+                CREATE TABLE sources (
+                    source_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ra_deg REAL NOT NULL,
+                    dec_deg REAL NOT NULL,
+                    flux_mjy REAL
+                )
+            """)
+
+            conn.execute("CREATE INDEX idx_dec ON sources(dec_deg)")
+            conn.execute("CREATE INDEX idx_radec ON sources(ra_deg, dec_deg)")
+            conn.execute("CREATE INDEX idx_flux ON sources(flux_mjy)")
+
+            insert_data = []
+            for _, row in df_full.iterrows():
+                ra = pd.to_numeric(row.get(ra_col), errors="coerce")
+                dec = pd.to_numeric(row.get(dec_col), errors="coerce")
+
+                if not (np.isfinite(ra) and np.isfinite(dec)):
+                    continue
+
+                flux = None
+                if flux_col and flux_col in row.index:
+                    flux_val = pd.to_numeric(row.get(flux_col), errors="coerce")
+                    if np.isfinite(flux_val):
+                        flux = float(flux_val)
+
+                insert_data.append((float(ra), float(dec), flux))
+
+            conn.executemany(
+                "INSERT INTO sources (ra_deg, dec_deg, flux_mjy) VALUES (?, ?, ?)",
+                insert_data,
+            )
+
+            conn.execute("""
+                CREATE TABLE meta (
+                    key TEXT PRIMARY KEY,
+                    value TEXT
+                )
+            """)
+
+            build_time = datetime.now(timezone.utc).isoformat()
+            conn.execute("INSERT INTO meta (key, value) VALUES (?, ?)", ("build_time_iso", build_time))
+            conn.execute("INSERT INTO meta (key, value) VALUES (?, ?)", ("n_sources", str(len(insert_data))))
+            conn.execute("INSERT INTO meta (key, value) VALUES (?, ?)", ("source", "VLASS catalog (cached)"))
+            conn.commit()
+
+        logger.info(f"Created full VLASS database with {len(insert_data)} sources")
+        return output_path
+
+    finally:
+        _release_db_lock(lock_fd, lock_path)
+
+
+def build_vlass_strip_from_full(
+    dec_center: float,
+    dec_range: tuple[float, float],
+    output_path: Optional[Path] = None,
+    min_flux_mjy: Optional[float] = None,
+    full_db_path: Optional[Path] = None,
+) -> Path:
+    """Build VLASS dec strip database from the full VLASS database."""
+    dec_min, dec_max = dec_range
+
+    if full_db_path is None:
+        full_db_path = get_vlass_full_db_path()
+
+    if not full_db_path.exists():
+        raise FileNotFoundError(f"Full VLASS database not found: {full_db_path}. Run build_vlass_full_db() first.")
+
+    if output_path is None:
+        dec_rounded = round(dec_center, 1)
+        db_name = f"vlass_dec{dec_rounded:+.1f}.sqlite3"
+        output_path = Path("/data/dsa110-contimg/state/catalogs") / db_name
+
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    if output_path.exists():
+        logger.info(f"Dec strip database already exists: {output_path}")
+        return output_path
+
+    lock_path = output_path.with_suffix(".lock")
+    lock_fd = _acquire_db_lock(lock_path, timeout_sec=300.0)
+
+    if lock_fd is None:
+        if output_path.exists():
+            return output_path
+        raise RuntimeError(f"Could not acquire lock for {output_path}")
+
+    try:
+        if output_path.exists():
+            return output_path
+
+        logger.info(f"Building VLASS dec strip from full database: {dec_min:.2f}° to {dec_max:.2f}°")
+
+        with sqlite3.connect(str(full_db_path)) as src_conn:
+            query = "SELECT ra_deg, dec_deg, flux_mjy FROM sources WHERE dec_deg >= ? AND dec_deg <= ?"
+            params = [dec_min, dec_max]
+
+            if min_flux_mjy is not None:
+                query += " AND flux_mjy >= ?"
+                params.append(min_flux_mjy)
+
+            rows = src_conn.execute(query, params).fetchall()
+
+        logger.info(f"Found {len(rows)} sources in dec range")
+
+        with sqlite3.connect(str(output_path)) as conn:
+            conn.execute("PRAGMA journal_mode=WAL")
+
+            conn.execute("""
+                CREATE TABLE sources (
+                    source_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ra_deg REAL NOT NULL,
+                    dec_deg REAL NOT NULL,
+                    flux_mjy REAL,
+                    UNIQUE(ra_deg, dec_deg)
+                )
+            """)
+
+            conn.execute("CREATE INDEX idx_radec ON sources(ra_deg, dec_deg)")
+            conn.execute("CREATE INDEX idx_dec ON sources(dec_deg)")
+            conn.execute("CREATE INDEX idx_flux ON sources(flux_mjy)")
+
+            conn.executemany(
+                "INSERT OR IGNORE INTO sources(ra_deg, dec_deg, flux_mjy) VALUES(?, ?, ?)",
+                rows,
+            )
+
+            conn.execute("""
+                CREATE TABLE meta (
+                    key TEXT PRIMARY KEY,
+                    value TEXT
+                )
+            """)
+
+            build_time = datetime.now(timezone.utc).isoformat()
+            meta = [
+                ("dec_center", str(dec_center)),
+                ("dec_min", str(dec_min)),
+                ("dec_max", str(dec_max)),
+                ("build_time_iso", build_time),
+                ("n_sources", str(len(rows))),
+                ("source", "vlass_full.sqlite3"),
+            ]
+            conn.executemany("INSERT INTO meta (key, value) VALUES (?, ?)", meta)
+            conn.commit()
+
+        logger.info(f"Created dec strip database: {output_path} ({len(rows)} sources)")
+        return output_path
+
+    finally:
+        _release_db_lock(lock_fd, lock_path)
+
+
+# --------------------------------------------------------------------------
+# RAX catalog full database builders
+# --------------------------------------------------------------------------
+
+RAX_FULL_DB_PATH = Path("/data/dsa110-contimg/state/catalogs/rax_full.sqlite3")
+
+
+def get_rax_full_db_path() -> Path:
+    """Get the path to the full RAX database."""
+    return RAX_FULL_DB_PATH
+
+
+def rax_full_db_exists() -> bool:
+    """Check if the full RAX database exists."""
+    db_path = get_rax_full_db_path()
+    if not db_path.exists():
+        return False
+    try:
+        with sqlite3.connect(str(db_path)) as conn:
+            count = conn.execute("SELECT COUNT(*) FROM sources").fetchone()[0]
+            return count > 0
+    except Exception:
+        return False
+
+
+def build_rax_full_db(
+    output_path: Optional[Path] = None,
+    force_rebuild: bool = False,
+    cache_dir: str = ".cache/catalogs",
+    rax_catalog_path: Optional[str] = None,
+) -> Path:
+    """Build a full RAX SQLite database from cached data.
+
+    Args:
+        output_path: Output database path (default: state/catalogs/rax_full.sqlite3)
+        force_rebuild: If True, rebuild even if database exists
+        cache_dir: Directory for cached catalog files
+        rax_catalog_path: Explicit path to RAX catalog file
+
+    Returns:
+        Path to created/existing database
+    """
+    from dsa110_contimg.calibration.catalogs import read_rax_catalog
+    from dsa110_contimg.catalog.build_master import _normalize_columns
+
+    if output_path is None:
+        output_path = get_rax_full_db_path()
+
+    output_path = Path(output_path)
+
+    if output_path.exists() and not force_rebuild:
+        logger.info(f"Full RAX database already exists: {output_path}")
+        return output_path
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    logger.info("Loading RAX catalog...")
+    df_full = read_rax_catalog(cache_dir=cache_dir, rax_catalog_path=rax_catalog_path)
+    logger.info(f"Loaded {len(df_full)} RAX sources")
+
+    RAX_CANDIDATES = {
+        "ra": ["ra", "ra_deg", "raj2000", "ra_hms"],
+        "dec": ["dec", "dec_deg", "dej2000", "dec_dms"],
+        "flux": ["flux", "flux_mjy", "flux_jy", "peak_flux", "fpeak", "s1.4"],
+    }
+    col_map = _normalize_columns(df_full, RAX_CANDIDATES)
+    ra_col = col_map.get("ra", "ra")
+    dec_col = col_map.get("dec", "dec")
+    flux_col = col_map.get("flux", None)
+
+    lock_path = output_path.with_suffix(".lock")
+    lock_fd = _acquire_db_lock(lock_path, timeout_sec=600.0)
+
+    if lock_fd is None:
+        if output_path.exists():
+            return output_path
+        raise RuntimeError(f"Could not acquire lock for {output_path}")
+
+    try:
+        if output_path.exists() and not force_rebuild:
+            return output_path
+
+        if output_path.exists() and force_rebuild:
+            output_path.unlink()
+
+        logger.info(f"Creating full RAX database: {output_path}")
+
+        with sqlite3.connect(str(output_path)) as conn:
+            conn.execute("PRAGMA journal_mode=WAL")
+
+            conn.execute("""
+                CREATE TABLE sources (
+                    source_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ra_deg REAL NOT NULL,
+                    dec_deg REAL NOT NULL,
+                    flux_mjy REAL
+                )
+            """)
+
+            conn.execute("CREATE INDEX idx_dec ON sources(dec_deg)")
+            conn.execute("CREATE INDEX idx_radec ON sources(ra_deg, dec_deg)")
+            conn.execute("CREATE INDEX idx_flux ON sources(flux_mjy)")
+
+            insert_data = []
+            for _, row in df_full.iterrows():
+                ra = pd.to_numeric(row.get(ra_col), errors="coerce")
+                dec = pd.to_numeric(row.get(dec_col), errors="coerce")
+
+                if not (np.isfinite(ra) and np.isfinite(dec)):
+                    continue
+
+                flux = None
+                if flux_col and flux_col in row.index:
+                    flux_val = pd.to_numeric(row.get(flux_col), errors="coerce")
+                    if np.isfinite(flux_val):
+                        flux = float(flux_val)
+
+                insert_data.append((float(ra), float(dec), flux))
+
+            conn.executemany(
+                "INSERT INTO sources (ra_deg, dec_deg, flux_mjy) VALUES (?, ?, ?)",
+                insert_data,
+            )
+
+            conn.execute("""
+                CREATE TABLE meta (
+                    key TEXT PRIMARY KEY,
+                    value TEXT
+                )
+            """)
+
+            build_time = datetime.now(timezone.utc).isoformat()
+            conn.execute("INSERT INTO meta (key, value) VALUES (?, ?)", ("build_time_iso", build_time))
+            conn.execute("INSERT INTO meta (key, value) VALUES (?, ?)", ("n_sources", str(len(insert_data))))
+            conn.execute("INSERT INTO meta (key, value) VALUES (?, ?)", ("source", "RAX catalog (cached)"))
+            conn.commit()
+
+        logger.info(f"Created full RAX database with {len(insert_data)} sources")
+        return output_path
+
+    finally:
+        _release_db_lock(lock_fd, lock_path)
+
+
+def build_rax_strip_from_full(
+    dec_center: float,
+    dec_range: tuple[float, float],
+    output_path: Optional[Path] = None,
+    min_flux_mjy: Optional[float] = None,
+    full_db_path: Optional[Path] = None,
+) -> Path:
+    """Build RAX dec strip database from the full RAX database."""
+    dec_min, dec_max = dec_range
+
+    if full_db_path is None:
+        full_db_path = get_rax_full_db_path()
+
+    if not full_db_path.exists():
+        raise FileNotFoundError(f"Full RAX database not found: {full_db_path}. Run build_rax_full_db() first.")
+
+    if output_path is None:
+        dec_rounded = round(dec_center, 1)
+        db_name = f"rax_dec{dec_rounded:+.1f}.sqlite3"
+        output_path = Path("/data/dsa110-contimg/state/catalogs") / db_name
+
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    if output_path.exists():
+        logger.info(f"Dec strip database already exists: {output_path}")
+        return output_path
+
+    lock_path = output_path.with_suffix(".lock")
+    lock_fd = _acquire_db_lock(lock_path, timeout_sec=300.0)
+
+    if lock_fd is None:
+        if output_path.exists():
+            return output_path
+        raise RuntimeError(f"Could not acquire lock for {output_path}")
+
+    try:
+        if output_path.exists():
+            return output_path
+
+        logger.info(f"Building RAX dec strip from full database: {dec_min:.2f}° to {dec_max:.2f}°")
+
+        with sqlite3.connect(str(full_db_path)) as src_conn:
+            query = "SELECT ra_deg, dec_deg, flux_mjy FROM sources WHERE dec_deg >= ? AND dec_deg <= ?"
+            params = [dec_min, dec_max]
+
+            if min_flux_mjy is not None:
+                query += " AND flux_mjy >= ?"
+                params.append(min_flux_mjy)
+
+            rows = src_conn.execute(query, params).fetchall()
+
+        logger.info(f"Found {len(rows)} sources in dec range")
+
+        with sqlite3.connect(str(output_path)) as conn:
+            conn.execute("PRAGMA journal_mode=WAL")
+
+            conn.execute("""
+                CREATE TABLE sources (
+                    source_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ra_deg REAL NOT NULL,
+                    dec_deg REAL NOT NULL,
+                    flux_mjy REAL,
+                    UNIQUE(ra_deg, dec_deg)
+                )
+            """)
+
+            conn.execute("CREATE INDEX idx_radec ON sources(ra_deg, dec_deg)")
+            conn.execute("CREATE INDEX idx_dec ON sources(dec_deg)")
+            conn.execute("CREATE INDEX idx_flux ON sources(flux_mjy)")
+
+            conn.executemany(
+                "INSERT OR IGNORE INTO sources(ra_deg, dec_deg, flux_mjy) VALUES(?, ?, ?)",
+                rows,
+            )
+
+            conn.execute("""
+                CREATE TABLE meta (
+                    key TEXT PRIMARY KEY,
+                    value TEXT
+                )
+            """)
+
+            build_time = datetime.now(timezone.utc).isoformat()
+            meta = [
+                ("dec_center", str(dec_center)),
+                ("dec_min", str(dec_min)),
+                ("dec_max", str(dec_max)),
+                ("build_time_iso", build_time),
+                ("n_sources", str(len(rows))),
+                ("source", "rax_full.sqlite3"),
+            ]
+            conn.executemany("INSERT INTO meta (key, value) VALUES (?, ?)", meta)
+            conn.commit()
+
+        logger.info(f"Created dec strip database: {output_path} ({len(rows)} sources)")
+        return output_path
+
+    finally:
+        _release_db_lock(lock_fd, lock_path)
+
+
+# --------------------------------------------------------------------------
+# ATNF pulsar catalog full database builders
+# --------------------------------------------------------------------------
+
+ATNF_FULL_DB_PATH = Path("/data/dsa110-contimg/state/catalogs/atnf_full.sqlite3")
+
+
+def get_atnf_full_db_path() -> Path:
+    """Get the path to the full ATNF database."""
+    return ATNF_FULL_DB_PATH
+
+
+def atnf_full_db_exists() -> bool:
+    """Check if the full ATNF database exists."""
+    db_path = get_atnf_full_db_path()
+    if not db_path.exists():
+        return False
+    try:
+        with sqlite3.connect(str(db_path)) as conn:
+            count = conn.execute("SELECT COUNT(*) FROM sources").fetchone()[0]
+            return count > 0
+    except Exception:
+        return False
+
+
+def build_atnf_full_db(
+    output_path: Optional[Path] = None,
+    force_rebuild: bool = False,
+) -> Path:
+    """Build a full ATNF pulsar SQLite database from psrqpy.
+
+    Args:
+        output_path: Output database path (default: state/catalogs/atnf_full.sqlite3)
+        force_rebuild: If True, rebuild even if database exists
+
+    Returns:
+        Path to created/existing database
+    """
+    from dsa110_contimg.catalog.build_atnf_pulsars import (
+        _download_atnf_catalog,
+        _process_atnf_data,
+    )
+
+    if output_path is None:
+        output_path = get_atnf_full_db_path()
+
+    output_path = Path(output_path)
+
+    if output_path.exists() and not force_rebuild:
+        logger.info(f"Full ATNF database already exists: {output_path}")
+        return output_path
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    logger.info("Downloading ATNF pulsar catalog...")
+    df_raw = _download_atnf_catalog()
+    df_processed = _process_atnf_data(df_raw, min_flux_mjy=None)
+    logger.info(f"Loaded {len(df_processed)} ATNF pulsars")
+
+    lock_path = output_path.with_suffix(".lock")
+    lock_fd = _acquire_db_lock(lock_path, timeout_sec=600.0)
+
+    if lock_fd is None:
+        if output_path.exists():
+            return output_path
+        raise RuntimeError(f"Could not acquire lock for {output_path}")
+
+    try:
+        if output_path.exists() and not force_rebuild:
+            return output_path
+
+        if output_path.exists() and force_rebuild:
+            output_path.unlink()
+
+        logger.info(f"Creating full ATNF database: {output_path}")
+
+        with sqlite3.connect(str(output_path)) as conn:
+            conn.execute("PRAGMA journal_mode=WAL")
+
+            conn.execute("""
+                CREATE TABLE sources (
+                    source_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ra_deg REAL NOT NULL,
+                    dec_deg REAL NOT NULL,
+                    flux_mjy REAL,
+                    name TEXT,
+                    period_s REAL,
+                    dm REAL
+                )
+            """)
+
+            conn.execute("CREATE INDEX idx_dec ON sources(dec_deg)")
+            conn.execute("CREATE INDEX idx_radec ON sources(ra_deg, dec_deg)")
+            conn.execute("CREATE INDEX idx_flux ON sources(flux_mjy)")
+
+            insert_data = []
+            for _, row in df_processed.iterrows():
+                ra = float(row["ra_deg"])
+                dec = float(row["dec_deg"])
+
+                if not (np.isfinite(ra) and np.isfinite(dec)):
+                    continue
+
+                flux = float(row["flux_1400mhz_mjy"]) if pd.notna(row.get("flux_1400mhz_mjy")) else None
+                name = str(row.get("name", "")) if pd.notna(row.get("name")) else None
+                period = float(row.get("period_s")) if pd.notna(row.get("period_s")) else None
+                dm = float(row.get("dm")) if pd.notna(row.get("dm")) else None
+
+                insert_data.append((ra, dec, flux, name, period, dm))
+
+            conn.executemany(
+                "INSERT INTO sources (ra_deg, dec_deg, flux_mjy, name, period_s, dm) VALUES (?, ?, ?, ?, ?, ?)",
+                insert_data,
+            )
+
+            conn.execute("""
+                CREATE TABLE meta (
+                    key TEXT PRIMARY KEY,
+                    value TEXT
+                )
+            """)
+
+            build_time = datetime.now(timezone.utc).isoformat()
+            conn.execute("INSERT INTO meta (key, value) VALUES (?, ?)", ("build_time_iso", build_time))
+            conn.execute("INSERT INTO meta (key, value) VALUES (?, ?)", ("n_sources", str(len(insert_data))))
+            conn.execute("INSERT INTO meta (key, value) VALUES (?, ?)", ("source", "ATNF Pulsar Catalogue (psrqpy)"))
+            conn.commit()
+
+        logger.info(f"Created full ATNF database with {len(insert_data)} sources")
+        return output_path
+
+    finally:
+        _release_db_lock(lock_fd, lock_path)
+
+
+def build_atnf_strip_from_full(
+    dec_center: float,
+    dec_range: tuple[float, float],
+    output_path: Optional[Path] = None,
+    min_flux_mjy: Optional[float] = None,
+    full_db_path: Optional[Path] = None,
+) -> Path:
+    """Build ATNF dec strip database from the full ATNF database."""
+    dec_min, dec_max = dec_range
+
+    if full_db_path is None:
+        full_db_path = get_atnf_full_db_path()
+
+    if not full_db_path.exists():
+        raise FileNotFoundError(f"Full ATNF database not found: {full_db_path}. Run build_atnf_full_db() first.")
+
+    if output_path is None:
+        dec_rounded = round(dec_center, 1)
+        db_name = f"atnf_dec{dec_rounded:+.1f}.sqlite3"
+        output_path = Path("/data/dsa110-contimg/state/catalogs") / db_name
+
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    if output_path.exists():
+        logger.info(f"Dec strip database already exists: {output_path}")
+        return output_path
+
+    lock_path = output_path.with_suffix(".lock")
+    lock_fd = _acquire_db_lock(lock_path, timeout_sec=300.0)
+
+    if lock_fd is None:
+        if output_path.exists():
+            return output_path
+        raise RuntimeError(f"Could not acquire lock for {output_path}")
+
+    try:
+        if output_path.exists():
+            return output_path
+
+        logger.info(f"Building ATNF dec strip from full database: {dec_min:.2f}° to {dec_max:.2f}°")
+
+        with sqlite3.connect(str(full_db_path)) as src_conn:
+            query = "SELECT ra_deg, dec_deg, flux_mjy FROM sources WHERE dec_deg >= ? AND dec_deg <= ?"
+            params = [dec_min, dec_max]
+
+            if min_flux_mjy is not None:
+                query += " AND flux_mjy >= ?"
+                params.append(min_flux_mjy)
+
+            rows = src_conn.execute(query, params).fetchall()
+
+        logger.info(f"Found {len(rows)} sources in dec range")
+
+        with sqlite3.connect(str(output_path)) as conn:
+            conn.execute("PRAGMA journal_mode=WAL")
+
+            conn.execute("""
+                CREATE TABLE sources (
+                    source_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ra_deg REAL NOT NULL,
+                    dec_deg REAL NOT NULL,
+                    flux_mjy REAL,
+                    UNIQUE(ra_deg, dec_deg)
+                )
+            """)
+
+            conn.execute("CREATE INDEX idx_radec ON sources(ra_deg, dec_deg)")
+            conn.execute("CREATE INDEX idx_dec ON sources(dec_deg)")
+            conn.execute("CREATE INDEX idx_flux ON sources(flux_mjy)")
+
+            conn.executemany(
+                "INSERT OR IGNORE INTO sources(ra_deg, dec_deg, flux_mjy) VALUES(?, ?, ?)",
+                rows,
+            )
+
+            conn.execute("""
+                CREATE TABLE meta (
+                    key TEXT PRIMARY KEY,
+                    value TEXT
+                )
+            """)
+
+            build_time = datetime.now(timezone.utc).isoformat()
+            meta = [
+                ("dec_center", str(dec_center)),
+                ("dec_min", str(dec_min)),
+                ("dec_max", str(dec_max)),
+                ("build_time_iso", build_time),
+                ("n_sources", str(len(rows))),
+                ("source", "atnf_full.sqlite3"),
+            ]
+            conn.executemany("INSERT INTO meta (key, value) VALUES (?, ?)", meta)
+            conn.commit()
+
+        logger.info(f"Created dec strip database: {output_path} ({len(rows)} sources)")
+        return output_path
+
+    finally:
+        _release_db_lock(lock_fd, lock_path)
+
+
 def check_catalog_database_exists(
     catalog_type: str,
     dec_deg: float,
