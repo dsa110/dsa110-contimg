@@ -161,7 +161,7 @@ jobs:
       
       - name: Add PR comment if schema changed
         if: steps.schema-check.outputs.schema_changed == 'true' && github.event_name == 'pull_request'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             github.rest.issues.createComment({
