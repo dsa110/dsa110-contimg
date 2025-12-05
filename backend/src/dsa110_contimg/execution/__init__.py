@@ -76,7 +76,7 @@ from dsa110_contimg.execution.validate import (
 
 # Import adapter functions LAST to avoid circular imports
 # (adapter.py imports ExecutionTask and get_executor from this module)
-from dsa110_contimg.execution.adapter import (  # noqa: E402
+from dsa110_contimg.execution.adapter import (  # noqa: E402, I001
     convert_group_inprocess,
     convert_group_subprocess,
     convert_group_unified,

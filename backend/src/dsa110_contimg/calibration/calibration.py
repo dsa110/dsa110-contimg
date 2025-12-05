@@ -1209,7 +1209,7 @@ def solve_bandpass(
         # Only check when combining across fields (where meridian tracking causes issues)
         _check_coherent_phasing(ms, cal_field)
 
-    # PRECONDITION CHECK #2: Verify MODEL_DATA exists and is populated
+    # PRECONDITION CHECK #2: Verify MODEL_DATA exists and is populated for cal_field
     # This ensures we follow "measure twice, cut once" - establish requirements upfront
     # for consistent, reliable calibration across all calibrators (bright or faint).
     logger.info(f"Validating MODEL_DATA for bandpass solve on field(s) {cal_field}...")
@@ -1222,11 +1222,40 @@ def solve_bandpass(
                 "calling solve_bandpass()."
             )
 
-        # Check if MODEL_DATA is populated (not all zeros)
-        model_sample = tb.getcol("MODEL_DATA", startrow=0, nrow=min(100, tb.nrows()))
+        # Parse field selection to determine which field(s) to check
+        # MODEL_DATA may only be populated for the calibration field(s)
+        if "~" in str(cal_field):
+            # Field range: check first field in range
+            check_field = int(str(cal_field).split("~")[0])
+        elif str(cal_field).isdigit():
+            check_field = int(cal_field)
+        else:
+            # Field name - check all data as fallback
+            check_field = None
+
+        # Check if MODEL_DATA is populated for the calibration field
+        if check_field is not None:
+            # Query only the cal_field's rows to check MODEL_DATA
+            field_ids = tb.getcol("FIELD_ID")
+            field_mask = field_ids == check_field
+            field_rows = np.where(field_mask)[0]
+            if len(field_rows) == 0:
+                raise ValueError(
+                    f"No data found for field {check_field}. "
+                    "Check field selection."
+                )
+            # Sample up to 100 rows from the field
+            sample_rows = field_rows[: min(100, len(field_rows))]
+            model_sample = np.array(
+                [tb.getcell("MODEL_DATA", int(r)) for r in sample_rows]
+            )
+        else:
+            # Fallback: check first 100 rows
+            model_sample = tb.getcol("MODEL_DATA", startrow=0, nrow=min(100, tb.nrows()))
+
         if np.all(np.abs(model_sample) < 1e-10):
             raise ValueError(
-                "MODEL_DATA column exists but is all zeros (unpopulated). "
+                f"MODEL_DATA column exists but is all zeros for field {cal_field}. "
                 "This is a required precondition for bandpass calibration. "
                 "Populate MODEL_DATA using setjy, ft(), or a catalog model before "
                 "calling solve_bandpass()."
