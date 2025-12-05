@@ -953,6 +953,68 @@ def solve_prebandpass_phase(
     return caltable_name
 
 
+def _check_coherent_phasing(
+    ms: str,
+    field_selector: str,
+    max_ra_scatter_arcsec: float = 60.0,
+) -> None:
+    """Check if fields are coherently phased (not meridian tracking).
+
+    DSA-110 data is initially phased to meridian (RA = LST). For calibration,
+    fields must be rephased to calibrator using CASA phaseshift task.
+
+    Raises:
+        ValueError: If RA scatter across fields exceeds threshold (meridian tracking)
+    """
+    import numpy as np  # type: ignore[import]
+
+    # Parse field selection - single field doesn't need scatter check
+    if "~" not in str(field_selector):
+        return
+    parts = str(field_selector).split("~")
+    field_indices = list(range(int(parts[0]), int(parts[1]) + 1))
+
+    # Read PHASE_DIR from FIELD table
+    with table(f"{ms}::FIELD", readonly=True, ack=False) as field_tb:
+        if "PHASE_DIR" not in field_tb.colnames():
+            logger.warning("PHASE_DIR column not found - skipping coherence check")
+            return
+        phase_dir = field_tb.getcol("PHASE_DIR")  # Shape: (nfields, 1, 2)
+
+    # Get RA values for selected fields (in radians)
+    ra_values = np.array([phase_dir[i, 0, 0] for i in field_indices if i < len(phase_dir)])
+    if len(ra_values) < 2:
+        return
+
+    # Calculate RA scatter (handling wrap-around at 2π)
+    ra_mean = np.arctan2(np.mean(np.sin(ra_values)), np.mean(np.cos(ra_values)))
+    ra_diff = np.angle(np.exp(1j * (ra_values - ra_mean)))
+    ra_scatter_arcsec = np.rad2deg(np.std(ra_diff)) * 3600
+    ra_span_arcsec = np.rad2deg(np.ptp(ra_diff)) * 3600
+
+    logger.debug(
+        "Phase center RA: scatter=%.1f arcsec, span=%.1f arcsec (%d fields)",
+        ra_scatter_arcsec, ra_span_arcsec, len(ra_values)
+    )
+
+    if ra_scatter_arcsec > max_ra_scatter_arcsec:
+        est_duration_min = ra_span_arcsec / 54000 * 60  # LST: 15°/hour = 54000 arcsec/hour
+        raise ValueError(
+            f"COHERENT PHASING CHECK FAILED: Fields NOT coherently phased.\n"
+            f"  RA scatter: {ra_scatter_arcsec:.1f} arcsec > {max_ra_scatter_arcsec:.1f} threshold\n"
+            f"  RA span: {ra_span_arcsec:.1f} arcsec (~{est_duration_min:.1f} min LST drift)\n\n"
+            f"Data is still MERIDIAN-phased (RA=LST). Rephase to calibrator:\n"
+            f"  phaseshift(vis='{ms}', field='{field_selector}',\n"
+            f"             phasecenter='J2000 <cal_ra> <cal_dec>')\n\n"
+            f"Then recalculate MODEL_DATA to match the new phase center."
+        )
+
+    logger.info(
+        "✓ Coherent phasing OK: RA scatter=%.1f arcsec (< %.1f threshold)",
+        ra_scatter_arcsec, max_ra_scatter_arcsec
+    )
+
+
 @timed("calibration.solve_bandpass")
 def solve_bandpass(
     ms: str,
@@ -972,6 +1034,7 @@ def solve_bandpass(
     peak_field_idx: Optional[int] = None,
     # Custom combine string (e.g., "scan,obs,field")
     combine: Optional[str] = None,
+    require_coherent_phasing: bool = True,
 ) -> List[str]:
     """Solve bandpass using CASA bandpass task with bandtype='B'.
 
@@ -984,8 +1047,39 @@ def solve_bandpass(
     (bright or faint). The calling code should verify MODEL_DATA exists and is
     populated before invoking solve_bandpass().
 
+    **PRECONDITION**: When combine_fields=True, fields must be coherently phased
+    to the calibrator position (not meridian-tracking). DSA-110 data is initially
+    phased to meridian; use CASA phaseshift task to rephase before calibration.
+
     **NOTE**: `ktable` parameter is kept for API compatibility but is NOT used
     (K-calibration is not used for DSA-110 connected-element array).
+
+    Args:
+        ms: Path to Measurement Set
+        cal_field: Field selection (e.g., "23" or "0~23")
+        refant: Reference antenna
+        ktable: K-table (not used, kept for API compatibility)
+        table_prefix: Prefix for output calibration table
+        set_model: Not used (kept for compatibility)
+        model_standard: Not used (kept for compatibility)
+        combine_fields: If True, combine across fields for higher SNR
+        combine_spw: If True, combine across spectral windows
+        minsnr: Minimum SNR threshold for solutions (default: 5.0)
+        uvrange: UV range selection (e.g., ">1klambda")
+        prebandpass_phase_table: Pre-bandpass phase-only calibration table
+        bp_smooth_type: Smoothing type for bandpass (e.g., "poly")
+        bp_smooth_window: Smoothing window size
+        peak_field_idx: Index of field with peak calibrator flux
+        combine: Custom combine string (overrides combine_fields/combine_spw)
+        require_coherent_phasing: If True (default), check that fields are
+            coherently phased to calibrator (not meridian-tracking) when
+            combine_fields=True. Set to False to skip this check.
+
+    Returns:
+        List of calibration table paths created
+
+    Raises:
+        ValueError: If MODEL_DATA is missing/empty or fields are not coherently phased
     """
     import numpy as np  # type: ignore[import]
 
@@ -1048,6 +1142,14 @@ def solve_bandpass(
             else f" (peak field: {field_selector})"
         )
     )
+
+    # PRECONDITION CHECK: Verify fields are coherently phased to calibrator position
+    # DSA-110 data is initially phased to meridian (RA = LST). For calibration,
+    # data must be rephased to calibrator using CASA phaseshift task.
+    # This check detects meridian-tracking (large RA scatter) and fails early.
+    if require_coherent_phasing and combine_fields:
+        # Only check when combining across fields (where meridian tracking causes issues)
+        _check_coherent_phasing(ms, cal_field)
 
     # Avoid setjy here; CLI will write a calibrator MODEL_DATA when available.
     # Note: set_model and model_standard are kept for API compatibility but not used
