@@ -742,7 +742,7 @@ def build_vlass_full_db(
     cache_dir: str = DEFAULT_CACHE_DIR,
     vlass_catalog_path: Optional[str] = None,
 ) -> Path:
-    """Build a full VLASS SQLite database from cached data.
+    """Build a full VLASS SQLite database from Vizier/cached data.
 
     Args:
         output_path: Output database path (default: state/catalogs/vlass_full.sqlite3)
@@ -753,7 +753,8 @@ def build_vlass_full_db(
     Returns:
         Path to created/existing database
     """
-    from dsa110_contimg.catalog.build_master import _normalize_columns, _read_table
+    from dsa110_contimg.calibration.catalogs import read_vlass_catalog
+    from dsa110_contimg.catalog.build_master import _normalize_columns
 
     if output_path is None:
         output_path = get_vlass_full_db_path()
@@ -766,20 +767,9 @@ def build_vlass_full_db(
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
 
-    # Load VLASS catalog
-    if vlass_catalog_path:
-        df_full = _read_table(vlass_catalog_path)
-    else:
-        cache_path = Path(cache_dir) / "vlass_catalog"
-        for ext in [".csv", ".fits", ".fits.gz", ".csv.gz"]:
-            candidate = cache_path.with_suffix(ext)
-            if candidate.exists():
-                df_full = _read_table(str(candidate))
-                break
-        else:
-            raise FileNotFoundError(
-                f"VLASS catalog not found. Provide vlass_catalog_path or place catalog in {cache_dir}/vlass_catalog.csv"
-            )
+    # Load VLASS catalog (auto-downloads from Vizier if needed)
+    logger.info("Loading VLASS catalog...")
+    df_full = read_vlass_catalog(cache_dir=cache_dir, vlass_catalog_path=vlass_catalog_path)
 
     logger.info(f"Loaded {len(df_full)} VLASS sources")
 

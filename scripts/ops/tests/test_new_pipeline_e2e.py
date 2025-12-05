@@ -26,7 +26,7 @@ sys.path.insert(0, str(REPO_ROOT / "backend" / "src"))
 
 from dsa110_contimg.api.job_runner import run_workflow_job
 from dsa110_contimg.database.jobs import create_job, get_job
-from dsa110_contimg.database.products import ensure_products_db
+from dsa110_contimg.database import ensure_pipeline_db
 
 
 def main():
@@ -113,7 +113,7 @@ def main():
     # Create job in database
     products_db = Path(args.products_db)
     products_db.parent.mkdir(parents=True, exist_ok=True)
-    conn = ensure_products_db(products_db)
+    conn = ensure_pipeline_db()
     
     try:
         job_id = create_job(conn, "workflow", "", params)
