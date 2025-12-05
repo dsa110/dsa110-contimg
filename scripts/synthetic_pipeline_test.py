@@ -144,11 +144,110 @@ def generate_synthetic_uvh5(
     return generated_files
 
 
+def create_hdf5_index(input_dir: Path, uvh5_files: List[Path]) -> Path:
+    """Create an HDF5 file index database for the synthetic files.
+
+    Args:
+        input_dir: Directory containing UVH5 files
+        uvh5_files: List of UVH5 file paths
+
+    Returns:
+        Path to the created index database
+    """
+    import sqlite3
+    import re
+    from astropy.time import Time
+
+    db_path = input_dir / "hdf5_file_index.sqlite3"
+
+    conn = sqlite3.connect(str(db_path))
+    cursor = conn.cursor()
+
+    # Create the hdf5_file_index table
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS hdf5_file_index (
+            path TEXT PRIMARY KEY,
+            filename TEXT,
+            group_id TEXT,
+            subband_code TEXT,
+            subband_num INTEGER,
+            timestamp_iso TEXT,
+            timestamp_mjd REAL,
+            file_size_bytes INTEGER,
+            modified_time REAL,
+            indexed_at REAL,
+            stored INTEGER DEFAULT 1,
+            ra_deg REAL,
+            dec_deg REAL,
+            obs_date TEXT,
+            obs_time TEXT
+        )
+    """)
+
+    # Parse and insert each file
+    for uvh5_path in uvh5_files:
+        filename = uvh5_path.name
+
+        # Parse filename: 2025-01-15T12:00:00_sb00.hdf5
+        match = re.match(r"(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})_sb(\d{2})\.hdf5", filename)
+        if not match:
+            logger.warning(f"  Could not parse filename: {filename}")
+            continue
+
+        timestamp_iso = match.group(1)
+        subband_num = int(match.group(2))
+        subband_code = f"sb{subband_num:02d}"
+
+        # Convert to MJD
+        t = Time(timestamp_iso, format="isot", scale="utc")
+        timestamp_mjd = t.mjd
+
+        # Get file stats
+        stat = uvh5_path.stat()
+
+        # Extract date and time parts
+        obs_date = timestamp_iso.split("T")[0]
+        obs_time = timestamp_iso.split("T")[1]
+
+        # Use timestamp as group_id
+        group_id = timestamp_iso
+
+        cursor.execute("""
+            INSERT OR REPLACE INTO hdf5_file_index
+            (path, filename, group_id, subband_code, subband_num,
+             timestamp_iso, timestamp_mjd, file_size_bytes, modified_time,
+             indexed_at, stored, ra_deg, dec_deg, obs_date, obs_time)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            str(uvh5_path),
+            filename,
+            group_id,
+            subband_code,
+            subband_num,
+            timestamp_iso,
+            timestamp_mjd,
+            stat.st_size,
+            stat.st_mtime,
+            time.time(),
+            1,
+            None,  # ra_deg unknown
+            None,  # dec_deg unknown
+            obs_date,
+            obs_time,
+        ))
+
+    conn.commit()
+    conn.close()
+
+    return db_path
+
+
 def convert_to_ms(
     input_dir: Path,
     output_dir: Path,
     start_time: str,
     end_time: str,
+    uvh5_files: List[Path],
 ) -> Optional[Path]:
     """Convert UVH5 subband group to Measurement Set.
 
@@ -157,11 +256,12 @@ def convert_to_ms(
         output_dir: Directory for output MS
         start_time: Conversion window start
         end_time: Conversion window end
+        uvh5_files: List of UVH5 file paths
 
     Returns:
         Path to converted MS, or None on failure
     """
-    from dsa110_contimg.conversion import convert_subband_groups_to_ms
+    from dsa110_contimg.conversion.hdf5_orchestrator import convert_subband_groups_to_ms
 
     logger.info("\n" + "=" * 70)
     logger.info("STEP 2: Converting UVH5 to Measurement Set")
@@ -169,22 +269,27 @@ def convert_to_ms(
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
+    # First, create HDF5 index database for the synthetic files
+    logger.info("  Creating HDF5 file index...")
+    db_path = create_hdf5_index(input_dir, uvh5_files)
+    logger.info(f"  ✓ Created index: {db_path.name}")
+
     try:
-        convert_subband_groups_to_ms(
+        results = convert_subband_groups_to_ms(
             str(input_dir),
             str(output_dir),
             start_time,
             end_time,
-            writer="parallel-subband",
-            writer_kwargs={
-                "max_workers": 4,
-                "skip_validation_during_conversion": True,
-                "skip_calibration_recommendations": True,
-            },
         )
+
+        logger.info(f"  Conversion results: {results}")
 
         # Find the generated MS
         ms_files = list(output_dir.glob("*.ms"))
+        if not ms_files:
+            # Also check subdirectories (organized output)
+            ms_files = list(output_dir.rglob("*.ms"))
+
         if ms_files:
             ms_path = ms_files[0]
             logger.info(f"  ✓ Created MS: {ms_path.name}")
@@ -194,7 +299,7 @@ def convert_to_ms(
             return None
 
     except Exception as e:
-        logger.error(f"  ✗ Conversion failed: {e}")
+        logger.error(f"  ✗ Conversion failed: {e}", exc_info=True)
         return None
 
 
@@ -577,6 +682,7 @@ def main():
             output_dir=ms_dir,
             start_time=obs_start_time,
             end_time=obs_end_time,
+            uvh5_files=uvh5_files,
         )
 
         # Step 3: Calibration
