@@ -124,16 +124,11 @@ async def _get_ingestion_pool():
 
 
 def _get_hdf5_index_db() -> str:
-    """Get path to the HDF5 file index database."""
-    from dsa110_contimg.config import settings
+    """Get path to the HDF5 file index database (now unified pipeline.sqlite3)."""
+    from dsa110_contimg.database.unified import get_pipeline_db_path
 
-    # Default location in input_dir
-    default_path = os.path.join(str(settings.paths.input_dir), "hdf5_file_index.sqlite3")
-    if os.path.exists(default_path):
-        return default_path
-    # Fallback to /data/incoming
-    fallback = "/data/incoming/hdf5_file_index.sqlite3"
-    return fallback if os.path.exists(fallback) else default_path
+    # Use unified pipeline database
+    return str(get_pipeline_db_path())
 
 
 # =============================================================================

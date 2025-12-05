@@ -124,7 +124,9 @@ def convert_subband_groups_to_ms(
     output_path.mkdir(parents=True, exist_ok=True)
 
     # Query subband groups based on the provided time window
-    hdf5_db = os.path.join(input_dir, "hdf5_file_index.sqlite3")
+    # Use unified pipeline database
+    from dsa110_contimg.database.unified import get_pipeline_db_path
+    hdf5_db = str(get_pipeline_db_path())
 
     try:
         groups = query_subband_groups(hdf5_db, start_time, end_time, tolerance_s=tolerance_s)

@@ -253,11 +253,11 @@ def query_subband_groups(
             conn = sqlite3.connect(db_path, timeout=30)
             cursor = conn.cursor()
 
-            # Query files in time window using correct column names
+            # Query files in time window from unified hdf5_files table
             cursor.execute(
                 """
                 SELECT path, timestamp_iso
-                FROM hdf5_file_index
+                FROM hdf5_files
                 WHERE timestamp_iso BETWEEN ? AND ?
                 ORDER BY timestamp_iso, path
             """,
