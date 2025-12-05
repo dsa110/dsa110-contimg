@@ -4,7 +4,7 @@ import AppLayout from "./components/layout/AppLayout";
 import { PageSkeleton } from "./components/common";
 import type { PageSkeletonProps } from "./components/common";
 import { ProtectedRoute } from "./components/common/auth";
-import type { UserRole } from "./types/auth";
+import type { UserRole, Permission } from "./types/auth";
 
 // =============================================================================
 // Lazy Page Imports
@@ -74,7 +74,7 @@ function protectedPage(
   options: {
     variant?: SkeletonVariant;
     roles?: UserRole[];
-    permission?: string;
+    permission?: Permission;
   } = {}
 ): React.ReactNode {
   const {

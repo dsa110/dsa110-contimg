@@ -79,7 +79,7 @@ export function useCARTAStatus() {
       try {
         const response = await apiClient.get("/carta/status");
         return response.data;
-      } catch (error) {
+      } catch {
         // If endpoint doesn't exist (404) or network error, CARTA is unavailable
         return {
           available: false,

@@ -76,7 +76,8 @@ function NoFileState() {
         <ul className="text-left text-gray-600 dark:text-gray-400 mb-4 space-y-2">
           <li className="flex items-center gap-2">
             <span className="text-blue-500">→</span>
-            The "Open in CARTA" button on measurement set detail pages
+            The &ldquo;Open in CARTA&rdquo; button on measurement set detail
+            pages
           </li>
           <li className="flex items-center gap-2">
             <span className="text-blue-500">→</span>
