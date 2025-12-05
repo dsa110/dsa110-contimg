@@ -365,8 +365,8 @@ async def execute_convert_group(params: Dict[str, Any]) -> Dict[str, Any]:
             }
 
         from dsa110_contimg.absurd.ingestion_db import get_group_files, update_group_state
-        from dsa110_contimg.conversion.strategies.hdf5_orchestrator import (
-            convert_subband_group,
+        from dsa110_contimg.conversion.hdf5_orchestrator import (
+            _convert_single_group,
         )
 
         # Get file paths
@@ -387,12 +387,15 @@ async def execute_convert_group(params: Dict[str, Any]) -> Dict[str, Any]:
 
         # Execute conversion in thread pool
         try:
-            ms_path = await asyncio.to_thread(
-                convert_subband_group,
-                file_list=file_list,
-                output_dir=Path(output_dir),
+            await asyncio.to_thread(
+                _convert_single_group,
+                group=file_list,
                 group_id=group_id,
+                output_dir=str(output_dir),
+                skip_incomplete=False,
+                skip_existing=False,
             )
+            ms_path = Path(output_dir) / f"{group_id}.ms"
         except Exception as conv_err:
             await update_group_state(group_id, "failed", error=str(conv_err))
             raise
