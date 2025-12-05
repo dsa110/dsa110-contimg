@@ -294,7 +294,7 @@ def read_rax_catalog(
     # Try astroquery if enabled (though RAX is unlikely to be in Vizier)
     if use_astroquery:
         try:
-            from astroquery.vizier import Vizier
+            import astroquery.vizier  # noqa: F401 - checking availability
 
             print("Warning: RAX catalog is DSA-110 specific and not available via Vizier.")
             print("Falling back to cached file...")

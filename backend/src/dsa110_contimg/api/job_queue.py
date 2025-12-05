@@ -54,7 +54,7 @@ from .repositories import get_db_connection
 try:
     from redis import Redis
     from redis.exceptions import RedisError
-    from rq import Queue, Worker
+    from rq import Queue
     from rq.exceptions import NoSuchJobError
     from rq.job import Job
 

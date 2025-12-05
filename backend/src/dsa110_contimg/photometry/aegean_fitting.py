@@ -99,7 +99,7 @@ def _check_aegean_available() -> Tuple[bool, Optional[str]]:
 
     # Method 3: Check if module can be imported (for programmatic use)
     try:
-        import AegeanTools
+        import AegeanTools  # noqa: F401 - checking availability
 
         return True, None
     except ImportError:
@@ -176,7 +176,7 @@ def _check_bane_available() -> Tuple[bool, Optional[str]]:
 
     # Method 3: Check if module can be imported (for programmatic use)
     try:
-        import AegeanTools
+        import AegeanTools  # noqa: F401 - checking availability
 
         return True, None
     except ImportError:

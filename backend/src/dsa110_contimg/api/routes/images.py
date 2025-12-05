@@ -1369,7 +1369,6 @@ async def get_image_animation(
             ImageNormalize,
             LinearStretch,
             LogStretch,
-            MinMaxInterval,
             ZScaleInterval,
         )
 

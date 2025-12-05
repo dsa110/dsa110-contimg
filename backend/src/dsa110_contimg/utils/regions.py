@@ -10,9 +10,9 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 try:
-    import astropy.units as u
-    from astropy.coordinates import SkyCoord
-    from astropy.regions import (
+    import astropy.units as u  # noqa: F401 - checking availability
+    from astropy.coordinates import SkyCoord  # noqa: F401 - checking availability
+    from astropy.regions import (  # noqa: F401 - checking availability
         CircleSkyRegion,
         PolygonSkyRegion,
         RectangleSkyRegion,
