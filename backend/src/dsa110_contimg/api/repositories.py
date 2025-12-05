@@ -24,10 +24,10 @@ from .exceptions import (
     RecordNotFoundError,
 )
 from .interfaces import (
-    ImageRepositoryInterface,
-    MSRepositoryInterface,
-    SourceRepositoryInterface,
-    JobRepositoryInterface,
+    AsyncImageRepositoryProtocol,
+    AsyncMSRepositoryProtocol,
+    AsyncSourceRepositoryProtocol,
+    AsyncJobRepositoryProtocol,
 )
 from .business_logic import (
     stage_to_qa_grade,
@@ -271,10 +271,10 @@ async def get_async_connection(
 # Async Image Repository
 # =============================================================================
 
-class AsyncImageRepository(ImageRepositoryInterface):
+class AsyncImageRepository(AsyncImageRepositoryProtocol):
     """Async repository for querying image data.
     
-    Implements ImageRepositoryInterface with aiosqlite.
+    Implements AsyncImageRepositoryProtocol with aiosqlite.
     """
     
     def __init__(self, db_path: Optional[str] = None):
@@ -488,10 +488,10 @@ class AsyncImageRepository(ImageRepositoryInterface):
 # Async MS Repository
 # =============================================================================
 
-class AsyncMSRepository(MSRepositoryInterface):
+class AsyncMSRepository(AsyncMSRepositoryProtocol):
     """Async repository for querying MS metadata.
     
-    Implements MSRepositoryInterface with aiosqlite.
+    Implements AsyncMSRepositoryProtocol with aiosqlite.
     """
     
     def __init__(self, db_path: Optional[str] = None):
@@ -635,10 +635,10 @@ class AsyncMSRepository(MSRepositoryInterface):
 # Async Source Repository
 # =============================================================================
 
-class AsyncSourceRepository(SourceRepositoryInterface):
+class AsyncSourceRepository(AsyncSourceRepositoryProtocol):
     """Async repository for querying source catalog data.
     
-    Implements SourceRepositoryInterface with aiosqlite.
+    Implements AsyncSourceRepositoryProtocol with aiosqlite.
     """
     
     def __init__(self, db_path: Optional[str] = None):
@@ -834,10 +834,10 @@ class AsyncSourceRepository(SourceRepositoryInterface):
 # Async Job Repository
 # =============================================================================
 
-class AsyncJobRepository(JobRepositoryInterface):
+class AsyncJobRepository(AsyncJobRepositoryProtocol):
     """Async repository for querying pipeline job data.
     
-    Implements JobRepositoryInterface with aiosqlite.
+    Implements AsyncJobRepositoryProtocol with aiosqlite.
     """
     
     def __init__(self, db_path: Optional[str] = None):

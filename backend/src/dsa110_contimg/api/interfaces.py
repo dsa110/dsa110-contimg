@@ -238,10 +238,3 @@ class AsyncJobRepositoryProtocol(Protocol):
             List of JobRecords
         """
         ...
-
-
-# Backwards compatibility aliases (deprecated)
-ImageRepositoryInterface = AsyncImageRepositoryProtocol
-MSRepositoryInterface = AsyncMSRepositoryProtocol
-SourceRepositoryInterface = AsyncSourceRepositoryProtocol
-JobRepositoryInterface = AsyncJobRepositoryProtocol
