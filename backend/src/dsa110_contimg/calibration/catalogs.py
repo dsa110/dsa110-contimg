@@ -529,59 +529,86 @@ def read_vla_calibrator_catalog(path: str, cache_dir: Optional[str] = None) -> p
 
 
 def load_vla_catalog(
-    explicit_path: Optional[str | os.PathLike[str]] = None, prefer_sqlite: bool = True
+    explicit_path: Optional[str | os.PathLike[str]] = None,
+    prefer_sqlite: bool = True,
+    band: str = "20cm",
+    require_flux: bool = True,
 ) -> pd.DataFrame:
     """Load the VLA calibrator catalog from SQLite database.
 
     Args:
         explicit_path: Optional explicit path to catalog (overrides all defaults)
         prefer_sqlite: Deprecated, kept for API compatibility (SQLite is always used)
+        band: Frequency band to filter by (default: "20cm" for L-band)
+        require_flux: If True (default), only return calibrators with measured flux
+            at the specified band. Set False to include all (with caution).
 
     Returns:
         DataFrame with calibrator catalog (indexed by name, columns: ra_deg, dec_deg, flux_jy)
 
     Examples:
-        >>> df = load_vla_catalog()
+        >>> df = load_vla_catalog()  # L-band calibrators with documented flux
+        >>> df = load_vla_catalog(band="90cm")  # P-band calibrators
         >>> df = load_vla_catalog("/custom/path/to/catalog.sqlite3")
     """
     catalog_path = resolve_vla_catalog_path(explicit_path, prefer_sqlite=prefer_sqlite)
-    return load_vla_catalog_from_sqlite(str(catalog_path))
+    return load_vla_catalog_from_sqlite(str(catalog_path), band=band, require_flux=require_flux)
 
 
-def load_vla_catalog_from_sqlite(db_path: str) -> pd.DataFrame:
+def load_vla_catalog_from_sqlite(
+    db_path: str, band: str = "20cm", require_flux: bool = True
+) -> pd.DataFrame:
     """Load VLA calibrator catalog from SQLite database.
 
-    Loads ALL calibrators from the database, preferring 20cm flux when available
-    but falling back to a default flux (1.0 Jy) for calibrators without 20cm data.
-    This ensures calibrators like 1911+161 (which only has Q-band flux) are included.
+    By default, loads ONLY calibrators with documented flux at the specified band.
+    This ensures we don't accidentally use calibrators that are weak or unmeasured
+    at our observing frequency.
 
     Args:
         db_path: Path to SQLite database
+        band: Frequency band to use for flux (default: "20cm" for L-band)
+        require_flux: If True (default), only include calibrators with measured flux
+            at the specified band. If False, include all calibrators with default 1.0 Jy
+            flux for those without measurements (use with caution!).
 
     Returns:
         DataFrame with calibrator catalog (indexed by name, columns include ra_deg, dec_deg, flux_jy)
+
+    Note:
+        Setting require_flux=False was the cause of selecting 1911+161 (a Q-band
+        calibrator with 0.18 Jy at 43 GHz) for L-band calibration where it's likely
+        <0.1 Jy. Always use require_flux=True for production calibration.
     """
     import sqlite3
 
     conn = sqlite3.connect(db_path)
     try:
-        # Load ALL calibrators with LEFT JOIN to fluxes - this ensures calibrators
-        # without 20cm flux (like 1911+161) are still included with default flux
-        try:
-            # First try with explicit LEFT JOIN to get all calibrators
+        if require_flux:
+            # INNER JOIN: Only calibrators with documented flux at the specified band
+            # This is the safe default - don't use calibrators with unknown flux
+            df = pd.read_sql_query(
+                """
+                SELECT c.name, c.ra_deg, c.dec_deg, f.flux_jy
+                FROM calibrators c
+                INNER JOIN fluxes f ON c.name = f.name
+                WHERE f.band = ?
+                """,
+                conn,
+                params=(band,),
+            )
+        else:
+            # LEFT JOIN: Include all calibrators, defaulting to 1.0 Jy
+            # WARNING: This can select calibrators with unknown/low flux at observing band!
             df = pd.read_sql_query(
                 """
                 SELECT c.name, c.ra_deg, c.dec_deg,
                        COALESCE(f.flux_jy, 1.0) as flux_jy
                 FROM calibrators c
-                LEFT JOIN fluxes f ON c.name = f.name AND f.band = '20cm'
+                LEFT JOIN fluxes f ON c.name = f.name AND f.band = ?
                 """,
                 conn,
+                params=(band,),
             )
-        except Exception:
-            # Fallback to calibrators table if query fails
-            df = pd.read_sql_query("SELECT name, ra_deg, dec_deg FROM calibrators", conn)
-            df["flux_jy"] = 1.0
 
         # CRITICAL: Set index to calibrator name (required by _load_radec)
         # The DataFrame MUST be indexed by calibrator name, not by numeric index

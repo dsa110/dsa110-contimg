@@ -78,10 +78,10 @@ def multi_source_visibility(
 
     for source in sources:
         flux_per_freq = evaluate_flux_density(source, freq_hz)
-        l, m, n_dir = direction_cosines(
+        dir_l, m, n_dir = direction_cosines(
             source.ra_deg, source.dec_deg, phase_center_ra_deg, phase_center_dec_deg
         )
-        phase_arg = u_lambda * l + v_lambda * m + w_lambda * (n_dir - 1.0)
+        phase_arg = u_lambda * dir_l + v_lambda * m + w_lambda * (n_dir - 1.0)
         phase = np.exp(-2j * np.pi * phase_arg)
         contribution = flux_per_freq[None, :] * phase
 
