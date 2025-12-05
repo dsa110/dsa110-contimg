@@ -200,6 +200,15 @@ const HomePage: React.FC = () => {
   const latestImages = useMemo(() => {
     if (!images) return [];
     return [...images]
+      .filter((img) => {
+        const filename = img.path?.split("/").pop() || "";
+        // Only show .fits files, prefer primary-beam-corrected images
+        if (!filename.endsWith(".fits")) return false;
+        // Exclude test files
+        if (filename.startsWith("test_") || filename.includes("_test"))
+          return false;
+        return true;
+      })
       .sort((a, b) => {
         const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
         const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
