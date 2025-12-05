@@ -96,10 +96,6 @@ sudo journalctl -u contimg-pointing-monitor.service -f
 - `contimg.env` - Environment variables used by all contimg services
 - `deploy_service.sh` - Helper script to deploy service files
 
-### Deprecated (do not use)
-
-- `dsa110-contimg-api.service.deprecated` - Legacy duplicate of contimg-api
-
 ## Important Notes
 
 - **Always edit the source file in this directory**, not the file in

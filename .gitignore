@@ -191,21 +191,19 @@ state/
 !state/.gitkeep
 
 
-.cursor/rules/kluster-code-verify.mdc
-.kluster
-
-
-# Cursor editor configuration
+# Cursor editor configuration (local preferences, not shared)
 .cursor/
-.cursor/rules/codacy.mdc
-.cursor/rules/kluster-code-verify.mdc
 .cursorignore
 .cursorrules
 
-# Other AI tool directories
+# Kluster
+.kluster
+
+# Other AI tool directories (local preferences, not shared)
 .serena/
 .gemini/
 .codacy/
+.claude/
 .watch/
 *watch*
 
@@ -278,9 +276,6 @@ internal/
 
 *storybook.log
 storybook-static
-
-# Ignore vscode AI rules
-.github/instructions/codacy.instructions.md
 
 # Lock files
 *.lock
