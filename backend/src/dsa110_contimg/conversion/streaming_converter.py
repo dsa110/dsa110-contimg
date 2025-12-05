@@ -1011,6 +1011,120 @@ class QueueDB:
                 raise
         return removed
 
+    def normalize_group_to_sb00(self, group_id: str) -> Tuple[str, int]:
+        """Normalize all files in a group to use sb00's timestamp as the canonical group_id.
+
+        This should be called before processing a complete group. It:
+        1. Finds sb00's path and extracts its timestamp
+        2. Renames all other subbands to use that timestamp
+        3. Updates the database to reflect new paths and group_id
+
+        Args:
+            group_id: Current group identifier
+
+        Returns:
+            Tuple of (canonical_group_id, files_renamed)
+
+        Raises:
+            ValueError: If sb00 is not found in the group
+        """
+        from dsa110_contimg.conversion.streaming.normalize import normalize_subband_path
+
+        normalized_group = self._normalize_group_id_datetime(group_id)
+
+        # Get all files with their subband indices
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT subband_idx, path FROM subband_files WHERE group_id = ? ORDER BY subband_idx",
+                (normalized_group,),
+            ).fetchall()
+
+        if not rows:
+            raise ValueError(f"No files found for group {group_id}")
+
+        # Find sb00's path and extract its timestamp
+        sb00_path = None
+        files_by_idx: dict[int, str] = {}
+        for row in rows:
+            subband_idx, path = row["subband_idx"], row["path"]
+            files_by_idx[subband_idx] = path
+            if subband_idx == 0:
+                sb00_path = path
+
+        if sb00_path is None:
+            available_sbs = sorted(files_by_idx.keys())
+            raise ValueError(
+                f"sb00 not found in group {group_id}. Available subbands: {available_sbs}"
+            )
+
+        # Extract canonical group_id from sb00's filename
+        sb00_info = parse_subband_info(Path(sb00_path))
+        if sb00_info is None:
+            raise ValueError(f"Could not parse sb00 path: {sb00_path}")
+        
+        canonical_group_id = sb00_info[0]
+
+        # If already normalized, nothing to do
+        if canonical_group_id == normalized_group:
+            logging.debug(f"Group {group_id} already uses sb00 timestamp")
+            return canonical_group_id, 0
+
+        # Rename files and update database
+        files_renamed = 0
+        new_paths: dict[int, str] = {}
+
+        for subband_idx, old_path in files_by_idx.items():
+            try:
+                new_path, was_renamed = normalize_subband_path(
+                    Path(old_path), canonical_group_id, dry_run=False
+                )
+                new_paths[subband_idx] = str(new_path)
+                if was_renamed:
+                    files_renamed += 1
+            except Exception as err:
+                logging.error(f"Failed to normalize sb{subband_idx:02d}: {err}")
+                # Keep original path
+                new_paths[subband_idx] = old_path
+
+        # Update database with new group_id and paths
+        with self._lock:
+            try:
+                self._conn.execute("BEGIN")
+                
+                # Update processing_queue group_id
+                self._conn.execute(
+                    "UPDATE processing_queue SET group_id = ? WHERE group_id = ?",
+                    (canonical_group_id, normalized_group),
+                )
+                
+                # Update subband_files with new group_id and paths
+                for subband_idx, new_path in new_paths.items():
+                    self._conn.execute(
+                        """
+                        UPDATE subband_files 
+                        SET group_id = ?, path = ?
+                        WHERE group_id = ? AND subband_idx = ?
+                        """,
+                        (canonical_group_id, new_path, normalized_group, subband_idx),
+                    )
+                
+                # Update performance_metrics if exists
+                self._conn.execute(
+                    "UPDATE performance_metrics SET group_id = ? WHERE group_id = ?",
+                    (canonical_group_id, normalized_group),
+                )
+                
+                self._conn.commit()
+                logging.info(
+                    f"Normalized group {normalized_group} -> {canonical_group_id} "
+                    f"({files_renamed} files renamed)"
+                )
+            except sqlite3.Error:
+                self._conn.rollback()
+                raise
+
+        return canonical_group_id, files_renamed
+
 
 # Import pointing tracker for Dec change detection
 try:
@@ -1998,6 +2112,22 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
             if gid is None:
                 time.sleep(float(getattr(args, "worker_poll_interval", 5.0)))
                 continue
+
+            # Normalize all subbands to use sb00's timestamp as canonical group_id
+            # This ensures consistent naming and simplifies downstream processing
+            try:
+                gid, files_renamed = queue.normalize_group_to_sb00(gid)
+                if files_renamed > 0:
+                    log.info(f"Normalized {files_renamed} files to group {gid}")
+            except ValueError as norm_err:
+                # sb00 not found - cannot process this group
+                log.error(f"Cannot normalize group (sb00 missing): {norm_err}")
+                queue.update_state(gid, "failed", error=f"sb00 missing: {norm_err}")
+                continue
+            except Exception as norm_err:
+                # Non-fatal normalization error - try to continue with original group_id
+                log.warning(f"Normalization failed, continuing with original group_id: {norm_err}")
+
             t0 = time.perf_counter()
             # Use group timestamp for start/end
             start_time = gid.replace("T", " ")

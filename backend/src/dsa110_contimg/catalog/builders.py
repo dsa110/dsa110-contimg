@@ -776,7 +776,7 @@ def build_vlass_full_db(
     VLASS_CANDIDATES = {
         "ra": ["ra", "ra_deg", "raj2000"],
         "dec": ["dec", "dec_deg", "dej2000"],
-        "flux": ["peak_flux", "peak_mjy_per_beam", "flux_peak", "flux", "total_flux"],
+        "flux": ["flux_mjy", "fpeak", "ftot", "peak_flux", "peak_mjy_per_beam", "flux_peak", "flux", "total_flux"],
     }
     col_map = _normalize_columns(df_full, VLASS_CANDIDATES)
     ra_col = col_map.get("ra", "ra")

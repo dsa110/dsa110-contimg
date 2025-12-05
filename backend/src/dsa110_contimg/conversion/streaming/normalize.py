@@ -254,7 +254,10 @@ def _normalize_cluster(
     files_by_timestamp: dict,
     dry_run: bool,
 ) -> tuple[int, list[str]]:
-    """Normalize all files in a cluster to use the canonical timestamp.
+    """Normalize all files in a cluster to use sb00's timestamp.
+
+    The canonical group_id is determined by the timestamp of the sb00 file.
+    If sb00 is not present in the cluster, returns an error.
 
     Args:
         cluster: List of timestamps in this cluster
@@ -267,7 +270,23 @@ def _normalize_cluster(
     renamed = 0
     errors: list[str] = []
 
-    canonical_dt = min(cluster)
+    # Find sb00's timestamp - that becomes the canonical group_id
+    sb00_timestamp = None
+    for timestamp in cluster:
+        for path, group_id, subband_idx in files_by_timestamp[timestamp]:
+            if subband_idx == 0:
+                sb00_timestamp = timestamp
+                break
+        if sb00_timestamp is not None:
+            break
+
+    if sb00_timestamp is None:
+        # No sb00 found - cannot determine canonical timestamp
+        all_files = [p.name for ts in cluster for p, _, _ in files_by_timestamp[ts]]
+        errors.append(f"No sb00 file found in cluster; cannot normalize: {all_files[:3]}...")
+        return renamed, errors
+
+    canonical_dt = sb00_timestamp
     canonical_group_id = canonical_dt.strftime("%Y-%m-%dT%H:%M:%S")
 
     for timestamp in cluster:
