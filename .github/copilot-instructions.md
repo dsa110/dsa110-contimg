@@ -30,6 +30,19 @@ variable within approximately +/- 30 seconds, and still belong to the same
 observation. This is why we introduce a time-windowing mechanism to group files
 that belong together.
 
+> **⚠️ NEVER use exact timestamp matching to find subband groups!**
+>
+> Subbands have timestamp jitter (±30s). Simple glob patterns like
+> `${timestamp}_sb*.hdf5` will FAIL to find all 16 subbands.
+>
+> **ALWAYS use `find_subband_groups()` with tolerance:**
+>
+> ```python
+> from dsa110_contimg.conversion.hdf5_orchestrator import find_subband_groups
+> groups = find_subband_groups("/data/incoming", tolerance_s=60.0)
+> complete = [g for g in groups if len(g) == 16]
+> ```
+
 The conversion code must:
 
 1. Group files by timestamp (within 60 second tolerance)
