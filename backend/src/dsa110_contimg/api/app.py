@@ -183,9 +183,9 @@ async def lifespan(app: FastAPI):
         logger.info("Test mode enabled; skipping ABSURD client initialization")
     else:
         try:
-            from dsa110_contimg.absurd import AbsurdClient, AbsurdConfig
+            from dsa110_contimg.absurd import AbsurdConfig
 
-            from .routes.absurd import init_absurd_client, shutdown_absurd_client
+            from .routes.absurd import init_absurd_client, shutdown_absurd_client  # noqa: F401
 
             config = AbsurdConfig.from_env()
             if config.enabled:

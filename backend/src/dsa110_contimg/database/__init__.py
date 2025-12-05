@@ -51,10 +51,6 @@ See Also:
 # =============================================================================
 # Legacy ORM Compatibility (DEPRECATED)
 # =============================================================================
-# Import legacy ORM-based session management for backwards compatibility
-# These are deprecated and will be removed in a future version
-import warnings
-
 # =============================================================================
 # State Machine for Pipeline Processing
 # =============================================================================
@@ -114,7 +110,7 @@ from .unified import (
 )
 
 try:
-    from .models import (
+    from .models import (  # noqa: F401 - re-exported for backwards compatibility
         CAL_REGISTRY_MODELS,
         DATA_REGISTRY_MODELS,
         HDF5_MODELS,
@@ -145,7 +141,7 @@ try:
         StorageLocation,
         TransientCandidate,
     )
-    from .session import (
+    from .session import (  # noqa: F401 - re-exported for backwards compatibility
         DATABASE_PATHS,
         DEFAULT_DB_PATHS,
         DatabaseName,
@@ -180,6 +176,7 @@ __all__ = [
     "get_db",
     "close_db",
     "ensure_pipeline_db",
+    "ensure_db",
     # Jobs helpers
     "create_job",
     "update_job_status",
@@ -195,6 +192,27 @@ __all__ = [
     # Calibrator helpers
     "get_bandpass_calibrators",
     "register_bandpass_calibrator",
+    "get_calibrators_db_path",
+    "get_pipeline_db_path",
+    "get_active_applylist",
+    # Caltable helpers
+    "DEFAULT_CALTABLE_ORDER",
+    "CalTableRow",
+    "list_caltable_sets",
+    "register_and_verify_caltables",
+    "register_caltable_set",
+    "register_caltable_set_from_prefix",
+    "retire_caltable_set",
+    # State machine
+    "MSState",
+    "MSStateMachine",
+    "StateNotFoundError",
+    "StateRecord",
+    "StateTransitionError",
+    "TransitionResult",
+    "close_state_machine",
+    "get_state_machine",
+    "state_transition_context",
     # Legacy HDF5 functions
     "index_hdf5_files",
     "query_hdf5_file",
