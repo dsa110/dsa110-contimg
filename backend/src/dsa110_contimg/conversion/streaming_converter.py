@@ -50,7 +50,7 @@ from typing import Dict, Iterator, List, Optional, Tuple  # noqa: E402
 
 from dsa110_contimg.database import (  # noqa: E402
     get_active_applylist,
-    register_set_from_prefix,
+    register_caltable_set_from_prefix,
 )
 
 # Pipeline hardening imports for Issues #3, #4, #5, #6, #7, #8, #10, #11, #13
@@ -1735,7 +1735,7 @@ def _register_caltables(
             except Exception as e:
                 log.debug("Calibration QA check failed (non-fatal): %s", e)
 
-        register_set_from_prefix(
+        register_caltable_set_from_prefix(
             Path(args.registry_db),
             set_name=f"cal_{gid}",
             prefix=cal_prefix,
@@ -2197,7 +2197,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
 
             # Record conversion in products DB (stage=converted) with organized path
             try:
-                conn = ensure_products_db(Path(products_db_path))
+                conn = ensure_pipeline_db()
                 # Extract time range
                 start_mjd = end_mjd = mid_mjd = None
                 try:
@@ -2224,7 +2224,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                     try:
                         queue_db_path = getattr(args, "queue_db", None)
                         if queue_db_path:
-                            ingest_conn = ensure_ingest_db(Path(queue_db_path))
+                            ingest_conn = ensure_pipeline_db()
                             log_pointing(ingest_conn, mid_mjd, ra_deg, dec_deg)
                             ingest_conn.close()
                             log.debug(
@@ -2572,7 +2572,7 @@ def _worker_loop(args: argparse.Namespace, queue: QueueDB) -> None:
                 # Update products DB with imaging artifacts and stage
                 try:
                     products_db_path = _get_pipeline_db_path()
-                    conn = ensure_products_db(products_db_path)
+                    conn = ensure_pipeline_db()
                     ms_index_upsert(
                         conn,
                         ms_path,

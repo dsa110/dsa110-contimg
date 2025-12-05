@@ -270,8 +270,7 @@ def cmd_export(args: argparse.Namespace) -> int:
     """Export lightcurve data for a source from the database."""
     import csv as csv_module
 
-    pdb_path = _get_pipeline_db_path(getattr(args, 'products_db', None))
-    conn = ensure_products_db(pdb_path)
+    conn = ensure_pipeline_db()
 
     # Query photometry for the source
     rows = conn.execute(
@@ -374,7 +373,6 @@ def cmd_nvss(args: argparse.Namespace) -> int:
 
     results = []
     now = time.time()
-    pdb_path = _get_pipeline_db_path(getattr(args, 'products_db', None))
     conn = ensure_pipeline_db()
     try:
         inserted = 0
@@ -566,7 +564,6 @@ def cmd_plot(args: argparse.Namespace) -> int:
     ycirc = cy + r_pix * np.sin(th)
 
     # Load photometry rows for this image
-    pdb_path = _get_pipeline_db_path(getattr(args, 'products_db', None))
     conn = ensure_pipeline_db()
     rows = conn.execute(
         "SELECT ra_deg, dec_deg, peak_jyb, nvss_flux_mjy FROM photometry WHERE image_path = ?",

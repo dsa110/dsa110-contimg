@@ -145,7 +145,7 @@ class SQLiteStateRepository(StateRepository):
     def _get_conn(self) -> sqlite3.Connection:
         """Get database connection, creating if necessary."""
         if self._conn is None:
-            self._conn = ensure_products_db(self.products_db)
+            self._conn = ensure_pipeline_db()
         return self._conn
 
     def create_job(self, job_type: str, context: Dict[str, Any]) -> int:

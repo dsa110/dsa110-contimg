@@ -144,7 +144,7 @@ def organize_ms_file(
                 # Update database with new path
                 if update_database:
                     try:
-                        conn = ensure_products_db(products_db_path)
+                        conn = ensure_pipeline_db()
                         # Get existing metadata
                         existing = conn.execute(
                             "SELECT start_mjd, end_mjd, mid_mjd, status, stage, cal_applied, imagename "

@@ -385,7 +385,7 @@ def _process_single_ms(ms: Path, out_dir: Path, registry_db: Path, conn) -> bool
 def process_once(ms_dir: Path, out_dir: Path, registry_db: Path, products_db: Path) -> int:
     """Process all MS files in directory once."""
     out_dir.mkdir(parents=True, exist_ok=True)
-    conn = ensure_products_db(products_db)
+    conn = ensure_pipeline_db()
     processed = 0
 
     for ms in sorted(ms_dir.glob("**/*.ms")):
