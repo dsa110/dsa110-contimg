@@ -63,20 +63,23 @@ from .maintenance import (
     setup_default_schedules,
 )
 
-# Ingestion tasks (file watcher and subband tracking)
+# Ingestion tasks (scheduled polling approach)
 from .ingestion import (
-    IngestionWatcher,
+    INGESTION_SCHEDULE,
     execute_convert_group,
+    execute_normalize_group,
     execute_record_subband,
     execute_scan_directory,
+    setup_ingestion_schedule,
 )
 from .ingestion_db import (
-    ensure_subband_schema,
-    get_group_subbands,
+    ensure_ingestion_schema,
+    get_group_files,
+    get_ingestion_stats,
     get_pending_groups,
-    get_sb00_timestamp,
-    normalize_group_filenames,
+    get_recorded_files,
     record_subband,
+    update_group_state,
 )
 
 __all__ = [
@@ -131,14 +134,17 @@ __all__ = [
     "list_workflows",
     "ensure_dependencies_schema",
     # Ingestion tasks
-    "IngestionWatcher",
+    "INGESTION_SCHEDULE",
     "execute_record_subband",
+    "execute_normalize_group",
     "execute_convert_group",
     "execute_scan_directory",
+    "setup_ingestion_schedule",
     "record_subband",
-    "get_group_subbands",
+    "get_group_files",
     "get_pending_groups",
-    "normalize_group_filenames",
-    "get_sb00_timestamp",
-    "ensure_subband_schema",
+    "get_recorded_files",
+    "get_ingestion_stats",
+    "update_group_state",
+    "ensure_ingestion_schema",
 ]

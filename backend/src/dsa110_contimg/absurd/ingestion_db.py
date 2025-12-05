@@ -402,3 +402,22 @@ async def get_ingestion_stats() -> Dict[str, Any]:
             return dict(row) if row else {}
     finally:
         await client.close()
+
+
+async def get_recorded_files() -> List[str]:
+    """Get all file paths that have been recorded in the ingestion database.
+
+    This is used by the directory scanner to avoid re-processing files.
+
+    Returns:
+        List of file paths already in the database
+    """
+    client = await get_client()
+    try:
+        async with client._pool.acquire() as conn:  # type: ignore[union-attr]
+            rows = await conn.fetch(
+                "SELECT file_path FROM absurd.ingestion_subbands"
+            )
+            return [row["file_path"] for row in rows]
+    finally:
+        await client.close()

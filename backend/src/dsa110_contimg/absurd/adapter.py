@@ -92,7 +92,7 @@ async def execute_pipeline_task(task_name: str, params: Dict[str, Any]) -> Dict[
 
     # Route to appropriate executor
     # Ingestion tasks
-    if task_name == "record-subband":
+    if task_name == "ingest-subband":
         from dsa110_contimg.absurd.ingestion import execute_record_subband
         return await execute_record_subband(params)
     elif task_name == "normalize-group":
@@ -101,6 +101,9 @@ async def execute_pipeline_task(task_name: str, params: Dict[str, Any]) -> Dict[
     elif task_name == "convert-group":
         from dsa110_contimg.absurd.ingestion import execute_convert_group
         return await execute_convert_group(params)
+    elif task_name == "scan-ingestion-directory":
+        from dsa110_contimg.absurd.ingestion import execute_scan_directory
+        return await execute_scan_directory(params)
     # Conversion tasks
     elif task_name == "convert-uvh5-to-ms":
         return await execute_conversion(params)

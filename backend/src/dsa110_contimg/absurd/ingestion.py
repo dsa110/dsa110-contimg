@@ -27,10 +27,13 @@ import logging
 import os
 import re
 from pathlib import Path
-from typing import Any, Dict, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple
 
 import h5py  # type: ignore[import-unresolved]
 import numpy as np  # type: ignore[import-unresolved]
+
+if TYPE_CHECKING:
+    from dsa110_contimg.absurd import AbsurdClient
 
 logger = logging.getLogger(__name__)
 
@@ -419,9 +422,176 @@ async def execute_convert_group(params: Dict[str, Any]) -> Dict[str, Any]:
         return {"status": "error", "message": str(e), "errors": [str(e)]}
 
 
+async def execute_scan_directory(params: Dict[str, Any]) -> Dict[str, Any]:
+    """Scan incoming directory for new subband files and spawn ingestion tasks.
+
+    This is a scheduled task that runs periodically (e.g., every 30 seconds)
+    to discover new files. It replaces the watchdog-based file watcher with
+    a polling approach that integrates naturally with ABSURD.
+
+    Args:
+        params: Must contain:
+            - inputs:
+                - incoming_dir: Directory to scan (default: /data/incoming)
+                - pattern: Glob pattern for files (default: *_sb*.hdf5)
+
+    Returns:
+        Result dict with:
+            - status: "success" or "error"
+            - outputs:
+                - files_found: Total files matching pattern
+                - new_files: Files not yet recorded
+                - tasks_spawned: Number of ingest tasks spawned
+            - message: Status message
+    """
+    logger.debug("[Absurd/Ingestion] Scanning for new subband files")
+
+    try:
+        inputs = params.get("inputs", {})
+        incoming_dir = Path(inputs.get("incoming_dir", "/data/incoming"))
+        pattern = inputs.get("pattern", "*_sb*.hdf5")
+
+        if not incoming_dir.exists():
+            return {
+                "status": "error",
+                "message": f"Incoming directory does not exist: {incoming_dir}",
+                "errors": ["directory_not_found"],
+            }
+
+        # Get all files matching pattern
+        all_files = list(incoming_dir.glob(pattern))
+        files_found = len(all_files)
+
+        if files_found == 0:
+            return {
+                "status": "success",
+                "outputs": {
+                    "files_found": 0,
+                    "new_files": 0,
+                    "tasks_spawned": 0,
+                },
+                "message": "No subband files found",
+            }
+
+        # Get already-recorded files from database
+        from dsa110_contimg.absurd.ingestion_db import get_recorded_files
+
+        recorded_files = await get_recorded_files()
+        recorded_set = set(recorded_files)
+
+        # Find new files
+        new_files = []
+        for file_path in all_files:
+            # Parse to validate it's a proper subband file
+            parsed = parse_subband_filename(file_path.name)
+            if parsed is None:
+                continue
+
+            if str(file_path) not in recorded_set:
+                new_files.append(str(file_path))
+
+        # Spawn ingest tasks for new files
+        tasks_spawned = 0
+        if new_files:
+            from dsa110_contimg.absurd import AbsurdClient
+            from dsa110_contimg.absurd.config import AbsurdConfig
+
+            config = AbsurdConfig.from_env()
+            async with AbsurdClient(config.database_url) as client:
+                for file_path in new_files:
+                    try:
+                        await client.spawn_task(
+                            queue_name=DEFAULT_QUEUE,
+                            task_name="ingest-subband",
+                            params={
+                                "inputs": {
+                                    "file_path": file_path,
+                                    "incoming_dir": str(incoming_dir),
+                                }
+                            },
+                            priority=5,  # Normal priority
+                        )
+                        tasks_spawned += 1
+                    except Exception as e:
+                        logger.warning(f"Failed to spawn task for {file_path}: {e}")
+
+        logger.info(
+            f"[Absurd/Ingestion] Scan complete: {files_found} files, "
+            f"{len(new_files)} new, {tasks_spawned} tasks spawned"
+        )
+
+        return {
+            "status": "success",
+            "outputs": {
+                "files_found": files_found,
+                "new_files": len(new_files),
+                "tasks_spawned": tasks_spawned,
+            },
+            "message": f"Spawned {tasks_spawned} ingestion tasks",
+        }
+
+    except Exception as e:
+        logger.exception(f"[Absurd/Ingestion] Directory scan failed: {e}")
+        return {"status": "error", "message": str(e), "errors": [str(e)]}
+
+
+# Default ingestion schedule configuration
+INGESTION_SCHEDULE = {
+    "name": "ingestion_directory_scan",
+    "task_name": "scan-ingestion-directory",
+    "cron_expression": "* * * * *",  # Every minute (minimum cron granularity)
+    "params": {"inputs": {"incoming_dir": "/data/incoming"}},
+    "description": "Scan incoming directory for new HDF5 subband files",
+    "queue_name": DEFAULT_QUEUE,
+}
+
+
+async def setup_ingestion_schedule(client: "AbsurdClient") -> Dict[str, Any]:
+    """Register the ingestion scan schedule with ABSURD.
+
+    This should be called during application startup to enable
+    automatic polling for new subband files.
+
+    Args:
+        client: Connected AbsurdClient instance
+
+    Returns:
+        Dict with registration result
+    """
+    from dsa110_contimg.absurd.ingestion_db import ensure_ingestion_schema
+    from dsa110_contimg.absurd.scheduling import create_schedule, get_schedule
+
+    # Ensure database schema exists
+    await ensure_ingestion_schema()
+
+    # Check if schedule already exists
+    existing = await get_schedule(client._pool, INGESTION_SCHEDULE["name"])  # type: ignore[arg-type]
+    if existing:
+        logger.info(f"[Ingestion] Schedule already exists: {INGESTION_SCHEDULE['name']}")
+        return {"status": "skipped", "message": "Schedule already exists"}
+
+    # Create schedule
+    try:
+        await create_schedule(
+            pool=client._pool,  # type: ignore[arg-type]
+            name=INGESTION_SCHEDULE["name"],
+            queue_name=INGESTION_SCHEDULE["queue_name"],
+            task_name=INGESTION_SCHEDULE["task_name"],
+            cron_expression=INGESTION_SCHEDULE["cron_expression"],
+            params=INGESTION_SCHEDULE.get("params", {}),
+            description=INGESTION_SCHEDULE.get("description"),
+        )
+        logger.info(f"[Ingestion] Registered schedule: {INGESTION_SCHEDULE['name']}")
+        return {"status": "registered", "message": "Ingestion schedule created"}
+    except Exception as e:
+        logger.error(f"[Ingestion] Failed to register schedule: {e}")
+        return {"status": "error", "message": str(e)}
+
+
 # Task chain for complete ingestion pipeline
 INGESTION_CHAIN = [
-    "record-subband",      # Record file arrival
+    "ingest-subband",      # Record file arrival (triggered by scan)
     "normalize-group",     # Normalize filenames when complete
     "convert-group",       # Convert to MS
 ]
+
