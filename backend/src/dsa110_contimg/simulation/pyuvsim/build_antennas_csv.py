@@ -14,7 +14,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from dsa110_contimg.utils.antpos_local import get_itrf
-from dsa110_contimg.utils.constants import OVRO_ALT, OVRO_LAT, OVRO_LON
+from dsa110_contimg.utils.constants import DSA110_ALT, DSA110_LAT, DSA110_LON
 
 
 def main() -> None:
@@ -27,16 +27,16 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    df = get_itrf(latlon_center=(OVRO_LAT * u.rad, OVRO_LON * u.rad, OVRO_ALT * u.m))
+    df = get_itrf(latlon_center=(DSA110_LAT * u.rad, DSA110_LON * u.rad, DSA110_ALT * u.m))
     indices = df.index.to_numpy()
     dx = df["dx_m"].to_numpy()
     dy = df["dy_m"].to_numpy()
     dz = df["dz_m"].to_numpy()
 
-    sin_lat = math.sin(OVRO_LAT)
-    cos_lat = math.cos(OVRO_LAT)
-    sin_lon = math.sin(OVRO_LON)
-    cos_lon = math.cos(OVRO_LON)
+    sin_lat = math.sin(DSA110_LAT)
+    cos_lat = math.cos(DSA110_LAT)
+    sin_lon = math.sin(DSA110_LON)
+    cos_lon = math.cos(DSA110_LON)
 
     east = -sin_lon * dx + cos_lon * dy
     north = (-sin_lat * cos_lon * dx) + (-sin_lat * sin_lon * dy) + (cos_lat * dz)

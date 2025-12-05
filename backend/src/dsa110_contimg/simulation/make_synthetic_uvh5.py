@@ -25,7 +25,7 @@ from dsa110_contimg.simulation.source_selection import (
     summarize_sources,
 )
 from dsa110_contimg.utils.antpos_local import get_itrf
-from dsa110_contimg.utils.constants import OVRO_ALT, OVRO_LAT, OVRO_LON
+from dsa110_contimg.utils.constants import DSA110_ALT, DSA110_LAT, DSA110_LON
 from dsa110_contimg.utils.fringestopping import calc_uvw_blt
 
 PACKAGE_ROOT = Path(__file__).resolve().parent
@@ -178,7 +178,7 @@ def build_uvw(
     # Convert JD to MJD for calc_uvw_blt (which expects MJD)
     unique_times_mjd = unique_times_jd - 2400000.5
 
-    ant_df = get_itrf(latlon_center=(OVRO_LAT * u.rad, OVRO_LON * u.rad, OVRO_ALT * u.m))
+    ant_df = get_itrf(latlon_center=(DSA110_LAT * u.rad, DSA110_LON * u.rad, DSA110_ALT * u.m))
     ant_offsets = {}
     missing = []
     for ant in range(nants_telescope):
@@ -311,7 +311,7 @@ def build_uvdata_from_scratch(
         start_time = Time.now()
 
     # Get antenna positions
-    ant_df = get_itrf(latlon_center=(OVRO_LAT * u.rad, OVRO_LON * u.rad, OVRO_ALT * u.m))
+    ant_df = get_itrf(latlon_center=(DSA110_LAT * u.rad, DSA110_LON * u.rad, DSA110_ALT * u.m))
 
     # Select antennas (use first nants stations)
     available_stations = sorted(ant_df.index)[:nants]
