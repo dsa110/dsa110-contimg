@@ -41,14 +41,14 @@ def direction_cosines(
 
     delta_ra = ra - ra0
 
-    l = math.cos(dec) * math.sin(delta_ra)
+    dir_l = math.cos(dec) * math.sin(delta_ra)
     m = math.sin(dec) * math.cos(dec0) - math.cos(dec) * math.cos(delta_ra) * math.sin(dec0)
 
     # Guard numerical errors inside sqrt
-    n_sq = max(0.0, 1.0 - l**2 - m**2)
+    n_sq = max(0.0, 1.0 - dir_l**2 - m**2)
     n = math.sqrt(n_sq)
 
-    return l, m, n
+    return dir_l, m, n
 
 
 def multi_source_visibility(

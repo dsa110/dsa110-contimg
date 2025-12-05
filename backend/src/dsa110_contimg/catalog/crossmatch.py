@@ -666,9 +666,9 @@ def identify_duplicate_catalog_sources(
     )
 
     # Find duplicates using search_around_sky
-    from astropy.coordinates import Angle, search_around_sky
+    from astropy.coordinates import Angle as MatchAngle
 
-    radius = Angle(deduplication_radius_arcsec * u.arcsec)
+    radius = MatchAngle(deduplication_radius_arcsec * u.arcsec)
     idx1, idx2, sep2d, _ = search_around_sky(all_coords, all_coords, radius)
 
     # Build groups of duplicate entries
