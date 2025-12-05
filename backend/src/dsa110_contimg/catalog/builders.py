@@ -101,6 +101,323 @@ def _release_db_lock(lock_fd: Optional[int], lock_path: Path):
         logger.warning(f"Error removing lock file {lock_path}: {e}")
 
 
+# --------------------------------------------------------------------------
+# Full catalog database builders (one-time operations)
+# --------------------------------------------------------------------------
+
+# Default path for full NVSS database
+NVSS_FULL_DB_PATH = Path("/data/dsa110-contimg/state/catalogs/nvss_full.sqlite3")
+
+
+def get_nvss_full_db_path() -> Path:
+    """Get the path to the full NVSS database.
+
+    Returns:
+        Path to nvss_full.sqlite3
+    """
+    return NVSS_FULL_DB_PATH
+
+
+def nvss_full_db_exists() -> bool:
+    """Check if the full NVSS database exists.
+
+    Returns:
+        True if nvss_full.sqlite3 exists and has data
+    """
+    db_path = get_nvss_full_db_path()
+    if not db_path.exists():
+        return False
+
+    # Verify it has data
+    try:
+        with sqlite3.connect(str(db_path)) as conn:
+            count = conn.execute("SELECT COUNT(*) FROM sources").fetchone()[0]
+            return count > 0
+    except Exception:
+        return False
+
+
+def build_nvss_full_db(
+    output_path: Optional[Path] = None,
+    force_rebuild: bool = False,
+) -> Path:
+    """Build a full NVSS SQLite database from the raw HEASARC file.
+
+    This creates a comprehensive database with all ~1.77M NVSS sources,
+    indexed for fast spatial queries. Dec strip databases can then be
+    built efficiently from this database instead of re-parsing the raw file.
+
+    Args:
+        output_path: Output database path (default: state/catalogs/nvss_full.sqlite3)
+        force_rebuild: If True, rebuild even if database exists (default: False)
+
+    Returns:
+        Path to created/existing database
+    """
+    if output_path is None:
+        output_path = get_nvss_full_db_path()
+
+    output_path = Path(output_path)
+
+    # Check if already exists
+    if output_path.exists() and not force_rebuild:
+        logger.info(f"Full NVSS database already exists: {output_path}")
+        return output_path
+
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Load from raw HEASARC file
+    from dsa110_contimg.calibration.catalogs import read_nvss_catalog
+
+    logger.info("Loading NVSS catalog from raw HEASARC file...")
+    df_full = read_nvss_catalog()
+    logger.info(f"Loaded {len(df_full)} NVSS sources")
+
+    # Acquire lock
+    lock_path = output_path.with_suffix(".lock")
+    lock_fd = _acquire_db_lock(lock_path, timeout_sec=600.0)
+
+    if lock_fd is None:
+        if output_path.exists():
+            logger.info(f"Database {output_path} was created by another process")
+            return output_path
+        raise RuntimeError(f"Could not acquire lock for {output_path}")
+
+    try:
+        # Double-check after lock
+        if output_path.exists() and not force_rebuild:
+            logger.info(f"Database {output_path} created while waiting for lock")
+            return output_path
+
+        # Remove existing if force rebuild
+        if output_path.exists() and force_rebuild:
+            output_path.unlink()
+
+        logger.info(f"Creating full NVSS database: {output_path}")
+
+        with sqlite3.connect(str(output_path)) as conn:
+            # Enable WAL mode for concurrent reads
+            conn.execute("PRAGMA journal_mode=WAL")
+
+            # Create sources table with all relevant columns
+            conn.execute("""
+                CREATE TABLE sources (
+                    source_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ra_deg REAL NOT NULL,
+                    dec_deg REAL NOT NULL,
+                    flux_mjy REAL,
+                    flux_err_mjy REAL,
+                    major_axis REAL,
+                    minor_axis REAL,
+                    position_angle REAL
+                )
+            """)
+
+            # Create indexes
+            conn.execute("CREATE INDEX idx_dec ON sources(dec_deg)")
+            conn.execute("CREATE INDEX idx_radec ON sources(ra_deg, dec_deg)")
+            conn.execute("CREATE INDEX idx_flux ON sources(flux_mjy)")
+
+            # Prepare data for insertion
+            ra_col = "ra" if "ra" in df_full.columns else "ra_deg"
+            dec_col = "dec" if "dec" in df_full.columns else "dec_deg"
+            flux_col = "flux_20_cm" if "flux_20_cm" in df_full.columns else "flux_mjy"
+
+            insert_data = []
+            for _, row in df_full.iterrows():
+                ra = pd.to_numeric(row.get(ra_col), errors="coerce")
+                dec = pd.to_numeric(row.get(dec_col), errors="coerce")
+                flux = pd.to_numeric(row.get(flux_col), errors="coerce")
+                flux_err = pd.to_numeric(row.get("flux_20_cm_error"), errors="coerce")
+                major = pd.to_numeric(row.get("major_axis"), errors="coerce")
+                minor = pd.to_numeric(row.get("minor_axis"), errors="coerce")
+                pa = pd.to_numeric(row.get("position_angle"), errors="coerce")
+
+                if np.isfinite(ra) and np.isfinite(dec):
+                    insert_data.append((
+                        float(ra),
+                        float(dec),
+                        float(flux) if np.isfinite(flux) else None,
+                        float(flux_err) if np.isfinite(flux_err) else None,
+                        float(major) if np.isfinite(major) else None,
+                        float(minor) if np.isfinite(minor) else None,
+                        float(pa) if np.isfinite(pa) else None,
+                    ))
+
+            # Batch insert
+            conn.executemany(
+                """INSERT INTO sources
+                   (ra_deg, dec_deg, flux_mjy, flux_err_mjy, major_axis, minor_axis, position_angle)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                insert_data,
+            )
+
+            # Create metadata table
+            conn.execute("""
+                CREATE TABLE meta (
+                    key TEXT PRIMARY KEY,
+                    value TEXT
+                )
+            """)
+
+            build_time = datetime.now(timezone.utc).isoformat()
+            conn.execute(
+                "INSERT INTO meta (key, value) VALUES (?, ?)",
+                ("build_time_iso", build_time),
+            )
+            conn.execute(
+                "INSERT INTO meta (key, value) VALUES (?, ?)",
+                ("n_sources", str(len(insert_data))),
+            )
+            conn.execute(
+                "INSERT INTO meta (key, value) VALUES (?, ?)",
+                ("source", "HEASARC NVSS catalog"),
+            )
+
+            conn.commit()
+
+        logger.info(f"Created full NVSS database with {len(insert_data)} sources")
+        return output_path
+
+    finally:
+        _release_db_lock(lock_fd, lock_path)
+
+
+def build_nvss_strip_from_full(
+    dec_center: float,
+    dec_range: tuple[float, float],
+    output_path: Optional[Path] = None,
+    min_flux_mjy: Optional[float] = None,
+    full_db_path: Optional[Path] = None,
+) -> Path:
+    """Build NVSS dec strip database from the full NVSS database.
+
+    This is faster than parsing the raw HEASARC file because it uses
+    indexed SQLite queries.
+
+    Args:
+        dec_center: Center declination in degrees
+        dec_range: Tuple of (dec_min, dec_max) in degrees
+        output_path: Output SQLite database path (auto-generated if None)
+        min_flux_mjy: Minimum flux threshold in mJy (None = no threshold)
+        full_db_path: Path to full NVSS database (default: auto-detect)
+
+    Returns:
+        Path to created SQLite database
+
+    Raises:
+        FileNotFoundError: If full NVSS database doesn't exist
+    """
+    dec_min, dec_max = dec_range
+
+    # Resolve full database path
+    if full_db_path is None:
+        full_db_path = get_nvss_full_db_path()
+
+    if not full_db_path.exists():
+        raise FileNotFoundError(
+            f"Full NVSS database not found: {full_db_path}. "
+            f"Run build_nvss_full_db() first."
+        )
+
+    # Resolve output path
+    if output_path is None:
+        dec_rounded = round(dec_center, 1)
+        db_name = f"nvss_dec{dec_rounded:+.1f}.sqlite3"
+        output_path = Path("/data/dsa110-contimg/state/catalogs") / db_name
+
+    output_path = Path(output_path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Check if already exists
+    if output_path.exists():
+        logger.info(f"Dec strip database already exists: {output_path}")
+        return output_path
+
+    # Acquire lock
+    lock_path = output_path.with_suffix(".lock")
+    lock_fd = _acquire_db_lock(lock_path, timeout_sec=300.0)
+
+    if lock_fd is None:
+        if output_path.exists():
+            return output_path
+        raise RuntimeError(f"Could not acquire lock for {output_path}")
+
+    try:
+        if output_path.exists():
+            return output_path
+
+        logger.info(f"Building NVSS dec strip from full database: {dec_min:.2f}° to {dec_max:.2f}°")
+
+        # Query sources from full database
+        with sqlite3.connect(str(full_db_path)) as src_conn:
+            query = """
+                SELECT ra_deg, dec_deg, flux_mjy
+                FROM sources
+                WHERE dec_deg >= ? AND dec_deg <= ?
+            """
+            params = [dec_min, dec_max]
+
+            if min_flux_mjy is not None:
+                query += " AND flux_mjy >= ?"
+                params.append(min_flux_mjy)
+
+            cursor = src_conn.execute(query, params)
+            rows = cursor.fetchall()
+
+        logger.info(f"Found {len(rows)} sources in dec range")
+
+        # Create output database
+        with sqlite3.connect(str(output_path)) as conn:
+            conn.execute("PRAGMA journal_mode=WAL")
+
+            conn.execute("""
+                CREATE TABLE sources (
+                    source_id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    ra_deg REAL NOT NULL,
+                    dec_deg REAL NOT NULL,
+                    flux_mjy REAL,
+                    UNIQUE(ra_deg, dec_deg)
+                )
+            """)
+
+            conn.execute("CREATE INDEX idx_radec ON sources(ra_deg, dec_deg)")
+            conn.execute("CREATE INDEX idx_dec ON sources(dec_deg)")
+            conn.execute("CREATE INDEX idx_flux ON sources(flux_mjy)")
+
+            conn.executemany(
+                "INSERT OR IGNORE INTO sources(ra_deg, dec_deg, flux_mjy) VALUES(?, ?, ?)",
+                rows,
+            )
+
+            # Metadata
+            conn.execute("""
+                CREATE TABLE meta (
+                    key TEXT PRIMARY KEY,
+                    value TEXT
+                )
+            """)
+
+            build_time = datetime.now(timezone.utc).isoformat()
+            meta = [
+                ("dec_center", str(dec_center)),
+                ("dec_min", str(dec_min)),
+                ("dec_max", str(dec_max)),
+                ("build_time_iso", build_time),
+                ("n_sources", str(len(rows))),
+                ("source", "nvss_full.sqlite3"),
+            ]
+            conn.executemany("INSERT INTO meta (key, value) VALUES (?, ?)", meta)
+
+            conn.commit()
+
+        logger.info(f"Created dec strip database: {output_path} ({len(rows)} sources)")
+        return output_path
+
+    finally:
+        _release_db_lock(lock_fd, lock_path)
+
+
 def check_catalog_database_exists(
     catalog_type: str,
     dec_deg: float,
