@@ -245,28 +245,86 @@ def main(argv: Optional[list] = None) -> None:
     exp_parser.add_argument("--make-fits", action="store_true", help="Export FITS from CASA images")
     exp_parser.add_argument("--make-png", action="store_true", help="Convert FITS to PNGs")
 
-    # create-nvss-mask subcommand
-    mask_parser = sub.add_parser("create-nvss-mask", help="Create CRTF mask around NVSS sources")
-    mask_parser.add_argument("--image", required=True, help="CASA-exported FITS image path")
-    mask_parser.add_argument("--min-mjy", type=float, default=1.0, help="Minimum NVSS flux (mJy)")
+    # create-mask subcommand (generalized, replaces create-nvss-mask)
+    mask_parser = sub.add_parser(
+        "create-mask",
+        help="Create CRTF or FITS mask from catalog sources",
+        description=(
+            "Create a mask for CLEAN imaging from any supported catalog.\n"
+            "Supports: nvss, first, vlass, unicat (default), atnf, rax\n\n"
+            "Example:\n"
+            "  python -m dsa110_contimg.imaging.cli create-mask \\\n"
+            "    --image observation.fits --catalog unicat --min-mjy 5.0"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    mask_parser.add_argument("--image", required=True, help="Input FITS image path")
     mask_parser.add_argument(
-        "--radius-arcsec", type=float, default=6.0, help="Mask circle radius (arcsec)"
+        "--catalog",
+        choices=["nvss", "first", "vlass", "unicat", "atnf", "rax"],
+        default="unicat",
+        help="Catalog to use for mask (default: unicat)",
     )
-    mask_parser.add_argument("--out", help="Output CRTF path (defaults to <image>.nvss_mask.crtf)")
+    mask_parser.add_argument("--min-mjy", type=float, default=None, help="Minimum flux in mJy")
+    mask_parser.add_argument(
+        "--radius-arcsec", type=float, default=60.0, help="Mask circle radius (arcsec)"
+    )
+    mask_parser.add_argument(
+        "--format",
+        choices=["crtf", "fits"],
+        default="crtf",
+        help="Output format: crtf (CASA region) or fits (WSClean)",
+    )
+    mask_parser.add_argument("--out", help="Output path (auto-generated if not specified)")
 
-    # create-nvss-overlay subcommand
+    # create-overlay subcommand (generalized, replaces create-nvss-overlay)
     overlay_parser = sub.add_parser(
-        "create-nvss-overlay", help="Overlay NVSS sources on FITS image"
+        "create-overlay",
+        help="Create diagnostic overlay image with catalog sources",
+        description=(
+            "Overlay catalog sources on a FITS image for visual inspection.\n"
+            "Supports: nvss, first, vlass, unicat (default), atnf, rax\n\n"
+            "Example:\n"
+            "  python -m dsa110_contimg.imaging.cli create-overlay \\\n"
+            "    --image observation.fits --out overlay.png --catalog nvss"
+        ),
+        formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    overlay_parser.add_argument("--image", required=True, help="Input FITS image (CASA export)")
+    overlay_parser.add_argument("--image", required=True, help="Input FITS image path")
+    overlay_parser.add_argument("--out", required=True, help="Output PNG path")
+    overlay_parser.add_argument(
+        "--catalog",
+        choices=["nvss", "first", "vlass", "unicat", "atnf", "rax"],
+        default="unicat",
+        help="Catalog to overlay (default: unicat)",
+    )
     overlay_parser.add_argument("--pb", help="Primary beam FITS to mask detections (optional)")
     overlay_parser.add_argument(
         "--pblimit", type=float, default=0.2, help="PB cutoff when --pb is provided"
     )
     overlay_parser.add_argument(
-        "--min-mjy", type=float, default=10.0, help="Minimum NVSS flux (mJy) to plot"
+        "--min-mjy", type=float, default=10.0, help="Minimum flux (mJy) to plot"
     )
-    overlay_parser.add_argument("--out", required=True, help="Output PNG path")
+
+    # Legacy aliases (deprecated, hidden from help)
+    legacy_mask_parser = sub.add_parser(
+        "create-nvss-mask",
+        help=argparse.SUPPRESS,  # Hide from help
+    )
+    legacy_mask_parser.add_argument("--image", required=True)
+    legacy_mask_parser.add_argument("--min-mjy", type=float, default=1.0)
+    legacy_mask_parser.add_argument("--radius-arcsec", type=float, default=6.0)
+    legacy_mask_parser.add_argument("--out")
+
+    legacy_overlay_parser = sub.add_parser(
+        "create-nvss-overlay",
+        help=argparse.SUPPRESS,  # Hide from help
+    )
+    legacy_overlay_parser.add_argument("--image", required=True)
+    legacy_overlay_parser.add_argument("--pb")
+    legacy_overlay_parser.add_argument("--pblimit", type=float, default=0.2)
+    legacy_overlay_parser.add_argument("--min-mjy", type=float, default=10.0)
+    legacy_overlay_parser.add_argument("--out", required=True)
 
     args = parser.parse_args(argv)
 
@@ -370,21 +428,72 @@ def main(argv: Optional[list] = None) -> None:
             else:
                 save_png_from_fits(fits_paths)
 
-    elif args.cmd == "create-nvss-mask":
-        from dsa110_contimg.imaging.nvss_tools import create_nvss_mask
+    elif args.cmd == "create-mask":
+        from dsa110_contimg.imaging.catalog_tools import create_catalog_mask
 
-        out_path = (
-            args.out
-            or os.path.splitext(args.image)[0]
-            + f".nvss_{args.min_mjy:g}mJy_{args.radius_arcsec:g}as_mask.crtf"
+        out_path = create_catalog_mask(
+            image_path=args.image,
+            catalog=args.catalog,
+            min_flux_mjy=args.min_mjy,
+            radius_arcsec=args.radius_arcsec,
+            out_path=args.out,
+            output_format=args.format,
         )
-        create_nvss_mask(args.image, args.min_mjy, args.radius_arcsec, out_path)
+        print(f"Wrote mask: {out_path}")
+
+    elif args.cmd == "create-overlay":
+        from dsa110_contimg.imaging.catalog_tools import create_catalog_overlay
+
+        create_catalog_overlay(
+            image_path=args.image,
+            out_path=args.out,
+            catalog=args.catalog,
+            min_flux_mjy=args.min_mjy,
+            pb_path=args.pb,
+            pblimit=args.pblimit,
+        )
+        print(f"Wrote overlay: {args.out}")
+
+    elif args.cmd == "create-nvss-mask":
+        # Legacy command - delegate to new generalized version with deprecation warning
+        import warnings
+
+        warnings.warn(
+            "create-nvss-mask is deprecated. Use: create-mask --catalog nvss",
+            DeprecationWarning,
+            stacklevel=1,
+        )
+        from dsa110_contimg.imaging.catalog_tools import create_catalog_mask
+
+        out_path = create_catalog_mask(
+            image_path=args.image,
+            catalog="nvss",
+            min_flux_mjy=args.min_mjy,
+            radius_arcsec=args.radius_arcsec,
+            out_path=args.out,
+            output_format="crtf",
+        )
         print(f"Wrote mask: {out_path}")
 
     elif args.cmd == "create-nvss-overlay":
-        from dsa110_contimg.imaging.nvss_tools import create_nvss_overlay
+        # Legacy command - delegate to new generalized version with deprecation warning
+        import warnings
 
-        create_nvss_overlay(args.image, args.out, args.pb, args.pblimit, args.min_mjy)
+        warnings.warn(
+            "create-nvss-overlay is deprecated. Use: create-overlay --catalog nvss",
+            DeprecationWarning,
+            stacklevel=1,
+        )
+        from dsa110_contimg.imaging.catalog_tools import create_catalog_overlay
+
+        create_catalog_overlay(
+            image_path=args.image,
+            out_path=args.out,
+            catalog="nvss",
+            min_flux_mjy=args.min_mjy,
+            pb_path=args.pb,
+            pblimit=args.pblimit,
+        )
         print(f"Wrote overlay: {args.out}")
 
 

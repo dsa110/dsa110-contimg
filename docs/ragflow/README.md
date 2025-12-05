@@ -4,11 +4,11 @@ RAGFlow provides semantic search and retrieval-augmented generation (RAG) for th
 
 ## Overview
 
-| Component | URL | Purpose |
-|-----------|-----|---------|
-| Web UI | http://localhost:9080 | Browser-based chat and dataset management |
-| REST API | http://localhost:9380 | Programmatic access to RAG functionality |
-| MCP SSE | http://localhost:9382/sse | Model Context Protocol for AI tooling |
+| Component | URL                       | Purpose                                   |
+| --------- | ------------------------- | ----------------------------------------- |
+| Web UI    | http://localhost:9080     | Browser-based chat and dataset management |
+| REST API  | http://localhost:9380     | Programmatic access to RAG functionality  |
+| MCP SSE   | http://localhost:9382/sse | Model Context Protocol for AI tooling     |
 
 ## Quick Start
 
@@ -78,11 +78,13 @@ RAGFLOW_EMBEDDING_MODEL=BAAI/bge-large-en-v1.5
 ### Dataset ID
 
 The default dataset ID for DSA-110 documentation is:
+
 ```
 735f3e9acba011f08a110242ac140006
 ```
 
 You can find dataset IDs via the API:
+
 ```bash
 curl -s "http://localhost:9380/api/v1/datasets" \
   -H "Authorization: Bearer $RAGFLOW_API_KEY" | python -m json.tool
@@ -106,11 +108,13 @@ python scripts/ragflow_sync.py sync --dry-run
 ```
 
 **What gets synced:**
+
 - `docs/**/*.md` - All markdown documentation
 - `backend/src/**/*.py` - Python source code
 - `frontend/src/**/*.{ts,tsx}` - Frontend source code
 
 **Excluded:**
+
 - `**/node_modules/**`
 - `**/__pycache__/**`
 - `**/site/**` (MkDocs build output)
@@ -123,6 +127,7 @@ python scripts/ragflow_sync.py status
 ```
 
 Output:
+
 ```
 RAGFlow Sync Status
 ========================================
@@ -139,6 +144,7 @@ python scripts/ragflow_sync.py progress
 ```
 
 Output:
+
 ```
 RAGFlow Parsing Progress
 ==================================================
@@ -163,6 +169,7 @@ python scripts/ragflow_sync.py clear
 ### Authentication
 
 All API requests require a Bearer token:
+
 ```
 Authorization: Bearer ragflow-xxxxx
 ```
@@ -182,6 +189,7 @@ Content-Type: application/json
 ```
 
 Response:
+
 ```json
 {
   "code": 0,
@@ -276,11 +284,11 @@ python scripts/test_ragflow_mcp_dormant.py --query "How do I run calibration?"
 
 ### Available MCP Tools
 
-| Tool | Description |
-|------|-------------|
+| Tool                 | Description                            |
+| -------------------- | -------------------------------------- |
 | `retrieve_documents` | Query documents by semantic similarity |
-| `list_datasets` | List available datasets |
-| `get_document` | Get document content by ID |
+| `list_datasets`      | List available datasets                |
+| `get_document`       | Get document content by ID             |
 
 ## Troubleshooting
 
@@ -301,11 +309,13 @@ docker compose -f docker-compose.ragflow.yml up -d
 ### Documents Not Appearing
 
 1. Check if upload succeeded:
+
    ```bash
    python scripts/ragflow_sync.py status
    ```
 
 2. Check parsing progress:
+
    ```bash
    python scripts/ragflow_sync.py progress
    ```
@@ -318,6 +328,7 @@ docker compose -f docker-compose.ragflow.yml up -d
 ### Embedding Model Not Found
 
 If RAGFlow can't find the embedding model, ensure the model is configured:
+
 ```bash
 python scripts/configure_ragflow_openai.py
 ```
@@ -325,6 +336,7 @@ python scripts/configure_ragflow_openai.py
 ### Slow Parsing
 
 RAGFlow uses CPU-based embedding by default. For large document sets:
+
 - Expect ~5-10 minutes for full re-index of 400+ documents
 - Check progress with `python scripts/ragflow_sync.py progress`
 - Consider using GPU-enabled RAGFlow for faster processing

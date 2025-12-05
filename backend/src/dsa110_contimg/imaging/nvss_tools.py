@@ -1,5 +1,14 @@
 """
 NVSS catalog tools for imaging: masks and overlays.
+
+.. deprecated::
+    This module is deprecated. Use :mod:`dsa110_contimg.imaging.catalog_tools` instead,
+    which provides generalized catalog support for NVSS, FIRST, VLASS, UNICAT, and more.
+
+    Migration:
+        - create_nvss_mask → create_catalog_mask(catalog="nvss")
+        - create_nvss_overlay → create_catalog_overlay(catalog="nvss")
+        - create_unicat_fits_mask → create_catalog_fits_mask(catalog="unicat")
 """
 
 # pylint: disable=no-member  # astropy.units dynamic attributes
@@ -7,6 +16,7 @@ NVSS catalog tools for imaging: masks and overlays.
 from __future__ import annotations
 
 import os
+import warnings
 from typing import Optional, Tuple
 
 import astropy.units as u
@@ -15,6 +25,14 @@ from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.wcs import WCS
 from astropy.wcs.utils import proj_plane_pixel_scales
+
+# Emit deprecation warning on import
+warnings.warn(
+    "dsa110_contimg.imaging.nvss_tools is deprecated. "
+    "Use dsa110_contimg.imaging.catalog_tools instead.",
+    DeprecationWarning,
+    stacklevel=2,
+)
 
 
 def image_center_and_radius_deg(hdr) -> Tuple[SkyCoord, float]:
@@ -34,7 +52,16 @@ def image_center_and_radius_deg(hdr) -> Tuple[SkyCoord, float]:
 
 
 def create_nvss_mask(image_path: str, min_mjy: float, radius_arcsec: float, out_path: str) -> None:
-    """Create CRTF mask with circular regions centered on NVSS sources."""
+    """Create CRTF mask with circular regions centered on NVSS sources.
+
+    .. deprecated::
+        Use :func:`dsa110_contimg.imaging.catalog_tools.create_catalog_mask` with catalog="nvss".
+    """
+    warnings.warn(
+        "create_nvss_mask is deprecated. Use create_catalog_mask(catalog='nvss') instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     hdr = fits.getheader(image_path)
     center, radius_deg = image_center_and_radius_deg(hdr)
 
@@ -108,6 +135,9 @@ def create_unicat_fits_mask(
 ) -> str:
     """Create FITS mask from unified catalog (FIRST+RACS+NVSS) sources for WSClean.
 
+    .. deprecated::
+        Use :func:`dsa110_contimg.imaging.catalog_tools.create_catalog_fits_mask` with catalog="unicat".
+
     Creates a FITS mask file with circular regions around catalog sources.
     Zero values = not cleaned, non-zero values = cleaned.
 
@@ -124,6 +154,12 @@ def create_unicat_fits_mask(
     Returns:
         Path to created FITS mask file
     """
+    warnings.warn(
+        "create_unicat_fits_mask is deprecated. "
+        "Use create_catalog_fits_mask(catalog='unicat') instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     # Create WCS for mask
     wcs = WCS(naxis=2)
     wcs.wcs.crpix = [imsize / 2.0 + 0.5, imsize / 2.0 + 0.5]
@@ -205,7 +241,17 @@ def create_nvss_overlay(
     pblimit: float = 0.2,
     min_mjy: float = 10.0,
 ) -> None:
-    """Create NVSS overlay PNG for a FITS image."""
+    """Create NVSS overlay PNG for a FITS image.
+
+    .. deprecated::
+        Use :func:`dsa110_contimg.imaging.catalog_tools.create_catalog_overlay` with catalog="nvss".
+    """
+    warnings.warn(
+        "create_nvss_overlay is deprecated. "
+        "Use create_catalog_overlay(catalog='nvss') instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
     import matplotlib
 
     matplotlib.use("Agg")
