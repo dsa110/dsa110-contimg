@@ -1094,7 +1094,39 @@ def solve_bandpass(
     if table_prefix is None:
         table_prefix = f"{os.path.splitext(ms)[0]}_{cal_field}"
 
-    # PRECONDITION CHECK: Verify MODEL_DATA exists and is populated
+    # Determine CASA field selector based on combine_fields setting
+    # - If combining across fields: use the full selection string to maximize SNR
+    # - Otherwise: use the peak field (closest to calibrator) if provided, otherwise parse from range
+    #   The peak field is the one with maximum PB-weighted flux (closest to calibrator position)
+    if combine_fields:
+        field_selector = str(cal_field)
+    else:
+        if peak_field_idx is not None:
+            field_selector = str(peak_field_idx)
+        elif "~" in str(cal_field):
+            # Fallback: use first field in range (should be peak when peak_idx=0)
+            field_selector = str(cal_field).split("~")[0]
+        else:
+            field_selector = str(cal_field)
+    logger.debug(
+        f"Using field selector '{field_selector}' for bandpass calibration"
+        + (
+            f" (combined from range {cal_field})"
+            if combine_fields
+            else f" (peak field: {field_selector})"
+        )
+    )
+
+    # PRECONDITION CHECK #1: Verify fields are coherently phased to calibrator position
+    # DSA-110 data is initially phased to meridian (RA = LST). For calibration,
+    # data must be rephased to calibrator using CASA phaseshift task.
+    # This check detects meridian-tracking (large RA scatter) and fails early.
+    # Check this FIRST since it's a more fundamental issue than MODEL_DATA.
+    if require_coherent_phasing and combine_fields:
+        # Only check when combining across fields (where meridian tracking causes issues)
+        _check_coherent_phasing(ms, cal_field)
+
+    # PRECONDITION CHECK #2: Verify MODEL_DATA exists and is populated
     # This ensures we follow "measure twice, cut once" - establish requirements upfront
     # for consistent, reliable calibration across all calibrators (bright or faint).
     logger.info(f"Validating MODEL_DATA for bandpass solve on field(s) {cal_field}...")
@@ -1119,37 +1151,6 @@ def solve_bandpass(
 
     # NOTE: K-table is NOT used for bandpass solve (K-calibration is applied in gain step, not before bandpass)
     # K-table parameter is kept for API compatibility but is not applied to bandpass solve
-
-    # Determine CASA field selector based on combine_fields setting
-    # - If combining across fields: use the full selection string to maximize SNR
-    # - Otherwise: use the peak field (closest to calibrator) if provided, otherwise parse from range
-    #   The peak field is the one with maximum PB-weighted flux (closest to calibrator position)
-    if combine_fields:
-        field_selector = str(cal_field)
-    else:
-        if peak_field_idx is not None:
-            field_selector = str(peak_field_idx)
-        elif "~" in str(cal_field):
-            # Fallback: use first field in range (should be peak when peak_idx=0)
-            field_selector = str(cal_field).split("~")[0]
-        else:
-            field_selector = str(cal_field)
-    logger.debug(
-        f"Using field selector '{field_selector}' for bandpass calibration"
-        + (
-            f" (combined from range {cal_field})"
-            if combine_fields
-            else f" (peak field: {field_selector})"
-        )
-    )
-
-    # PRECONDITION CHECK: Verify fields are coherently phased to calibrator position
-    # DSA-110 data is initially phased to meridian (RA = LST). For calibration,
-    # data must be rephased to calibrator using CASA phaseshift task.
-    # This check detects meridian-tracking (large RA scatter) and fails early.
-    if require_coherent_phasing and combine_fields:
-        # Only check when combining across fields (where meridian tracking causes issues)
-        _check_coherent_phasing(ms, cal_field)
 
     # Avoid setjy here; CLI will write a calibrator MODEL_DATA when available.
     # Note: set_model and model_standard are kept for API compatibility but not used
