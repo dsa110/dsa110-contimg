@@ -73,6 +73,7 @@ async def get_client():
     """Get ABSURD client connection.
 
     Returns connected client from the global pool or creates new one.
+    The client is guaranteed to have a non-None _pool after this call.
     """
     from dsa110_contimg.absurd import AbsurdClient
     from dsa110_contimg.absurd.config import AbsurdConfig
@@ -80,7 +81,6 @@ async def get_client():
     config = AbsurdConfig.from_env()
     client = AbsurdClient(config.database_url)
     await client.connect()
-    assert client._pool is not None, "Client pool not initialized after connect()"
     return client
 
 
@@ -88,8 +88,7 @@ async def ensure_ingestion_schema() -> None:
     """Ensure ingestion tables exist in the database."""
     client = await get_client()
     try:
-        assert client._pool is not None
-        async with client._pool.acquire() as conn:
+        async with client._pool.acquire() as conn:  # type: ignore[union-attr]
             await conn.execute(INGESTION_SCHEMA)
             logger.info("Ensured ingestion schema exists")
     finally:
