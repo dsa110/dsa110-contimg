@@ -1,18 +1,18 @@
 # DSA-110 Continuum Imaging Pipeline - AI Coding Agent Instructions
 
-# !!! IMPORTANT READ THIS FIRST !!!
+# !!! GROUND TRUTH HIERARCHY !!!
 
-**We are undergoing a major refactoring, and this document contains the _old_ code structure. The _new_ version we are migrating to is outlined as an instructive guide located at:**
+**Code is truth, docs are intent.** When docs and code conflict, trust the code.
 
-```
-/data/dsa110-contimg/docs/design/COMPLEXITY_REDUCTION.md
-```
+## Document Status Key
 
-and
+| Document                              | Status             | Use For                                |
+| ------------------------------------- | ------------------ | -------------------------------------- |
+| This file (`copilot-instructions.md`) | **CURRENT**        | How the system works TODAY             |
+| `COMPLEXITY_REDUCTION.md`             | **FUTURE ROADMAP** | Where we're heading, NOT current state |
+| `COMPLEXITY_REDUCTION_NOTES.md`       | **FUTURE ROADMAP** | Implementation notes for roadmap       |
 
-```
-/data/dsa110-contimg/docs/design/COMPLEXITY_REDUCTION_NOTES.md
-```
+**Before building anything new:** Query existing databases and code to understand what already exists.
 
 ## Project Overview
 

@@ -7,6 +7,27 @@ applyTo: "**"
 
 Before writing any code that reads, processes, or tests data:
 
+## 0. STOP AND VERIFY (Mandatory Checkpoint)
+
+**Before taking ANY action**, state:
+1. What existing system/database will I use?
+2. What table/file structure already exists?
+3. Am I building something new, or using something that exists?
+
+If you cannot answer these from memory, QUERY FIRST:
+
+```bash
+# For database tasks
+sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 ".tables"
+sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 ".schema <relevant_table>"
+
+# For file tasks  
+ls <target_directory> | head -5
+find <path> -name "*.ext" | wc -l
+```
+
+**If the user's request is ambiguous** (e.g., could use multiple systems), ASK which one they mean before proceeding.
+
 ## 1. Query Existing State First
 
 ```bash

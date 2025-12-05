@@ -178,9 +178,8 @@ async def record_subband(
         dec_deg: Declination in degrees (for metadata)
     """
     client = await get_client()
-
-        async with client._pool.acquire() as conn:  # type: ignore[union-attr]
-            async with conn.transaction():
+    async with client._pool.acquire() as conn:  # type: ignore[union-attr]
+        async with conn.transaction():
                 # Insert subband (ignore if already exists)
                 await conn.execute(
                     """
@@ -218,8 +217,7 @@ async def record_subband(
 async def get_group_subband_count(group_id: str) -> int:
     """Get the current subband count for a group."""
     client = await get_client()
-
-        async with client._pool.acquire() as conn:  # type: ignore[union-attr]
+    async with client._pool.acquire() as conn:  # type: ignore[union-attr]
             row = await conn.fetchrow(
                 "SELECT subband_count FROM absurd.ingestion_groups WHERE group_id = $1",
                 group_id,
@@ -234,8 +232,7 @@ async def get_group_files(group_id: str) -> Dict[int, str]:
         Dict mapping subband_idx to file_path
     """
     client = await get_client()
-
-        async with client._pool.acquire() as conn:  # type: ignore[union-attr]
+    async with client._pool.acquire() as conn:  # type: ignore[union-attr]
             rows = await conn.fetch(
                 """
                 SELECT subband_idx, file_path
@@ -261,8 +258,7 @@ async def update_group_after_normalize(
         new_paths: Dict mapping subband_idx to new file path
     """
     client = await get_client()
-
-        async with client._pool.acquire() as conn:  # type: ignore[union-attr]
+    async with client._pool.acquire() as conn:  # type: ignore[union-attr]
             async with conn.transaction():
                 if old_group_id != new_group_id:
                     # Check if new group already exists
@@ -338,8 +334,7 @@ async def update_group_state(
         ms_path: Output MS path (if state is completed)
     """
     client = await get_client()
-
-        async with client._pool.acquire() as conn:  # type: ignore[union-attr]
+    async with client._pool.acquire() as conn:  # type: ignore[union-attr]
             await conn.execute(
                 """
                 UPDATE absurd.ingestion_groups
@@ -360,8 +355,7 @@ async def update_group_state(
 async def get_pending_groups(limit: int = 100) -> List[Dict[str, Any]]:
     """Get groups that are ready for processing (pending state)."""
     client = await get_client()
-
-        async with client._pool.acquire() as conn:  # type: ignore[union-attr]
+    async with client._pool.acquire() as conn:  # type: ignore[union-attr]
             rows = await conn.fetch(
                 """
                 SELECT group_id, subband_count, dec_deg, created_at
@@ -378,8 +372,7 @@ async def get_pending_groups(limit: int = 100) -> List[Dict[str, Any]]:
 async def get_ingestion_stats() -> Dict[str, Any]:
     """Get ingestion queue statistics for monitoring."""
     client = await get_client()
-
-        async with client._pool.acquire() as conn:  # type: ignore[union-attr]
+    async with client._pool.acquire() as conn:  # type: ignore[union-attr]
             row = await conn.fetchrow(
                 """
                 SELECT
@@ -405,8 +398,7 @@ async def get_recorded_files() -> List[str]:
         List of file paths already in the database
     """
     client = await get_client()
-
-        async with client._pool.acquire() as conn:  # type: ignore[union-attr]
+    async with client._pool.acquire() as conn:  # type: ignore[union-attr]
             rows = await conn.fetch(
                 "SELECT file_path FROM absurd.ingestion_subbands"
             )
