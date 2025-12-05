@@ -1101,8 +1101,8 @@ def solve_bandpass(
     table_prefix: Optional[str] = None,
     set_model: bool = True,
     model_standard: str = "Perley-Butler 2017",
-    combine_fields: bool = False,
-    combine_spw: bool = False,
+    combine_fields: bool = True,  # Default: combine for higher SNR
+    combine_spw: bool = True,  # Default: combine for higher SNR
     minsnr: float = 5.0,
     uvrange: str = "",  # No implicit UV cut; caller/CLI may provide
     prebandpass_phase_table: Optional[str] = None,
@@ -1140,8 +1140,8 @@ def solve_bandpass(
         table_prefix: Prefix for output calibration table
         set_model: Not used (kept for compatibility)
         model_standard: Not used (kept for compatibility)
-        combine_fields: If True, combine across fields for higher SNR
-        combine_spw: If True, combine across spectral windows
+        combine_fields: If True, combine across fields for higher SNR (default: True)
+        combine_spw: If True, combine across spectral windows (default: True)
         minsnr: Minimum SNR threshold for solutions (default: 5.0)
         uvrange: UV range selection (e.g., ">1klambda")
         prebandpass_phase_table: Pre-bandpass phase-only calibration table

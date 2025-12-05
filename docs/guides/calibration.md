@@ -76,6 +76,7 @@ apply_interpolated_calibration(
 The pipeline provides unified phaseshifting via `phaseshift_ms()` with three modes:
 
 #### 1. Calibrator Mode (for Calibration MS)
+
 Phaseshifts calibrator field(s) to the calibrator's true position, placing the point source at phase center. This ensures all baselines see constant phase (zero geometric offset), which is required for stable bandpass calibration.
 
 ```python
@@ -96,6 +97,7 @@ cal_ms, phasecenter = phaseshift_ms(
 **Effect**: Removes geometric phase gradient → enables field combination with `combine_fields=True` → higher SNR.
 
 #### 2. Median Meridian Mode (for Science MS)
+
 Phaseshifts all fields to the median meridian position across the 24 fields. This minimizes the maximum phase offset across fields, reducing phase variability when imaging.
 
 ```python
@@ -113,6 +115,7 @@ science_ms, phasecenter = phaseshift_ms(
 **Effect**: Minimizes phase offsets → reduces phase noise → cleaner images.
 
 #### 3. Manual Mode (for Custom Targets)
+
 Phaseshifts to explicitly specified RA/Dec coordinates.
 
 ```python
@@ -156,17 +159,19 @@ The pipeline reduces phase variability through three mechanisms:
 
 **Result**: Stable, high-SNR bandpass solutions with minimal phase scatter.
 
+> **Note**: `combine_fields=True` and `combine_spw=True` should be considered the standard defaults for all DSA-110 calibration. These settings maximize SNR and are essential for achieving stable bandpass solutions. Only disable if you have a specific reason to calibrate fields or SPWs independently.
+
 ## Calibration Options
 
-| Parameter         | Description            | Default  |
-| ----------------- | ---------------------- | -------- |
-| `field`           | Field selection        | `"0~23"` (all 24 fields) |
-| `combine_fields`  | Combine fields for SNR | `True`   |
-| `combine_spw`     | Combine spectral windows | `True` |
-| `do_phaseshift`   | Phaseshift before calibration | `True` |
-| `do_k`            | Enable K-calibration   | `False`  |
-| `do_flagging`     | Pre-calibration RFI flagging | `True` |
-| `refant`          | Reference antenna      | `"103"`  |
+| Parameter         | Description                   | Default                                   |
+| ----------------- | ----------------------------- | ----------------------------------------- |
+| `field`           | Field selection               | `"0~23"` (all 24 fields)                  |
+| `combine_fields`  | Combine fields for SNR        | `True`                                    |
+| `combine_spw`     | Combine spectral windows      | `True`                                    |
+| `do_phaseshift`   | Phaseshift before calibration | `True`                                    |
+| `do_k`            | Enable K-calibration          | `False`                                   |
+| `do_flagging`     | Pre-calibration RFI flagging  | `True`                                    |
+| `refant`          | Reference antenna             | `"103"`                                   |
 | `calibrator_name` | Calibrator for catalog lookup | `None` (required if `do_phaseshift=True`) |
 
 ## Environment Configuration
@@ -201,13 +206,13 @@ The calibration pipeline consists of these stages:
 
 Useful calibration-related scripts in `scripts/ops/calibration/`:
 
-| Script | Description |
-| ------ | ----------- |
-| `solve_bandpass_only.py` | Solve bandpass without other calibrations |
-| `recommend_refant.py` | Recommend reference antenna for an MS |
-| `check_refant_data.py` | Check reference antenna data quality |
-| `diagnose_bandpass_output.py` | Diagnose bandpass calibration issues |
-| `clear_all_calibration_artifacts.py` | Clean up calibration tables |
+| Script                               | Description                               |
+| ------------------------------------ | ----------------------------------------- |
+| `solve_bandpass_only.py`             | Solve bandpass without other calibrations |
+| `recommend_refant.py`                | Recommend reference antenna for an MS     |
+| `check_refant_data.py`               | Check reference antenna data quality      |
+| `diagnose_bandpass_output.py`        | Diagnose bandpass calibration issues      |
+| `clear_all_calibration_artifacts.py` | Clean up calibration tables               |
 
 ## Related Documentation
 

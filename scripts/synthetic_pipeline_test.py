@@ -385,18 +385,22 @@ def run_calibration(ms_path: Path, caltable_dir: Path) -> Optional[Path]:
 def run_imaging(
     ms_path: Path,
     output_dir: Path,
-    niter: int = 1000,
+    niter: int = 10000,
     size: int = 512,
     scale: str = "10arcsec",
+    threshold: str = "0.5Jy",
+    mgain: float = 0.8,
 ) -> Optional[Path]:
     """Run imaging with WSClean or CASA tclean.
 
     Args:
         ms_path: Path to Measurement Set
         output_dir: Directory for output images
-        niter: Number of clean iterations
+        niter: Number of clean iterations (more needed for elongated PSF)
         size: Image size in pixels
         scale: Pixel scale
+        threshold: Stop CLEAN at this flux level
+        mgain: Major cycle gain (0.8 is conservative)
 
     Returns:
         Path to output FITS image, or None on failure
@@ -431,6 +435,10 @@ def run_imaging(
             "-size", str(size), str(size),
             "-scale", scale,
             "-niter", str(niter),
+            "-threshold", threshold,
+            "-mgain", str(mgain),
+            "-auto-mask", "3",  # Auto-masking at 3-sigma for better convergence
+            "-auto-threshold", "1",  # Auto threshold at 1-sigma
             "-weight", "briggs", "0",
             "-data-column", "DATA",
             "-pol", "I",
