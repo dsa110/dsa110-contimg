@@ -442,35 +442,3 @@ def create_catalog_overlay(
     plt.close()
 
     logger.info("Wrote overlay: %s (%d %s sources)", out_path, len(sources), catalog.value)
-
-
-# Backward compatibility aliases (deprecated)
-def create_unicat_fits_mask(
-    imagename: str,
-    imsize: int,
-    cell_arcsec: float,
-    ra0_deg: float,
-    dec0_deg: float,
-    unicat_min_mjy: float,
-    radius_arcsec: float = 60.0,
-    out_path: Optional[str] = None,
-) -> str:
-    """Deprecated: Use create_catalog_fits_mask with catalog='unicat'."""
-    import warnings
-
-    warnings.warn(
-        "create_unicat_fits_mask is deprecated. Use create_catalog_fits_mask(catalog='unicat')",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return create_catalog_fits_mask(
-        imagename=imagename,
-        imsize=imsize,
-        cell_arcsec=cell_arcsec,
-        ra0_deg=ra0_deg,
-        dec0_deg=dec0_deg,
-        catalog=CatalogName.UNICAT,
-        min_flux_mjy=unicat_min_mjy,
-        radius_arcsec=radius_arcsec,
-        out_path=out_path,
-    )
