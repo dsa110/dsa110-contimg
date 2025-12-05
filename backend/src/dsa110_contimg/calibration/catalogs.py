@@ -327,6 +327,120 @@ def read_rax_catalog(
     )
 
 
+def read_vlass_catalog(
+    cache_dir: str = ".cache/catalogs",
+    vlass_catalog_path: Optional[str] = None,
+    use_astroquery: bool = True,
+) -> pd.DataFrame:
+    """Download (if needed) and parse the VLASS catalog to a DataFrame.
+
+    If vlass_catalog_path is provided, reads from that file directly.
+    Otherwise, attempts to download via astroquery (Vizier) or uses cached file.
+
+    Args:
+        cache_dir: Directory to cache downloaded catalog files
+        vlass_catalog_path: Optional explicit path to VLASS catalog file (CSV/FITS)
+        use_astroquery: If True, try astroquery.vizier first (default: True)
+
+    Returns:
+        DataFrame with VLASS catalog data
+
+    Note:
+        VLASS catalog is available via Vizier as J/ApJS/255/30 (VLASS Epoch 1).
+        If astroquery is not available, falls back to cached file.
+    """
+    from dsa110_contimg.catalog.build_master import _read_table
+
+    # If explicit path provided, use it directly
+    if vlass_catalog_path:
+        if not os.path.exists(vlass_catalog_path):
+            raise FileNotFoundError(f"VLASS catalog file not found: {vlass_catalog_path}")
+        return _read_table(vlass_catalog_path)
+
+    # Try astroquery first if enabled
+    if use_astroquery:
+        try:
+            from astroquery.vizier import Vizier
+
+            # Configure Vizier for large queries
+            Vizier.ROW_LIMIT = -1  # No row limit
+            Vizier.TIMEOUT = 600  # 10 minute timeout for large catalogs
+
+            # VLASS Epoch 1 Quick Look Component Catalog
+            # Vizier catalog ID: J/ApJS/255/30/comp (component catalog)
+            vlass_catalog_id = "J/ApJS/255/30/comp"
+
+            print("Querying VLASS catalog via Vizier...")
+            print("  Note: This downloads the full VLASS catalog (~4M sources)")
+            print("  This may take several minutes...")
+
+            # Query the entire catalog (no coordinate constraint)
+            # VLASS covers Dec > -40°
+            catalog_list = Vizier.get_catalogs(vlass_catalog_id)
+
+            if catalog_list and len(catalog_list) > 0:
+                df = catalog_list[0].to_pandas()
+                print(f"Downloaded {len(df)} sources from VLASS via Vizier")
+
+                # VLASS columns: RAJ2000, DEJ2000, Flux (peak), and Total_flux
+                # Convert coordinates
+                if "RAJ2000" in df.columns and "DEJ2000" in df.columns:
+                    df["ra_deg"] = df["RAJ2000"]
+                    df["dec_deg"] = df["DEJ2000"]
+                    print("Coordinates already in decimal degrees")
+                elif "_RAJ2000" in df.columns and "_DEJ2000" in df.columns:
+                    df["ra_deg"] = df["_RAJ2000"]
+                    df["dec_deg"] = df["_DEJ2000"]
+                    print("Coordinates converted from internal format")
+
+                # Map flux columns
+                # VLASS uses 'Flux' for peak flux and 'Total_flux' for integrated
+                if "Flux" in df.columns:
+                    df["flux_mjy"] = df["Flux"]
+                elif "Total_flux" in df.columns:
+                    df["flux_mjy"] = df["Total_flux"]
+                elif "Peak" in df.columns:
+                    df["flux_mjy"] = df["Peak"]
+
+                # Cache the result
+                os.makedirs(cache_dir, exist_ok=True)
+                cache_path = Path(cache_dir) / "vlass_catalog_from_vizier.csv"
+                df.to_csv(cache_path, index=False)
+                print(f"Cached VLASS catalog to: {cache_path}")
+
+                return df
+
+        except ImportError:
+            print("Warning: astroquery not available. Install with: pip install astroquery")
+            print("Falling back to cached file...")
+        except Exception as e:
+            print(f"Warning: Failed to query VLASS via Vizier: {e}")
+            print("Falling back to cached file...")
+
+    # Try to find cached VLASS catalog
+    os.makedirs(cache_dir, exist_ok=True)
+    cache_path = Path(cache_dir) / "vlass_catalog"
+
+    # Try common extensions (also check for vizier-cached version)
+    for filename in ["vlass_catalog_from_vizier.csv", "vlass_catalog.csv",
+                     "vlass_catalog.fits", "vlass_catalog.fits.gz"]:
+        cached_file = Path(cache_dir) / filename
+        if cached_file.exists():
+            print(f"Using cached VLASS catalog: {cached_file}")
+            return _read_table(str(cached_file))
+
+    # If not found, raise error with helpful message
+    raise FileNotFoundError(
+        f"VLASS catalog not found. Options:\n"
+        f"  1. Install astroquery: pip install astroquery\n"
+        f"  2. Provide path via vlass_catalog_path argument\n"
+        f"  3. Download VLASS catalog and place it in {cache_dir}/vlass_catalog.csv\n"
+        f"VLASS catalog can be obtained from:\n"
+        f"  - Vizier: https://vizier.cds.unistra.fr/viz-bin/VizieR?-source=J/ApJS/255/30\n"
+        f"  - NRAO: https://archive-new.nrao.edu/vlass/quicklook/"
+    )
+
+
 def read_vla_calibrator_catalog(path: str, cache_dir: Optional[str] = None) -> pd.DataFrame:
     """Parse the NRAO VLA calibrator list from a local text file.
 

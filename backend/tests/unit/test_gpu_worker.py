@@ -176,7 +176,7 @@ class TestApplyAndImage:
 class TestProcessOnce:
     """Tests for process_once function."""
 
-    @mock.patch("dsa110_contimg.imaging.worker.ensure_products_db")
+    @mock.patch("dsa110_contimg.imaging.worker.ensure_pipeline_db")
     def test_process_once_creates_output_dir(self, mock_ensure_db):
         """Test that process_once creates output directory."""
         from dsa110_contimg.imaging.worker import process_once

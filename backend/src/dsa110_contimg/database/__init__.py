@@ -168,64 +168,6 @@ try:
 except ImportError:
     _LEGACY_ORM_AVAILABLE = False
 
-# =============================================================================
-# Legacy Compatibility Wrappers
-# =============================================================================
-
-import os
-import sqlite3
-from pathlib import Path
-from typing import Optional, Union
-
-
-def ensure_products_db(path: Optional[Union[str, Path]] = None) -> sqlite3.Connection:
-    """
-    Legacy wrapper: ensure products database exists and return connection.
-    
-    For new code, use `ensure_pipeline_db()` which uses PIPELINE_DB env var.
-    
-    Args:
-        path: Optional database path. If None, uses PIPELINE_DB or default.
-        
-    Returns:
-        sqlite3.Connection to the pipeline database
-    """
-    if path is not None:
-        # Legacy behavior: ignore the path and use the unified database
-        # This maintains backwards compatibility while consolidating DBs
-        import warnings
-        warnings.warn(
-            "ensure_products_db(path) is deprecated. "
-            "Use ensure_pipeline_db() which uses PIPELINE_DB env var.",
-            DeprecationWarning,
-            stacklevel=2
-        )
-    return ensure_pipeline_db()
-
-
-def ensure_ingest_db(path: Optional[Union[str, Path]] = None) -> sqlite3.Connection:
-    """
-    Legacy wrapper: ensure ingest database exists and return connection.
-    
-    For new code, use `ensure_pipeline_db()` which uses PIPELINE_DB env var.
-    
-    Args:
-        path: Optional database path. If None, uses PIPELINE_DB or default.
-        
-    Returns:
-        sqlite3.Connection to the pipeline database
-    """
-    if path is not None:
-        import warnings
-        warnings.warn(
-            "ensure_ingest_db(path) is deprecated. "
-            "Use ensure_pipeline_db() which uses PIPELINE_DB env var.",
-            DeprecationWarning,
-            stacklevel=2
-        )
-    return ensure_pipeline_db()
-
-
 # Legacy HDF5 functions (keep for backward compatibility)
 from .hdf5_index import (
     index_hdf5_files,
@@ -256,9 +198,6 @@ __all__ = [
     # Calibrator helpers
     "get_bandpass_calibrators",
     "register_bandpass_calibrator",
-    # Legacy aliases
-    "ensure_products_db",
-    "ensure_ingest_db",
     # Legacy HDF5 functions
     "index_hdf5_files",
     "query_hdf5_file",

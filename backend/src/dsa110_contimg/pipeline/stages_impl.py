@@ -147,10 +147,9 @@ class CatalogSetupStage(PipelineStage):
             )  # Default 0.1 degrees
 
             try:
-                from dsa110_contimg.database import ensure_ingest_db
+                from dsa110_contimg.database import ensure_pipeline_db
 
-                ingest_db = self.config.paths.queue_db
-                conn = ensure_ingest_db(ingest_db)
+                conn = ensure_pipeline_db()
                 cursor = conn.cursor()
 
                 # Get most recent declination from pointing_history
@@ -238,10 +237,9 @@ class CatalogSetupStage(PipelineStage):
 
             # Log pointing to pointing_history for future change detection
             try:
-                from dsa110_contimg.database import ensure_ingest_db
+                from dsa110_contimg.database import ensure_pipeline_db
 
-                ingest_db = self.config.paths.queue_db
-                conn = ensure_ingest_db(ingest_db)
+                conn = ensure_pipeline_db()
 
                 # Get timestamp from observation
                 timestamp = info.get("mid_time")
@@ -2418,7 +2416,7 @@ class MosaicStage(PipelineStage):
         log_progress("Starting mosaic stage...")
 
         from dsa110_contimg.mosaic.streaming_mosaic import StreamingMosaicManager
-        from dsa110_contimg.database import ensure_products_db
+        from dsa110_contimg.database import ensure_pipeline_db
         from dsa110_contimg.utils.time_utils import extract_ms_time_range
 
         # Get image paths
@@ -2484,7 +2482,7 @@ class MosaicStage(PipelineStage):
             from dsa110_contimg.mosaic.cli import _build_weighted_mosaic, _ensure_mosaics_table
 
             # Ensure mosaics table exists
-            products_db = ensure_products_db(products_db_path)
+            products_db = ensure_pipeline_db()
             _ensure_mosaics_table(products_db)
 
             # Build the mosaic
@@ -2551,10 +2549,9 @@ class MosaicStage(PipelineStage):
             logger.info(f"Cleaning up partial mosaic for group {group_id}")
             # Mark group as failed in database
             try:
-                from dsa110_contimg.database import ensure_products_db
+                from dsa110_contimg.database import ensure_pipeline_db
 
-                products_db_path = Path(context.config.paths.products_db)
-                products_db = ensure_products_db(products_db_path)
+                products_db = ensure_pipeline_db()
                 products_db.execute(
                     "UPDATE mosaic_groups SET status = 'failed' WHERE group_id = ?",
                     (group_id,),
@@ -2672,15 +2669,14 @@ class LightCurveStage(PipelineStage):
         start_time_sec = time.time()
         log_progress("Starting light curve computation stage...")
 
-        from dsa110_contimg.database import ensure_products_db
+        from dsa110_contimg.database import ensure_pipeline_db
         from dsa110_contimg.photometry.variability import (
             calculate_eta_metric,
             calculate_v_metric,
             calculate_sigma_deviation,
         )
 
-        products_db_path = Path(context.config.paths.products_db)
-        products_db = ensure_products_db(products_db_path)
+        products_db = ensure_pipeline_db()
 
         # Get configuration
         lc_config = context.config.light_curve
@@ -3697,10 +3693,9 @@ class CrossMatchStage(PipelineStage):
         """
         import time
 
-        from dsa110_contimg.database import ensure_products_db
+        from dsa110_contimg.database import ensure_pipeline_db
 
-        products_db = self.config.paths.products_db
-        conn = ensure_products_db(products_db)
+        conn = ensure_pipeline_db()
         cursor = conn.cursor()
 
         created_at = time.time()
