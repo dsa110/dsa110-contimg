@@ -19,7 +19,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 # Try importing directly (works if package is installed)
 try:
     from dsa110_contimg.api.data_access import fetch_observation_timeline
-    from dsa110_contimg.database.products import ensure_products_db
+    from dsa110_contimg.database import ensure_pipeline_db
 except ImportError:
     # Fallback: add backend/src to path for development mode
     src_path = REPO_ROOT / "backend" / "src"
@@ -27,7 +27,7 @@ except ImportError:
         if str(src_path) not in sys.path:
             sys.path.insert(0, str(src_path))
         from dsa110_contimg.api.data_access import fetch_observation_timeline
-        from dsa110_contimg.database.products import ensure_products_db
+        from dsa110_contimg.database import ensure_pipeline_db
     else:
         sys.stderr.write(
             f"ERROR: Cannot find project source directory: {src_path}\n"
@@ -41,7 +41,7 @@ def query_earliest_ms(products_db: Path) -> dict | None:
     if not products_db.exists():
         return None
 
-    conn = ensure_products_db(products_db)
+    conn = ensure_pipeline_db()
     cursor = conn.cursor()
 
     # Query for earliest MS file by mid_mjd

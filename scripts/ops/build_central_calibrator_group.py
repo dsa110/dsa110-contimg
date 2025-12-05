@@ -37,7 +37,7 @@ from dsa110_contimg.calibration.refant_selection import get_default_outrigger_re
 from dsa110_contimg.calibration.skymodels import make_point_cl, ft_from_cl  # type: ignore[import]
 from dsa110_contimg.calibration.applycal import apply_to_target
 from dsa110_contimg.imaging.cli import image_ms
-from dsa110_contimg.database.products import ensure_products_db, images_insert
+from dsa110_contimg.database import ensure_pipeline_db, images_insert
 from dsa110_contimg.calibration import flagging as qa_flag
 from astropy.coordinates import Angle
 
@@ -424,7 +424,8 @@ def main() -> int:
         print('overlay warning:', e)
 
     # Record products
-    with ensure_products_db(pdb) as conn:
+    conn = ensure_pipeline_db()
+    try:
         now = datetime.now(timezone.utc).timestamp()
         for suf, pbc in [('.image', 0), ('.pb', 0),
                          ('.pbcor', 1), ('.residual', 0), ('.model', 0)]:
@@ -438,6 +439,8 @@ def main() -> int:
                     '5min',
                     pbc)
         conn.commit()
+    finally:
+        conn.close()
     print('Done.')
     return 0
 

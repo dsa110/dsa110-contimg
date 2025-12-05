@@ -12,7 +12,7 @@ import sqlite3
 from pathlib import Path
 
 from dsa110_contimg.conversion.transit_precalc import precalculate_transits_for_calibrator
-from dsa110_contimg.database.products import ensure_products_db
+from dsa110_contimg.database import ensure_pipeline_db
 from dsa110_contimg.mosaic.orchestrator import MosaicOrchestrator
 from dsa110_contimg.photometry.manager import PhotometryConfig
 
@@ -33,7 +33,7 @@ print("")
 # Ensure transit times are pre-calculated
 print("Checking transit pre-calculation...")
 products_db_path = state_dir / "products.sqlite3"
-products_db = ensure_products_db(products_db_path)
+products_db = ensure_pipeline_db()
 
 catalog_db = state_dir / "catalogs" / "vla_calibrators.sqlite3"
 cat_conn = sqlite3.connect(str(catalog_db))

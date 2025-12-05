@@ -373,7 +373,7 @@ def register_image_in_db(image_path: Path, ms_path: Path, products_db: Path,
     from dsa110_contimg.database.products import (ensure_products_db,
                                                   images_insert)
     
-    conn = ensure_products_db(products_db)
+    conn = ensure_pipeline_db()
     now = time.time()
     
     images_insert(conn, str(image_path), str(ms_path), now, integration_time, 1 if pbcor else 0)

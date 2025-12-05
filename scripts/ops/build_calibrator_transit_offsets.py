@@ -45,8 +45,8 @@ from dsa110_contimg.conversion.uvh5_to_ms import convert_single_file
 # type: ignore[import]
 from dsa110_contimg.calibration.applycal import apply_to_target
 from dsa110_contimg.imaging.cli import image_ms  # type: ignore[import]
-from dsa110_contimg.database.products import (  # type: ignore[import]
-    ensure_products_db,
+from dsa110_contimg.database import (  # type: ignore[import]
+    ensure_pipeline_db,
     images_insert,
 )
 # type: ignore[import]
@@ -330,7 +330,8 @@ def main() -> int:
             [g for g in targets if g is not central_group]
 
     # Imaging loop
-    with ensure_products_db(pdb) as conn:
+    conn = ensure_pipeline_db()
+    try:
         for g in targets:
             gid = group_id_from_path(g[0])
             ms_out = out_dir / f'{gid}.ms'
@@ -438,6 +439,8 @@ def main() -> int:
                         '5min',
                         pbc)
         conn.commit()
+    finally:
+        conn.close()
 
     print('Done.')
     return 0

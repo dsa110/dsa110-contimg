@@ -20,7 +20,7 @@ from datetime import datetime, timedelta, timezone
 from typing import List
 import subprocess
 
-from dsa110_contimg.database.products import ensure_products_db, images_insert
+from dsa110_contimg.database import ensure_pipeline_db, images_insert
 import sqlite3
 from astropy.wcs import WCS  # type: ignore[import]
 from astropy.io import fits  # type: ignore[import]
@@ -163,7 +163,8 @@ def main() -> int:
 
     # Convert and image
     pdb_path = Path(args.products_db)
-    with ensure_products_db(pdb_path) as conn:
+    conn = ensure_pipeline_db()
+    try:
         for ts, files in groups:
             ms_out = out_dir / f'{ts}.ms'
             img_base = out_dir / f'{ts}.img'
@@ -183,6 +184,8 @@ def main() -> int:
                 if p.is_dir():
                     images_insert(conn, os.fspath(p), os.fspath(ms_out), now, '5min', pbc)
         conn.commit()
+    finally:
+        conn.close()
 
     # Plan and build mosaic
     day = datetime.fromisoformat(center).strftime('%Y_%m_%d')

@@ -23,7 +23,7 @@ from dsa110_contimg.conversion.calibrator_ms_service import (
   CalibratorMSConfig, CalibratorMSGenerator)
 from dsa110_contimg.conversion.strategies.hdf5_orchestrator import \
   _peek_uvh5_phase_and_midtime
-from dsa110_contimg.database.products import ensure_products_db
+from dsa110_contimg.database import ensure_pipeline_db
 from dsa110_contimg.mosaic.streaming_mosaic import StreamingMosaicManager
 from dsa110_contimg.pointing.utils import load_pointing
 
@@ -238,7 +238,8 @@ def get_first_two_tiles(
 
     print(f"Querying tiles from {valid_start.isot} to {valid_end.isot}")
 
-    with ensure_products_db(products_db) as conn:
+    conn = ensure_pipeline_db()
+    try:
         # Query for images (tiles) in the validity window
         # Order by created_at to get chronological order
         rows = conn.execute(
@@ -280,6 +281,8 @@ def get_first_two_tiles(
 
         print(f"\n:check: Found {len(tiles)} tile(s) in validity window")
         return tiles
+    finally:
+        conn.close()
 
 
 def main():

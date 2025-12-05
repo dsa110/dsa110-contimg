@@ -10,7 +10,7 @@ REPO_ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(REPO_ROOT / "backend" / "src"))
 
 from dsa110_contimg.conversion.streaming import QueueDB
-from dsa110_contimg.database.products import ensure_products_db
+from dsa110_contimg.database import ensure_pipeline_db
 from dsa110_contimg.database.registry import ensure_db as ensure_registry_db
 from dsa110_contimg.database.schema_evolution import evolve_all_schemas
 
@@ -46,7 +46,7 @@ def init_all(state_dir: Path = Path("/data/dsa110-contimg/state")):
     products_db = state_dir / "products.sqlite3"
     print(f"Initializing products: {products_db}")
     try:
-        ensure_products_db(products_db)
+        ensure_pipeline_db()
         print("  :check: Products initialized\n")
     except Exception as e:
         print(f"  :cross: Failed: {e}\n")
