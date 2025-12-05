@@ -1876,8 +1876,13 @@ def build_first_strip_db(
     output_path: Optional[str | os.PathLike[str]] = None,
     min_flux_mjy: Optional[float] = None,
     cache_dir: str = ".cache/catalogs",
+    prefer_full_db: bool = True,
 ) -> Path:
     """Build SQLite database for FIRST sources in a declination strip.
+
+    If a full FIRST database (first_full.sqlite3) exists and prefer_full_db=True,
+    the strip will be built from that database (faster). Otherwise, falls back
+    to downloading/parsing the raw catalog.
 
     Args:
         dec_center: Center declination in degrees
@@ -1887,6 +1892,7 @@ def build_first_strip_db(
         output_path: Output SQLite database path (auto-generated if None)
         min_flux_mjy: Minimum flux threshold in mJy (None = no threshold)
         cache_dir: Directory for caching catalog files (if auto-downloading)
+        prefer_full_db: If True, use first_full.sqlite3 if available (default: True)
 
     Returns:
         Path to created SQLite database
@@ -1900,10 +1906,29 @@ def build_first_strip_db(
     if output_path is None:
         dec_rounded = round(dec_center, 1)
         db_name = f"first_dec{dec_rounded:+.1f}.sqlite3"
-        output_path = Path("state/catalogs") / db_name
+        output_path = Path("/data/dsa110-contimg/state/catalogs") / db_name
 
     output_path = Path(output_path)
+
+    # Check if already exists
+    if output_path.exists():
+        logger.info(f"FIRST dec strip database already exists: {output_path}")
+        return output_path
+
     output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Try to use full database if available and preferred
+    if prefer_full_db and first_full_db_exists():
+        logger.info("Using full FIRST database for faster strip extraction")
+        return build_first_strip_from_full(
+            dec_center=dec_center,
+            dec_range=dec_range,
+            output_path=output_path,
+            min_flux_mjy=min_flux_mjy,
+        )
+
+    # Fall back to raw catalog
+    logger.info("Building from raw FIRST catalog (full DB not available)")
 
     # Check coverage limits
     coverage_limits = CATALOG_COVERAGE_LIMITS.get("first", {})
@@ -2148,8 +2173,13 @@ def build_rax_strip_db(
     output_path: Optional[str | os.PathLike[str]] = None,
     min_flux_mjy: Optional[float] = None,
     cache_dir: str = ".cache/catalogs",
+    prefer_full_db: bool = True,
 ) -> Path:
     """Build SQLite database for RAX sources in a declination strip.
+
+    If a full RAX database (rax_full.sqlite3) exists and prefer_full_db=True,
+    the strip will be built from that database (faster). Otherwise, falls back
+    to the cached catalog file.
 
     Args:
         dec_center: Center declination in degrees
@@ -2159,6 +2189,7 @@ def build_rax_strip_db(
         output_path: Output SQLite database path (auto-generated if None)
         min_flux_mjy: Minimum flux threshold in mJy (None = no threshold)
         cache_dir: Directory for caching catalog files
+        prefer_full_db: If True, use rax_full.sqlite3 if available (default: True)
 
     Returns:
         Path to created SQLite database
@@ -2172,10 +2203,29 @@ def build_rax_strip_db(
     if output_path is None:
         dec_rounded = round(dec_center, 1)
         db_name = f"rax_dec{dec_rounded:+.1f}.sqlite3"
-        output_path = Path("state/catalogs") / db_name
+        output_path = Path("/data/dsa110-contimg/state/catalogs") / db_name
 
     output_path = Path(output_path)
+
+    # Check if already exists
+    if output_path.exists():
+        logger.info(f"RAX dec strip database already exists: {output_path}")
+        return output_path
+
     output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Try to use full database if available and preferred
+    if prefer_full_db and rax_full_db_exists():
+        logger.info("Using full RAX database for faster strip extraction")
+        return build_rax_strip_from_full(
+            dec_center=dec_center,
+            dec_range=dec_range,
+            output_path=output_path,
+            min_flux_mjy=min_flux_mjy,
+        )
+
+    # Fall back to raw catalog
+    logger.info("Building from raw RAX catalog (full DB not available)")
 
     # Check coverage limits
     coverage_limits = CATALOG_COVERAGE_LIMITS.get("rax", {})
