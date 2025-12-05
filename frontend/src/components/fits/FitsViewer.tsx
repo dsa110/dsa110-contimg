@@ -110,21 +110,33 @@ const FitsViewer: React.FC<FitsViewerProps> = ({
   }, [isJS9Ready]);
 
   // Register JS9 display when container is ready
+  // JS9 needs to be explicitly initialized for dynamically created displays
   useEffect(() => {
     if (!isJS9Ready || !containerRef.current) return;
 
-    // Check if JS9.AddDisplay is available (it may not be in all versions)
-    // If not available, JS9 should auto-detect the div with class "JS9"
-    if (window.JS9.AddDisplay) {
+    // For dynamically created JS9 displays, we need to initialize them
+    // The div with class "JS9" and id="${displayId}" must exist first
+    const displayElement = document.getElementById(displayId);
+    if (!displayElement) {
+      logger.debug("JS9 display element not found yet", { displayId });
+      return;
+    }
+
+    // Check if this display is already initialized by looking for the canvas
+    const existingCanvas = displayElement.querySelector("canvas");
+    if (existingCanvas) {
+      logger.debug("JS9 display already initialized", { displayId });
+      return;
+    }
+
+    // Use JS9.init() to initialize dynamically created displays
+    // This is the proper way to handle React-managed DOM elements
+    if (window.JS9.init) {
       try {
-        // Check if display already exists
-        const existingDisplay = window.JS9.LookupDisplay(displayId);
-        if (!existingDisplay) {
-          window.JS9.AddDisplay(displayId);
-          logger.debug("JS9 display registered", { displayId });
-        }
+        window.JS9.init();
+        logger.debug("JS9 initialized for display", { displayId });
       } catch (err) {
-        logger.debug("JS9 AddDisplay error (may be normal)", { error: err, displayId });
+        logger.debug("JS9 init error", { error: err, displayId });
       }
     }
   }, [isJS9Ready, displayId]);

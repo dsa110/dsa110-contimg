@@ -197,6 +197,17 @@ const HomePage: React.FC = () => {
       .slice(0, 8);
   }, [jobs]);
 
+  const latestImages = useMemo(() => {
+    if (!images) return [];
+    return [...images]
+      .sort((a, b) => {
+        const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return bTime - aTime;
+      })
+      .slice(0, 6);
+  }, [images]);
+
   const pipelineHealthLabel = pipelineStatusQuery.isPlaceholderData
     ? "Loading..."
     : pipelineStatusQuery.data?.is_healthy
@@ -328,6 +339,89 @@ const HomePage: React.FC = () => {
           <ServiceStatusPanel compact />
         </section>
       </div>
+
+      {/* Recent Images */}
+      <section className="card p-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <h2
+            className="text-lg font-semibold"
+            style={{ color: "var(--color-text-primary)" }}
+          >
+            Recent Images
+          </h2>
+          <Link
+            to={ROUTES.IMAGES.LIST}
+            className="text-xs font-medium"
+            style={{ color: "var(--color-primary)" }}
+          >
+            View all →
+          </Link>
+        </div>
+        {latestImages.length === 0 ? (
+          <p
+            className="text-sm"
+            style={{ color: "var(--color-text-secondary)" }}
+          >
+            No images available yet.
+          </p>
+        ) : (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            {latestImages.map((img) => (
+              <Link
+                key={img.id}
+                to={ROUTES.IMAGES.DETAIL(img.id)}
+                className="group block rounded-lg overflow-hidden border hover:border-blue-400 transition-colors"
+                style={{ borderColor: "var(--color-border)" }}
+              >
+                <div className="aspect-square bg-slate-100 dark:bg-slate-800 flex items-center justify-center relative">
+                  {img.thumbnail_url ? (
+                    <img
+                      src={img.thumbnail_url}
+                      alt={img.path?.split("/").pop() || "Image"}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="text-slate-400 text-xs text-center p-2">
+                      <svg className="w-8 h-8 mx-auto mb-1 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                      No preview
+                    </div>
+                  )}
+                  {img.qa_grade && (
+                    <span
+                      className={`absolute top-1 right-1 text-[10px] px-1.5 py-0.5 rounded font-medium ${
+                        img.qa_grade === "good"
+                          ? "bg-green-100 text-green-700"
+                          : img.qa_grade === "fail"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-gray-100 text-gray-600"
+                      }`}
+                    >
+                      {img.qa_grade}
+                    </span>
+                  )}
+                </div>
+                <div className="p-2">
+                  <p
+                    className="text-xs font-medium truncate group-hover:text-blue-600"
+                    style={{ color: "var(--color-text-primary)" }}
+                    title={img.path?.split("/").pop()}
+                  >
+                    {img.path?.split("/").pop()?.replace(/\.[^.]+$/, "") || img.id}
+                  </p>
+                  <p
+                    className="text-[10px] mt-0.5"
+                    style={{ color: "var(--color-text-secondary)" }}
+                  >
+                    {formatRelativeTime(img.created_at)}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
 
       {/* Sky Coverage - Full Width */}
       <section className="card p-5 space-y-3">

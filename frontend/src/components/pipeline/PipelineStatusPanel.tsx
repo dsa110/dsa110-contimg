@@ -640,13 +640,14 @@ export function PipelineStatusPanel({
               <div className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-800/50">
                 <div
                   className={`w-2.5 h-2.5 rounded-full ${
-                    data.worker_count > 0
-                      ? "bg-green-500"
-                      : "bg-gray-400"
+                    data.worker_count > 0 ? "bg-green-500" : "bg-gray-400"
                   }`}
                 />
                 <div>
-                  <div className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>
+                  <div
+                    className="text-sm font-medium"
+                    style={{ color: "var(--color-text-primary)" }}
+                  >
                     {data.worker_count}
                   </div>
                   <div className="text-[10px] text-gray-500">Workers</div>
@@ -665,7 +666,10 @@ export function PipelineStatusPanel({
                   }`}
                 />
                 <div>
-                  <div className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>
+                  <div
+                    className="text-sm font-medium"
+                    style={{ color: "var(--color-text-primary)" }}
+                  >
                     {data.total.pending + data.total.running}
                   </div>
                   <div className="text-[10px] text-gray-500">Queued</div>
@@ -676,7 +680,10 @@ export function PipelineStatusPanel({
               <div className="flex items-center gap-2 p-2 rounded-lg bg-gray-50 dark:bg-gray-800/50">
                 <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
                 <div>
-                  <div className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>
+                  <div
+                    className="text-sm font-medium"
+                    style={{ color: "var(--color-text-primary)" }}
+                  >
                     {data.total.completed}
                   </div>
                   <div className="text-[10px] text-gray-500">Completed</div>
@@ -691,7 +698,10 @@ export function PipelineStatusPanel({
                   }`}
                 />
                 <div>
-                  <div className="text-sm font-medium" style={{ color: "var(--color-text-primary)" }}>
+                  <div
+                    className="text-sm font-medium"
+                    style={{ color: "var(--color-text-primary)" }}
+                  >
                     {data.total.failed}
                   </div>
                   <div className="text-[10px] text-gray-500">Failed</div>
@@ -704,18 +714,20 @@ export function PipelineStatusPanel({
               <span style={{ color: "var(--color-text-secondary)" }}>
                 {data.total.running > 0 ? (
                   <span className="text-blue-600 dark:text-blue-400">
-                    ● {data.total.running} task{data.total.running !== 1 ? "s" : ""} running
+                    ● {data.total.running} task
+                    {data.total.running !== 1 ? "s" : ""} running
                   </span>
                 ) : data.total.pending > 0 ? (
                   <span className="text-yellow-600 dark:text-yellow-400">
-                    ○ {data.total.pending} task{data.total.pending !== 1 ? "s" : ""} pending
+                    ○ {data.total.pending} task
+                    {data.total.pending !== 1 ? "s" : ""} pending
                   </span>
                 ) : (
                   <span>Pipeline idle</span>
                 )}
               </span>
               <Link
-                to={ROUTES.PIPELINE?.INDEX || "/pipeline"}
+                to={ROUTES.PIPELINE || "/pipeline"}
                 className="text-blue-600 hover:text-blue-800 dark:text-blue-400 hover:underline"
               >
                 View details →
