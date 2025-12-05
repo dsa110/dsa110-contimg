@@ -70,6 +70,49 @@ print(f"Coverage: {result.coverage_sq_deg:.4f} sq deg")
 print(f"Effective noise: {result.effective_noise_jy * 1e6:.1f} µJy")
 ```
 
+### Using the CLI
+
+The `mosaic.cli` module provides a two-step workflow: plan then build.
+
+```bash
+# Step 1: Plan a mosaic from a time range
+python -m dsa110_contimg.mosaic.cli plan \
+    --products-db state/db/products.sqlite3 \
+    --name night_2025_12_01 \
+    --since 2025-12-01T00:00:00 \
+    --until 2025-12-01T06:00:00
+
+# Step 2: Build the planned mosaic
+python -m dsa110_contimg.mosaic.cli build \
+    --products-db state/db/products.sqlite3 \
+    --name night_2025_12_01 \
+    --output /stage/dsa110-contimg/mosaics/night_2025_12_01.img
+```
+
+### Create Mosaic Centered on Calibrator
+
+```bash
+python scripts/mosaic/create_mosaic_centered.py \
+    --calibrator 0834+555 \
+    --timespan-minutes 50
+```
+
+### Batch Mosaic Creation
+
+```bash
+#!/bin/bash
+# Process multiple calibrators
+CALIBRATORS=("0834+555" "3C48" "3C147" "3C286")
+
+for cal in "${CALIBRATORS[@]}"; do
+    python scripts/mosaic/create_mosaic_centered.py \
+        --calibrator "$cal" \
+        --timespan-minutes 50
+done
+```
+
+````
+
 ### Primary Beam Correction
 
 The `apply_pb_correction=True` option applies primary beam correction using
@@ -86,7 +129,7 @@ result = build_mosaic(image_paths, output_path)
 
 # With PB correction - recommended for science-tier and deep mosaics
 result = build_mosaic(image_paths, output_path, apply_pb_correction=True)
-```
+````
 
 ## Understanding Tiers
 

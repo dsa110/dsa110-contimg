@@ -482,7 +482,59 @@ du -sh /stage/dsa110-contimg/images/
 
 ---
 
+## Quick Reference
+
+### Port Assignments
+
+| Port | Service                | Environment |
+| ---- | ---------------------- | ----------- |
+| 3210 | Dashboard (production) | Production  |
+| 5173 | Vite dev server        | Development |
+| 6006 | Storybook              | Development |
+| 8000 | FastAPI backend        | Both        |
+| 8001 | MkDocs                 | Development |
+| 3030 | Grafana                | Production  |
+| 9090 | Prometheus             | Production  |
+| 9002 | CARTA                  | Both        |
+
+### CLI Commands
+
+| Command                                           | Description     |
+| ------------------------------------------------- | --------------- |
+| `python -m dsa110_contimg.conversion.cli --help`  | Conversion CLI  |
+| `python -m dsa110_contimg.calibration.cli --help` | Calibration CLI |
+| `python -m dsa110_contimg.imaging.cli --help`     | Imaging CLI     |
+| `python -m dsa110_contimg.mosaic.cli --help`      | Mosaic CLI      |
+| `python -m dsa110_contimg.photometry.cli --help`  | Photometry CLI  |
+
+### API Endpoints
+
+| Endpoint                    | Method | Description            |
+| --------------------------- | ------ | ---------------------- |
+| `/api/status`               | GET    | Pipeline status        |
+| `/api/streaming/status`     | GET    | Streaming queue status |
+| `/api/streaming/start`      | POST   | Start streaming        |
+| `/api/streaming/stop`       | POST   | Stop streaming         |
+| `/api/data/observations`    | GET    | List observations      |
+| `/api/data/images`          | GET    | List images            |
+| `/api/mosaic/create`        | POST   | Create mosaic          |
+| `/api/mosaic/status/{name}` | GET    | Mosaic status          |
+
+---
+
+## Getting Help
+
+- **Local Docs Search**: `python -m dsa110_contimg.docsearch.cli search "your query"`
+- **API Docs**: http://localhost:8000/api/docs
+- **GitHub Issues**: https://github.com/dsa110/dsa110-contimg/issues
+- **Troubleshooting Guide**: [TROUBLESHOOTING.md](../TROUBLESHOOTING.md)
+
+---
+
 ## Related Documentation
 
 - [Streaming Pipeline Operations](../../backend/docs/ops/streaming-pipeline.md) - Streaming converter guide
-- [User Guide](../USER_GUIDE.md) - Full operations documentation
+- [Dashboard Guide](dashboard.md) - Web dashboard documentation
+- [Calibration Guide](calibration.md) - Calibration workflows
+- [Imaging Guide](imaging.md) - Image creation
+- [Mosaicking Guide](mosaicking.md) - Mosaic creation

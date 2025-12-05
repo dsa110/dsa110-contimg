@@ -21,18 +21,67 @@ sudo systemctl enable dsa110-stream
 sudo systemctl start dsa110-stream
 ```
 
+## Service Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    PRODUCTION SERVICES                       │
+├─────────────────────────────────────────────────────────────┤
+│  contimg-api.service          → FastAPI backend      :8000  │
+│  dsa110-contimg-dashboard     → Frontend (Vite)      :3210  │
+│  contimg-stream.service       → Streaming converter         │
+│  contimg-docs.service         → MkDocs server        :8001  │
+└─────────────────────────────────────────────────────────────┘
+```
+
 ## Service Management
 
-```bash
-# View status
-sudo systemctl status dsa110-stream
+### Starting All Services
 
-# View logs
-journalctl -u dsa110-stream -f
+**Production (systemd):**
+
+```bash
+# Start all services
+sudo systemctl start contimg-api contimg-stream dsa110-contimg-dashboard
+
+# Enable on boot
+sudo systemctl enable contimg-api contimg-stream dsa110-contimg-dashboard
+
+# Check status
+sudo systemctl status contimg-api contimg-stream
+```
+
+**Development (manual):**
+
+```bash
+# Terminal 1: API
+cd /data/dsa110-contimg/backend/src
+uvicorn dsa110_contimg.api.app:app --host 0.0.0.0 --port 8000 --reload
+
+# Terminal 2: Frontend
+cd /data/dsa110-contimg/frontend
+npm run dev -- --host 0.0.0.0 --port 5173
+```
+
+### Viewing Logs
+
+```bash
+# Follow service logs
+journalctl -u contimg-stream -f --no-pager
+
+# Last 100 lines
+journalctl -u contimg-api -n 100 --no-pager
+
+# Logs since specific time
+journalctl -u contimg-stream --since "1 hour ago"
 
 # Or from log file
 tail -f /data/dsa110-contimg/state/logs/streaming-pipeline.log
+```
 
+### Restart and Stop
+
+```bash
 # Restart after changes
 sudo systemctl restart dsa110-stream
 
@@ -61,9 +110,9 @@ Add to your `prometheus.yml`:
 
 ```yaml
 scrape_configs:
-  - job_name: "dsa110-streaming"
+  - job_name: 'dsa110-streaming'
     static_configs:
-      - targets: ["localhost:9100"]
+      - targets: ['localhost:9100']
     metrics_path: /metrics
 ```
 
@@ -78,6 +127,51 @@ Key metrics:
 - `dsa110_streaming_queue{state="completed"}` - Successfully processed groups
 - `dsa110_streaming_queue{state="failed"}` - Failed groups
 - `dsa110_streaming_disk_free_gb{path="output"}` - Free disk space
+
+## Queue States
+
+| State         | Description                                |
+| ------------- | ------------------------------------------ |
+| `collecting`  | Accumulating subbands (waiting for all 16) |
+| `pending`     | Ready for processing                       |
+| `in_progress` | Currently being converted                  |
+| `completed`   | Successfully converted                     |
+| `failed`      | Conversion failed (check logs)             |
+
+## Batch Conversion
+
+For processing historical data or specific time ranges (instead of real-time streaming):
+
+```bash
+# Convert a time window
+python -m dsa110_contimg.conversion.cli groups \
+    /data/incoming \
+    /stage/dsa110-contimg/ms \
+    "2025-12-01T00:00:00" \
+    "2025-12-01T06:00:00"
+
+# Convert by calibrator transit
+python -m dsa110_contimg.conversion.cli groups \
+    --calibrator "3C286" \
+    /data/incoming \
+    /stage/dsa110-contimg/ms
+
+# Dry run (preview without converting)
+python -m dsa110_contimg.conversion.cli groups --dry-run \
+    /data/incoming /stage/dsa110-contimg/ms \
+    "2025-12-01T00:00:00" "2025-12-01T01:00:00"
+```
+
+### Batch CLI Options
+
+| Option                             | Description                             |
+| ---------------------------------- | --------------------------------------- |
+| `--dry-run`                        | Preview without writing files           |
+| `--calibrator NAME`                | Auto-find transit time for calibrator   |
+| `--find-only`                      | Find groups/transits without converting |
+| `--skip-existing`                  | Skip groups with existing MS files      |
+| `--no-rename-calibrator-fields`    | Disable auto calibrator detection       |
+| `--writer {parallel-subband,auto}` | MS writing strategy                     |
 
 ## Configuration Options
 

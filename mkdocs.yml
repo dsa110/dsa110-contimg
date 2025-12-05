@@ -40,12 +40,12 @@ plugins:
       arguments:
         theme: default
         themeVariables:
-          primaryColor: "#2196F3"
-          primaryTextColor: "#fff"
-          primaryBorderColor: "#1976D2"
-          lineColor: "#424242"
-          secondaryColor: "#FFC107"
-          tertiaryColor: "#4CAF50"
+          primaryColor: '#2196F3'
+          primaryTextColor: '#fff'
+          primaryBorderColor: '#1976D2'
+          lineColor: '#424242'
+          secondaryColor: '#FFC107'
+          tertiaryColor: '#4CAF50'
         suppressErrorRendering: false
   - mkdocstrings:
       handlers:
@@ -104,8 +104,12 @@ nav:
           - Orchestrator Usage: guides/workflow/mosaic_orchestrator_usage.md
           - Using Orchestrator CLI: guides/workflow/using_orchestrator_cli.md
           - Absurd Quick Start: guides/workflow/absurd_quick_start.md
+          - Calibration: guides/calibration.md
+          - Imaging: guides/imaging.md
+          - Mosaicking: guides/mosaicking.md
           - Visualization: guides/visualization.md
       - Dashboard:
+          - Overview: guides/dashboard.md
           - Quickstart: guides/dashboard/dashboard-quickstart.md
           - Control Panel Quickstart: guides/dashboard/control-panel-quickstart.md
           - Development Workflow: guides/dashboard/dashboard_development_workflow.md

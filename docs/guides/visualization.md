@@ -384,6 +384,44 @@ report = create_diagnostic_report(
 )
 ```
 
+## CARTA Integration
+
+CARTA (Cube Analysis and Rendering Tool for Astronomy) provides interactive FITS visualization with advanced features like spectral line analysis and region selection.
+
+### Deploy CARTA Backend
+
+```bash
+docker run -d \
+  --name carta-backend \
+  --restart unless-stopped \
+  -p 9002:3002 \
+  -v /stage/dsa110-contimg:/stage/dsa110-contimg:ro \
+  -v /data/dsa110-contimg:/data/dsa110-contimg:ro \
+  cartavis/carta:latest
+```
+
+### Configure Dashboard Integration
+
+Create `frontend/.env`:
+
+```bash
+VITE_CARTA_BACKEND_URL=http://localhost:9002
+VITE_CARTA_FRONTEND_URL=http://localhost:9002
+```
+
+### Access CARTA
+
+1. Navigate to Dashboard → CARTA (`/carta`)
+2. Select integration mode (Iframe recommended)
+3. Use File Browser to select FITS file
+4. View in CARTA Viewer
+
+### CARTA Port
+
+| Port | Service | Environment |
+| ---- | ------- | ----------- |
+| 9002 | CARTA   | Both        |
+
 ## Module Structure
 
 ```
@@ -414,5 +452,5 @@ Optional dependencies for enhanced functionality:
 ## See Also
 
 - [API Reference](../API_REFERENCE.md) - Full API documentation
-- [User Guide](../USER_GUIDE.md) - Pipeline usage guide
-- [Mosaic Module](mosaic.md) - Mosaic processing documentation
+- [Mosaicking Guide](mosaicking.md) - Mosaic processing documentation
+- [Dashboard Guide](dashboard.md) - Web dashboard documentation

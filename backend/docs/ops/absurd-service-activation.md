@@ -393,6 +393,58 @@ SELECT COUNT(*) FROM absurd.tasks WHERE status IN ('pending', 'claimed');
 
 ---
 
+## API Endpoints
+
+The ABSURD workflow manager exposes REST API endpoints:
+
+| Endpoint                 | Method | Description       |
+| ------------------------ | ------ | ----------------- |
+| `/api/absurd/metrics`    | GET    | Real-time metrics |
+| `/api/absurd/tasks`      | GET    | List tasks        |
+| `/api/absurd/tasks`      | POST   | Spawn new task    |
+| `/api/absurd/tasks/{id}` | GET    | Task details      |
+| `/api/absurd/tasks/{id}` | DELETE | Cancel task       |
+
+## Spawning Tasks Programmatically
+
+```python
+from dsa110_contimg.absurd import AbsurdClient
+import asyncio
+
+async def spawn_task():
+    client = AbsurdClient('postgresql://user:password@localhost:5432/dsa110')
+    await client.connect()
+
+    task_id = await client.spawn_task(
+        queue='dsa110-pipeline',
+        task_type='mosaic_build',
+        payload={'name': 'night_2025_12_01'},
+        priority=10
+    )
+
+    await client.close()
+    return task_id
+
+asyncio.run(spawn_task())
+```
+
+## Scheduling Pipelines
+
+The ABSURD framework supports cron-triggered pipelines:
+
+```python
+from dsa110_contimg.pipeline.mosaic import NightlyMosaicPipeline
+from dsa110_contimg.absurd.scheduler import CronTrigger
+
+scheduler.register_pipeline(
+    NightlyMosaicPipeline,
+    trigger=CronTrigger(cron="0 3 * * *"),  # Daily at 03:00 UTC
+    enabled=True
+)
+```
+
+---
+
 ## Related Documentation
 
 - [CHANGELOG](../CHANGELOG.md) - Version history and feature additions
