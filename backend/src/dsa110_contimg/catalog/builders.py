@@ -30,6 +30,9 @@ CATALOG_COVERAGE_LIMITS = {
     "atnf": {"dec_min": -90.0, "dec_max": 90.0},  # All-sky pulsar catalog
 }
 
+# Default cache directory for catalog files
+DEFAULT_CACHE_DIR = "/data/dsa110-contimg/.cache/catalogs"
+
 
 def _acquire_db_lock(
     lock_path: Path, timeout_sec: float = 300.0, max_retries: int = 10
@@ -456,7 +459,7 @@ def first_full_db_exists() -> bool:
 def build_first_full_db(
     output_path: Optional[Path] = None,
     force_rebuild: bool = False,
-    cache_dir: str = ".cache/catalogs",
+    cache_dir: str = DEFAULT_CACHE_DIR,
 ) -> Path:
     """Build a full FIRST SQLite database from Vizier/cached data.
 
@@ -736,7 +739,7 @@ def vlass_full_db_exists() -> bool:
 def build_vlass_full_db(
     output_path: Optional[Path] = None,
     force_rebuild: bool = False,
-    cache_dir: str = ".cache/catalogs",
+    cache_dir: str = DEFAULT_CACHE_DIR,
     vlass_catalog_path: Optional[str] = None,
 ) -> Path:
     """Build a full VLASS SQLite database from cached data.
@@ -994,7 +997,7 @@ def rax_full_db_exists() -> bool:
 def build_rax_full_db(
     output_path: Optional[Path] = None,
     force_rebuild: bool = False,
-    cache_dir: str = ".cache/catalogs",
+    cache_dir: str = DEFAULT_CACHE_DIR,
     rax_catalog_path: Optional[str] = None,
 ) -> Path:
     """Build a full RAX SQLite database from cached data.
