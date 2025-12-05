@@ -1,0 +1,438 @@
+# DSA-110 Pipeline Walkthrough: ABSURD Ingestion to Bandpass Calibration
+
+This document captures the complete workflow from raw HDF5 files through ABSURD
+ingestion to MS creation, and the diagnostic commands used to analyze the resulting
+Measurement Set for bandpass calibration.
+
+---
+
+## Phase 1: ABSURD Ingestion (HDF5 → MS Conversion)
+
+### 1.1 Check Available Subband Groups
+
+First, query the HDF5 file index to find complete 16-subband groups:
+
+**Command:**
+
+```bash
+sqlite3 /data/incoming/hdf5_file_index.sqlite3 << 'EOF'
+SELECT timestamp, COUNT(*) as n_subbands
+FROM hdf5_file_index
+WHERE timestamp >= '2025-11-18'
+GROUP BY timestamp
+HAVING n_subbands = 16
+ORDER BY timestamp DESC
+LIMIT 10;
+EOF
+```
+
+### 1.2 Trigger ABSURD Ingestion via API
+
+**Command:**
+
+```bash
+# Check ABSURD API status
+curl -s http://localhost:8000/api/absurd/status | python3 -m json.tool
+
+# Trigger ingestion for a specific timestamp
+curl -X POST http://localhost:8000/api/absurd/ingest \
+  -H "Content-Type: application/json" \
+  -d '{"timestamp": "2025-11-18T23:50:25", "priority": "normal"}'
+```
+
+### 1.3 Monitor Ingestion Progress
+
+**Command:**
+
+```bash
+# Watch the job queue
+curl -s http://localhost:8000/api/absurd/jobs?status=pending | python3 -m json.tool
+
+# Check specific job status
+curl -s http://localhost:8000/api/absurd/jobs/{job_id} | python3 -m json.tool
+```
+
+### 1.4 Alternative: CLI Batch Conversion
+
+For manual/batch conversion without ABSURD:
+
+**Command:**
+
+```bash
+conda activate casa6
+cd /data/dsa110-contimg/backend
+
+# Convert a specific time range
+python -m dsa110_contimg.conversion.cli groups \
+    /data/incoming \
+    /stage/dsa110-contimg/ms \
+    "2025-11-18T23:00:00" \
+    "2025-11-19T00:00:00"
+
+# Or dry-run to preview
+python -m dsa110_contimg.conversion.cli groups --dry-run \
+    /data/incoming /stage/dsa110-contimg/ms \
+    "2025-11-18T23:00:00" "2025-11-19T00:00:00"
+```
+
+### 1.5 Verify MS Creation
+
+**Command:**
+
+```bash
+# Check the output MS exists
+ls -lh /stage/dsa110-contimg/ms/2025-11-18T23:50:25.ms/
+
+# Quick validation with casacore
+conda activate casa6 && python3 << 'EOF'
+from casacore.tables import table
+ms = "/stage/dsa110-contimg/ms/2025-11-18T23:50:25.ms"
+with table(ms, ack=False) as tb:
+    print(f"Rows: {tb.nrows()}")
+    print(f"Columns: {tb.colnames()}")
+EOF
+```
+
+**Result:**
+
+```
+/stage/dsa110-contimg/ms/2025-11-18T23:50:25.ms (2.1 GB)
+Rows: 1,787,904
+```
+
+---
+
+## Phase 2: MS Structure Analysis
+
+### Target MS
+
+```
+/stage/dsa110-contimg/ms/2025-11-18T23:50:25.ms (2.1 GB)
+```
+
+---
+
+### 2.1 Spectral Window Structure
+
+**Command:**
+
+```bash
+conda activate casa6 && python3 << 'EOF'
+import numpy as np
+from casacore.tables import table
+
+ms = "/stage/dsa110-contimg/ms/2025-11-18T23:50:25.ms"
+
+with table(f"{ms}::SPECTRAL_WINDOW", ack=False) as tspw:
+    n_spw = tspw.nrows()
+    num_chan = tspw.getcol("NUM_CHAN")
+    ref_freq = tspw.getcol("REF_FREQUENCY")
+    chan_width = tspw.getcol("CHAN_WIDTH")
+
+print(f"Number of SPWs: {n_spw}")
+print(f"Channels per SPW: {num_chan[0]}")
+print(f"Total channels: {np.sum(num_chan)}")
+print(f"Frequency range: {ref_freq[0]/1e9:.4f} - {ref_freq[-1]/1e9:.4f} GHz")
+print(f"Channel width: {chan_width[0][0]/1e3:.2f} kHz")
+EOF
+```
+
+**Result:**
+| Parameter | Value |
+|-----------|-------|
+| SPWs | 16 |
+| Channels per SPW | 48 |
+| Total channels | 768 |
+| Frequency range | 1.3114 – 1.4986 GHz |
+| Channel width | 244.14 kHz |
+| Total bandwidth | 187.2 MHz |
+
+---
+
+### 2.2 Integration Time and Field Structure
+
+**Command:**
+
+```bash
+conda activate casa6 && python3 << 'EOF'
+import numpy as np
+from casacore.tables import table
+
+ms = "/stage/dsa110-contimg/ms/2025-11-18T23:50:25.ms"
+
+with table(ms, ack=False) as tb:
+    exposure = tb.getcol("EXPOSURE")
+    time_arr = tb.getcol("TIME")
+    field_id = tb.getcol("FIELD_ID")
+
+print(f"Exposure time: {np.unique(exposure)[0]:.2f} seconds")
+print(f"Number of fields: {len(np.unique(field_id))}")
+print(f"Total observation span: {(time_arr.max() - time_arr.min())/60:.2f} minutes")
+EOF
+```
+
+**Result:**
+| Parameter | Value |
+|-----------|-------|
+| Integration per field | 12.88 seconds |
+| Number of fields | 24 |
+| Total observation | 4.94 minutes (296 s) |
+
+---
+
+### 2.3 Baseline and Antenna Count
+
+**Command:**
+
+```bash
+conda activate casa6 && python3 << 'EOF'
+import numpy as np
+from casacore.tables import table
+
+ms = "/stage/dsa110-contimg/ms/2025-11-18T23:50:25.ms"
+
+with table(ms, ack=False) as tb:
+    antenna1 = tb.getcol("ANTENNA1")
+    antenna2 = tb.getcol("ANTENNA2")
+
+n_ants = len(np.unique(np.concatenate([antenna1, antenna2])))
+auto_mask = antenna1 == antenna2
+n_cross = np.sum(~auto_mask)
+unique_bl = len(set(zip(antenna1[~auto_mask], antenna2[~auto_mask])))
+
+print(f"Antennas: {n_ants}")
+print(f"Cross-correlation rows: {n_cross}")
+print(f"Unique baseline pairs: {unique_bl}")
+print(f"Expected (N*(N-1)/2): {n_ants * (n_ants - 1) // 2}")
+EOF
+```
+
+**Result:**
+| Parameter | Value |
+|-----------|-------|
+| Active antennas | 96 |
+| Cross-correlations | 1,751,040 rows |
+| Unique baselines | 4,560 |
+| Baselines per antenna | 95 |
+
+---
+
+### 2.4 Amplitude Structure Across SPWs (Bandpass Shape)
+
+**Command:**
+
+```bash
+conda activate casa6 && python3 << 'EOF'
+import numpy as np
+from casacore.tables import table
+
+ms = "/stage/dsa110-contimg/ms/2025-11-18T23:50:25.ms"
+
+with table(ms, ack=False) as tb:
+    data = tb.getcol("DATA")
+    data_desc_id = tb.getcol("DATA_DESC_ID")
+    antenna1 = tb.getcol("ANTENNA1")
+    antenna2 = tb.getcol("ANTENNA2")
+
+cross_mask = antenna1 != antenna2
+
+print("SPW  | Low Edge | Center | High Edge | Edge/Center Ratio")
+print("-" * 60)
+for spw in [0, 7, 15]:
+    mask = cross_mask & (data_desc_id == spw)
+    spw_data = np.abs(data[mask])
+
+    low_edge = np.mean(spw_data[:, 0:3, :])    # channels 0-2
+    center = np.mean(spw_data[:, 22:26, :])    # channels 22-25
+    high_edge = np.mean(spw_data[:, 45:48, :]) # channels 45-47
+
+    print(f"SPW {spw:2d} | {low_edge:.4f}   | {center:.4f} | {high_edge:.4f}    | {low_edge/center:.2f} / {high_edge/center:.2f}")
+EOF
+```
+
+**Result:**
+| SPW | Low Edge | Center | High Edge | Low/Center | High/Center |
+|-----|----------|--------|-----------|------------|-------------|
+| 0 | 0.036 | 0.046 | 0.049 | 0.79 | 1.08 |
+| 7 | 0.046 | 0.046 | 0.295 | 1.01 | 6.45 |
+| 15 | 0.036 | 0.045 | 0.030 | 0.80 | 0.67 |
+
+**Interpretation:**
+
+- SPW 0: ~21% roll-off at low-frequency edge (typical bandpass)
+- SPW 7: **Anomalous** 6.45× high edge — likely RFI or hardware issue
+- SPW 15: ~20% roll-off at low edge, ~33% at high edge
+- **Conclusion:** Each SPW has distinct bandpass shape; `combine_spw=False` is required
+
+---
+
+### 2.5 Field Directions and Calibrator Identification
+
+**Command:**
+
+```bash
+conda activate casa6 && python3 << 'EOF'
+import numpy as np
+from casacore.tables import table
+
+ms = "/stage/dsa110-contimg/ms/2025-11-18T23:50:25.ms"
+
+with table(f"{ms}::FIELD", ack=False) as tf:
+    names = tf.getcol("NAME")
+    phase_dir = tf.getcol("PHASE_DIR")
+
+print("Field | Name                 | RA (h)   | Dec (°)")
+print("-" * 55)
+for i, (name, pd) in enumerate(zip(names, phase_dir)):
+    ra_h = np.degrees(pd[0, 0]) / 15
+    dec_deg = np.degrees(pd[0, 1])
+    print(f"{i:5d} | {name:20s} | {ra_h:7.3f}  | {dec_deg:+7.3f}")
+    if i >= 5:
+        print("  ... (24 fields total)")
+        break
+
+print(f"\nObservation Declination: {np.degrees(phase_dir[0, 0, 1]):+.3f}°")
+EOF
+```
+
+**Result:**
+
+- All 24 fields named `meridian_icrs_t0` through `meridian_icrs_t23`
+- RA range: 19.821h – 19.903h (meridian drift)
+- **Observation Declination: +16.2°**
+
+---
+
+### 2.6 Nearest VLA Calibrators
+
+**Command:**
+
+```bash
+sqlite3 /data/dsa110-contimg/state/catalogs/vla_calibrators.sqlite3 << 'EOF'
+SELECT name, ra_deg/15 as ra_h, dec_deg, position_code
+FROM calibrators
+WHERE dec_deg BETWEEN 10 AND 25
+AND ra_deg BETWEEN 290 AND 305
+ORDER BY ABS(dec_deg - 16.2)
+LIMIT 5;
+EOF
+```
+
+**Result:**
+| Name | RA (h) | Dec (°) | Separation | Code |
+|------|--------|---------|------------|------|
+| 2016+165 | 20.27 | +16.54 | ~0.4° | A |
+| 1924+156 | 19.41 | +15.68 | ~0.7° | A |
+| 1955+139 | 19.92 | +13.97 | ~2.4° | A |
+
+**Conclusion:** This MS is at Dec +16.2° but the nearest calibrator (2016+165) is not
+at the observed RA. This is a **science observation**, not a calibrator transit.
+
+---
+
+### 2.7 SNR Estimation for Bandpass Calibration
+
+**Command:**
+
+```bash
+conda activate casa6 && python3 << 'EOF'
+import numpy as np
+from casacore.tables import table
+
+ms = "/stage/dsa110-contimg/ms/2025-11-18T23:50:25.ms"
+
+with table(ms, ack=False) as tb:
+    data = tb.getcol("DATA")
+    field_id = tb.getcol("FIELD_ID")
+    data_desc_id = tb.getcol("DATA_DESC_ID")
+    antenna1 = tb.getcol("ANTENNA1")
+    antenna2 = tb.getcol("ANTENNA2")
+
+# Single field, single SPW, cross-correlations only
+mask = (field_id == 12) & (data_desc_id == 8) & (antenna1 != antenna2)
+field_data = np.abs(data[mask])
+
+n_baselines = np.sum(mask)
+per_chan_mean = np.mean(field_data, axis=(0, 2))
+per_chan_std = np.std(field_data, axis=(0, 2))
+
+# Per-baseline SNR (rough)
+per_bl_snr = np.mean(per_chan_mean / per_chan_std)
+
+# Antenna-based SNR (what CASA minsnr checks)
+# SNR scales as sqrt(N_baselines_per_antenna) = sqrt(95)
+antenna_snr = per_bl_snr * np.sqrt(95)
+
+print(f"Baselines in selection: {n_baselines}")
+print(f"Per-baseline SNR: {per_bl_snr:.2f}")
+print(f"Antenna-based SNR: {antenna_snr:.2f}")
+print(f"With 24 fields combined: {antenna_snr * np.sqrt(24):.2f}")
+EOF
+```
+
+**Result:**
+| Configuration | Per-Baseline SNR | Antenna SNR | vs minsnr=5.0 |
+|---------------|------------------|-------------|---------------|
+| Single field | ~0.7 | ~6.8 | Marginal ✓ |
+| 24 fields combined | ~3.4 | ~33 | Comfortable ✓ |
+
+**Key insight from Perplexity:** CASA's `minsnr` applies to **antenna-based solutions**,
+not per-baseline. With 95 baselines per antenna, the aggregate SNR is ~10× higher than
+per-baseline SNR.
+
+---
+
+### 2.8 Data Column Status
+
+**Command:**
+
+```bash
+conda activate casa6 && python3 << 'EOF'
+from casacore.tables import table
+
+ms = "/stage/dsa110-contimg/ms/2025-11-18T23:50:25.ms"
+
+with table(ms, ack=False) as tb:
+    cols = tb.colnames()
+    print(f"DATA: {'DATA' in cols}")
+    print(f"CORRECTED_DATA: {'CORRECTED_DATA' in cols}")
+    print(f"MODEL_DATA: {'MODEL_DATA' in cols}")
+EOF
+```
+
+**Result:**
+
+- DATA: ✓
+- CORRECTED_DATA: ✗
+- MODEL_DATA: ✗ (must be populated before bandpass calibration)
+
+---
+
+## Phase 3: Production Bandpass Calibration Workflow
+
+This MS (`2025-11-18T23:50:25.ms`) is a **science observation** at Dec +16.2°.
+To calibrate it:
+
+1. **Find calibrator MS** at same declination within validity window (~6 hours)
+2. **On calibrator MS:**
+   - Populate MODEL_DATA from VLA catalog
+   - Phaseshift to calibrator position
+   - Solve pre-bandpass phase (`combine_fields=True`, `combine_spw=True`)
+   - Solve bandpass (`combine_fields=True`, `combine_spw=False`)
+3. **Apply to science MS:**
+   - `apply_to_target(science_ms, bptables=[cal_bptable])`
+
+### Key Parameters
+
+| Parameter                  | Recommended Value | Reason                              |
+| -------------------------- | ----------------- | ----------------------------------- |
+| `combine_fields`           | `True`            | Improve SNR from 6.8 to 33          |
+| `combine_spw`              | `False`           | SPWs have different bandpass shapes |
+| `minsnr`                   | 5.0               | Standard threshold                  |
+| `prebandpass_phase`        | Required          | Corrects decorrelation              |
+| `require_coherent_phasing` | `True`            | Validates phaseshift was applied    |
+
+---
+
+_Document generated: 2025-12-05_
+_Analysis performed on: 2025-11-18T23:50:25.ms_

@@ -4,17 +4,16 @@ import os
 import time
 from typing import Optional
 
-import astropy.units as u
-import casacore.tables as tb
-import numpy as np
-
-# Ensure CASAPATH is set before importing CASA modules
+# IMPORTANT: Import casa_init BEFORE casacore to ensure CWD is set to logs directory
 from dsa110_contimg.utils.casa_init import ensure_casa_path
-
 ensure_casa_path()
 
-from astropy.coordinates import SkyCoord
-from casacore.tables import addImagingColumns
+import astropy.units as u  # noqa: E402
+import casacore.tables as tb  # noqa: E402
+import numpy as np  # noqa: E402
+
+from astropy.coordinates import SkyCoord  # noqa: E402
+from casacore.tables import addImagingColumns  # noqa: E402
 
 # Set up logger
 logger = logging.getLogger(__name__)

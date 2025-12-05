@@ -13,15 +13,16 @@ import shutil
 from pathlib import Path
 from typing import List, Optional
 
-import casacore.tables as casatables  # type: ignore
-import numpy as np
-
-# Provide a patchable casacore table symbol for tests
+# IMPORTANT: Import casa_init BEFORE casacore to ensure CWD is set to logs directory
 from dsa110_contimg.utils.casa_init import ensure_casa_path
-from dsa110_contimg.utils.exceptions import ValidationError
-
 ensure_casa_path()
 
+import casacore.tables as casatables  # type: ignore  # noqa: E402
+import numpy as np  # noqa: E402
+
+from dsa110_contimg.utils.exceptions import ValidationError  # noqa: E402
+
+# Provide a patchable casacore table symbol for tests
 table = casatables.table  # noqa: N816
 
 # Import ValidationError from unified exception hierarchy
