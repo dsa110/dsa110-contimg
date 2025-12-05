@@ -102,19 +102,6 @@ class DatabasePool:
         conn = await self._get_connection()
         yield conn
     
-    # Backwards compatibility aliases
-    @asynccontextmanager
-    async def products_db(self) -> AsyncIterator[aiosqlite.Connection]:
-        """Deprecated: Use connection() instead. Returns unified DB connection."""
-        async with self.connection() as conn:
-            yield conn
-    
-    @asynccontextmanager
-    async def cal_registry_db(self) -> AsyncIterator[aiosqlite.Connection]:
-        """Deprecated: Use connection() instead. Returns unified DB connection."""
-        async with self.connection() as conn:
-            yield conn
-    
     async def close(self):
         """Close the connection."""
         if self._conn:
@@ -163,19 +150,6 @@ class SyncDatabasePool:
         """Get a connection to the unified database."""
         conn = self._get_connection()
         yield conn
-    
-    # Backwards compatibility aliases
-    @contextmanager
-    def products_db(self) -> Iterator[sqlite3.Connection]:
-        """Deprecated: Use connection() instead. Returns unified DB connection."""
-        with self.connection() as conn:
-            yield conn
-    
-    @contextmanager
-    def cal_registry_db(self) -> Iterator[sqlite3.Connection]:
-        """Deprecated: Use connection() instead. Returns unified DB connection."""
-        with self.connection() as conn:
-            yield conn
     
     def close(self):
         """Close the connection."""
