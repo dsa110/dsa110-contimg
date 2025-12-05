@@ -846,11 +846,11 @@ Real-time status updates via WebSocket.
 **Connect:**
 
 ```javascript
-const ws = new WebSocket("ws://localhost:8000/api/ws/status");
+const ws = new WebSocket('ws://localhost:8000/api/ws/status');
 
 ws.onmessage = (event) => {
   const data = JSON.parse(event.data);
-  console.log("Update:", data);
+  console.log('Update:', data);
 };
 ```
 

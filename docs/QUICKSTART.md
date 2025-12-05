@@ -196,13 +196,13 @@ sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 \
 
 ## Next Steps
 
-| Goal                     | Documentation                         |
-| ------------------------ | ------------------------------------- |
-| Pipeline workflows       | [Storage & Files](guides/storage-and-file-organization.md) |
-| Develop new features     | [Developer Guide](DEVELOPER_GUIDE.md) |
-| API integration          | [API Reference](API_REFERENCE.md)     |
-| System architecture      | [Architecture](ARCHITECTURE.md)       |
-| Fix issues               | [Troubleshooting](TROUBLESHOOTING.md) |
+| Goal                 | Documentation                                              |
+| -------------------- | ---------------------------------------------------------- |
+| Pipeline workflows   | [Storage & Files](guides/storage-and-file-organization.md) |
+| Develop new features | [Developer Guide](DEVELOPER_GUIDE.md)                      |
+| API integration      | [API Reference](API_REFERENCE.md)                          |
+| System architecture  | [Architecture](ARCHITECTURE.md)                            |
+| Fix issues           | [Troubleshooting](TROUBLESHOOTING.md)                      |
 
 ---
 
