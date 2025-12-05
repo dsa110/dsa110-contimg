@@ -30,8 +30,9 @@ Benefits:
 from __future__ import annotations
 
 import logging
-import os
-import shutil
+from collections import defaultdict
+from contextlib import nullcontext
+from datetime import datetime
 from pathlib import Path
 from typing import Optional, Tuple
 
@@ -98,33 +99,33 @@ def normalize_subband_path(
     
     # Check if already normalized
     if current_group_id == canonical_group_id:
-        logger.debug(f"File already normalized: {path.name}")
+        logger.debug("File already normalized: %s", path.name)
         return path, False
-    
+
     # Build new filename
     new_name = build_subband_filename(canonical_group_id, subband_idx)
     new_path = path.parent / new_name
-    
+
     # Check source exists
     if not path.exists():
         raise FileNotFoundError(f"Source file does not exist: {path}")
-    
+
     # Check target doesn't already exist (shouldn't happen in normal operation)
     if new_path.exists() and not path.samefile(new_path):
         raise OSError(f"Target file already exists: {new_path}")
-    
+
     if dry_run:
-        logger.info(f"Would rename: {path.name} -> {new_name}")
+        logger.info("Would rename: %s -> %s", path.name, new_name)
         return new_path, True
-    
+
     # Perform atomic rename
     # Note: Path.rename() is atomic on POSIX filesystems
     try:
         path.rename(new_path)
-        logger.info(f"Normalized: {path.name} -> {new_name}")
+        logger.info("Normalized: %s -> %s", path.name, new_name)
         return new_path, True
-    except OSError as e:
-        logger.error(f"Failed to rename {path.name} -> {new_name}: {e}")
+    except OSError as err:
+        logger.error("Failed to rename %s -> %s: %s", path.name, new_name, err)
         raise
 
 
