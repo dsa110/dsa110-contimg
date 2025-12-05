@@ -10,9 +10,7 @@ grouped by timestamp and combined before creating a single Measurement Set.
 ```text
 16 UVH5 files (*_sb00.hdf5 ... *_sb15.hdf5)
     ↓
-Group by timestamp:
-  • Streaming: normalize filenames on ingest (preferred)
-  • Batch: cluster within 60s tolerance (legacy)
+Group by timestamp (60s tolerance)
     ↓
 Combine subbands (pyuvdata +=)
     ↓
@@ -35,32 +33,25 @@ python -m dsa110_contimg.conversion.cli groups \
     "2025-01-01T12:00:00"
 ```
 
-### 2. Streaming Conversion
+### 2. ABSURD Ingestion
 
-Real-time daemon for live data:
+For scheduled/automated data ingest (EXPERIMENTAL):
 
-```bash
-# Via systemd (production)
-sudo systemctl start contimg-stream.service
-
-# Manual testing
-python -m dsa110_contimg.conversion.streaming.streaming_converter \
-    --input-dir /data/incoming \
-    --output-dir /stage/dsa110-contimg/ms
-```
+- Uses PostgreSQL-backed task queue with durable execution
+- Run via scheduler or API triggers
+- See `backend/src/dsa110_contimg/absurd/` for details
 
 ## Key Files
 
-| File                               | Purpose                       |
-| ---------------------------------- | ----------------------------- |
-| `cli.py`                           | Command-line interface        |
-| `strategies/hdf5_orchestrator.py`  | Batch conversion logic        |
-| `strategies/writers.py`            | MS writer factory             |
-| `strategies/direct_subband.py`     | Parallel subband writer       |
-| `streaming/streaming_converter.py` | Real-time daemon              |
-| `helpers_coordinates.py`           | Phase center calculations     |
-| `helpers_antenna.py`               | Antenna utilities             |
-| `ms_utils.py`                      | Measurement Set configuration |
+| File                     | Purpose                       |
+| ------------------------ | ----------------------------- |
+| `cli.py`                 | Command-line interface        |
+| `hdf5_orchestrator.py`   | Batch conversion logic        |
+| `writers.py`             | MS writer factory             |
+| `direct_subband.py`      | Parallel subband writer       |
+| `helpers_coordinates.py` | Phase center calculations     |
+| `helpers_antenna.py`     | Antenna utilities             |
+| `ms_utils.py`            | Measurement Set configuration |
 
 ## CLI Options
 
@@ -77,20 +68,22 @@ python -m dsa110_contimg.conversion.cli groups --help
 
 ## Critical Implementation Details
 
-1. **Subband grouping**: Two mechanisms (see below)
+1. **Subband grouping**: Uses 60-second time-windowing via `query_subband_groups()`
 2. **Subband combining**: Use `pyuvdata.UVData()` with `+=` operator
 3. **Antenna positions**: Always update from `utils/antpos_local/`
 4. **Phase center**: Visibilities phased to meridian
 5. **Calibrator detection**: Auto-renames field containing calibrator
 
-### Subband Grouping Mechanisms
+### Subband Grouping
 
-| Method             | Code Location                       | Tolerance | Use Case               |
-| ------------------ | ----------------------------------- | --------- | ---------------------- |
-| **Normalization**  | `streaming/`                        | 60s       | Rename files on ingest |
-| **Time-Windowing** | `hdf5_index.query_subband_groups()` | 60s       | Query-time clustering  |
+Files within 60 seconds are clustered into the same observation group:
 
-Both use 60-second tolerance (configured in `settings.conversion.cluster_tolerance_s`).
+```python
+from dsa110_contimg.database.hdf5_index import query_subband_groups
+groups = query_subband_groups(db_path, start, end, cluster_tolerance_s=60.0)
+```
+
+Tolerance is configured in `settings.conversion.cluster_tolerance_s`.
 
 ## Testing
 

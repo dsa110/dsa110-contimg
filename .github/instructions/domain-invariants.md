@@ -1,14 +1,12 @@
 ---
 description: Domain invariants and constants for DSA-110 continuum imaging
-applyTo: "**"
+applyTo: '**'
 ---
 
 # Domain Invariants
 
 - **Subbands**: Every observation group has 16 subbands (`sb00`-`sb15`). Never process a single subband alone.
-- **Grouping**:
-  - Preferred: exact `group_id` after normalization (streaming converter renames jittered files).
-  - Legacy: cluster within ±60 seconds tolerance when files are unnormalized.
+- **Grouping**: Use `query_subband_groups()` with `cluster_tolerance_s=60.0` to cluster files within ±60 seconds.
 - **File patterns**: `YYYY-MM-DDTHH:MM:SS_sbXX.hdf5`
 - **Active codebase**: Use `backend/src/dsa110_contimg/` (not legacy paths).
 - **Databases**:
@@ -28,4 +26,3 @@ applyTo: "**"
 - **MS writing**: Use direct/parallel subband writers (`conversion/strategies/writers.py`); `pyuvdata` writer is test-only.
 - **Environments**: Activate `casa6` for backend; Node 22+ for frontend.
 - **Safety**: Treat `pipeline.sqlite3` and streaming converter state as production; avoid destructive operations.
-

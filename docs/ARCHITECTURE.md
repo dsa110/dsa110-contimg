@@ -310,25 +310,18 @@ DSA-110 produces **16 subband files per observation** (`sb00`-`sb15`):
 
 **Critical**: Subbands may have slightly different timestamps (up to ±60s) due to correlator write timing jitter.
 
-#### Two Grouping Mechanisms
+#### Subband Grouping
 
-| Method                        | When Used           | How It Works                                    |
-| ----------------------------- | ------------------- | ----------------------------------------------- |
-| **Normalization** (Preferred) | Streaming converter | Renames files to canonical `group_id` on ingest |
-| **Time-Windowing** (Legacy)   | Batch processing    | Clusters files within 60s tolerance             |
-
-**Normalization**: Files are renamed on arrival so all 16 subbands share the same timestamp:
-
-```text
-2025-01-15T12:00:01_sb01.hdf5 → 2025-01-15T12:00:00_sb01.hdf5
-```
-
-**Time-Windowing**: Uses `query_subband_groups()` with `cluster_tolerance_s=60.0`:
+The pipeline uses **time-windowing** with 60-second tolerance to group subbands:
 
 ```python
 from dsa110_contimg.database.hdf5_index import query_subband_groups
 groups = query_subband_groups(db_path, start, end, cluster_tolerance_s=60.0)
 ```
+
+This clusters files where timestamps are within 60 seconds of each other into the same observation group.
+
+````
 
 ### Writer Selection
 
@@ -339,7 +332,7 @@ flowchart LR
   N -->|no| Par["parallel-subband<br/>(PRODUCTION)"]
   Par --> MS["Final MS"]
   Mono --> MS
-```
+````
 
 - **Production**: Always use `parallel-subband` writer (16 subbands)
 - **Testing**: `pyuvdata` writer for ≤2 subbands only

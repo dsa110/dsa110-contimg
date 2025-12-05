@@ -14,6 +14,14 @@
 
 **Before building anything new:** Query existing databases and code to understand what already exists.
 
+## AI Instruction Pack
+
+Use the companion instruction set as defaults for AI coding agents:
+- Charter with goals and priorities
+- Problem-solving playbook outlining the workflow
+- Coding standards, testing checklist, review self-check, and tooling usage guidance
+- Domain invariants, performance/scaling principles, security and data handling, debugging and logging practices, and example templates
+
 ## Project Overview
 
 **Development Branch**: `master-dev` in `/data/dsa110-contimg/`.
@@ -189,72 +197,39 @@ python -m dsa110_contimg.catalog.build_vla_calibrators \
 2025-10-05T12:30:00_sb15.hdf5
 ```
 
-**Filename Normalization (Preferred)**
+**Subband Grouping**
 
-The streaming converter automatically **normalizes filenames on ingest**. When a
-subband arrives with a slightly different timestamp, it's renamed to match the
-canonical group_id (first arrival wins):
-
-```
-# Correlator writes files with jittered timestamps:
-2025-01-15T12:00:00_sb00.hdf5  → 2025-01-15T12:00:00_sb00.hdf5  (canonical)
-2025-01-15T12:00:01_sb01.hdf5  → 2025-01-15T12:00:00_sb01.hdf5  (renamed)
-2025-01-15T12:00:02_sb02.hdf5  → 2025-01-15T12:00:00_sb02.hdf5  (renamed)
-```
-
-This enables **exact matching** by `group_id` without fuzzy time windows:
+The correlator may write subbands with slightly different timestamps (±60s jitter).
+The pipeline uses **time-windowing** to group files that belong together:
 
 ```python
-# After normalization - simple exact match
-from dsa110_contimg.conversion.streaming import normalize_directory
+from dsa110_contimg.database.hdf5_index import query_subband_groups
 
-# Batch normalize historical files
-stats = normalize_directory(Path("/data/incoming"), dry_run=True)
-print(f"Would rename {stats['files_renamed']} files")
-
-# Query by exact group_id
-cursor.execute("SELECT * FROM subband_files WHERE group_id = ?", (group_id,))
+groups = query_subband_groups(
+    db_path="/data/incoming/hdf5_file_index.sqlite3",
+    start_time="2025-01-15T00:00:00",
+    end_time="2025-01-15T23:59:59",
+    cluster_tolerance_s=60.0,  # Default 60s clustering tolerance
+)
+complete = [g for g in groups if len(g) == 16]
 ```
 
 See `docs/guides/storage-and-file-organization.md` for full details.
 
-**Legacy: Time-Windowing for Grouping**
-
-For unnormalized files, the pipeline uses **±60 second tolerance** to group
-subbands that belong together:
-
-```python
-# For unnormalized files - use time-windowing functions
-from dsa110_contimg.database.hdf5_index import query_subband_groups
-groups = query_subband_groups(
-    hdf5_db,
-    start_time,
-    end_time,
-    tolerance_s=1.0,           # Small window expansion for query
-    cluster_tolerance_s=60.0   # Default 60s clustering tolerance
-)
-```
-
-For filesystem-based grouping, use `find_subband_groups()` with `tolerance_s`
-parameter.
-
 ### Two Processing Modes
 
-1. **Batch Converter**
-   (`backend/src/dsa110_contimg/conversion/strategies/hdf5_orchestrator.py`):
+1. **Batch Converter** (`backend/src/dsa110_contimg/conversion/hdf5_orchestrator.py`):
 
    - For historical/archived data processing
    - Function:
      `convert_subband_groups_to_ms(input_dir, output_dir, start_time, end_time)`
-   - Groups files by timestamp, processes sequentially
+   - Groups files by timestamp (60s tolerance), processes sequentially
 
-2. **Streaming Converter**
-   (`backend/src/dsa110_contimg/conversion/streaming/streaming_converter.py`):
-   - Real-time daemon for live data ingest
-   - SQLite-backed queue with checkpoint recovery
-   - Run as systemd service (`ops/systemd/contimg-stream.service`)
-   - **States**: `collecting` :arrow_right: `pending` :arrow_right: `in_progress` :arrow_right: `completed`/`failed`
-   - **Performance tracking**: Records load/phase/write times per observation
+2. **ABSURD Ingestion** (`backend/src/dsa110_contimg/absurd/ingestion.py`):
+   - For scheduled/automated data ingest
+   - Uses PostgreSQL-backed task queue with durable execution
+   - Run via scheduler or API triggers
+   - **Note**: ABSURD is labeled EXPERIMENTAL
 
 ### Conversion Data Flow
 

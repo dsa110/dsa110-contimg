@@ -195,7 +195,22 @@ async def execute_record_subband(params: Dict[str, Any]) -> Dict[str, Any]:
         # If complete, spawn normalize-group task
         if group_complete:
             logger.info(f"[Absurd/Ingestion] Group {canonical_group_id} complete, spawning normalize task")
-            # Note: Task chaining handled by caller or via depends_on
+            from dsa110_contimg.absurd import AbsurdClient
+            from dsa110_contimg.absurd.config import AbsurdConfig
+            
+            config = AbsurdConfig.from_env()
+            async with AbsurdClient(config.database_url) as client:
+                await client.spawn_task(
+                    queue_name=config.queue_name,
+                    task_name="normalize-group",
+                    params={
+                        "inputs": {
+                            "group_id": canonical_group_id,
+                        }
+                    },
+                    priority=10,  # Higher priority than ingest tasks
+                )
+            logger.info(f"[Absurd/Ingestion] Spawned normalize-group task for {canonical_group_id}")
 
         return {
             "status": "success",
@@ -247,8 +262,11 @@ async def execute_normalize_group(params: Dict[str, Any]) -> Dict[str, Any]:
                 "errors": ["group_id not provided"],
             }
 
-        from dsa110_contimg.absurd.ingestion_db import get_group_files
+        from dsa110_contimg.absurd.ingestion_db import get_group_files, update_group_state
         from dsa110_contimg.conversion.streaming.normalize import normalize_subband_path
+
+        # Mark group as normalizing
+        await update_group_state(group_id, "normalizing")
 
         # Get all files in group
         files = await get_group_files(group_id)
@@ -317,6 +335,24 @@ async def execute_normalize_group(params: Dict[str, Any]) -> Dict[str, Any]:
             f"[Absurd/Ingestion] Normalized group {group_id} → {canonical_group_id} "
             f"({files_renamed} files renamed)"
         )
+
+        # Spawn convert-group task
+        from dsa110_contimg.absurd import AbsurdClient
+        from dsa110_contimg.absurd.config import AbsurdConfig
+        
+        config = AbsurdConfig.from_env()
+        async with AbsurdClient(config.database_url) as client:
+            await client.spawn_task(
+                queue_name=config.queue_name,
+                task_name="convert-group",
+                params={
+                    "inputs": {
+                        "group_id": canonical_group_id,
+                    }
+                },
+                priority=10,  # Higher priority
+            )
+        logger.info(f"[Absurd/Ingestion] Spawned convert-group task for {canonical_group_id}")
 
         return {
             "status": "success",
