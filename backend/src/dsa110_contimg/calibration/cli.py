@@ -11,9 +11,75 @@ import logging
 import os
 from typing import List, Optional
 
+import numpy as np
+
 logger = logging.getLogger(__name__)
 
 __all__ = ["run_calibrator"]
+
+
+def _validate_model_data_populated(ms_path: str, field: str) -> None:
+    """Validate that MODEL_DATA column is populated (not all zeros).
+
+    This is a critical precondition check - bandpass calibration will fail
+    silently or with confusing errors if MODEL_DATA is empty.
+
+    Args:
+        ms_path: Path to Measurement Set
+        field: Field selection string (e.g., "0" or "11~13")
+
+    Raises:
+        RuntimeError: If MODEL_DATA is all zeros or doesn't exist
+    """
+    import casacore.tables as ct
+
+    with ct.table(ms_path, readonly=True) as t:
+        if "MODEL_DATA" not in t.colnames():
+            raise RuntimeError(
+                "MODEL_DATA column not found in MS. "
+                "Model visibilities must be set before calibration."
+            )
+
+        # Parse field selection to get field indices
+        if "~" in str(field):
+            parts = str(field).split("~")
+            field_indices = list(range(int(parts[0]), int(parts[1]) + 1))
+        elif field.isdigit():
+            field_indices = [int(field)]
+        else:
+            field_indices = None  # Use all
+
+        # Read FIELD_ID to filter
+        field_id = t.getcol("FIELD_ID")
+
+        if field_indices is not None:
+            mask = np.isin(field_id, field_indices)
+            selected_rows = np.where(mask)[0]
+            if len(selected_rows) == 0:
+                raise RuntimeError(f"No rows found for field selection '{field}'")
+            # Sample from selected rows
+            sample_rows = selected_rows[:1000]
+        else:
+            sample_rows = list(range(min(1000, t.nrows())))
+
+        # Read MODEL_DATA for sample rows
+        model_sample = np.array([t.getcell("MODEL_DATA", int(r)) for r in sample_rows])
+        max_amp = np.nanmax(np.abs(model_sample))
+
+        if max_amp == 0:
+            raise RuntimeError(
+                f"MODEL_DATA is all zeros for field '{field}'. "
+                "This will cause bandpass calibration to fail. "
+                "Possible causes:\n"
+                "  - Calibrator flux not found in catalog\n"
+                "  - populate_model_from_catalog() failed silently\n"
+                "  - Wrong field selection"
+            )
+
+        logger.info(
+            "MODEL_DATA validation passed: max amplitude = %.3f Jy (field=%s)",
+            max_amp, field
+        )
 
 
 def run_calibrator(
@@ -83,6 +149,9 @@ def run_calibrator(
     except Exception as err:
         logger.error("Failed to set model visibilities: %s", err)
         raise RuntimeError(f"Model setup failed: {err}") from err
+
+    # VALIDATION: Verify MODEL_DATA is actually populated (not all zeros)
+    _validate_model_data_populated(ms_file, cal_field)
 
     # Step 2: K (delay) calibration (optional, not typically used for DSA-110)
     ktable = None

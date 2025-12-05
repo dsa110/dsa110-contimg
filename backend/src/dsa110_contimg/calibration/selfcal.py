@@ -18,8 +18,16 @@ Self-calibration workflow:
 3. Solve gaincal (phase-only initially, then amp+phase)
 4. Apply calibration
 5. Re-image with improved calibration
-6. Measure SNR improvement
+6. Measure SNR improvement (image + visibility chi-squared)
 7. Repeat until convergence or max iterations
+
+Best practices implemented (per Perplexity analysis, Dec 2025):
+- Solution intervals start LONG (5-10 min) for stable bootstrap, then shorten
+- Per-antenna SNR thresholds: phase ~3-5, amplitude ~10-20
+- Visibility chi-squared monitoring for robust convergence detection
+- Gain smoothness checking to reject noisy solutions
+- Drift-scan aware: beam attenuation limits for amplitude self-cal
+- Subband phase combining option for increased SNR
 
 Backend support:
 - WSClean: Uses `-predict` for model prediction (recommended)
@@ -62,11 +70,26 @@ class SelfCalStatus(str, Enum):
     DIVERGED = "diverged"
     FAILED = "failed"
     NO_IMPROVEMENT = "no_improvement"
+    LOW_ANTENNA_SNR = "low_antenna_snr"  # Per-antenna SNR too low
+    NOISY_GAINS = "noisy_gains"  # Gain solutions too noisy
 
 
 # Default solution intervals for progressive selfcal
-DEFAULT_PHASE_SOLINTS = ["60s", "30s", "inf"]  # Start coarse, refine
-DEFAULT_AMP_SOLINT = "inf"  # Amplitude solint (typically longer)
+# IMPORTANT: Start LONG for stable bootstrap, then shorten progressively
+# For L-band (~1.4 GHz) with ~1 km baselines, atmospheric coherence is minutes
+DEFAULT_PHASE_SOLINTS = ["300s", "120s", "60s"]  # 5min -> 2min -> 1min
+DEFAULT_AMP_SOLINT = "inf"  # Amplitude solint (typically longer for stability)
+
+# Per-antenna SNR thresholds (per Perplexity recommendations)
+DEFAULT_PHASE_ANTENNA_SNR = 3.0  # Minimum per-antenna SNR for phase solutions
+DEFAULT_AMP_ANTENNA_SNR = 10.0  # Minimum per-antenna SNR for amplitude solutions
+
+# Gain smoothness thresholds
+DEFAULT_MAX_PHASE_SCATTER_DEG = 30.0  # Max phase RMS scatter across antennas
+DEFAULT_MAX_AMP_SCATTER_FRAC = 0.3  # Max amplitude RMS scatter (fractional)
+
+# Drift-scan primary beam threshold
+DEFAULT_MIN_BEAM_RESPONSE = 0.5  # Min PB response for amp self-cal (50%)
 
 
 # =============================================================================

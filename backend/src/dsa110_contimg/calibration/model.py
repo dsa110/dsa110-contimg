@@ -612,6 +612,55 @@ def export_model_as_fits(
         raise
 
 
+def _get_calibrator_flux_from_catalog(catalog, calibrator_name: str) -> float:
+    """Get calibrator flux from catalog DataFrame.
+
+    Args:
+        catalog: VLA calibrator catalog DataFrame with 'flux_jy' column
+        calibrator_name: Calibrator name (e.g., "0834+555")
+
+    Returns:
+        Flux in Jy
+
+    Raises:
+        ValueError: If calibrator not found or flux not available
+    """
+    import pandas as pd
+
+    if calibrator_name not in catalog.index:
+        # Try case-insensitive search
+        key = calibrator_name.strip().upper()
+        for idx in catalog.index:
+            if str(idx).strip().upper() == key:
+                calibrator_name = idx
+                break
+        else:
+            raise ValueError(f"Calibrator '{calibrator_name}' not found in catalog")
+
+    row = catalog.loc[calibrator_name]
+    if isinstance(row, pd.DataFrame):
+        row = row.iloc[0]
+
+    if "flux_jy" not in row.index:
+        raise ValueError(
+            f"Catalog does not contain flux_jy column for '{calibrator_name}'. "
+            "Provide explicit flux with cal_flux_jy parameter."
+        )
+
+    flux_jy = row["flux_jy"]
+    if isinstance(flux_jy, pd.Series):
+        flux_jy = flux_jy.iloc[0]
+
+    flux_jy = float(flux_jy)
+    if np.isnan(flux_jy) or flux_jy <= 0:
+        raise ValueError(
+            f"Calibrator '{calibrator_name}' has invalid flux ({flux_jy}) in catalog. "
+            "Provide explicit flux with cal_flux_jy parameter."
+        )
+
+    return flux_jy
+
+
 def populate_model_from_catalog(
     ms_path: str,
     *,
@@ -633,10 +682,12 @@ def populate_model_from_catalog(
                         attempts to auto-detect from MS field names.
         cal_ra_deg: Optional explicit RA in degrees (overrides catalog lookup)
         cal_dec_deg: Optional explicit Dec in degrees (overrides catalog lookup)
-        cal_flux_jy: Optional explicit flux in Jy (default: 2.5 Jy if not in catalog)
+        cal_flux_jy: Optional explicit flux in Jy. If not provided, looks up
+                    from catalog. Raises ValueError if flux unavailable.
 
     Raises:
-        ValueError: If calibrator cannot be found or coordinates are invalid
+        ValueError: If calibrator cannot be found, coordinates are invalid,
+                   or flux is not available (neither in catalog nor explicit)
         RuntimeError: If MODEL_DATA population fails
     """
     from dsa110_contimg.calibration.catalogs import (
@@ -648,23 +699,33 @@ def populate_model_from_catalog(
     if field is None:
         field = "0"
 
-    # Determine calibrator coordinates
+    # Determine calibrator coordinates and flux
     if cal_ra_deg is not None and cal_dec_deg is not None:
-        # Use explicit coordinates
+        # Use explicit coordinates - flux MUST be provided
+        if cal_flux_jy is None:
+            raise ValueError(
+                "cal_flux_jy is required when using explicit coordinates. "
+                "No default flux is used to prevent silent calibration errors."
+            )
         ra_deg = float(cal_ra_deg)
         dec_deg = float(cal_dec_deg)
-        flux_jy = float(cal_flux_jy) if cal_flux_jy is not None else 2.5
+        flux_jy = float(cal_flux_jy)
         name = calibrator_name or f"manual_{ra_deg:.2f}_{dec_deg:.2f}"
         logger.info(
             f"Using explicit calibrator coordinates: {name} @ ({ra_deg:.4f}°, {dec_deg:.4f}°), {flux_jy:.2f} Jy"
         )
     elif calibrator_name:
-        # Look up from catalog
+        # Look up from catalog - get BOTH coordinates AND flux
         try:
             catalog = load_vla_catalog()
             ra_deg, dec_deg = get_calibrator_radec(catalog, calibrator_name)
-            # Try to get flux from catalog, default to 2.5 Jy
-            flux_jy = float(cal_flux_jy) if cal_flux_jy is not None else 2.5
+            # Get flux from catalog or use explicit override
+            if cal_flux_jy is not None:
+                flux_jy = float(cal_flux_jy)
+                logger.info(f"Using explicit flux override: {flux_jy:.2f} Jy")
+            else:
+                # Look up flux from catalog
+                flux_jy = _get_calibrator_flux_from_catalog(catalog, calibrator_name)
             name = calibrator_name
             logger.info(
                 f"Found calibrator in catalog: {name} @ ({ra_deg:.4f}°, {dec_deg:.4f}°), {flux_jy:.2f} Jy"
@@ -686,7 +747,11 @@ def populate_model_from_catalog(
                         if any(cal_name.lower() in str(name).lower() for name in field_names):
                             catalog = load_vla_catalog()
                             ra_deg, dec_deg = get_calibrator_radec(catalog, cal_name)
-                            flux_jy = float(cal_flux_jy) if cal_flux_jy is not None else 2.5
+                            # Get flux from catalog or use explicit override
+                            if cal_flux_jy is not None:
+                                flux_jy = float(cal_flux_jy)
+                            else:
+                                flux_jy = _get_calibrator_flux_from_catalog(catalog, cal_name)
                             name = cal_name
                             logger.info(
                                 f"Auto-detected calibrator from field names: {name} @ ({ra_deg:.4f}°, {dec_deg:.4f}°), {flux_jy:.2f} Jy"
