@@ -21,7 +21,7 @@ import numpy as np
 from astropy.io import fits
 from astropy.wcs import WCS
 
-from dsa110_contimg.api.batch_jobs import create_batch_photometry_job
+from dsa110_contimg.api.batch import create_batch_photometry_job
 from dsa110_contimg.database.data_registry import (
     ensure_data_registry_db,
     link_photometry_to_data,

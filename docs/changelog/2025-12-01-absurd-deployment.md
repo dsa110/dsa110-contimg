@@ -8,7 +8,7 @@
 
 ## Summary
 
-Deployed the ABSURD durable workflow/task queue manager with full backend 
+Deployed the ABSURD durable workflow/task queue manager with full backend
 infrastructure, frontend integration, and systemd service definitions.
 
 ## Changes
@@ -16,9 +16,10 @@ infrastructure, frontend integration, and systemd service definitions.
 ### Phase 1: Backend Infrastructure ✅
 
 **Migrated ABSURD Module:**
+
 - Copied 10 core files from `legacy.backend/` to `backend/src/dsa110_contimg/absurd/`:
   - `config.py` - Configuration dataclass
-  - `schema.sql` - PostgreSQL schema with stored procedures  
+  - `schema.sql` - PostgreSQL schema with stored procedures
   - `client.py` - Async PostgreSQL client (asyncpg)
   - `worker.py` - Task executor with WebSocket events
   - `scheduling.py` - Cron scheduling support
@@ -28,17 +29,20 @@ infrastructure, frontend integration, and systemd service definitions.
   - `__init__.py` - Package exports
 
 **Database Setup:**
+
 - PostgreSQL database: `dsa110_absurd` on port 5433
 - Schema: `absurd` with `tasks` table and stored procedures
 - Connection: Unix socket at `/var/run/postgresql`
 
 **Bug Fixes:**
+
 - Fixed ambiguous column reference in `claim_task()` stored procedure
   - Changed `ORDER BY priority DESC` to use table aliases
   - Renamed return column from `priority` to `task_priority`
   - Updated client.py to use new column name
 
 **API Integration:**
+
 - Registered `absurd_router` in FastAPI app (`api/app.py`)
 - Added lifecycle hooks for client initialization/shutdown
 - Fixed websocket import path in router
@@ -47,6 +51,7 @@ infrastructure, frontend integration, and systemd service definitions.
 ### Phase 2: Frontend Integration ✅
 
 **TypeScript Types (`frontend/src/types/absurd.ts`):**
+
 - Task, TaskStatus, TaskListResponse
 - QueueStats, Worker, WorkerState, WorkerListResponse, WorkerMetrics
 - AbsurdMetrics, AbsurdHealth, Alert, AlertLevel
@@ -54,6 +59,7 @@ infrastructure, frontend integration, and systemd service definitions.
 - SpawnTaskRequest, SpawnWorkflowRequest, CancelTaskRequest
 
 **API Client (`frontend/src/api/absurd.ts`):**
+
 - Task operations: spawnTask, getTask, listTasks, cancelTask, retryTask
 - Queue operations: getQueueStats, listQueues
 - Worker operations: listWorkers, getWorker, getWorkerMetrics
@@ -63,6 +69,7 @@ infrastructure, frontend integration, and systemd service definitions.
 - Utility: pruneTasks
 
 **React Query Hooks (`frontend/src/hooks/useAbsurdQueries.ts`):**
+
 - Query keys for cache invalidation
 - useTasks, useTask, useSpawnTask, useCancelTask, useRetryTask
 - useQueues, useQueueStats
@@ -73,24 +80,28 @@ infrastructure, frontend integration, and systemd service definitions.
 - usePruneTasks
 
 **Dashboard Page (`frontend/src/pages/WorkflowsPage.tsx`):**
+
 - HealthSection - System health status with alerts
 - QueueStatsSection - Pending/processing/completed/failed counts
 - WorkersSection - Worker list with state and uptime
 - TasksSection - Task list with cancel/retry actions
 
 **Navigation:**
+
 - Added `/workflows` route to `router.tsx`
 - Added "Workflows" to `NAV_ITEMS` in `constants/routes.ts`
 
 ### Phase 3: Worker Deployment ✅
 
 **Systemd Service Files:**
+
 - `ops/systemd/contimg-absurd-worker.service` - Single worker service
 - `ops/systemd/contimg-absurd-worker@.service` - Multi-worker template
 - `ops/systemd/absurd-cleanup.service` - Recovery file cleanup
 - `ops/systemd/absurd-cleanup.timer` - Daily cleanup timer
 
 **Test Script:**
+
 - `scripts/testing/test_absurd_worker.py` - Worker validation test
 - Spawns task, runs worker, verifies completion
 - Test passed successfully
@@ -138,6 +149,7 @@ scripts/testing/
 ## Pending
 
 **Enable Services (when ready):**
+
 ```bash
 # Copy service files
 sudo cp /data/dsa110-contimg/ops/systemd/contimg-absurd-worker.service /etc/systemd/system/
@@ -155,12 +167,14 @@ sudo systemctl status contimg-absurd-worker.service
 ## Verification
 
 **Backend API:**
+
 ```bash
 curl http://localhost:8787/absurd/health
 curl http://localhost:8787/absurd/queues/dsa110-pipeline/stats
 ```
 
 **Worker Test:**
+
 ```bash
 cd /data/dsa110-contimg/backend
 conda activate casa6
@@ -170,5 +184,4 @@ python scripts/testing/test_absurd_worker.py
 
 ## Related Documents
 
-- [ABSURD Deployment Plan](./absurd-deployment-plan.md) - Full deployment plan with appendices
-- [ABSURD Quickstart](./ABSURD_QUICKSTART.md) - Getting started guide
+- ABSURD Activation Guide: `backend/docs/ops/absurd-service-activation.md`

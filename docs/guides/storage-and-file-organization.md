@@ -51,6 +51,52 @@ The pipeline uses a tiered storage architecture optimized for different I/O patt
 > **⚠️ CRITICAL**: `/data/` is on HDD. Avoid I/O-intensive operations there.
 > Use `/scratch/` or `/stage/` for builds, processing, and temporary files.
 
+### Symlinks as Abstraction Layer
+
+The project uses symlinks for three distinct purposes:
+
+#### 1. Storage Tiering (`products/` → `/stage/`)
+
+Route heavy I/O to fast NVMe storage while keeping the codebase on HDD:
+
+```
+products/caltables  →  /stage/dsa110-contimg/caltables
+products/catalogs   →  /stage/dsa110-contimg/catalogs
+products/images     →  /stage/dsa110-contimg/images
+products/mosaics    →  /stage/dsa110-contimg/mosaics
+products/ms         →  /stage/dsa110-contimg/ms
+```
+
+Code references `products/ms`, but writes actually go to SSD. This is **performance-critical infrastructure**.
+
+#### 2. Path Convenience (`state/` internal)
+
+Provide shorter aliases within the `state/` directory:
+
+```
+state/ms             →  data/ms
+state/pointing       →  data/pointing
+state/skymodels      →  data/skymodels
+state/synth          →  data/synth
+state/transit_cache  →  cache/transit
+state/cfcache        →  cache/cf
+```
+
+Instead of `state/data/pointing`, code can use `state/pointing`. These are documented shortcuts that reduce path verbosity while maintaining a clean underlying hierarchy (`data/` for persistent, `cache/` for ephemeral).
+
+#### 3. Root Cleanliness (config organization)
+
+Keep configuration files organized while meeting tool requirements:
+
+```
+.husky              →  config/hooks/husky
+docker-compose.yml  →  ops/docker/docker-compose.yml
+```
+
+Tools like husky and docker-compose expect files at the repo root. Symlinks satisfy this while keeping actual files in organized subdirectories.
+
+> **Summary**: Symlinks serve as an abstraction layer between logical paths (what code references) and physical locations (where data actually lives), enabling performance optimization and organizational clarity without changing application code.
+
 ---
 
 ## Data Flow Through the Pipeline
