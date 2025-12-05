@@ -5,7 +5,7 @@ applyTo: "**"
 
 # Review Self-Check
 
-- **Ground truth**: Does the change match current code/data, not aspirational docs?
+- **Ground truth**: Does the change match current code and data, not aspirational docs?
 - **Behavior**: Can you explain inputs/outputs and failure modes? Any silent fallbacks?
 - **Safety**: Are production paths guarded? Are retries/timeouts/logging in place where needed?
 - **Data model**: Do queries/migrations align with existing schemas? No new stores without approval.

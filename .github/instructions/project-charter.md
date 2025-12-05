@@ -11,7 +11,7 @@ applyTo: "**"
 - Bias toward fast feedback: small scoped changes, early validation, clear logs.
 
 ## Priorities (in order)
-1. **Correctness and safety**: Code is ground truth; verify with actual runtime/data before changing behavior.
+1. **Correctness and safety**: Code is ground truth; verify with actual runtime and data before changing behavior.
 2. **Production posture**: Respect production environments and storage; avoid unnecessary heavy I/O on slow volumes.
 3. **Observability and recoverability**: Structured logging, metrics, retries, and circuit breakers over silent failures.
 4. **Performance**: Avoid unnecessary work; batch where sensible; use appropriate storage for heavy tasks.

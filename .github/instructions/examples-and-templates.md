@@ -5,90 +5,101 @@ applyTo: "**"
 
 # Examples and Templates
 
-## Fast UVH5 metadata read
+## Quick metadata read (context manager)
 ```python
-from dsa110_contimg.utils import FastMeta, get_uvh5_mid_mjd
+from pathlib import Path
+import json
 
-mid_mjd = get_uvh5_mid_mjd("/data/incoming/2025-01-15T12:00:00_sb00.hdf5")
-with FastMeta("/data/incoming/2025-01-15T12:00:00_sb00.hdf5") as meta:
-    times = meta.time_array
-    freqs = meta.freq_array
+def read_metadata(path: Path) -> dict:
+    with path.open() as f:
+        return json.load(f)
+
+source_path = Path("your_source_path")
+meta = read_metadata(source_path)
 ```
 
-## Grouping subbands (legacy tolerance)
+## Group items by time tolerance
 ```python
-from dsa110_contimg.database.hdf5_index import query_subband_groups
+from datetime import datetime, timedelta
+from typing import List, Dict
 
-groups = query_subband_groups(
-    db_path="/data/dsa110-contimg/state/db/pipeline.sqlite3",
-    start_time="2025-10-05T00:00:00",
-    end_time="2025-10-05T01:00:00",
-    tolerance_s=1.0,
-    cluster_tolerance_s=60.0,
-)
+def group_by_time(records: List[Dict], tolerance_seconds: float) -> List[List[Dict]]:
+    records = sorted(records, key=lambda r: r["timestamp"])
+    groups: List[List[Dict]] = []
+    current: List[Dict] = []
+
+    for record in records:
+        if current and (record["timestamp"] - current[-1]["timestamp"]) > timedelta(seconds=tolerance_seconds):
+            groups.append(current)
+            current = []
+        current.append(record)
+
+    if current:
+        groups.append(current)
+    return groups
 ```
 
-## Convert groups to MS (batch)
+## Batch process with retries and logging
 ```python
-from dsa110_contimg.conversion.strategies.hdf5_orchestrator import convert_subband_groups_to_ms
+import logging
+from typing import Iterable, Callable, Any
 
-convert_subband_groups_to_ms(
-    input_dir="/data/incoming",
-    output_dir="/stage/dsa110-contimg/ms",
-    start_time="2025-10-05T00:00:00",
-    end_time="2025-10-05T01:00:00",
-)
+logger = logging.getLogger(__name__)
+
+def process_batch(items: Iterable[Any], handler: Callable[[Any], None]) -> None:
+    for item in items:
+        try:
+            handler(item)
+        except Exception as exc:  # replace with specific exceptions
+            logger.error("item_failed", extra={"item": item, "error": str(exc)})
+            # optional: enqueue for retry/dead-letter handling
 ```
 
-## Streaming converter launch
-```bash
-PIPELINE_DB=/data/dsa110-contimg/state/db/pipeline.sqlite3 \
-python -m dsa110_contimg.conversion.streaming.streaming_converter \
-  --input-dir /data/incoming \
-  --output-dir /stage/dsa110-contimg/ms \
-  --scratch-dir /stage/dsa110-contimg/scratch \
-  --monitoring --monitor-interval 60
-```
-
-## Structured logging in pipeline components
+## Structured logging with correlation ID
 ```python
-from dsa110_contimg.pipeline.structured_logging import get_logger, set_correlation_id
+import logging
 
-logger = get_logger(__name__)
-set_correlation_id("corr-123")
+logger = logging.getLogger(__name__)
+correlation_id = "corr-123"
+
 logger.info(
-    "conversion_complete",
-    component="conversion",
-    group_id="2025-01-15T12:00:00",
-    output_ms="/stage/dsa110-contimg/ms/2025-01-15T12:00:00.ms",
+    "job_complete",
+    extra={
+        "component": "job_runner",
+        "correlation_id": correlation_id,
+        "output": "output_reference",
+    },
 )
 ```
 
-## Fast API test pattern
+## API test pattern
 ```python
 import pytest
 from fastapi.testclient import TestClient
-from dsa110_contimg.api.app import app
+from my_app import app  # replace with actual app
 
 @pytest.fixture(scope="module")
 def api_client():
     return TestClient(app)
 
-def test_get_image(api_client: TestClient):
-    resp = api_client.get("/api/v1/images/123")
+def test_endpoint(api_client: TestClient):
+    resp = api_client.get("/health")
     assert resp.status_code == 200
-    assert "id" in resp.json()
+    assert resp.headers.get("content-type", "").startswith("application/json")
 ```
 
 ## Frontend fetch hook pattern
 ```tsx
 import { useQuery } from '@tanstack/react-query';
-import { api } from '@/api/client';
 
-export function useImages() {
+export function useItems() {
   return useQuery({
-    queryKey: ['images'],
-    queryFn: async () => (await api.get('/api/v1/images')).data,
+    queryKey: ['items'],
+    queryFn: async () => {
+      const res = await fetch('/api/items');
+      if (!res.ok) throw new Error('Request failed');
+      return res.json();
+    },
   });
 }
 ```

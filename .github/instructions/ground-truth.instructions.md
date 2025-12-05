@@ -35,12 +35,12 @@ sqlite3 /data/dsa110-contimg/state/db/pipeline.sqlite3 "SELECT COUNT(*) FROM <ta
 
 ## 4. System Status Awareness
 
-| System              | Status           | Database                   |
-| ------------------- | ---------------- | -------------------------- |
-| pipeline.sqlite3    | **PRODUCTION**   | SQLite                     |
-| hdf5_file_index     | **PRODUCTION**   | SQLite (/data/incoming/)   |
-| batch conversion    | **PRODUCTION**   | Uses hdf5_file_index       |
-| ABSURD ingestion    | **EXPERIMENTAL** | PostgreSQL + pipeline.sqlite3 |
+| System           | Status           | Database                      |
+| ---------------- | ---------------- | ----------------------------- |
+| pipeline.sqlite3 | **PRODUCTION**   | SQLite                        |
+| hdf5_file_index  | **PRODUCTION**   | SQLite (/data/incoming/)      |
+| batch conversion | **PRODUCTION**   | Uses hdf5_file_index          |
+| ABSURD ingestion | **EXPERIMENTAL** | PostgreSQL + pipeline.sqlite3 |
 
 When in doubt about a subsystem's status, check:
 

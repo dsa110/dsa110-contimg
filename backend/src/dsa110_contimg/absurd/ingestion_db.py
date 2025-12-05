@@ -349,7 +349,7 @@ async def update_group_state(
             SET state = $2,
                 updated_at = NOW(),
                 completed_at = CASE WHEN $2 IN ('completed', 'failed') THEN NOW() ELSE completed_at END,
-                error = $3,
+                error_message = $3,
                 ms_path = $4
             WHERE group_id = $1
             """,
