@@ -302,8 +302,7 @@ class EmojiReplacer:
             ".git", "__pycache__", "node_modules", ".pytest_cache",
             ".coverage", ".mypy_cache", "dist", "build", ".venv", "venv",
             ".egg-info", ".idea", ".vscode", ".DS_Store", ".codacy",
-            ".local", "archive",  # Note: legacy.backend and legacy.frontend are now included
-            "vendor", "benchmarks", ".venv-docs",  # Exclude large vendor directories
+            "archive", "vendor", "benchmarks", ".venv-docs",
         }
         
         self.ignore_files = {
