@@ -101,6 +101,7 @@ src = ["src", "tests"]
 select = ["E", "F", "W", "I"]
 ignore = [
     "E501",  # Line too long - handled by formatter with line-length setting
+    "E402",  # Module level import not at top - intentional for CASA path initialization
 ]
 
 [tool.ruff.format]

@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import ipaddress
 import os
+from contextlib import asynccontextmanager
 from datetime import datetime
 from pathlib import Path
 
@@ -20,6 +21,17 @@ from fastapi import Depends, FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError
+from slowapi.errors import RateLimitExceeded
+
+# Mosaic API router (ABSURD-governed pipeline)
+from dsa110_contimg.mosaic import configure_mosaic_api, mosaic_router
+
+from .auth import require_auth
+from .client_ip import get_client_ip
+from .config import get_config
+from .exceptions import ProcessingError
+from .middleware import add_exception_handlers
+from .rate_limit import limiter, rate_limit_exceeded_handler
 
 # Allowed IP addresses/networks for API access
 # Can be overridden with DSA110_ALLOWED_IPS environment variable (comma-separated)
@@ -81,21 +93,7 @@ def is_ip_allowed(client_ip: str, allowed_networks: list, special_hosts: set = N
         return False
 
 
-# Lifespan context manager for startup/shutdown events
-from contextlib import asynccontextmanager
-
-from slowapi.errors import RateLimitExceeded
-
-# Mosaic API router (ABSURD-governed pipeline)
-from dsa110_contimg.mosaic import configure_mosaic_api, mosaic_router
-
-from .auth import require_auth
-from .client_ip import get_client_ip
-from .config import get_config
-from .exceptions import ProcessingError
-from .middleware import add_exception_handlers
-from .rate_limit import limiter, rate_limit_exceeded_handler
-from .routes import (
+from .routes import (  # noqa: E402
     absurd_router,
     alert_policies_router,
     auth_router,
@@ -128,7 +126,7 @@ from .routes import (
     triggers_router,
     vo_export_router,
 )
-from .websocket import ws_router
+from .websocket import ws_router  # noqa: E402
 
 
 @asynccontextmanager
@@ -210,8 +208,6 @@ async def lifespan(app: FastAPI):
     # Shutdown ABSURD client
     try:
         if getattr(app.state, "absurd_enabled", False):
-            from .routes.absurd import shutdown_absurd_client
-
             await shutdown_absurd_client()
             logger.info("ABSURD client shutdown complete")
     except Exception as e:

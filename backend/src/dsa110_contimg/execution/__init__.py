@@ -44,15 +44,6 @@ Example:
         print(f"Error {result.error_code}: {result.message}")
 """
 
-# Import adapter functions LAST to avoid circular imports
-# (adapter.py imports ExecutionTask and get_executor from this module)
-from dsa110_contimg.execution.adapter import (  # noqa: E402, I001
-    convert_group_inprocess,
-    convert_group_subprocess,
-    convert_group_unified,
-    create_task_from_group,
-    execute_conversion,
-)
 from dsa110_contimg.execution.errors import (
     ErrorCode,
     ExecutionError,
@@ -81,6 +72,16 @@ from dsa110_contimg.execution.task import (
 from dsa110_contimg.execution.validate import (
     ValidationResult,
     validate_execution_task,
+)
+
+# Import adapter functions LAST to avoid circular imports
+# (adapter.py imports ExecutionTask and get_executor from this module)
+from dsa110_contimg.execution.adapter import (  # noqa: E402, I001
+    convert_group_inprocess,
+    convert_group_subprocess,
+    convert_group_unified,
+    create_task_from_group,
+    execute_conversion,
 )
 
 __all__ = [
