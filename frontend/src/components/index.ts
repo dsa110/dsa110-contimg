@@ -66,7 +66,13 @@ export type {
 // =============================================================================
 
 export { default as AppLayout } from "./layout/AppLayout";
-export { default as ProtectedRoute } from "./layout/ProtectedRoute";
+
+// =============================================================================
+// Auth (including ProtectedRoute)
+// =============================================================================
+
+export { ProtectedRoute } from "./common/auth";
+export type { ProtectedRouteProps } from "./common/auth";
 
 // =============================================================================
 // Log Viewer

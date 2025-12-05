@@ -72,8 +72,11 @@ export type { UseLogTailOptions, UseLogTailResult } from "./logs";
 
 export {
   storageKeys,
+  getStorageSummary,
+  getCleanupRecommendations,
+  getStorageTrends,
   useStorageSummary,
-  useCleanupCandidates,
+  useCleanupRecommendations,
   useStorageTrends,
 } from "./storage";
 
@@ -125,14 +128,13 @@ export type {
 // =============================================================================
 
 export {
-  useRetentionPolicies,
-  useRetentionPolicy,
-  useCreateRetentionPolicy,
-  useUpdateRetentionPolicy,
-  useDeleteRetentionPolicy,
-  useSimulateRetention,
-  useExecuteRetention,
-  useRetentionStats,
+  listRetentionPolicies,
+  createRetentionPolicy,
+  updateRetentionPolicy,
+  deleteRetentionPolicy,
+  simulateRetentionPolicy,
+  executeRetentionPolicy,
+  listRetentionExecutions,
 } from "./retention";
 
 // =============================================================================
@@ -161,14 +163,33 @@ export {
   triggerKeys,
   useTriggers,
   useTrigger,
+  useTriggerExecutions,
+  useRecentExecutions,
+  useAvailablePipelines,
   useCreateTrigger,
   useUpdateTrigger,
   useDeleteTrigger,
-  useEnableTrigger,
-  useDisableTrigger,
-  useTriggerHistory,
+  useToggleTrigger,
+  useExecuteTrigger,
   useTestTrigger,
-  useTriggerTypes,
+  formatTriggerEvent,
+  getTriggerEventIcon,
+  formatConditionOperator,
+  formatCronExpression,
+  calculateSuccessRate,
+} from "./triggers";
+export type {
+  TriggerEvent,
+  TriggerStatus,
+  ExecutionStatus,
+  ConditionOperator,
+  TriggerCondition,
+  ScheduleConfig,
+  PipelineTrigger,
+  TriggerExecution,
+  CreateTriggerRequest,
+  UpdateTriggerRequest,
+  AvailablePipeline,
 } from "./triggers";
 
 // =============================================================================
@@ -177,13 +198,31 @@ export {
 
 export {
   voExportKeys,
-  useVOExportFormats,
-  useVOExportTargets,
-  useStartVOExport,
-  useVOExportStatus,
-  useCancelVOExport,
-  useVOExportHistory,
+  useExportJobs,
+  useExportJob,
+  useExportColumns,
+  useExportPreview,
+  useCreateExport,
+  useDeleteExport,
+  useConeSearch,
   useTAPQuery,
+  useTAPQueryStatus,
+  formatVOFormat,
+  getFormatExtension,
+  formatDataType,
+  formatFileSize,
+} from "./vo-export";
+export type {
+  VOFormat,
+  ExportStatus,
+  ExportDataType,
+  ExportFilter,
+  ExportJob,
+  CreateExportRequest,
+  ExportColumn,
+  ExportPreview,
+  TAPResult,
+  ConeSearchResult,
 } from "./vo-export";
 
 // =============================================================================
@@ -205,6 +244,8 @@ export {
   useDeleteSession,
   useNotebookTemplates,
   useLaunchNotebook,
+  useJupyterStats,
+  useJupyterUrl,
 } from "./jupyter";
 export type {
   JupyterKernel,
@@ -226,10 +267,23 @@ export {
   useCreateSavedQuery,
   useUpdateSavedQuery,
   useDeleteSavedQuery,
-  useShareSavedQuery,
-  serializeQuery,
-  deserializeQuery,
+  useRecordQueryUsage,
+  serializeFilters,
+  parseFilters,
   generateShareableUrl,
+  filtersEqual,
+  getFilterSummary,
+  getVisibilityLabel as getQueryVisibilityLabel,
+  getVisibilityIcon as getQueryVisibilityIcon,
+} from "./savedQueries";
+export type {
+  QueryVisibility,
+  QueryContext,
+  SavedQuery,
+  SaveQueryRequest,
+  SavedQueryFilters,
+  PaginationInfo,
+  SavedQueriesResponse,
 } from "./savedQueries";
 
 // =============================================================================
