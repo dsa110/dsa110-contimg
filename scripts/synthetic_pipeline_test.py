@@ -687,6 +687,24 @@ def main():
         action="store_true",
         help="Keep output directory on success (default: clean up)",
     )
+    parser.add_argument(
+        "--niter",
+        type=int,
+        default=0,
+        help="Number of CLEAN iterations (default: 0 for dirty image)",
+    )
+    parser.add_argument(
+        "--size",
+        type=int,
+        default=512,
+        help="Image size in pixels (default: 512)",
+    )
+    parser.add_argument(
+        "--scale",
+        type=str,
+        default="1arcmin",
+        help="Pixel scale (default: 1arcmin for faster imaging)",
+    )
     args = parser.parse_args()
 
     # Setup output directory
@@ -742,7 +760,13 @@ def main():
         # Step 4: Imaging
         image_path = None
         if ms_path and not args.skip_imaging:
-            image_path = run_imaging(ms_path, image_dir)
+            image_path = run_imaging(
+                ms_path,
+                image_dir,
+                niter=args.niter,
+                size=args.size,
+                scale=args.scale,
+            )
 
         # Step 5: Verify results
         results = verify_results(uvh5_files, ms_path, caltable_path, image_path)
