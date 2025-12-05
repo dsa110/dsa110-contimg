@@ -11,30 +11,33 @@ This module produces FITS images from calibrated Measurement Sets using:
 
 ## Key Files
 
-| File             | Purpose                                  |
-| ---------------- | ---------------------------------------- |
-| `wsclean.py`     | WSClean wrapper and parameter management |
-| `tclean.py`      | CASA tclean wrapper                      |
-| `image_utils.py` | FITS image utilities                     |
-| `beam.py`        | Primary beam calculations                |
+| File               | Purpose                              |
+| ------------------ | ------------------------------------ |
+| `fast_imaging.py`  | WSClean wrapper for snapshot imaging |
+| `spw_imaging.py`   | Spectral window imaging utilities    |
+| `gpu_gridding.py`  | GPU-accelerated gridding             |
+| `masks.py`         | Clean mask generation                |
+| `export.py`        | FITS export utilities                |
+| `catalog_tools.py` | Source catalog integration           |
+| `worker.py`        | Imaging worker daemon                |
+| `cli.py`           | Command-line interface               |
 
 ## Quick Usage
 
 ```python
-from dsa110_contimg.imaging.wsclean import run_wsclean
+from dsa110_contimg.imaging.fast_imaging import run_wsclean_snapshots
 
-# Basic imaging
-run_wsclean(
+# Snapshot imaging with WSClean
+images = run_wsclean_snapshots(
     ms_path="/path/to/observation.ms",
-    output_prefix="/path/to/output",
-    size=4096,
-    scale="1asec",
+    output_dir="/path/to/output",
+    n_intervals=24,  # One per 12.88s field
 )
 ```
 
 ## WSClean Parameters
 
-Common parameters for DSA-110:
+Common parameters for DSA-110 (in `fast_imaging.py`):
 
 ```python
 {
