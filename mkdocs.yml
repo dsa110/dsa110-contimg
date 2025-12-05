@@ -62,123 +62,46 @@ extra:
 
 nav:
   - Home: index.md
+  - Quick Start: QUICKSTART.md
   - System Context: SYSTEM_CONTEXT.md
   - Code Map: CODE_MAP.md
 
-  - Architecture:
-      - Overview: architecture/index.md
-      - Glossary: architecture/GLOSSARY.md
-      - System Design:
-          - Architecture: architecture/architecture/architecture.md
-          - Directory Structure: architecture/architecture/DIRECTORY_ARCHITECTURE.md
-          - Modules: architecture/architecture/modules.md
-          - MS Organization: architecture/architecture/ms_organization.md
-          - Performance: architecture/architecture/performance_considerations.md
-      - Pipeline:
-          - Overview: architecture/pipeline/pipeline_overview.md
-          - Stage Architecture: architecture/pipeline/pipeline_stage_architecture.md
-          - Production Features: architecture/pipeline/pipeline_production_features.md
-          - Patterns: architecture/pipeline/pipeline_patterns.md
-          - Streaming Architecture: architecture/pipeline/streaming-architecture.md
-      - Dashboard:
-          - Architecture: architecture/dashboard/dashboard_architecture.md
-          - Frontend Architecture: architecture/dashboard/dashboard_frontend_architecture.md
-          - Frontend Design: architecture/dashboard/frontend_design.md
-          - Control Panel: architecture/dashboard/control-panel.md
-          - Data Models: architecture/dashboard/dashboard_data_models.md
-          - Error Handling: architecture/dashboard/dashboard_error_handling.md
+  - Core Documentation:
+      - Architecture: ARCHITECTURE.md
+      - Developer Guide: DEVELOPER_GUIDE.md
+      - API Reference: API_REFERENCE.md
+      - Troubleshooting: TROUBLESHOOTING.md
 
   - Guides:
       - Overview: guides/index.md
-      - Quickstarts:
-          - Absurd Quickstart: guides/ABSURD_QUICKSTART.md
-          - Dashboard Quickstart: guides/dashboard/dashboard-quickstart.md
-          - Control Panel Quickstart: guides/dashboard/control-panel-quickstart.md
-      - Workflow:
-          - Streaming Guide: guides/workflow/streaming.md
-          - Streaming Converter: guides/workflow/streaming_converter_guide.md
-          - Streaming Troubleshooting: guides/workflow/streaming-troubleshooting.md
-          - Batch Mode: guides/workflow/batch_mode_guide.md
-          - Mosaic Creation: guides/workflow/batch_mosaic_creation.md
-          - Mosaic: guides/workflow/mosaic.md
-          - Orchestrator Usage: guides/workflow/mosaic_orchestrator_usage.md
-          - Using Orchestrator CLI: guides/workflow/using_orchestrator_cli.md
-          - Absurd Quick Start: guides/workflow/absurd_quick_start.md
-          - Calibration: guides/calibration.md
-          - Imaging: guides/imaging.md
-          - Mosaicking: guides/mosaicking.md
-          - Visualization: guides/visualization.md
-      - Dashboard:
-          - Overview: guides/dashboard.md
-          - Quickstart: guides/dashboard/dashboard-quickstart.md
-          - Control Panel Quickstart: guides/dashboard/control-panel-quickstart.md
-          - Development Workflow: guides/dashboard/dashboard_development_workflow.md
-          - Deployment: guides/dashboard/dashboard_deployment.md
-          - Persistent Dashboard: guides/dashboard/persistent-dashboard.md
-          - CARTA Testing: guides/dashboard/carta_testing_guide.md
-          - CARTA Port Allocation: guides/dashboard/carta_port_allocation.md
-          - CARTA WebSocket: guides/dashboard/carta_websocket_enhancements.md
-          - Enable CARTA Production: guides/dashboard/enable-carta-production.md
-          - Pointing Visualization: guides/dashboard/pointing-visualization.md
-          - Pointing Monitor: guides/dashboard/pointing-monitor-deployment.md
-          - Troubleshooting Blank Page: guides/dashboard/TROUBLESHOOTING_DASHBOARD_BLANK_PAGE.md
-          - Run Frontend Tests: guides/dashboard/run-all-frontend-tests.md
-          - Path Map: guides/dashboard/DASHBOARD_PATH_MAP.md
-      - Error Handling:
-          - Resilience: guides/error-handling/error-handling-resilience.md
-          - Warning Detection: guides/error-handling/warning-detection.md
       - Storage & Files: guides/storage-and-file-organization.md
-      - Configuration:
-          - Pipeline Configuration: guides/configuration/pipeline_configuration.md
-      - Benchmarking: guides/benchmarking.md
-      - Contributing:
-          - Overview: guides/contributing/index.md
+      - Dashboard: guides/dashboard.md
+      - Calibration: guides/calibration.md
+      - Imaging: guides/imaging.md
+      - Mosaicking: guides/mosaicking.md
+      - Visualization: guides/visualization.md
+      - Finding Calibrator Transit: guides/Finding_and_Imaging_Peak_Transit_of_0834_555.md
 
-  - Reference:
-      - Overview: reference/README.md
-      - API:
-          - Endpoints: reference/api-endpoints.md
-          - API Reference: reference/api_reference.md
-          - Dashboard API: reference/dashboard_backend_api.md
-          - Pipeline API: reference/pipeline-api.md
-          - Streaming API: reference/streaming-api.md
-          - Validation API: reference/validation_api.md
-      - CLI: reference/cli.md
-      - Databases:
-          - Reference Index: reference/DATABASE_REFERENCE_INDEX.md
-          - Schema: reference/database_schema.md
-      - Calibration:
-          - Overview: reference/calibration-overview.md
-          - Current Procedure: reference/CURRENT_CALIBRATION_PROCEDURE.md
-      - Catalogs:
-          - Usage Guide: reference/CATALOG_USAGE_GUIDE.md
-      - Environment: reference/env.md
-      - Control Panel Cheatsheet: reference/control-panel-cheatsheet.md
-      - Agent Guidelines: reference/agent_guidelines.md
-      - MCP Tools: reference/mcp-tools.md
-      - Local Doc Search: reference/docsearch.md
-
-  - Testing:
-      - Overview: testing/index.md
-      - Current Status: testing/CURRENT_STATUS.md
-
-  - Troubleshooting:
-      - Docker WSClean: troubleshooting/docker_wsclean_known_issue.md
-      - WSClean Debugging: troubleshooting/wsclean_docker_debugging_steps.md
-      - MS Permission Errors: troubleshooting/ms_permission_errors.md
-      - Frontend Restart: troubleshooting/frontend-restart-needed.md
-      - Frontend API Audit: troubleshooting/frontend_api_audit_report.md
-      - Known Issues:
-          - Image Metadata: troubleshooting/known-issues/image-metadata-population.md
+  - Operations:
+      - Runbook: operations/RUNBOOK.md
 
   - Deployment:
-      - CARTA: deployment/carta.md
       - Calibrators Migration: deployment/CALIBRATORS_MIGRATION.md
+
+  - Design:
+      - CASANGI Integration: design/CASANGI_INTEGRATION_PLAN.md
+      - Execution Unification: design/EXECUTION_UNIFICATION_PLAN.md
 
   - Examples:
       - Real World Examples: examples/real_world_examples.md
 
+  - Changelog:
+      - 2025-12-03 Visualization: changelog/2025-12-03-visualization-and-nightly-mosaics.md
+      - 2025-12-01 ABSURD: changelog/2025-12-01-absurd-deployment.md
+      - 2025-11-27 Frontend: changelog/2025-11-27-frontend-routing.md
+
   - Development:
       - Roadmap: DEVELOPMENT_ROADMAP.md
-      - Runtime Analysis: RUNTIME_ANALYSIS_REPORT.md
-      - Documentation Audit: DOCUMENTATION_AUDIT.md
+      - Production Readiness: PRODUCTION_READINESS_ROADMAP.md
+      - GPU Implementation: GPU_implementation_plan.md
+      - Storybook: STORYBOOK.md
