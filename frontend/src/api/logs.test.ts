@@ -96,7 +96,7 @@ describe("logs API helpers", () => {
 
     const result = await fetchLogs({ q: "timeout" });
 
-    expect(mockedClient.get).toHaveBeenCalledWith("/v1/logs/search", {
+    expect(mockedClient.get).toHaveBeenCalledWith("/logs/search", {
       params: { q: "timeout" },
     });
     expect(result).toEqual(mockResponse);
@@ -300,7 +300,7 @@ describe("useLogs pagination hook", () => {
     expect(result.current.data?.pages).toHaveLength(1);
     expect(result.current.data?.pages[0].entries).toHaveLength(2);
     expect(result.current.hasNextPage).toBe(true);
-    expect(mockedClient.get).toHaveBeenCalledWith("/v1/logs/search", {
+    expect(mockedClient.get).toHaveBeenCalledWith("/logs/search", {
       params: { "labels.service": "api", limit: 2 },
     });
   });

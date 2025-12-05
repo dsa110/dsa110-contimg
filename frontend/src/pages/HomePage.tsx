@@ -130,7 +130,7 @@ const HomePage: React.FC = () => {
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div className="space-y-3">
               <p className="text-xs uppercase tracking-[0.3em] text-slate-300">
-                DSA-110 Continuum Imaging
+                DSA-110 Continuum Imaging Pipeline
               </p>
               <h1 className="text-3xl font-semibold leading-tight sm:text-4xl">
                 Operational Dashboard
@@ -204,7 +204,11 @@ const HomePage: React.FC = () => {
         </div>
         {pointings.length > 0 ? (
           <div className="card-body p-0">
-            <SkyCoverageMapVAST pointings={pointings} height={450} />
+            <SkyCoverageMapVAST
+              pointings={pointings}
+              height={450}
+              totalImages={images?.length}
+            />
           </div>
         ) : (
           <p

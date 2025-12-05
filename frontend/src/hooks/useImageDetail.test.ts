@@ -191,7 +191,7 @@ describe("useImageDetail", () => {
       });
 
       expect(apiClient.delete).toHaveBeenCalledWith(
-        "/v1/images/test-image-123",
+        "/images/test-image-123",
         expect.anything()
       );
       expect(window.location.href).toBe("/images");
@@ -244,7 +244,7 @@ describe("useImageDetail", () => {
       });
 
       expect(apiClient.post).toHaveBeenCalledWith(
-        "/v1/images/test-image-123/rating",
+        "/images/test-image-123/rating",
         {
           itemId: "test-image-123",
           confidence: "true",

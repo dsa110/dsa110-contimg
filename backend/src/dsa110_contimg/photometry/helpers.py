@@ -56,8 +56,10 @@ def get_field_center_from_fits(fits_path: Path) -> Tuple[float, float]:
                             ra, dec = result[0], result[1]
                         else:
                             ra, dec = float(result[0]), float(result[1])
+                        # Normalize RA to [0, 360) range for astronomical convention
+                        ra = float(ra) % 360.0
                         logger.debug(f"Extracted field center from WCS: RA={ra:.6f}, Dec={dec:.6f}")
-                        return (float(ra), float(dec))
+                        return (ra, float(dec))
         except (ValueError, TypeError, AttributeError, KeyError) as e:
             logger.debug(f"WCS extraction failed, trying CRVAL: {e}")
 
@@ -66,8 +68,10 @@ def get_field_center_from_fits(fits_path: Path) -> Tuple[float, float]:
             ra = hdr.get("CRVAL1")
             dec = hdr.get("CRVAL2")
             if ra is not None and dec is not None:
+                # Normalize RA to [0, 360) range for astronomical convention
+                ra = float(ra) % 360.0
                 logger.debug(f"Extracted field center from CRVAL: RA={ra:.6f}, Dec={dec:.6f}")
-                return (float(ra), float(dec))
+                return (ra, float(dec))
         except (ValueError, TypeError) as e:
             logger.debug(f"CRVAL extraction failed: {e}")
 

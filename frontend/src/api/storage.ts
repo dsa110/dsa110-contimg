@@ -12,7 +12,7 @@ import type {
   StorageTrend,
 } from "../types/storage";
 
-const BASE_PATH = "/v1/health/storage";
+const BASE_PATH = "/health/storage";
 
 // =============================================================================
 // Query Keys

@@ -16,7 +16,7 @@ import type {
   AlertsResponse,
 } from "../types/health";
 
-const BASE_PATH = "/v1/health";
+const BASE_PATH = "/health";
 
 // =============================================================================
 // Query Keys

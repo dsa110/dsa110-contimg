@@ -5,12 +5,12 @@ import react from "@vitejs/plugin-react";
 const CSP_DIRECTIVES = [
   "default-src 'self'",
   // Allow images from Aladin HiPS servers, JS9, and data URIs
-  "img-src 'self' data: blob: https://js9.si.edu https://aladin.cds.unistra.fr https://alasky.cds.unistra.fr https://alasky.u-strasbg.fr",
+  "img-src 'self' data: blob: https://js9.si.edu https://*.unistra.fr https://*.cds.unistra.fr https://*.u-strasbg.fr https://alaskybis.cds.unistra.fr https://alaskybis.u-strasbg.fr https://alasky.cds.unistra.fr https://alasky.u-strasbg.fr",
   "style-src 'self' 'unsafe-inline' https://js9.si.edu",
   // Allow scripts from JS9 and CDNs, plus WASM for Aladin
-  "script-src 'self' 'wasm-unsafe-eval' https://js9.si.edu https://cdnjs.cloudflare.com https://aladin.cds.unistra.fr",
+  "script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval' https://js9.si.edu https://cdnjs.cloudflare.com https://aladin.cds.unistra.fr",
   // Allow connections to local servers and Aladin HiPS tile servers
-  "connect-src 'self' http://127.0.0.1:* http://localhost:* ws://localhost:* ws://127.0.0.1:* https://aladin.cds.unistra.fr https://alasky.cds.unistra.fr https://alasky.u-strasbg.fr https://cdsweb.u-strasbg.fr",
+  "connect-src 'self' http://127.0.0.1:* http://localhost:* ws://localhost:* ws://127.0.0.1:* https://*.unistra.fr https://*.cds.unistra.fr https://*.u-strasbg.fr https://alaskybis.cds.unistra.fr https://alaskybis.u-strasbg.fr https://alasky.cds.unistra.fr https://alasky.u-strasbg.fr https://cdsweb.u-strasbg.fr",
   "worker-src 'self' blob:",
   "object-src 'none'",
   "frame-ancestors 'self'",

@@ -73,11 +73,23 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
         setIsLoading(true);
         destroyInstance();
 
+        // Check WebGL2 support first
+        const canvas = document.createElement("canvas");
+        const gl = canvas.getContext("webgl2");
+        if (!gl) {
+          throw new Error(
+            "WebGL2 is not supported in this browser. Aladin Lite requires WebGL2."
+          );
+        }
+
         // Initialize the Aladin Lite WASM module
+        console.log("[AladinLite] Initializing WASM module...");
         await A.init;
+        console.log("[AladinLite] WASM module initialized successfully");
 
         if (cancelled) return;
 
+        console.log("[AladinLite] Creating aladin viewer for target:", target);
         aladinRef.current = A.aladin(containerRef.current, {
           target,
           fov: currentFovRef.current,
@@ -91,6 +103,7 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
           showCatalog: true,
           showFrame: true,
         });
+        console.log("[AladinLite] Viewer created successfully");
 
         // Add source marker if sourceName is provided
         if (sourceNameRef.current) {
@@ -106,6 +119,7 @@ const AladinLiteViewer: React.FC<AladinLiteViewerProps> = ({
         }
         setIsLoading(false);
       } catch (err) {
+        console.error("[AladinLite] Initialization error:", err);
         if (!cancelled) {
           setError(
             err instanceof Error ? err.message : "Failed to load sky viewer"

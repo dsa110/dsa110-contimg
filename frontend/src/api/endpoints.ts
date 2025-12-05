@@ -37,51 +37,51 @@ export const API_BASES = {
 
 export const HEALTH_ENDPOINTS = {
   /** System-wide health status */
-  system: "/v1/health/system",
+  system: "/health/system",
   /** Docker container health */
-  docker: (containerName: string) => `/v1/health/docker/${containerName}`,
+  docker: (containerName: string) => `/health/docker/${containerName}`,
   /** Systemd service health */
-  systemd: (serviceName: string) => `/v1/health/systemd/${serviceName}`,
+  systemd: (serviceName: string) => `/health/systemd/${serviceName}`,
   /** Database connectivity */
-  databases: "/v1/health/databases",
+  databases: "/health/databases",
   /** Active calibration validity windows */
-  validityWindows: "/v1/health/validity-windows",
+  validityWindows: "/health/validity-windows",
   /** Validity windows timeline view */
-  validityTimeline: "/v1/health/validity-windows/timeline",
+  validityTimeline: "/health/validity-windows/timeline",
   /** Flux monitoring summary */
-  fluxMonitoring: "/v1/health/flux-monitoring",
+  fluxMonitoring: "/health/flux-monitoring",
   /** Flux monitoring history for a calibrator */
   fluxHistory: (calibratorName: string) =>
-    `/v1/health/flux-monitoring/${calibratorName}/history`,
+    `/health/flux-monitoring/${calibratorName}/history`,
   /** Trigger flux monitoring check */
-  fluxMonitoringCheck: "/v1/health/flux-monitoring/check",
+  fluxMonitoringCheck: "/health/flux-monitoring/check",
   /** Active alerts */
-  alerts: "/v1/health/alerts",
+  alerts: "/health/alerts",
   /** Calibration health overview */
-  calibration: "/v1/health/calibration",
+  calibration: "/health/calibration",
   /** Nearest calibration solutions */
-  calibrationNearest: "/v1/health/calibration/nearest",
+  calibrationNearest: "/health/calibration/nearest",
   /** Calibration timeline */
-  calibrationTimeline: "/v1/health/calibration/timeline",
+  calibrationTimeline: "/health/calibration/timeline",
   /** Calibration apply list */
-  calibrationApplylist: "/v1/health/calibration/applylist",
+  calibrationApplylist: "/health/calibration/applylist",
   /** Recent calibration QA */
-  calibrationQARecent: "/v1/health/calibration/qa/recent",
+  calibrationQARecent: "/health/calibration/qa/recent",
   /** Calibration QA stats */
-  calibrationQAStats: "/v1/health/calibration/qa/stats",
+  calibrationQAStats: "/health/calibration/qa/stats",
   /** Calibration QA for specific MS */
   calibrationQA: (msPath: string) =>
-    `/v1/health/calibration/qa/${encodeURIComponent(msPath)}`,
+    `/health/calibration/qa/${encodeURIComponent(msPath)}`,
   /** GPU health status */
-  gpus: "/v1/health/gpus",
+  gpus: "/health/gpus",
   /** Specific GPU health */
-  gpu: (gpuId: string) => `/v1/health/gpus/${gpuId}`,
+  gpu: (gpuId: string) => `/health/gpus/${gpuId}`,
   /** GPU history */
-  gpuHistory: (gpuId: string) => `/v1/health/gpus/${gpuId}/history`,
+  gpuHistory: (gpuId: string) => `/health/gpus/${gpuId}/history`,
   /** Recent GPU alerts */
-  gpuAlertsRecent: "/v1/health/gpus/alerts/recent",
+  gpuAlertsRecent: "/health/gpus/alerts/recent",
   /** Pointing status */
-  pointing: "/v1/health/pointing",
+  pointing: "/health/pointing",
 } as const;
 
 // =============================================================================
@@ -90,38 +90,38 @@ export const HEALTH_ENDPOINTS = {
 
 export const IMAGES_ENDPOINTS = {
   /** List all images */
-  list: "/v1/images",
+  list: "/images",
   /** Get image detail */
-  detail: (imageId: string) => `/v1/images/${imageId}`,
+  detail: (imageId: string) => `/images/${imageId}`,
   /** Get image provenance */
-  provenance: (imageId: string) => `/v1/images/${imageId}/provenance`,
+  provenance: (imageId: string) => `/images/${imageId}/provenance`,
   /** Get image QA metrics */
-  qa: (imageId: string) => `/v1/images/${imageId}/qa`,
+  qa: (imageId: string) => `/images/${imageId}/qa`,
   /** Get FITS file */
-  fits: (imageId: string) => `/v1/images/${imageId}/fits`,
+  fits: (imageId: string) => `/images/${imageId}/fits`,
   /** Get image version chain */
-  versions: (imageId: string) => `/v1/images/${imageId}/versions`,
+  versions: (imageId: string) => `/images/${imageId}/versions`,
   /** Get image children */
-  children: (imageId: string) => `/v1/images/${imageId}/children`,
+  children: (imageId: string) => `/images/${imageId}/children`,
   /** Re-image with new parameters */
-  reimage: (imageId: string) => `/v1/images/${imageId}/reimage`,
+  reimage: (imageId: string) => `/images/${imageId}/reimage`,
   /** Create mask for image */
-  createMask: (imageId: string) => `/v1/images/${imageId}/masks`,
+  createMask: (imageId: string) => `/images/${imageId}/masks`,
   /** List masks for image */
-  listMasks: (imageId: string) => `/v1/images/${imageId}/masks`,
+  listMasks: (imageId: string) => `/images/${imageId}/masks`,
   /** Delete a mask */
   deleteMask: (imageId: string, maskId: string) =>
-    `/v1/images/${imageId}/masks/${maskId}`,
+    `/images/${imageId}/masks/${maskId}`,
   /** Create region for image */
-  createRegion: (imageId: string) => `/v1/images/${imageId}/regions`,
+  createRegion: (imageId: string) => `/images/${imageId}/regions`,
   /** List regions for image */
-  listRegions: (imageId: string) => `/v1/images/${imageId}/regions`,
+  listRegions: (imageId: string) => `/images/${imageId}/regions`,
   /** Get specific region */
   getRegion: (imageId: string, regionId: string) =>
-    `/v1/images/${imageId}/regions/${regionId}`,
+    `/images/${imageId}/regions/${regionId}`,
   /** Delete region */
   deleteRegion: (imageId: string, regionId: string) =>
-    `/v1/images/${imageId}/regions/${regionId}`,
+    `/images/${imageId}/regions/${regionId}`,
 } as const;
 
 // =============================================================================
@@ -130,15 +130,15 @@ export const IMAGES_ENDPOINTS = {
 
 export const SOURCES_ENDPOINTS = {
   /** List all sources */
-  list: "/v1/sources",
+  list: "/sources",
   /** Get source detail */
-  detail: (sourceId: string) => `/v1/sources/${sourceId}`,
+  detail: (sourceId: string) => `/sources/${sourceId}`,
   /** Get source lightcurve */
-  lightcurve: (sourceId: string) => `/v1/sources/${sourceId}/lightcurve`,
+  lightcurve: (sourceId: string) => `/sources/${sourceId}/lightcurve`,
   /** Get source variability metrics */
-  variability: (sourceId: string) => `/v1/sources/${sourceId}/variability`,
+  variability: (sourceId: string) => `/sources/${sourceId}/variability`,
   /** Get source QA */
-  qa: (sourceId: string) => `/v1/sources/${sourceId}/qa`,
+  qa: (sourceId: string) => `/sources/${sourceId}/qa`,
 } as const;
 
 // =============================================================================
@@ -147,16 +147,16 @@ export const SOURCES_ENDPOINTS = {
 
 export const MS_ENDPOINTS = {
   /** Get MS metadata */
-  metadata: (path: string) => `/v1/ms/${encodeURIComponent(path)}/metadata`,
+  metadata: (path: string) => `/ms/${encodeURIComponent(path)}/metadata`,
   /** Get calibrator matches */
   calibratorMatches: (path: string) =>
-    `/v1/ms/${encodeURIComponent(path)}/calibrator-matches`,
+    `/ms/${encodeURIComponent(path)}/calibrator-matches`,
   /** Get MS provenance */
-  provenance: (path: string) => `/v1/ms/${encodeURIComponent(path)}/provenance`,
+  provenance: (path: string) => `/ms/${encodeURIComponent(path)}/provenance`,
   /** Get raster preview */
-  raster: (path: string) => `/v1/ms/${encodeURIComponent(path)}/raster`,
+  raster: (path: string) => `/ms/${encodeURIComponent(path)}/raster`,
   /** Get antenna layout */
-  antennas: (path: string) => `/v1/ms/${encodeURIComponent(path)}/antennas`,
+  antennas: (path: string) => `/ms/${encodeURIComponent(path)}/antennas`,
 } as const;
 
 // =============================================================================
@@ -165,15 +165,15 @@ export const MS_ENDPOINTS = {
 
 export const JOBS_ENDPOINTS = {
   /** List all jobs */
-  list: "/v1/jobs",
+  list: "/jobs",
   /** Get job detail */
-  detail: (runId: string) => `/v1/jobs/${runId}`,
+  detail: (runId: string) => `/jobs/${runId}`,
   /** Get job provenance */
-  provenance: (runId: string) => `/v1/jobs/${runId}/provenance`,
+  provenance: (runId: string) => `/jobs/${runId}/provenance`,
   /** Get job logs */
-  logs: (runId: string) => `/v1/jobs/${runId}/logs`,
+  logs: (runId: string) => `/jobs/${runId}/logs`,
   /** Re-run a job */
-  rerun: (runId: string) => `/v1/jobs/${runId}/rerun`,
+  rerun: (runId: string) => `/jobs/${runId}/rerun`,
 } as const;
 
 // =============================================================================
@@ -182,13 +182,13 @@ export const JOBS_ENDPOINTS = {
 
 export const QUEUE_ENDPOINTS = {
   /** Get queue status */
-  status: "/v1/queue",
+  status: "/queue",
   /** List queued jobs */
-  jobs: "/v1/queue/jobs",
+  jobs: "/queue/jobs",
   /** Get specific queued job */
-  job: (jobId: string) => `/v1/queue/jobs/${jobId}`,
+  job: (jobId: string) => `/queue/jobs/${jobId}`,
   /** Cancel a queued job */
-  cancel: (jobId: string) => `/v1/queue/jobs/${jobId}/cancel`,
+  cancel: (jobId: string) => `/queue/jobs/${jobId}/cancel`,
 } as const;
 
 // =============================================================================
@@ -197,19 +197,19 @@ export const QUEUE_ENDPOINTS = {
 
 export const IMAGING_ENDPOINTS = {
   /** Start interactive clean session */
-  interactive: "/v1/imaging/interactive",
+  interactive: "/imaging/interactive",
   /** List active sessions */
-  sessions: "/v1/imaging/sessions",
+  sessions: "/imaging/sessions",
   /** Get session detail */
-  session: (sessionId: string) => `/v1/imaging/sessions/${sessionId}`,
+  session: (sessionId: string) => `/imaging/sessions/${sessionId}`,
   /** Delete/stop session */
-  deleteSession: (sessionId: string) => `/v1/imaging/sessions/${sessionId}`,
+  deleteSession: (sessionId: string) => `/imaging/sessions/${sessionId}`,
   /** Cleanup stale sessions */
-  cleanup: "/v1/imaging/sessions/cleanup",
+  cleanup: "/imaging/sessions/cleanup",
   /** Get imaging defaults */
-  defaults: "/v1/imaging/defaults",
+  defaults: "/imaging/defaults",
   /** Get imaging status */
-  status: "/v1/imaging/status",
+  status: "/imaging/status",
 } as const;
 
 // =============================================================================
@@ -218,56 +218,56 @@ export const IMAGING_ENDPOINTS = {
 
 export const CALIBRATOR_IMAGING_ENDPOINTS = {
   /** List calibrators */
-  calibrators: "/v1/calibrator-imaging/calibrators",
+  calibrators: "/calibrator-imaging/calibrators",
   /** Get transits for calibrator */
   transits: (calibratorName: string) =>
-    `/v1/calibrator-imaging/calibrators/${calibratorName}/transits`,
+    `/calibrator-imaging/calibrators/${calibratorName}/transits`,
   /** Get observations for calibrator */
   observations: (calibratorName: string) =>
-    `/v1/calibrator-imaging/calibrators/${calibratorName}/observations`,
+    `/calibrator-imaging/calibrators/${calibratorName}/observations`,
   /** Generate MS from observations */
-  generateMs: "/v1/calibrator-imaging/generate-ms",
+  generateMs: "/calibrator-imaging/generate-ms",
   /** Calibrate an MS */
-  calibrate: "/v1/calibrator-imaging/calibrate",
+  calibrate: "/calibrator-imaging/calibrate",
   /** Image an MS */
-  image: "/v1/calibrator-imaging/image",
+  image: "/calibrator-imaging/image",
   /** Get job status */
-  job: (jobId: string) => `/v1/calibrator-imaging/job/${jobId}`,
+  job: (jobId: string) => `/calibrator-imaging/job/${jobId}`,
   /** Get photometry results */
   photometry: (imagePath: string) =>
-    `/v1/calibrator-imaging/photometry/${encodeURIComponent(imagePath)}`,
+    `/calibrator-imaging/photometry/${encodeURIComponent(imagePath)}`,
   /** Health check */
-  health: "/v1/calibrator-imaging/health",
+  health: "/calibrator-imaging/health",
   /** Data coverage report */
-  dataCoverage: "/v1/calibrator-imaging/data-coverage",
+  dataCoverage: "/calibrator-imaging/data-coverage",
   /** Storage health */
-  storageHealth: "/v1/calibrator-imaging/health/storage",
+  storageHealth: "/calibrator-imaging/health/storage",
   /** Reconcile storage */
-  storageReconcile: "/v1/calibrator-imaging/health/storage/reconcile",
+  storageReconcile: "/calibrator-imaging/health/storage/reconcile",
   /** Index orphaned files */
-  indexOrphaned: "/v1/calibrator-imaging/health/storage/index-orphaned",
+  indexOrphaned: "/calibrator-imaging/health/storage/index-orphaned",
   /** Full storage reconciliation */
-  fullReconcile: "/v1/calibrator-imaging/health/storage/full-reconcile",
+  fullReconcile: "/calibrator-imaging/health/storage/full-reconcile",
   /** Services health */
-  servicesHealth: "/v1/calibrator-imaging/health/services",
+  servicesHealth: "/calibrator-imaging/health/services",
   /** Pipeline metrics */
-  metrics: "/v1/calibrator-imaging/metrics",
+  metrics: "/calibrator-imaging/metrics",
   /** Active alerts */
-  alertsActive: "/v1/calibrator-imaging/alerts/active",
+  alertsActive: "/calibrator-imaging/alerts/active",
   /** Alert history */
-  alertsHistory: "/v1/calibrator-imaging/alerts/history",
+  alertsHistory: "/calibrator-imaging/alerts/history",
   /** Evaluate alerts */
-  alertsEvaluate: "/v1/calibrator-imaging/alerts/evaluate",
+  alertsEvaluate: "/calibrator-imaging/alerts/evaluate",
   /** Pointing status */
-  pointingStatus: "/v1/calibrator-imaging/pointing/status",
+  pointingStatus: "/calibrator-imaging/pointing/status",
   /** Pointing transits */
-  pointingTransits: "/v1/calibrator-imaging/pointing/transits",
+  pointingTransits: "/calibrator-imaging/pointing/transits",
   /** Best calibrator recommendation */
-  bestCalibrator: "/v1/calibrator-imaging/pointing/best-calibrator",
+  bestCalibrator: "/calibrator-imaging/pointing/best-calibrator",
   /** Precompute transits */
-  precomputeTransits: "/v1/calibrator-imaging/pointing/precompute-transits",
+  precomputeTransits: "/calibrator-imaging/pointing/precompute-transits",
   /** Ensure catalogs are loaded */
-  ensureCatalogs: "/v1/calibrator-imaging/pointing/ensure-catalogs",
+  ensureCatalogs: "/calibrator-imaging/pointing/ensure-catalogs",
 } as const;
 
 // =============================================================================
@@ -334,11 +334,11 @@ export const MOSAIC_ENDPOINTS = {
 
 export const QA_ENDPOINTS = {
   /** Get QA for image */
-  image: (imageId: string) => `/v1/qa/image/${imageId}`,
+  image: (imageId: string) => `/qa/image/${imageId}`,
   /** Get QA for MS */
-  ms: (path: string) => `/v1/qa/ms/${encodeURIComponent(path)}`,
+  ms: (path: string) => `/qa/ms/${encodeURIComponent(path)}`,
   /** Get QA for job */
-  job: (runId: string) => `/v1/qa/job/${runId}`,
+  job: (runId: string) => `/qa/job/${runId}`,
 } as const;
 
 // =============================================================================
@@ -347,7 +347,7 @@ export const QA_ENDPOINTS = {
 
 export const CAL_ENDPOINTS = {
   /** Get calibration table info */
-  detail: (path: string) => `/v1/cal/${encodeURIComponent(path)}`,
+  detail: (path: string) => `/cal/${encodeURIComponent(path)}`,
 } as const;
 
 // =============================================================================
@@ -356,11 +356,11 @@ export const CAL_ENDPOINTS = {
 
 export const LOGS_ENDPOINTS = {
   /** Get logs for a run */
-  get: (runId: string) => `/v1/logs/${runId}`,
+  get: (runId: string) => `/logs/${runId}`,
   /** Query logs with filters */
-  search: "/v1/logs/search",
+  search: "/logs/search",
   /** Live tail endpoint */
-  tail: "/v1/logs/tail",
+  tail: "/logs/tail",
 } as const;
 
 // =============================================================================
@@ -369,7 +369,7 @@ export const LOGS_ENDPOINTS = {
 
 export const STATS_ENDPOINTS = {
   /** Get pipeline statistics */
-  overview: "/v1/stats",
+  overview: "/stats",
 } as const;
 
 // =============================================================================
@@ -378,9 +378,9 @@ export const STATS_ENDPOINTS = {
 
 export const CACHE_ENDPOINTS = {
   /** Get cache status */
-  status: "/v1/cache",
+  status: "/cache",
   /** Invalidate cache entries by pattern */
-  invalidate: (pattern: string) => `/v1/cache/invalidate/${pattern}`,
+  invalidate: (pattern: string) => `/cache/invalidate/${pattern}`,
 } as const;
 
 // =============================================================================
@@ -389,9 +389,9 @@ export const CACHE_ENDPOINTS = {
 
 export const SERVICES_ENDPOINTS = {
   /** Get all services status */
-  status: "/v1/services/status",
+  status: "/services/status",
   /** Get specific service status */
-  serviceStatus: (port: string) => `/v1/services/status/${port}`,
+  serviceStatus: (port: string) => `/services/status/${port}`,
 } as const;
 
 // =============================================================================
@@ -400,13 +400,13 @@ export const SERVICES_ENDPOINTS = {
 
 export const PERFORMANCE_ENDPOINTS = {
   /** Get benchmarks */
-  benchmarks: "/v1/performance/benchmarks",
+  benchmarks: "/performance/benchmarks",
   /** Get performance summary */
-  summary: "/v1/performance/summary",
+  summary: "/performance/summary",
   /** Get GPU performance */
-  gpus: "/v1/performance/gpus",
+  gpus: "/performance/gpus",
   /** Get performance trends */
-  trends: "/v1/performance/trends",
+  trends: "/performance/trends",
 } as const;
 
 // =============================================================================
@@ -415,13 +415,13 @@ export const PERFORMANCE_ENDPOINTS = {
 
 export const AUTH_ENDPOINTS = {
   /** Login */
-  login: "/v1/auth/login",
+  login: "/auth/login",
   /** Refresh token */
-  refresh: "/v1/auth/refresh",
+  refresh: "/auth/refresh",
   /** Logout */
-  logout: "/v1/auth/logout",
+  logout: "/auth/logout",
   /** Get current user */
-  me: "/v1/auth/me",
+  me: "/auth/me",
 } as const;
 
 // =============================================================================

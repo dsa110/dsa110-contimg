@@ -23,7 +23,7 @@ export async function saveImageRegions(
   payload: SaveImageRegionsRequest
 ): Promise<SaveImageRegionsResponse> {
   const response = await apiClient.post<SaveImageRegionsResponse>(
-    `/v1/images/${encodeURIComponent(imageId)}/regions`,
+    `/images/${encodeURIComponent(imageId)}/regions`,
     payload
   );
   return response.data;

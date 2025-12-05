@@ -110,18 +110,18 @@ async function fetchSavedQueries(
   if (filters?.search) params.set("search", filters.search);
 
   const response = await apiClient.get<SavedQueriesResponse>(
-    `/v1/queries?${params.toString()}`
+    `/queries?${params.toString()}`
   );
   return response.data;
 }
 
 async function fetchSavedQuery(id: string): Promise<SavedQuery> {
-  const response = await apiClient.get<SavedQuery>(`/v1/queries/${id}`);
+  const response = await apiClient.get<SavedQuery>(`/queries/${id}`);
   return response.data;
 }
 
 async function createSavedQuery(data: SaveQueryRequest): Promise<SavedQuery> {
-  const response = await apiClient.post<SavedQuery>("/v1/queries", data);
+  const response = await apiClient.post<SavedQuery>("/queries", data);
   return response.data;
 }
 
@@ -129,16 +129,16 @@ async function updateSavedQuery(
   id: string,
   data: Partial<SaveQueryRequest>
 ): Promise<SavedQuery> {
-  const response = await apiClient.patch<SavedQuery>(`/v1/queries/${id}`, data);
+  const response = await apiClient.patch<SavedQuery>(`/queries/${id}`, data);
   return response.data;
 }
 
 async function deleteSavedQuery(id: string): Promise<void> {
-  await apiClient.delete(`/v1/queries/${id}`);
+  await apiClient.delete(`/queries/${id}`);
 }
 
 async function recordQueryUsage(id: string): Promise<void> {
-  await apiClient.post(`/v1/queries/${id}/use`);
+  await apiClient.post(`/queries/${id}/use`);
 }
 
 // ============================================================================

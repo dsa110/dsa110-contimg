@@ -38,7 +38,7 @@ const AppLayout: React.FC = () => {
           className="no-underline font-bold text-xl transition-colors"
           style={{ color: "var(--color-primary)" }}
         >
-          DSA-110 Pipeline
+          DSA-110 / Continuum
         </Link>
         <nav className="flex gap-1 flex-1">
           {NAV_ITEMS.map((item) => (

@@ -15,7 +15,7 @@ import type {
   CreateSilenceInput,
 } from "@/types/alerts";
 
-const BASE_PATH = "/v1/alert-policies";
+const BASE_PATH = "/alert-policies";
 
 // =============================================================================
 // Query Keys

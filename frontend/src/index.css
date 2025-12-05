@@ -207,11 +207,11 @@
   }
 
   /* ============================================
-     CARDS - GitHub dark theme style
+     CARDS - GitHub dark theme style (borderless)
      ============================================ */
   .card {
     background-color: var(--color-bg-paper);
-    border: 1px solid var(--color-border);
+    border: none;
     border-radius: 8px;
     box-shadow: var(--card-shadow);
     transition: box-shadow 0.2s ease-in-out;
@@ -225,7 +225,7 @@
     @apply px-4 py-3 font-semibold;
     background-color: var(--color-bg-surface);
     color: var(--color-text-primary);
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: none;
     border-radius: 8px 8px 0 0;
   }
 
@@ -244,7 +244,7 @@
   .card-footer {
     @apply px-4 py-3;
     background-color: var(--color-bg-surface);
-    border-top: 1px solid var(--color-border);
+    border-top: none;
     border-radius: 0 0 8px 8px;
   }
 

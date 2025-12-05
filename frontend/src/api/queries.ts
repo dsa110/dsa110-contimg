@@ -127,17 +127,17 @@ export const queryKeys = {
 async function getQueries(
   params: QuerySearchParams = {}
 ): Promise<SavedQuery[]> {
-  const response = await apiClient.get("/v1/queries", { params });
+  const response = await apiClient.get("/queries", { params });
   return response.data;
 }
 
 async function getQuery(id: string): Promise<SavedQuery> {
-  const response = await apiClient.get(`/v1/queries/${id}`);
+  const response = await apiClient.get(`/queries/${id}`);
   return response.data;
 }
 
 async function createQuery(data: CreateQueryRequest): Promise<SavedQuery> {
-  const response = await apiClient.post("/v1/queries", data);
+  const response = await apiClient.post("/queries", data);
   return response.data;
 }
 
@@ -145,48 +145,48 @@ async function updateQuery(
   id: string,
   data: UpdateQueryRequest
 ): Promise<SavedQuery> {
-  const response = await apiClient.patch(`/v1/queries/${id}`, data);
+  const response = await apiClient.patch(`/queries/${id}`, data);
   return response.data;
 }
 
 async function deleteQuery(id: string): Promise<void> {
-  await apiClient.delete(`/v1/queries/${id}`);
+  await apiClient.delete(`/queries/${id}`);
 }
 
 async function runQuery(data: RunQueryRequest): Promise<QueryResult> {
-  const response = await apiClient.post("/v1/queries/run", data);
+  const response = await apiClient.post("/queries/run", data);
   return response.data;
 }
 
 async function favoriteQuery(id: string): Promise<SavedQuery> {
-  const response = await apiClient.post(`/v1/queries/${id}/favorite`);
+  const response = await apiClient.post(`/queries/${id}/favorite`);
   return response.data;
 }
 
 async function unfavoriteQuery(id: string): Promise<SavedQuery> {
-  const response = await apiClient.delete(`/v1/queries/${id}/favorite`);
+  const response = await apiClient.delete(`/queries/${id}/favorite`);
   return response.data;
 }
 
 async function cloneQuery(id: string): Promise<SavedQuery> {
-  const response = await apiClient.post(`/v1/queries/${id}/clone`);
+  const response = await apiClient.post(`/queries/${id}/clone`);
   return response.data;
 }
 
 async function getFavoriteQueries(): Promise<SavedQuery[]> {
-  const response = await apiClient.get("/v1/queries/favorites");
+  const response = await apiClient.get("/queries/favorites");
   return response.data;
 }
 
 async function getQueryHistory(): Promise<
   Array<{ query_id: string; query_name: string; run_at: string }>
 > {
-  const response = await apiClient.get("/v1/queries/history");
+  const response = await apiClient.get("/queries/history");
   return response.data;
 }
 
 async function getQueryStats(): Promise<QueryStats> {
-  const response = await apiClient.get("/v1/queries/stats");
+  const response = await apiClient.get("/queries/stats");
   return response.data;
 }
 

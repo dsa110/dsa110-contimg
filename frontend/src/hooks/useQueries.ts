@@ -65,7 +65,7 @@ export function useImages() {
   return useQuery({
     queryKey: queryKeys.images,
     queryFn: async () => {
-      const response = await apiClient.get<ImageSummary[]>("/v1/images");
+      const response = await apiClient.get<ImageSummary[]>("/images");
       return response.data;
     },
   });
@@ -79,7 +79,7 @@ export function useImage(imageId: string | undefined) {
     queryKey: queryKeys.image(imageId ?? ""),
     queryFn: async () => {
       const response = await apiClient.get<ImageDetail>(
-        `/v1/images/${imageId}`
+        `/images/${imageId}`
       );
       return response.data;
     },
@@ -95,7 +95,7 @@ export function useImageProvenance(imageId: string | undefined) {
     queryKey: queryKeys.imageProvenance(imageId ?? ""),
     queryFn: async () => {
       const response = await apiClient.get<ProvenanceStripProps>(
-        `/v1/images/${imageId}/provenance`
+        `/images/${imageId}/provenance`
       );
       return response.data;
     },
@@ -114,7 +114,7 @@ export function useSources() {
   return useQuery({
     queryKey: queryKeys.sources,
     queryFn: async () => {
-      const response = await apiClient.get<SourceSummary[]>("/v1/sources");
+      const response = await apiClient.get<SourceSummary[]>("/sources");
       return response.data;
     },
   });
@@ -128,7 +128,7 @@ export function useSource(sourceId: string | undefined) {
     queryKey: queryKeys.source(sourceId ?? ""),
     queryFn: async () => {
       const response = await apiClient.get<SourceDetail>(
-        `/v1/sources/${sourceId}`
+        `/sources/${sourceId}`
       );
       return response.data;
     },
@@ -150,7 +150,7 @@ export function useMS(path: string | undefined) {
     queryFn: async () => {
       const encodedPath = encodeURIComponent(path ?? "");
       const response = await apiClient.get<MSMetadata>(
-        `/v1/ms/${encodedPath}/metadata`
+        `/ms/${encodedPath}/metadata`
       );
       return response.data;
     },
@@ -167,7 +167,7 @@ export function useMSProvenance(path: string | undefined) {
     queryFn: async () => {
       const encodedPath = encodeURIComponent(path ?? "");
       const response = await apiClient.get<ProvenanceStripProps>(
-        `/v1/ms/${encodedPath}/provenance`
+        `/ms/${encodedPath}/provenance`
       );
       return response.data;
     },
@@ -186,7 +186,7 @@ export function useJobs() {
   return useQuery({
     queryKey: queryKeys.jobs,
     queryFn: async () => {
-      const response = await apiClient.get<JobSummary[]>("/v1/jobs");
+      const response = await apiClient.get<JobSummary[]>("/jobs");
       return response.data;
     },
   });
@@ -199,7 +199,7 @@ export function useJob(runId: string | undefined) {
   return useQuery({
     queryKey: queryKeys.job(runId ?? ""),
     queryFn: async () => {
-      const response = await apiClient.get<JobDetail>(`/v1/jobs/${runId}`);
+      const response = await apiClient.get<JobDetail>(`/jobs/${runId}`);
       return response.data;
     },
     enabled: !!runId,
@@ -214,7 +214,7 @@ export function useJobProvenance(runId: string | undefined) {
     queryKey: queryKeys.jobProvenance(runId ?? ""),
     queryFn: async () => {
       const response = await apiClient.get<ProvenanceStripProps>(
-        `/v1/jobs/${runId}/provenance`
+        `/jobs/${runId}/provenance`
       );
       return response.data;
     },
@@ -235,7 +235,7 @@ export function useRerunJob() {
 
   return useMutation({
     mutationFn: async (runId: string) => {
-      const response = await apiClient.post(`/v1/jobs/${runId}/rerun`);
+      const response = await apiClient.post(`/jobs/${runId}/rerun`);
       return response.data;
     },
     onSuccess: (_data, runId) => {
@@ -313,7 +313,7 @@ export function useImagingSessions() {
     queryKey: queryKeys.imagingSessions,
     queryFn: async () => {
       const response = await apiClient.get<ImagingSessionsResponse>(
-        "/v1/imaging/sessions"
+        "/imaging/sessions"
       );
       return response.data;
     },
@@ -329,7 +329,7 @@ export function useImagingSession(sessionId: string | undefined) {
     queryKey: queryKeys.imagingSession(sessionId ?? ""),
     queryFn: async () => {
       const response = await apiClient.get<ImagingSession>(
-        `/v1/imaging/sessions/${sessionId}`
+        `/imaging/sessions/${sessionId}`
       );
       return response.data;
     },
@@ -345,7 +345,7 @@ export function useImagingDefaults() {
     queryKey: queryKeys.imagingDefaults,
     queryFn: async () => {
       const response = await apiClient.get<ImagingDefaults>(
-        "/v1/imaging/defaults"
+        "/imaging/defaults"
       );
       return response.data;
     },
@@ -362,7 +362,7 @@ export function useStartInteractiveClean() {
   return useMutation({
     mutationFn: async (request: InteractiveCleanRequest) => {
       const response = await apiClient.post<InteractiveCleanResponse>(
-        "/v1/imaging/interactive",
+        "/imaging/interactive",
         request
       );
       return response.data;
@@ -383,7 +383,7 @@ export function useStopSession() {
   return useMutation({
     mutationFn: async (sessionId: string) => {
       const response = await apiClient.delete(
-        `/v1/imaging/sessions/${sessionId}`
+        `/imaging/sessions/${sessionId}`
       );
       return response.data;
     },

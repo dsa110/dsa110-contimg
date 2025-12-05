@@ -12,7 +12,7 @@ import type {
   SystemMetric,
 } from "../types/prometheus";
 
-const BASE_PATH = "/v1/metrics";
+const BASE_PATH = "/metrics";
 
 // =============================================================================
 // Query Keys

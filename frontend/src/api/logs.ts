@@ -13,7 +13,7 @@ import type {
   LogTimeRange,
 } from "@/types/logs";
 
-const BASE_PATH = "/v1/logs";
+const BASE_PATH = "/logs";
 
 // =============================================================================
 // Query Keys

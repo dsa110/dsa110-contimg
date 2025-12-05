@@ -8,6 +8,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import apiClient from "../api/client";
+import { logger } from "../utils/logger";
 import type {
   User,
   AuthTokens,
@@ -43,7 +44,7 @@ type AuthStore = AuthState & AuthActions;
 const TOKEN_KEY = "dsa110_auth_tokens";
 
 // API base path (relative to apiClient baseURL which is already /api)
-const AUTH_API_BASE = "/v1/auth";
+const AUTH_API_BASE = "/auth";
 
 /**
  * Parse JWT token to extract expiration
@@ -243,17 +244,19 @@ export const useAuthStore = create<AuthStore>()(
 
       // Actions
       login: async (credentials: LoginCredentials) => {
-        console.log("[AUTH_STORE] login() called with:", credentials.username);
+        logger.debug("login() called", {
+          username: credentials.username,
+          context: "AUTH_STORE",
+        });
         set({ isLoading: true, error: null });
         try {
-          console.log("[AUTH_STORE] Calling apiLogin...");
+          logger.debug("Calling apiLogin", { context: "AUTH_STORE" });
           const { user, tokens } = await apiLogin(credentials);
-          console.log(
-            "[AUTH_STORE] apiLogin returned user:",
-            user.username,
-            "tokens present:",
-            !!tokens.accessToken
-          );
+          logger.debug("apiLogin returned", {
+            username: user.username,
+            hasTokens: !!tokens.accessToken,
+            context: "AUTH_STORE",
+          });
           set({
             user,
             tokens,
@@ -261,9 +264,14 @@ export const useAuthStore = create<AuthStore>()(
             isLoading: false,
             error: null,
           });
-          console.log("[AUTH_STORE] State updated - isAuthenticated: true");
+          logger.debug("State updated - isAuthenticated: true", {
+            context: "AUTH_STORE",
+          });
         } catch (error) {
-          console.error("[AUTH_STORE] login() error:", error);
+          logger.error(
+            "login() failed",
+            error instanceof Error ? error : { error, context: "AUTH_STORE" }
+          );
           set({
             user: null,
             tokens: null,
@@ -354,17 +362,20 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       checkAuthStatus: async () => {
-        console.log("[AUTH_STORE] checkAuthStatus() called");
+        logger.debug("checkAuthStatus() called", { context: "AUTH_STORE" });
         set({ isLoading: true });
         try {
           const status = await apiCheckAuthStatus();
-          console.log("[AUTH_STORE] Auth status:", status);
+          logger.debug("Auth status received", {
+            status,
+            context: "AUTH_STORE",
+          });
 
           if (!status.auth_required) {
             // Auth is disabled - auto-authenticate with dev user
-            console.log(
-              "[AUTH_STORE] Auth disabled - auto-authenticating as dev user"
-            );
+            logger.debug("Auth disabled - auto-authenticating as dev user", {
+              context: "AUTH_STORE",
+            });
             set({
               user: DEV_BYPASS_USER,
               tokens: DEV_BYPASS_TOKENS,
@@ -377,10 +388,10 @@ export const useAuthStore = create<AuthStore>()(
             set({ isLoading: false });
           }
         } catch (error) {
-          console.warn(
-            "[AUTH_STORE] Failed to check auth status, assuming auth enabled:",
-            error
-          );
+          logger.warn("Failed to check auth status, assuming auth enabled", {
+            error: error instanceof Error ? error.message : String(error),
+            context: "AUTH_STORE",
+          });
           set({ isLoading: false });
         }
       },

@@ -288,7 +288,7 @@ export function useCreateTrigger() {
   return useMutation({
     mutationFn: async (request: CreateTriggerRequest) => {
       const response = await apiClient.post<PipelineTrigger>(
-        "/v1/triggers",
+        "/triggers",
         request
       );
       return response.data;
@@ -311,7 +311,7 @@ export function useUpdateTrigger() {
       ...data
     }: UpdateTriggerRequest & { id: string }) => {
       const response = await apiClient.patch<PipelineTrigger>(
-        `/v1/triggers/${id}`,
+        `/triggers/${id}`,
         data
       );
       return response.data;
@@ -333,7 +333,7 @@ export function useDeleteTrigger() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      await apiClient.delete(`/v1/triggers/${id}`);
+      await apiClient.delete(`/triggers/${id}`);
       return id;
     },
     onSuccess: () => {
@@ -351,7 +351,7 @@ export function useToggleTrigger() {
   return useMutation({
     mutationFn: async ({ id, enabled }: { id: string; enabled: boolean }) => {
       const response = await apiClient.patch<PipelineTrigger>(
-        `/v1/triggers/${id}/status`,
+        `/triggers/${id}/status`,
         { status: enabled ? "enabled" : "disabled" }
       );
       return response.data;
@@ -380,7 +380,7 @@ export function useExecuteTrigger() {
       eventData?: Record<string, unknown>;
     }) => {
       const response = await apiClient.post<TriggerExecution>(
-        `/v1/triggers/${id}/execute`,
+        `/triggers/${id}/execute`,
         { event_data: eventData }
       );
       return response.data;
@@ -412,7 +412,7 @@ export function useTestTrigger() {
         would_trigger: boolean;
         matched_conditions: string[];
         failed_conditions: string[];
-      }>(`/v1/triggers/${id}/test`, { test_data: testData });
+      }>(`/triggers/${id}/test`, { test_data: testData });
       return response.data;
     },
   });

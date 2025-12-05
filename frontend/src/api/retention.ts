@@ -14,7 +14,7 @@ import type {
   RetentionExecution,
 } from "../types/retention";
 
-const BASE_PATH = "/v1/retention";
+const BASE_PATH = "/retention";
 
 /**
  * Fetch all retention policies.

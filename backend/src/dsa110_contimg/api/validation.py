@@ -451,8 +451,39 @@ def validate_file_extension(filename: str, allowed: List[str]) -> bool:
 # Coordinate Validation
 # ============================================================================
 
-def validate_ra(ra: float) -> float:
-    """Validate Right Ascension (0-360 degrees)."""
+def normalize_ra(ra: float) -> float:
+    """Normalize Right Ascension to [0, 360) range.
+    
+    Args:
+        ra: Right Ascension in degrees (any range)
+        
+    Returns:
+        RA normalized to [0, 360) range
+        
+    Example:
+        >>> normalize_ra(-125.0)
+        235.0
+        >>> normalize_ra(400.0)
+        40.0
+    """
+    return ra % 360.0
+
+
+def validate_ra(ra: float, normalize: bool = False) -> float:
+    """Validate Right Ascension (0-360 degrees).
+    
+    Args:
+        ra: Right Ascension in degrees
+        normalize: If True, normalize to [0, 360) before validation
+        
+    Returns:
+        Validated (and optionally normalized) RA value
+        
+    Raises:
+        ValidationError: If RA is outside [0, 360] range and normalize=False
+    """
+    if normalize:
+        ra = normalize_ra(ra)
     if not 0 <= ra <= 360:
         raise ValidationError(
             field="ra",

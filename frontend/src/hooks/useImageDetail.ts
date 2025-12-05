@@ -87,7 +87,7 @@ export function useImageDetail(imageId: string | undefined) {
 
     try {
       const encodedId = encodeURIComponent(imageId);
-      await apiClient.delete(`/v1/images/${encodedId}`, noRetry());
+      await apiClient.delete(`/images/${encodedId}`, noRetry());
       // Navigate to images list after successful delete
       window.location.href = ROUTES.IMAGES.LIST;
     } catch (e) {
@@ -112,7 +112,7 @@ export function useImageDetail(imageId: string | undefined) {
       if (!imageId) return;
 
       try {
-        await apiClient.post(`/v1/images/${imageId}/rating`, {
+        await apiClient.post(`/images/${imageId}/rating`, {
           itemId: imageId,
           ...rating,
         });

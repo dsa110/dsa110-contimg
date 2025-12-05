@@ -3,14 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      http-equiv="Content-Security-Policy"
-      content="default-src 'self'; img-src 'self' data: blob: https://js9.si.edu; style-src 'self' 'unsafe-inline' https://js9.si.edu; script-src 'self' https://js9.si.edu https://cdnjs.cloudflare.com; connect-src 'self' http://127.0.0.1:* http://localhost:* ws://localhost:* ws://127.0.0.1:*; worker-src 'self' blob:; object-src 'none';"
-    />
-    <!-- Frame-ancestors is set via HTTP headers in vite.config.ts; keep directives in sync -->
+    <!-- CSP is set via HTTP headers in vite.config.ts - do not duplicate here -->
     <title>DSA-110 Pipeline UI</title>
 
-    <!-- JS9 FITS Viewer -->
+    <!-- JS9 FITS Viewer - jQuery is required first -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <link rel="stylesheet" href="https://js9.si.edu/js9/js9.css" />
     <script src="/vendor/fabric-4.6.0.min.js"></script>
     <script src="https://js9.si.edu/js9/js9prefs.js"></script>
