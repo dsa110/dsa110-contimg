@@ -270,7 +270,7 @@ src/components/example/
 ### Working with the API
 
 ```tsx
-import { useImages, useSources } from "@/hooks/useQueries";
+import { useImages, useSources } from '@/hooks/useQueries';
 
 function MyComponent() {
   const { data, isLoading, error } = useImages();
@@ -512,7 +512,7 @@ app.include_router(new_feature.router, prefix="/api/v1")
 
 ```tsx
 // frontend/src/components/new-feature/NewComponent.tsx
-import React from "react";
+import React from 'react';
 
 interface NewComponentProps {
   title: string;
@@ -527,13 +527,13 @@ Add tests:
 
 ```tsx
 // NewComponent.test.tsx
-import { render, screen } from "@testing-library/react";
-import { NewComponent } from "./NewComponent";
+import { render, screen } from '@testing-library/react';
+import { NewComponent } from './NewComponent';
 
-describe("NewComponent", () => {
-  it("renders title", () => {
+describe('NewComponent', () => {
+  it('renders title', () => {
     render(<NewComponent title="Test" />);
-    expect(screen.getByText("Test")).toBeInTheDocument();
+    expect(screen.getByText('Test')).toBeInTheDocument();
   });
 });
 ```
@@ -542,8 +542,8 @@ Add Storybook story:
 
 ```tsx
 // NewComponent.stories.tsx
-import type { Meta, StoryObj } from "@storybook/react";
-import { NewComponent } from "./NewComponent";
+import type { Meta, StoryObj } from '@storybook/react';
+import { NewComponent } from './NewComponent';
 
 const meta: Meta<typeof NewComponent> = {
   component: NewComponent,
@@ -554,7 +554,7 @@ type Story = StoryObj<typeof NewComponent>;
 
 export const Default: Story = {
   args: {
-    title: "Example Title",
+    title: 'Example Title',
   },
 };
 ```
@@ -694,7 +694,6 @@ git push origin feature/my-new-feature
 
 - **API Documentation**: `http://localhost:8000/docs` (Swagger UI)
 - **Storybook**: `http://localhost:6006` (Component library)
-- **Contract Testing Guide**: `docs/testing/CONTRACT_TESTING.md`
 - **Backend Architecture**: `backend/docs/ARCHITECTURE.md`
 - **System Context**: `docs/SYSTEM_CONTEXT.md`
 

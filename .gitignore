@@ -1,7 +1,6 @@
 # Ignore old files
 *old*/
 archive/
-.local/
 
 # Legacy frontend/backend (deprecated, kept for local reference only)
 # These directories were part of an earlier architecture and are not used in production

@@ -91,6 +91,8 @@ nav:
   - Design:
       - CASANGI Integration: design/CASANGI_INTEGRATION_PLAN.md
       - Execution Unification: design/EXECUTION_UNIFICATION_PLAN.md
+      - GPU Implementation: design/GPU_implementation_plan.md
+      - Production Readiness: design/PRODUCTION_READINESS_ROADMAP.md
 
   - Examples:
       - Real World Examples: examples/real_world_examples.md
@@ -102,6 +104,3 @@ nav:
 
   - Development:
       - Roadmap: DEVELOPMENT_ROADMAP.md
-      - Production Readiness: PRODUCTION_READINESS_ROADMAP.md
-      - GPU Implementation: GPU_implementation_plan.md
-      - Storybook: STORYBOOK.md

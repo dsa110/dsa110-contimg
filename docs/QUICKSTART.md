@@ -137,7 +137,10 @@ python -m dsa110_contimg.calibration.cli --help
 python -m dsa110_contimg.imaging.cli --help
 
 # Mosaicking
-python -m dsa110_contimg.mosaic.cli --help
+python -m dsa110_contimg.mosaic --help
+
+# Photometry
+python -m dsa110_contimg.photometry.cli --help
 ```
 
 ---

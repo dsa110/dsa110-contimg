@@ -142,12 +142,7 @@ conda activate casa6
 - `vendor/` - External dependencies (aocommon, everybeam)
 - `.ai/` - AI tool configurations (cursor, codex, gemini)
 
-## CRITICAL: Path and Database Rules
-
-**FORBIDDEN PATHS** - NEVER access files in these directories:
-
-- `.local/archive/` - Contains deprecated/legacy code and data
-- Any path containing `.local/archive` is strictly prohibited
+## Database Rules
 
 **DATABASE REQUIREMENTS**:
 
@@ -155,22 +150,6 @@ conda activate casa6
 - All catalog databases MUST be in `/data/dsa110-contimg/state/catalogs/`
 - Never use CSV, text files, or other formats as primary data sources
 - Source data files (for building databases) go in `state/catalogs/sources/`
-
-**Path Enforcement**: The `dsa110_contimg.utils.path_enforcement` module
-provides validation:
-
-```python
-from dsa110_contimg.utils.path_enforcement import (
-    validate_path,           # Raises ForbiddenPathError if path is in .local/archive
-    validate_database_path,  # Ensures .sqlite3 extension
-    validate_catalog_database,  # Full catalog DB validation
-    is_forbidden_path,       # Check without raising
-)
-
-# Example usage
-validate_path("/some/path/file.py", context="my_function")
-validate_database_path("/data/dsa110-contimg/state/catalogs/vla.sqlite3")
-```
 
 **VLA Calibrator Database**: The pipeline uses a SQLite database of VLA
 calibrators at `/data/dsa110-contimg/state/catalogs/vla_calibrators.sqlite3`.
@@ -602,11 +581,6 @@ python -m dsa110_contimg.simulation.generate_uvh5 \
   - `database/` - SQLite helpers
   - `utils/` - Shared utilities
 
-**Legacy/Deprecated** (avoid):
-
-- :cross: `.local/archive/` - Old deprecated code, external references (gitignored)
-- :cross: Files with "legacy" in the path
-
 **When in doubt**: Check `backend/src/dsa110_contimg/` first.
 
 ## Performance Considerations
@@ -676,19 +650,6 @@ insufficient resources.
    hardcoded parameters
 7. **Database Paths**: Use paths in `/data/dsa110-contimg/state/` for SQLite
    databases
-
-## External Dependencies & References
-
-The `.local/archive/references/` directory contains external repos for
-historical context (gitignored, not committed):
-
-- `.local/archive/references/dsa110-calib/` - Original calibration library
-- `.local/archive/references/dsa110-meridian-fs/` - Meridian fringestopping
-  reference
-- `.local/archive/references/dsa110-xengine/` - Correlator output format
-  documentation
-
-**Do not modify** files in `.local/archive/` - they're read-only references.
 
 ## Database Locations
 
