@@ -1,8 +1,14 @@
-import React, { Suspense, lazy } from "react";
+import React, { Suspense, lazy, type ComponentType } from "react";
 import { createBrowserRouter } from "react-router-dom";
 import AppLayout from "./components/layout/AppLayout";
 import { PageSkeleton } from "./components/common";
+import type { PageSkeletonProps } from "./components/common";
 import { ProtectedRoute } from "./components/common/auth";
+import type { UserRole } from "./types/auth";
+
+// =============================================================================
+// Lazy Page Imports
+// =============================================================================
 
 const HomePage = lazy(() => import("./pages/HomePage"));
 const HealthDashboardPage = lazy(() => import("./pages/HealthDashboardPage"));
@@ -38,6 +44,56 @@ const QARatingsPage = lazy(() => import("./pages/QARatingsPage"));
 const CommentsPage = lazy(() => import("./pages/CommentsPage"));
 const SharedQueriesPage = lazy(() => import("./pages/SharedQueriesPage"));
 const PipelineControlPage = lazy(() => import("./pages/PipelineControlPage"));
+const CARTAViewerPage = lazy(() => import("./pages/CARTAViewerPage"));
+
+// =============================================================================
+// Route Helper Functions
+// =============================================================================
+
+type SkeletonVariant = PageSkeletonProps["variant"];
+
+/**
+ * Wrap a lazy-loaded page component with Suspense and PageSkeleton fallback.
+ */
+function lazyPage(
+  Component: ComponentType,
+  variant: SkeletonVariant = "list"
+): React.ReactNode {
+  return (
+    <Suspense fallback={<PageSkeleton variant={variant} />}>
+      <Component />
+    </Suspense>
+  );
+}
+
+/**
+ * Wrap a lazy-loaded page with Suspense and ProtectedRoute.
+ */
+function protectedPage(
+  Component: ComponentType,
+  options: {
+    variant?: SkeletonVariant;
+    roles?: UserRole[];
+    permission?: string;
+  } = {}
+): React.ReactNode {
+  const {
+    variant = "list",
+    roles = ["operator", "admin"],
+    permission,
+  } = options;
+  return (
+    <Suspense fallback={<PageSkeleton variant={variant} />}>
+      <ProtectedRoute requiredRoles={roles} permission={permission}>
+        <Component />
+      </ProtectedRoute>
+    </Suspense>
+  );
+}
+
+// =============================================================================
+// Router Configuration
+// =============================================================================
 
 /**
  * Application router configuration.
@@ -68,11 +124,7 @@ export const router = createBrowserRouter(
   [
     {
       path: "/login",
-      element: (
-        <Suspense fallback={<PageSkeleton variant="detail" />}>
-          <LoginPage />
-        </Suspense>
-      ),
+      element: lazyPage(LoginPage, "detail"),
     },
     {
       path: "/",
@@ -82,287 +134,122 @@ export const router = createBrowserRouter(
         </Suspense>
       ),
       children: [
-        {
-          index: true,
-          element: (
-            <Suspense fallback={<PageSkeleton variant="cards" />}>
-              <HomePage />
-            </Suspense>
-          ),
-        },
-        {
-          path: "health",
-          element: (
-            <Suspense fallback={<PageSkeleton variant="cards" />}>
-              <HealthDashboardPage />
-            </Suspense>
-          ),
-        },
+        // Public pages
+        { index: true, element: lazyPage(HomePage, "cards") },
+        { path: "health", element: lazyPage(HealthDashboardPage, "cards") },
+
+        // Images
         {
           path: "images",
           children: [
-            {
-              index: true,
-              element: (
-                <Suspense fallback={<PageSkeleton variant="list" />}>
-                  <ImagesListPage />
-                </Suspense>
-              ),
-            },
-            {
-              path: ":imageId",
-              element: (
-                <Suspense fallback={<PageSkeleton variant="detail" />}>
-                  <ImageDetailPage />
-                </Suspense>
-              ),
-            },
+            { index: true, element: lazyPage(ImagesListPage, "list") },
+            { path: ":imageId", element: lazyPage(ImageDetailPage, "detail") },
           ],
         },
-        {
-          path: "ms/*",
-          element: (
-            <Suspense fallback={<PageSkeleton variant="detail" />}>
-              <MSDetailPage />
-            </Suspense>
-          ),
-        },
-        {
-          path: "imaging",
-          element: (
-            <Suspense fallback={<PageSkeleton variant="list" />}>
-              <ProtectedRoute
-                permission="REIMAGE"
-                requiredRoles={["operator", "admin"]}
-              >
-                <InteractiveImagingPage />
-              </ProtectedRoute>
-            </Suspense>
-          ),
-        },
-        {
-          path: "calibrator-imaging",
-          element: (
-            <Suspense fallback={<PageSkeleton variant="list" />}>
-              <ProtectedRoute
-                permission="REIMAGE"
-                requiredRoles={["operator", "admin"]}
-              >
-                <CalibratorImagingPage />
-              </ProtectedRoute>
-            </Suspense>
-          ),
-        },
-        {
-          path: "conversion",
-          element: (
-            <Suspense fallback={<PageSkeleton variant="list" />}>
-              <ProtectedRoute
-                permission="CREATE_JOB"
-                requiredRoles={["operator", "admin"]}
-              >
-                <ConversionPage />
-              </ProtectedRoute>
-            </Suspense>
-          ),
-        },
-        {
-          path: "pipeline",
-          element: (
-            <Suspense fallback={<PageSkeleton variant="list" />}>
-              <ProtectedRoute
-                permission="CREATE_JOB"
-                requiredRoles={["operator", "admin"]}
-              >
-                <PipelineControlPage />
-              </ProtectedRoute>
-            </Suspense>
-          ),
-        },
+
+        // MS (Measurement Sets)
+        { path: "ms/*", element: lazyPage(MSDetailPage, "detail") },
+
+        // Sources
         {
           path: "sources",
           children: [
-            {
-              index: true,
-              element: (
-                <Suspense fallback={<PageSkeleton variant="list" />}>
-                  <SourcesListPage />
-                </Suspense>
-              ),
-            },
+            { index: true, element: lazyPage(SourcesListPage, "list") },
             {
               path: ":sourceId",
-              element: (
-                <Suspense fallback={<PageSkeleton variant="detail" />}>
-                  <SourceDetailPage />
-                </Suspense>
-              ),
+              element: lazyPage(SourceDetailPage, "detail"),
             },
           ],
         },
+
+        // Jobs
         {
           path: "jobs",
           children: [
-            {
-              index: true,
-              element: (
-                <Suspense fallback={<PageSkeleton variant="list" />}>
-                  <JobsListPage />
-                </Suspense>
-              ),
-            },
-            {
-              path: ":runId",
-              element: (
-                <Suspense fallback={<PageSkeleton variant="detail" />}>
-                  <JobDetailPage />
-                </Suspense>
-              ),
-            },
+            { index: true, element: lazyPage(JobsListPage, "list") },
+            { path: ":runId", element: lazyPage(JobDetailPage, "detail") },
           ],
         },
+
+        // Logs
         {
           path: "logs",
           children: [
-            {
-              index: true,
-              element: (
-                <Suspense fallback={<PageSkeleton variant="list" />}>
-                  <LogsPage />
-                </Suspense>
-              ),
-            },
-            {
-              path: ":runId",
-              element: (
-                <Suspense fallback={<PageSkeleton variant="detail" />}>
-                  <LogsPage />
-                </Suspense>
-              ),
-            },
+            { index: true, element: lazyPage(LogsPage, "list") },
+            { path: ":runId", element: lazyPage(LogsPage, "detail") },
           ],
+        },
+
+        // Protected operator/admin pages
+        {
+          path: "imaging",
+          element: protectedPage(InteractiveImagingPage, {
+            permission: "REIMAGE",
+          }),
+        },
+        {
+          path: "calibrator-imaging",
+          element: protectedPage(CalibratorImagingPage, {
+            permission: "REIMAGE",
+          }),
+        },
+        {
+          path: "conversion",
+          element: protectedPage(ConversionPage, { permission: "CREATE_JOB" }),
+        },
+        {
+          path: "pipeline",
+          element: protectedPage(PipelineControlPage, {
+            permission: "CREATE_JOB",
+          }),
         },
         {
           path: "workflows",
-          element: (
-            <Suspense fallback={<PageSkeleton variant="list" />}>
-              <ProtectedRoute
-                permission="CREATE_JOB"
-                requiredRoles={["operator", "admin"]}
-              >
-                <WorkflowsPage />
-              </ProtectedRoute>
-            </Suspense>
-          ),
+          element: protectedPage(WorkflowsPage, { permission: "CREATE_JOB" }),
         },
+        { path: "retention", element: protectedPage(RetentionPoliciesPage) },
+        { path: "cleanup", element: protectedPage(DataCleanupWizardPage) },
+        { path: "backups", element: protectedPage(BackupRestorePage) },
+        { path: "triggers", element: protectedPage(PipelineTriggersPage) },
+        { path: "jupyter", element: protectedPage(JupyterPage) },
+
+        // CARTA viewer (accessible to all authenticated users)
         {
-          path: "retention",
-          element: (
-            <Suspense fallback={<PageSkeleton variant="list" />}>
-              <ProtectedRoute requiredRoles={["operator", "admin"]}>
-                <RetentionPoliciesPage />
-              </ProtectedRoute>
-            </Suspense>
-          ),
+          path: "viewer/carta",
+          element: protectedPage(CARTAViewerPage, {
+            variant: "detail",
+            roles: ["viewer", "operator", "admin"],
+          }),
         },
-        {
-          path: "cleanup",
-          element: (
-            <Suspense fallback={<PageSkeleton variant="list" />}>
-              <ProtectedRoute requiredRoles={["operator", "admin"]}>
-                <DataCleanupWizardPage />
-              </ProtectedRoute>
-            </Suspense>
-          ),
-        },
-        {
-          path: "backups",
-          element: (
-            <Suspense fallback={<PageSkeleton variant="list" />}>
-              <ProtectedRoute requiredRoles={["operator", "admin"]}>
-                <BackupRestorePage />
-              </ProtectedRoute>
-            </Suspense>
-          ),
-        },
-        {
-          path: "triggers",
-          element: (
-            <Suspense fallback={<PageSkeleton variant="list" />}>
-              <ProtectedRoute requiredRoles={["operator", "admin"]}>
-                <PipelineTriggersPage />
-              </ProtectedRoute>
-            </Suspense>
-          ),
-        },
+
+        // Pages accessible to all authenticated users
         {
           path: "vo-export",
-          element: (
-            <Suspense fallback={<PageSkeleton variant="list" />}>
-              <ProtectedRoute requiredRoles={["viewer", "operator", "admin"]}>
-                <VOExportPage />
-              </ProtectedRoute>
-            </Suspense>
-          ),
-        },
-        {
-          path: "jupyter",
-          element: (
-            <Suspense fallback={<PageSkeleton variant="list" />}>
-              <ProtectedRoute requiredRoles={["operator", "admin"]}>
-                <JupyterPage />
-              </ProtectedRoute>
-            </Suspense>
-          ),
+          element: protectedPage(VOExportPage, {
+            roles: ["viewer", "operator", "admin"],
+          }),
         },
         {
           path: "ratings",
-          element: (
-            <Suspense fallback={<PageSkeleton variant="list" />}>
-              <ProtectedRoute requiredRoles={["viewer", "operator", "admin"]}>
-                <QARatingsPage />
-              </ProtectedRoute>
-            </Suspense>
-          ),
-        },
-        {
-          path: "*",
-          element: (
-            <Suspense fallback={<PageSkeleton variant="list" />}>
-              <ProtectedRoute requiredRoles={["viewer", "operator", "admin"]}>
-                <QARatingsPage />
-              </ProtectedRoute>
-            </Suspense>
-          ),
+          element: protectedPage(QARatingsPage, {
+            roles: ["viewer", "operator", "admin"],
+          }),
         },
         {
           path: "comments",
-          element: (
-            <Suspense fallback={<PageSkeleton variant="list" />}>
-              <ProtectedRoute requiredRoles={["viewer", "operator", "admin"]}>
-                <CommentsPage />
-              </ProtectedRoute>
-            </Suspense>
-          ),
+          element: protectedPage(CommentsPage, {
+            roles: ["viewer", "operator", "admin"],
+          }),
         },
         {
           path: "queries",
-          element: (
-            <Suspense fallback={<PageSkeleton variant="list" />}>
-              <ProtectedRoute requiredRoles={["viewer", "operator", "admin"]}>
-                <SharedQueriesPage />
-              </ProtectedRoute>
-            </Suspense>
-          ),
+          element: protectedPage(SharedQueriesPage, {
+            roles: ["viewer", "operator", "admin"],
+          }),
         },
-        {
-          path: "*",
-          element: (
-            <Suspense fallback={<div className="p-6">Loading...</div>}>
-              <NotFoundPage />
-            </Suspense>
-          ),
-        },
+
+        // 404 fallback
+        { path: "*", element: lazyPage(NotFoundPage, "list") },
       ],
     },
   ],

@@ -1,6 +1,48 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
-// Import Aladin Lite from local npm package (v3.7.3-beta)
-import A, { type AladinInstance } from "aladin-lite";
+
+// Aladin Lite is loaded from CDN (see index.html) to avoid WASM bundling issues
+// The global 'A' object is available after the script loads
+declare const A: {
+  init: Promise<void>;
+  aladin: (container: HTMLElement | string, options?: AladinOptions) => AladinInstance;
+  catalog: (options?: CatalogOptions) => Catalog;
+  source: (ra: number, dec: number, data?: Record<string, unknown>) => Source;
+};
+
+interface AladinOptions {
+  target?: string;
+  fov?: number;
+  survey?: string;
+  showReticle?: boolean;
+  showZoomControl?: boolean;
+  showFullscreenControl?: boolean;
+  showLayersControl?: boolean;
+  showGotoControl?: boolean;
+  showShareControl?: boolean;
+  showCatalog?: boolean;
+  showFrame?: boolean;
+}
+
+interface AladinInstance {
+  gotoRaDec: (ra: number, dec: number) => void;
+  setFov: (fov: number) => void;
+  addCatalog: (catalog: Catalog) => void;
+  destroy: () => void;
+}
+
+interface CatalogOptions {
+  name?: string;
+  sourceSize?: number;
+  color?: string;
+}
+
+interface Catalog {
+  addSources: (sources: Source[]) => void;
+}
+
+interface Source {
+  data?: Record<string, unknown>;
+}
 
 export interface AladinLiteViewerProps {
   /** Right Ascension in degrees */

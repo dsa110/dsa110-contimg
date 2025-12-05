@@ -25,7 +25,13 @@ interface ServiceStatus {
   failureCount?: number;
 }
 
-function StatusBadge({ status, error }: { status: ServiceStatus["status"]; error?: string }) {
+function StatusBadge({
+  status,
+  error,
+}: {
+  status: ServiceStatus["status"];
+  error?: string;
+}) {
   const styles: Record<ServiceStatus["status"], string> = {
     running:
       "bg-green-100 text-green-800 border-green-300 dark:bg-green-500/20 dark:text-green-400 dark:border-green-500/30",
@@ -67,10 +73,13 @@ function SourceBadge({ source }: { source?: ServiceStatus["source"] }) {
   if (!source) return null;
 
   const styles: Record<NonNullable<ServiceStatus["source"]>, string> = {
-    "backend-api": "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400",
-    "client-probe": "bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400",
+    "backend-api":
+      "bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400",
+    "client-probe":
+      "bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400",
     cached: "bg-gray-50 text-gray-500 dark:bg-gray-500/10 dark:text-gray-400",
-    fallback: "bg-yellow-50 text-yellow-600 dark:bg-yellow-500/10 dark:text-yellow-400",
+    fallback:
+      "bg-yellow-50 text-yellow-600 dark:bg-yellow-500/10 dark:text-yellow-400",
   };
 
   const labels: Record<NonNullable<ServiceStatus["source"]>, string> = {
@@ -81,7 +90,9 @@ function SourceBadge({ source }: { source?: ServiceStatus["source"] }) {
   };
 
   return (
-    <span className={`px-1.5 py-0.5 text-[10px] rounded ${styles[source]}`}>{labels[source]}</span>
+    <span className={`px-1.5 py-0.5 text-[10px] rounded ${styles[source]}`}>
+      {labels[source]}
+    </span>
   );
 }
 
@@ -91,16 +102,31 @@ function SourceBadge({ source }: { source?: ServiceStatus["source"] }) {
 function FailureBadge({ count }: { count?: number }) {
   if (!count || count === 0) return null;
 
-  const severity = count >= 3 ? "text-red-500" : count >= 2 ? "text-orange-500" : "text-yellow-500";
+  const severity =
+    count >= 3
+      ? "text-red-500"
+      : count >= 2
+      ? "text-orange-500"
+      : "text-yellow-500";
 
   return (
-    <span className={`text-[10px] ${severity}`} title={`${count} consecutive failure(s)`}>
+    <span
+      className={`text-[10px] ${severity}`}
+      title={`${count} consecutive failure(s)`}
+    >
       ×{count}
     </span>
   );
 }
 
-export function ServiceStatusPanel() {
+export interface ServiceStatusPanelProps {
+  /** Show compact version (summary only) */
+  compact?: boolean;
+}
+
+export function ServiceStatusPanel({
+  compact = false,
+}: ServiceStatusPanelProps = {}) {
   // Create health checker instance (memoized)
   const healthChecker = useMemo(() => new ServiceHealthChecker(), []);
 
@@ -131,25 +157,30 @@ export function ServiceStatusPanel() {
       const result = await healthChecker.checkAllServices();
 
       // Transform results to internal state
-      const updatedServices: ServiceStatus[] = result.results.map((svc: ServiceHealthResult) => ({
-        name: svc.name,
-        port: svc.port,
-        description: svc.description,
-        status: svc.status,
-        responseTime: svc.responseTime,
-        lastChecked: svc.lastChecked,
-        error: svc.error,
-        details: svc.details,
-        source: svc.source,
-        failureCount: svc.failureCount,
-      }));
+      const updatedServices: ServiceStatus[] = result.results.map(
+        (svc: ServiceHealthResult) => ({
+          name: svc.name,
+          port: svc.port,
+          description: svc.description,
+          status: svc.status,
+          responseTime: svc.responseTime,
+          lastChecked: svc.lastChecked,
+          error: svc.error,
+          details: svc.details,
+          source: svc.source,
+          failureCount: svc.failureCount,
+        })
+      );
 
       setServices(updatedServices);
       setLastRefresh(new Date());
       setApiAvailable(result.apiAvailable);
       setDiagnostics(result.diagnostics);
     } catch (err) {
-      logger.error("Health check failed", err instanceof Error ? err : { error: err });
+      logger.error(
+        "Health check failed",
+        err instanceof Error ? err : { error: err }
+      );
       // On complete failure, mark everything as unknown
       setServices((prev) =>
         prev.map((s) => ({
@@ -174,13 +205,95 @@ export function ServiceStatusPanel() {
   }, [checkAllServices]);
 
   const runningCount = services.filter((s) => s.status === "running").length;
+  const stoppedCount = services.filter(
+    (s) => s.status === "stopped" || s.status === "error"
+  ).length;
   const totalCount = services.length;
 
+  // Compact mode: show summary only
+  if (compact) {
+    return (
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  runningCount === totalCount
+                    ? "bg-green-500"
+                    : stoppedCount > 0
+                    ? "bg-red-500"
+                    : "bg-yellow-500"
+                }`}
+              />
+              <span
+                className="text-sm"
+                style={{ color: "var(--color-text-primary)" }}
+              >
+                {runningCount}/{totalCount} services
+              </span>
+            </div>
+            {stoppedCount > 0 && (
+              <span className="text-xs text-red-600">{stoppedCount} down</span>
+            )}
+          </div>
+          <button
+            onClick={checkAllServices}
+            disabled={isRefreshing}
+            className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 disabled:opacity-50 rounded transition-colors"
+            style={{ color: "var(--color-text-secondary)" }}
+          >
+            {isRefreshing ? "..." : "Refresh"}
+          </button>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+          {services.map((service) => (
+            <div
+              key={service.port}
+              className="flex items-center gap-2 px-2 py-1.5 rounded text-xs"
+              style={{ backgroundColor: "var(--color-bg-surface)" }}
+              title={service.description}
+            >
+              <span
+                className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                  service.status === "running"
+                    ? "bg-green-500"
+                    : service.status === "checking"
+                    ? "bg-blue-500 animate-pulse"
+                    : service.status === "stopped" || service.status === "error"
+                    ? "bg-red-500"
+                    : "bg-yellow-500"
+                }`}
+              />
+              <span
+                className="truncate"
+                style={{ color: "var(--color-text-primary)" }}
+              >
+                {service.name}
+              </span>
+              {service.responseTime !== undefined && (
+                <span
+                  className="text-[10px] ml-auto"
+                  style={{ color: "var(--color-text-secondary)" }}
+                >
+                  {service.responseTime.toFixed(0)}ms
+                </span>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Full mode
   return (
     <div className="card p-4">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Service Status</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+            Service Status
+          </h2>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             {runningCount}/{totalCount} services running
           </p>
@@ -209,8 +322,8 @@ export function ServiceStatusPanel() {
             </span>
           </div>
           <p className="mt-1 text-yellow-700 dark:text-yellow-300">
-            Using client-side probes as fallback. Some services (e.g., Redis) cannot be checked
-            directly from the browser.
+            Using client-side probes as fallback. Some services (e.g., Redis)
+            cannot be checked directly from the browser.
           </p>
           {diagnostics && (
             <details className="mt-2">
@@ -239,8 +352,14 @@ export function ServiceStatusPanel() {
                               : "text-red-600 dark:text-red-400"
                           }
                         >
-                          {probe.service}: {probe.success ? "✓" : "✗"} ({probe.source})
-                          {probe.error && <span className="text-gray-500"> - {probe.error}</span>}
+                          {probe.service}: {probe.success ? "✓" : "✗"} (
+                          {probe.source})
+                          {probe.error && (
+                            <span className="text-gray-500">
+                              {" "}
+                              - {probe.error}
+                            </span>
+                          )}
                         </li>
                       ))}
                     </ul>
@@ -274,7 +393,9 @@ export function ServiceStatusPanel() {
               <th className="pb-2 font-medium">Status</th>
               <th className="pb-2 font-medium">Response</th>
               <th className="pb-2 font-medium hidden md:table-cell">Source</th>
-              <th className="pb-2 font-medium hidden lg:table-cell">Description</th>
+              <th className="pb-2 font-medium hidden lg:table-cell">
+                Description
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
@@ -308,7 +429,10 @@ export function ServiceStatusPanel() {
                 <td className="py-3 text-gray-400 dark:text-gray-500 text-xs hidden lg:table-cell">
                   {service.description}
                   {service.error && (
-                    <span className="ml-2 text-red-500 dark:text-red-400" title={service.error}>
+                    <span
+                      className="ml-2 text-red-500 dark:text-red-400"
+                      title={service.error}
+                    >
                       ({service.error})
                     </span>
                   )}
@@ -327,36 +451,48 @@ export function ServiceStatusPanel() {
           </summary>
           <div className="mt-2 p-3 bg-gray-50 dark:bg-gray-800/50 rounded text-gray-600 dark:text-gray-400 text-xs space-y-1">
             <p>
-              Health checks are primarily performed <strong>server-side</strong> by the FastAPI
-              backend, with client-side fallback probing when the backend is unavailable.
+              Health checks are primarily performed <strong>server-side</strong>{" "}
+              by the FastAPI backend, with client-side fallback probing when the
+              backend is unavailable.
             </p>
             <p>
               <strong>Data sources:</strong>
             </p>
             <p>
-              • <span className="text-blue-600 dark:text-blue-400">API</span> — Results from backend
-              health checker (most reliable)
+              • <span className="text-blue-600 dark:text-blue-400">API</span> —
+              Results from backend health checker (most reliable)
             </p>
             <p>
-              • <span className="text-purple-600 dark:text-purple-400">Direct</span> — Client-side
-              HTTP probe (may fail due to CORS)
+              •{" "}
+              <span className="text-purple-600 dark:text-purple-400">
+                Direct
+              </span>{" "}
+              — Client-side HTTP probe (may fail due to CORS)
             </p>
             <p>
-              • <span className="text-gray-500">Cached</span> — Recent result from cache (5s TTL)
+              • <span className="text-gray-500">Cached</span> — Recent result
+              from cache (5s TTL)
             </p>
             <p>
-              • <span className="text-yellow-600 dark:text-yellow-400">Unknown</span> — Service
-              cannot be probed (e.g., Redis)
+              •{" "}
+              <span className="text-yellow-600 dark:text-yellow-400">
+                Unknown
+              </span>{" "}
+              — Service cannot be probed (e.g., Redis)
             </p>
             <p className="mt-2">
               <strong>Resilience features:</strong>
             </p>
-            <p>• Retry with exponential backoff (3 attempts, 500ms-5s delays)</p>
+            <p>
+              • Retry with exponential backoff (3 attempts, 500ms-5s delays)
+            </p>
             <p>• Consecutive failure tracking (×N badge)</p>
             <p>• Auto-refresh every 30 seconds</p>
             <p>
               • Managed by systemd with auto-restart via{" "}
-              <code className="text-blue-600 dark:text-blue-400">/usr/local/bin/claim-port.sh</code>
+              <code className="text-blue-600 dark:text-blue-400">
+                /usr/local/bin/claim-port.sh
+              </code>
             </p>
           </div>
         </details>

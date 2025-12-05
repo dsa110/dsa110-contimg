@@ -75,6 +75,20 @@ export const FEATURES = {
     import.meta.env.VITE_ENABLE_CALIBRATION_COMPARISON !== "false",
   /** Enable ABSURD workflow integration (optional service) */
   enableABSURD: import.meta.env.VITE_ENABLE_ABSURD === "true",
+
+  /** Enable CARTA viewer integration */
+  enableCARTA: import.meta.env.VITE_ENABLE_CARTA !== "false",
+} as const;
+
+/**
+ * CARTA Viewer Configuration
+ */
+export const CARTA_CONFIG = {
+  /** Base URL for CARTA server (if deployed separately) */
+  baseUrl: import.meta.env.VITE_CARTA_URL || "/carta",
+
+  /** API endpoint for CARTA status checks */
+  statusEndpoint: "/api/v1/carta/status",
 } as const;
 
 /**
@@ -85,6 +99,7 @@ export const config = {
   app: APP_CONFIG,
   ui: UI_CONFIG,
   features: FEATURES,
+  carta: CARTA_CONFIG,
 
   /** Legacy flat access for gradual migration */
   apiUrl: API_CONFIG.baseUrl,

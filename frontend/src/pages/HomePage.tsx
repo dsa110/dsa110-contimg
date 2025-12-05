@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { SkyCoverageMapVAST, type Pointing } from "../components/skymap";
 import { ServiceStatusPanel } from "../components/stats";
@@ -35,7 +35,7 @@ const formatRelativeTime = (value?: string) => {
   const diffMins = Math.floor(diffMs / 60000);
   const diffHours = Math.floor(diffMins / 60);
   const diffDays = Math.floor(diffHours / 24);
-  
+
   if (diffMins < 1) return "just now";
   if (diffMins < 60) return `${diffMins}m ago`;
   if (diffHours < 24) return `${diffHours}h ago`;
@@ -45,8 +45,16 @@ const formatRelativeTime = (value?: string) => {
 const HomePage: React.FC = () => {
   const { data: images, dataUpdatedAt: imagesUpdatedAt } = useImages();
   const { data: sources } = useSources();
-  const { data: jobs, isLoading: jobsLoading } = useJobs();
+  const { data: jobs, isLoading: jobsLoading, dataUpdatedAt: jobsUpdatedAt } = useJobs();
   const pipelineStatusQuery = usePipelineStatus(30000);
+
+  // Capture current time when data updates to avoid impure Date.now() in render
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
+  
+  useEffect(() => {
+    // Update current time when data changes
+    setCurrentTime(Date.now());
+  }, [imagesUpdatedAt, jobsUpdatedAt]);
 
   const pointings: Pointing[] = useMemo(() => {
     if (!images) return [];
@@ -73,25 +81,33 @@ const HomePage: React.FC = () => {
 
   // Calculate alerts
   const alerts = useMemo(() => {
-    const alertList: { type: "error" | "warning" | "info"; message: string; link?: string }[] = [];
-    
+    const alertList: {
+      type: "error" | "warning" | "info";
+      message: string;
+      link?: string;
+    }[] = [];
+
     // Failed jobs in last 24 hours
-    const recentFailedJobs = jobs?.filter((job) => {
-      if (job.status !== "failed") return false;
-      const finishedAt = job.finished_at ? new Date(job.finished_at) : null;
-      if (!finishedAt) return false;
-      const hoursSinceFinished = (Date.now() - finishedAt.getTime()) / (1000 * 60 * 60);
-      return hoursSinceFinished < 24;
-    }) ?? [];
-    
+    const recentFailedJobs =
+      jobs?.filter((job) => {
+        if (job.status !== "failed") return false;
+        const finishedAt = job.finished_at ? new Date(job.finished_at) : null;
+        if (!finishedAt) return false;
+        const hoursSinceFinished =
+          (currentTime - finishedAt.getTime()) / (1000 * 60 * 60);
+        return hoursSinceFinished < 24;
+      }) ?? [];
+
     if (recentFailedJobs.length > 0) {
       alertList.push({
         type: "error",
-        message: `${recentFailedJobs.length} job${recentFailedJobs.length > 1 ? "s" : ""} failed in the last 24 hours`,
+        message: `${recentFailedJobs.length} job${
+          recentFailedJobs.length > 1 ? "s" : ""
+        } failed in the last 24 hours`,
         link: ROUTES.JOBS.LIST + "?status=failed",
       });
     }
-    
+
     // Pipeline unhealthy
     if (pipelineStatusQuery.data && !pipelineStatusQuery.data.is_healthy) {
       alertList.push({
@@ -100,30 +116,36 @@ const HomePage: React.FC = () => {
         link: ROUTES.PIPELINE,
       });
     }
-    
+
     // Stale data warning (no new images in 24 hours)
     if (images && images.length > 0) {
       const latestImage = images.reduce((latest, img) => {
         const imgDate = img.created_at ? new Date(img.created_at) : null;
-        const latestDate = latest?.created_at ? new Date(latest.created_at) : null;
+        const latestDate = latest?.created_at
+          ? new Date(latest.created_at)
+          : null;
         if (!imgDate) return latest;
         if (!latestDate) return img;
         return imgDate > latestDate ? img : latest;
       }, images[0]);
-      
+
       if (latestImage?.created_at) {
-        const hoursSinceLatest = (Date.now() - new Date(latestImage.created_at).getTime()) / (1000 * 60 * 60);
+        const hoursSinceLatest =
+          (currentTime - new Date(latestImage.created_at).getTime()) /
+          (1000 * 60 * 60);
         if (hoursSinceLatest > 24) {
           alertList.push({
             type: "info",
-            message: `No new images in ${Math.floor(hoursSinceLatest / 24)} days`,
+            message: `No new images in ${Math.floor(
+              hoursSinceLatest / 24
+            )} days`,
           });
         }
       }
     }
-    
+
     return alertList;
-  }, [jobs, images, pipelineStatusQuery.data]);
+  }, [jobs, images, pipelineStatusQuery.data, currentTime]);
 
   const heroMetrics = useMemo<HeroMetric[]>(() => {
     const totalImages = images?.length ?? 0;
@@ -182,7 +204,7 @@ const HomePage: React.FC = () => {
     ? "bg-emerald-100 text-emerald-800"
     : "bg-amber-100 text-amber-800";
 
-  const dataFreshness = imagesUpdatedAt 
+  const dataFreshness = imagesUpdatedAt
     ? formatRelativeTime(new Date(imagesUpdatedAt).toISOString())
     : "—";
 
@@ -204,10 +226,16 @@ const HomePage: React.FC = () => {
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <Link to={ROUTES.IMAGES.LIST} className="btn btn-primary text-xs px-3 py-1.5">
+              <Link
+                to={ROUTES.IMAGES.LIST}
+                className="btn btn-primary text-xs px-3 py-1.5"
+              >
                 Browse images
               </Link>
-              <Link to={ROUTES.JOBS.LIST} className="btn btn-outline-primary text-xs px-3 py-1.5">
+              <Link
+                to={ROUTES.JOBS.LIST}
+                className="btn btn-outline-primary text-xs px-3 py-1.5"
+              >
                 View jobs
               </Link>
               <a
@@ -244,7 +272,11 @@ const HomePage: React.FC = () => {
             >
               <div className="flex items-center gap-2">
                 <span className="font-medium">
-                  {alert.type === "error" ? "!" : alert.type === "warning" ? "!" : "i"}
+                  {alert.type === "error"
+                    ? "!"
+                    : alert.type === "warning"
+                    ? "!"
+                    : "i"}
                 </span>
                 <span>{alert.message}</span>
               </div>
@@ -372,17 +404,29 @@ const HomePage: React.FC = () => {
                   <th className="pb-2 font-medium text-right">Duration</th>
                 </tr>
               </thead>
-              <tbody className="divide-y" style={{ borderColor: "var(--color-border)" }}>
+              <tbody
+                className="divide-y"
+                style={{ borderColor: "var(--color-border)" }}
+              >
                 {latestJobs.map((job) => {
-                  const started = job.started_at ? new Date(job.started_at) : null;
-                  const finished = job.finished_at ? new Date(job.finished_at) : null;
-                  const durationMs = started && finished ? finished.getTime() - started.getTime() : null;
-                  const durationStr = durationMs 
-                    ? durationMs < 60000 
+                  const started = job.started_at
+                    ? new Date(job.started_at)
+                    : null;
+                  const finished = job.finished_at
+                    ? new Date(job.finished_at)
+                    : null;
+                  const durationMs =
+                    started && finished
+                      ? finished.getTime() - started.getTime()
+                      : null;
+                  const durationStr = durationMs
+                    ? durationMs < 60000
                       ? `${Math.round(durationMs / 1000)}s`
                       : `${Math.round(durationMs / 60000)}m`
-                    : job.status === "running" ? "..." : "—";
-                  
+                    : job.status === "running"
+                    ? "..."
+                    : "—";
+
                   return (
                     <tr key={job.run_id} className="hover:bg-gray-50/50">
                       <td className="py-2">
@@ -391,8 +435,8 @@ const HomePage: React.FC = () => {
                           className="font-medium hover:underline"
                           style={{ color: "var(--color-primary)" }}
                         >
-                          {job.run_id.length > 30 
-                            ? job.run_id.slice(0, 30) + "..." 
+                          {job.run_id.length > 30
+                            ? job.run_id.slice(0, 30) + "..."
                             : job.run_id}
                         </Link>
                       </td>
@@ -435,7 +479,9 @@ const HeroMetricCard: React.FC<HeroMetric> = ({
   description,
 }) => (
   <div className="rounded-xl border border-white/20 bg-white/5 px-4 py-3 backdrop-blur">
-    <p className="text-[10px] uppercase tracking-[0.2em] text-white/60">{label}</p>
+    <p className="text-[10px] uppercase tracking-[0.2em] text-white/60">
+      {label}
+    </p>
     <p className="text-2xl font-semibold text-white">{value}</p>
     <p className="text-xs text-white/70">{description}</p>
   </div>
