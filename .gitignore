@@ -242,6 +242,7 @@ site/
 .idea/
 *.sublime-project
 *.sublime-workspace
+*.code-workspace
 
 # Kluster
 .kluster
